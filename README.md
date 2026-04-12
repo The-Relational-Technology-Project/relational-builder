@@ -19,6 +19,9 @@ Relational Builder combines three things that don't yet exist together:
 - **RTP Knowledge Base** -- browse 20+ community tools and 45+ stories from the relational tech network, all injected into the AI's context
 - **Network Activity feed** -- see what other builders are shipping across the ecosystem, pulled live from [updates.relationaltechproject.org](https://updates.relationaltechproject.org)
 - **Publish to Commons** -- export your project as a zip with a `.reltech.yml` manifest, push to GitHub, and the [network watcher](https://github.com/The-Relational-Technology-Project/watcher) discovers it automatically
+- **Deploy to Netlify/Vercel** -- deploy directly from the builder with a personal access token
+- **GitHub two-way sync** -- connect a GitHub repo, push project files as atomic commits, and pull remote changes back into the builder
+- **RAG-powered context** -- AI responses informed by the most relevant KB tools, stories, and network activity for each message
 - **Resizable panels** -- drag dividers to resize the chat, preview, and knowledge panels
 - **Session persistence** -- your chat and project files survive page refreshes via localStorage
 - **Model-agnostic** -- works with Claude, OpenAI, OpenRouter, or any OpenAI-compatible endpoint
