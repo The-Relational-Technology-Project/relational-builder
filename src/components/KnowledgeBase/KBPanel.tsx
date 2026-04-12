@@ -3,7 +3,7 @@ import { searchItems } from '@/knowledge/queries';
 import { useKnowledgeStore } from '@/store/knowledge-store';
 import { ToolCard } from './ToolCard';
 import { StoryCard } from './StoryCard';
-import { Search, Loader2 } from 'lucide-react';
+import { Search, Loader2, AlertTriangle, RefreshCw } from 'lucide-react';
 
 type TabId = 'tools' | 'stories';
 
@@ -11,10 +11,10 @@ export function KBPanel() {
   const tools = useKnowledgeStore(s => s.tools);
   const stories = useKnowledgeStore(s => s.stories);
   const loading = useKnowledgeStore(s => s.loading);
-  const loaded = useKnowledgeStore(s => s.loaded);
+  const error = useKnowledgeStore(s => s.error);
+  const loadAll = useKnowledgeStore(s => s.loadAll);
   const [activeTab, setActiveTab] = useState<TabId>('tools');
   const [search, setSearch] = useState('');
-  const error = !loading && !loaded ? 'Failed to load' : null;
 
   const filteredTools = useMemo(
     () => searchItems(tools, search),
@@ -65,8 +65,20 @@ export function KBPanel() {
           </div>
         )}
         {error && (
-          <div className="text-xs text-center py-4 text-destructive">
-            {error}
+          <div className="flex flex-col items-center gap-2 py-6 px-4 text-center">
+            <AlertTriangle className="size-4 text-amber-500" />
+            <p className="text-xs text-muted-foreground">{error}</p>
+            <button
+              onClick={() => {
+                // Reset loaded state so loadAll can retry
+                useKnowledgeStore.setState({ loaded: false, error: null });
+                loadAll();
+              }}
+              className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground underline"
+            >
+              <RefreshCw className="size-3" />
+              Retry
+            </button>
           </div>
         )}
         {!loading && !error && activeTab === 'tools' && (

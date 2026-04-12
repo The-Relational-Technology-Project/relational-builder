@@ -82,11 +82,28 @@ cd relational-builder
 # Install dependencies
 npm install
 
+# Copy env config (optional — works without it for local dev)
+cp .env.example .env
+
 # Start the dev server
 npm run dev
 ```
 
 Open [http://localhost:5173](http://localhost:5173) and start building.
+
+### LLM Proxy (Production)
+
+In production, LLM API calls route through a Supabase Edge Function (`supabase/functions/llm-proxy`) to avoid CORS issues and keep API keys server-side. The proxy accepts OpenAI-compatible requests and translates them for each provider (Anthropic, OpenAI, RTP-hosted vLLM).
+
+```bash
+# Deploy the proxy (requires Supabase CLI)
+supabase functions deploy llm-proxy --no-verify-jwt
+
+# Set the proxy URL in your .env
+VITE_LLM_PROXY_URL=https://YOUR_PROJECT.supabase.co/functions/v1/llm-proxy
+```
+
+Without a proxy URL, Claude falls back to direct browser-to-Anthropic calls (fine for local development with BYOK).
 
 ### API Keys
 

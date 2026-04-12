@@ -2,8 +2,17 @@ import type { LLMProvider, ChatMessage, StreamCallbacks, ModelInfo } from './typ
 
 /**
  * Anthropic Claude provider (Tier 2 -- BYOK).
- * Uses the Anthropic Messages API directly.
+ *
+ * Routes through the LLM proxy (Supabase Edge Function) which translates
+ * OpenAI-format requests to the Anthropic Messages API server-side.
+ * This eliminates CORS issues and the dangerous direct browser access header.
+ *
+ * Falls back to direct Anthropic API calls if no proxy URL is configured
+ * (for local development).
  */
+
+const PROXY_URL = import.meta.env.VITE_LLM_PROXY_URL ?? '';
+
 export class ClaudeProvider implements LLMProvider {
   readonly id = 'claude';
   readonly name = 'Claude (Anthropic)';
@@ -35,7 +44,58 @@ export class ClaudeProvider implements LLMProvider {
     callbacks: StreamCallbacks,
     signal?: AbortSignal,
   ): Promise<void> {
-    // Separate system message from conversation
+    if (PROXY_URL) {
+      return this.chatViaProxy(messages, model, callbacks, signal);
+    }
+    return this.chatDirect(messages, model, callbacks, signal);
+  }
+
+  /**
+   * Route through the LLM proxy (production path).
+   * Sends OpenAI-format request; proxy translates to Anthropic API.
+   * Response comes back as OpenAI-format SSE.
+   */
+  private async chatViaProxy(
+    messages: ChatMessage[],
+    model: string,
+    callbacks: StreamCallbacks,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    const res = await fetch(PROXY_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.apiKey}`,
+        'x-llm-provider': 'anthropic',
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: 8192,
+        stream: true,
+        messages: messages.map(m => ({ role: m.role, content: m.content })),
+      }),
+      signal,
+    });
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => res.statusText);
+      throw new Error(`Claude API error (${res.status}): ${text}`);
+    }
+
+    // Parse OpenAI-format SSE (proxy already translated from Anthropic)
+    await this.readOpenAIStream(res, callbacks, signal);
+  }
+
+  /**
+   * Direct Anthropic API call (development fallback).
+   * Uses the dangerous direct browser access header — only for local dev.
+   */
+  private async chatDirect(
+    messages: ChatMessage[],
+    model: string,
+    callbacks: StreamCallbacks,
+    signal?: AbortSignal,
+  ): Promise<void> {
     const systemMsg = messages.find(m => m.role === 'system');
     const conversationMsgs = messages
       .filter(m => m.role !== 'system')
@@ -51,9 +111,6 @@ export class ClaudeProvider implements LLMProvider {
       body.system = systemMsg.content;
     }
 
-    // Note: direct browser→Anthropic requests require CORS.
-    // In production this should go through a lightweight proxy.
-    // For BYOK users, we use the anthropic API via their CORS proxy or a local proxy.
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -71,6 +128,62 @@ export class ClaudeProvider implements LLMProvider {
       throw new Error(`Claude API error (${res.status}): ${text}`);
     }
 
+    await this.readAnthropicStream(res, callbacks, signal);
+  }
+
+  /** Parse OpenAI-format SSE stream */
+  private async readOpenAIStream(
+    res: Response,
+    callbacks: StreamCallbacks,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    const reader = res.body?.getReader();
+    if (!reader) throw new Error('No response body');
+
+    const decoder = new TextDecoder();
+    let fullText = '';
+    let buffer = '';
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() ?? '';
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed || !trimmed.startsWith('data: ')) continue;
+          const data = trimmed.slice(6);
+          if (data === '[DONE]') continue;
+
+          try {
+            const parsed = JSON.parse(data);
+            const token = parsed.choices?.[0]?.delta?.content;
+            if (token) {
+              fullText += token;
+              callbacks.onToken(token);
+            }
+          } catch {
+            // skip malformed chunks
+          }
+        }
+      }
+      callbacks.onComplete(fullText);
+    } catch (err) {
+      if (signal?.aborted) return;
+      callbacks.onError(err instanceof Error ? err : new Error(String(err)));
+    }
+  }
+
+  /** Parse Anthropic-native SSE stream (for direct fallback) */
+  private async readAnthropicStream(
+    res: Response,
+    callbacks: StreamCallbacks,
+    signal?: AbortSignal,
+  ): Promise<void> {
     const reader = res.body?.getReader();
     if (!reader) throw new Error('No response body');
 

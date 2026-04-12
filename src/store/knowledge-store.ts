@@ -17,6 +17,7 @@ interface KnowledgeState {
   networkEntries: FeedEntry[];
   loaded: boolean;
   loading: boolean;
+  error: string | null;
 
   /** Load all knowledge base data (call once on app mount) */
   loadAll: () => Promise<void>;
@@ -31,10 +32,11 @@ export const useKnowledgeStore = create<KnowledgeState>()((set, get) => ({
   networkEntries: [],
   loaded: false,
   loading: false,
+  error: null,
 
   loadAll: async () => {
     if (get().loaded || get().loading) return;
-    set({ loading: true });
+    set({ loading: true, error: null });
 
     try {
       const [tools, stories, networkEntries] = await Promise.all([
@@ -43,8 +45,9 @@ export const useKnowledgeStore = create<KnowledgeState>()((set, get) => ({
         fetchNetworkFeed(50).catch(() => [] as FeedEntry[]),
       ]);
       set({ tools, stories, networkEntries, loaded: true, loading: false });
-    } catch {
-      set({ loading: false });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to load knowledge base';
+      set({ loading: false, error: message });
     }
   },
 
