@@ -9,6 +9,7 @@ import { PublishDialog } from '@/components/PublishDialog';
 import { useProviderStore } from '@/store/provider-store';
 import { useProjectStore } from '@/store/project-store';
 import { useChatStore } from '@/store/chat-store';
+import { useKnowledgeStore } from '@/store/knowledge-store';
 import { registry } from '@/providers/registry';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
@@ -21,8 +22,11 @@ function App() {
   const fileCount = useProjectStore(s => s.getFileCount());
   void version;
 
+  const loadKnowledge = useKnowledgeStore(s => s.loadAll);
+
   useEffect(() => {
     refreshModels();
+    loadKnowledge();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const clearMessages = useChatStore(s => s.clearMessages);

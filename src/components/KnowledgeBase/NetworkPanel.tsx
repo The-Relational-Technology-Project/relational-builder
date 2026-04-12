@@ -1,18 +1,12 @@
-import { useEffect, useState } from 'react';
-import { fetchNetworkFeed, type FeedEntry } from '@/knowledge/network-feed';
+import { useKnowledgeStore } from '@/store/knowledge-store';
+import type { FeedEntry } from '@/knowledge/network-feed';
 import { ExternalLink, Radio } from 'lucide-react';
 
 export function NetworkPanel() {
-  const [entries, setEntries] = useState<FeedEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetchNetworkFeed()
-      .then(setEntries)
-      .catch(err => setError(err.message))
-      .finally(() => setLoading(false));
-  }, []);
+  const entries = useKnowledgeStore(s => s.networkEntries);
+  const loading = useKnowledgeStore(s => s.loading);
+  const loaded = useKnowledgeStore(s => s.loaded);
+  const error = !loading && !loaded ? 'Failed to load' : null;
 
   if (loading) {
     return (

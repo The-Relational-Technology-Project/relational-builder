@@ -1,6 +1,6 @@
-import { useEffect, useState, useMemo } from 'react';
-import { fetchTools, fetchStories, searchItems } from '@/knowledge/queries';
-import type { Tool, Story } from '@/knowledge/types';
+import { useState, useMemo } from 'react';
+import { searchItems } from '@/knowledge/queries';
+import { useKnowledgeStore } from '@/store/knowledge-store';
 import { ToolCard } from './ToolCard';
 import { StoryCard } from './StoryCard';
 import { Search, Loader2 } from 'lucide-react';
@@ -8,34 +8,13 @@ import { Search, Loader2 } from 'lucide-react';
 type TabId = 'tools' | 'stories';
 
 export function KBPanel() {
-  const [tools, setTools] = useState<Tool[]>([]);
-  const [stories, setStories] = useState<Story[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const tools = useKnowledgeStore(s => s.tools);
+  const stories = useKnowledgeStore(s => s.stories);
+  const loading = useKnowledgeStore(s => s.loading);
+  const loaded = useKnowledgeStore(s => s.loaded);
   const [activeTab, setActiveTab] = useState<TabId>('tools');
   const [search, setSearch] = useState('');
-
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-
-    Promise.all([fetchTools(), fetchStories()])
-      .then(([t, s]) => {
-        if (cancelled) return;
-        setTools(t);
-        setStories(s);
-      })
-      .catch(err => {
-        if (cancelled) return;
-        setError(err instanceof Error ? err.message : 'Failed to load');
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => { cancelled = true; };
-  }, []);
+  const error = !loading && !loaded ? 'Failed to load' : null;
 
   const filteredTools = useMemo(
     () => searchItems(tools, search),

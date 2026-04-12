@@ -2,6 +2,8 @@ import { useCallback } from 'react';
 import { useChatStore } from '@/store/chat-store';
 import { useProviderStore } from '@/store/provider-store';
 import { useProjectStore } from '@/store/project-store';
+import { useKnowledgeStore } from '@/store/knowledge-store';
+import { buildSystemPrompt } from '@/knowledge/context-builder';
 import { registry } from '@/providers/registry';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
@@ -22,12 +24,23 @@ export function ChatPanel() {
   const apiKeys = useProviderStore(s => s.apiKeys);
 
   const applyMessageFiles = useProjectStore(s => s.applyMessageFiles);
+  const getRelevantContext = useKnowledgeStore(s => s.getRelevantContext);
+  const setSystemPrompt = useChatStore(s => s.setSystemPrompt);
 
   const provider = registry.getProvider(activeProviderId);
   const needsKey = registry.getEntry(activeProviderId)?.requiresApiKey && !apiKeys[activeProviderId];
 
   const handleSend = useCallback(async (content: string) => {
     if (!provider) return;
+
+    // RAG: score KB items against the user's message and rebuild system prompt
+    const relevant = getRelevantContext(content);
+    const updatedPrompt = buildSystemPrompt({
+      tools: relevant.tools,
+      stories: relevant.stories,
+      networkEntries: relevant.networkEntries,
+    });
+    setSystemPrompt(updatedPrompt);
 
     addUserMessage(content);
 
@@ -78,6 +91,7 @@ export function ChatPanel() {
     provider, activeModelId, addUserMessage, toChatMessages,
     startAssistantMessage, appendToMessage, finalizeMessage,
     setIsGenerating, setAbortController, applyMessageFiles,
+    getRelevantContext, setSystemPrompt,
   ]);
 
   const handleStop = useCallback(() => {
