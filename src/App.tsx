@@ -6,6 +6,7 @@ import { PreviewPanel } from '@/components/PreviewPanel';
 import { RightPanel } from '@/components/RightPanel';
 import { ResizableLayout } from '@/components/ResizableLayout';
 import { PublishDialog } from '@/components/PublishDialog';
+import { SharePreview } from '@/components/SharePreview';
 import { GitHubSync } from '@/components/GitHubSync';
 import { useProviderStore } from '@/store/provider-store';
 import { useProjectStore } from '@/store/project-store';
@@ -67,6 +68,7 @@ function App() {
             <Plus className="size-3" />
             New Project
           </Button>
+          <SharePreview />
           <PublishDialog />
           <GitHubSync />
           <Separator orientation="vertical" className="h-5" />
