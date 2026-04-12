@@ -11,14 +11,13 @@ import { useProviderStore } from '@/store/provider-store';
 import { useProjectStore } from '@/store/project-store';
 import { useChatStore } from '@/store/chat-store';
 import { useKnowledgeStore } from '@/store/knowledge-store';
-import { registry } from '@/providers/registry';
+
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 
 function App() {
   const refreshModels = useProviderStore(s => s.refreshModels);
-  const activeProviderId = useProviderStore(s => s.activeProviderId);
   const version = useProjectStore(s => s.version);
   const fileCount = useProjectStore(s => s.getFileCount());
   void version;
@@ -38,7 +37,6 @@ function App() {
     clearProject();
   }, [clearMessages, clearProject]);
 
-  const providerEntry = registry.getEntry(activeProviderId);
   const hasFiles = fileCount > 0;
 
   const panels = useMemo(() => {
@@ -63,11 +61,6 @@ function App() {
           <h1 className="text-sm font-semibold tracking-tight">Relational Builder</h1>
           <Separator orientation="vertical" className="h-5" />
           <ModelSelector />
-          {providerEntry && (
-            <span className="text-xs text-muted-foreground">
-              via {providerEntry.provider.name}
-            </span>
-          )}
         </div>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" onClick={handleNewProject}>
