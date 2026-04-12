@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { FilePanel } from './FilePanel';
 import { KBPanel } from './KnowledgeBase/KBPanel';
+import { NetworkPanel } from './KnowledgeBase/NetworkPanel';
 import { useProjectStore } from '@/store/project-store';
-import { Code, BookOpen } from 'lucide-react';
+import { Code, BookOpen, Radio } from 'lucide-react';
 
-type Tab = 'files' | 'knowledge';
+type Tab = 'files' | 'knowledge' | 'network';
 
 export function RightPanel() {
   const version = useProjectStore(s => s.version);
@@ -36,11 +37,19 @@ export function RightPanel() {
           icon={<BookOpen className="size-3" />}
           label="Knowledge"
         />
+        <TabButton
+          active={activeTab === 'network'}
+          onClick={() => setActiveTab('network')}
+          icon={<Radio className="size-3" />}
+          label="Network"
+        />
       </div>
 
       {/* Tab content */}
       <div className="flex-1 min-h-0">
-        {activeTab === 'files' ? <FilePanel /> : <KBPanel />}
+        {activeTab === 'files' && <FilePanel />}
+        {activeTab === 'knowledge' && <KBPanel />}
+        {activeTab === 'network' && <NetworkPanel />}
       </div>
     </div>
   );
