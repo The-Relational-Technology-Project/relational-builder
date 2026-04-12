@@ -2,19 +2,25 @@ import { useEffect } from 'react';
 import { ProviderSettings } from '@/components/ProviderSettings';
 import { ModelSelector } from '@/components/ModelSelector';
 import { ChatPanel } from '@/components/Chat/ChatPanel';
+import { FilePanel } from '@/components/FilePanel';
 import { useProviderStore } from '@/store/provider-store';
+import { useProjectStore } from '@/store/project-store';
 import { registry } from '@/providers/registry';
 import { Separator } from '@/components/ui/separator';
 
 function App() {
   const refreshModels = useProviderStore(s => s.refreshModels);
   const activeProviderId = useProviderStore(s => s.activeProviderId);
+  const version = useProjectStore(s => s.version);
+  const fileCount = useProjectStore(s => s.getFileCount());
+  void version; // subscribe to FS changes
 
   useEffect(() => {
     refreshModels();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const providerEntry = registry.getEntry(activeProviderId);
+  const showFiles = fileCount > 0;
 
   return (
     <div className="h-screen flex flex-col bg-background text-foreground">
@@ -35,9 +41,16 @@ function App() {
         </div>
       </header>
 
-      {/* Main content — chat panel (preview + knowledge base panels added later) */}
-      <main className="flex-1 min-h-0">
-        <ChatPanel />
+      {/* Main content — chat + file panel */}
+      <main className="flex-1 min-h-0 flex">
+        <div className={`${showFiles ? 'w-1/2 border-r' : 'w-full'} min-h-0 transition-all`}>
+          <ChatPanel />
+        </div>
+        {showFiles && (
+          <div className="w-1/2 min-h-0">
+            <FilePanel />
+          </div>
+        )}
       </main>
     </div>
   );

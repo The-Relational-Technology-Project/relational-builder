@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useChatStore } from '@/store/chat-store';
 import { useProviderStore } from '@/store/provider-store';
+import { useProjectStore } from '@/store/project-store';
 import { registry } from '@/providers/registry';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
@@ -19,6 +20,8 @@ export function ChatPanel() {
   const activeProviderId = useProviderStore(s => s.activeProviderId);
   const activeModelId = useProviderStore(s => s.activeModelId);
   const apiKeys = useProviderStore(s => s.apiKeys);
+
+  const applyMessageFiles = useProjectStore(s => s.applyMessageFiles);
 
   const provider = registry.getProvider(activeProviderId);
   const needsKey = registry.getEntry(activeProviderId)?.requiresApiKey && !apiKeys[activeProviderId];
@@ -47,6 +50,9 @@ export function ChatPanel() {
           onToken: (token) => appendToMessage(msgId, token),
           onComplete: () => {
             finalizeMessage(msgId);
+            // Extract code blocks into the virtual file system
+            const msg = useChatStore.getState().messages.find(m => m.id === msgId);
+            if (msg) applyMessageFiles(msg.content);
             setIsGenerating(false);
             setAbortController(null);
           },
@@ -71,7 +77,7 @@ export function ChatPanel() {
   }, [
     provider, activeModelId, addUserMessage, toChatMessages,
     startAssistantMessage, appendToMessage, finalizeMessage,
-    setIsGenerating, setAbortController,
+    setIsGenerating, setAbortController, applyMessageFiles,
   ]);
 
   const handleStop = useCallback(() => {
