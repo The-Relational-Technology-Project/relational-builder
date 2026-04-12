@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useProviderStore } from '@/store/provider-store';
+import { registry } from '@/providers/registry';
 import {
   Select,
   SelectContent,
@@ -16,7 +17,11 @@ export function ModelSelector() {
     refreshModels();
   }, [activeProviderId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const models = availableModels.filter(m => m.provider === activeProviderId);
+  // Use available models for this provider, falling back to defaults if empty
+  let models = availableModels.filter(m => m.provider === activeProviderId);
+  if (models.length === 0) {
+    models = registry.getDefaultModels(activeProviderId);
+  }
 
   const activeModel = models.find(m => m.id === activeModelId);
 

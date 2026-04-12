@@ -30,8 +30,11 @@ export const useProviderStore = create<ProviderState>()(
 
       setActiveProvider: (id: string) => {
         set({ activeProviderId: id });
-        // Auto-select first model for the new provider
-        const models = get().availableModels.filter(m => m.provider === id);
+        // Pick the first model — try available models first, then defaults
+        let models = get().availableModels.filter(m => m.provider === id);
+        if (models.length === 0) {
+          models = registry.getDefaultModels(id);
+        }
         if (models.length > 0) {
           set({ activeModelId: models[0].id });
         }
@@ -41,13 +44,13 @@ export const useProviderStore = create<ProviderState>()(
         set({ activeModelId: id });
       },
 
-      setApiKey: (providerId: string, key: string) => {
+      setApiKey: async (providerId: string, key: string) => {
         registry.setApiKey(providerId, key);
         set(state => ({
           apiKeys: { ...state.apiKeys, [providerId]: key },
         }));
-        // Refresh models when a key is added
-        get().refreshModels();
+        // Refresh models when a key is added — await so models are ready before "Use"
+        await get().refreshModels();
       },
 
       removeApiKey: (providerId: string) => {

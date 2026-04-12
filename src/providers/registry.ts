@@ -57,7 +57,7 @@ class ProviderRegistry {
     }
   }
 
-  /** Get all available models across configured providers */
+  /** Get all available models across configured providers (async — hits APIs) */
   async getAllModels(): Promise<ModelInfo[]> {
     const results: ModelInfo[] = [];
     for (const { provider } of this.providers.values()) {
@@ -67,6 +67,24 @@ class ProviderRegistry {
       }
     }
     return results;
+  }
+
+  /** Get default models for a specific provider (sync — no API calls) */
+  getDefaultModels(providerId: string): ModelInfo[] {
+    const entry = this.providers.get(providerId);
+    if (!entry) return [];
+    const p = entry.provider;
+    if (p instanceof OpenAICompatibleProvider) {
+      return p.getDefaultModelsList();
+    }
+    if (p instanceof ClaudeProvider) {
+      return [
+        { id: 'claude-opus-4-20250514', name: 'Claude Opus 4', provider: 'claude' },
+        { id: 'claude-sonnet-4-20250514', name: 'Claude Sonnet 4', provider: 'claude' },
+        { id: 'claude-haiku-3-5-20241022', name: 'Claude Haiku 3.5', provider: 'claude' },
+      ];
+    }
+    return [];
   }
 }
 

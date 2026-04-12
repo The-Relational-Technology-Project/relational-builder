@@ -37,6 +37,11 @@ export class OpenAICompatibleProvider implements LLMProvider {
     this.baseUrl = url.replace(/\/$/, '');
   }
 
+  /** Return hardcoded default models (sync, no API calls) */
+  getDefaultModelsList(): ModelInfo[] {
+    return this.defaultModels;
+  }
+
   async getModels(): Promise<ModelInfo[]> {
     if (!this.isConfigured()) return this.defaultModels;
 
