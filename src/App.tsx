@@ -1,13 +1,17 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { ProviderSettings } from '@/components/ProviderSettings';
 import { ModelSelector } from '@/components/ModelSelector';
 import { ChatPanel } from '@/components/Chat/ChatPanel';
 import { PreviewPanel } from '@/components/PreviewPanel';
 import { RightPanel } from '@/components/RightPanel';
+import { ResizableLayout } from '@/components/ResizableLayout';
 import { useProviderStore } from '@/store/provider-store';
 import { useProjectStore } from '@/store/project-store';
+import { useChatStore } from '@/store/chat-store';
 import { registry } from '@/providers/registry';
 import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 
 function App() {
   const refreshModels = useProviderStore(s => s.refreshModels);
@@ -20,8 +24,30 @@ function App() {
     refreshModels();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const clearMessages = useChatStore(s => s.clearMessages);
+  const clearProject = useProjectStore(s => s.clearProject);
+
+  const handleNewProject = useCallback(() => {
+    clearMessages();
+    clearProject();
+  }, [clearMessages, clearProject]);
+
   const providerEntry = registry.getEntry(activeProviderId);
   const hasFiles = fileCount > 0;
+
+  const panels = useMemo(() => {
+    if (hasFiles) {
+      return [
+        { content: <ChatPanel />, defaultSize: 30, minSize: 250 },
+        { content: <PreviewPanel />, defaultSize: 45, minSize: 300 },
+        { content: <RightPanel />, defaultSize: 25, minSize: 200 },
+      ];
+    }
+    return [
+      { content: <ChatPanel />, defaultSize: 55, minSize: 300 },
+      { content: <RightPanel />, defaultSize: 45, minSize: 250 },
+    ];
+  }, [hasFiles]);
 
   return (
     <div className="h-screen flex flex-col bg-background text-foreground">
@@ -38,28 +64,18 @@ function App() {
           )}
         </div>
         <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" onClick={handleNewProject}>
+            <Plus className="size-3" />
+            New Project
+          </Button>
+          <Separator orientation="vertical" className="h-5" />
           <ProviderSettings />
         </div>
       </header>
 
-      {/* Main content — three-panel layout */}
-      <main className="flex-1 min-h-0 flex">
-        {/* Chat panel */}
-        <div className={`${hasFiles ? 'w-[30%]' : 'w-[55%]'} min-h-0 border-r shrink-0 transition-all`}>
-          <ChatPanel />
-        </div>
-
-        {/* Preview panel — only when files exist */}
-        {hasFiles && (
-          <div className="flex-1 min-h-0 min-w-0 border-r">
-            <PreviewPanel />
-          </div>
-        )}
-
-        {/* Right panel — KB + Files (always visible) */}
-        <div className={`${hasFiles ? 'w-[25%]' : 'w-[45%]'} min-h-0 shrink-0 transition-all`}>
-          <RightPanel />
-        </div>
+      {/* Main content — resizable panel layout */}
+      <main className="flex-1 min-h-0">
+        <ResizableLayout key={hasFiles ? 'with-preview' : 'no-preview'} panels={panels} />
       </main>
     </div>
   );

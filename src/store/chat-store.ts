@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { ChatMessage } from '@/providers/types';
 import { buildSystemPrompt } from '@/knowledge/context-builder';
 
@@ -37,7 +38,7 @@ function nextId(): string {
 // System prompt now built dynamically via buildSystemPrompt() from knowledge/context-builder.ts
 // Includes base instructions, RTP principles, and optionally relevant KB content
 
-export const useChatStore = create<ChatState>()((set, get) => ({
+export const useChatStore = create<ChatState>()(persist((set, get) => ({
   messages: [],
   isGenerating: false,
   abortController: null,
@@ -105,4 +106,9 @@ export const useChatStore = create<ChatState>()((set, get) => ({
 
     return chatMsgs;
   },
+}), {
+  name: 'relational-builder-chat',
+  partialize: (state) => ({
+    messages: state.messages.map(m => ({ ...m, isStreaming: false })),
+  } as unknown as ChatState),
 }));

@@ -63,6 +63,20 @@ export class VirtualFS {
     this.files.clear();
   }
 
+  /** Serialize to a plain array for JSON storage */
+  toJSON(): FileEntry[] {
+    return this.getAllFiles();
+  }
+
+  /** Restore from a serialized array */
+  static fromJSON(entries: FileEntry[]): VirtualFS {
+    const fs = new VirtualFS();
+    for (const entry of entries) {
+      fs.files.set(entry.path, entry);
+    }
+    return fs;
+  }
+
   /** Get directory tree structure */
   getTree(): TreeNode {
     const root: TreeNode = { name: '/', path: '/', type: 'directory', children: [] };

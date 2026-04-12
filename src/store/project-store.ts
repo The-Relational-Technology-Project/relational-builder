@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { VirtualFS, type FileEntry, type TreeNode } from '@/project/virtual-fs';
 import { extractFiles, type ExtractedFile } from '@/project/code-extractor';
 
@@ -26,7 +27,7 @@ interface ProjectState {
   getFileCount: () => number;
 }
 
-export const useProjectStore = create<ProjectState>()((set, get) => ({
+export const useProjectStore = create<ProjectState>()(persist((set, get) => ({
   fs: new VirtualFS(),
   selectedFile: null,
   version: 0,
@@ -72,4 +73,35 @@ export const useProjectStore = create<ProjectState>()((set, get) => ({
   getFile: (path) => get().fs.getFile(path),
   getAllFiles: () => get().fs.getAllFiles(),
   getFileCount: () => get().fs.getPaths().length,
+}), {
+  name: 'relational-builder-project',
+  storage: {
+    getItem: (name) => {
+      const raw = localStorage.getItem(name);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      // Rehydrate VirtualFS from serialized file entries
+      if (parsed?.state?.fs) {
+        parsed.state.fs = VirtualFS.fromJSON(parsed.state.fs);
+      }
+      return parsed;
+    },
+    setItem: (name, value) => {
+      // Serialize VirtualFS to plain array before storing
+      const serializable = {
+        ...value,
+        state: {
+          ...value.state,
+          fs: value.state.fs.toJSON(),
+        },
+      };
+      localStorage.setItem(name, JSON.stringify(serializable));
+    },
+    removeItem: (name) => localStorage.removeItem(name),
+  },
+  partialize: (state) => ({
+    fs: state.fs,
+    selectedFile: state.selectedFile,
+    version: state.version,
+  } as unknown as ProjectState),
 }));
