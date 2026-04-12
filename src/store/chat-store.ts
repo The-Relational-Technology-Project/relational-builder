@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { ChatMessage } from '@/providers/types';
+import { buildSystemPrompt } from '@/knowledge/context-builder';
 
 export interface DisplayMessage {
   id: string;
@@ -33,31 +34,14 @@ function nextId(): string {
   return `msg-${Date.now()}-${++messageCounter}`;
 }
 
-const DEFAULT_SYSTEM_PROMPT = [
-  'You are Relational Builder, an AI assistant that helps people create web applications for community use — neighborhood event calendars, mutual aid boards, civic info hubs, and other relational technology.',
-  '',
-  'When generating code, always use filename annotations on code blocks so the builder can extract files automatically. Use this format:',
-  '',
-  '```html filename="index.html"',
-  '<!-- code here -->',
-  '```',
-  '',
-  '```css filename="styles.css"',
-  '/* code here */',
-  '```',
-  '',
-  '```javascript filename="app.js"',
-  '// code here',
-  '```',
-  '',
-  'Always include the filename attribute on every code block that represents a file. Generate complete, working code that can run in a browser. Prefer vanilla HTML/CSS/JS for simplicity unless the user requests a specific framework.',
-].join('\n');
+// System prompt now built dynamically via buildSystemPrompt() from knowledge/context-builder.ts
+// Includes base instructions, RTP principles, and optionally relevant KB content
 
 export const useChatStore = create<ChatState>()((set, get) => ({
   messages: [],
   isGenerating: false,
   abortController: null,
-  systemPrompt: DEFAULT_SYSTEM_PROMPT,
+  systemPrompt: buildSystemPrompt(),
 
   addUserMessage: (content: string) => {
     const msg: DisplayMessage = {

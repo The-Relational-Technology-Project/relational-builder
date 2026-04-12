@@ -34,8 +34,12 @@ Chat/Builder Panel  |  Preview Sandbox (iframe)  |  RTP Knowledge Base Panel
 ## Key Directories
 
 - `src/providers/` — LLM provider abstraction (types, OpenAI-compatible, Claude, registry)
-- `src/store/` — Zustand stores (provider config, chat state)
+- `src/store/` — Zustand stores (provider config, chat state, project state)
+- `src/project/` — Virtual file system and code extractor
+- `src/knowledge/` — Supabase client, RTP principles, context builder, queries
 - `src/components/` — React components (UI lives here)
+- `src/components/Chat/` — Chat interface (panel, messages, input, code blocks)
+- `src/components/KnowledgeBase/` — RTP knowledge base panel and cards
 - `src/components/ui/` — shadcn/ui primitives (don't edit directly)
 
 ## Design Principles

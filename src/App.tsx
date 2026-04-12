@@ -3,7 +3,7 @@ import { ProviderSettings } from '@/components/ProviderSettings';
 import { ModelSelector } from '@/components/ModelSelector';
 import { ChatPanel } from '@/components/Chat/ChatPanel';
 import { PreviewPanel } from '@/components/PreviewPanel';
-import { FilePanel } from '@/components/FilePanel';
+import { RightPanel } from '@/components/RightPanel';
 import { useProviderStore } from '@/store/provider-store';
 import { useProjectStore } from '@/store/project-store';
 import { registry } from '@/providers/registry';
@@ -14,7 +14,7 @@ function App() {
   const activeProviderId = useProviderStore(s => s.activeProviderId);
   const version = useProjectStore(s => s.version);
   const fileCount = useProjectStore(s => s.getFileCount());
-  void version; // subscribe to FS changes
+  void version;
 
   useEffect(() => {
     refreshModels();
@@ -42,26 +42,24 @@ function App() {
         </div>
       </header>
 
-      {/* Main content — three-panel layout when files exist */}
+      {/* Main content — three-panel layout */}
       <main className="flex-1 min-h-0 flex">
         {/* Chat panel */}
-        <div className={`${hasFiles ? 'w-[30%]' : 'w-full'} min-h-0 border-r shrink-0 transition-all`}>
+        <div className={`${hasFiles ? 'w-[30%]' : 'w-[55%]'} min-h-0 border-r shrink-0 transition-all`}>
           <ChatPanel />
         </div>
 
+        {/* Preview panel — only when files exist */}
         {hasFiles && (
-          <>
-            {/* Preview panel */}
-            <div className="flex-1 min-h-0 min-w-0 border-r">
-              <PreviewPanel />
-            </div>
-
-            {/* File panel */}
-            <div className="w-[25%] min-h-0 shrink-0">
-              <FilePanel />
-            </div>
-          </>
+          <div className="flex-1 min-h-0 min-w-0 border-r">
+            <PreviewPanel />
+          </div>
         )}
+
+        {/* Right panel — KB + Files (always visible) */}
+        <div className={`${hasFiles ? 'w-[25%]' : 'w-[45%]'} min-h-0 shrink-0 transition-all`}>
+          <RightPanel />
+        </div>
       </main>
     </div>
   );

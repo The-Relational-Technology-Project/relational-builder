@@ -1,0 +1,125 @@
+import { useEffect, useState, useMemo } from 'react';
+import { fetchTools, fetchStories, searchItems } from '@/knowledge/queries';
+import type { Tool, Story } from '@/knowledge/types';
+import { ToolCard } from './ToolCard';
+import { StoryCard } from './StoryCard';
+import { Search, Loader2 } from 'lucide-react';
+
+type TabId = 'tools' | 'stories';
+
+export function KBPanel() {
+  const [tools, setTools] = useState<Tool[]>([]);
+  const [stories, setStories] = useState<Story[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<TabId>('tools');
+  const [search, setSearch] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+
+    Promise.all([fetchTools(), fetchStories()])
+      .then(([t, s]) => {
+        if (cancelled) return;
+        setTools(t);
+        setStories(s);
+      })
+      .catch(err => {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : 'Failed to load');
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, []);
+
+  const filteredTools = useMemo(
+    () => searchItems(tools, search),
+    [tools, search],
+  );
+
+  const filteredStories = useMemo(
+    () => searchItems(stories, search),
+    [stories, search],
+  );
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <div className="px-3 py-2 border-b shrink-0">
+        <div className="text-xs font-medium mb-2">RTP Knowledge Base</div>
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-2 top-1/2 -translate-y-1/2 size-3 text-muted-foreground" />
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search..."
+            className="w-full text-xs border rounded pl-7 pr-2 py-1 bg-transparent outline-none focus:border-ring"
+          />
+        </div>
+        {/* Tabs */}
+        <div className="flex gap-1 mt-2">
+          <TabButton
+            active={activeTab === 'tools'}
+            onClick={() => setActiveTab('tools')}
+            label={`Tools (${filteredTools.length})`}
+          />
+          <TabButton
+            active={activeTab === 'stories'}
+            onClick={() => setActiveTab('stories')}
+            label={`Stories (${filteredStories.length})`}
+          />
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto p-2 space-y-2">
+        {loading && (
+          <div className="flex items-center justify-center py-8 text-muted-foreground">
+            <Loader2 className="size-4 animate-spin" />
+          </div>
+        )}
+        {error && (
+          <div className="text-xs text-center py-4 text-destructive">
+            {error}
+          </div>
+        )}
+        {!loading && !error && activeTab === 'tools' && (
+          filteredTools.length === 0 ? (
+            <p className="text-xs text-muted-foreground text-center py-4">No tools found</p>
+          ) : (
+            filteredTools.map(tool => <ToolCard key={tool.id} tool={tool} />)
+          )
+        )}
+        {!loading && !error && activeTab === 'stories' && (
+          filteredStories.length === 0 ? (
+            <p className="text-xs text-muted-foreground text-center py-4">No stories found</p>
+          ) : (
+            filteredStories.map(story => <StoryCard key={story.id} story={story} />)
+          )
+        )}
+      </div>
+    </div>
+  );
+}
+
+function TabButton({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`text-[10px] px-2 py-0.5 rounded transition-colors ${
+        active
+          ? 'bg-foreground text-background font-medium'
+          : 'text-muted-foreground hover:text-foreground'
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
