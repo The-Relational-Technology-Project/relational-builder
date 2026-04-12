@@ -19,9 +19,16 @@ import { cn } from '@/lib/utils';
 
 type DeployTarget = 'download' | 'netlify' | 'vercel';
 
+interface DnsInstruction {
+  type: string;
+  host: string;
+  value: string;
+}
+
 interface DeployResult {
   url: string;
   adminUrl?: string;
+  dnsInstructions?: DnsInstruction[];
 }
 
 export function PublishDialog() {
@@ -37,8 +44,10 @@ export function PublishDialog() {
 
   const netlifyToken = useDeployStore(s => s.netlifyToken);
   const vercelToken = useDeployStore(s => s.vercelToken);
+  const customDomain = useDeployStore(s => s.customDomain);
   const setNetlifyToken = useDeployStore(s => s.setNetlifyToken);
   const setVercelToken = useDeployStore(s => s.setVercelToken);
+  const setCustomDomain = useDeployStore(s => s.setCustomDomain);
 
   const envVars = useEnvStore(s => s.vars);
   const envRecord = Object.fromEntries(envVars.map(v => [v.key, v.value]));
@@ -74,15 +83,17 @@ export function PublishDialog() {
           return;
         }
         const blob = await exportProjectZip(files, projectName);
-        const res = await deployToNetlify(blob, projectName, netlifyToken, envRecord);
-        setResult({ url: res.siteUrl, adminUrl: res.adminUrl });
+        const domain = customDomain.trim() || undefined;
+        const res = await deployToNetlify(blob, projectName, netlifyToken, envRecord, domain);
+        setResult({ url: res.siteUrl, adminUrl: res.adminUrl, dnsInstructions: res.dnsInstructions });
       } else if (activeTarget === 'vercel') {
         if (!vercelToken) {
           setError('Please enter your Vercel access token');
           return;
         }
-        const res = await deployToVercel(files, projectName, vercelToken, envRecord);
-        setResult({ url: res.url, adminUrl: res.deploymentUrl });
+        const domain = customDomain.trim() || undefined;
+        const res = await deployToVercel(files, projectName, vercelToken, envRecord, domain);
+        setResult({ url: res.url, adminUrl: res.deploymentUrl, dnsInstructions: res.dnsInstructions });
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Deploy failed');
@@ -201,6 +212,25 @@ export function PublishDialog() {
             </div>
           )}
 
+          {/* Custom domain (for Netlify/Vercel) */}
+          {(activeTarget === 'netlify' || activeTarget === 'vercel') && (
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium">
+                Custom domain{' '}
+                <span className="text-muted-foreground font-normal">(optional)</span>
+              </label>
+              <Input
+                value={customDomain}
+                onChange={e => { setCustomDomain(e.target.value); resetState(); }}
+                placeholder="myapp.ourneighborhood.org"
+                className="h-8 text-sm"
+              />
+              <p className="text-[11px] text-muted-foreground">
+                You'll need to update DNS records with your domain registrar after deploying.
+              </p>
+            </div>
+          )}
+
           {/* Deploy button */}
           <Button
             onClick={handleDeploy}
@@ -247,6 +277,39 @@ export function PublishDialog() {
               >
                 {result.url} <ExternalLink className="size-2.5" />
               </a>
+
+              {/* DNS instructions for custom domain */}
+              {result.dnsInstructions && result.dnsInstructions.length > 0 && (
+                <div className="mt-2 pt-2 border-t space-y-1.5">
+                  <p className="text-xs font-medium">DNS setup for your custom domain:</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    Add this record with your domain registrar:
+                  </p>
+                  <div className="bg-background rounded border overflow-hidden">
+                    <table className="w-full text-[11px]">
+                      <thead>
+                        <tr className="border-b bg-muted/30">
+                          <th className="px-2 py-1 text-left font-medium">Type</th>
+                          <th className="px-2 py-1 text-left font-medium">Host</th>
+                          <th className="px-2 py-1 text-left font-medium">Value</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {result.dnsInstructions.map((dns, i) => (
+                          <tr key={i} className="font-mono">
+                            <td className="px-2 py-1">{dns.type}</td>
+                            <td className="px-2 py-1">{dns.host}</td>
+                            <td className="px-2 py-1 truncate max-w-[180px]">{dns.value}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">
+                    DNS changes can take up to 48 hours to propagate. SSL is automatic.
+                  </p>
+                </div>
+              )}
             </div>
           )}
 

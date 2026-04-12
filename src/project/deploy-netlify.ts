@@ -10,6 +10,14 @@ export interface NetlifyDeployResult {
   siteUrl: string;
   adminUrl: string;
   deployId: string;
+  /** DNS records the user needs to create for their custom domain */
+  dnsInstructions?: DnsInstruction[];
+}
+
+export interface DnsInstruction {
+  type: 'CNAME' | 'A' | 'ALIAS';
+  host: string;
+  value: string;
 }
 
 export async function deployToNetlify(
@@ -17,6 +25,7 @@ export async function deployToNetlify(
   siteName: string,
   token: string,
   envVars?: Record<string, string>,
+  customDomain?: string,
 ): Promise<NetlifyDeployResult> {
   // Step 1: Create a new site
   const createRes = await fetch('https://api.netlify.com/api/v1/sites', {
@@ -78,9 +87,29 @@ export async function deployToNetlify(
     ).catch(() => {}); // best-effort — deploy succeeded even if env vars fail
   }
 
-  return {
+  const result: NetlifyDeployResult = {
     siteUrl: deploy.ssl_url || deploy.url || `https://${site.subdomain}.netlify.app`,
     adminUrl: deploy.admin_url || `https://app.netlify.com/sites/${site.name}`,
     deployId: deploy.id,
   };
+
+  // Step 4: Set custom domain if provided
+  if (customDomain) {
+    const domain = customDomain.replace(/^https?:\/\//, '').replace(/\/+$/, '');
+    await fetch(`https://api.netlify.com/api/v1/sites/${siteId}`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ custom_domain: domain }),
+    }).catch(() => {});
+
+    const isApex = domain.split('.').length === 2;
+    result.dnsInstructions = isApex
+      ? [{ type: 'ALIAS', host: '@', value: `${site.subdomain}.netlify.app` }]
+      : [{ type: 'CNAME', host: domain.split('.')[0], value: `${site.subdomain}.netlify.app` }];
+  }
+
+  return result;
 }
