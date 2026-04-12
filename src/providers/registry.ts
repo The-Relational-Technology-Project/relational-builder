@@ -1,5 +1,5 @@
 import type { LLMProvider, ModelInfo } from './types';
-import { createRTPProvider, createOpenAIProvider, createOpenRouterProvider, OpenAICompatibleProvider } from './openai-compatible';
+import { createRTPProvider, createTogetherProvider, createOpenAIProvider, createOpenRouterProvider, OpenAICompatibleProvider } from './openai-compatible';
 import { ClaudeProvider } from './claude';
 
 export interface ProviderEntry {
@@ -19,6 +19,7 @@ class ProviderRegistry {
     this.register(createRTPProvider(), 1, false);
 
     // Tier 2: Other BYOK providers
+    this.register(createTogetherProvider(), 2, true);
     this.register(createOpenAIProvider(), 2, true);
     this.register(createOpenRouterProvider(), 2, true);
   }
