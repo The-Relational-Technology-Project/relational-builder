@@ -138,18 +138,19 @@ export function createRTPProvider(): OpenAICompatibleProvider {
   });
 }
 
-/** Pre-configured: Together AI (Tier 2 -- BYOK, open-source models) */
+/** Pre-configured: Together AI (Tier 2 -- BYOK, serverless open-source models) */
 export function createTogetherProvider(): OpenAICompatibleProvider {
   return new OpenAICompatibleProvider({
     id: 'together',
     name: 'Together AI',
     baseUrl: 'https://api.together.xyz',
     defaultModels: [
-      { id: 'Qwen/Qwen3-Coder-480B-A35B-Instruct', name: 'Qwen3 Coder 480B', provider: 'together' },
-      { id: 'Qwen/Qwen3-Coder-Next', name: 'Qwen3 Coder Next', provider: 'together' },
-      { id: 'deepseek-ai/DeepSeek-V3-0324', name: 'DeepSeek V3', provider: 'together' },
-      { id: 'meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8', name: 'Llama 4 Maverick', provider: 'together' },
-      { id: 'meta-llama/Llama-4-Scout-17B-16E-Instruct', name: 'Llama 4 Scout', provider: 'together' },
+      { id: 'Qwen/Qwen3-Coder-Next-FP8', name: 'Qwen3 Coder Next', provider: 'together' },
+      { id: 'deepseek-ai/DeepSeek-V3.1', name: 'DeepSeek V3.1', provider: 'together' },
+      { id: 'Qwen/Qwen3.5-397B-A17B', name: 'Qwen 3.5 397B', provider: 'together' },
+      { id: 'MiniMaxAI/MiniMax-M2.7', name: 'MiniMax M2.7', provider: 'together' },
+      { id: 'meta-llama/Llama-3.3-70B-Instruct-Turbo', name: 'Llama 3.3 70B', provider: 'together' },
+      { id: 'google/gemma-4-31B-it', name: 'Gemma 4 31B', provider: 'together' },
     ],
   });
 }

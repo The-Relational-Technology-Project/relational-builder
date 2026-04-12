@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useProviderStore } from '@/store/provider-store';
+import { useKnowledgeStore } from '@/store/knowledge-store';
 import { registry } from '@/providers/registry';
 import {
   Dialog,
@@ -13,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { ChevronDown, ChevronRight, BookOpen, Radio, Loader2, AlertTriangle, RefreshCw } from 'lucide-react';
 
 const TIER_LABELS: Record<number, string> = {
   1: 'Free',
@@ -25,8 +27,16 @@ export function ProviderSettings() {
     useProviderStore();
   const [open, setOpen] = useState(false);
   const [keyInputs, setKeyInputs] = useState<Record<string, string>>({});
+  const [showKB, setShowKB] = useState(false);
 
   const entries = registry.getAllEntries();
+
+  const tools = useKnowledgeStore(s => s.tools);
+  const stories = useKnowledgeStore(s => s.stories);
+  const networkEntries = useKnowledgeStore(s => s.networkEntries);
+  const kbLoading = useKnowledgeStore(s => s.loading);
+  const kbError = useKnowledgeStore(s => s.error);
+  const loadAll = useKnowledgeStore(s => s.loadAll);
 
   useEffect(() => {
     const inputs: Record<string, string> = {};
@@ -50,12 +60,14 @@ export function ProviderSettings() {
       <DialogTrigger className={buttonVariants({ variant: 'outline', size: 'sm' })}>
         Settings
       </DialogTrigger>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Model Providers</DialogTitle>
+          <DialogTitle>Settings</DialogTitle>
         </DialogHeader>
 
+        {/* Model Providers */}
         <div className="space-y-4 mt-2">
+          <h3 className="text-sm font-semibold">Model Providers</h3>
           {entries.map(({ provider, tier, requiresApiKey }) => (
             <div key={provider.id} className="space-y-2">
               <div className="flex items-center justify-between">
@@ -113,6 +125,66 @@ export function ProviderSettings() {
               )}
             </div>
           ))}
+        </div>
+
+        <Separator className="my-2" />
+
+        {/* Knowledge Base */}
+        <div className="space-y-3">
+          <button
+            onClick={() => setShowKB(!showKB)}
+            className="flex items-center gap-2 text-sm font-semibold hover:text-foreground transition-colors w-full text-left"
+          >
+            {showKB ? <ChevronDown className="size-3.5" /> : <ChevronRight className="size-3.5" />}
+            <BookOpen className="size-3.5" />
+            RTP Knowledge Base
+            {!kbLoading && !kbError && (
+              <span className="text-xs font-normal text-muted-foreground">
+                ({tools.length} tools, {stories.length} stories)
+              </span>
+            )}
+          </button>
+
+          {showKB && (
+            <div className="pl-6 space-y-2">
+              {kbLoading && (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground py-2">
+                  <Loader2 className="size-3 animate-spin" />
+                  Loading knowledge base...
+                </div>
+              )}
+              {kbError && (
+                <div className="flex items-center gap-2 text-xs py-2">
+                  <AlertTriangle className="size-3 text-amber-500" />
+                  <span className="text-muted-foreground">{kbError}</span>
+                  <button
+                    onClick={() => {
+                      useKnowledgeStore.setState({ loaded: false, error: null });
+                      loadAll();
+                    }}
+                    className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground underline"
+                  >
+                    <RefreshCw className="size-3" />
+                    Retry
+                  </button>
+                </div>
+              )}
+              {!kbLoading && !kbError && (
+                <>
+                  <div className="text-xs text-muted-foreground">
+                    {tools.length} tools and {stories.length} stories loaded from the RTP library.
+                    Relevant context is automatically injected into AI prompts.
+                  </div>
+                  {networkEntries.length > 0 && (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Radio className="size-3" />
+                      {networkEntries.length} recent network updates
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { FilePanel } from './FilePanel';
-import { KBPanel } from './KnowledgeBase/KBPanel';
-import { NetworkPanel } from './KnowledgeBase/NetworkPanel';
+import { PreviewPanel } from './PreviewPanel';
 import { EnvPanel } from './EnvPanel';
 import { useProjectStore } from '@/store/project-store';
 import { useEnvStore } from '@/store/env-store';
-import { Code, BookOpen, Radio, KeyRound } from 'lucide-react';
+import { Eye, Code, KeyRound } from 'lucide-react';
 
-type Tab = 'files' | 'knowledge' | 'network' | 'env';
+type Tab = 'preview' | 'files' | 'env';
 
 export function RightPanel() {
   const version = useProjectStore(s => s.version);
@@ -15,36 +14,24 @@ export function RightPanel() {
   const envCount = useEnvStore(s => s.vars.length);
   void version;
 
-  // Default to knowledge base when no files, files when files exist
-  const [activeTab, setActiveTab] = useState<Tab>(fileCount > 0 ? 'files' : 'knowledge');
-
-  // Auto-switch to files tab when first file appears
-  if (fileCount > 0 && activeTab === 'knowledge') {
-    // Only auto-switch if user hasn't explicitly chosen KB
-  }
+  const [activeTab, setActiveTab] = useState<Tab>('preview');
 
   return (
     <div className="flex flex-col h-full">
       {/* Tab bar */}
       <div className="flex border-b shrink-0">
         <TabButton
+          active={activeTab === 'preview'}
+          onClick={() => setActiveTab('preview')}
+          icon={<Eye className="size-3" />}
+          label="Preview"
+        />
+        <TabButton
           active={activeTab === 'files'}
           onClick={() => setActiveTab('files')}
           icon={<Code className="size-3" />}
           label="Files"
           badge={fileCount > 0 ? fileCount : undefined}
-        />
-        <TabButton
-          active={activeTab === 'knowledge'}
-          onClick={() => setActiveTab('knowledge')}
-          icon={<BookOpen className="size-3" />}
-          label="Knowledge"
-        />
-        <TabButton
-          active={activeTab === 'network'}
-          onClick={() => setActiveTab('network')}
-          icon={<Radio className="size-3" />}
-          label="Network"
         />
         <TabButton
           active={activeTab === 'env'}
@@ -57,9 +44,8 @@ export function RightPanel() {
 
       {/* Tab content */}
       <div className="flex-1 min-h-0">
+        {activeTab === 'preview' && <PreviewPanel />}
         {activeTab === 'files' && <FilePanel />}
-        {activeTab === 'knowledge' && <KBPanel />}
-        {activeTab === 'network' && <NetworkPanel />}
         {activeTab === 'env' && <EnvPanel />}
       </div>
     </div>

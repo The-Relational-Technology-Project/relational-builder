@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { ProviderSettings } from '@/components/ProviderSettings';
 import { ModelSelector } from '@/components/ModelSelector';
 import { ChatPanel } from '@/components/Chat/ChatPanel';
-import { PreviewPanel } from '@/components/PreviewPanel';
 import { RightPanel } from '@/components/RightPanel';
 import { ResizableLayout } from '@/components/ResizableLayout';
 import { PublishDialog } from '@/components/PublishDialog';
@@ -19,9 +18,6 @@ import { Plus } from 'lucide-react';
 
 function App() {
   const refreshModels = useProviderStore(s => s.refreshModels);
-  const version = useProjectStore(s => s.version);
-  const fileCount = useProjectStore(s => s.getFileCount());
-  void version;
 
   const loadKnowledge = useKnowledgeStore(s => s.loadAll);
 
@@ -38,21 +34,10 @@ function App() {
     clearProject();
   }, [clearMessages, clearProject]);
 
-  const hasFiles = fileCount > 0;
-
-  const panels = useMemo(() => {
-    if (hasFiles) {
-      return [
-        { content: <ChatPanel />, defaultSize: 30, minSize: 250 },
-        { content: <PreviewPanel />, defaultSize: 45, minSize: 300 },
-        { content: <RightPanel />, defaultSize: 25, minSize: 200 },
-      ];
-    }
-    return [
-      { content: <ChatPanel />, defaultSize: 55, minSize: 300 },
-      { content: <RightPanel />, defaultSize: 45, minSize: 250 },
-    ];
-  }, [hasFiles]);
+  const panels = useMemo(() => [
+    { content: <ChatPanel />, defaultSize: 45, minSize: 300 },
+    { content: <RightPanel />, defaultSize: 55, minSize: 350 },
+  ], []);
 
   return (
     <div className="h-screen flex flex-col bg-background text-foreground">
@@ -78,7 +63,7 @@ function App() {
 
       {/* Main content — resizable panel layout */}
       <main className="flex-1 min-h-0">
-        <ResizableLayout key={hasFiles ? 'with-preview' : 'no-preview'} panels={panels} />
+        <ResizableLayout panels={panels} />
       </main>
     </div>
   );

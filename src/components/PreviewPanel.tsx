@@ -6,7 +6,6 @@ import {
 } from '@codesandbox/sandpack-react';
 import { useProjectStore } from '@/store/project-store';
 import { useEnvStore } from '@/store/env-store';
-import { RotateCw } from 'lucide-react';
 
 /**
  * Live preview of the generated project using Sandpack.
@@ -16,7 +15,8 @@ import { RotateCw } from 'lucide-react';
 export function PreviewPanel() {
   const version = useProjectStore(s => s.version);
   const getAllFiles = useProjectStore(s => s.getAllFiles);
-  const publicEnvVars = useEnvStore(s => s.getPublic());
+  const allEnvVars = useEnvStore(s => s.vars);
+  const publicEnvVars = useMemo(() => allEnvVars.filter(v => !v.isSecret), [allEnvVars]);
 
   // Re-read files when VFS changes
   void version;
@@ -81,55 +81,24 @@ export function PreviewPanel() {
   }
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between px-3 py-1.5 border-b bg-muted/30 shrink-0">
-        <span className="text-xs font-medium">
-          Preview
-          <span className="text-muted-foreground ml-1.5">({template})</span>
-        </span>
-        <RefreshButton />
-      </div>
-      <div className="flex-1 min-h-0">
-        <SandpackProvider
-          template={template}
-          files={sandpackFiles}
-          options={{
-            autoReload: true,
-            autorun: true,
-          }}
-          theme="dark"
-        >
-          <SandpackPreview
-            showNavigator={false}
-            showRefreshButton={false}
-            showOpenInCodeSandbox={false}
-            style={{ height: '100%', width: '100%' }}
-          />
-        </SandpackProvider>
-      </div>
+    <div className="h-full" style={{ display: 'flex', flexDirection: 'column' }}>
+      <SandpackProvider
+        template={template}
+        files={sandpackFiles}
+        options={{
+          autoReload: true,
+          autorun: true,
+        }}
+        theme="dark"
+        style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
+      >
+        <SandpackPreview
+          showNavigator={false}
+          showRefreshButton={false}
+          showOpenInCodeSandbox={false}
+          style={{ flex: 1 }}
+        />
+      </SandpackProvider>
     </div>
-  );
-}
-
-function RefreshButton() {
-  // Simple visual refresh button — forces a remount by bumping version
-  // Sandpack auto-refreshes on file changes, but this is a manual fallback
-  const version = useProjectStore(s => s.version);
-
-  function handleRefresh() {
-    // Force re-render by triggering a version bump with no actual changes
-    useProjectStore.setState(s => ({ version: s.version + 1 }));
-  }
-
-  void version;
-
-  return (
-    <button
-      onClick={handleRefresh}
-      className="text-muted-foreground hover:text-foreground p-0.5 rounded"
-      title="Refresh preview"
-    >
-      <RotateCw className="size-3.5" />
-    </button>
   );
 }
