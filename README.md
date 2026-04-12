@@ -31,13 +31,14 @@ Relational Builder combines three things that don't yet exist together:
 
 ## Guiding Principles
 
-This project is guided by the five core principles of the [Relational Technology Project](https://github.com/The-Relational-Technology-Project):
+This project is guided by the core principles of the [Relational Technology Project](https://github.com/The-Relational-Technology-Project):
 
-- **Technology built by the people it serves** -- community members shape the tools, not outside developers
-- **River, not gardener** -- technology should flow like infrastructure, not require constant tending
-- **Relationships first** -- connection between people is the goal; technology is just the means
-- **Asset-based** -- start from what a community already has, not what it lacks
-- **Speed of trust** -- move at the pace relationships allow; don't rush adoption
+- **Technology is a trojan horse for community building** -- it enters daily life through practical needs while opening space for deeper connection
+- **The 90/10 principle** -- 90% of the work is community presence and relationship-building; 10% is building technology. AI makes the 10% more accessible but must never eat into the 90%
+- **River, garden, commons** -- RTP is the river carrying stories and tools across local gardens, while each garden is tended by those who live there
+- **Agency, belonging, trust** -- every build should nurture these three dimensions of healthy relational soil
+- **The practice cycle** -- observe, invite, relate, build, share — how we build matters more than what we build
+- **Open source and remixing** -- scale deep in place and spread horizontally, neighborhood to neighborhood, through remixing rather than replication
 
 ## Open and Accessible
 
