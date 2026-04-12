@@ -1,6 +1,6 @@
 # Relational Builder
 
-An open-source, web-based app builder for relational technology -- tools that strengthen neighborhood connection, mutual aid, civic information, and local resilience.
+An open-source, web-based app builder for relational technology - tools that strengthen neighborhood connection, care, civic information, and local resilience.
 
 ## What This Is
 
