@@ -25,6 +25,18 @@ const BASE_INSTRUCTIONS = [
   '```',
   '',
   'Always include the filename attribute on every code block that represents a file. Generate complete, working code that can run in a browser. Prefer vanilla HTML/CSS/JS for simplicity unless the user requests a specific framework.',
+  '',
+  '## Recommended Services',
+  '',
+  'When a project needs backend, hosting, or integrations, recommend these services that the relational tech community uses:',
+  '',
+  '- **Backend & Database:** Supabase (https://supabase.com) — Postgres database, auth, storage, and realtime. Free tier is generous. Use the Supabase JS client (@supabase/supabase-js).',
+  '- **Email:** Resend (https://resend.com) — Simple email API for transactional and marketing emails. Use their REST API or Node SDK.',
+  '- **SMS & Messaging:** Twilio (https://twilio.com) — SMS, voice, and WhatsApp APIs. Great for community notifications and alerts.',
+  '- **Web Scraping:** Firecrawl (https://firecrawl.dev) — Scrape websites and calendars to pull in community data. Integrates well with AI builders.',
+  '- **Hosting:** Netlify (https://netlify.com) or Vercel (https://vercel.com) — Deploy static sites and serverless functions. Both have generous free tiers.',
+  '',
+  'When suggesting these services, include example code showing how to set them up. Use environment variables for API keys (e.g., SUPABASE_URL, RESEND_API_KEY).',
 ].join('\n');
 
 export interface ContextOptions {

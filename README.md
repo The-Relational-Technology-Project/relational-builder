@@ -101,18 +101,29 @@ src/
   knowledge/          Supabase client, RTP principles, context builder
 ```
 
-## Publishing to the Commons
+## Publishing & Deploying
 
-When your project is ready to share:
+When your project is ready to share, click **Publish** in the toolbar. You have three options:
 
-1. Click **Publish** in the toolbar
-2. Name your project and download the zip
-3. Push the contents to a new GitHub repository
-4. Add the `relational-tech` topic to your repo
+- **Download** -- get a zip file with all project files, a `.reltech.yml` manifest, and a README
+- **Netlify** -- deploy directly to Netlify with a personal access token ([get one here](https://app.netlify.com/user/applications#personal-access-tokens))
+- **Vercel** -- deploy directly to Vercel with an access token ([get one here](https://vercel.com/account/tokens))
 
-The [network watcher](https://github.com/The-Relational-Technology-Project/watcher) scans for repos with this topic twice daily. Your project will appear on [updates.relationaltechproject.org](https://updates.relationaltechproject.org) and become visible to other builders in the network.
+To join the relational tech network, push your code to GitHub and add the `relational-tech` topic. The [network watcher](https://github.com/The-Relational-Technology-Project/watcher) scans for this topic twice daily and your project will appear on [updates.relationaltechproject.org](https://updates.relationaltechproject.org).
 
-The zip includes a `.reltech.yml` manifest that configures how the watcher tracks your project.
+## Recommended Services
+
+The AI recommends these services when your project needs backend or integrations:
+
+| Need | Service | Why |
+|------|---------|-----|
+| Database & Auth | [Supabase](https://supabase.com) | Postgres, auth, storage, realtime. Free tier. |
+| Email | [Resend](https://resend.com) | Simple transactional email API. |
+| SMS & Messaging | [Twilio](https://twilio.com) | SMS, voice, WhatsApp for community notifications. |
+| Web Scraping | [Firecrawl](https://firecrawl.dev) | Scrape community calendars and websites. |
+| Hosting | [Netlify](https://netlify.com) / [Vercel](https://vercel.com) | Static sites and serverless functions. |
+
+These are woven into the AI's system prompt so it generates code with the right integrations.
 
 ## Related Projects
 
