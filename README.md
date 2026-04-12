@@ -46,13 +46,15 @@ A neighborhood builder should be able to visit a URL and start building without 
 Chat Panel          |  Preview Sandbox   |  Knowledge / Files / Network
                     |  (Sandpack)        |
                Orchestration Layer
-     (model router, RTP context injection, project state)
+     (model router, RAG context injection, project state)
                     |
                Provider Layer
      (RTP-hosted vLLM | Claude BYOK | OpenAI BYOK | OpenRouter)
                     |
-             Supabase Backend              Network Watcher
-     (RTP library, tools, stories)    (updates.relationaltechproject.org)
+     ┌──────────────┼──────────────┬────────────────────┐
+  Supabase          |         GitHub API          Network Watcher
+  (KB tools,     Deploy         (two-way        (updates.relational
+   stories)   (Netlify/Vercel)   file sync)     techproject.org)
 ```
 
 ## Tech Stack
@@ -99,10 +101,21 @@ src/
     KnowledgeBase/    KB panel, tool/story cards, network feed
     ui/               shadcn/ui primitives
   providers/          LLM provider abstraction
-  store/              Zustand stores (provider, chat, project)
-  project/            Virtual file system, code extractor, export
-  knowledge/          Supabase client, RTP principles, context builder
+  store/              Zustand stores (provider, chat, project, github, deploy, knowledge)
+  project/            Virtual file system, code extractor, export, deploy, GitHub API
+  knowledge/          Supabase client, RTP principles, context builder, relevance scorer
 ```
+
+## GitHub Sync
+
+Click **GitHub** in the toolbar to connect a repository:
+
+1. Enter a GitHub Personal Access Token with `repo` scope
+2. Select an existing repo or create a new one (auto-adds the `relational-tech` topic)
+3. **Push** -- commits all project files to the repo as a single atomic commit
+4. **Pull** -- fetches all files from the repo into the builder
+
+Tokens are saved to localStorage. The sync uses GitHub's Git Data API for atomic multi-file commits (blobs → tree → commit → ref update).
 
 ## Publishing & Deploying
 
