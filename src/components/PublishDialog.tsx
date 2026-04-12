@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useProjectStore } from '@/store/project-store';
 import { useDeployStore } from '@/store/deploy-store';
+import { useEnvStore } from '@/store/env-store';
 import { exportProjectZip, downloadBlob } from '@/project/export';
 import { deployToNetlify } from '@/project/deploy-netlify';
 import { deployToVercel } from '@/project/deploy-vercel';
@@ -38,6 +39,9 @@ export function PublishDialog() {
   const vercelToken = useDeployStore(s => s.vercelToken);
   const setNetlifyToken = useDeployStore(s => s.setNetlifyToken);
   const setVercelToken = useDeployStore(s => s.setVercelToken);
+
+  const envVars = useEnvStore(s => s.vars);
+  const envRecord = Object.fromEntries(envVars.map(v => [v.key, v.value]));
 
   const resetState = () => {
     setResult(null);
@@ -70,14 +74,14 @@ export function PublishDialog() {
           return;
         }
         const blob = await exportProjectZip(files, projectName);
-        const res = await deployToNetlify(blob, projectName, netlifyToken);
+        const res = await deployToNetlify(blob, projectName, netlifyToken, envRecord);
         setResult({ url: res.siteUrl, adminUrl: res.adminUrl });
       } else if (activeTarget === 'vercel') {
         if (!vercelToken) {
           setError('Please enter your Vercel access token');
           return;
         }
-        const res = await deployToVercel(files, projectName, vercelToken);
+        const res = await deployToVercel(files, projectName, vercelToken, envRecord);
         setResult({ url: res.url, adminUrl: res.deploymentUrl });
       }
     } catch (err) {

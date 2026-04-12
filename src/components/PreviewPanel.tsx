@@ -5,6 +5,7 @@ import {
   type SandpackFiles,
 } from '@codesandbox/sandpack-react';
 import { useProjectStore } from '@/store/project-store';
+import { useEnvStore } from '@/store/env-store';
 import { RotateCw } from 'lucide-react';
 
 /**
@@ -15,6 +16,7 @@ import { RotateCw } from 'lucide-react';
 export function PreviewPanel() {
   const version = useProjectStore(s => s.version);
   const getAllFiles = useProjectStore(s => s.getAllFiles);
+  const publicEnvVars = useEnvStore(s => s.getPublic());
 
   // Re-read files when VFS changes
   void version;
@@ -52,8 +54,18 @@ export function PreviewPanel() {
       tmpl = 'vanilla';
     }
 
+    // Inject public env vars as a virtual module
+    if (publicEnvVars.length > 0) {
+      const entries = publicEnvVars
+        .map((v) => `  ${JSON.stringify(v.key)}: ${JSON.stringify(v.value)},`)
+        .join('\n');
+      spFiles['/src/env.ts'] = {
+        code: `// Auto-generated from Environment panel — import { env } from "./env"\nexport const env = {\n${entries}\n} as const;\n`,
+      };
+    }
+
     return { sandpackFiles: spFiles, template: tmpl };
-  }, [files]);
+  }, [files, publicEnvVars]);
 
   if (!sandpackFiles) {
     return (

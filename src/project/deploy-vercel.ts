@@ -18,6 +18,7 @@ export async function deployToVercel(
   files: FileEntry[],
   projectName: string,
   token: string,
+  envVars?: Record<string, string>,
 ): Promise<VercelDeployResult> {
   // Vercel's API accepts files inline as an array
   const vercelFiles = files.map(f => ({
@@ -37,6 +38,7 @@ export async function deployToVercel(
       projectSettings: {
         framework: null, // static site
       },
+      env: envVars,
     }),
   });
 

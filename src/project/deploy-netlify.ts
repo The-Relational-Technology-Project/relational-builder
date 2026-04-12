@@ -16,6 +16,7 @@ export async function deployToNetlify(
   zipBlob: Blob,
   siteName: string,
   token: string,
+  envVars?: Record<string, string>,
 ): Promise<NetlifyDeployResult> {
   // Step 1: Create a new site
   const createRes = await fetch('https://api.netlify.com/api/v1/sites', {
@@ -56,6 +57,26 @@ export async function deployToNetlify(
   }
 
   const deploy = await deployRes.json();
+
+  // Step 3: Set environment variables if provided
+  if (envVars && Object.keys(envVars).length > 0) {
+    const envBody = Object.entries(envVars).map(([key, value]) => ({
+      key,
+      values: [{ value, context: 'all' as const }],
+    }));
+
+    await fetch(
+      `https://api.netlify.com/api/v1/accounts/me/env?site_id=${siteId}`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(envBody),
+      },
+    ).catch(() => {}); // best-effort — deploy succeeded even if env vars fail
+  }
 
   return {
     siteUrl: deploy.ssl_url || deploy.url || `https://${site.subdomain}.netlify.app`,

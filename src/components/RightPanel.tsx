@@ -2,14 +2,17 @@ import { useState } from 'react';
 import { FilePanel } from './FilePanel';
 import { KBPanel } from './KnowledgeBase/KBPanel';
 import { NetworkPanel } from './KnowledgeBase/NetworkPanel';
+import { EnvPanel } from './EnvPanel';
 import { useProjectStore } from '@/store/project-store';
-import { Code, BookOpen, Radio } from 'lucide-react';
+import { useEnvStore } from '@/store/env-store';
+import { Code, BookOpen, Radio, KeyRound } from 'lucide-react';
 
-type Tab = 'files' | 'knowledge' | 'network';
+type Tab = 'files' | 'knowledge' | 'network' | 'env';
 
 export function RightPanel() {
   const version = useProjectStore(s => s.version);
   const fileCount = useProjectStore(s => s.getFileCount());
+  const envCount = useEnvStore(s => s.vars.length);
   void version;
 
   // Default to knowledge base when no files, files when files exist
@@ -43,6 +46,13 @@ export function RightPanel() {
           icon={<Radio className="size-3" />}
           label="Network"
         />
+        <TabButton
+          active={activeTab === 'env'}
+          onClick={() => setActiveTab('env')}
+          icon={<KeyRound className="size-3" />}
+          label="Env"
+          badge={envCount > 0 ? envCount : undefined}
+        />
       </div>
 
       {/* Tab content */}
@@ -50,6 +60,7 @@ export function RightPanel() {
         {activeTab === 'files' && <FilePanel />}
         {activeTab === 'knowledge' && <KBPanel />}
         {activeTab === 'network' && <NetworkPanel />}
+        {activeTab === 'env' && <EnvPanel />}
       </div>
     </div>
   );

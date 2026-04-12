@@ -7,6 +7,7 @@
  */
 
 import type { FileEntry } from './virtual-fs';
+import type { EnvVar } from '@/store/env-store';
 
 const DEFINE_API = 'https://codesandbox.io/api/v1/sandboxes/define';
 
@@ -72,12 +73,25 @@ function buildPayload(files: FileEntry[]) {
  * Create a shareable preview by posting to CodeSandbox.
  * No authentication required.
  */
-export async function createPreviewLink(files: FileEntry[]): Promise<ShareResult> {
+export async function createPreviewLink(
+  files: FileEntry[],
+  publicEnvVars: EnvVar[] = [],
+): Promise<ShareResult> {
   if (files.length === 0) {
     throw new Error('No files to share');
   }
 
   const csFiles = buildPayload(files);
+
+  // Inject public env vars as a virtual module (secrets are never shared)
+  if (publicEnvVars.length > 0) {
+    const entries = publicEnvVars
+      .map((v) => `  ${JSON.stringify(v.key)}: ${JSON.stringify(v.value)},`)
+      .join('\n');
+    csFiles['src/env.ts'] = {
+      content: `// Auto-generated from Environment panel\nexport const env = {\n${entries}\n} as const;\n`,
+    };
+  }
 
   const res = await fetch(`${DEFINE_API}?json=1`, {
     method: 'POST',

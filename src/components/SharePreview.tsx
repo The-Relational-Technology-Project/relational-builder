@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useProjectStore } from '@/store/project-store';
+import { useEnvStore } from '@/store/env-store';
 import { createPreviewLink } from '@/project/share-preview';
 import {
   Share2,
@@ -45,6 +46,7 @@ export function SharePreview() {
 
 function ShareContent() {
   const getAllFiles = useProjectStore(s => s.getAllFiles);
+  const getPublicEnvVars = useEnvStore(s => s.getPublic);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -59,7 +61,8 @@ function ShareContent() {
     setError(null);
     try {
       const files = getAllFiles();
-      const res = await createPreviewLink(files);
+      const publicVars = getPublicEnvVars();
+      const res = await createPreviewLink(files, publicVars);
       setResult(res);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create preview');
