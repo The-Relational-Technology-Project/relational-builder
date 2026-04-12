@@ -22,6 +22,9 @@ Relational Builder combines three things that don't yet exist together:
 - **Deploy to Netlify/Vercel** -- deploy directly from the builder with a personal access token
 - **GitHub two-way sync** -- connect a GitHub repo, push project files as atomic commits, and pull remote changes back into the builder
 - **RAG-powered context** -- AI responses informed by the most relevant KB tools, stories, and network activity for each message
+- **Share preview links** -- generate a shareable link (via CodeSandbox) that anyone can open — no signup needed, perfect for sharing with neighbors
+- **Environment variables** -- add API keys and config in the Env panel; public vars are injected into the live preview, secret vars are only sent to deploy platforms
+- **Custom domains** -- attach your own domain (e.g. myapp.ourneighborhood.org) when deploying to Netlify or Vercel, with DNS setup instructions
 - **Resizable panels** -- drag dividers to resize the chat, preview, and knowledge panels
 - **Session persistence** -- your chat and project files survive page refreshes via localStorage
 - **Model-agnostic** -- works with Claude, OpenAI, OpenRouter, or any OpenAI-compatible endpoint
@@ -101,8 +104,8 @@ src/
     KnowledgeBase/    KB panel, tool/story cards, network feed
     ui/               shadcn/ui primitives
   providers/          LLM provider abstraction
-  store/              Zustand stores (provider, chat, project, github, deploy, knowledge)
-  project/            Virtual file system, code extractor, export, deploy, GitHub API
+  store/              Zustand stores (provider, chat, project, github, deploy, env, knowledge)
+  project/            Virtual file system, code extractor, export, deploy, GitHub API, share preview
   knowledge/          Supabase client, RTP principles, context builder, relevance scorer
 ```
 
@@ -125,7 +128,27 @@ When your project is ready to share, click **Publish** in the toolbar. You have 
 - **Netlify** -- deploy directly to Netlify with a personal access token ([get one here](https://app.netlify.com/user/applications#personal-access-tokens))
 - **Vercel** -- deploy directly to Vercel with an access token ([get one here](https://vercel.com/account/tokens))
 
+Both Netlify and Vercel deploys support **custom domains** — enter your domain (e.g. `myapp.ourneighborhood.org`) and the builder will register it with the platform and show you the DNS records to add at your registrar. SSL is automatic.
+
 To join the relational tech network, push your code to GitHub and add the `relational-tech` topic. The [network watcher](https://github.com/The-Relational-Technology-Project/watcher) scans for this topic twice daily and your project will appear on [updates.relationaltechproject.org](https://updates.relationaltechproject.org).
+
+## Sharing Previews
+
+Click **Share** in the toolbar to generate a preview link powered by CodeSandbox. You get two URLs:
+
+- **Preview link** (`{id}.csb.app`) -- a clean, neighbor-friendly URL showing just the running app. No signup, no code, no IDE. Share this via text or email.
+- **Editor link** (`codesandbox.io/s/{id}`) -- the full CodeSandbox IDE for developers who want to view or remix the code.
+
+Public environment variables are included in shared previews. Secret variables are never shared.
+
+## Environment Variables
+
+The **Env** tab in the right panel lets you manage API keys and config:
+
+- **Public vars** (e.g. `SUPABASE_URL`, `SUPABASE_ANON_KEY`) -- injected into the live preview and shared CodeSandbox links. Safe for client-side use (protected by RLS).
+- **Secret vars** (e.g. `RESEND_API_KEY`, Supabase service role key) -- stored locally, shown masked in the UI, and only sent to deploy platforms as environment variables. Never included in previews or shared links.
+
+Generated code imports env vars from an auto-generated module: `import { env } from "./env"`. The AI knows about this system and will tell you which variables to add.
 
 ## Recommended Services
 
