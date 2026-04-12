@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { ProviderSettings } from '@/components/ProviderSettings';
 import { ModelSelector } from '@/components/ModelSelector';
 import { ChatPanel } from '@/components/Chat/ChatPanel';
+import { PreviewPanel } from '@/components/PreviewPanel';
 import { FilePanel } from '@/components/FilePanel';
 import { useProviderStore } from '@/store/provider-store';
 import { useProjectStore } from '@/store/project-store';
@@ -20,7 +21,7 @@ function App() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const providerEntry = registry.getEntry(activeProviderId);
-  const showFiles = fileCount > 0;
+  const hasFiles = fileCount > 0;
 
   return (
     <div className="h-screen flex flex-col bg-background text-foreground">
@@ -41,15 +42,25 @@ function App() {
         </div>
       </header>
 
-      {/* Main content — chat + file panel */}
+      {/* Main content — three-panel layout when files exist */}
       <main className="flex-1 min-h-0 flex">
-        <div className={`${showFiles ? 'w-1/2 border-r' : 'w-full'} min-h-0 transition-all`}>
+        {/* Chat panel */}
+        <div className={`${hasFiles ? 'w-[30%]' : 'w-full'} min-h-0 border-r shrink-0 transition-all`}>
           <ChatPanel />
         </div>
-        {showFiles && (
-          <div className="w-1/2 min-h-0">
-            <FilePanel />
-          </div>
+
+        {hasFiles && (
+          <>
+            {/* Preview panel */}
+            <div className="flex-1 min-h-0 min-w-0 border-r">
+              <PreviewPanel />
+            </div>
+
+            {/* File panel */}
+            <div className="w-[25%] min-h-0 shrink-0">
+              <FilePanel />
+            </div>
+          </>
         )}
       </main>
     </div>
