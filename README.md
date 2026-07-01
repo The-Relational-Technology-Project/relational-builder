@@ -22,6 +22,8 @@ Relational Builder combines three things that don't yet exist together:
 - **Community access** -- invited pilot builders get free Claude building via RTP's subsidized key, gated server-side with daily budgets — no API key, no credit card
 - **Cloud projects & collaboration** -- sign in with a magic link, save projects to the cloud, and add collaborators by email; edits sync live via Supabase Realtime
 - **Live preview** -- see your app running in real time as the AI generates it (powered by Sandpack)
+- **Ask AI to fix it** -- when the preview breaks, one click hands the exact error back to the AI for a repair (no copy-pasting stack traces)
+- **Version history** -- every AI change is a restorable checkpoint; walk back a bad stretch (or forward again) from the chat
 - **RTP Knowledge Base** -- browse 20+ community tools and 45+ stories from the relational tech network, all injected into the AI's context
 - **Network Activity feed** -- see what other builders are shipping across the ecosystem, pulled live from [updates.relationaltechproject.org](https://updates.relationaltechproject.org)
 - **Publish to Commons** -- export your project as a zip with a `.reltech.yml` manifest, push to GitHub, and the [network watcher](https://github.com/The-Relational-Technology-Project/watcher) discovers it automatically

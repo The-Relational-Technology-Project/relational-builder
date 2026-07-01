@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useChatStore } from '@/store/chat-store';
 import { useProviderStore } from '@/store/provider-store';
 import { useProjectStore } from '@/store/project-store';
@@ -87,7 +87,7 @@ export function ChatPanel() {
             // Extract code blocks into the virtual file system (build mode only)
             if (currentMode === 'build') {
               const msg = useChatStore.getState().messages.find(m => m.id === msgId);
-              if (msg) applyMessageFiles(msg.content);
+              if (msg) applyMessageFiles(msg.content, msgId);
             }
             setIsGenerating(false);
             setAbortController(null);
@@ -116,6 +116,16 @@ export function ChatPanel() {
     setIsGenerating, setAbortController, applyMessageFiles,
     getRelevantContext, setSystemPrompt,
   ]);
+
+  // Messages queued from elsewhere in the app (e.g. the preview's
+  // "Ask AI to fix it" button) — always run as build-mode requests.
+  const queuedMessage = useChatStore(s => s.queuedMessage);
+  useEffect(() => {
+    if (!queuedMessage || isGenerating) return;
+    useChatStore.getState().clearQueuedMessage();
+    setMode('build');
+    handleSend(queuedMessage);
+  }, [queuedMessage, isGenerating, setMode, handleSend]);
 
   const handleBuildPlan = useCallback(() => {
     setMode('build');

@@ -2,9 +2,10 @@ import { useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { DisplayMessage } from '@/store/chat-store';
+import { useProjectStore } from '@/store/project-store';
 import { CodeBlock } from './CodeBlock';
 import { Button } from '@/components/ui/button';
-import { Hammer } from 'lucide-react';
+import { Hammer, History } from 'lucide-react';
 
 interface MessageListProps {
   messages: DisplayMessage[];
@@ -53,9 +54,17 @@ export function MessageList({ messages, onBuildPlan, isGenerating }: MessageList
 
 function MessageBubble({ message }: { message: DisplayMessage }) {
   const isUser = message.role === 'user';
+  const checkpoints = useProjectStore(s => s.checkpoints);
+  const activeCheckpointId = useProjectStore(s => s.activeCheckpointId);
+  const restoreCheckpoint = useProjectStore(s => s.restoreCheckpoint);
+
+  const checkpoint = !isUser ? checkpoints.find(c => c.msgId === message.id) : undefined;
+  const isLatest = checkpoint &&
+    (activeCheckpointId ? checkpoint.id === activeCheckpointId
+      : checkpoints[checkpoints.length - 1]?.id === checkpoint.id);
 
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
+    <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
       <div
         className={`max-w-[85%] rounded-lg px-4 py-2.5 text-sm ${
           isUser
@@ -105,6 +114,29 @@ function MessageBubble({ message }: { message: DisplayMessage }) {
           </div>
         )}
       </div>
+      {checkpoint && (
+        <div className="mt-1 pl-1">
+          {isLatest ? (
+            <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
+              <History className="size-2.5" />
+              {checkpoint.label} · current
+            </span>
+          ) : (
+            <button
+              onClick={() => {
+                if (window.confirm(`Restore the project files to ${checkpoint.label}? Your chat stays as-is.`)) {
+                  restoreCheckpoint(checkpoint.id);
+                }
+              }}
+              className="inline-flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground underline decoration-dotted"
+              title="Put the project files back to how they were after this change"
+            >
+              <History className="size-2.5" />
+              Restore {checkpoint.label}
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

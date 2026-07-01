@@ -3,6 +3,19 @@ import { persist } from 'zustand/middleware';
 import { VirtualFS, type FileEntry, type TreeNode } from '@/project/virtual-fs';
 import { extractFiles, type ExtractedFile } from '@/project/code-extractor';
 
+/** A restorable snapshot of the file system, taken after an AI change */
+export interface Checkpoint {
+  id: string;
+  /** Chat message that produced this version (null for the pre-AI baseline) */
+  msgId: string | null;
+  label: string;
+  timestamp: number;
+  files: FileEntry[];
+}
+
+/** Keep the last N snapshots — enough to walk back a bad stretch of changes */
+const MAX_CHECKPOINTS = 10;
+
 /** Provenance of this project — flows into the .reltech.yml manifest on export */
 export interface ProjectLineage {
   /** Where the starting point came from */
@@ -24,6 +37,10 @@ interface ProjectState {
   version: number;
   /** Provenance — set when a Studio build plan is imported or a commons project remixed */
   lineage: ProjectLineage | null;
+  /** Restorable versions, newest last */
+  checkpoints: Checkpoint[];
+  /** Which checkpoint the working files currently correspond to */
+  activeCheckpointId: string | null;
 
   // Actions
   selectFile: (path: string | null) => void;
@@ -35,7 +52,9 @@ interface ProjectState {
   clearProject: () => void;
 
   /** Extract files from a completed AI message and write them to the FS */
-  applyMessageFiles: (markdown: string) => ExtractedFile[];
+  applyMessageFiles: (markdown: string, msgId?: string) => ExtractedFile[];
+  /** Restore the file system to a checkpoint */
+  restoreCheckpoint: (checkpointId: string) => void;
 
   // Derived (computed on each call, driven by `version`)
   getTree: () => TreeNode;
@@ -49,6 +68,8 @@ export const useProjectStore = create<ProjectState>()(persist((set, get) => ({
   selectedFile: null,
   version: 0,
   lineage: null,
+  checkpoints: [],
+  activeCheckpointId: null,
 
   selectFile: (path) => set({ selectedFile: path }),
 
@@ -82,23 +103,66 @@ export const useProjectStore = create<ProjectState>()(persist((set, get) => ({
 
   clearProject: () => {
     get().fs.clear();
-    set({ version: 0, selectedFile: null, fs: new VirtualFS(), lineage: null });
+    set({ version: 0, selectedFile: null, fs: new VirtualFS(), lineage: null, checkpoints: [], activeCheckpointId: null });
   },
 
-  applyMessageFiles: (markdown) => {
+  applyMessageFiles: (markdown, msgId) => {
     const files = extractFiles(markdown);
-    const { fs } = get();
+    if (files.length === 0) return files;
+
+    const { fs, checkpoints } = get();
+    const nextCheckpoints = [...checkpoints];
+
+    // First AI change to a workspace that already has files (imported, pulled
+    // from GitHub, opened from the cloud): keep a pre-AI baseline to return to.
+    if (nextCheckpoints.length === 0 && fs.getPaths().length > 0) {
+      nextCheckpoints.push({
+        id: `ckpt-${Date.now()}-base`,
+        msgId: null,
+        label: 'Before AI changes',
+        timestamp: Date.now(),
+        files: fs.toJSON(),
+      });
+    }
+
     for (const file of files) {
       fs.writeFile(file.path, file.content, file.language);
     }
-    if (files.length > 0) {
-      set(s => ({ version: s.version + 1 }));
-      // Auto-select the first file if nothing is selected
-      if (!get().selectedFile && files.length > 0) {
-        set({ selectedFile: files[0].path });
-      }
+
+    const newCheckpointId = `ckpt-${Date.now()}`;
+    nextCheckpoints.push({
+      id: newCheckpointId,
+      msgId: msgId ?? null,
+      label: `Version ${nextCheckpoints.filter(c => c.msgId !== null).length + 1}`,
+      timestamp: Date.now(),
+      files: fs.toJSON(),
+    });
+
+    set(s => ({
+      version: s.version + 1,
+      checkpoints: nextCheckpoints.slice(-MAX_CHECKPOINTS),
+      activeCheckpointId: newCheckpointId,
+    }));
+    // Auto-select the first file if nothing is selected
+    if (!get().selectedFile) {
+      set({ selectedFile: files[0].path });
     }
     return files;
+  },
+
+  restoreCheckpoint: (checkpointId) => {
+    const { checkpoints, lineage, selectedFile } = get();
+    const checkpoint = checkpoints.find(c => c.id === checkpointId);
+    if (!checkpoint) return;
+    const fs = VirtualFS.fromJSON(checkpoint.files);
+    const paths = fs.getPaths();
+    set(s => ({
+      fs,
+      version: s.version + 1,
+      lineage,
+      activeCheckpointId: checkpoint.id,
+      selectedFile: selectedFile && paths.includes(selectedFile) ? selectedFile : (paths[0] ?? null),
+    }));
   },
 
   getTree: () => get().fs.getTree(),
@@ -136,5 +200,7 @@ export const useProjectStore = create<ProjectState>()(persist((set, get) => ({
     selectedFile: state.selectedFile,
     version: state.version,
     lineage: state.lineage,
+    checkpoints: state.checkpoints,
+    activeCheckpointId: state.activeCheckpointId,
   } as unknown as ProjectState),
 }));

@@ -1,6 +1,10 @@
 import { create } from 'zustand';
 import { builderClient } from '@/cloud/builder-client';
 import { useAuthStore } from '@/store/auth-store';
+import { useProviderStore } from '@/store/provider-store';
+
+/** Models covered by the RTP community key (mirror of the proxy's allowlist) */
+export const COMMUNITY_MODELS = ['claude-sonnet-5', 'claude-haiku-4-5'];
 
 /**
  * Community access (Tier 3): RTP-subsidized Claude for invited builders.
@@ -55,6 +59,17 @@ export const useCommunityStore = create<CommunityState>()((set) => ({
       usedToday: usage ? Number(usage.input_tokens) + Number(usage.output_tokens) : 0,
       checked: true,
     });
+
+    // Community default: a member with no personal Claude key gets steered to
+    // Sonnet 5 (the pilot's covered model) instead of a model that would 403.
+    const providers = useProviderStore.getState();
+    if (
+      providers.activeProviderId === 'claude' &&
+      !providers.apiKeys['claude'] &&
+      !COMMUNITY_MODELS.includes(providers.activeModelId)
+    ) {
+      providers.setActiveModel('claude-sonnet-5');
+    }
   },
 
   init: () => {

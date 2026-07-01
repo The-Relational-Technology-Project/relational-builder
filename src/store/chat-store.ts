@@ -25,6 +25,10 @@ interface ChatState {
   setMode: (mode: ChatMode) => void;
   /** Replace chat wholesale (cloud project load / remote sync) */
   hydrateChat: (messages: DisplayMessage[], mode: ChatMode) => void;
+  /** A message queued from outside the chat (e.g. "fix this preview error") */
+  queuedMessage: string | null;
+  queueMessage: (content: string) => void;
+  clearQueuedMessage: () => void;
   addUserMessage: (content: string) => void;
   startAssistantMessage: (isPlan?: boolean) => string;
   /** Add an imported build plan (e.g. from RTP Studio) as a plan message */
@@ -56,6 +60,10 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
   mode: 'build' as ChatMode,
 
   setMode: (mode: ChatMode) => set({ mode }),
+
+  queuedMessage: null,
+  queueMessage: (content: string) => set({ queuedMessage: content }),
+  clearQueuedMessage: () => set({ queuedMessage: null }),
 
   hydrateChat: (messages: DisplayMessage[], mode: ChatMode) =>
     set({ messages: messages.map(m => ({ ...m, isStreaming: false })), mode }),

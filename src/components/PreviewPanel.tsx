@@ -2,10 +2,13 @@ import { useMemo } from 'react';
 import {
   SandpackProvider,
   SandpackPreview,
+  useSandpack,
   type SandpackFiles,
 } from '@codesandbox/sandpack-react';
 import { useProjectStore } from '@/store/project-store';
 import { useEnvStore } from '@/store/env-store';
+import { useChatStore } from '@/store/chat-store';
+import { Wrench } from 'lucide-react';
 
 /**
  * Live preview of the generated project using Sandpack.
@@ -83,6 +86,9 @@ export function PreviewPanel() {
   return (
     <div className="h-full" style={{ display: 'flex', flexDirection: 'column' }}>
       <SandpackProvider
+        // Remount on file-system changes: SandpackProvider holds stale error
+        // state when the files prop changes underneath it (e.g. on restore)
+        key={`sandpack-${version}`}
         template={template}
         files={sandpackFiles}
         options={{
@@ -98,7 +104,54 @@ export function PreviewPanel() {
           showOpenInCodeSandbox={false}
           style={{ flex: 1 }}
         />
+        <PreviewErrorBanner />
       </SandpackProvider>
+    </div>
+  );
+}
+
+/**
+ * The error→AI loop: when the preview breaks (bundler or runtime error),
+ * offer a one-click "Ask AI to fix it" that hands the exact error to the
+ * chat in build mode — no copy-pasting stack traces.
+ */
+function PreviewErrorBanner() {
+  const { sandpack } = useSandpack();
+  const queueMessage = useChatStore(s => s.queueMessage);
+  const isGenerating = useChatStore(s => s.isGenerating);
+
+  const error = sandpack.error;
+  if (!error) return null;
+
+  const errorText = [error.title, error.message].filter(Boolean).join('\n');
+
+  function handleFix() {
+    queueMessage(
+      [
+        'The live preview is showing this error:',
+        '',
+        '```',
+        errorText.slice(0, 2000),
+        '```',
+        '',
+        'Please fix it. Re-output the complete corrected file(s) with filename annotations, changing as little else as possible.',
+      ].join('\n'),
+    );
+  }
+
+  return (
+    <div className="shrink-0 border-t bg-destructive/10 px-3 py-2 flex items-center gap-2">
+      <p className="text-xs text-destructive flex-1 line-clamp-2" title={errorText}>
+        The preview hit an error: {error.message?.slice(0, 140) ?? 'unknown error'}
+      </p>
+      <button
+        onClick={handleFix}
+        disabled={isGenerating}
+        className="inline-flex items-center gap-1 rounded-md bg-destructive text-destructive-foreground px-2.5 py-1 text-xs font-medium hover:opacity-90 disabled:opacity-50 shrink-0"
+      >
+        <Wrench className="size-3" />
+        {isGenerating ? 'Fixing...' : 'Ask AI to fix it'}
+      </button>
     </div>
   );
 }
