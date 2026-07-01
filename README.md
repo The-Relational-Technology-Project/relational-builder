@@ -15,6 +15,9 @@ Relational Builder combines three things that don't yet exist together:
 ## Features
 
 - **Chat-driven building** -- describe what you want in plain language, get working code
+- **Plan & Build modes** -- sketch a structured build plan together first (grounded in relational framing), then press "Build this plan"; or build directly
+- **Studio build plans** -- import a build plan from RTP Studio as your starting draft, with lineage recorded automatically
+- **Cloud projects & collaboration** -- sign in with a magic link, save projects to the cloud, and add collaborators by email; edits sync live via Supabase Realtime
 - **Live preview** -- see your app running in real time as the AI generates it (powered by Sandpack)
 - **RTP Knowledge Base** -- browse 20+ community tools and 45+ stories from the relational tech network, all injected into the AI's context
 - **Network Activity feed** -- see what other builders are shipping across the ecosystem, pulled live from [updates.relationaltechproject.org](https://updates.relationaltechproject.org)
@@ -23,11 +26,12 @@ Relational Builder combines three things that don't yet exist together:
 - **GitHub two-way sync** -- connect a GitHub repo, push project files as atomic commits, and pull remote changes back into the builder
 - **RAG-powered context** -- AI responses informed by the most relevant KB tools, stories, and network activity for each message
 - **Share preview links** -- generate a shareable link (via CodeSandbox) that anyone can open — no signup needed, perfect for sharing with neighbors
+- **Service integrations** -- connect Supabase, Neon, Resend, and Firecrawl in the Services tab; the AI knows what's connected and generates code that uses it (secrets only ever reach deploy platforms)
 - **Environment variables** -- add API keys and config in the Env panel; public vars are injected into the live preview, secret vars are only sent to deploy platforms
 - **Custom domains** -- attach your own domain (e.g. myapp.ourneighborhood.org) when deploying to Netlify or Vercel, with DNS setup instructions
 - **Resizable panels** -- drag dividers to resize the chat, preview, and knowledge panels
-- **Session persistence** -- your chat and project files survive page refreshes via localStorage
-- **Model-agnostic** -- works with Claude, OpenAI, OpenRouter, or any OpenAI-compatible endpoint
+- **Session persistence** -- your chat and project files survive page refreshes via localStorage (and the cloud when signed in)
+- **Model-agnostic** -- latest models from Anthropic (Claude Opus 4.8, Sonnet 5, Haiku 4.5), Google (Gemini 3.5), OpenAI (GPT-5.5), Together AI, OpenRouter, or any OpenAI-compatible endpoint
 
 ## Guiding Principles
 
@@ -109,8 +113,10 @@ Without a proxy URL, Claude falls back to direct browser-to-Anthropic calls (fin
 
 To use cloud models, click **Settings** in the toolbar and enter your API key:
 
-- **Claude** -- get a key at [console.anthropic.com](https://console.anthropic.com)
+- **Claude** -- get a key at [console.anthropic.com](https://console.anthropic.com) (Opus 4.8, Sonnet 5, Haiku 4.5)
+- **Google Gemini** -- get a key at [aistudio.google.com](https://aistudio.google.com/apikey) (Gemini 3.5 Flash, 3.1 Pro)
 - **OpenAI** -- get a key at [platform.openai.com](https://platform.openai.com)
+- **Together AI** -- get a key at [api.together.ai](https://api.together.ai)
 - **OpenRouter** -- get a key at [openrouter.ai](https://openrouter.ai)
 
 ## Project Structure
@@ -118,14 +124,29 @@ To use cloud models, click **Settings** in the toolbar and enter your API key:
 ```
 src/
   components/         React components
-    Chat/             Chat interface (panel, messages, input)
+    Chat/             Chat interface (panel, messages, input, plan/build toggle)
     KnowledgeBase/    KB panel, tool/story cards, network feed
     ui/               shadcn/ui primitives
-  providers/          LLM provider abstraction
-  store/              Zustand stores (provider, chat, project, github, deploy, env, knowledge)
+  providers/          LLM provider abstraction (Claude, Gemini, OpenAI, Together, OpenRouter, RTP)
+  store/              Zustand stores (provider, chat, project, github, deploy, env, knowledge, auth, cloud)
   project/            Virtual file system, code extractor, export, deploy, GitHub API, share preview
-  knowledge/          Supabase client, RTP principles, context builder, relevance scorer
+  knowledge/          Supabase client (RTS Studio KB, read-only), RTP principles, context builder
+  cloud/              Builder backend client, auto-save + realtime sync
+  integrations/       Service catalog (Supabase, Neon, Resend, Firecrawl)
+supabase/
+  functions/llm-proxy Edge function routing model calls server-side
+  migrations/         Builder backend schema (accounts, projects, collaboration)
 ```
+
+## Cloud Projects & Collaboration
+
+Sign in with an email magic link (no passwords) to save projects to the cloud.
+From the **Projects** dialog you can invite a collaborator by email — when they
+sign in with that address the project appears in their list, and edits sync
+live between everyone via Supabase Realtime (last save wins per project).
+Everything still works signed-out in local-only mode.
+
+Setting up the backend takes about five minutes — see [DEPLOY.md](DEPLOY.md).
 
 ## GitHub Sync
 
