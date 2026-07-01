@@ -59,6 +59,29 @@ const BASE_INSTRUCTIONS = [
   'Never hardcode API keys in generated code. Always reference them via `import { env } from "./env"`.',
 ].join('\n');
 
+const PLAN_INSTRUCTIONS = [
+  'You are Relational Builder, an AI assistant that helps people create web applications for community use — neighborhood event calendars, mutual aid boards, civic info hubs, and other relational technology.',
+  '',
+  'You are currently in **Plan Mode**. Do NOT generate application code yet. Instead, produce a clear, structured build plan the person can review, question, and refine before anything gets built.',
+  '',
+  'A good plan has these sections (use markdown headings):',
+  '',
+  '1. **What we\'re building** — one paragraph in plain language, grounded in the community need',
+  '2. **Relational framing** — how this strengthens agency, belonging, and trust; where the 90% (community presence) lives around this 10% (tech)',
+  '3. **Features** — a short prioritized list; mark a minimal first version vs. later additions',
+  '4. **Pages & files** — the files you expect to create when building',
+  '5. **Data & services** — what needs a backend (Supabase/Neon), email (Resend), scraping (Firecrawl), or nothing at all; name the env vars that will be needed',
+  '6. **Open questions** — anything the builder should decide before building',
+  '',
+  'Keep it readable for a non-technical neighborhood builder. Short sections beat exhaustive ones.',
+  '',
+  'Do not use filename-annotated code blocks in plan mode — those are extracted into the project automatically and plans should not create files. Small illustrative snippets without filename annotations are fine if truly needed.',
+  '',
+  'If the person brought a build plan from RTP Studio, treat it as the starting draft: honor its intent and lineage, adapt it to what they say, and call out anything you changed.',
+  '',
+  'End every plan by inviting the person to refine it or press **Build this plan** when it feels right.',
+].join('\n');
+
 export interface ContextOptions {
   /** Relevant tools from the knowledge base */
   tools?: Tool[];
@@ -66,11 +89,27 @@ export interface ContextOptions {
   stories?: Story[];
   /** Relevant recent network activity */
   networkEntries?: FeedEntry[];
+  /** Chat mode — plan mode swaps the base instructions */
+  mode?: 'plan' | 'build';
+  /** AI guidance blocks for services the user has connected in the Services tab */
+  connectedServiceGuidance?: string[];
 }
 
 /** Build the full system prompt with RTP context */
 export function buildSystemPrompt(options: ContextOptions = {}): string {
-  const sections = [BASE_INSTRUCTIONS, '', formatPrinciplesForPrompt()];
+  const base = options.mode === 'plan' ? PLAN_INSTRUCTIONS : BASE_INSTRUCTIONS;
+  const sections = [base, '', formatPrinciplesForPrompt()];
+
+  if (options.connectedServiceGuidance && options.connectedServiceGuidance.length > 0) {
+    sections.push(
+      '',
+      '## Connected Services',
+      '',
+      'The user has already connected these services in the Services tab — their env vars are set. Prefer them over suggesting alternatives:',
+      '',
+      ...options.connectedServiceGuidance,
+    );
+  }
 
   if (options.tools && options.tools.length > 0) {
     sections.push('', formatToolsForPrompt(options.tools));

@@ -3,12 +3,16 @@ import { persist } from 'zustand/middleware';
 import type { ChatMessage } from '@/providers/types';
 import { buildSystemPrompt } from '@/knowledge/context-builder';
 
+export type ChatMode = 'plan' | 'build';
+
 export interface DisplayMessage {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: number;
   isStreaming?: boolean;
+  /** True for assistant messages produced in plan mode (renders a "Build this plan" action) */
+  isPlan?: boolean;
 }
 
 interface ChatState {
@@ -16,9 +20,15 @@ interface ChatState {
   isGenerating: boolean;
   abortController: AbortController | null;
   systemPrompt: string;
+  mode: ChatMode;
 
+  setMode: (mode: ChatMode) => void;
+  /** Replace chat wholesale (cloud project load / remote sync) */
+  hydrateChat: (messages: DisplayMessage[], mode: ChatMode) => void;
   addUserMessage: (content: string) => void;
-  startAssistantMessage: () => string;
+  startAssistantMessage: (isPlan?: boolean) => string;
+  /** Add an imported build plan (e.g. from RTP Studio) as a plan message */
+  importBuildPlan: (planMarkdown: string) => void;
   appendToMessage: (id: string, token: string) => void;
   finalizeMessage: (id: string) => void;
   setIsGenerating: (generating: boolean) => void;
@@ -43,6 +53,12 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
   isGenerating: false,
   abortController: null,
   systemPrompt: buildSystemPrompt(),
+  mode: 'build' as ChatMode,
+
+  setMode: (mode: ChatMode) => set({ mode }),
+
+  hydrateChat: (messages: DisplayMessage[], mode: ChatMode) =>
+    set({ messages: messages.map(m => ({ ...m, isStreaming: false })), mode }),
 
   addUserMessage: (content: string) => {
     const msg: DisplayMessage = {
@@ -54,7 +70,7 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
     set(state => ({ messages: [...state.messages, msg] }));
   },
 
-  startAssistantMessage: () => {
+  startAssistantMessage: (isPlan?: boolean) => {
     const id = nextId();
     const msg: DisplayMessage = {
       id,
@@ -62,9 +78,30 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
       content: '',
       timestamp: Date.now(),
       isStreaming: true,
+      isPlan,
     };
     set(state => ({ messages: [...state.messages, msg] }));
     return id;
+  },
+
+  importBuildPlan: (planMarkdown: string) => {
+    const userMsg: DisplayMessage = {
+      id: nextId(),
+      role: 'user',
+      content: 'I brought a build plan from RTP Studio to start from.',
+      timestamp: Date.now(),
+    };
+    const planMsg: DisplayMessage = {
+      id: nextId(),
+      role: 'assistant',
+      content: planMarkdown,
+      timestamp: Date.now(),
+      isPlan: true,
+    };
+    set(state => ({
+      messages: [...state.messages, userMsg, planMsg],
+      mode: 'plan',
+    }));
   },
 
   appendToMessage: (id: string, token: string) => {
@@ -110,5 +147,6 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
   name: 'relational-builder-chat',
   partialize: (state) => ({
     messages: state.messages.map(m => ({ ...m, isStreaming: false })),
+    mode: state.mode,
   } as unknown as ChatState),
 }));

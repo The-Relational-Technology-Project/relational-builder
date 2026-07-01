@@ -3,12 +3,16 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { DisplayMessage } from '@/store/chat-store';
 import { CodeBlock } from './CodeBlock';
+import { Button } from '@/components/ui/button';
+import { Hammer } from 'lucide-react';
 
 interface MessageListProps {
   messages: DisplayMessage[];
+  onBuildPlan?: () => void;
+  isGenerating?: boolean;
 }
 
-export function MessageList({ messages }: MessageListProps) {
+export function MessageList({ messages, onBuildPlan, isGenerating }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -19,12 +23,28 @@ export function MessageList({ messages }: MessageListProps) {
     return null;
   }
 
+  const lastMessage = messages[messages.length - 1];
+  const showBuildAction =
+    !isGenerating &&
+    !!onBuildPlan &&
+    lastMessage?.role === 'assistant' &&
+    lastMessage.isPlan &&
+    !lastMessage.isStreaming;
+
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="max-w-3xl mx-auto py-4 px-4 space-y-4">
         {messages.map(msg => (
           <MessageBubble key={msg.id} message={msg} />
         ))}
+        {showBuildAction && (
+          <div className="flex justify-start pl-1">
+            <Button size="sm" onClick={onBuildPlan}>
+              <Hammer className="size-3.5 mr-1.5" />
+              Build this plan
+            </Button>
+          </div>
+        )}
         <div ref={bottomRef} />
       </div>
     </div>
@@ -40,9 +60,16 @@ function MessageBubble({ message }: { message: DisplayMessage }) {
         className={`max-w-[85%] rounded-lg px-4 py-2.5 text-sm ${
           isUser
             ? 'bg-primary text-primary-foreground'
-            : 'bg-muted'
+            : message.isPlan
+              ? 'bg-muted border border-dashed border-primary/40'
+              : 'bg-muted'
         }`}
       >
+        {message.isPlan && (
+          <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1.5">
+            Build plan
+          </div>
+        )}
         {isUser ? (
           <p className="whitespace-pre-wrap">{message.content}</p>
         ) : (

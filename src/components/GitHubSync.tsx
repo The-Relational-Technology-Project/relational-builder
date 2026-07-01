@@ -19,6 +19,7 @@ import {
   addReltechTopic,
   type GitHubRepo,
 } from '@/project/github-api';
+import { generateManifest } from '@/project/export';
 import {
   GitBranch,
   ArrowUpFromLine,
@@ -29,7 +30,6 @@ import {
   ExternalLink,
   Unplug,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 type View = 'connect' | 'repos' | 'connected';
 
@@ -273,11 +273,26 @@ function ConnectedView() {
     setError(null);
     setMessage('');
     try {
+      // Include the .reltech.yml manifest (with lineage) unless the project
+      // already carries its own — the network watcher reads it from the repo.
+      const filesToPush = [...files];
+      const hasManifest = files.some(f => f.path.replace(/^\//, '') === '.reltech.yml');
+      if (!hasManifest) {
+        const { lineage } = useProjectStore.getState();
+        const repoName = connectedRepo.fullName.split('/')[1] ?? 'my-community-app';
+        filesToPush.push({
+          path: '.reltech.yml',
+          content: generateManifest(repoName, lineage),
+          language: 'yaml',
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        });
+      }
       const result = await pushFiles(
         token,
         connectedRepo.fullName,
         connectedRepo.branch,
-        files,
+        filesToPush,
         commitMsg,
       );
       updateLastSync(result.commitSha);

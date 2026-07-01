@@ -41,6 +41,7 @@ export function PublishDialog() {
 
   const getAllFiles = useProjectStore(s => s.getAllFiles);
   const fileCount = useProjectStore(s => s.getFileCount());
+  const lineage = useProjectStore(s => s.lineage);
 
   const netlifyToken = useDeployStore(s => s.netlifyToken);
   const vercelToken = useDeployStore(s => s.vercelToken);
@@ -73,7 +74,7 @@ export function PublishDialog() {
 
     try {
       if (activeTarget === 'download') {
-        const blob = await exportProjectZip(files, projectName);
+        const blob = await exportProjectZip(files, projectName, lineage);
         const safeName = projectName.replace(/[^a-zA-Z0-9-_]/g, '-');
         downloadBlob(blob, `${safeName}.zip`);
         setResult({ url: '' }); // signals success for download
@@ -82,7 +83,7 @@ export function PublishDialog() {
           setError('Please enter your Netlify access token');
           return;
         }
-        const blob = await exportProjectZip(files, projectName);
+        const blob = await exportProjectZip(files, projectName, lineage);
         const domain = customDomain.trim() || undefined;
         const res = await deployToNetlify(blob, projectName, netlifyToken, envRecord, domain);
         setResult({ url: res.siteUrl, adminUrl: res.adminUrl, dnsInstructions: res.dnsInstructions });

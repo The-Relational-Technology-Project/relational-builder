@@ -2,16 +2,20 @@ import { useState } from 'react';
 import { FilePanel } from './FilePanel';
 import { PreviewPanel } from './PreviewPanel';
 import { EnvPanel } from './EnvPanel';
+import { IntegrationsPanel } from './IntegrationsPanel';
 import { useProjectStore } from '@/store/project-store';
 import { useEnvStore } from '@/store/env-store';
-import { Eye, Code, KeyRound } from 'lucide-react';
+import { getConnectedIntegrations } from '@/integrations/catalog';
+import { Eye, Code, KeyRound, Plug } from 'lucide-react';
 
-type Tab = 'preview' | 'files' | 'env';
+type Tab = 'preview' | 'files' | 'services' | 'env';
 
 export function RightPanel() {
   const version = useProjectStore(s => s.version);
   const fileCount = useProjectStore(s => s.getFileCount());
-  const envCount = useEnvStore(s => s.vars.length);
+  const envVars = useEnvStore(s => s.vars);
+  const envCount = envVars.length;
+  const connectedCount = getConnectedIntegrations(envVars).length;
   void version;
 
   const [activeTab, setActiveTab] = useState<Tab>('preview');
@@ -34,6 +38,13 @@ export function RightPanel() {
           badge={fileCount > 0 ? fileCount : undefined}
         />
         <TabButton
+          active={activeTab === 'services'}
+          onClick={() => setActiveTab('services')}
+          icon={<Plug className="size-3" />}
+          label="Services"
+          badge={connectedCount > 0 ? connectedCount : undefined}
+        />
+        <TabButton
           active={activeTab === 'env'}
           onClick={() => setActiveTab('env')}
           icon={<KeyRound className="size-3" />}
@@ -46,6 +57,7 @@ export function RightPanel() {
       <div className="flex-1 min-h-0">
         {activeTab === 'preview' && <PreviewPanel />}
         {activeTab === 'files' && <FilePanel />}
+        {activeTab === 'services' && <IntegrationsPanel />}
         {activeTab === 'env' && <EnvPanel />}
       </div>
     </div>

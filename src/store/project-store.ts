@@ -3,6 +3,18 @@ import { persist } from 'zustand/middleware';
 import { VirtualFS, type FileEntry, type TreeNode } from '@/project/virtual-fs';
 import { extractFiles, type ExtractedFile } from '@/project/code-extractor';
 
+/** Provenance of this project — flows into the .reltech.yml manifest on export */
+export interface ProjectLineage {
+  /** Where the starting point came from */
+  source: 'rtp-studio-plan' | 'remix' | null;
+  /** Title of the imported build plan, if any */
+  planTitle?: string;
+  /** URL of the build plan or remixed project, if known */
+  sourceUrl?: string;
+  /** ISO timestamp of import */
+  importedAt?: string;
+}
+
 interface ProjectState {
   /** The virtual file system instance */
   fs: VirtualFS;
@@ -10,11 +22,16 @@ interface ProjectState {
   selectedFile: string | null;
   /** Trigger for re-renders when FS changes (incremented on mutation) */
   version: number;
+  /** Provenance — set when a Studio build plan is imported or a commons project remixed */
+  lineage: ProjectLineage | null;
 
   // Actions
   selectFile: (path: string | null) => void;
   writeFile: (path: string, content: string, language?: string) => void;
   deleteFile: (path: string) => void;
+  setLineage: (lineage: ProjectLineage | null) => void;
+  /** Replace the whole file system (cloud project load / remote sync) */
+  hydrateFiles: (entries: FileEntry[], lineage: ProjectLineage | null) => void;
   clearProject: () => void;
 
   /** Extract files from a completed AI message and write them to the FS */
@@ -31,8 +48,23 @@ export const useProjectStore = create<ProjectState>()(persist((set, get) => ({
   fs: new VirtualFS(),
   selectedFile: null,
   version: 0,
+  lineage: null,
 
   selectFile: (path) => set({ selectedFile: path }),
+
+  setLineage: (lineage) => set({ lineage }),
+
+  hydrateFiles: (entries, lineage) => {
+    const fs = VirtualFS.fromJSON(entries);
+    const paths = fs.getPaths();
+    const selected = get().selectedFile;
+    set(s => ({
+      fs,
+      version: s.version + 1,
+      lineage,
+      selectedFile: selected && paths.includes(selected) ? selected : (paths[0] ?? null),
+    }));
+  },
 
   writeFile: (path, content, language) => {
     get().fs.writeFile(path, content, language);
@@ -50,7 +82,7 @@ export const useProjectStore = create<ProjectState>()(persist((set, get) => ({
 
   clearProject: () => {
     get().fs.clear();
-    set({ version: 0, selectedFile: null, fs: new VirtualFS() });
+    set({ version: 0, selectedFile: null, fs: new VirtualFS(), lineage: null });
   },
 
   applyMessageFiles: (markdown) => {
@@ -103,5 +135,6 @@ export const useProjectStore = create<ProjectState>()(persist((set, get) => ({
     fs: state.fs,
     selectedFile: state.selectedFile,
     version: state.version,
+    lineage: state.lineage,
   } as unknown as ProjectState),
 }));

@@ -5,6 +5,8 @@ import { useProjectStore } from '@/store/project-store';
 import { useKnowledgeStore } from '@/store/knowledge-store';
 import { buildSystemPrompt } from '@/knowledge/context-builder';
 import { registry } from '@/providers/registry';
+import { useEnvStore } from '@/store/env-store';
+import { getConnectedIntegrations } from '@/integrations/catalog';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 
@@ -26,6 +28,8 @@ export function ChatPanel() {
   const applyMessageFiles = useProjectStore(s => s.applyMessageFiles);
   const getRelevantContext = useKnowledgeStore(s => s.getRelevantContext);
   const setSystemPrompt = useChatStore(s => s.setSystemPrompt);
+  const mode = useChatStore(s => s.mode);
+  const setMode = useChatStore(s => s.setMode);
 
   const provider = registry.getProvider(activeProviderId);
   const needsKey = registry.getEntry(activeProviderId)?.requiresApiKey && !apiKeys[activeProviderId];
@@ -33,12 +37,18 @@ export function ChatPanel() {
   const handleSend = useCallback(async (content: string) => {
     if (!provider) return;
 
+    // Mode is read fresh from the store: "Build this plan" flips it right before sending
+    const currentMode = useChatStore.getState().mode;
+
     // RAG: score KB items against the user's message and rebuild system prompt
     const relevant = getRelevantContext(content);
+    const connectedServices = getConnectedIntegrations(useEnvStore.getState().vars);
     const updatedPrompt = buildSystemPrompt({
       tools: relevant.tools,
       stories: relevant.stories,
       networkEntries: relevant.networkEntries,
+      mode: currentMode,
+      connectedServiceGuidance: connectedServices.map(s => s.aiGuidance),
     });
     setSystemPrompt(updatedPrompt);
 
@@ -50,7 +60,7 @@ export function ChatPanel() {
       { role: 'user' as const, content },
     ];
 
-    const msgId = startAssistantMessage();
+    const msgId = startAssistantMessage(currentMode === 'plan');
     const controller = new AbortController();
     setAbortController(controller);
     setIsGenerating(true);
@@ -63,9 +73,11 @@ export function ChatPanel() {
           onToken: (token) => appendToMessage(msgId, token),
           onComplete: () => {
             finalizeMessage(msgId);
-            // Extract code blocks into the virtual file system
-            const msg = useChatStore.getState().messages.find(m => m.id === msgId);
-            if (msg) applyMessageFiles(msg.content);
+            // Extract code blocks into the virtual file system (build mode only)
+            if (currentMode === 'build') {
+              const msg = useChatStore.getState().messages.find(m => m.id === msgId);
+              if (msg) applyMessageFiles(msg.content);
+            }
             setIsGenerating(false);
             setAbortController(null);
           },
@@ -94,6 +106,13 @@ export function ChatPanel() {
     getRelevantContext, setSystemPrompt,
   ]);
 
+  const handleBuildPlan = useCallback(() => {
+    setMode('build');
+    handleSend(
+      'Build the app described in the plan above. Generate complete, working files with filename annotations, following the plan\'s features, pages, and data decisions.',
+    );
+  }, [setMode, handleSend]);
+
   const handleStop = useCallback(() => {
     const controller = useChatStore.getState().abortController;
     controller?.abort();
@@ -110,7 +129,7 @@ export function ChatPanel() {
       {messages.length === 0 ? (
         <WelcomeScreen onSelectIdea={handleSend} disabled={!!needsKey} />
       ) : (
-        <MessageList messages={messages} />
+        <MessageList messages={messages} onBuildPlan={handleBuildPlan} isGenerating={isGenerating} />
       )}
       {needsKey && (
         <div className="px-4 py-2 text-xs text-center text-muted-foreground bg-muted/50 border-t">
@@ -122,6 +141,8 @@ export function ChatPanel() {
         onStop={handleStop}
         isGenerating={isGenerating}
         disabled={needsKey}
+        mode={mode}
+        onModeChange={setMode}
       />
     </div>
   );

@@ -1,13 +1,43 @@
 import JSZip from 'jszip';
 import type { FileEntry } from './virtual-fs';
+import type { ProjectLineage } from '@/store/project-store';
 
-/** Generate a .reltech.yml manifest for the project */
-function generateManifest(projectName: string): string {
-  return [
+const yamlEscape = (s: string) => s.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+
+/**
+ * Generate a .reltech.yml manifest (spec version 2).
+ * Lineage keeps the chain of credit unbroken when a project starts from a
+ * Studio build plan or a commons remix — the network watcher surfaces it.
+ */
+export function generateManifest(projectName: string, lineage?: ProjectLineage | null): string {
+  const lines = [
+    '# .reltech.yml — see github.com/The-Relational-Technology-Project/watcher',
+    'version: 2',
+    '',
     'project:',
-    `  name: "${projectName}"`,
+    `  name: "${yamlEscape(projectName)}"`,
     '  description: "Built with Relational Builder"',
     '',
+  ];
+
+  if (lineage?.source) {
+    lines.push('lineage:');
+    if (lineage.planTitle) {
+      lines.push(`  remixed_from: "${yamlEscape(lineage.planTitle)}"`);
+    }
+    if (lineage.sourceUrl) {
+      lines.push(`  remixed_from_url: "${yamlEscape(lineage.sourceUrl)}"`);
+    }
+    const noteBits =
+      lineage.source === 'rtp-studio-plan'
+        ? 'Started from an RTP Studio build plan'
+        : 'Remixed from a relational tech commons project';
+    const dateBit = lineage.importedAt ? ` on ${lineage.importedAt.slice(0, 10)}` : '';
+    lines.push(`  note: "${yamlEscape(`${noteBits}${dateBit}, built with Relational Builder.`)}"`);
+    lines.push('');
+  }
+
+  lines.push(
     'tags:',
     '  - community-tool',
     '',
@@ -20,13 +50,16 @@ function generateManifest(projectName: string): string {
     '  summarize_commits: true',
     '  public_link: true',
     '',
-  ].join('\n');
+  );
+
+  return lines.join('\n');
 }
 
 /** Package project files into a downloadable zip */
 export async function exportProjectZip(
   files: FileEntry[],
   projectName: string,
+  lineage?: ProjectLineage | null,
 ): Promise<Blob> {
   const zip = new JSZip();
 
@@ -38,7 +71,7 @@ export async function exportProjectZip(
   }
 
   // Add .reltech.yml manifest
-  zip.file('.reltech.yml', generateManifest(projectName));
+  zip.file('.reltech.yml', generateManifest(projectName, lineage));
 
   // Add a basic README
   zip.file(

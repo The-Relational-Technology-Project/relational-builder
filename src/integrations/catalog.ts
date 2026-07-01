@@ -1,0 +1,105 @@
+import type { EnvVar } from '@/store/env-store';
+
+/**
+ * Integration catalog for the apps people build (not the builder itself).
+ * Connecting a service writes its env vars through the existing Env plumbing:
+ * public vars flow into the live preview and shared links, secret vars only
+ * reach deploy platforms (Netlify/Vercel) as server-side environment variables.
+ * The AI's system prompt is told which services are connected so generated
+ * code uses them correctly.
+ */
+
+export interface IntegrationField {
+  envKey: string;
+  label: string;
+  placeholder: string;
+  isSecret: boolean;
+}
+
+export interface IntegrationDef {
+  id: string;
+  name: string;
+  tagline: string;
+  /** Where to create an account / get credentials */
+  keysUrl: string;
+  keysLabel: string;
+  fields: IntegrationField[];
+  /** Injected into the AI system prompt when this service is connected */
+  aiGuidance: string;
+  /** Shown in the panel under the fields */
+  setupHint: string;
+}
+
+export const INTEGRATIONS: IntegrationDef[] = [
+  {
+    id: 'supabase',
+    name: 'Supabase',
+    tagline: 'Database, auth, storage, and realtime for your app',
+    keysUrl: 'https://supabase.com/dashboard/project/_/settings/api',
+    keysLabel: 'Project settings → API',
+    fields: [
+      { envKey: 'SUPABASE_URL', label: 'Project URL', placeholder: 'https://xyz.supabase.co', isSecret: false },
+      { envKey: 'SUPABASE_ANON_KEY', label: 'Anon (public) key', placeholder: 'eyJ...', isSecret: false },
+    ],
+    aiGuidance: [
+      '- **Supabase is connected.** Generate code that creates a client with `createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY)` from `@supabase/supabase-js` (import from "https://esm.sh/@supabase/supabase-js@2" in vanilla apps, or as a package import in React apps).',
+      '  When the app needs tables, include the schema as a `supabase-schema.sql` file with CREATE TABLE statements and row-level-security policies, and tell the user to run it in the Supabase SQL editor.',
+      '  Design RLS policies so the anon key is safe in the browser.',
+    ].join('\n'),
+    setupHint: 'The URL and anon key are safe for the browser when your tables use row-level security. The AI will generate a supabase-schema.sql for you to run in the Supabase SQL editor.',
+  },
+  {
+    id: 'neon',
+    name: 'Neon',
+    tagline: 'Serverless Postgres for server-side data',
+    keysUrl: 'https://console.neon.tech',
+    keysLabel: 'Neon console → Connection details',
+    fields: [
+      { envKey: 'DATABASE_URL', label: 'Connection string', placeholder: 'postgresql://user:pass@...neon.tech/db', isSecret: true },
+    ],
+    aiGuidance: [
+      '- **Neon (serverless Postgres) is connected.** The connection string lives in the secret env var `DATABASE_URL` — it must NEVER appear in browser code.',
+      '  Use it only inside serverless functions (`netlify/functions/*.mts` for Netlify or `api/*.ts` for Vercel) with the `@neondatabase/serverless` driver, and have the browser call those functions with `fetch`.',
+      '  Include the SQL schema as a `neon-schema.sql` file and tell the user to run it in the Neon SQL editor.',
+    ].join('\n'),
+    setupHint: 'Stored as a secret — never included in previews or shared links, only sent to Netlify/Vercel at deploy time for serverless functions.',
+  },
+  {
+    id: 'resend',
+    name: 'Resend',
+    tagline: 'Transactional email (invites, notifications, digests)',
+    keysUrl: 'https://resend.com/api-keys',
+    keysLabel: 'resend.com → API Keys',
+    fields: [
+      { envKey: 'RESEND_API_KEY', label: 'API key', placeholder: 're_...', isSecret: true },
+    ],
+    aiGuidance: [
+      '- **Resend (email) is connected.** The API key lives in the secret env var `RESEND_API_KEY` — never call Resend from the browser.',
+      '  Generate a serverless function (`netlify/functions/send-email.mts` for Netlify or `api/send-email.ts` for Vercel) that POSTs to `https://api.resend.com/emails` with the `Authorization: Bearer` header, and have the browser call it with `fetch`.',
+      '  Until the user verifies their own domain in Resend, use `onboarding@resend.dev` as the from address and mention that limitation.',
+    ].join('\n'),
+    setupHint: 'Stored as a secret. Email sending works once the project is deployed to Netlify or Vercel (serverless functions carry the key). Verify a sending domain in Resend for production.',
+  },
+  {
+    id: 'firecrawl',
+    name: 'Firecrawl',
+    tagline: 'Scrape community calendars and websites into your app',
+    keysUrl: 'https://www.firecrawl.dev/app/api-keys',
+    keysLabel: 'firecrawl.dev → API Keys',
+    fields: [
+      { envKey: 'FIRECRAWL_API_KEY', label: 'API key', placeholder: 'fc-...', isSecret: true },
+    ],
+    aiGuidance: [
+      '- **Firecrawl (web scraping) is connected.** The API key lives in the secret env var `FIRECRAWL_API_KEY` — never call Firecrawl from the browser.',
+      '  Generate a serverless function (`netlify/functions/scrape.mts` for Netlify or `api/scrape.ts` for Vercel) that POSTs to `https://api.firecrawl.dev/v2/scrape` with the `Authorization: Bearer` header, passing the target URL and `formats: ["markdown"]`, and have the browser call it with `fetch`.',
+      '  Be respectful: scrape public community pages (calendars, org sites), cache results, and avoid tight polling loops.',
+    ].join('\n'),
+    setupHint: 'Stored as a secret. Scraping runs in serverless functions once deployed — the AI wires the browser to call your function, not Firecrawl directly.',
+  },
+];
+
+/** Which integrations are fully connected, given the current env vars */
+export function getConnectedIntegrations(vars: EnvVar[]): IntegrationDef[] {
+  const keys = new Set(vars.filter(v => v.value.trim()).map(v => v.key));
+  return INTEGRATIONS.filter(def => def.fields.every(f => keys.has(f.envKey)));
+}
