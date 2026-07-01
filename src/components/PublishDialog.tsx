@@ -16,6 +16,7 @@ import { deployToNetlify } from '@/project/deploy-netlify';
 import { deployToVercel } from '@/project/deploy-vercel';
 import { Upload, Download, ExternalLink, Globe, Check, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { CommonsSubmitCard } from './CommonsSubmitCard';
 
 type DeployTarget = 'download' | 'netlify' | 'vercel';
 
@@ -314,6 +315,11 @@ export function PublishDialog() {
             </div>
           )}
 
+          {/* Offer to the commons — after a successful deploy */}
+          {result && result.url && (
+            <CommonsSubmitCard projectName={projectName} sourceUrl={result.url} />
+          )}
+
           {/* Success — download (no URL) */}
           {result && !result.url && (
             <div className="rounded-lg border bg-muted/50 p-3 space-y-2">
@@ -339,6 +345,11 @@ export function PublishDialog() {
                 </li>
               </ol>
             </div>
+          )}
+
+          {/* Offer to the commons — after a download too */}
+          {result && !result.url && (
+            <CommonsSubmitCard projectName={projectName} />
           )}
         </div>
       </DialogContent>

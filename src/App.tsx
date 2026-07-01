@@ -14,6 +14,7 @@ import { useChatStore } from '@/store/chat-store';
 import { useKnowledgeStore } from '@/store/knowledge-store';
 import { useAuthStore } from '@/store/auth-store';
 import { useCloudStore } from '@/store/cloud-store';
+import { useCommunityStore } from '@/store/community-store';
 import { initCloudSync } from '@/cloud/sync';
 import { AccountMenu } from '@/components/AccountMenu';
 import { ProjectsDialog } from '@/components/ProjectsDialog';
@@ -34,6 +35,7 @@ function App() {
     loadKnowledge();
     initAuth();
     initCloudSync();
+    useCommunityStore.getState().init();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const clearMessages = useChatStore(s => s.clearMessages);

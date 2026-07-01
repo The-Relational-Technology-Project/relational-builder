@@ -16,7 +16,10 @@ Relational Builder combines three things that don't yet exist together:
 
 - **Chat-driven building** -- describe what you want in plain language, get working code
 - **Plan & Build modes** -- sketch a structured build plan together first (grounded in relational framing), then press "Build this plan"; or build directly
-- **Studio build plans** -- import a build plan from RTP Studio as your starting draft, with lineage recorded automatically
+- **Studio build plans** -- paste a Studio share link (or ID) and the plan is fetched as your starting draft, with lineage recorded automatically
+- **RT Commons retrieval** -- every message runs a hybrid semantic + full-text search across the whole commons (tools, stories, recipes, the Neighboring Commons library, frameworks) and weaves the most relevant knowledge into the AI's context
+- **Offer builds back to the commons** -- after publishing, share your build to the commons contribution queue (consent-first, steward-reviewed, credited by name)
+- **Community access** -- invited pilot builders get free Claude building via RTP's subsidized key, gated server-side with daily budgets — no API key, no credit card
 - **Cloud projects & collaboration** -- sign in with a magic link, save projects to the cloud, and add collaborators by email; edits sync live via Supabase Realtime
 - **Live preview** -- see your app running in real time as the AI generates it (powered by Sandpack)
 - **RTP Knowledge Base** -- browse 20+ community tools and 45+ stories from the relational tech network, all injected into the AI's context

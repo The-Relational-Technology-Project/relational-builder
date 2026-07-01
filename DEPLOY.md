@@ -62,6 +62,25 @@ Set these as Edge Function secrets (`supabase secrets set KEY=value`):
 | `ALLOWED_ORIGINS` | Comma-separated list of allowed browser origins. Unset = allow all (dev). | unset |
 | `RATE_LIMIT_PER_MIN` | Best-effort per-IP request cap per minute | `30` |
 | `RTP_MODEL_URL` | Base URL of the RTP-hosted vLLM instance (Tier 1) | `https://api.relationaltech.org` |
+| `ANTHROPIC_COMMUNITY_KEY` | RTP's shared Anthropic key for the community pilot (Tier 3). Never reaches the browser. | unset (community access off) |
+| `COMMUNITY_MODELS` | Models the community key may be used with | `claude-sonnet-5,claude-haiku-4-5` |
+
+### Community access pilot (Tier 3)
+
+With `ANTHROPIC_COMMUNITY_KEY` set, invited builders get free Claude without
+their own key. The proxy verifies their Builder sign-in, checks the allowlist,
+enforces a per-person daily token budget, and meters usage. Invite builders in
+the SQL editor:
+
+```sql
+insert into public.community_members (email, note) values
+  ('builder@example.org', 'July 2026 pilot cohort');
+```
+
+Watch spend per person per day in `community_usage`. The default budget is
+750k tokens/day (≈ $3–6/day ceiling per person at Sonnet 5 intro pricing);
+adjust `daily_token_budget` per member as needed. Rough pilot math: 10
+builders, a few sessions a week ≈ $50–200/month total.
 
 Example:
 

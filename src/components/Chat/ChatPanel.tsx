@@ -7,6 +7,8 @@ import { buildSystemPrompt } from '@/knowledge/context-builder';
 import { registry } from '@/providers/registry';
 import { useEnvStore } from '@/store/env-store';
 import { getConnectedIntegrations } from '@/integrations/catalog';
+import { useCommunityStore } from '@/store/community-store';
+import { searchCommons } from '@/knowledge/commons-search';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 
@@ -31,8 +33,13 @@ export function ChatPanel() {
   const mode = useChatStore(s => s.mode);
   const setMode = useChatStore(s => s.setMode);
 
+  const communityActive = useCommunityStore(s => s.active);
+
   const provider = registry.getProvider(activeProviderId);
-  const needsKey = registry.getEntry(activeProviderId)?.requiresApiKey && !apiKeys[activeProviderId];
+  const needsKey =
+    registry.getEntry(activeProviderId)?.requiresApiKey &&
+    !apiKeys[activeProviderId] &&
+    !(activeProviderId === 'claude' && communityActive);
 
   const handleSend = useCallback(async (content: string) => {
     if (!provider) return;
@@ -40,13 +47,17 @@ export function ChatPanel() {
     // Mode is read fresh from the store: "Build this plan" flips it right before sending
     const currentMode = useChatStore.getState().mode;
 
-    // RAG: score KB items against the user's message and rebuild system prompt
-    const relevant = getRelevantContext(content);
+    // Retrieval: hybrid semantic+text search against the RT Commons (the
+    // canonical knowledge base), falling back to local TF-IDF scoring of the
+    // Studio KB when the commons is unreachable.
+    const commonsResults = await searchCommons(content);
+    const relevant = commonsResults.length > 0 ? null : getRelevantContext(content);
     const connectedServices = getConnectedIntegrations(useEnvStore.getState().vars);
     const updatedPrompt = buildSystemPrompt({
-      tools: relevant.tools,
-      stories: relevant.stories,
-      networkEntries: relevant.networkEntries,
+      commonsResults,
+      tools: relevant?.tools,
+      stories: relevant?.stories,
+      networkEntries: relevant?.networkEntries,
       mode: currentMode,
       connectedServiceGuidance: connectedServices.map(s => s.aiGuidance),
     });

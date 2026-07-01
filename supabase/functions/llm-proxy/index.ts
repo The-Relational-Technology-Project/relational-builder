@@ -38,7 +38,7 @@ function corsHeaders(req: Request): Record<string, string> {
   return {
     'Access-Control-Allow-Origin': allowOrigin,
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-llm-provider',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-llm-provider, x-community-token',
     Vary: 'Origin',
   };
 }
@@ -87,7 +87,8 @@ Deno.serve(async (req: Request) => {
     const body = await req.json();
 
     if (provider === 'anthropic') {
-      return await proxyAnthropic(body, authHeader, CORS_HEADERS);
+      const communityToken = req.headers.get('x-community-token');
+      return await proxyAnthropic(body, authHeader, CORS_HEADERS, communityToken);
     } else if (provider === 'rtp') {
       return await proxyRTP(body, CORS_HEADERS);
     } else {
@@ -103,14 +104,118 @@ Deno.serve(async (req: Request) => {
   }
 });
 
+// ── Community access (Tier 3 — RTP-subsidized key for invited builders) ──
+//
+// When a signed-in Builder user has no personal key, the client sends their
+// Supabase access token in x-community-token. The proxy verifies identity,
+// checks the community_members allowlist + daily token budget, and forwards
+// the request using the ANTHROPIC_COMMUNITY_KEY secret. The shared key never
+// leaves the server. Usage is metered per email per day.
+
+const COMMUNITY_MODELS = (Deno.env.get('COMMUNITY_MODELS') ?? 'claude-sonnet-5,claude-haiku-4-5')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+type CommunityGate = { email: string } | { error: string; status: number };
+
+async function checkCommunityAccess(token: string, model: string): Promise<CommunityGate> {
+  const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+  const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+  if (!supabaseUrl || !serviceKey || !Deno.env.get('ANTHROPIC_COMMUNITY_KEY')) {
+    return { error: 'Community access is not configured on this server', status: 503 };
+  }
+
+  // Who is asking? Verify the Supabase access token.
+  const userRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
+    headers: { apikey: anonKey, Authorization: `Bearer ${token}` },
+  });
+  if (!userRes.ok) return { error: 'Sign in to use community access', status: 401 };
+  const user = await userRes.json();
+  const email = String(user.email ?? '').toLowerCase();
+  if (!email) return { error: 'Sign in to use community access', status: 401 };
+
+  if (!COMMUNITY_MODELS.includes(String(model))) {
+    return {
+      error: `Community access covers ${COMMUNITY_MODELS.join(' and ')} — switch to one of those models, or add your own API key in Settings to use ${model}.`,
+      status: 403,
+    };
+  }
+
+  const svc = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` };
+
+  const memberRes = await fetch(
+    `${supabaseUrl}/rest/v1/community_members?email=eq.${encodeURIComponent(email)}&select=daily_token_budget`,
+    { headers: svc },
+  );
+  const members = memberRes.ok ? await memberRes.json() : [];
+  if (!Array.isArray(members) || members.length === 0) {
+    return {
+      error: "This email isn't part of the community building pilot yet — reach out to the Relational Tech Project to join, or add your own API key in Settings.",
+      status: 403,
+    };
+  }
+  const budget = Number(members[0].daily_token_budget ?? 750000);
+
+  const today = new Date().toISOString().slice(0, 10);
+  const usageRes = await fetch(
+    `${supabaseUrl}/rest/v1/community_usage?email=eq.${encodeURIComponent(email)}&day=eq.${today}&select=input_tokens,output_tokens`,
+    { headers: svc },
+  );
+  const usage = usageRes.ok ? await usageRes.json() : [];
+  const used = Array.isArray(usage) && usage.length > 0
+    ? Number(usage[0].input_tokens) + Number(usage[0].output_tokens)
+    : 0;
+  if (used >= budget) {
+    return {
+      error: "You've reached today's community building budget — it resets tomorrow. Thanks for building!",
+      status: 429,
+    };
+  }
+
+  return { email };
+}
+
+function recordCommunityUsage(email: string, inputTokens: number, outputTokens: number): void {
+  const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+  if (!supabaseUrl || !serviceKey) return;
+  // Fire and forget — metering must not block or fail the response
+  fetch(`${supabaseUrl}/rest/v1/rpc/increment_community_usage`, {
+    method: 'POST',
+    headers: {
+      apikey: serviceKey,
+      Authorization: `Bearer ${serviceKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ p_email: email, p_input: inputTokens, p_output: outputTokens }),
+  }).catch(() => {});
+}
+
 // ── Anthropic (translate OpenAI format → Anthropic Messages API) ─────
 
 async function proxyAnthropic(
   body: Record<string, unknown>,
   authHeader: string,
   CORS_HEADERS: Record<string, string>,
+  communityToken: string | null = null,
 ): Promise<Response> {
-  const apiKey = authHeader.replace(/^Bearer\s+/i, '');
+  let apiKey = authHeader.replace(/^Bearer\s+/i, '');
+  let communityEmail: string | null = null;
+
+  if (!apiKey && communityToken) {
+    const gate = await checkCommunityAccess(communityToken, String(body.model ?? ''));
+    if ('error' in gate) {
+      return new Response(JSON.stringify({ error: gate.error }), {
+        status: gate.status,
+        headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+      });
+    }
+    communityEmail = gate.email;
+    apiKey = Deno.env.get('ANTHROPIC_COMMUNITY_KEY') ?? '';
+  }
+
   if (!apiKey) {
     return new Response(JSON.stringify({ error: 'Missing API key' }), {
       status: 401,
@@ -157,6 +262,13 @@ async function proxyAnthropic(
     // Non-streaming: translate Anthropic response to OpenAI format
     const data = await upstream.json();
     const content = data.content?.[0]?.text ?? '';
+    if (communityEmail) {
+      recordCommunityUsage(
+        communityEmail,
+        Number(data.usage?.input_tokens ?? 0),
+        Number(data.usage?.output_tokens ?? 0),
+      );
+    }
     const openaiResponse = {
       id: data.id,
       object: 'chat.completion',
@@ -178,6 +290,8 @@ async function proxyAnthropic(
       const encoder = new TextEncoder();
       const decoder = new TextDecoder();
       let buffer = '';
+      let inputTokens = 0;
+      let outputTokens = 0;
 
       try {
         while (true) {
@@ -195,7 +309,11 @@ async function proxyAnthropic(
 
             try {
               const parsed = JSON.parse(data);
-              if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
+              if (parsed.type === 'message_start' && parsed.message?.usage) {
+                inputTokens = Number(parsed.message.usage.input_tokens ?? 0);
+              } else if (parsed.type === 'message_delta' && parsed.usage) {
+                outputTokens = Number(parsed.usage.output_tokens ?? outputTokens);
+              } else if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
                 // Emit as OpenAI-format SSE
                 const chunk = {
                   choices: [{ index: 0, delta: { content: parsed.delta.text } }],
@@ -211,6 +329,10 @@ async function proxyAnthropic(
         controller.close();
       } catch (err) {
         controller.error(err);
+      } finally {
+        if (communityEmail && (inputTokens > 0 || outputTokens > 0)) {
+          recordCommunityUsage(communityEmail, inputTokens, outputTokens);
+        }
       }
     },
   });

@@ -1,4 +1,5 @@
 import type { LLMProvider, ChatMessage, StreamCallbacks, ModelInfo } from './types';
+import { communityAccessActive, getCommunitySessionToken } from '@/store/community-store';
 
 /**
  * Anthropic Claude provider (Tier 2 -- BYOK).
@@ -30,7 +31,8 @@ export class ClaudeProvider implements LLMProvider {
   }
 
   isConfigured(): boolean {
-    return !!this.apiKey;
+    // BYOK, or community access (RTP-subsidized key held server-side)
+    return !!this.apiKey || communityAccessActive();
   }
 
   setApiKey(key: string) {
@@ -50,6 +52,11 @@ export class ClaudeProvider implements LLMProvider {
     if (PROXY_URL) {
       return this.chatViaProxy(messages, model, callbacks, signal);
     }
+    if (!this.apiKey) {
+      throw new Error(
+        'Community access needs the LLM proxy (VITE_LLM_PROXY_URL). Add your own API key in Settings, or ask RTP to check the proxy config.',
+      );
+    }
     return this.chatDirect(messages, model, callbacks, signal);
   }
 
@@ -64,13 +71,25 @@ export class ClaudeProvider implements LLMProvider {
     callbacks: StreamCallbacks,
     signal?: AbortSignal,
   ): Promise<void> {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'x-llm-provider': 'anthropic',
+    };
+    if (this.apiKey) {
+      headers['Authorization'] = `Bearer ${this.apiKey}`;
+    } else {
+      // Community access: the proxy verifies this session token against the
+      // pilot allowlist and uses RTP's key server-side
+      const token = await getCommunitySessionToken();
+      if (!token) {
+        throw new Error('Sign in (top right) to use community access, or add your own API key in Settings.');
+      }
+      headers['x-community-token'] = token;
+    }
+
     const res = await fetch(PROXY_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.apiKey}`,
-        'x-llm-provider': 'anthropic',
-      },
+      headers,
       body: JSON.stringify({
         model,
         max_tokens: 8192,

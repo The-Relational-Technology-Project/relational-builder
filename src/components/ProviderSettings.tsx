@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useProviderStore } from '@/store/provider-store';
 import { useKnowledgeStore } from '@/store/knowledge-store';
+import { useCommunityStore } from '@/store/community-store';
 import { registry } from '@/providers/registry';
 import {
   Dialog,
@@ -30,6 +31,9 @@ export function ProviderSettings() {
   const [showKB, setShowKB] = useState(false);
 
   const entries = registry.getAllEntries();
+  const communityActive = useCommunityStore(s => s.active);
+  const dailyBudget = useCommunityStore(s => s.dailyBudget);
+  const usedToday = useCommunityStore(s => s.usedToday);
 
   const tools = useKnowledgeStore(s => s.tools);
   const stories = useKnowledgeStore(s => s.stories);
@@ -81,11 +85,30 @@ export function ProviderSettings() {
                   variant={activeProviderId === provider.id ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setActiveProvider(provider.id)}
-                  disabled={requiresApiKey && !apiKeys[provider.id]}
+                  disabled={
+                    requiresApiKey &&
+                    !apiKeys[provider.id] &&
+                    !(provider.id === 'claude' && communityActive)
+                  }
                 >
                   {activeProviderId === provider.id ? 'Active' : 'Use'}
                 </Button>
               </div>
+
+              {provider.id === 'claude' && communityActive && (
+                <div className="rounded-md bg-green-600/10 border border-green-600/30 px-2.5 py-1.5">
+                  <p className="text-[11px] text-foreground">
+                    <span className="font-medium">Community access active</span> — free building on
+                    Claude Sonnet 5 and Haiku 4.5, courtesy of the Relational Tech Project.
+                  </p>
+                  {dailyBudget > 0 && (
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      Today: {Math.round(usedToday / 1000)}k of {Math.round(dailyBudget / 1000)}k tokens used.
+                      Add your own key below anytime to use other models.
+                    </p>
+                  )}
+                </div>
+              )}
 
               {requiresApiKey && (
                 <div className="flex gap-2">

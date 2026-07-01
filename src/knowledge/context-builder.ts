@@ -1,6 +1,7 @@
 import { formatPrinciplesForPrompt } from './rtp-principles';
 import type { Tool, Story } from './types';
 import type { FeedEntry } from './network-feed';
+import type { CommonsSearchResult } from './commons-search';
 
 /**
  * Builds the system prompt by combining the base instructions,
@@ -89,6 +90,8 @@ export interface ContextOptions {
   stories?: Story[];
   /** Relevant recent network activity */
   networkEntries?: FeedEntry[];
+  /** Hybrid search results from the RT Commons (preferred over tools/stories when present) */
+  commonsResults?: CommonsSearchResult[];
   /** Chat mode — plan mode swaps the base instructions */
   mode?: 'plan' | 'build';
   /** AI guidance blocks for services the user has connected in the Services tab */
@@ -111,12 +114,17 @@ export function buildSystemPrompt(options: ContextOptions = {}): string {
     );
   }
 
-  if (options.tools && options.tools.length > 0) {
-    sections.push('', formatToolsForPrompt(options.tools));
-  }
+  if (options.commonsResults && options.commonsResults.length > 0) {
+    // Hybrid commons search supersedes the local tool/story scoring
+    sections.push('', formatCommonsForPrompt(options.commonsResults));
+  } else {
+    if (options.tools && options.tools.length > 0) {
+      sections.push('', formatToolsForPrompt(options.tools));
+    }
 
-  if (options.stories && options.stories.length > 0) {
-    sections.push('', formatStoriesForPrompt(options.stories));
+    if (options.stories && options.stories.length > 0) {
+      sections.push('', formatStoriesForPrompt(options.stories));
+    }
   }
 
   if (options.networkEntries && options.networkEntries.length > 0) {
@@ -124,6 +132,24 @@ export function buildSystemPrompt(options: ContextOptions = {}): string {
   }
 
   return sections.join('\n');
+}
+
+function formatCommonsForPrompt(results: CommonsSearchResult[]): string {
+  const entries = results.slice(0, 8).map(r => {
+    const who = r.attribution?.name
+      ? ` — ${r.attribution.name}${r.attribution.neighborhood ? `, ${r.attribution.neighborhood}` : ''}`
+      : '';
+    const summary = r.summary ? `: ${r.summary.slice(0, 200)}` : '';
+    return `- **${r.title}** (${r.kind}${who})${summary}`;
+  });
+
+  return [
+    '## Relevant Knowledge from the RT Commons',
+    '',
+    'Tools, stories, recipes, and practice knowledge from the relational tech commons that relate to this build. Let them inform your design — and mention them to the user when one is directly useful:',
+    '',
+    ...entries,
+  ].join('\n');
 }
 
 function formatToolsForPrompt(tools: Tool[]): string {

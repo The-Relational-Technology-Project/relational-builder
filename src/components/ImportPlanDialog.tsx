@@ -11,7 +11,8 @@ import {
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { FileDown } from 'lucide-react';
+import { FileDown, Loader2, Sparkles } from 'lucide-react';
+import { fetchStudioBuildPlan, studioPlanToMarkdown } from '@/knowledge/studio-plans';
 
 /**
  * Import a build plan from RTP Studio (or anywhere) as the starting point
@@ -23,9 +24,27 @@ export function ImportPlanDialog() {
   const [open, setOpen] = useState(false);
   const [plan, setPlan] = useState('');
   const [sourceUrl, setSourceUrl] = useState('');
+  const [studioRef, setStudioRef] = useState('');
+  const [fetching, setFetching] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   const importBuildPlan = useChatStore(s => s.importBuildPlan);
   const setLineage = useProjectStore(s => s.setLineage);
+
+  async function handleFetchFromStudio() {
+    const ref = studioRef.trim();
+    if (!ref) return;
+    setFetching(true);
+    setFetchError(null);
+    const studioPlan = await fetchStudioBuildPlan(ref);
+    setFetching(false);
+    if (!studioPlan) {
+      setFetchError("Couldn't find a shared plan for that link or ID — check that it's shared in Studio.");
+      return;
+    }
+    setPlan(studioPlanToMarkdown(studioPlan));
+    if (/^https?:\/\//i.test(ref)) setSourceUrl(ref);
+  }
 
   function handleImport() {
     const trimmed = plan.trim();
@@ -61,6 +80,30 @@ export function ImportPlanDialog() {
             <strong>Build this plan</strong>. Its lineage travels with the project
             when you publish to the commons.
           </p>
+          <div className="space-y-1.5">
+            <Label htmlFor="studio-ref" className="text-xs">Fetch from RTP Studio</Label>
+            <div className="flex gap-2">
+              <Input
+                id="studio-ref"
+                value={studioRef}
+                onChange={e => setStudioRef(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleFetchFromStudio()}
+                placeholder="Paste a Studio share link or plan ID..."
+                className="text-xs"
+              />
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1 shrink-0"
+                disabled={!studioRef.trim() || fetching}
+                onClick={handleFetchFromStudio}
+              >
+                {fetching ? <Loader2 className="size-3 animate-spin" /> : <Sparkles className="size-3" />}
+                Fetch
+              </Button>
+            </div>
+            {fetchError && <p className="text-[11px] text-destructive">{fetchError}</p>}
+          </div>
           <div className="space-y-1.5">
             <Label htmlFor="plan-text" className="text-xs">Build plan (markdown)</Label>
             <textarea
