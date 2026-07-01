@@ -1,6 +1,6 @@
 import type { LLMProvider, ModelInfo } from './types';
-import { createRTPProvider, createTogetherProvider, createOpenAIProvider, createOpenRouterProvider, OpenAICompatibleProvider } from './openai-compatible';
-import { ClaudeProvider } from './claude';
+import { createRTPProvider, createTogetherProvider, createOpenAIProvider, createOpenRouterProvider, createGeminiProvider, OpenAICompatibleProvider } from './openai-compatible';
+import { ClaudeProvider, CLAUDE_MODELS } from './claude';
 
 export interface ProviderEntry {
   provider: LLMProvider;
@@ -19,6 +19,7 @@ class ProviderRegistry {
     this.register(createRTPProvider(), 1, false);
 
     // Tier 2: Other BYOK providers
+    this.register(createGeminiProvider(), 2, true);
     this.register(createTogetherProvider(), 2, true);
     this.register(createOpenAIProvider(), 2, true);
     this.register(createOpenRouterProvider(), 2, true);
@@ -78,11 +79,7 @@ class ProviderRegistry {
       return p.getDefaultModelsList();
     }
     if (p instanceof ClaudeProvider) {
-      return [
-        { id: 'claude-opus-4-20250514', name: 'Claude Opus 4', provider: 'claude' },
-        { id: 'claude-sonnet-4-20250514', name: 'Claude Sonnet 4', provider: 'claude' },
-        { id: 'claude-haiku-3-5-20241022', name: 'Claude Haiku 3.5', provider: 'claude' },
-      ];
+      return CLAUDE_MODELS;
     }
     return [];
   }

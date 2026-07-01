@@ -10,6 +10,10 @@ export class OpenAICompatibleProvider implements LLMProvider {
   private baseUrl: string;
   private apiKey: string;
   private defaultModels: ModelInfo[];
+  // Path segment between baseUrl and /chat/completions. Most providers use
+  // '/v1'; Google's OpenAI-compatibility layer already includes the version
+  // in its base URL, so it passes ''.
+  private apiPath: string;
 
   constructor(config: {
     id: string;
@@ -17,12 +21,14 @@ export class OpenAICompatibleProvider implements LLMProvider {
     baseUrl: string;
     apiKey?: string;
     defaultModels?: ModelInfo[];
+    apiPath?: string;
   }) {
     this.id = config.id;
     this.name = config.name;
     this.baseUrl = config.baseUrl.replace(/\/$/, '');
     this.apiKey = config.apiKey ?? '';
     this.defaultModels = config.defaultModels ?? [];
+    this.apiPath = config.apiPath ?? '/v1';
   }
 
   isConfigured(): boolean {
@@ -49,7 +55,7 @@ export class OpenAICompatibleProvider implements LLMProvider {
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
       if (this.apiKey) headers['Authorization'] = `Bearer ${this.apiKey}`;
 
-      const res = await fetch(`${this.baseUrl}/v1/models`, { headers });
+      const res = await fetch(`${this.baseUrl}${this.apiPath}/models`, { headers });
       if (!res.ok) return this.defaultModels;
 
       const data = await res.json();
@@ -72,7 +78,7 @@ export class OpenAICompatibleProvider implements LLMProvider {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (this.apiKey) headers['Authorization'] = `Bearer ${this.apiKey}`;
 
-    const res = await fetch(`${this.baseUrl}/v1/chat/completions`, {
+    const res = await fetch(`${this.baseUrl}${this.apiPath}/chat/completions`, {
       method: 'POST',
       headers,
       body: JSON.stringify({ model, messages, stream: true }),
@@ -155,6 +161,22 @@ export function createTogetherProvider(): OpenAICompatibleProvider {
   });
 }
 
+/** Pre-configured: Google Gemini (Tier 2 -- BYOK, via Google's OpenAI-compatibility layer) */
+export function createGeminiProvider(): OpenAICompatibleProvider {
+  return new OpenAICompatibleProvider({
+    id: 'gemini',
+    name: 'Google Gemini',
+    baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai',
+    apiPath: '',
+    defaultModels: [
+      { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash', provider: 'gemini' },
+      { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro (Preview)', provider: 'gemini' },
+      { id: 'gemini-3.1-flash-lite', name: 'Gemini 3.1 Flash-Lite', provider: 'gemini' },
+      { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', provider: 'gemini' },
+    ],
+  });
+}
+
 /** Pre-configured: OpenAI (Tier 2 -- BYOK) */
 export function createOpenAIProvider(): OpenAICompatibleProvider {
   return new OpenAICompatibleProvider({
@@ -162,8 +184,8 @@ export function createOpenAIProvider(): OpenAICompatibleProvider {
     name: 'OpenAI',
     baseUrl: 'https://api.openai.com',
     defaultModels: [
-      { id: 'gpt-4o', name: 'GPT-4o', provider: 'openai' },
-      { id: 'gpt-4o-mini', name: 'GPT-4o Mini', provider: 'openai' },
+      { id: 'gpt-5.5', name: 'GPT-5.5', provider: 'openai' },
+      { id: 'gpt-5.2', name: 'GPT-5.2', provider: 'openai' },
     ],
   });
 }
@@ -175,8 +197,8 @@ export function createOpenRouterProvider(): OpenAICompatibleProvider {
     name: 'OpenRouter',
     baseUrl: 'https://openrouter.ai/api',
     defaultModels: [
-      { id: 'anthropic/claude-sonnet-4', name: 'Claude Sonnet 4', provider: 'openrouter' },
-      { id: 'google/gemini-2.5-pro', name: 'Gemini 2.5 Pro', provider: 'openrouter' },
+      { id: 'anthropic/claude-sonnet-5', name: 'Claude Sonnet 5', provider: 'openrouter' },
+      { id: 'google/gemini-3.5-flash', name: 'Gemini 3.5 Flash', provider: 'openrouter' },
     ],
   });
 }

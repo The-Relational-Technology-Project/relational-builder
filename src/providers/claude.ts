@@ -13,6 +13,13 @@ import type { LLMProvider, ChatMessage, StreamCallbacks, ModelInfo } from './typ
 
 const PROXY_URL = import.meta.env.VITE_LLM_PROXY_URL ?? '';
 
+// Claude 5 family + current 4.x. Aliases only — no date suffixes.
+export const CLAUDE_MODELS: ModelInfo[] = [
+  { id: 'claude-opus-4-8', name: 'Claude Opus 4.8', provider: 'claude' },
+  { id: 'claude-sonnet-5', name: 'Claude Sonnet 5', provider: 'claude' },
+  { id: 'claude-haiku-4-5', name: 'Claude Haiku 4.5', provider: 'claude' },
+];
+
 export class ClaudeProvider implements LLMProvider {
   readonly id = 'claude';
   readonly name = 'Claude (Anthropic)';
@@ -31,11 +38,7 @@ export class ClaudeProvider implements LLMProvider {
   }
 
   async getModels(): Promise<ModelInfo[]> {
-    return [
-      { id: 'claude-opus-4-20250514', name: 'Claude Opus 4', provider: 'claude' },
-      { id: 'claude-sonnet-4-20250514', name: 'Claude Sonnet 4', provider: 'claude' },
-      { id: 'claude-haiku-3-5-20241022', name: 'Claude Haiku 3.5', provider: 'claude' },
-    ];
+    return CLAUDE_MODELS;
   }
 
   async chat(

@@ -24,7 +24,7 @@ export const useProviderStore = create<ProviderState>()(
   persist(
     (set, get) => ({
       activeProviderId: 'claude',
-      activeModelId: 'claude-sonnet-4-20250514',
+      activeModelId: 'claude-opus-4-8',
       apiKeys: {},
       availableModels: [],
 
@@ -74,6 +74,21 @@ export const useProviderStore = create<ProviderState>()(
     }),
     {
       name: 'rb-provider-config',
+      version: 1,
+      // Persisted configs from before July 2026 may point at Anthropic model
+      // IDs that have since been retired (404 on the API) — remap them.
+      migrate: (persisted) => {
+        const state = persisted as Partial<ProviderState>;
+        const RETIRED_MODEL_MAP: Record<string, string> = {
+          'claude-opus-4-20250514': 'claude-opus-4-8',
+          'claude-sonnet-4-20250514': 'claude-sonnet-5',
+          'claude-haiku-3-5-20241022': 'claude-haiku-4-5',
+        };
+        if (state.activeModelId && RETIRED_MODEL_MAP[state.activeModelId]) {
+          state.activeModelId = RETIRED_MODEL_MAP[state.activeModelId];
+        }
+        return state as ProviderState;
+      },
       partialize: (state) => ({
         activeProviderId: state.activeProviderId,
         activeModelId: state.activeModelId,
