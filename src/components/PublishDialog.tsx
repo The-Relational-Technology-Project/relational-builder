@@ -20,6 +20,7 @@ import { deployToVercel } from '@/project/deploy-vercel';
 import { Upload, Download, ExternalLink, Globe, Check, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CommonsSubmitCard } from './CommonsSubmitCard';
+import { suggestProjectName } from '@/project/suggest-name';
 
 type DeployTarget = 'community' | 'download' | 'netlify' | 'vercel';
 
@@ -69,6 +70,11 @@ export function PublishDialog() {
   const handleClose = (v: boolean) => {
     setOpen(v);
     if (!v) resetState();
+    // First open with the stock name → offer one drawn from the conversation
+    if (v && projectName === 'my-community-app') {
+      const suggested = suggestProjectName();
+      if (suggested) setProjectName(suggested);
+    }
   };
 
   const handleDeploy = async () => {

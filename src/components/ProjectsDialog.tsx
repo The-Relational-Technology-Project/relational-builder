@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Cloud, FolderOpen, Trash2, UserPlus, X, Loader2, Users } from 'lucide-react';
+import { suggestProjectName } from '@/project/suggest-name';
 
 /**
  * Cloud projects: save the current workspace, open saved projects,
@@ -42,6 +43,10 @@ export function ProjectsDialog() {
 
   useEffect(() => {
     if (open && user) refreshProjects();
+    // Offer a name drawn from the conversation instead of a blank field
+    if (open) {
+      setNewName(prev => prev || (suggestProjectName() ?? ''));
+    }
   }, [open, user, refreshProjects]);
 
   if (!cloudEnabled) return null;
