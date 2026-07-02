@@ -88,23 +88,50 @@ Example:
 supabase secrets set ALLOWED_ORIGINS="https://builder.relationaltechproject.org,http://localhost:5173"
 ```
 
-## 3. Deploy the builder itself (Vercel)
+## 3. Email via Resend (relationalbuilder.xyz)
+
+Two separate email paths, both through the verified Resend domain:
+
+**a) Auth emails (magic links).** Supabase's built-in mailer caps at ~4
+emails/hour — not enough for a pilot. In the Supabase dashboard:
+*Authentication → Emails → SMTP Settings*, enable custom SMTP with:
+
+| Field | Value |
+|---|---|
+| Host | `smtp.resend.com` |
+| Port | `465` |
+| Username | `resend` |
+| Password | *your Resend API key* |
+| Sender | `Relational Builder <hello@relationalbuilder.xyz>` |
+
+**b) Invite notifications.** The `notify-invite` edge function sends a
+branded email when someone adds a collaborator (includes the pilot passcode).
+It no-ops until the key is set:
+
+```bash
+supabase functions deploy notify-invite --no-verify-jwt
+supabase secrets set RESEND_API_KEY=re_... APP_URL=https://relational-builder.vercel.app ACCESS_CODE=6767
+```
+
+## 4. Deploy the builder itself (Vercel)
 
 ```bash
 vercel --prod
 ```
 
-Set these Environment Variables in the Vercel project:
+Set these Environment Variables in the Vercel project (then redeploy —
+Vite bakes them in at build time):
 
 - `VITE_BUILDER_SUPABASE_URL`
 - `VITE_BUILDER_SUPABASE_ANON_KEY`
 - `VITE_LLM_PROXY_URL`
+- `VITE_ACCESS_CODE` — pilot passcode gate (client-side, soft)
 - `VITE_RTP_MODEL_URL` (optional — Tier 1 model endpoint)
 
 For a custom domain, add it in Vercel and remember to add the same origin to
 the proxy's `ALLOWED_ORIGINS` and Supabase Auth's *Site URL*.
 
-## 4. Smoke test
+## 5. Smoke test
 
 1. Open the deployed URL → Settings → add a Claude API key → send a build
    message → files appear + preview renders.

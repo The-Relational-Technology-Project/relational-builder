@@ -266,6 +266,23 @@ export const useCloudStore = create<CloudState>()((set, get) => ({
       invited_by: user.id,
     });
     if (error) return { error: error.message };
+
+    // Best-effort notification email — the invite works either way
+    // (the project appears when they sign in with that address)
+    builderClient.auth.getSession().then(({ data }) => {
+      const token = data.session?.access_token;
+      const url = import.meta.env.VITE_BUILDER_SUPABASE_URL;
+      if (!token || !url) return;
+      fetch(`${url}/functions/v1/notify-invite`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          invitee_email: email.trim().toLowerCase(),
+          project_name: get().currentProjectName,
+        }),
+      }).catch(() => {});
+    });
+
     await get().refreshMembers();
     return { error: null };
   },

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ProviderSettings } from '@/components/ProviderSettings';
 import { ModelSelector } from '@/components/ModelSelector';
 import { ChatPanel } from '@/components/Chat/ChatPanel';
@@ -19,10 +19,26 @@ import { initCloudSync } from '@/cloud/sync';
 import { AccountMenu } from '@/components/AccountMenu';
 import { ProjectsDialog } from '@/components/ProjectsDialog';
 import { CloudStatus } from '@/components/CloudStatus';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { RBMark } from '@/components/PasscodeGate';
 
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, MessageSquare, PanelsTopLeft } from 'lucide-react';
+
+/** True below the md breakpoint — drives the stacked mobile layout */
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(
+    () => window.matchMedia('(max-width: 767px)').matches,
+  );
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    const onChange = () => setIsMobile(mq.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+  return isMobile;
+}
 
 function App() {
   const refreshModels = useProviderStore(s => s.refreshModels);
@@ -53,20 +69,28 @@ function App() {
     { content: <RightPanel />, defaultSize: 55, minSize: 350 },
   ], []);
 
+  const isMobile = useIsMobile();
+  const [mobileTab, setMobileTab] = useState<'chat' | 'workspace'>('chat');
+
   return (
-    <div className="h-screen flex flex-col bg-background text-foreground">
-      {/* Toolbar */}
-      <header className="flex items-center justify-between px-4 py-2 border-b shrink-0">
-        <div className="flex items-center gap-3">
-          <h1 className="text-sm font-semibold tracking-tight">Relational Builder</h1>
+    <div className="h-dvh flex flex-col bg-background text-foreground">
+      {/* Toolbar — scrolls horizontally on small screens instead of wrapping */}
+      <header className="flex items-center justify-between gap-2 px-3 md:px-4 py-2 border-b shrink-0 overflow-x-auto">
+        <div className="flex items-center gap-2 md:gap-3 shrink-0">
+          <div className="flex items-center gap-1.5">
+            <RBMark className="size-5 shrink-0" />
+            <h1 className="text-sm font-semibold tracking-tight whitespace-nowrap hidden sm:block">
+              Relational Builder
+            </h1>
+          </div>
           <Separator orientation="vertical" className="h-5" />
           <ModelSelector />
           <CloudStatus />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 md:gap-2 shrink-0">
           <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" onClick={handleNewProject}>
             <Plus className="size-3" />
-            New Project
+            <span className="hidden sm:inline">New Project</span>
           </Button>
           <ImportPlanDialog />
           <ProjectsDialog />
@@ -74,14 +98,43 @@ function App() {
           <PublishDialog />
           <GitHubSync />
           <Separator orientation="vertical" className="h-5" />
+          <ThemeToggle />
           <AccountMenu />
           <ProviderSettings />
         </div>
       </header>
 
-      {/* Main content — resizable panel layout */}
+      {/* Main content — split panels on desktop, tab-switched stack on mobile */}
       <main className="flex-1 min-h-0">
-        <ResizableLayout panels={panels} />
+        {isMobile ? (
+          <div className="h-full flex flex-col">
+            <div className="flex-1 min-h-0">
+              {mobileTab === 'chat' ? <ChatPanel /> : <RightPanel />}
+            </div>
+            <nav className="flex border-t shrink-0" aria-label="Mobile panels">
+              <button
+                onClick={() => setMobileTab('chat')}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium transition-colors ${
+                  mobileTab === 'chat' ? 'text-foreground bg-muted/60' : 'text-muted-foreground'
+                }`}
+              >
+                <MessageSquare className="size-3.5" />
+                Chat
+              </button>
+              <button
+                onClick={() => setMobileTab('workspace')}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium transition-colors border-l ${
+                  mobileTab === 'workspace' ? 'text-foreground bg-muted/60' : 'text-muted-foreground'
+                }`}
+              >
+                <PanelsTopLeft className="size-3.5" />
+                Preview & Files
+              </button>
+            </nav>
+          </div>
+        ) : (
+          <ResizableLayout panels={panels} />
+        )}
       </main>
     </div>
   );
