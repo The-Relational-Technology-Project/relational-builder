@@ -3,8 +3,12 @@ import { builderClient } from '@/cloud/builder-client';
 import { useAuthStore } from '@/store/auth-store';
 import { useProviderStore } from '@/store/provider-store';
 
-/** Models covered by the RTP community key (mirror of the proxy's allowlist) */
-export const COMMUNITY_MODELS = ['claude-sonnet-5', 'claude-haiku-4-5'];
+/**
+ * Models covered by the RTP community key (mirror of the proxy's allowlist).
+ * Sonnet 5 is the default; Opus 4.8 is an explicit choice that spends the
+ * daily community budget noticeably faster.
+ */
+export const COMMUNITY_MODELS = ['claude-sonnet-5', 'claude-opus-4-8', 'claude-haiku-4-5'];
 
 /**
  * Community access (Tier 3): RTP-subsidized Claude for invited builders.

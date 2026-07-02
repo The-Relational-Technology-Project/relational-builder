@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { listStudios, fetchStudio, type StudioContext } from '@/knowledge/studio-context';
+import { listStudios, fetchStudio, DEFAULT_STUDIO_SLUG, type StudioContext } from '@/knowledge/studio-context';
 
 /**
  * Active studio frame. A builder can work inside a Studio's frame — its
@@ -28,7 +28,8 @@ export const useStudioStore = create<StudioState>()(
       loaded: false,
 
       init: async () => {
-        // URL param wins over the persisted choice
+        // URL param wins over the persisted choice — this is how a Studio
+        // links its members in, including studios not yet listed publicly
         const param = new URLSearchParams(window.location.search).get('studio');
         if (param) {
           const studio = await fetchStudio(param);
@@ -43,6 +44,12 @@ export const useStudioStore = create<StudioState>()(
           // Refresh the persisted studio's config (principles may have changed)
           const fresh = await fetchStudio(get().activeStudio!.slug);
           if (fresh) set({ activeStudio: fresh });
+        }
+        // Every builder works inside a studio frame — the global commons is
+        // always tapped underneath, so "no studio" isn't a state anymore
+        if (!get().activeStudio) {
+          const fallback = await fetchStudio(DEFAULT_STUDIO_SLUG);
+          if (fallback) set({ activeStudio: fallback });
         }
         get().loadStudios();
       },

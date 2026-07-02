@@ -32,9 +32,10 @@ function toAnthropicContent(content: string | ContentPart[]): unknown {
 const PROXY_URL = import.meta.env.VITE_LLM_PROXY_URL ?? '';
 
 // Claude 5 family + current 4.x. Aliases only — no date suffixes.
+// Sonnet first: it's the default and what the community tier steers to.
 export const CLAUDE_MODELS: ModelInfo[] = [
-  { id: 'claude-opus-4-8', name: 'Claude Opus 4.8', provider: 'claude' },
   { id: 'claude-sonnet-5', name: 'Claude Sonnet 5', provider: 'claude' },
+  { id: 'claude-opus-4-8', name: 'Claude Opus 4.8', provider: 'claude' },
   { id: 'claude-haiku-4-5', name: 'Claude Haiku 4.5', provider: 'claude' },
 ];
 

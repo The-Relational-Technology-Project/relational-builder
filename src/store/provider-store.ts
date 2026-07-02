@@ -24,7 +24,7 @@ export const useProviderStore = create<ProviderState>()(
   persist(
     (set, get) => ({
       activeProviderId: 'claude',
-      activeModelId: 'claude-opus-4-8',
+      activeModelId: 'claude-sonnet-5',
       apiKeys: {},
       availableModels: [],
 
@@ -74,7 +74,7 @@ export const useProviderStore = create<ProviderState>()(
     }),
     {
       name: 'rb-provider-config',
-      version: 2,
+      version: 3,
       migrate: (persisted) => {
         const state = persisted as Partial<ProviderState>;
 
@@ -92,6 +92,18 @@ export const useProviderStore = create<ProviderState>()(
         // rescue anyone stuck on it ("Failed to fetch" on every message)
         if (state.activeProviderId === 'rtp-hosted' && !import.meta.env.VITE_RTP_MODEL_URL) {
           state.activeProviderId = 'claude';
+          state.activeModelId = 'claude-sonnet-5';
+        }
+
+        // v3: Sonnet 5 became the default. Anyone keyless still sitting on
+        // Opus (the old default they never chose) moves to Sonnet once —
+        // Opus stays available as an explicit choice that spends the
+        // community budget faster.
+        if (
+          state.activeProviderId === 'claude' &&
+          state.activeModelId === 'claude-opus-4-8' &&
+          !state.apiKeys?.['claude']
+        ) {
           state.activeModelId = 'claude-sonnet-5';
         }
 

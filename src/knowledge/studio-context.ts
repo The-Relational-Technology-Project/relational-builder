@@ -43,13 +43,25 @@ function toContext(row: Record<string, unknown>): StudioContext {
   };
 }
 
+/**
+ * Studios ready to appear in the switcher. Thread and Bloom exist in the
+ * network but aren't ready to share with builders yet — they stay reachable
+ * by deep link (?studio=slug) for their own stewards, invisible otherwise.
+ */
+export const PUBLIC_STUDIO_SLUGS = ['rt'];
+
+/** Every builder starts inside this studio's frame */
+export const DEFAULT_STUDIO_SLUG = 'rt';
+
 export async function listStudios(): Promise<StudioContext[]> {
   const { data, error } = await supabase
     .from('studios')
     .select('*')
     .order('sort_order', { ascending: true });
   if (error || !data) return [];
-  return (data as Record<string, unknown>[]).map(toContext).filter(s => s.slug);
+  return (data as Record<string, unknown>[])
+    .map(toContext)
+    .filter(s => s.slug && PUBLIC_STUDIO_SLUGS.includes(s.slug));
 }
 
 export async function fetchStudio(slug: string): Promise<StudioContext | null> {

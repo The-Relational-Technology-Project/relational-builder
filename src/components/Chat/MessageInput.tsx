@@ -14,13 +14,26 @@ interface MessageInputProps {
   disabled?: boolean;
   mode?: ChatMode;
   onModeChange?: (mode: ChatMode) => void;
+  /** hero = the big centered composer on the home screen */
+  variant?: 'chat' | 'hero';
 }
 
-export function MessageInput({ onSend, onStop, isGenerating, disabled, mode = 'build', onModeChange }: MessageInputProps) {
+export function MessageInput({
+  onSend,
+  onStop,
+  isGenerating,
+  disabled,
+  mode = 'build',
+  onModeChange,
+  variant = 'chat',
+}: MessageInputProps) {
   const [input, setInput] = useState('');
   const [attachments, setAttachments] = useState<string[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const hero = variant === 'hero';
+  const maxHeight = hero ? 280 : 220;
 
   // @ mentions: candidates load on first @, popover filters as you type
   const [mentionables, setMentionables] = useState<Mentionable[] | null>(null);
@@ -69,10 +82,10 @@ export function MessageInput({ onSend, onStop, isGenerating, disabled, mode = 'b
       if (!el) return;
       el.focus();
       el.style.height = 'auto';
-      el.style.height = Math.min(el.scrollHeight, 200) + 'px';
+      el.style.height = Math.min(el.scrollHeight, maxHeight) + 'px';
       el.setSelectionRange(el.value.length, el.value.length);
     }, 0);
-  }, [draftMessage]);
+  }, [draftMessage, maxHeight]);
 
   const handleSubmit = useCallback(() => {
     const trimmed = input.trim();
@@ -109,7 +122,7 @@ export function MessageInput({ onSend, onStop, isGenerating, disabled, mode = 'b
     // Auto-resize
     const el = e.target;
     el.style.height = 'auto';
-    el.style.height = Math.min(el.scrollHeight, 200) + 'px';
+    el.style.height = Math.min(el.scrollHeight, maxHeight) + 'px';
   }
 
   async function addFiles(files: FileList | File[]) {
@@ -138,43 +151,7 @@ export function MessageInput({ onSend, onStop, isGenerating, disabled, mode = 'b
   }
 
   return (
-    <div className="border-t bg-background p-3">
-      {onModeChange && (
-        <div className="flex items-center gap-1 mb-2">
-          <div className="inline-flex rounded-md border p-0.5 gap-0.5" role="group" aria-label="Chat mode">
-            <button
-              type="button"
-              onClick={() => onModeChange('plan')}
-              className={`inline-flex items-center gap-1 rounded px-2 py-1 text-xs transition-colors ${
-                mode === 'plan'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-              title="Plan first — the AI drafts a build plan instead of code"
-            >
-              <Map className="size-3" />
-              Plan
-            </button>
-            <button
-              type="button"
-              onClick={() => onModeChange('build')}
-              className={`inline-flex items-center gap-1 rounded px-2 py-1 text-xs transition-colors ${
-                mode === 'build'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-              title="Build — the AI generates working code into your project"
-            >
-              <Hammer className="size-3" />
-              Build
-            </button>
-          </div>
-          <span className="text-[11px] text-muted-foreground ml-1.5 hidden sm:inline">
-            {mode === 'plan' ? 'Sketch the plan together before any code' : 'Generate working code into your project'}
-          </span>
-        </div>
-      )}
-
+    <div className={hero ? 'w-full' : 'border-t bg-background px-3 pb-3 pt-2 md:px-4'}>
       {attachments.length > 0 && (
         <div className="flex gap-2 mb-2">
           {attachments.map((url, i) => (
@@ -219,53 +196,107 @@ export function MessageInput({ onSend, onStop, isGenerating, disabled, mode = 'b
         </div>
       )}
 
-      <div className="flex items-end gap-2">
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/png,image/jpeg,image/webp,image/gif"
-          multiple
-          className="hidden"
-          onChange={e => {
-            if (e.target.files) addFiles(e.target.files);
-            e.target.value = '';
-          }}
-        />
-        <Button
-          size="icon"
-          variant="ghost"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={disabled || attachments.length >= MAX_ATTACHMENTS}
-          title="Attach an image — a sketch, screenshot, or mockup"
-          className="shrink-0"
-        >
-          <ImagePlus className="size-4" />
-        </Button>
+      {/* One quiet container: write on top, act along the bottom */}
+      <div
+        className={`rounded-xl border bg-background transition-shadow focus-within:border-ring focus-within:ring-1 focus-within:ring-ring ${
+          hero ? 'rounded-2xl shadow-sm' : ''
+        } ${disabled ? 'opacity-60' : ''}`}
+      >
         <textarea
           ref={textareaRef}
           value={input}
           onChange={handleInput}
           onKeyDown={handleKeyDown}
           onPaste={handlePaste}
-          placeholder={mode === 'plan' ? 'Describe what you want to plan...' : 'Describe what you want to build...'}
+          placeholder={
+            hero
+              ? 'What does your neighborhood need? Describe it in your own words…'
+              : mode === 'plan'
+                ? 'What should we think through?'
+                : 'Describe a change or something new…'
+          }
           disabled={disabled}
-          rows={1}
-          className="flex-1 resize-none rounded-lg border border-input bg-transparent px-3 py-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50"
+          rows={hero ? 3 : 2}
+          className={`block w-full resize-none bg-transparent outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed ${
+            hero ? 'px-4 pt-4 pb-1 text-base min-h-[88px]' : 'px-3.5 pt-3 pb-1 text-sm min-h-[64px]'
+          }`}
         />
-        {isGenerating ? (
-          <Button size="icon" variant="ghost" onClick={onStop} title="Stop generating">
-            <Square className="size-4" />
-          </Button>
-        ) : (
+        <div className="flex items-center gap-1 px-2 pb-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/gif"
+            multiple
+            className="hidden"
+            onChange={e => {
+              if (e.target.files) addFiles(e.target.files);
+              e.target.value = '';
+            }}
+          />
           <Button
             size="icon"
-            onClick={handleSubmit}
-            disabled={(!input.trim() && attachments.length === 0) || disabled}
-            title="Send message"
+            variant="ghost"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={disabled || attachments.length >= MAX_ATTACHMENTS}
+            title="Attach an image — a sketch, screenshot, or mockup"
+            className="size-8 text-muted-foreground hover:text-foreground"
           >
-            <SendHorizontal className="size-4" />
+            <ImagePlus className="size-4" />
           </Button>
-        )}
+          {onModeChange && (
+            <div className="inline-flex rounded-full border p-0.5 gap-0.5 ml-0.5" role="group" aria-label="Chat mode">
+              <button
+                type="button"
+                onClick={() => onModeChange('plan')}
+                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs transition-colors ${
+                  mode === 'plan'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                title="Plan first — sketch the idea together before any code"
+              >
+                <Map className="size-3" />
+                Plan
+              </button>
+              <button
+                type="button"
+                onClick={() => onModeChange('build')}
+                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs transition-colors ${
+                  mode === 'build'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                title="Build — generate working code into your project"
+              >
+                <Hammer className="size-3" />
+                Build
+              </button>
+            </div>
+          )}
+          <div className="ml-auto">
+            {isGenerating ? (
+              <Button
+                size="icon"
+                variant="outline"
+                onClick={onStop}
+                title="Stop generating"
+                className="size-8 rounded-full"
+              >
+                <Square className="size-3.5" />
+              </Button>
+            ) : (
+              <Button
+                size="icon"
+                onClick={handleSubmit}
+                disabled={(!input.trim() && attachments.length === 0) || disabled}
+                title="Send (Enter)"
+                className="size-8 rounded-full"
+              >
+                <SendHorizontal className="size-4" />
+              </Button>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

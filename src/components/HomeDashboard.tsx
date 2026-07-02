@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useAuthStore, cloudEnabled } from '@/store/auth-store';
 import { useCloudStore } from '@/store/cloud-store';
 import { useCommunityStore } from '@/store/community-store';
@@ -20,23 +20,43 @@ const STARTER_IDEAS = [
 interface HomeDashboardProps {
   onSelectIdea: (prompt: string) => void;
   disabled: boolean;
+  /** The hero composer, rendered by ChatPanel so send logic stays in one place */
+  composer?: ReactNode;
 }
 
 /**
- * Empty-state home. Signed-in builders get a dashboard: greeting, their
- * cloud projects, and starter ideas. Signed-out (or local-only) builders
- * get the original welcome.
+ * Full-width home. Signed-in builders get a dashboard: greeting, the big
+ * composer, their cloud projects and sites. Signed-out (or local-only)
+ * builders get the welcome hero with the same composer.
  */
-export function HomeDashboard({ onSelectIdea, disabled }: HomeDashboardProps) {
+export function HomeDashboard({ onSelectIdea, disabled, composer }: HomeDashboardProps) {
   const user = useAuthStore(s => s.user);
 
   if (!cloudEnabled || !user) {
-    return <WelcomeScreen onSelectIdea={onSelectIdea} disabled={disabled} />;
+    return <WelcomeScreen onSelectIdea={onSelectIdea} disabled={disabled} composer={composer} />;
   }
-  return <SignedInDashboard onSelectIdea={onSelectIdea} disabled={disabled} />;
+  return <SignedInDashboard onSelectIdea={onSelectIdea} disabled={disabled} composer={composer} />;
 }
 
-function SignedInDashboard({ onSelectIdea, disabled }: HomeDashboardProps) {
+/** Small tappable prompts under the composer — a nudge, not a catalog */
+function IdeaChips({ onSelectIdea, disabled }: { onSelectIdea: (p: string) => void; disabled: boolean }) {
+  return (
+    <div className="flex flex-wrap justify-center gap-2">
+      {STARTER_IDEAS.map(idea => (
+        <button
+          key={idea.label}
+          className="text-sm border rounded-full px-3.5 py-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          onClick={() => onSelectIdea(idea.prompt)}
+          disabled={disabled}
+        >
+          {idea.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function SignedInDashboard({ onSelectIdea, disabled, composer }: HomeDashboardProps) {
   const user = useAuthStore(s => s.user);
   const projects = useCloudStore(s => s.projects);
   const refreshProjects = useCloudStore(s => s.refreshProjects);
@@ -62,47 +82,49 @@ function SignedInDashboard({ onSelectIdea, disabled }: HomeDashboardProps) {
 
   return (
     <div className="flex-1 overflow-y-auto">
-      <div className="max-w-xl mx-auto px-4 py-8 space-y-8">
-        <div className="text-center space-y-2">
-          <h2 className="text-2xl font-semibold tracking-tight">
-            Ready to build, {displayName}?
-          </h2>
-          <p className="text-muted-foreground text-sm">
-            Describe what your neighborhood needs, or pick up where you left off.
-          </p>
-          {communityActive && (
-            <div className="inline-flex items-center gap-1.5 text-[11px] text-green-700 dark:text-green-400 bg-green-600/10 border border-green-600/30 rounded-full px-2.5 py-1">
-              <Sparkles className="size-3" />
-              Community access active — free building on Claude Sonnet 5
-            </div>
-          )}
+      <div className="max-w-3xl mx-auto px-4 md:px-6 py-10 md:py-14 space-y-10">
+        {/* Hero: greeting + the composer itself */}
+        <div className="space-y-6">
+          <div className="text-center space-y-2">
+            <h2 className="text-3xl font-semibold tracking-tight">
+              What are we building, {displayName}?
+            </h2>
+            {communityActive && (
+              <div className="inline-flex items-center gap-1.5 text-xs text-green-700 dark:text-green-400 bg-green-600/10 border border-green-600/30 rounded-full px-3 py-1">
+                <Sparkles className="size-3" />
+                Community access active — building is on us
+              </div>
+            )}
+          </div>
+          {composer}
+          <IdeaChips onSelectIdea={onSelectIdea} disabled={disabled} />
         </div>
 
         {projects.length > 0 && (
-          <div className="space-y-2">
+          <div className="space-y-3">
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
               Your projects
             </p>
-            <div className="grid gap-2 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {projects.slice(0, 6).map(p => (
                 <button
                   key={p.id}
                   onClick={() => handleOpen(p.id)}
                   disabled={disabled || openingId !== null}
-                  className="text-left border rounded-lg p-3 hover:bg-muted transition-colors disabled:opacity-50 group"
+                  className="text-left border rounded-xl p-4 hover:bg-muted hover:border-foreground/20 transition-colors disabled:opacity-50 group"
                 >
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-2">
                     {openingId === p.id ? (
-                      <Loader2 className="size-3.5 animate-spin shrink-0" />
+                      <Loader2 className="size-4 animate-spin shrink-0" />
                     ) : (
-                      <FolderOpen className="size-3.5 text-muted-foreground group-hover:text-foreground shrink-0" />
+                      <FolderOpen className="size-4 text-muted-foreground group-hover:text-foreground shrink-0" />
                     )}
-                    <span className="text-sm font-medium truncate">{p.name}</span>
+                    <span className="text-[15px] font-medium truncate">{p.name}</span>
                     {p.owner_id !== user?.id && (
-                      <Badge variant="outline" className="text-[9px] shrink-0 ml-auto">shared</Badge>
+                      <Badge variant="outline" className="text-[10px] shrink-0 ml-auto">shared</Badge>
                     )}
                   </div>
-                  <p className="text-[11px] text-muted-foreground mt-1">
+                  <p className="text-xs text-muted-foreground mt-1.5">
                     Updated {formatRelative(p.updated_at)}
                   </p>
                 </button>
@@ -118,24 +140,6 @@ function SignedInDashboard({ onSelectIdea, disabled }: HomeDashboardProps) {
         <StarterGallery disabled={disabled} />
 
         <BuildersDirectory />
-
-        <div className="space-y-2">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            Start something new
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            {STARTER_IDEAS.map(idea => (
-              <button
-                key={idea.label}
-                className="text-left text-xs border rounded-lg p-3 hover:bg-muted transition-colors text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
-                onClick={() => onSelectIdea(idea.prompt)}
-                disabled={disabled}
-              >
-                {idea.label}
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   );
@@ -155,13 +159,13 @@ function StyleNudge({ projectCount }: { projectCount: number }) {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="w-full text-left border border-dashed border-primary/40 rounded-lg p-3 hover:bg-primary/5 transition-colors"
+        className="w-full text-left border border-dashed border-primary/40 rounded-xl p-4 hover:bg-primary/5 transition-colors"
       >
-        <div className="flex items-center gap-2 text-sm font-medium">
+        <div className="flex items-center gap-2 text-[15px] font-medium">
           <Palette className="size-4 text-primary shrink-0" />
           You've built {projectCount} tools — capture your style
         </div>
-        <p className="text-[11px] text-muted-foreground mt-1">
+        <p className="text-xs text-muted-foreground mt-1">
           Describe your palette, type, and feel once, and every new build starts
           from your aesthetic — yours and your neighborhood's, not a template.
         </p>
@@ -171,28 +175,22 @@ function StyleNudge({ projectCount }: { projectCount: number }) {
   );
 }
 
-export function WelcomeScreen({ onSelectIdea, disabled }: HomeDashboardProps) {
+export function WelcomeScreen({ onSelectIdea, disabled, composer }: HomeDashboardProps) {
   return (
-    <div className="flex-1 flex items-center justify-center">
-      <div className="text-center space-y-4 max-w-md px-4">
-        <h2 className="text-2xl font-semibold tracking-tight">
-          Build relational technology
-        </h2>
-        <p className="text-muted-foreground text-sm leading-relaxed">
-          Describe what you want to build and AI will generate working code,
-          informed by principles and patterns from the Relational Tech community.
-        </p>
-        <div className="grid grid-cols-2 gap-2 pt-2">
-          {STARTER_IDEAS.map(idea => (
-            <button
-              key={idea.label}
-              className="text-left text-xs border rounded-lg p-3 hover:bg-muted transition-colors text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
-              onClick={() => onSelectIdea(idea.prompt)}
-              disabled={disabled}
-            >
-              {idea.label}
-            </button>
-          ))}
+    <div className="flex-1 overflow-y-auto">
+      <div className="min-h-full flex items-center justify-center px-4 py-10">
+        <div className="w-full max-w-2xl space-y-6">
+          <div className="text-center space-y-3">
+            <h2 className="text-3xl font-semibold tracking-tight">
+              Build relational technology
+            </h2>
+            <p className="text-muted-foreground text-[15px] leading-relaxed max-w-md mx-auto">
+              Describe what your neighborhood needs, and build it together with
+              AI — informed by patterns from the Relational Tech community.
+            </p>
+          </div>
+          {composer}
+          <IdeaChips onSelectIdea={onSelectIdea} disabled={disabled} />
         </div>
       </div>
     </div>

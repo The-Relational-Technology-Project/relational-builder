@@ -124,9 +124,12 @@ function App() {
         </div>
       </header>
 
-      {/* Main content — split panels on desktop, tab-switched stack on mobile */}
+      {/* Main content — home gets the full width (nothing to preview yet);
+          building gets split panels on desktop, a tab-switched stack on mobile */}
       <main className="flex-1 min-h-0">
-        {isMobile ? (
+        {!hasProject ? (
+          <ChatPanel />
+        ) : isMobile ? (
           <div className="h-full flex flex-col">
             <div className="flex-1 min-h-0">
               {mobileTab === 'chat' ? <ChatPanel /> : <RightPanel />}

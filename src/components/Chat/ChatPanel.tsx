@@ -197,26 +197,47 @@ export function ChatPanel() {
     if (streaming) finalizeMessage(streaming.id);
   }, [setIsGenerating, setAbortController, finalizeMessage]);
 
+  const composerProps = {
+    onSend: handleSend,
+    onStop: handleStop,
+    isGenerating,
+    disabled: needsKey,
+    mode,
+    onModeChange: setMode,
+  };
+
+  // Home: the composer is the hero, embedded in the dashboard.
+  // Building: it's the chat input, pinned below the conversation.
+  if (messages.length === 0) {
+    return (
+      <div className="flex flex-col h-full">
+        <HomeDashboard
+          onSelectIdea={handleSend}
+          disabled={!!needsKey}
+          composer={
+            <div className="space-y-2">
+              <MessageInput {...composerProps} variant="hero" />
+              {needsKey && (
+                <p className="text-xs text-center text-muted-foreground">
+                  Add your API key in Settings to start building
+                </p>
+              )}
+            </div>
+          }
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-full">
-      {messages.length === 0 ? (
-        <HomeDashboard onSelectIdea={handleSend} disabled={!!needsKey} />
-      ) : (
-        <MessageList messages={messages} onBuildPlan={handleBuildPlan} isGenerating={isGenerating} />
-      )}
+      <MessageList messages={messages} onBuildPlan={handleBuildPlan} isGenerating={isGenerating} />
       {needsKey && (
         <div className="px-4 py-2 text-xs text-center text-muted-foreground bg-muted/50 border-t">
           Add your API key in Settings to start building
         </div>
       )}
-      <MessageInput
-        onSend={handleSend}
-        onStop={handleStop}
-        isGenerating={isGenerating}
-        disabled={needsKey}
-        mode={mode}
-        onModeChange={setMode}
-      />
+      <MessageInput {...composerProps} />
     </div>
   );
 }
