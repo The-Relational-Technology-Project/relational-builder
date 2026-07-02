@@ -175,7 +175,9 @@ function MessageBubble({ message }: { message: DisplayMessage }) {
                 },
               }}
             >
-              {message.content}
+              {message.isPlan && !message.isStreaming
+                ? stripPlanQuestions(message.content)
+                : message.content}
             </ReactMarkdown>
             {message.isStreaming && (
               <span className="inline-block w-1.5 h-4 bg-foreground/70 animate-pulse ml-0.5" />
@@ -213,21 +215,37 @@ function MessageBubble({ message }: { message: DisplayMessage }) {
   );
 }
 
-/**
- * Pull the "Questions for you" list out of a plan and offer each as a chip.
- * Tapping one prefills the input with the question so the person just types
- * their answer — the plan-mode equivalent of Lovable's key questions.
- */
-function PlanQuestionChips({ content }: { content: string }) {
-  const setDraftMessage = useChatStore(s => s.setDraftMessage);
+const QUESTION_HEADING_RE = /^#{2,3}\s+Questions?\s+for\s+you\s*$/im;
 
-  const section = content.split(/^#{2,3}\s+Questions for you\s*$/im)[1];
-  if (!section) return null;
+/**
+ * Pull the "Question for you" out of a plan. The question renders ONLY as a
+ * tappable chip (the section is stripped from the message body so it never
+ * appears twice). Tapping prefills the input so the person just types their
+ * answer. Plans now ask one question per reply.
+ */
+export function extractPlanQuestions(content: string): string[] {
+  const section = content.split(QUESTION_HEADING_RE)[1];
+  if (!section) return [];
   // Numbered items until the next heading
-  const questions = (section.split(/^#{2,3}\s/m)[0].match(/^\s*\d+\.\s+(.+)$/gm) ?? [])
+  return (section.split(/^#{2,3}\s/m)[0].match(/^\s*\d+\.\s+(.+)$/gm) ?? [])
     .map(line => line.replace(/^\s*\d+\.\s+/, '').replace(/\*\*/g, '').trim())
     .filter(q => q.length > 5)
     .slice(0, 3);
+}
+
+/** Remove the question section from the rendered body (chips replace it) */
+export function stripPlanQuestions(content: string): string {
+  const idx = content.search(QUESTION_HEADING_RE);
+  if (idx === -1) return content;
+  const after = content.slice(idx);
+  // Keep anything after the question list's following heading (rare)
+  const rest = after.split(/^#{2,3}\s/m).slice(2).join('## ');
+  return (content.slice(0, idx).trimEnd() + (rest ? `\n\n## ${rest}` : '')).trimEnd();
+}
+
+function PlanQuestionChips({ content }: { content: string }) {
+  const setDraftMessage = useChatStore(s => s.setDraftMessage);
+  const questions = extractPlanQuestions(content);
   if (questions.length === 0) return null;
 
   return (
@@ -236,7 +254,7 @@ function PlanQuestionChips({ content }: { content: string }) {
         <button
           key={i}
           onClick={() => setDraftMessage(`${q}\n→ `)}
-          className="text-left text-xs border border-dashed rounded-lg px-2.5 py-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          className="text-left text-xs border border-dashed border-primary/50 rounded-lg px-3 py-2 text-foreground hover:bg-primary/10 transition-colors"
           title="Tap to answer this question"
         >
           {q}
