@@ -1,6 +1,7 @@
 import JSZip from 'jszip';
 import type { FileEntry } from './virtual-fs';
 import type { ProjectLineage } from '@/store/project-store';
+import { buildEnvJs, type PublicEnvVar } from './env-module';
 
 const yamlEscape = (s: string) => s.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 
@@ -60,6 +61,7 @@ export async function exportProjectZip(
   files: FileEntry[],
   projectName: string,
   lineage?: ProjectLineage | null,
+  publicEnvVars?: PublicEnvVar[],
 ): Promise<Blob> {
   const zip = new JSZip();
 
@@ -68,6 +70,12 @@ export async function exportProjectZip(
     // Remove leading slash for zip paths
     const zipPath = file.path.startsWith('/') ? file.path.slice(1) : file.path;
     zip.file(zipPath, file.content);
+  }
+
+  // Public env vars ship as env.js so apps work outside the builder
+  // (public = safe for the browser by definition; secrets never go here)
+  if (publicEnvVars && publicEnvVars.length > 0 && !files.some(f => f.path.replace(/^\//, '') === 'env.js')) {
+    zip.file('env.js', buildEnvJs(publicEnvVars));
   }
 
   // Add .reltech.yml manifest

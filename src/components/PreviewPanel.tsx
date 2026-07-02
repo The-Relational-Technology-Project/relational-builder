@@ -8,6 +8,7 @@ import {
 import { useProjectStore } from '@/store/project-store';
 import { useEnvStore } from '@/store/env-store';
 import { useChatStore } from '@/store/chat-store';
+import { buildEnvJs, buildEnvTs } from '@/project/env-module';
 import { Wrench } from 'lucide-react';
 
 /**
@@ -57,14 +58,11 @@ export function PreviewPanel() {
       tmpl = 'vanilla';
     }
 
-    // Inject public env vars as a virtual module
+    // Inject public env vars: /env.js works everywhere (global + ES module);
+    // /src/env.ts serves typed imports in React templates
     if (publicEnvVars.length > 0) {
-      const entries = publicEnvVars
-        .map((v) => `  ${JSON.stringify(v.key)}: ${JSON.stringify(v.value)},`)
-        .join('\n');
-      spFiles['/src/env.ts'] = {
-        code: `// Auto-generated from Environment panel — import { env } from "./env"\nexport const env = {\n${entries}\n} as const;\n`,
-      };
+      spFiles['/env.js'] = { code: buildEnvJs(publicEnvVars) };
+      spFiles['/src/env.ts'] = { code: buildEnvTs(publicEnvVars) };
     }
 
     return { sandpackFiles: spFiles, template: tmpl };

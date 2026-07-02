@@ -114,7 +114,7 @@ export function communityCloudConnected(vars: EnvVar[]): boolean {
 }
 
 export const COMMUNITY_CLOUD_GUIDANCE = [
-  '- **Community Cloud is connected** — zero-setup shared storage hosted by the Relational Tech Project. The app stores JSON documents in named collections via POST requests:',
+  '- **Community Cloud is connected** — zero-setup shared storage hosted by the Relational Tech Project. The app stores JSON documents in named collections via POST requests (get `env` per the Environment Variables rules — `import { env } from "./env.js"` in plain HTML, `from "./env"` in React):',
   '  ```javascript',
   '  async function cloudRequest(action, collection, extra = {}) {',
   '    const res = await fetch(env.COMMUNITY_CLOUD_URL, {',

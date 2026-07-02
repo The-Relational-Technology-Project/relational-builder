@@ -12,6 +12,7 @@ import { useProjectStore } from '@/store/project-store';
 import { useDeployStore } from '@/store/deploy-store';
 import { useEnvStore } from '@/store/env-store';
 import { exportProjectZip, downloadBlob } from '@/project/export';
+import { buildEnvJs } from '@/project/env-module';
 import { deployToNetlify } from '@/project/deploy-netlify';
 import { deployToVercel } from '@/project/deploy-vercel';
 import { Upload, Download, ExternalLink, Globe, Check, Loader2 } from 'lucide-react';
@@ -53,6 +54,7 @@ export function PublishDialog() {
 
   const envVars = useEnvStore(s => s.vars);
   const envRecord = Object.fromEntries(envVars.map(v => [v.key, v.value]));
+  const publicEnvVars = envVars.filter(v => !v.isSecret).map(v => ({ key: v.key, value: v.value }));
 
   const resetState = () => {
     setResult(null);
@@ -75,7 +77,7 @@ export function PublishDialog() {
 
     try {
       if (activeTarget === 'download') {
-        const blob = await exportProjectZip(files, projectName, lineage);
+        const blob = await exportProjectZip(files, projectName, lineage, publicEnvVars);
         const safeName = projectName.replace(/[^a-zA-Z0-9-_]/g, '-');
         downloadBlob(blob, `${safeName}.zip`);
         setResult({ url: '' }); // signals success for download
@@ -84,7 +86,7 @@ export function PublishDialog() {
           setError('Please enter your Netlify access token');
           return;
         }
-        const blob = await exportProjectZip(files, projectName, lineage);
+        const blob = await exportProjectZip(files, projectName, lineage, publicEnvVars);
         const domain = customDomain.trim() || undefined;
         const res = await deployToNetlify(blob, projectName, netlifyToken, envRecord, domain);
         setResult({ url: res.siteUrl, adminUrl: res.adminUrl, dnsInstructions: res.dnsInstructions });
@@ -94,7 +96,11 @@ export function PublishDialog() {
           return;
         }
         const domain = customDomain.trim() || undefined;
-        const res = await deployToVercel(files, projectName, vercelToken, envRecord, domain);
+        const filesWithEnv =
+          publicEnvVars.length > 0 && !files.some(f => f.path.replace(/^\//, '') === 'env.js')
+            ? [...files, { path: '/env.js', content: buildEnvJs(publicEnvVars), language: 'javascript', createdAt: Date.now(), updatedAt: Date.now() }]
+            : files;
+        const res = await deployToVercel(filesWithEnv, projectName, vercelToken, envRecord, domain);
         setResult({ url: res.url, adminUrl: res.deploymentUrl, dnsInstructions: res.dnsInstructions });
       }
     } catch (err) {
