@@ -223,12 +223,48 @@ async function proxyAnthropic(
     });
   }
 
-  // Translate OpenAI messages format to Anthropic format
-  const messages = (body.messages as Array<{ role: string; content: string }>) ?? [];
+  // Translate OpenAI messages format to Anthropic format.
+  // Content may be a string or OpenAI-style parts (text / image_url) —
+  // image data URLs become Anthropic base64 image blocks.
+  type OpenAIPart =
+    | { type: 'text'; text: string }
+    | { type: 'image_url'; image_url?: { url?: string } };
+  type OpenAIMessage = { role: string; content: string | OpenAIPart[] };
+
+  function toAnthropicContent(content: string | OpenAIPart[]): unknown {
+    if (typeof content === 'string') return content;
+    return content
+      .map((part) => {
+        if (part.type === 'text') return { type: 'text', text: part.text };
+        if (part.type === 'image_url') {
+          const url = part.image_url?.url ?? '';
+          const dataMatch = url.match(/^data:(image\/[\w+.-]+);base64,(.+)$/s);
+          if (dataMatch) {
+            return {
+              type: 'image',
+              source: { type: 'base64', media_type: dataMatch[1], data: dataMatch[2] },
+            };
+          }
+          if (url) return { type: 'image', source: { type: 'url', url } };
+        }
+        return null;
+      })
+      .filter(Boolean);
+  }
+
+  function contentText(content: string | OpenAIPart[]): string {
+    if (typeof content === 'string') return content;
+    return content
+      .filter((p): p is { type: 'text'; text: string } => p.type === 'text')
+      .map((p) => p.text)
+      .join('\n');
+  }
+
+  const messages = (body.messages as OpenAIMessage[]) ?? [];
   const systemMsg = messages.find((m) => m.role === 'system');
   const conversationMsgs = messages
     .filter((m) => m.role !== 'system')
-    .map((m) => ({ role: m.role, content: m.content }));
+    .map((m) => ({ role: m.role, content: toAnthropicContent(m.content) }));
 
   const anthropicBody: Record<string, unknown> = {
     model: body.model,
@@ -237,7 +273,7 @@ async function proxyAnthropic(
     messages: conversationMsgs,
   };
   if (systemMsg) {
-    anthropicBody.system = systemMsg.content;
+    anthropicBody.system = contentText(systemMsg.content);
   }
 
   const upstream = await fetch('https://api.anthropic.com/v1/messages', {

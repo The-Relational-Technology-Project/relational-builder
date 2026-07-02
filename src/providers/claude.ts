@@ -1,5 +1,22 @@
-import type { LLMProvider, ChatMessage, StreamCallbacks, ModelInfo } from './types';
+import type { LLMProvider, ChatMessage, StreamCallbacks, ModelInfo, ContentPart } from './types';
+import { contentToText } from './types';
 import { communityAccessActive, getCommunitySessionToken } from '@/store/community-store';
+
+/** Translate OpenAI-style content parts to Anthropic content blocks (dev-direct path) */
+function toAnthropicContent(content: string | ContentPart[]): unknown {
+  if (typeof content === 'string') return content;
+  return content
+    .map(part => {
+      if (part.type === 'text') return { type: 'text', text: part.text };
+      const url = part.image_url?.url ?? '';
+      const dataMatch = url.match(/^data:(image\/[\w+.-]+);base64,(.+)$/s);
+      if (dataMatch) {
+        return { type: 'image', source: { type: 'base64', media_type: dataMatch[1], data: dataMatch[2] } };
+      }
+      return url ? { type: 'image', source: { type: 'url', url } } : null;
+    })
+    .filter(Boolean);
+}
 
 /**
  * Anthropic Claude provider (Tier 2 -- BYOK).
@@ -121,7 +138,7 @@ export class ClaudeProvider implements LLMProvider {
     const systemMsg = messages.find(m => m.role === 'system');
     const conversationMsgs = messages
       .filter(m => m.role !== 'system')
-      .map(m => ({ role: m.role, content: m.content }));
+      .map(m => ({ role: m.role, content: toAnthropicContent(m.content) }));
 
     const body: Record<string, unknown> = {
       model,
@@ -130,7 +147,7 @@ export class ClaudeProvider implements LLMProvider {
       messages: conversationMsgs,
     };
     if (systemMsg) {
-      body.system = systemMsg.content;
+      body.system = contentToText(systemMsg.content);
     }
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {

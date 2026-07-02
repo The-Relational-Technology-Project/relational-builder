@@ -1,6 +1,21 @@
+/** OpenAI-style multimodal content parts (all providers speak this shape;
+ *  the llm-proxy translates to Anthropic image blocks server-side) */
+export type ContentPart =
+  | { type: 'text'; text: string }
+  | { type: 'image_url'; image_url: { url: string } };
+
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
-  content: string;
+  content: string | ContentPart[];
+}
+
+/** The text portion of a message's content */
+export function contentToText(content: string | ContentPart[]): string {
+  if (typeof content === 'string') return content;
+  return content
+    .filter((p): p is Extract<ContentPart, { type: 'text' }> => p.type === 'text')
+    .map(p => p.text)
+    .join('\n');
 }
 
 export interface StreamCallbacks {

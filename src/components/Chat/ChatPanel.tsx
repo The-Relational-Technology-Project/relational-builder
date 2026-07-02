@@ -41,7 +41,7 @@ export function ChatPanel() {
     !apiKeys[activeProviderId] &&
     !(activeProviderId === 'claude' && communityActive);
 
-  const handleSend = useCallback(async (content: string) => {
+  const handleSend = useCallback(async (content: string, attachments?: string[]) => {
     if (!provider) return;
 
     // Mode is read fresh from the store: "Build this plan" flips it right before sending
@@ -66,12 +66,18 @@ export function ChatPanel() {
     });
     setSystemPrompt(updatedPrompt);
 
-    addUserMessage(content);
+    addUserMessage(content, attachments);
 
-    // Build messages array including the new user message
+    // Build messages array including the new user message (with any images)
+    const newUserContent = attachments?.length
+      ? [
+          { type: 'text' as const, text: content },
+          ...attachments.map(url => ({ type: 'image_url' as const, image_url: { url } })),
+        ]
+      : content;
     const chatMessages = [
       ...toChatMessages(),
-      { role: 'user' as const, content },
+      { role: 'user' as const, content: newUserContent },
     ];
 
     const msgId = startAssistantMessage(currentMode === 'plan');

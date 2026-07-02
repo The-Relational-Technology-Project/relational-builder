@@ -80,7 +80,21 @@ function MessageBubble({ message }: { message: DisplayMessage }) {
           </div>
         )}
         {isUser ? (
-          <p className="whitespace-pre-wrap">{message.content}</p>
+          <div>
+            {message.attachments && message.attachments.length > 0 && (
+              <div className="flex gap-1.5 mb-1.5">
+                {message.attachments.map((url, i) => (
+                  <img
+                    key={i}
+                    src={url}
+                    alt={`Attached image ${i + 1}`}
+                    className="h-20 max-w-[160px] object-cover rounded-md border border-primary-foreground/20"
+                  />
+                ))}
+              </div>
+            )}
+            <p className="whitespace-pre-wrap">{message.content}</p>
+          </div>
         ) : (
           <div className="prose prose-sm dark:prose-invert max-w-none prose-pre:p-0 prose-pre:bg-transparent">
             <ReactMarkdown

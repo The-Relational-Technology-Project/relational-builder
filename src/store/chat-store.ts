@@ -13,6 +13,8 @@ export interface DisplayMessage {
   isStreaming?: boolean;
   /** True for assistant messages produced in plan mode (renders a "Build this plan" action) */
   isPlan?: boolean;
+  /** Attached images as data URLs (downscaled client-side) */
+  attachments?: string[];
 }
 
 interface ChatState {
@@ -29,7 +31,7 @@ interface ChatState {
   queuedMessage: string | null;
   queueMessage: (content: string) => void;
   clearQueuedMessage: () => void;
-  addUserMessage: (content: string) => void;
+  addUserMessage: (content: string, attachments?: string[]) => void;
   startAssistantMessage: (isPlan?: boolean) => string;
   /** Add an imported build plan (e.g. from RTP Studio) as a plan message */
   importBuildPlan: (planMarkdown: string) => void;
@@ -68,12 +70,13 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
   hydrateChat: (messages: DisplayMessage[], mode: ChatMode) =>
     set({ messages: messages.map(m => ({ ...m, isStreaming: false })), mode }),
 
-  addUserMessage: (content: string) => {
+  addUserMessage: (content: string, attachments?: string[]) => {
     const msg: DisplayMessage = {
       id: nextId(),
       role: 'user',
       content,
       timestamp: Date.now(),
+      attachments: attachments?.length ? attachments : undefined,
     };
     set(state => ({ messages: [...state.messages, msg] }));
   },
@@ -146,7 +149,20 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
     }
 
     for (const msg of messages) {
-      chatMsgs.push({ role: msg.role, content: msg.content });
+      if (msg.attachments?.length) {
+        chatMsgs.push({
+          role: msg.role,
+          content: [
+            { type: 'text' as const, text: msg.content },
+            ...msg.attachments.map(url => ({
+              type: 'image_url' as const,
+              image_url: { url },
+            })),
+          ],
+        });
+      } else {
+        chatMsgs.push({ role: msg.role, content: msg.content });
+      }
     }
 
     return chatMsgs;
