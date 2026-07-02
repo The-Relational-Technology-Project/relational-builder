@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuthStore, cloudEnabled } from '@/store/auth-store';
 import { useCloudStore } from '@/store/cloud-store';
 import { useCommunityStore } from '@/store/community-store';
+import { YourSites } from '@/components/YourSites';
 import { Badge } from '@/components/ui/badge';
 import { FolderOpen, Loader2, Sparkles } from 'lucide-react';
 
@@ -102,6 +103,8 @@ function SignedInDashboard({ onSelectIdea, disabled }: HomeDashboardProps) {
             </div>
           </div>
         )}
+
+        <YourSites />
 
         <div className="space-y-2">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">

@@ -10,6 +10,11 @@
  *   - slug is derived from name when omitted; republishing an owned slug
  *     replaces the site
  *
+ * Also handles site management for the builder's dashboard:
+ *   { action: 'list' }                  → the builder's sites with view
+ *                                         stats + recent neighbor feedback
+ *   { action: 'delete', slug }          → take down an owned site
+ *
  * Deploy: supabase functions deploy publish-site --no-verify-jwt
  */
 
@@ -80,6 +85,61 @@ Deno.serve(async (req: Request) => {
     if (!email) return json({ error: 'Sign in to publish to community hosting' }, 401);
 
     const body = await req.json();
+
+    // ---- Site management actions (dashboard) ----
+    if (body.action === 'list') {
+      const sitesRes = await fetch(
+        rest(`/community_sites?owner_email=eq.${encodeURIComponent(email)}&select=id,slug,name,created_at,updated_at&order=updated_at.desc`),
+        { headers: svc() },
+      );
+      const sites = sitesRes.ok ? await sitesRes.json() : [];
+      const appUrl = Deno.env.get('APP_URL') ?? 'https://relational-builder.vercel.app';
+
+      const enriched = await Promise.all(sites.map(async (s: { id: string; slug: string; name: string; created_at: string; updated_at: string }) => {
+        const [statsRes, feedbackRes] = await Promise.all([
+          fetch(rest(`/site_stats?site_id=eq.${s.id}&select=day,views&order=day.desc&limit=30`), { headers: svc() }),
+          fetch(rest(`/site_feedback?site_id=eq.${s.id}&select=id,name,message,created_at&order=created_at.desc&limit=20`), { headers: svc() }),
+        ]);
+        const stats: { day: string; views: number }[] = statsRes.ok ? await statsRes.json() : [];
+        const feedback = feedbackRes.ok ? await feedbackRes.json() : [];
+        const totalViews = stats.reduce((sum, d) => sum + Number(d.views), 0);
+        const weekAgo = new Date(Date.now() - 7 * 86400_000).toISOString().slice(0, 10);
+        const weekViews = stats.filter(d => d.day >= weekAgo).reduce((sum, d) => sum + Number(d.views), 0);
+        return {
+          slug: s.slug,
+          name: s.name,
+          url: `${appUrl}/s/${s.slug}/`,
+          created_at: s.created_at,
+          updated_at: s.updated_at,
+          total_views: totalViews,
+          week_views: weekViews,
+          feedback,
+        };
+      }));
+      return json({ ok: true, sites: enriched });
+    }
+
+    if (body.action === 'delete') {
+      const slug = slugify(String(body.slug ?? ''));
+      if (!slug) return json({ error: 'Which site?' }, 400);
+      const siteRes = await fetch(
+        rest(`/community_sites?slug=eq.${encodeURIComponent(slug)}&select=id,owner_email`),
+        { headers: svc() },
+      );
+      const found = siteRes.ok ? await siteRes.json() : [];
+      if (found.length === 0 || found[0].owner_email !== email) {
+        return json({ error: 'No site of yours with that name' }, 404);
+      }
+      // Cascade removes files, stats, and feedback
+      const delRes = await fetch(rest(`/community_sites?id=eq.${found[0].id}`), {
+        method: 'DELETE',
+        headers: svc(),
+      });
+      if (!delRes.ok) return json({ error: 'Could not take the site down' }, 500);
+      return json({ ok: true, deleted: slug });
+    }
+
+    // ---- Publish (default action) ----
     const name = String(body.name ?? 'My community app').slice(0, 120);
     const requestedSlug = body.slug ? slugify(String(body.slug)) : slugify(name);
     const files = Array.isArray(body.files) ? body.files : [];

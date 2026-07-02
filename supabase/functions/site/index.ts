@@ -3,9 +3,15 @@
  *
  * GET /site/{slug}/            → index.html
  * GET /site/{slug}/{filepath}  → that file with its content type
+ * POST /site/{slug}/__feedback → a neighbor's note for the builder
  *
  * Views of index.html increment the site's daily counter (simple,
  * privacy-friendly analytics — no cookies, no per-visitor tracking).
+ *
+ * Every served index.html gets a small "leave a note" widget injected so
+ * neighbors can respond to the tool without accounts — the notes appear in
+ * the builder's dashboard. Sites can opt out with:
+ *   <meta name="rb-feedback" content="off">
  *
  * Fronted by a rewrite on the builder domain so sites get clean URLs:
  *   https://relational-builder.vercel.app/s/{slug}/
@@ -14,6 +20,12 @@
  */
 
 const CACHE_TTL_SECONDS = 60;
+const MAX_FEEDBACK_PER_DAY = 100;
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, HEAD, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+};
 
 function svc(): Record<string, string> {
   const key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
@@ -24,8 +36,53 @@ function rest(path: string): string {
   return `${Deno.env.get('SUPABASE_URL')}/rest/v1${path}`;
 }
 
+/**
+ * The injected widget. Kept dependency-free and tiny; posts to
+ * `__feedback` resolved against the current page so it works behind the
+ * /s/{slug}/ rewrite and the direct function URL alike.
+ */
+function feedbackWidget(siteName: string): string {
+  const safeName = siteName.replace(/[<>&"']/g, '');
+  return `
+<script>
+(function () {
+  if (document.querySelector('meta[name="rb-feedback"][content="off"]')) return;
+  var base = location.href.split(/[?#]/)[0];
+  if (!base.endsWith('/')) base += '/';
+  var url = base + '__feedback';
+  var css = 'position:fixed;bottom:16px;right:16px;z-index:99999;font-family:system-ui,sans-serif;';
+  var box = document.createElement('div');
+  box.setAttribute('style', css);
+  box.innerHTML =
+    '<button id="rbfb-btn" style="background:#1f2937;color:#fff;border:none;border-radius:999px;padding:8px 14px;font-size:13px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.25)">&#128172; Leave a note</button>' +
+    '<div id="rbfb-form" style="display:none;background:#fff;color:#111;border:1px solid #d1d5db;border-radius:12px;padding:12px;width:260px;box-shadow:0 4px 16px rgba(0,0,0,.2)">' +
+    '<div style="font-size:13px;font-weight:600;margin-bottom:6px">A note for the builder of ${safeName}</div>' +
+    '<input id="rbfb-name" placeholder="Your name (optional)" maxlength="80" style="width:100%;box-sizing:border-box;font-size:13px;padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;margin-bottom:6px">' +
+    '<textarea id="rbfb-msg" placeholder="What works? What would help?" maxlength="1000" rows="3" style="width:100%;box-sizing:border-box;font-size:13px;padding:6px 8px;border:1px solid #d1d5db;border-radius:6px;margin-bottom:6px"></textarea>' +
+    '<div style="display:flex;gap:6px;justify-content:flex-end">' +
+    '<button id="rbfb-cancel" style="background:none;border:none;font-size:12px;color:#6b7280;cursor:pointer">Cancel</button>' +
+    '<button id="rbfb-send" style="background:#1f2937;color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer">Send</button>' +
+    '</div></div>';
+  document.body.appendChild(box);
+  var btn = box.querySelector('#rbfb-btn'), form = box.querySelector('#rbfb-form');
+  btn.onclick = function () { btn.style.display = 'none'; form.style.display = 'block'; };
+  box.querySelector('#rbfb-cancel').onclick = function () { form.style.display = 'none'; btn.style.display = 'inline-block'; };
+  box.querySelector('#rbfb-send').onclick = function () {
+    var msg = box.querySelector('#rbfb-msg').value.trim();
+    if (!msg) return;
+    fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: box.querySelector('#rbfb-name').value.trim(), message: msg }) })
+      .catch(function () {});
+    form.innerHTML = '<div style="font-size:13px;padding:4px 0">&#128155; Thanks — your note went to the builder.</div>';
+    setTimeout(function () { form.style.display = 'none'; btn.style.display = 'inline-block'; }, 2500);
+  };
+})();
+</script>`;
+}
+
 Deno.serve(async (req: Request) => {
-  if (req.method !== 'GET' && req.method !== 'HEAD') {
+  if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
+  if (req.method !== 'GET' && req.method !== 'HEAD' && req.method !== 'POST') {
     return new Response('Method not allowed', { status: 405 });
   }
 
@@ -52,6 +109,47 @@ Deno.serve(async (req: Request) => {
       });
     }
     const siteId = sites[0].id;
+    const siteName = sites[0].name ?? slug;
+
+    // ---- Neighbor feedback (widget POSTs here) ----
+    if (req.method === 'POST') {
+      if (filePath.split('/').pop() !== '__feedback') {
+        return new Response('Not found', { status: 404, headers: CORS });
+      }
+      const body = await req.json().catch(() => ({}));
+      const message = String(body.message ?? '').trim().slice(0, 1000);
+      const name = String(body.name ?? '').trim().slice(0, 80) || null;
+      if (!message) {
+        return new Response(JSON.stringify({ error: 'Say something first' }), {
+          status: 400, headers: { ...CORS, 'Content-Type': 'application/json' },
+        });
+      }
+      // Per-site daily cap keeps abuse boring
+      const today = new Date().toISOString().slice(0, 10);
+      const countRes = await fetch(
+        rest(`/site_feedback?site_id=eq.${siteId}&created_at=gte.${today}&select=id`),
+        { headers: { ...svc(), Prefer: 'count=exact', Range: '0-0' } },
+      );
+      const count = Number(countRes.headers.get('content-range')?.split('/')[1] ?? 0);
+      if (count >= MAX_FEEDBACK_PER_DAY) {
+        return new Response(JSON.stringify({ error: 'This site has received a lot of notes today — try again tomorrow' }), {
+          status: 429, headers: { ...CORS, 'Content-Type': 'application/json' },
+        });
+      }
+      const insRes = await fetch(rest('/site_feedback'), {
+        method: 'POST',
+        headers: { ...svc(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ site_id: siteId, name, message }),
+      });
+      if (!insRes.ok) {
+        return new Response(JSON.stringify({ error: 'Could not save your note' }), {
+          status: 500, headers: { ...CORS, 'Content-Type': 'application/json' },
+        });
+      }
+      return new Response(JSON.stringify({ ok: true }), {
+        headers: { ...CORS, 'Content-Type': 'application/json' },
+      });
+    }
 
     const fileRes = await fetch(
       rest(`/site_files?site_id=eq.${siteId}&path=eq.${encodeURIComponent(filePath)}&select=content,content_type`),
@@ -61,19 +159,21 @@ Deno.serve(async (req: Request) => {
 
     // SPA-style fallback: unknown paths (no extension) serve index.html
     let file = found[0];
+    let servedIndex = filePath === 'index.html';
     if (!file && !filePath.includes('.')) {
       const indexRes = await fetch(
         rest(`/site_files?site_id=eq.${siteId}&path=eq.index.html&select=content,content_type`),
         { headers: svc() },
       );
       file = indexRes.ok ? (await indexRes.json())[0] : undefined;
+      servedIndex = Boolean(file);
     }
     if (!file) {
       return new Response('Not found', { status: 404, headers: { 'Content-Type': 'text/plain' } });
     }
 
     // Count page views (not asset requests) — fire and forget
-    if (filePath === 'index.html' || !filePath.includes('.')) {
+    if (servedIndex) {
       fetch(rest('/rpc/increment_site_views'), {
         method: 'POST',
         headers: { ...svc(), 'Content-Type': 'application/json' },
@@ -81,7 +181,17 @@ Deno.serve(async (req: Request) => {
       }).catch(() => {});
     }
 
-    return new Response(req.method === 'HEAD' ? null : file.content, {
+    // Inject the neighbor-note widget into served HTML pages
+    let content = file.content as string;
+    if (servedIndex && String(file.content_type).startsWith('text/html') &&
+        !/name=["']rb-feedback["']\s+content=["']off["']/i.test(content)) {
+      const widget = feedbackWidget(siteName);
+      content = /<\/body>/i.test(content)
+        ? content.replace(/<\/body>/i, `${widget}\n</body>`)
+        : content + widget;
+    }
+
+    return new Response(req.method === 'HEAD' ? null : content, {
       headers: {
         'Content-Type': file.content_type,
         'Cache-Control': `public, max-age=${CACHE_TTL_SECONDS}`,
