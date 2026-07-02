@@ -64,31 +64,24 @@ const BASE_INSTRUCTIONS = [
   '- Resolve every import: anything you import must already exist in the project, be a real package/CDN URL, or be created by you in the same response',
   '- Keep the app working after every response — a person is watching the live preview',
   '',
-  '## Design Language for Generated Apps',
+  '## Design for Generated Apps',
   '',
-  'Every app you build should look cared-for on the first render — like something a neighborhood is proud to share, not a developer default. Follow this house style unless the person asks for something specific:',
+  'Every app should look cared-for on the first render — like something a neighborhood is proud to share, not a developer default. But part of the magic of relational tech is that every builder and place brings their own style, sense of place, and taste. NEVER converge on one look across projects.',
   '',
-  '- Define CSS custom properties in `:root` at the top of the stylesheet and use ONLY them for colors — one-line theme changes later:',
-  '',
-  '```css',
-  ':root {',
-  '  --bg: #FAF6F0;          /* warm cream page background */',
-  '  --surface: #FFFFFF;     /* cards and panels */',
-  '  --text: #2B2320;        /* near-black warm brown */',
-  '  --muted: #6B5D54;       /* secondary text */',
-  '  --accent: #C75B39;      /* clay coral — buttons, links, highlights */',
-  '  --accent-text: #FFFFFF;',
-  '  --border: rgba(43, 35, 32, 0.12);',
-  '  --radius: 12px;',
-  '}',
-  '```',
-  '',
-  '- That is the default "Warm Community" palette. If the person asks for a different feel (or their place suggests one), swap ONLY `--accent`: Coastal #3D7A8C, Garden #3D8B5F, Sunset gold #D9822B — everything else stays.',
-  '- Type: the system font stack (`system-ui, -apple-system, sans-serif`), base 16px, line-height 1.6, headings bold (700+) with clear size steps. No decorative fonts for labels or buttons.',
-  '- Layout: single column, content max-width 640–720px, centered; cards with 16–20px padding and a 1px `var(--border)` border instead of drop shadows; whitespace over dividers.',
+  'Craft baseline (always):',
+  '- Define CSS custom properties in `:root` (e.g. `--bg, --surface, --text, --muted, --accent, --border, --radius`) and use ONLY them for colors — one-line theme changes later.',
+  '- Readable type: base 16px, line-height ~1.6, real heading hierarchy. No decorative fonts for labels or buttons.',
   '- Mobile-first and outdoor-readable: these tools get used on phones, on sidewalks, in the sun. Text contrast at least 4.5:1, touch targets 44px+, inputs at 16px+ font size (prevents iOS zoom).',
-  '- Finished-feeling details: a simple header with the app\'s name, warm one-sentence empty states ("No events yet — add the first one!"), and disabled/loading states on buttons that submit.',
+  '- Finished-feeling details: a header with the app\'s name, warm one-sentence empty states ("No events yet — add the first one!"), disabled/loading states on buttons that submit.',
   '- Never ship framework-blue defaults, unstyled buttons, or serif fallbacks.',
+  '',
+  'Personality (varies every time):',
+  '- Draw the palette and feel from the PLACE and the PERSON: the fog, the garden, the block, the culture of the neighborhood, what they say they love. Ask yourself what this specific tool wants to feel like — a lost-cat poster, a garden gate, a block-party flyer — and choose colors, radius, and density to match.',
+  '- If the builder has a personal design system (see below when present), follow it. Otherwise vary deliberately between projects — do not reuse the same palette you would have used for the last app.',
+  '',
+  'Photos and artwork:',
+  '- Recommend the builder\'s OWN photos and artwork — real, local images of their actual street, garden, people (with permission). A real photo of the block beats any illustration.',
+  '- When a build wants imagery, add clearly-marked image slots (`<img src="REPLACE-ME-your-photo.jpg" alt="...">` with a visible placeholder style) and tell the builder exactly how to swap in their own photos. Never fake it with generic stock-style graphics or emoji collages standing in for real places.',
   '',
   '## Recommended Services',
   '',
@@ -181,6 +174,8 @@ export interface ContextOptions {
   studio?: StudioContext | null;
   /** The builder's profile — place, dreams, and comfort level */
   builderProfile?: BuilderProfileContext | null;
+  /** Resolved @ mention context — other apps the builder referenced */
+  references?: string[];
 }
 
 export interface BuilderProfileContext {
@@ -190,6 +185,7 @@ export interface BuilderProfileContext {
   dreams: string | null;
   tech_familiarity: string | null;
   ai_coding_experience: string | null;
+  design_system?: string | null;
 }
 
 const TONE_BY_FAMILIARITY: Record<string, string> = {
@@ -237,8 +233,23 @@ export function buildSystemPrompt(options: ContextOptions = {}): string {
     sections.push('', formatBuilderProfileForPrompt(options.builderProfile));
   }
 
+  if (options.builderProfile?.design_system?.trim() && options.mode !== 'plan') {
+    sections.push(
+      '',
+      '## This Builder\'s Design System',
+      '',
+      'The builder has captured their own style — it reflects their place and taste. Follow it in every build (it overrides the "Personality" guidance above; the craft baseline still applies):',
+      '',
+      options.builderProfile.design_system.trim(),
+    );
+  }
+
   if (options.projectFiles && options.projectFiles.length > 0 && options.mode !== 'plan') {
     sections.push('', formatProjectFilesForPrompt(options.projectFiles));
+  }
+
+  if (options.references && options.references.length > 0) {
+    sections.push('', ...options.references);
   }
 
   if (options.connectedServiceGuidance && options.connectedServiceGuidance.length > 0) {

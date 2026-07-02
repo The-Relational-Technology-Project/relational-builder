@@ -4,6 +4,8 @@ import { useCloudStore } from '@/store/cloud-store';
 import { useCommunityStore } from '@/store/community-store';
 import { YourSites } from '@/components/YourSites';
 import { StarterGallery } from '@/components/StarterGallery';
+import { DesignSystemDialog } from '@/components/DesignSystemDialog';
+import { Palette } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { FolderOpen, Loader2, Sparkles } from 'lucide-react';
 
@@ -110,6 +112,8 @@ function SignedInDashboard({ onSelectIdea, disabled }: HomeDashboardProps) {
 
         <YourSites />
 
+        <StyleNudge projectCount={projects.length} />
+
         <StarterGallery disabled={disabled} />
 
         <div className="space-y-2">
@@ -131,6 +135,36 @@ function SignedInDashboard({ onSelectIdea, disabled }: HomeDashboardProps) {
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * After ~5 built apps, a builder has a style — invite them to capture it as
+ * their own mini design system so new builds start from their aesthetic.
+ */
+function StyleNudge({ projectCount }: { projectCount: number }) {
+  const profile = useAuthStore(s => s.profile);
+  const [open, setOpen] = useState(false);
+
+  if (projectCount < 5 || profile?.design_system) return null;
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="w-full text-left border border-dashed border-primary/40 rounded-lg p-3 hover:bg-primary/5 transition-colors"
+      >
+        <div className="flex items-center gap-2 text-sm font-medium">
+          <Palette className="size-4 text-primary shrink-0" />
+          You've built {projectCount} tools — capture your style
+        </div>
+        <p className="text-[11px] text-muted-foreground mt-1">
+          Describe your palette, type, and feel once, and every new build starts
+          from your aesthetic — yours and your neighborhood's, not a template.
+        </p>
+      </button>
+      {open && <DesignSystemDialog open={open} onOpenChange={setOpen} />}
+    </>
   );
 }
 

@@ -10,8 +10,9 @@ import {
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CircleUser, MailCheck, LogOut, MapPin } from 'lucide-react';
+import { CircleUser, MailCheck, LogOut, MapPin, Palette } from 'lucide-react';
 import { BuilderOnboarding } from '@/components/BuilderOnboarding';
+import { DesignSystemDialog } from '@/components/DesignSystemDialog';
 
 /**
  * Sign in / account dialog. Magic-link email auth — no passwords.
@@ -30,6 +31,7 @@ export function AccountMenu() {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editingProfile, setEditingProfile] = useState(false);
+  const [editingStyle, setEditingStyle] = useState(false);
 
   if (!cloudEnabled) return null;
 
@@ -97,6 +99,18 @@ export function AccountMenu() {
                 variant="outline"
                 size="sm"
                 className="gap-1.5"
+                onClick={() => {
+                  setOpen(false);
+                  setEditingStyle(true);
+                }}
+              >
+                <Palette className="size-3.5" />
+                Your style
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
                 onClick={async () => {
                   await signOut();
                   setOpen(false);
@@ -143,6 +157,7 @@ export function AccountMenu() {
         )}
       </DialogContent>
       {editingProfile && <BuilderOnboarding onDone={() => setEditingProfile(false)} />}
+      {editingStyle && <DesignSystemDialog open={editingStyle} onOpenChange={setEditingStyle} />}
     </Dialog>
   );
 }

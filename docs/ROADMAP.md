@@ -83,8 +83,10 @@ building, later:
 
 | Phase | Work | Status |
 |---|---|---|
-| Now | My Sites dashboard + neighbor feedback + studio-aware seam | this session |
+| Now | My Sites dashboard + neighbor feedback + studio-aware seam | shipped July 2 |
+| Next | Bounded auto-fix (one automatic error→fix pass after builds); publish-time security scan (secret/PII patterns + AI access-rules review); asset uploads for Community Hosting (real local photos in built apps — today images ride as external URLs or data-URIs) | queued |
 | Next | Tool-health snapshot; built-with credits; studio-scoped retrieval once multi-tenant schema is applied | after multi-tenant Studio ships |
+| Later | MCP client support — let builders bring the tools their community already uses (Sheets, Airtable, calendars) into builds, with Dyad's consent-taxonomy pattern for approving what the AI may touch; RTP's own commons MCP server is the natural first connection | design when pilot demand appears |
 | Later | Identity bridge (Builder projects in Studio personal library); export/graduation UI parity | when Studios are live at relationaltechstudio.org |
 
 Standing priorities unchanged: keep the free tier real (community access,

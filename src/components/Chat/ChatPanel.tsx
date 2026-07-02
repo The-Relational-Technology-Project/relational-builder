@@ -15,6 +15,7 @@ import { useCommunityStore } from '@/store/community-store';
 import { useStudioStore } from '@/store/studio-store';
 import { useAuthStore } from '@/store/auth-store';
 import { searchCommons } from '@/knowledge/commons-search';
+import { buildMentionContext } from '@/knowledge/mentions';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { HomeDashboard } from '@/components/HomeDashboard';
@@ -57,7 +58,10 @@ export function ChatPanel() {
     // Retrieval: hybrid semantic+text search against the RT Commons (the
     // canonical knowledge base), falling back to local TF-IDF scoring of the
     // Studio KB when the commons is unreachable.
-    const commonsResults = await searchCommons(content);
+    const [commonsResults, references] = await Promise.all([
+      searchCommons(content),
+      buildMentionContext(content),
+    ]);
     const relevant = commonsResults.length > 0 ? null : getRelevantContext(content);
     const envVars = useEnvStore.getState().vars;
     const connectedServices = getConnectedIntegrations(envVars);
@@ -77,6 +81,7 @@ export function ChatPanel() {
       projectFiles,
       studio: activeStudio,
       builderProfile,
+      references,
     });
     setSystemPrompt(updatedPrompt);
 

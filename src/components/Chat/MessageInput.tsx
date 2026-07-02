@@ -1,8 +1,9 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { SendHorizontal, Square, Map, Hammer, ImagePlus, X } from 'lucide-react';
+import { SendHorizontal, Square, Map, Hammer, ImagePlus, X, FolderOpen, Globe } from 'lucide-react';
 import { useChatStore, type ChatMode } from '@/store/chat-store';
 import { fileToDataUrl, isImageFile } from '@/lib/image';
+import { listMentionables, type Mentionable } from '@/knowledge/mentions';
 
 const MAX_ATTACHMENTS = 3;
 
@@ -20,6 +21,41 @@ export function MessageInput({ onSend, onStop, isGenerating, disabled, mode = 'b
   const [attachments, setAttachments] = useState<string[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // @ mentions: candidates load on first @, popover filters as you type
+  const [mentionables, setMentionables] = useState<Mentionable[] | null>(null);
+  const [mentionQuery, setMentionQuery] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (mentionQuery !== null && mentionables === null) {
+      listMentionables().then(setMentionables).catch(() => setMentionables([]));
+    }
+  }, [mentionQuery, mentionables]);
+
+  function updateMentionState(value: string, caret: number) {
+    // An @ being typed: "@" preceded by start/whitespace, no ] yet, caret at end of it
+    const before = value.slice(0, caret);
+    const match = before.match(/(^|\s)@([^\s@[\]]{0,40})$/);
+    setMentionQuery(match ? match[2] : null);
+  }
+
+  function insertMention(name: string) {
+    const el = textareaRef.current;
+    if (!el) return;
+    const caret = el.selectionStart ?? input.length;
+    const before = input.slice(0, caret).replace(/(^|\s)@([^\s@[\]]{0,40})$/, `$1@[${name}] `);
+    const next = before + input.slice(caret);
+    setInput(next);
+    setMentionQuery(null);
+    setTimeout(() => {
+      el.focus();
+      el.setSelectionRange(before.length, before.length);
+    }, 0);
+  }
+
+  const mentionMatches = (mentionQuery !== null && mentionables)
+    ? mentionables.filter(m => m.name.toLowerCase().includes(mentionQuery.toLowerCase())).slice(0, 6)
+    : [];
 
   // Prefill from elsewhere (e.g. tapping a plan question chip)
   const draftMessage = useChatStore(s => s.draftMessage);
@@ -51,6 +87,15 @@ export function MessageInput({ onSend, onStop, isGenerating, disabled, mode = 'b
   }, [input, attachments, disabled, onSend]);
 
   function handleKeyDown(e: React.KeyboardEvent) {
+    if (mentionMatches.length > 0 && (e.key === 'Enter' || e.key === 'Tab')) {
+      e.preventDefault();
+      insertMention(mentionMatches[0].name);
+      return;
+    }
+    if (e.key === 'Escape' && mentionQuery !== null) {
+      setMentionQuery(null);
+      return;
+    }
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       if (isGenerating) return;
@@ -60,6 +105,7 @@ export function MessageInput({ onSend, onStop, isGenerating, disabled, mode = 'b
 
   function handleInput(e: React.ChangeEvent<HTMLTextAreaElement>) {
     setInput(e.target.value);
+    updateMentionState(e.target.value, e.target.selectionStart ?? e.target.value.length);
     // Auto-resize
     const el = e.target;
     el.style.height = 'auto';
@@ -146,6 +192,29 @@ export function MessageInput({ onSend, onStop, isGenerating, disabled, mode = 'b
                 <X className="size-3" />
               </button>
             </div>
+          ))}
+        </div>
+      )}
+
+      {mentionMatches.length > 0 && (
+        <div className="mb-2 rounded-lg border bg-popover shadow-md max-w-sm overflow-hidden">
+          <p className="px-2.5 pt-2 pb-1 text-[10px] uppercase tracking-wide text-muted-foreground">
+            Reference one of your apps
+          </p>
+          {mentionMatches.map(m => (
+            <button
+              key={`${m.kind}-${m.id}`}
+              onClick={() => insertMention(m.name)}
+              className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs text-left hover:bg-accent transition-colors"
+            >
+              {m.kind === 'project'
+                ? <FolderOpen className="size-3 text-muted-foreground shrink-0" />
+                : <Globe className="size-3 text-muted-foreground shrink-0" />}
+              <span className="truncate">{m.name}</span>
+              <span className="ml-auto text-[10px] text-muted-foreground shrink-0">
+                {m.kind === 'project' ? 'project' : 'live site'}
+              </span>
+            </button>
           ))}
         </div>
       )}
