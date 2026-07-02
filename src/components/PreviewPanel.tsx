@@ -168,7 +168,7 @@ function InspectablePreview() {
           : 'Point at what you want to change'}
         className={`absolute bottom-3 right-3 z-10 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium shadow-md transition-colors ${
           selecting
-            ? 'bg-indigo-600 text-white'
+            ? 'bg-primary text-primary-foreground'
             : 'bg-background/90 border text-muted-foreground hover:text-foreground'
         }`}
       >

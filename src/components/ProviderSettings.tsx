@@ -98,8 +98,9 @@ export function ProviderSettings() {
               {provider.id === 'claude' && communityActive && (
                 <div className="rounded-md bg-green-600/10 border border-green-600/30 px-2.5 py-1.5">
                   <p className="text-[11px] text-foreground">
-                    <span className="font-medium">Community access active</span> — free building on
-                    Claude Sonnet 5 and Haiku 4.5, courtesy of the Relational Tech Project.
+                    <span className="font-medium">Community access active</span> — free building
+                    courtesy of the Relational Tech Project. Sonnet 5, Opus 4.8, and Haiku 4.5
+                    are all covered by your daily budget.
                   </p>
                   {dailyBudget > 0 && (
                     <p className="text-[10px] text-muted-foreground mt-0.5">
