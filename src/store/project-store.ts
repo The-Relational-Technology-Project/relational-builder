@@ -26,6 +26,9 @@ export interface ProjectLineage {
   sourceUrl?: string;
   /** ISO timestamp of import */
   importedAt?: string;
+  /** Studio frame the project was built within, if any */
+  studioSlug?: string;
+  studioLabel?: string;
 }
 
 interface ProjectState {

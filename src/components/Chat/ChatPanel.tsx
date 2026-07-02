@@ -12,6 +12,7 @@ import {
   COMMUNITY_CLOUD_GUIDANCE,
 } from '@/integrations/catalog';
 import { useCommunityStore } from '@/store/community-store';
+import { useStudioStore } from '@/store/studio-store';
 import { searchCommons } from '@/knowledge/commons-search';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
@@ -63,6 +64,7 @@ export function ChatPanel() {
     if (communityCloudConnected(envVars)) serviceGuidance.unshift(COMMUNITY_CLOUD_GUIDANCE);
     const projectFiles = useProjectStore.getState().getAllFiles()
       .map(f => ({ path: f.path, content: f.content }));
+    const activeStudio = useStudioStore.getState().activeStudio;
     const updatedPrompt = buildSystemPrompt({
       commonsResults,
       tools: relevant?.tools,
@@ -71,8 +73,21 @@ export function ChatPanel() {
       mode: currentMode,
       connectedServiceGuidance: serviceGuidance,
       projectFiles,
+      studio: activeStudio,
     });
     setSystemPrompt(updatedPrompt);
+
+    // The studio frame travels with the project — record it in lineage
+    if (activeStudio) {
+      const { lineage, setLineage } = useProjectStore.getState();
+      if (lineage?.studioSlug !== activeStudio.slug) {
+        setLineage({
+          ...(lineage ?? { source: null }),
+          studioSlug: activeStudio.slug,
+          studioLabel: activeStudio.label,
+        });
+      }
+    }
 
     addUserMessage(content, attachments);
 

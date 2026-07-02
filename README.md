@@ -18,6 +18,7 @@ Relational Builder combines three things that don't yet exist together:
 - **Plan & Build modes** -- sketch a structured build plan together first (grounded in relational framing), then press "Build this plan"; or build directly
 - **Studio build plans** -- paste a Studio share link (or ID) and the plan is fetched as your starting draft, with lineage recorded automatically
 - **RT Commons retrieval** -- every message runs a hybrid semantic + full-text search across the whole commons (tools, stories, recipes, the Neighboring Commons library, frameworks) and weaves the most relevant knowledge into the AI's context
+- **Studio-aware building** -- pick a Studio from the network (or arrive via a `?studio=` link) and build inside its frame: the studio's principles layer onto the base RTP principles in the AI's context (append-only, never replacing), and the studio travels in your project's lineage
 - **Offer builds back to the commons** -- after publishing, share your build to the commons contribution queue (consent-first, steward-reviewed, credited by name)
 - **Community access** -- invited pilot builders get free Claude building via RTP's subsidized key, gated server-side with daily budgets — no API key, no credit card
 - **Cloud projects & collaboration** -- sign in with a magic link, save projects to the cloud, and add collaborators by email; edits sync live via Supabase Realtime
@@ -30,6 +31,8 @@ Relational Builder combines three things that don't yet exist together:
 - **Network Activity feed** -- see what other builders are shipping across the ecosystem, pulled live from [updates.relationaltechproject.org](https://updates.relationaltechproject.org)
 - **Publish to Commons** -- export your project as a zip with a `.reltech.yml` manifest, push to GitHub, and the [network watcher](https://github.com/The-Relational-Technology-Project/watcher) discovers it automatically
 - **Community Hosting** -- one-click free hosting from RTP (3 sites per builder, no platform accounts or tokens) with privacy-friendly visit counts; Netlify/Vercel still available for bigger needs
+- **My Sites dashboard** -- your live community-hosted sites on the home screen: views, weekly activity, and take-down — the "is it alive?" surface for showing your neighborhood what the work is worth
+- **Neighbor notes** -- every community-hosted site gets a built-in "leave a note" widget (no accounts, no tracking); notes flow back to your dashboard, so building *with* neighbors has a return channel (opt out per site with `<meta name="rb-feedback" content="off">`)
 - **Deploy to Netlify/Vercel** -- deploy directly from the builder with a personal access token
 - **GitHub two-way sync** -- connect a GitHub repo, push project files as atomic commits, and pull remote changes back into the builder
 - **RAG-powered context** -- AI responses informed by the most relevant KB tools, stories, and network activity for each message

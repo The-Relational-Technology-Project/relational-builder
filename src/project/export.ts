@@ -21,7 +21,7 @@ export function generateManifest(projectName: string, lineage?: ProjectLineage |
     '',
   ];
 
-  if (lineage?.source) {
+  if (lineage?.source || lineage?.studioSlug) {
     lines.push('lineage:');
     if (lineage.planTitle) {
       lines.push(`  remixed_from: "${yamlEscape(lineage.planTitle)}"`);
@@ -29,12 +29,22 @@ export function generateManifest(projectName: string, lineage?: ProjectLineage |
     if (lineage.sourceUrl) {
       lines.push(`  remixed_from_url: "${yamlEscape(lineage.sourceUrl)}"`);
     }
-    const noteBits =
-      lineage.source === 'rtp-studio-plan'
-        ? 'Started from an RTP Studio build plan'
-        : 'Remixed from a relational tech commons project';
-    const dateBit = lineage.importedAt ? ` on ${lineage.importedAt.slice(0, 10)}` : '';
-    lines.push(`  note: "${yamlEscape(`${noteBits}${dateBit}, built with Relational Builder.`)}"`);
+    if (lineage.studioSlug) {
+      lines.push(`  studio: "${yamlEscape(lineage.studioSlug)}"`);
+      if (lineage.studioLabel) {
+        lines.push(`  studio_name: "${yamlEscape(lineage.studioLabel)}"`);
+      }
+    }
+    if (lineage.source) {
+      const noteBits =
+        lineage.source === 'rtp-studio-plan'
+          ? 'Started from an RTP Studio build plan'
+          : 'Remixed from a relational tech commons project';
+      const dateBit = lineage.importedAt ? ` on ${lineage.importedAt.slice(0, 10)}` : '';
+      lines.push(`  note: "${yamlEscape(`${noteBits}${dateBit}, built with Relational Builder.`)}"`);
+    } else if (lineage.studioLabel) {
+      lines.push(`  note: "${yamlEscape(`Built within ${lineage.studioLabel}, with Relational Builder.`)}"`);
+    }
     lines.push('');
   }
 

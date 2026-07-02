@@ -16,6 +16,8 @@ import { useKnowledgeStore } from '@/store/knowledge-store';
 import { useAuthStore } from '@/store/auth-store';
 import { useCloudStore } from '@/store/cloud-store';
 import { useCommunityStore } from '@/store/community-store';
+import { useStudioStore } from '@/store/studio-store';
+import { StudioSwitcher } from '@/components/StudioSwitcher';
 import { initCloudSync } from '@/cloud/sync';
 import { AccountMenu } from '@/components/AccountMenu';
 import { ProjectsDialog } from '@/components/ProjectsDialog';
@@ -53,6 +55,7 @@ function App() {
     initAuth();
     initCloudSync();
     useCommunityStore.getState().init();
+    useStudioStore.getState().init();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const clearMessages = useChatStore(s => s.clearMessages);
@@ -86,6 +89,7 @@ function App() {
           </div>
           <Separator orientation="vertical" className="h-5" />
           <ModelSelector />
+          <StudioSwitcher />
           <CloudStatus />
         </div>
         <div className="flex items-center gap-1 md:gap-2 shrink-0">

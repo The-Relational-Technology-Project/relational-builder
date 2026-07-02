@@ -1,4 +1,5 @@
 import { formatPrinciplesForPrompt } from './rtp-principles';
+import { formatStudioForPrompt, type StudioContext } from './studio-context';
 import type { Tool, Story } from './types';
 import type { FeedEntry } from './network-feed';
 import type { CommonsSearchResult } from './commons-search';
@@ -148,6 +149,8 @@ export interface ContextOptions {
   connectedServiceGuidance?: string[];
   /** Current project files (build mode) so edits match reality */
   projectFiles?: { path: string; content: string }[];
+  /** Active studio frame — its principles layer onto the base */
+  studio?: StudioContext | null;
 }
 
 // Keep the file snapshot bounded: big files get truncated, and past the total
@@ -159,6 +162,10 @@ const MAX_TOTAL_FILE_CHARS = 40000;
 export function buildSystemPrompt(options: ContextOptions = {}): string {
   const base = options.mode === 'plan' ? PLAN_INSTRUCTIONS : BASE_INSTRUCTIONS;
   const sections = [base, '', formatPrinciplesForPrompt()];
+
+  if (options.studio) {
+    sections.push('', formatStudioForPrompt(options.studio));
+  }
 
   if (options.projectFiles && options.projectFiles.length > 0 && options.mode !== 'plan') {
     sections.push('', formatProjectFilesForPrompt(options.projectFiles));

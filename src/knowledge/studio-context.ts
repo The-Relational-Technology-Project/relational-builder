@@ -1,0 +1,90 @@
+import { supabase } from './supabase-client';
+
+/**
+ * Studio-aware building — the seam between the Builder and the (soon
+ * multi-tenant) RT Studio. A Studio is a config record: branding + appended
+ * principles + a local commons, layered on the shared base. Building "with"
+ * a Studio means the AI speaks from the base RTP principles plus that
+ * Studio's additions, and the Studio travels in the project's lineage.
+ *
+ * The multi-tenant schema (appended principles, tagline, join settings) is
+ * drafted but not yet applied on the Studio project, so reads here are
+ * tolerant: we select * and pick up richer fields as they appear. Until
+ * then a Studio contributes its identity (name, color, description).
+ */
+
+export interface StudioContext {
+  slug: string;
+  label: string;
+  color: string | null;
+  description: string | null;
+  tagline: string | null;
+  /** Steward-added principles, layered on the base (multi-tenant schema; null until applied) */
+  appendedPrinciples: string | null;
+}
+
+/** Future-schema column candidates, in preference order */
+function pick(row: Record<string, unknown>, keys: string[]): string | null {
+  for (const key of keys) {
+    const v = row[key];
+    if (typeof v === 'string' && v.trim()) return v.trim();
+  }
+  return null;
+}
+
+function toContext(row: Record<string, unknown>): StudioContext {
+  return {
+    slug: String(row.slug ?? ''),
+    label: String(row.label ?? row.name ?? row.slug ?? 'Studio'),
+    color: pick(row, ['color', 'theme_color']),
+    description: pick(row, ['description']),
+    tagline: pick(row, ['tagline']),
+    appendedPrinciples: pick(row, ['appended_principles', 'added_principles', 'principles_appended']),
+  };
+}
+
+export async function listStudios(): Promise<StudioContext[]> {
+  const { data, error } = await supabase
+    .from('studios')
+    .select('*')
+    .order('sort_order', { ascending: true });
+  if (error || !data) return [];
+  return (data as Record<string, unknown>[]).map(toContext).filter(s => s.slug);
+}
+
+export async function fetchStudio(slug: string): Promise<StudioContext | null> {
+  const clean = slug.trim().toLowerCase();
+  if (!clean) return null;
+  const { data, error } = await supabase
+    .from('studios')
+    .select('*')
+    .eq('slug', clean)
+    .maybeSingle();
+  if (error || !data) return null;
+  return toContext(data as Record<string, unknown>);
+}
+
+/** Format the studio frame for the system prompt — appended, never replacing */
+export function formatStudioForPrompt(studio: StudioContext): string {
+  const lines = [
+    `## Studio Frame: ${studio.label}`,
+    '',
+    `This build is happening within **${studio.label}**, a studio in the relational tech network${studio.description ? ` — ${studio.description}` : ''}.${studio.tagline ? ` ("${studio.tagline}")` : ''}`,
+    '',
+    'The base Relational Technology Principles above always apply in full — a studio adds to them, never replaces them.',
+  ];
+  if (studio.appendedPrinciples) {
+    lines.push(
+      '',
+      `### ${studio.label}'s added principles (from its stewards)`,
+      '',
+      studio.appendedPrinciples,
+    );
+  } else {
+    lines.push(
+      '',
+      `Keep ${studio.label}'s community at the center: name it naturally when relevant, and let its context shape examples and language.`,
+    );
+  }
+  return lines.join('\n');
+}
