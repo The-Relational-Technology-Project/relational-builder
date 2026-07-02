@@ -10,7 +10,7 @@ import { useEnvStore } from '@/store/env-store';
 import { useChatStore } from '@/store/chat-store';
 import { buildEnvJs, buildEnvTs } from '@/project/env-module';
 import { INSPECT_SOURCE } from '@/preview/inspect-source';
-import { Wrench, MousePointerClick } from 'lucide-react';
+import { Wrench, MousePointerClick, Loader2 } from 'lucide-react';
 
 /**
  * Live preview of the generated project using Sandpack.
@@ -179,48 +179,64 @@ function InspectablePreview() {
   );
 }
 
+function fixPrompt(errorText: string): string {
+  return [
+    'The live preview is showing this error:',
+    '',
+    '```',
+    errorText.slice(0, 2000),
+    '```',
+    '',
+    'Please fix it. Re-output the complete corrected file(s) with filename annotations, changing as little else as possible.',
+  ].join('\n');
+}
+
 /**
- * The error→AI loop: when the preview breaks (bundler or runtime error),
- * offer a one-click "Ask AI to fix it" that hands the exact error to the
- * chat in build mode — no copy-pasting stack traces.
+ * The error→AI loop. Right after an AI build breaks the preview, ONE fix
+ * pass fires automatically (armed per normal build; fix attempts never
+ * re-arm it, so it cannot loop). If the error survives that pass — or came
+ * from anything other than a fresh build — the manual button takes over.
  */
 function PreviewErrorBanner() {
   const { sandpack } = useSandpack();
-  const queueMessage = useChatStore(s => s.queueMessage);
+  const queueFix = useChatStore(s => s.queueFix);
   const isGenerating = useChatStore(s => s.isGenerating);
+  const autoFixArmed = useChatStore(s => s.autoFixArmed);
 
   const error = sandpack.error;
+  const errorText = error ? [error.title, error.message].filter(Boolean).join('\n') : '';
+
+  // The single automatic pass
+  useEffect(() => {
+    if (!error || !autoFixArmed || isGenerating) return;
+    useChatStore.setState({ autoFixArmed: false });
+    queueFix(fixPrompt(errorText));
+  }, [error, autoFixArmed, isGenerating, errorText, queueFix]);
+
   if (!error) return null;
 
-  const errorText = [error.title, error.message].filter(Boolean).join('\n');
-
-  function handleFix() {
-    queueMessage(
-      [
-        'The live preview is showing this error:',
-        '',
-        '```',
-        errorText.slice(0, 2000),
-        '```',
-        '',
-        'Please fix it. Re-output the complete corrected file(s) with filename annotations, changing as little else as possible.',
-      ].join('\n'),
-    );
-  }
+  const autoFixing = isGenerating;
 
   return (
     <div className="shrink-0 border-t bg-destructive/10 px-3 py-2 flex items-center gap-2">
       <p className="text-xs text-destructive flex-1 line-clamp-2" title={errorText}>
-        The preview hit an error: {error.message?.slice(0, 140) ?? 'unknown error'}
+        {autoFixing
+          ? 'The preview hit an error — fixing it automatically…'
+          : `The preview hit an error: ${error.message?.slice(0, 140) ?? 'unknown error'}`}
       </p>
-      <button
-        onClick={handleFix}
-        disabled={isGenerating}
-        className="inline-flex items-center gap-1 rounded-md bg-destructive text-destructive-foreground px-2.5 py-1 text-xs font-medium hover:opacity-90 disabled:opacity-50 shrink-0"
-      >
-        <Wrench className="size-3" />
-        {isGenerating ? 'Fixing...' : 'Ask AI to fix it'}
-      </button>
+      {autoFixing ? (
+        <span className="inline-flex items-center gap-1 text-xs text-destructive shrink-0">
+          <Loader2 className="size-3 animate-spin" />
+        </span>
+      ) : (
+        <button
+          onClick={() => queueFix(fixPrompt(errorText))}
+          className="inline-flex items-center gap-1 rounded-md bg-destructive text-destructive-foreground px-2.5 py-1 text-xs font-medium hover:opacity-90 shrink-0"
+        >
+          <Wrench className="size-3" />
+          Ask AI to fix it
+        </button>
+      )}
     </div>
   );
 }

@@ -54,6 +54,9 @@ export function ChatPanel() {
 
     // Mode is read fresh from the store: "Build this plan" flips it right before sending
     const currentMode = useChatStore.getState().mode;
+    // Fix requests (auto or manual) never re-arm the automatic pass
+    const wasFix = useChatStore.getState().pendingFixSend;
+    useChatStore.setState({ pendingFixSend: false });
 
     // Retrieval: hybrid semantic+text search against the RT Commons (the
     // canonical knowledge base), falling back to local TF-IDF scoring of the
@@ -134,6 +137,8 @@ export function ChatPanel() {
                 if (warnings.length > 0) {
                   appendToMessage(msgId, `\n\n> ⚠️ ${warnings.join(' ')}`);
                 }
+                // Arm exactly one automatic error→fix pass after normal builds
+                useChatStore.setState({ autoFixArmed: !wasFix });
               }
             }
             setIsGenerating(false);

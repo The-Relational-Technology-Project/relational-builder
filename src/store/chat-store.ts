@@ -31,6 +31,12 @@ interface ChatState {
   queuedMessage: string | null;
   queueMessage: (content: string) => void;
   clearQueuedMessage: () => void;
+  /** True while the queued/current send is an error-fix request — fix
+   * attempts never re-arm the automatic pass, so it can't loop */
+  pendingFixSend: boolean;
+  /** One automatic error→fix pass is allowed after each normal build */
+  autoFixArmed: boolean;
+  queueFix: (content: string) => void;
   /** Prefill the input without sending (e.g. answering a plan question) */
   draftMessage: string | null;
   setDraftMessage: (content: string | null) => void;
@@ -69,6 +75,9 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
   queuedMessage: null,
   queueMessage: (content: string) => set({ queuedMessage: content }),
   clearQueuedMessage: () => set({ queuedMessage: null }),
+  pendingFixSend: false,
+  autoFixArmed: false,
+  queueFix: (content: string) => set({ queuedMessage: content, pendingFixSend: true }),
 
   draftMessage: null,
   setDraftMessage: (content: string | null) => set({ draftMessage: content }),
