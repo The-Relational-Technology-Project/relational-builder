@@ -26,6 +26,7 @@ Relational Builder combines three things that don't yet exist together:
 - **Image input** -- attach or paste a sketch, screenshot, or mockup and the AI builds from it (works with Claude and Gemini vision)
 - **Targeted edits** -- the AI sees your current files and makes surgical SEARCH/REPLACE changes instead of rewriting whole files (faster, cheaper, safer on big projects)
 - **Ask AI to fix it** -- when the preview breaks, one click hands the exact error back to the AI for a repair (no copy-pasting stack traces)
+- **Point at it** -- toggle select mode in the preview, click any element in your running app, and the chat is prefilled with what you pointed at — describe the change in plain words, no selectors or code-speak
 - **Version history** -- every AI change is a restorable checkpoint; walk back a bad stretch (or forward again) from the chat
 - **RTP Knowledge Base** -- browse 20+ community tools and 45+ stories from the relational tech network, all injected into the AI's context
 - **Network Activity feed** -- see what other builders are shipping across the ecosystem, pulled live from [updates.relationaltechproject.org](https://updates.relationaltechproject.org)

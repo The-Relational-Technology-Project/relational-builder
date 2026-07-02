@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   SandpackProvider,
   SandpackPreview,
@@ -9,7 +9,8 @@ import { useProjectStore } from '@/store/project-store';
 import { useEnvStore } from '@/store/env-store';
 import { useChatStore } from '@/store/chat-store';
 import { buildEnvJs, buildEnvTs } from '@/project/env-module';
-import { Wrench } from 'lucide-react';
+import { INSPECT_SOURCE } from '@/preview/inspect-source';
+import { Wrench, MousePointerClick } from 'lucide-react';
 
 /**
  * Live preview of the generated project using Sandpack.
@@ -65,6 +66,19 @@ export function PreviewPanel() {
       spFiles['/src/env.ts'] = { code: buildEnvTs(publicEnvVars) };
     }
 
+    // "Point at it" inspector — preview-only, never written to the project.
+    // Static pages get the script as a file + tag; bundled templates load
+    // it via externalResources below.
+    if (hasHtml) {
+      spFiles['/rb-inspect.js'] = { code: INSPECT_SOURCE };
+      const html = spFiles['/index.html'];
+      const code = typeof html === 'string' ? html : html.code;
+      const tag = '<script src="./rb-inspect.js"></script>';
+      spFiles['/index.html'] = {
+        code: /<\/body>/i.test(code) ? code.replace(/<\/body>/i, `${tag}\n</body>`) : code + `\n${tag}`,
+      };
+    }
+
     return { sandpackFiles: spFiles, template: tmpl };
   }, [files, publicEnvVars]);
 
@@ -92,18 +106,75 @@ export function PreviewPanel() {
         options={{
           autoReload: true,
           autorun: true,
+          externalResources: template === 'static' ? [] : [`${window.location.origin}/inspect.js`],
         }}
         theme="dark"
         style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
       >
-        <SandpackPreview
-          showNavigator={false}
-          showRefreshButton={false}
-          showOpenInCodeSandbox={false}
-          style={{ flex: 1 }}
-        />
+        <InspectablePreview />
         <PreviewErrorBanner />
       </SandpackProvider>
+    </div>
+  );
+}
+
+/**
+ * The preview plus "Point at it": toggle select mode, click any element in
+ * the running app, and the chat input is prefilled with a description of
+ * that element — no selectors, no code-speak, just point.
+ */
+function InspectablePreview() {
+  const [selecting, setSelecting] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const setDraftMessage = useChatStore(s => s.setDraftMessage);
+
+  // Tell the preview iframe to enter/leave select mode
+  useEffect(() => {
+    const iframe = wrapperRef.current?.querySelector('iframe');
+    iframe?.contentWindow?.postMessage({ type: 'rb-inspect', on: selecting }, '*');
+  }, [selecting]);
+
+  // Receive the clicked element and hand it to the chat
+  useEffect(() => {
+    function onMessage(e: MessageEvent) {
+      const d = e.data;
+      if (!d || d.type !== 'rb-selected' || !d.el) return;
+      const el = d.el as { tag: string; text: string; path: string; html: string };
+      const bits = [
+        `About this element in the preview: \`${el.tag}\`${el.text ? ` ("${el.text}")` : ''}`,
+        ...(el.path && el.path !== el.tag ? [`Found at: \`${el.path}\``] : []),
+        '',
+        'Change it so that ',
+      ];
+      setDraftMessage(bits.join('\n'));
+      setSelecting(false);
+    }
+    window.addEventListener('message', onMessage);
+    return () => window.removeEventListener('message', onMessage);
+  }, [setDraftMessage]);
+
+  return (
+    <div ref={wrapperRef} className="relative" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+      <SandpackPreview
+        showNavigator={false}
+        showRefreshButton={false}
+        showOpenInCodeSandbox={false}
+        style={{ flex: 1 }}
+      />
+      <button
+        onClick={() => setSelecting(s => !s)}
+        title={selecting
+          ? 'Click an element in the preview to describe a change — or click here to cancel'
+          : 'Point at what you want to change'}
+        className={`absolute bottom-3 right-3 z-10 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium shadow-md transition-colors ${
+          selecting
+            ? 'bg-indigo-600 text-white'
+            : 'bg-background/90 border text-muted-foreground hover:text-foreground'
+        }`}
+      >
+        <MousePointerClick className="size-3.5" />
+        {selecting ? 'Click the thing to change…' : 'Point at it'}
+      </button>
     </div>
   );
 }
