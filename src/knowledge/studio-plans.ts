@@ -34,6 +34,18 @@ function extractRef(input: string): string {
   }
 }
 
+/** Recent shared plans from the Studio — RLS only ever exposes shared rows */
+export async function listSharedBuildPlans(limit = 4): Promise<Pick<StudioBuildPlan, 'id' | 'title' | 'recommended_track' | 'created_at'>[]> {
+  const { data, error } = await supabase
+    .from('build_plans')
+    .select('id, title, recommended_track, created_at')
+    .eq('is_shared', true)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (error || !data) return [];
+  return data;
+}
+
 export async function fetchStudioBuildPlan(input: string): Promise<StudioBuildPlan | null> {
   const ref = extractRef(input);
   if (!ref) return null;

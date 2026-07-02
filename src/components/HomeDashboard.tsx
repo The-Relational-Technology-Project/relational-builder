@@ -3,6 +3,7 @@ import { useAuthStore, cloudEnabled } from '@/store/auth-store';
 import { useCloudStore } from '@/store/cloud-store';
 import { useCommunityStore } from '@/store/community-store';
 import { YourSites } from '@/components/YourSites';
+import { StarterGallery } from '@/components/StarterGallery';
 import { Badge } from '@/components/ui/badge';
 import { FolderOpen, Loader2, Sparkles } from 'lucide-react';
 
@@ -108,6 +109,8 @@ function SignedInDashboard({ onSelectIdea, disabled }: HomeDashboardProps) {
         )}
 
         <YourSites />
+
+        <StarterGallery disabled={disabled} />
 
         <div className="space-y-2">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
