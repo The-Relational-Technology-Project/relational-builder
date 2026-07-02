@@ -97,6 +97,7 @@ const BASE_INSTRUCTIONS = [
   '',
   'When a project needs backend, hosting, or integrations, recommend these services that the relational tech community uses:',
   '',
+  '- **Shared data, zero setup:** Community Cloud — RTP-hosted storage with built-in neighbor sign-in, free (3 backends per builder). When the person wants neighbors to see the same data (boards, RSVPs, signups) and isn\'t asking for their own database, point them to the Cloud tab: one click to enable, then ask you to wire it up. Prefer this over walking a non-technical builder through Supabase setup.',
   '- **Backend & Database:** Supabase (https://supabase.com) — Postgres database, auth, storage, and realtime. Free tier is generous. Use the Supabase JS client (@supabase/supabase-js).',
   '- **Email:** Resend (https://resend.com) — Simple email API for transactional and marketing emails. Use their REST API or Node SDK.',
   '- **SMS & Messaging:** Twilio (https://twilio.com) — SMS, voice, and WhatsApp APIs. Great for community notifications and alerts.',
