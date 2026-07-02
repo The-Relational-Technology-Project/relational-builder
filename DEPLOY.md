@@ -131,7 +131,23 @@ Vite bakes them in at build time):
 For a custom domain, add it in Vercel and remember to add the same origin to
 the proxy's `ALLOWED_ORIGINS` and Supabase Auth's *Site URL*.
 
-## 5. Smoke test
+## 5. Community Hosting
+
+Built apps deploy free to RTP-hosted community hosting (3 sites per
+builder, paid by RTP for the pilot):
+
+```bash
+supabase functions deploy publish-site --no-verify-jwt
+supabase functions deploy site --no-verify-jwt
+```
+
+Run `supabase/migrations/20260702030000_community_hosting.sql` in the SQL
+editor. Sites serve at `{APP_URL}/s/{slug}/` via the `vercel.json` rewrite
+(and directly at `.../functions/v1/site/{slug}/`). Visits are counted
+daily per site in `site_stats` — no cookies, no visitor tracking. Adjust
+the per-builder cap via `MAX_SITES_PER_BUILDER` in publish-site.
+
+## 6. Smoke test
 
 1. Open the deployed URL → Settings → add a Claude API key → send a build
    message → files appear + preview renders.
