@@ -36,10 +36,23 @@ export const useCommunityStore = create<CommunityState>()((set) => ({
       return;
     }
 
-    const { data: member } = await builderClient
+    let { data: member } = await builderClient
       .from('community_members')
       .select('daily_token_budget')
       .maybeSingle();
+
+    if (!member) {
+      // Holding the invitation passcode + being signed in IS the invite —
+      // enroll automatically instead of dead-ending at "add your API key"
+      const enrolled = await tryEnrollWithPasscode();
+      if (enrolled) {
+        const retry = await builderClient
+          .from('community_members')
+          .select('daily_token_budget')
+          .maybeSingle();
+        member = retry.data;
+      }
+    }
 
     if (!member) {
       set({ active: false, dailyBudget: 0, usedToday: 0, checked: true });
@@ -85,6 +98,31 @@ export const useCommunityStore = create<CommunityState>()((set) => ({
     useCommunityStore.getState().check();
   },
 }));
+
+let enrollAttempted = false;
+
+/** One-shot self-enrollment using the stored invitation passcode */
+async function tryEnrollWithPasscode(): Promise<boolean> {
+  if (enrollAttempted || !builderClient) return false;
+  enrollAttempted = true;
+  const passcode = localStorage.getItem('rb-access-granted');
+  if (!passcode) return false;
+  try {
+    const { data } = await builderClient.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) return false;
+    const url = import.meta.env.VITE_BUILDER_SUPABASE_URL;
+    const res = await fetch(`${url}/functions/v1/enroll-community`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ passcode }),
+    });
+    const result = await res.json().catch(() => ({}));
+    return res.ok && result.ok === true;
+  } catch {
+    return false;
+  }
+}
 
 /** Session token for the proxy's community gate (null when signed out) */
 export async function getCommunitySessionToken(): Promise<string | null> {
