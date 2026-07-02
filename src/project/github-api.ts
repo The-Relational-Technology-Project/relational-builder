@@ -10,11 +10,14 @@ import type { FileEntry } from './virtual-fs';
 const API = 'https://api.github.com';
 
 function headers(token: string): HeadersInit {
-  return {
-    Authorization: `Bearer ${token}`,
+  const base: Record<string, string> = {
     Accept: 'application/vnd.github+json',
     'X-GitHub-Api-Version': '2022-11-28',
   };
+  // Empty token = unauthenticated public-repo access (remixing).
+  // GitHub allows ~60 requests/hour per IP without auth.
+  if (token) base['Authorization'] = `Bearer ${token}`;
+  return base;
 }
 
 // ── Types ──────────────────────────────────────────────────────────────
@@ -36,6 +39,21 @@ export interface SyncResult {
   commitSha: string;
   commitUrl: string;
   filesChanged: number;
+}
+
+/** Get a public repo's metadata (works unauthenticated, for remixing) */
+export async function getRepoInfo(repoFullName: string, token = ''): Promise<GitHubRepo> {
+  const res = await fetch(`${API}/repos/${repoFullName}`, { headers: headers(token) });
+  if (!res.ok) {
+    throw new Error(
+      res.status === 404
+        ? 'Repository not found — is it public?'
+        : res.status === 403
+          ? 'GitHub rate limit reached — connect your GitHub token in the GitHub dialog, or try again in an hour'
+          : `GitHub error (${res.status})`,
+    );
+  }
+  return res.json();
 }
 
 // ── User & Repo ────────────────────────────────────────────────────────

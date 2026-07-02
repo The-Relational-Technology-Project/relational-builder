@@ -154,12 +154,36 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
       chatMsgs.push({ role: 'system', content: systemPrompt });
     }
 
-    for (const msg of messages) {
+    // Context discipline: long chats don't need full history — the Current
+    // Project Files snapshot in the system prompt is authoritative for state.
+    // Keep the recent window plus the original ask, and stay role-alternating.
+    const HISTORY_LIMIT = 14;
+    let window = messages;
+    let omittedNote: string | null = null;
+    if (messages.length > HISTORY_LIMIT) {
+      window = messages.slice(-HISTORY_LIMIT);
+      while (window.length > 0 && window[0].role !== 'user') {
+        window = window.slice(1);
+      }
+      const firstUser = messages.find(m => m.role === 'user');
+      omittedNote = firstUser
+        ? `(Earlier conversation omitted to save context. The project began with this request: "${firstUser.content.slice(0, 280)}". The Current Project Files in your instructions reflect all work so far.)`
+        : '(Earlier conversation omitted to save context. The Current Project Files in your instructions reflect all work so far.)';
+    }
+
+    let injectedNote = false;
+    for (const msg of window) {
+      // Prefix the omission note onto the first user message in the window
+      const text =
+        !injectedNote && omittedNote && msg.role === 'user'
+          ? ((injectedNote = true), `${omittedNote}\n\n${msg.content}`)
+          : msg.content;
+
       if (msg.attachments?.length) {
         chatMsgs.push({
           role: msg.role,
           content: [
-            { type: 'text' as const, text: msg.content },
+            { type: 'text' as const, text },
             ...msg.attachments.map(url => ({
               type: 'image_url' as const,
               image_url: { url },
@@ -167,7 +191,7 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
           ],
         });
       } else {
-        chatMsgs.push({ role: msg.role, content: msg.content });
+        chatMsgs.push({ role: msg.role, content: text });
       }
     }
 

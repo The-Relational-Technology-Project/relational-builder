@@ -6,6 +6,7 @@ import { RightPanel } from '@/components/RightPanel';
 import { ResizableLayout } from '@/components/ResizableLayout';
 import { PublishDialog } from '@/components/PublishDialog';
 import { ImportPlanDialog } from '@/components/ImportPlanDialog';
+import { RemixDialog } from '@/components/RemixDialog';
 import { SharePreview } from '@/components/SharePreview';
 import { GitHubSync } from '@/components/GitHubSync';
 import { useProviderStore } from '@/store/provider-store';
@@ -93,6 +94,7 @@ function App() {
             <span className="hidden sm:inline">New Project</span>
           </Button>
           <ImportPlanDialog />
+          <RemixDialog />
           <ProjectsDialog />
           <SharePreview />
           <PublishDialog />
