@@ -321,10 +321,6 @@ export function PublishDialog() {
             </div>
           )}
 
-          {/* Offer to the commons — after a successful deploy */}
-          {result && result.url && (
-            <CommonsSubmitCard projectName={projectName} sourceUrl={result.url} />
-          )}
 
           {/* Success — download (no URL) */}
           {result && !result.url && (
@@ -353,10 +349,8 @@ export function PublishDialog() {
             </div>
           )}
 
-          {/* Offer to the commons — after a download too */}
-          {result && !result.url && (
-            <CommonsSubmitCard projectName={projectName} />
-          )}
+          {/* Offer to the commons — always available, deploy or not */}
+          <CommonsSubmitCard projectName={projectName} sourceUrl={result?.url || undefined} />
         </div>
       </DialogContent>
     </Dialog>

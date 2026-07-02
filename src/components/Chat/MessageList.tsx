@@ -1,11 +1,57 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import type { DisplayMessage } from '@/store/chat-store';
+import { useChatStore, type DisplayMessage } from '@/store/chat-store';
 import { useProjectStore } from '@/store/project-store';
 import { CodeBlock } from './CodeBlock';
 import { Button } from '@/components/ui/button';
-import { Hammer, History } from 'lucide-react';
+import { Hammer, History, FileCode, ChevronDown, ChevronRight, Loader2 } from 'lucide-react';
+
+/**
+ * Code in chat renders as a compact file card — the code itself lives in the
+ * Files tab. Expanding is one click for the times it matters.
+ */
+function CollapsedCode({
+  code,
+  language,
+  meta,
+  streaming,
+}: {
+  code: string;
+  language?: string;
+  meta?: string;
+  streaming?: boolean;
+}) {
+  const [expanded, setExpanded] = useState(false);
+
+  const filename = meta?.match(/(?:filename|title|file)\s*=\s*"?([^"\s]+)"?/)?.[1];
+  const isEdit = language === 'edit';
+  const lines = code.split('\n').length;
+  const title = filename ?? (language && language !== 'text' ? `${language} code` : 'code');
+
+  return (
+    <div className="not-prose my-2 rounded-md border bg-background/60 overflow-hidden">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs hover:bg-muted/60 transition-colors"
+      >
+        {streaming ? (
+          <Loader2 className="size-3 animate-spin text-muted-foreground shrink-0" />
+        ) : (
+          <FileCode className="size-3 text-muted-foreground shrink-0" />
+        )}
+        <span className="font-mono truncate">{title}</span>
+        <span className="text-muted-foreground shrink-0">
+          {streaming ? 'writing…' : isEdit ? `edited (${lines} lines)` : `${lines} lines`}
+        </span>
+        <span className="ml-auto text-muted-foreground shrink-0">
+          {expanded ? <ChevronDown className="size-3" /> : <ChevronRight className="size-3" />}
+        </span>
+      </button>
+      {expanded && <CodeBlock code={code} language={language === 'edit' ? 'diff' : language} />}
+    </div>
+  );
+}
 
 interface MessageListProps {
   messages: DisplayMessage[];
@@ -100,7 +146,7 @@ function MessageBubble({ message }: { message: DisplayMessage }) {
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
-                code({ className, children, ...props }) {
+                code({ className, children, node, ...props }) {
                   const match = /language-(\w+)/.exec(className || '');
                   const codeStr = String(children).replace(/\n$/, '');
 
@@ -113,7 +159,16 @@ function MessageBubble({ message }: { message: DisplayMessage }) {
                     );
                   }
 
-                  return <CodeBlock code={codeStr} language={match?.[1]} />;
+                  // Fence meta (filename="...") survives remark→rehype in node.data.meta
+                  const meta = (node?.data as { meta?: string } | undefined)?.meta;
+                  return (
+                    <CollapsedCode
+                      code={codeStr}
+                      language={match?.[1]}
+                      meta={meta}
+                      streaming={message.isStreaming && message.content.trimEnd().endsWith(codeStr.slice(-40))}
+                    />
+                  );
                 },
                 pre({ children }) {
                   return <>{children}</>;
@@ -128,6 +183,9 @@ function MessageBubble({ message }: { message: DisplayMessage }) {
           </div>
         )}
       </div>
+      {message.isPlan && !message.isStreaming && (
+        <PlanQuestionChips content={message.content} />
+      )}
       {checkpoint && (
         <div className="mt-1 pl-1">
           {isLatest ? (
@@ -151,6 +209,39 @@ function MessageBubble({ message }: { message: DisplayMessage }) {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * Pull the "Questions for you" list out of a plan and offer each as a chip.
+ * Tapping one prefills the input with the question so the person just types
+ * their answer — the plan-mode equivalent of Lovable's key questions.
+ */
+function PlanQuestionChips({ content }: { content: string }) {
+  const setDraftMessage = useChatStore(s => s.setDraftMessage);
+
+  const section = content.split(/^#{2,3}\s+Questions for you\s*$/im)[1];
+  if (!section) return null;
+  // Numbered items until the next heading
+  const questions = (section.split(/^#{2,3}\s/m)[0].match(/^\s*\d+\.\s+(.+)$/gm) ?? [])
+    .map(line => line.replace(/^\s*\d+\.\s+/, '').replace(/\*\*/g, '').trim())
+    .filter(q => q.length > 5)
+    .slice(0, 3);
+  if (questions.length === 0) return null;
+
+  return (
+    <div className="mt-1.5 flex flex-col items-start gap-1.5 max-w-[85%]">
+      {questions.map((q, i) => (
+        <button
+          key={i}
+          onClick={() => setDraftMessage(`${q}\n→ `)}
+          className="text-left text-xs border border-dashed rounded-lg px-2.5 py-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          title="Tap to answer this question"
+        >
+          {q}
+        </button>
+      ))}
     </div>
   );
 }

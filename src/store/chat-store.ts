@@ -31,6 +31,9 @@ interface ChatState {
   queuedMessage: string | null;
   queueMessage: (content: string) => void;
   clearQueuedMessage: () => void;
+  /** Prefill the input without sending (e.g. answering a plan question) */
+  draftMessage: string | null;
+  setDraftMessage: (content: string | null) => void;
   addUserMessage: (content: string, attachments?: string[]) => void;
   startAssistantMessage: (isPlan?: boolean) => string;
   /** Add an imported build plan (e.g. from RTP Studio) as a plan message */
@@ -66,6 +69,9 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
   queuedMessage: null,
   queueMessage: (content: string) => set({ queuedMessage: content }),
   clearQueuedMessage: () => set({ queuedMessage: null }),
+
+  draftMessage: null,
+  setDraftMessage: (content: string | null) => set({ draftMessage: content }),
 
   hydrateChat: (messages: DisplayMessage[], mode: ChatMode) =>
     set({ messages: messages.map(m => ({ ...m, isStreaming: false })), mode }),

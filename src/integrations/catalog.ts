@@ -44,7 +44,12 @@ export const INTEGRATIONS: IntegrationDef[] = [
     aiGuidance: [
       '- **Supabase is connected.** Generate code that creates a client with `createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY)` from `@supabase/supabase-js` (import from "https://esm.sh/@supabase/supabase-js@2" in vanilla apps, or as a package import in React apps).',
       '  When the app needs tables, include the schema as a `supabase-schema.sql` file with CREATE TABLE statements and row-level-security policies, and tell the user to run it in the Supabase SQL editor.',
-      '  Design RLS policies so the anon key is safe in the browser.',
+      '  **RLS rules — this is where AI-generated apps most often leak data, so follow them strictly:**',
+      '  1. `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` on EVERY table, no exceptions — a table without RLS is fully readable and writable by anyone with the anon key.',
+      '  2. Write a separate policy per action (SELECT, INSERT, UPDATE, DELETE) — never one FOR ALL policy.',
+      '  3. `USING (true)` is acceptable ONLY on SELECT for genuinely public data. Never on UPDATE or DELETE — that lets anyone modify anyone\'s rows. For anonymous community apps without auth, prefer insert-only designs (no update/delete policies at all) and moderate via the Supabase dashboard.',
+      '  4. When the app has Supabase auth, scope writes with `auth.uid()` (e.g. `USING (auth.uid() = owner_id)` and matching `WITH CHECK`).',
+      '  5. Never put the service_role key in app code, and add a comment block at the top of supabase-schema.sql summarizing in plain language who can read and write each table, so the builder can sanity-check it.',
     ].join('\n'),
     setupHint: 'The URL and anon key are safe for the browser when your tables use row-level security. The AI will generate a supabase-schema.sql for you to run in the Supabase SQL editor.',
   },

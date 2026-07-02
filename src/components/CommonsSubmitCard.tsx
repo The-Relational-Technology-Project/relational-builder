@@ -26,10 +26,13 @@ export function CommonsSubmitCard({
   const [builderName, setBuilderName] = useState('');
   const [neighborhood, setNeighborhood] = useState('');
   const [summary, setSummary] = useState('');
+  const [manualUrl, setManualUrl] = useState('');
   const [consented, setConsented] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const effectiveUrl = sourceUrl || manualUrl.trim() || undefined;
 
   if (done) {
     return (
@@ -59,7 +62,7 @@ export function CommonsSubmitCard({
       builderName: builderName.trim(),
       neighborhood: neighborhood.trim() || undefined,
       contactEmail: user?.email,
-      sourceUrl,
+      sourceUrl: effectiveUrl,
       tags: ['community-tool', 'relational-builder'],
     });
     setSubmitting(false);
@@ -106,6 +109,14 @@ export function CommonsSubmitCard({
             rows={2}
             className="w-full resize-none rounded-md border border-input bg-transparent px-2.5 py-1.5 text-xs outline-none placeholder:text-muted-foreground focus-visible:border-ring"
           />
+          {!sourceUrl && (
+            <Input
+              value={manualUrl}
+              onChange={e => setManualUrl(e.target.value)}
+              placeholder="Link to the live tool or repo (optional)"
+              className="h-7 text-xs"
+            />
+          )}
           <label className="flex items-start gap-2 text-[11px] text-muted-foreground cursor-pointer">
             <input
               type="checkbox"

@@ -1,7 +1,7 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { SendHorizontal, Square, Map, Hammer, ImagePlus, X } from 'lucide-react';
-import type { ChatMode } from '@/store/chat-store';
+import { useChatStore, type ChatMode } from '@/store/chat-store';
 import { fileToDataUrl, isImageFile } from '@/lib/image';
 
 const MAX_ATTACHMENTS = 3;
@@ -20,6 +20,23 @@ export function MessageInput({ onSend, onStop, isGenerating, disabled, mode = 'b
   const [attachments, setAttachments] = useState<string[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Prefill from elsewhere (e.g. tapping a plan question chip)
+  const draftMessage = useChatStore(s => s.draftMessage);
+  useEffect(() => {
+    if (draftMessage === null) return;
+    setInput(draftMessage);
+    useChatStore.getState().setDraftMessage(null);
+    // Focus after React flushes the new value
+    setTimeout(() => {
+      const el = textareaRef.current;
+      if (!el) return;
+      el.focus();
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, 200) + 'px';
+      el.setSelectionRange(el.value.length, el.value.length);
+    }, 0);
+  }, [draftMessage]);
 
   const handleSubmit = useCallback(() => {
     const trimmed = input.trim();
