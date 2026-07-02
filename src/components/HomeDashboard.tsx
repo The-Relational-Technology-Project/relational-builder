@@ -5,6 +5,7 @@ import { useCommunityStore } from '@/store/community-store';
 import { YourSites } from '@/components/YourSites';
 import { StarterGallery } from '@/components/StarterGallery';
 import { DesignSystemDialog } from '@/components/DesignSystemDialog';
+import { BuildersDirectory } from '@/components/BuildersDirectory';
 import { Palette } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { FolderOpen, Loader2, Sparkles } from 'lucide-react';
@@ -115,6 +116,8 @@ function SignedInDashboard({ onSelectIdea, disabled }: HomeDashboardProps) {
         <StyleNudge projectCount={projects.length} />
 
         <StarterGallery disabled={disabled} />
+
+        <BuildersDirectory />
 
         <div className="space-y-2">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">

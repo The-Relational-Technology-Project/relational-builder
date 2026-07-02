@@ -19,6 +19,11 @@ export interface BuilderProfile {
   profile_completed: boolean;
   /** The builder's own mini design system, woven into new builds */
   design_system: string | null;
+  /** Connections: opt-in visibility + how others may reach you */
+  open_to_connecting: boolean;
+  connect_note: string | null;
+  cal_link: string | null;
+  allow_requests: boolean;
 }
 
 interface AuthState {
@@ -86,7 +91,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     }
     const { data } = await builderClient
       .from('profiles')
-      .select('display_name, full_name, neighborhood, neighborhood_description, dreams, tech_familiarity, ai_coding_experience, email_opt_in, profile_completed, design_system')
+      .select('display_name, full_name, neighborhood, neighborhood_description, dreams, tech_familiarity, ai_coding_experience, email_opt_in, profile_completed, design_system, open_to_connecting, connect_note, cal_link, allow_requests')
       .eq('id', user.id)
       .maybeSingle();
     set({ profile: (data as BuilderProfile | null) ?? null, profileLoaded: true });
