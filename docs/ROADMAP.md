@@ -92,3 +92,12 @@ building, later:
 Standing priorities unchanged: keep the free tier real (community access,
 Community Cloud + Hosting), keep quality closing on Lovable/Dyad, and keep
 everything exportable — no enclosure, including by us.
+
+## Added July 3 (overnight session)
+
+- **Per-project environment variables** — env vars (service keys, Community
+  Cloud attachment) are still global localStorage. Tonight's fix: New Project
+  clears them, so backends and keys stop silently following you into fresh
+  projects. The real design is env scoped to the project record — needs a
+  decision on whether secrets sync to cloud projects (they currently never
+  leave the browser except at deploy time) and what invited editors see.

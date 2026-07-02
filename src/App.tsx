@@ -13,6 +13,7 @@ import { useProviderStore } from '@/store/provider-store';
 import { useProjectStore } from '@/store/project-store';
 import { useChatStore } from '@/store/chat-store';
 import { useKnowledgeStore } from '@/store/knowledge-store';
+import { useEnvStore } from '@/store/env-store';
 import { useAuthStore } from '@/store/auth-store';
 import { useCloudStore } from '@/store/cloud-store';
 import { useCommunityStore } from '@/store/community-store';
@@ -67,6 +68,9 @@ function App() {
     closeCloudProject();
     clearMessages();
     clearProject();
+    // A fresh project starts with a fresh environment — service keys and
+    // Community Cloud backends belong to the app they were connected for
+    useEnvStore.getState().clearAll();
   }, [clearMessages, clearProject, closeCloudProject]);
 
   // Focused building mode: start-from actions live on the home state,

@@ -120,12 +120,12 @@ function MessageBubble({ message }: { message: DisplayMessage }) {
   return (
     <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
       <div
-        className={`max-w-[85%] rounded-xl px-4 py-2.5 text-sm ${
+        className={`text-sm ${
           isUser
-            ? 'bg-primary text-primary-foreground'
+            ? 'max-w-[85%] rounded-xl px-4 py-2.5 bg-primary text-primary-foreground'
             : message.isPlan
-              ? 'bg-muted border border-dashed border-primary/40'
-              : 'bg-muted'
+              ? 'w-full rounded-xl px-4 py-3 bg-muted/60 border border-dashed border-primary/40'
+              : 'w-full px-1'
         }`}
       >
         {message.isPlan && (

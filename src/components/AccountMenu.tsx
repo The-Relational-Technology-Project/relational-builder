@@ -7,36 +7,95 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CircleUser, MailCheck, LogOut, MapPin, Palette } from 'lucide-react';
+import { CircleUser, MailCheck, LogOut, MapPin, Palette, HeartHandshake } from 'lucide-react';
 import { BuilderOnboarding } from '@/components/BuilderOnboarding';
 import { DesignSystemDialog } from '@/components/DesignSystemDialog';
 import { ConnectionsDialog } from '@/components/ConnectionsDialog';
-import { HeartHandshake } from 'lucide-react';
 
 /**
- * Sign in / account dialog. Magic-link email auth — no passwords.
- * Hidden entirely when cloud features aren't configured.
+ * Account: signed out it's a magic-link sign-in dialog (no passwords);
+ * signed in it's a compact menu — who you are, where you build, and the
+ * doors into profile, style, and connections.
  */
 export function AccountMenu() {
   const user = useAuthStore(s => s.user);
-  const signIn = useAuthStore(s => s.signIn);
+  const profile = useAuthStore(s => s.profile);
   const signOut = useAuthStore(s => s.signOut);
 
-  const profile = useAuthStore(s => s.profile);
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [editingStyle, setEditingStyle] = useState(false);
+  const [editingConnections, setEditingConnections] = useState(false);
+
+  if (!cloudEnabled) return null;
+
+  if (!user) return <SignInDialog />;
+
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          className={buttonVariants({ variant: 'ghost', size: 'sm' }) + ' h-7 gap-1 text-xs'}
+          title={user.email}
+        >
+          <CircleUser className="size-3.5" />
+          {profile?.display_name?.trim() || user.email.split('@')[0]}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-60">
+          <DropdownMenuLabel className="font-normal">
+            <p className="text-sm font-medium truncate">{user.email}</p>
+            {profile?.neighborhood && (
+              <p className="text-xs text-muted-foreground inline-flex items-center gap-1 mt-0.5">
+                <MapPin className="size-3" />
+                Building in {profile.neighborhood}
+              </p>
+            )}
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => setEditingProfile(true)} className="gap-2 text-xs">
+            <MapPin className="size-3.5 text-muted-foreground" />
+            Builder profile
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setEditingStyle(true)} className="gap-2 text-xs">
+            <Palette className="size-3.5 text-muted-foreground" />
+            Your style
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setEditingConnections(true)} className="gap-2 text-xs">
+            <HeartHandshake className="size-3.5 text-muted-foreground" />
+            Connections
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => signOut()} className="gap-2 text-xs">
+            <LogOut className="size-3.5 text-muted-foreground" />
+            Sign out
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      {editingProfile && <BuilderOnboarding onDone={() => setEditingProfile(false)} />}
+      {editingStyle && <DesignSystemDialog open={editingStyle} onOpenChange={setEditingStyle} />}
+      {editingConnections && <ConnectionsDialog open={editingConnections} onOpenChange={setEditingConnections} />}
+    </>
+  );
+}
+
+function SignInDialog() {
+  const signIn = useAuthStore(s => s.signIn);
 
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [editingProfile, setEditingProfile] = useState(false);
-  const [editingStyle, setEditingStyle] = useState(false);
-  const [editingConnections, setEditingConnections] = useState(false);
-
-  if (!cloudEnabled) return null;
 
   async function handleSignIn() {
     const trimmed = email.trim();
@@ -61,82 +120,17 @@ export function AccountMenu() {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger
         className={buttonVariants({ variant: 'ghost', size: 'sm' }) + ' h-7 gap-1 text-xs'}
-        title={user ? user.email : 'Sign in'}
+        title="Sign in"
       >
         <CircleUser className="size-3.5" />
-        {user ? user.email.split('@')[0] : 'Sign in'}
+        Sign in
       </DialogTrigger>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle>{user ? 'Account' : 'Sign in'}</DialogTitle>
+          <DialogTitle>Sign in</DialogTitle>
         </DialogHeader>
 
-        {user ? (
-          <div className="space-y-3">
-            <p className="text-sm">
-              Signed in as <span className="font-medium">{user.email}</span>
-            </p>
-            {profile?.neighborhood && (
-              <p className="text-xs text-muted-foreground inline-flex items-center gap-1">
-                <MapPin className="size-3" />
-                Building in {profile.neighborhood}
-              </p>
-            )}
-            <p className="text-xs text-muted-foreground">
-              Your projects save to the cloud and sync with anyone you invite.
-            </p>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-1.5"
-                onClick={() => {
-                  setOpen(false);
-                  setEditingProfile(true);
-                }}
-              >
-                <MapPin className="size-3.5" />
-                Builder profile
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-1.5"
-                onClick={() => {
-                  setOpen(false);
-                  setEditingStyle(true);
-                }}
-              >
-                <Palette className="size-3.5" />
-                Your style
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-1.5"
-                onClick={() => {
-                  setOpen(false);
-                  setEditingConnections(true);
-                }}
-              >
-                <HeartHandshake className="size-3.5" />
-                Connections
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-1.5"
-                onClick={async () => {
-                  await signOut();
-                  setOpen(false);
-                }}
-              >
-                <LogOut className="size-3.5" />
-                Sign out
-              </Button>
-            </div>
-          </div>
-        ) : sent ? (
+        {sent ? (
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-sm font-medium">
               <MailCheck className="size-4 text-green-600" />
@@ -171,9 +165,6 @@ export function AccountMenu() {
           </div>
         )}
       </DialogContent>
-      {editingProfile && <BuilderOnboarding onDone={() => setEditingProfile(false)} />}
-      {editingStyle && <DesignSystemDialog open={editingStyle} onOpenChange={setEditingStyle} />}
-      {editingConnections && <ConnectionsDialog open={editingConnections} onOpenChange={setEditingConnections} />}
     </Dialog>
   );
 }
