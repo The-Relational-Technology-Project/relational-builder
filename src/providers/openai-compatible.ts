@@ -14,6 +14,9 @@ export class OpenAICompatibleProvider implements LLMProvider {
   // '/v1'; Google's OpenAI-compatibility layer already includes the version
   // in its base URL, so it passes ''.
   private apiPath: string;
+  // BYOK providers aren't configured until a key exists — prevents pointless
+  // 401-spamming model fetches on load
+  private requiresKey: boolean;
 
   constructor(config: {
     id: string;
@@ -22,6 +25,7 @@ export class OpenAICompatibleProvider implements LLMProvider {
     apiKey?: string;
     defaultModels?: ModelInfo[];
     apiPath?: string;
+    requiresKey?: boolean;
   }) {
     this.id = config.id;
     this.name = config.name;
@@ -29,10 +33,11 @@ export class OpenAICompatibleProvider implements LLMProvider {
     this.apiKey = config.apiKey ?? '';
     this.defaultModels = config.defaultModels ?? [];
     this.apiPath = config.apiPath ?? '/v1';
+    this.requiresKey = config.requiresKey ?? true;
   }
 
   isConfigured(): boolean {
-    return !!this.baseUrl;
+    return !!this.baseUrl && (!this.requiresKey || !!this.apiKey);
   }
 
   setApiKey(key: string) {
@@ -132,12 +137,20 @@ export class OpenAICompatibleProvider implements LLMProvider {
   }
 }
 
-/** Pre-configured: RTP-hosted open-source model (Tier 1 -- free, no API key) */
-export function createRTPProvider(): OpenAICompatibleProvider {
+/**
+ * Pre-configured: RTP-hosted open-source model (Tier 1 -- free, no API key).
+ * Returns null until VITE_RTP_MODEL_URL is set — the vLLM endpoint isn't
+ * live yet, and offering a dead "Free" provider is a trap (people pick it
+ * over community access and get "Failed to fetch").
+ */
+export function createRTPProvider(): OpenAICompatibleProvider | null {
+  const baseUrl = import.meta.env.VITE_RTP_MODEL_URL;
+  if (!baseUrl) return null;
   return new OpenAICompatibleProvider({
     id: 'rtp-hosted',
     name: 'RTP Community Model',
-    baseUrl: import.meta.env.VITE_RTP_MODEL_URL ?? 'https://api.relationaltech.org',
+    baseUrl,
+    requiresKey: false,
     defaultModels: [
       { id: 'qwen2.5-coder-32b', name: 'Qwen 2.5 Coder 32B', provider: 'rtp-hosted' },
     ],

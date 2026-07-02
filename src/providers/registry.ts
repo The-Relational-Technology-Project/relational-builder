@@ -15,8 +15,10 @@ class ProviderRegistry {
     // Claude first — default provider during early development
     this.register(new ClaudeProvider(), 2, true);
 
-    // Tier 1: RTP-hosted (free, no API key) — will become default once endpoint is live
-    this.register(createRTPProvider(), 1, false);
+    // Tier 1: RTP-hosted (free, no API key) — only offered once the vLLM
+    // endpoint is live (VITE_RTP_MODEL_URL set)
+    const rtpProvider = createRTPProvider();
+    if (rtpProvider) this.register(rtpProvider, 1, false);
 
     // Tier 2: Other BYOK providers
     this.register(createGeminiProvider(), 2, true);

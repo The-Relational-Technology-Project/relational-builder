@@ -28,3 +28,4 @@ dist-ssr
 *.sw?
 lovable screenshots/
 supabase/.temp/
+troubleshooting/

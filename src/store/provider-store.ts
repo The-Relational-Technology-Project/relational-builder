@@ -74,11 +74,11 @@ export const useProviderStore = create<ProviderState>()(
     }),
     {
       name: 'rb-provider-config',
-      version: 1,
-      // Persisted configs from before July 2026 may point at Anthropic model
-      // IDs that have since been retired (404 on the API) — remap them.
+      version: 2,
       migrate: (persisted) => {
         const state = persisted as Partial<ProviderState>;
+
+        // v1: persisted configs may point at retired Anthropic model IDs
         const RETIRED_MODEL_MAP: Record<string, string> = {
           'claude-opus-4-20250514': 'claude-opus-4-8',
           'claude-sonnet-4-20250514': 'claude-sonnet-5',
@@ -87,6 +87,14 @@ export const useProviderStore = create<ProviderState>()(
         if (state.activeModelId && RETIRED_MODEL_MAP[state.activeModelId]) {
           state.activeModelId = RETIRED_MODEL_MAP[state.activeModelId];
         }
+
+        // v2: the Tier-1 RTP provider is hidden until its endpoint is live —
+        // rescue anyone stuck on it ("Failed to fetch" on every message)
+        if (state.activeProviderId === 'rtp-hosted' && !import.meta.env.VITE_RTP_MODEL_URL) {
+          state.activeProviderId = 'claude';
+          state.activeModelId = 'claude-sonnet-5';
+        }
+
         return state as ProviderState;
       },
       partialize: (state) => ({
