@@ -3,12 +3,13 @@ import { FilePanel } from './FilePanel';
 import { PreviewPanel } from './PreviewPanel';
 import { EnvPanel } from './EnvPanel';
 import { IntegrationsPanel } from './IntegrationsPanel';
+import { CloudPanel } from './CloudPanel';
 import { useProjectStore } from '@/store/project-store';
 import { useEnvStore } from '@/store/env-store';
-import { getConnectedIntegrations } from '@/integrations/catalog';
-import { Eye, Code, KeyRound, Plug } from 'lucide-react';
+import { getConnectedIntegrations, communityCloudConnected } from '@/integrations/catalog';
+import { Eye, Code, KeyRound, Plug, Cloud } from 'lucide-react';
 
-type Tab = 'preview' | 'files' | 'services' | 'env';
+type Tab = 'preview' | 'files' | 'cloud' | 'services' | 'env';
 
 export function RightPanel() {
   const version = useProjectStore(s => s.version);
@@ -16,6 +17,7 @@ export function RightPanel() {
   const envVars = useEnvStore(s => s.vars);
   const envCount = envVars.length;
   const connectedCount = getConnectedIntegrations(envVars).length;
+  const cloudOn = communityCloudConnected(envVars);
   void version;
 
   const [activeTab, setActiveTab] = useState<Tab>('preview');
@@ -23,7 +25,7 @@ export function RightPanel() {
   return (
     <div className="flex flex-col h-full">
       {/* Tab bar */}
-      <div className="flex border-b shrink-0">
+      <div className="flex border-b shrink-0 overflow-x-auto">
         <TabButton
           active={activeTab === 'preview'}
           onClick={() => setActiveTab('preview')}
@@ -36,6 +38,13 @@ export function RightPanel() {
           icon={<Code className="size-3" />}
           label="Files"
           badge={fileCount > 0 ? fileCount : undefined}
+        />
+        <TabButton
+          active={activeTab === 'cloud'}
+          onClick={() => setActiveTab('cloud')}
+          icon={<Cloud className="size-3" />}
+          label="Cloud"
+          dot={cloudOn}
         />
         <TabButton
           active={activeTab === 'services'}
@@ -57,6 +66,7 @@ export function RightPanel() {
       <div className="flex-1 min-h-0">
         {activeTab === 'preview' && <PreviewPanel />}
         {activeTab === 'files' && <FilePanel />}
+        {activeTab === 'cloud' && <CloudPanel />}
         {activeTab === 'services' && <IntegrationsPanel />}
         {activeTab === 'env' && <EnvPanel />}
       </div>
@@ -70,17 +80,20 @@ function TabButton({
   icon,
   label,
   badge,
+  dot,
 }: {
   active: boolean;
   onClick: () => void;
   icon: React.ReactNode;
   label: string;
   badge?: number;
+  /** Quiet "connected" indicator */
+  dot?: boolean;
 }) {
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-1.5 px-3 py-1.5 text-xs transition-colors border-b-2 ${
+      className={`flex items-center gap-1.5 px-3 py-1.5 text-xs transition-colors border-b-2 whitespace-nowrap ${
         active
           ? 'border-foreground text-foreground font-medium'
           : 'border-transparent text-muted-foreground hover:text-foreground'
@@ -93,6 +106,7 @@ function TabButton({
           {badge}
         </span>
       )}
+      {dot && <span className="size-1.5 rounded-full bg-green-600" />}
     </button>
   );
 }

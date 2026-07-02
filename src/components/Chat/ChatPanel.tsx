@@ -208,7 +208,9 @@ export function ChatPanel() {
 
   // Home: the composer is the hero, embedded in the dashboard.
   // Building: it's the chat input, pinned below the conversation.
-  if (messages.length === 0) {
+  // A project opened with files but no chat yet is still "building".
+  const fileCount = useProjectStore(s => s.getFileCount());
+  if (messages.length === 0 && fileCount === 0) {
     return (
       <div className="flex flex-col h-full">
         <HomeDashboard

@@ -16,6 +16,18 @@
  *   update      {app_id, app_key, collection, id, data, member_token?}
  *   delete      {app_id, app_key, collection, id, member_token?}
  *
+ * Builder admin (all require the owner's Builder session in Authorization;
+ * these power the Cloud tab in Relational Builder):
+ *   admin_overview     {}                          — your apps + usage + limits
+ *   admin_collections  {app_id}                    — collections with counts/sizes
+ *   admin_docs         {app_id, collection, limit?} — documents (all visibilities)
+ *   admin_delete_doc   {app_id, id}                — owner moderation
+ *   admin_members      {app_id}                    — neighbors signed into this app
+ *   admin_rename_app   {app_id, name}
+ *   admin_delete_app   {app_id}                    — removes app + all its data
+ *
+ * Free community tier: 3 backends per builder, 20MB / 5000 documents each.
+ *
  * Neighbor accounts — email-code sign-in for the app's users, so built
  * apps get "neighbors sign in" with zero builder configuration:
  *   auth_request {app_id, app_key, email, name?}  — emails a 6-digit code
@@ -41,6 +53,8 @@ const CORS = {
 const MAX_DATA_BYTES = 32 * 1024;
 const MAX_LIST_LIMIT = 100;
 const MAX_DOCS_PER_APP = 5000;
+const MAX_APPS_PER_BUILDER = 3;
+const MAX_BYTES_PER_APP = 20 * 1024 * 1024;
 const RATE_LIMIT_PER_MIN = 120;
 
 const rateBuckets = new Map<string, { count: number; windowStart: number }>();
@@ -82,6 +96,11 @@ Deno.serve(async (req: Request) => {
 
     if (action === 'create_app') {
       return await createApp(req, body);
+    }
+
+    // Builder-facing admin: authenticated by session + ownership, not app_key
+    if (action.startsWith('admin_')) {
+      return await handleAdmin(req, body, action);
     }
 
     // All data actions authenticate with app_id + app_key
@@ -172,6 +191,9 @@ Deno.serve(async (req: Request) => {
         if (total >= MAX_DOCS_PER_APP) {
           return json({ error: 'This app has reached its document limit' }, 507);
         }
+        if (await storageFull(appId)) {
+          return json({ error: `This app's storage is full (${MAX_BYTES_PER_APP / 1024 / 1024}MB) — remove old data in the Builder's Cloud tab` }, 507);
+        }
         const visibility = body.visibility === 'members' ? 'members' : 'public';
         if (visibility === 'members' && !member) {
           return json({ error: 'Sign in to post members-only' }, 403);
@@ -202,6 +224,9 @@ Deno.serve(async (req: Request) => {
         }
         if (JSON.stringify(data).length > MAX_DATA_BYTES) {
           return json({ error: `data too large (max ${MAX_DATA_BYTES / 1024}KB)` }, 413);
+        }
+        if (await storageFull(appId)) {
+          return json({ error: `This app's storage is full (${MAX_BYTES_PER_APP / 1024 / 1024}MB) — remove old data in the Builder's Cloud tab` }, 507);
         }
         const owned = await ownershipCheck(appId, id, member);
         if (owned !== true) return owned;
@@ -401,19 +426,49 @@ async function authVerify(appId: string, body: Record<string, unknown>): Promise
   return json({ ok: true, member_token: token, member: { id: member.id, email: member.email, name: member.name } });
 }
 
-/** Create a Community Cloud app — requires a signed-in Builder session */
-async function createApp(req: Request, body: Record<string, unknown>): Promise<Response> {
+/** Resolve the signed-in builder's email from the Authorization header */
+async function resolveBuilder(req: Request): Promise<string | null> {
   const token = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '');
+  if (!token) return null;
   const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
   const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
-
   const userRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
     headers: { apikey: anonKey, Authorization: `Bearer ${token}` },
   });
-  if (!userRes.ok) return json({ error: 'Sign in to enable Community Cloud' }, 401);
+  if (!userRes.ok) return null;
   const user = await userRes.json();
-  const email = String(user.email ?? '');
+  const email = String(user.email ?? '').toLowerCase();
+  return email || null;
+}
+
+/** True when this app's stored documents have reached the storage cap */
+async function storageFull(appId: string): Promise<boolean> {
+  const res = await fetch(restUrl('/rpc/cloud_app_bytes'), {
+    method: 'POST',
+    headers: svcHeaders(),
+    body: JSON.stringify({ p_app_id: appId }),
+  });
+  if (!res.ok) return false; // never block writes on a stats failure
+  const bytes = Number(await res.json());
+  return Number.isFinite(bytes) && bytes >= MAX_BYTES_PER_APP;
+}
+
+/** Create a Community Cloud app — requires a signed-in Builder session */
+async function createApp(req: Request, body: Record<string, unknown>): Promise<Response> {
+  const email = await resolveBuilder(req);
   if (!email) return json({ error: 'Sign in to enable Community Cloud' }, 401);
+
+  // Free community tier: three backends per builder
+  const mineRes = await fetch(
+    restUrl(`/cloud_apps?owner_email=eq.${encodeURIComponent(email)}&select=id,name`),
+    { headers: svcHeaders() },
+  );
+  const mine = mineRes.ok ? await mineRes.json() : [];
+  if (Array.isArray(mine) && mine.length >= MAX_APPS_PER_BUILDER) {
+    return json({
+      error: `Community Cloud includes ${MAX_APPS_PER_BUILDER} app backends per builder — you can reuse or remove one of yours (${mine.map((a: { name: string }) => a.name).join(', ')}) in the Cloud tab, or reach out to RTP if you need more.`,
+    }, 403);
+  }
 
   const appKey = crypto.randomUUID().replace(/-/g, '');
   const name = String(body.name ?? 'Untitled app').slice(0, 120);
@@ -421,10 +476,114 @@ async function createApp(req: Request, body: Record<string, unknown>): Promise<R
   const res = await fetch(restUrl('/cloud_apps'), {
     method: 'POST',
     headers: { ...svcHeaders(), Prefer: 'return=representation' },
-    body: JSON.stringify({ app_key: appKey, name, owner_email: email.toLowerCase() }),
+    body: JSON.stringify({ app_key: appKey, name, owner_email: email }),
   });
   if (!res.ok) return json({ error: 'Could not create app' }, 500);
   const created = await res.json();
 
   return json({ app_id: created[0].id, app_key: appKey });
+}
+
+// ── Builder admin: the Cloud tab's view into apps, data, and neighbors ──
+
+async function handleAdmin(req: Request, body: Record<string, unknown>, action: string): Promise<Response> {
+  const email = await resolveBuilder(req);
+  if (!email) return json({ error: 'Sign in to manage your Community Cloud' }, 401);
+
+  if (action === 'admin_overview') {
+    const res = await fetch(restUrl('/rpc/cloud_apps_overview'), {
+      method: 'POST',
+      headers: svcHeaders(),
+      body: JSON.stringify({ p_owner_email: email }),
+    });
+    if (!res.ok) return json({ error: 'Could not load your apps' }, 500);
+    const apps = await res.json();
+    return json({
+      apps,
+      limits: {
+        max_apps: MAX_APPS_PER_BUILDER,
+        max_bytes: MAX_BYTES_PER_APP,
+        max_docs: MAX_DOCS_PER_APP,
+      },
+    });
+  }
+
+  // Everything else operates on one app the builder must own
+  const appId = String(body.app_id ?? '');
+  if (!appId) return json({ error: 'app_id required' }, 400);
+  const appRes = await fetch(
+    restUrl(`/cloud_apps?id=eq.${encodeURIComponent(appId)}&select=id,name,owner_email`),
+    { headers: svcHeaders() },
+  );
+  const apps = appRes.ok ? await appRes.json() : [];
+  if (!apps.length || String(apps[0].owner_email ?? '').toLowerCase() !== email) {
+    return json({ error: 'Not your app' }, 403);
+  }
+
+  switch (action) {
+    case 'admin_collections': {
+      const res = await fetch(restUrl('/rpc/cloud_app_collections'), {
+        method: 'POST',
+        headers: svcHeaders(),
+        body: JSON.stringify({ p_app_id: appId }),
+      });
+      if (!res.ok) return json({ error: 'Could not load collections' }, 500);
+      return json({ collections: await res.json() });
+    }
+
+    case 'admin_docs': {
+      const collection = String(body.collection ?? '').slice(0, 64);
+      if (!collection) return json({ error: 'collection required' }, 400);
+      const limit = Math.min(Number(body.limit ?? 50) || 50, MAX_LIST_LIMIT);
+      const res = await fetch(
+        restUrl(
+          `/app_documents?app_id=eq.${appId}&collection=eq.${encodeURIComponent(collection)}` +
+          `&select=id,data,member_id,member_name,visibility,created_at,updated_at&order=created_at.desc&limit=${limit}`,
+        ),
+        { headers: svcHeaders() },
+      );
+      return json({ documents: await res.json() });
+    }
+
+    case 'admin_delete_doc': {
+      const id = String(body.id ?? '');
+      if (!id) return json({ error: 'id required' }, 400);
+      await fetch(
+        restUrl(`/app_documents?id=eq.${encodeURIComponent(id)}&app_id=eq.${appId}`),
+        { method: 'DELETE', headers: svcHeaders() },
+      );
+      return json({ ok: true });
+    }
+
+    case 'admin_members': {
+      const res = await fetch(
+        restUrl(`/app_members?app_id=eq.${appId}&select=id,email,name,created_at&order=created_at.desc&limit=200`),
+        { headers: svcHeaders() },
+      );
+      return json({ members: await res.json() });
+    }
+
+    case 'admin_rename_app': {
+      const name = String(body.name ?? '').trim().slice(0, 120);
+      if (!name) return json({ error: 'name required' }, 400);
+      await fetch(restUrl(`/cloud_apps?id=eq.${appId}`), {
+        method: 'PATCH',
+        headers: svcHeaders(),
+        body: JSON.stringify({ name }),
+      });
+      return json({ ok: true });
+    }
+
+    case 'admin_delete_app': {
+      // FKs cascade: documents, members, sessions, and codes go with the app
+      await fetch(restUrl(`/cloud_apps?id=eq.${appId}`), {
+        method: 'DELETE',
+        headers: svcHeaders(),
+      });
+      return json({ ok: true });
+    }
+
+    default:
+      return json({ error: `Unknown action: ${action}` }, 400);
+  }
 }

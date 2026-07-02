@@ -1,138 +1,33 @@
 import { useState } from 'react';
 import { useEnvStore } from '@/store/env-store';
-import { useAuthStore, cloudEnabled } from '@/store/auth-store';
-import { useCloudStore } from '@/store/cloud-store';
-import { builderClient } from '@/cloud/builder-client';
 import {
   INTEGRATIONS,
   getConnectedIntegrations,
-  communityCloudConnected,
   type IntegrationDef,
 } from '@/integrations/catalog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Check, ExternalLink, Unplug, Cloud, Loader2 } from 'lucide-react';
+import { Check, ExternalLink, Unplug } from 'lucide-react';
 
 /**
- * Guided service connections for the app being built. Writes through the
- * env-store, so preview injection, share exclusion, and deploy env vars
- * all work exactly like hand-entered env vars.
+ * Guided BYOK service connections for the app being built (zero-setup data
+ * lives in the Cloud tab). Writes through the env-store, so preview
+ * injection, share exclusion, and deploy env vars all work exactly like
+ * hand-entered env vars. The AI is told what's connected.
  */
 export function IntegrationsPanel() {
   const vars = useEnvStore(s => s.vars);
   const connected = new Set(getConnectedIntegrations(vars).map(d => d.id));
 
   return (
-    <div className="h-full overflow-y-auto p-3 space-y-3">
-      <p className="text-xs text-muted-foreground leading-relaxed">
-        Connect services for the app you're building. The AI knows what's
-        connected and generates code that uses it — public keys flow into the
-        live preview, secret keys only reach Netlify/Vercel at deploy time.
-      </p>
-      <CommunityCloudCard />
+    <div className="h-full overflow-y-auto p-3 space-y-2.5">
       {INTEGRATIONS.map(def => (
         <IntegrationCard key={def.id} def={def} isConnected={connected.has(def.id)} />
       ))}
-    </div>
-  );
-}
-
-/**
- * Community Cloud: one click gives this project zero-setup shared storage
- * hosted by RTP. Public-by-design — right for boards, calendars, signups.
- */
-function CommunityCloudCard() {
-  const vars = useEnvStore(s => s.vars);
-  const setVar = useEnvStore(s => s.setVar);
-  const removeVar = useEnvStore(s => s.removeVar);
-  const user = useAuthStore(s => s.user);
-  const projectName = useCloudStore(s => s.currentProjectName);
-
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const isConnected = communityCloudConnected(vars);
-  if (!cloudEnabled) return null;
-
-  async function handleEnable() {
-    if (!builderClient) return;
-    setBusy(true);
-    setError(null);
-    try {
-      const { data } = await builderClient.auth.getSession();
-      const token = data.session?.access_token;
-      if (!token) {
-        setError('Sign in (top right) to enable Community Cloud.');
-        return;
-      }
-      const url = import.meta.env.VITE_BUILDER_SUPABASE_URL;
-      const res = await fetch(`${url}/functions/v1/app-data`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ action: 'create_app', name: projectName || 'my-community-app' }),
-      });
-      const result = await res.json();
-      if (!res.ok) {
-        setError(result.error ?? 'Could not enable Community Cloud');
-        return;
-      }
-      setVar('COMMUNITY_CLOUD_URL', `${url}/functions/v1/app-data`, false);
-      setVar('APP_ID', result.app_id, false);
-      setVar('APP_KEY', result.app_key, false);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not enable Community Cloud');
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  function handleDisable() {
-    for (const key of ['COMMUNITY_CLOUD_URL', 'APP_ID', 'APP_KEY']) removeVar(key);
-  }
-
-  return (
-    <div className="rounded-lg border border-dashed border-green-600/40 p-3 space-y-2">
-      <div className="flex items-center justify-between gap-2">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <Cloud className="size-3.5 text-green-600 shrink-0" />
-            <span className="text-sm font-medium">Community Cloud</span>
-            {isConnected && (
-              <Badge className="text-[10px] gap-0.5 bg-green-600 hover:bg-green-600">
-                <Check className="size-2.5" />
-                Enabled
-              </Badge>
-            )}
-          </div>
-          <p className="text-[11px] text-muted-foreground">
-            Zero-setup shared data for your app, hosted by RTP
-          </p>
-        </div>
-        {isConnected ? (
-          <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs shrink-0" onClick={handleDisable}>
-            <Unplug className="size-3" />
-            Disable
-          </Button>
-        ) : (
-          <Button
-            size="sm"
-            className="h-7 text-xs shrink-0"
-            onClick={handleEnable}
-            disabled={busy || !user}
-            title={!user ? 'Sign in to enable' : undefined}
-          >
-            {busy ? <Loader2 className="size-3 animate-spin" /> : 'Enable'}
-          </Button>
-        )}
-      </div>
-      {error && <p className="text-[11px] text-destructive">{error}</p>}
-      <p className="text-[10px] text-muted-foreground leading-relaxed">
-        {isConnected
-          ? 'The AI will store this app\'s shared data (posts, events, signups) here automatically. Community-public by design — great for open neighborhood info, never for secrets.'
-          : !user
-            ? 'Sign in (top right), then enable — no accounts or setup needed for the neighbors who use your app.'
-            : 'One click gives this project a shared data store — no Supabase account, no SQL, no keys to paste.'}
+      <p className="text-[11px] text-muted-foreground leading-relaxed px-1 pt-1">
+        The AI writes code for whatever you connect. Public keys flow into the
+        live preview; secret keys only reach Netlify or Vercel when you deploy.
       </p>
     </div>
   );

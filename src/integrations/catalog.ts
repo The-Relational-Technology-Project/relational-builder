@@ -134,7 +134,7 @@ export const COMMUNITY_CLOUD_GUIDANCE = [
   '  // update: await cloudRequest("update", "offers", {id, data})',
   '  // delete: await cloudRequest("delete", "offers", {id})',
   '  ```',
-  '  Documents are JSON objects up to 32KB; lists return up to 100. Prefer this over asking the user to set up Supabase for simple shared data (boards, calendars, signups, RSVPs).',
+  '  Documents are JSON objects up to 32KB; lists return up to 100; each app backend holds up to 5000 documents / 20MB on the free community tier. Prefer this over asking the user to set up Supabase for simple shared data (boards, calendars, signups, RSVPs). The builder can browse and moderate everything stored here in the Cloud tab.',
   '',
   '- **Neighbor sign-in (built into Community Cloud).** When the app needs people to have identities — RSVP with a name, edit your own posts, members-only content — use the email-code sign-in. No OAuth, no configuration:',
   '  ```javascript',
