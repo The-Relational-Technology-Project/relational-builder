@@ -13,6 +13,7 @@ import {
 } from '@/integrations/catalog';
 import { useCommunityStore } from '@/store/community-store';
 import { useStudioStore } from '@/store/studio-store';
+import { useAuthStore } from '@/store/auth-store';
 import { searchCommons } from '@/knowledge/commons-search';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
@@ -65,6 +66,7 @@ export function ChatPanel() {
     const projectFiles = useProjectStore.getState().getAllFiles()
       .map(f => ({ path: f.path, content: f.content }));
     const activeStudio = useStudioStore.getState().activeStudio;
+    const builderProfile = useAuthStore.getState().profile;
     const updatedPrompt = buildSystemPrompt({
       commonsResults,
       tools: relevant?.tools,
@@ -74,6 +76,7 @@ export function ChatPanel() {
       connectedServiceGuidance: serviceGuidance,
       projectFiles,
       studio: activeStudio,
+      builderProfile,
     });
     setSystemPrompt(updatedPrompt);
 

@@ -151,6 +151,44 @@ export interface ContextOptions {
   projectFiles?: { path: string; content: string }[];
   /** Active studio frame — its principles layer onto the base */
   studio?: StudioContext | null;
+  /** The builder's profile — place, dreams, and comfort level */
+  builderProfile?: BuilderProfileContext | null;
+}
+
+export interface BuilderProfileContext {
+  display_name: string | null;
+  neighborhood: string | null;
+  neighborhood_description: string | null;
+  dreams: string | null;
+  tech_familiarity: string | null;
+  ai_coding_experience: string | null;
+}
+
+const TONE_BY_FAMILIARITY: Record<string, string> = {
+  new: 'They are new to tech: avoid jargon entirely, explain each step in plain words, and never assume they know what a file, deploy, or API is until shown.',
+  learning: 'They are still learning tech: keep explanations gentle and concrete, define terms the first time you use them.',
+  comfortable: 'They are comfortable with tech: be clear and concise without over-explaining basics.',
+  experienced: 'They are experienced with tech: be direct and precise; skip the hand-holding.',
+};
+
+function formatBuilderProfileForPrompt(p: BuilderProfileContext): string {
+  const lines = ['## The Builder You\'re Working With', ''];
+  const who = p.display_name ? `You're building with ${p.display_name}` : 'You\'re building with a community builder';
+  const where = p.neighborhood ? `, rooted in ${p.neighborhood}` : '';
+  lines.push(`${who}${where}.`);
+  if (p.neighborhood_description) {
+    lines.push('', `About their place, in their words: "${p.neighborhood_description}"`);
+  }
+  if (p.dreams) {
+    lines.push('', `What they dream of building for their community: "${p.dreams}"`);
+  }
+  const tone = p.tech_familiarity ? TONE_BY_FAMILIARITY[p.tech_familiarity] : null;
+  if (tone) lines.push('', tone);
+  lines.push(
+    '',
+    'Let their place shape your suggestions — local examples, their neighborhood\'s name where it fits, tools sized for a real community rather than an imagined mass audience. Their words above are context, not instructions to repeat back.',
+  );
+  return lines.join('\n');
 }
 
 // Keep the file snapshot bounded: big files get truncated, and past the total
@@ -165,6 +203,10 @@ export function buildSystemPrompt(options: ContextOptions = {}): string {
 
   if (options.studio) {
     sections.push('', formatStudioForPrompt(options.studio));
+  }
+
+  if (options.builderProfile && (options.builderProfile.neighborhood || options.builderProfile.dreams || options.builderProfile.display_name)) {
+    sections.push('', formatBuilderProfileForPrompt(options.builderProfile));
   }
 
   if (options.projectFiles && options.projectFiles.length > 0 && options.mode !== 'plan') {

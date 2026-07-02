@@ -10,7 +10,8 @@ import {
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CircleUser, MailCheck, LogOut } from 'lucide-react';
+import { CircleUser, MailCheck, LogOut, MapPin } from 'lucide-react';
+import { BuilderOnboarding } from '@/components/BuilderOnboarding';
 
 /**
  * Sign in / account dialog. Magic-link email auth — no passwords.
@@ -21,11 +22,14 @@ export function AccountMenu() {
   const signIn = useAuthStore(s => s.signIn);
   const signOut = useAuthStore(s => s.signOut);
 
+  const profile = useAuthStore(s => s.profile);
+
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editingProfile, setEditingProfile] = useState(false);
 
   if (!cloudEnabled) return null;
 
@@ -67,21 +71,41 @@ export function AccountMenu() {
             <p className="text-sm">
               Signed in as <span className="font-medium">{user.email}</span>
             </p>
+            {profile?.neighborhood && (
+              <p className="text-xs text-muted-foreground inline-flex items-center gap-1">
+                <MapPin className="size-3" />
+                Building in {profile.neighborhood}
+              </p>
+            )}
             <p className="text-xs text-muted-foreground">
               Your projects save to the cloud and sync with anyone you invite.
             </p>
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-1.5"
-              onClick={async () => {
-                await signOut();
-                setOpen(false);
-              }}
-            >
-              <LogOut className="size-3.5" />
-              Sign out
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={() => {
+                  setOpen(false);
+                  setEditingProfile(true);
+                }}
+              >
+                <MapPin className="size-3.5" />
+                Builder profile
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={async () => {
+                  await signOut();
+                  setOpen(false);
+                }}
+              >
+                <LogOut className="size-3.5" />
+                Sign out
+              </Button>
+            </div>
           </div>
         ) : sent ? (
           <div className="space-y-2">
@@ -118,6 +142,7 @@ export function AccountMenu() {
           </div>
         )}
       </DialogContent>
+      {editingProfile && <BuilderOnboarding onDone={() => setEditingProfile(false)} />}
     </Dialog>
   );
 }

@@ -6,8 +6,24 @@ export interface AuthUser {
   email: string;
 }
 
+/** Builder profile — grounded in a place, woven into build chats */
+export interface BuilderProfile {
+  display_name: string | null;
+  full_name: string | null;
+  neighborhood: string | null;
+  neighborhood_description: string | null;
+  dreams: string | null;
+  tech_familiarity: string | null;
+  ai_coding_experience: string | null;
+  email_opt_in: boolean | null;
+  profile_completed: boolean;
+}
+
 interface AuthState {
   user: AuthUser | null;
+  profile: BuilderProfile | null;
+  /** True once the profile row has been fetched (or there's no user) */
+  profileLoaded: boolean;
   initialized: boolean;
 
   /** Wire up the Supabase auth listener — call once on app mount */
@@ -15,15 +31,19 @@ interface AuthState {
   /** Send a magic link to the given email */
   signIn: (email: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
+  saveProfile: (fields: Partial<BuilderProfile>) => Promise<{ error: string | null }>;
 }
 
 export const useAuthStore = create<AuthState>()((set, get) => ({
   user: null,
+  profile: null,
+  profileLoaded: false,
   initialized: false,
 
   init: () => {
     if (get().initialized || !builderClient) {
-      set({ initialized: true });
+      set({ initialized: true, profileLoaded: true });
       return;
     }
     set({ initialized: true });
@@ -31,11 +51,14 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     builderClient.auth.getSession().then(({ data }) => {
       const u = data.session?.user;
       set({ user: u?.email ? { id: u.id, email: u.email } : null });
+      get().refreshProfile();
     });
 
     builderClient.auth.onAuthStateChange((_event, session) => {
       const u = session?.user;
+      const prev = get().user?.id;
       set({ user: u?.email ? { id: u.id, email: u.email } : null });
+      if (u?.id !== prev) get().refreshProfile();
     });
   },
 
@@ -50,7 +73,34 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
   signOut: async () => {
     await builderClient?.auth.signOut();
-    set({ user: null });
+    set({ user: null, profile: null, profileLoaded: true });
+  },
+
+  refreshProfile: async () => {
+    const user = get().user;
+    if (!builderClient || !user) {
+      set({ profile: null, profileLoaded: true });
+      return;
+    }
+    const { data } = await builderClient
+      .from('profiles')
+      .select('display_name, full_name, neighborhood, neighborhood_description, dreams, tech_familiarity, ai_coding_experience, email_opt_in, profile_completed')
+      .eq('id', user.id)
+      .maybeSingle();
+    set({ profile: (data as BuilderProfile | null) ?? null, profileLoaded: true });
+  },
+
+  saveProfile: async (fields) => {
+    const user = get().user;
+    if (!builderClient || !user) return { error: 'Sign in first' };
+    const { error } = await builderClient
+      .from('profiles')
+      .update(fields)
+      .eq('id', user.id);
+    if (!error) {
+      set({ profile: { ...(get().profile ?? ({} as BuilderProfile)), ...fields } as BuilderProfile });
+    }
+    return { error: error?.message ?? null };
   },
 }));
 

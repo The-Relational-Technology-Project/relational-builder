@@ -44,8 +44,11 @@ function SignedInDashboard({ onSelectIdea, disabled }: HomeDashboardProps) {
     refreshProjects();
   }, [refreshProjects]);
 
+  const profile = useAuthStore(s => s.profile);
   const firstName = (user?.email ?? '').split('@')[0].split(/[._-]/)[0];
-  const displayName = firstName ? firstName.charAt(0).toUpperCase() + firstName.slice(1) : 'neighbor';
+  const displayName =
+    profile?.display_name?.trim() ||
+    (firstName ? firstName.charAt(0).toUpperCase() + firstName.slice(1) : 'neighbor');
 
   async function handleOpen(id: string) {
     setOpeningId(id);

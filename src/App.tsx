@@ -18,6 +18,7 @@ import { useCloudStore } from '@/store/cloud-store';
 import { useCommunityStore } from '@/store/community-store';
 import { useStudioStore } from '@/store/studio-store';
 import { StudioSwitcher } from '@/components/StudioSwitcher';
+import { BuilderOnboarding } from '@/components/BuilderOnboarding';
 import { initCloudSync } from '@/cloud/sync';
 import { AccountMenu } from '@/components/AccountMenu';
 import { ProjectsDialog } from '@/components/ProjectsDialog';
@@ -68,6 +69,18 @@ function App() {
     clearProject();
   }, [clearMessages, clearProject, closeCloudProject]);
 
+  // Focused building mode: start-from actions live on the home state,
+  // ship actions appear once there's a project to ship
+  const fileCount = useProjectStore(s => s.getFileCount());
+  const messageCount = useChatStore(s => s.messages.length);
+  const hasProject = fileCount > 0 || messageCount > 0;
+
+  // First sign-in → the place-grounded builder onboarding
+  const authUser = useAuthStore(s => s.user);
+  const profile = useAuthStore(s => s.profile);
+  const profileLoaded = useAuthStore(s => s.profileLoaded);
+  const needsOnboarding = !!authUser && profileLoaded && !profile?.profile_completed;
+
   const panels = useMemo(() => [
     { content: <ChatPanel />, defaultSize: 45, minSize: 300 },
     { content: <RightPanel />, defaultSize: 55, minSize: 350 },
@@ -78,6 +91,7 @@ function App() {
 
   return (
     <div className="h-dvh flex flex-col bg-background text-foreground">
+      {needsOnboarding && <BuilderOnboarding />}
       {/* Toolbar — scrolls horizontally on small screens instead of wrapping */}
       <header className="flex items-center justify-between gap-2 px-3 md:px-4 py-2 border-b shrink-0 overflow-x-auto">
         <div className="flex items-center gap-2 md:gap-3 shrink-0">
@@ -97,11 +111,11 @@ function App() {
             <Plus className="size-3" />
             <span className="hidden sm:inline">New Project</span>
           </Button>
-          <ImportPlanDialog />
-          <RemixDialog />
+          {!hasProject && <ImportPlanDialog />}
+          {!hasProject && <RemixDialog />}
           <ProjectsDialog />
-          <SharePreview />
-          <PublishDialog />
+          {hasProject && <SharePreview />}
+          {hasProject && <PublishDialog />}
           <GitHubSync />
           <Separator orientation="vertical" className="h-5" />
           <ThemeToggle />
