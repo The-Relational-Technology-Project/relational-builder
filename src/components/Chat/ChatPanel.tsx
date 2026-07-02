@@ -6,7 +6,11 @@ import { useKnowledgeStore } from '@/store/knowledge-store';
 import { buildSystemPrompt } from '@/knowledge/context-builder';
 import { registry } from '@/providers/registry';
 import { useEnvStore } from '@/store/env-store';
-import { getConnectedIntegrations } from '@/integrations/catalog';
+import {
+  getConnectedIntegrations,
+  communityCloudConnected,
+  COMMUNITY_CLOUD_GUIDANCE,
+} from '@/integrations/catalog';
 import { useCommunityStore } from '@/store/community-store';
 import { searchCommons } from '@/knowledge/commons-search';
 import { MessageList } from './MessageList';
@@ -53,7 +57,10 @@ export function ChatPanel() {
     // Studio KB when the commons is unreachable.
     const commonsResults = await searchCommons(content);
     const relevant = commonsResults.length > 0 ? null : getRelevantContext(content);
-    const connectedServices = getConnectedIntegrations(useEnvStore.getState().vars);
+    const envVars = useEnvStore.getState().vars;
+    const connectedServices = getConnectedIntegrations(envVars);
+    const serviceGuidance = connectedServices.map(s => s.aiGuidance);
+    if (communityCloudConnected(envVars)) serviceGuidance.unshift(COMMUNITY_CLOUD_GUIDANCE);
     const projectFiles = useProjectStore.getState().getAllFiles()
       .map(f => ({ path: f.path, content: f.content }));
     const updatedPrompt = buildSystemPrompt({
@@ -62,7 +69,7 @@ export function ChatPanel() {
       stories: relevant?.stories,
       networkEntries: relevant?.networkEntries,
       mode: currentMode,
-      connectedServiceGuidance: connectedServices.map(s => s.aiGuidance),
+      connectedServiceGuidance: serviceGuidance,
       projectFiles,
     });
     setSystemPrompt(updatedPrompt);

@@ -103,3 +103,32 @@ export function getConnectedIntegrations(vars: EnvVar[]): IntegrationDef[] {
   const keys = new Set(vars.filter(v => v.value.trim()).map(v => v.key));
   return INTEGRATIONS.filter(def => def.fields.every(f => keys.has(f.envKey)));
 }
+
+// ── Community Cloud (zero-setup, RTP-hosted — not BYOK) ─────────────
+
+export const COMMUNITY_CLOUD_KEYS = ['COMMUNITY_CLOUD_URL', 'APP_ID', 'APP_KEY'];
+
+export function communityCloudConnected(vars: EnvVar[]): boolean {
+  const keys = new Set(vars.filter(v => v.value.trim()).map(v => v.key));
+  return COMMUNITY_CLOUD_KEYS.every(k => keys.has(k));
+}
+
+export const COMMUNITY_CLOUD_GUIDANCE = [
+  '- **Community Cloud is connected** — zero-setup shared storage hosted by the Relational Tech Project. The app stores JSON documents in named collections via POST requests:',
+  '  ```javascript',
+  '  async function cloudRequest(action, collection, extra = {}) {',
+  '    const res = await fetch(env.COMMUNITY_CLOUD_URL, {',
+  '      method: "POST",',
+  '      headers: { "Content-Type": "application/json" },',
+  '      body: JSON.stringify({ app_id: env.APP_ID, app_key: env.APP_KEY, action, collection, ...extra }),',
+  '    });',
+  '    return res.json();',
+  '  }',
+  '  // list:   await cloudRequest("list", "offers")            → {documents: [{id, data, created_at}]} newest first',
+  '  // create: await cloudRequest("create", "offers", {data})  → {document}',
+  '  // update: await cloudRequest("update", "offers", {id, data})',
+  '  // delete: await cloudRequest("delete", "offers", {id})',
+  '  ```',
+  '  Documents are JSON objects up to 32KB; lists return up to 100. Prefer this over asking the user to set up Supabase for simple shared data (boards, calendars, signups, RSVPs).',
+  '  IMPORTANT: this data is community-public — anyone using the app can read and write it. Design for openly shared neighborhood info, add gentle norms in the UI rather than access control, and never store secrets or private data. Say this to the user when you first use it.',
+].join('\n');
