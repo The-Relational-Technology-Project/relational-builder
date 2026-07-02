@@ -4,6 +4,7 @@ import remarkGfm from 'remark-gfm';
 import { useChatStore, type DisplayMessage } from '@/store/chat-store';
 import { useProjectStore } from '@/store/project-store';
 import { CodeBlock } from './CodeBlock';
+import { ConnectionSuggestion } from './ConnectionSuggestion';
 import { Button } from '@/components/ui/button';
 import { Hammer, History, FileCode, ChevronDown, ChevronRight, Loader2 } from 'lucide-react';
 
@@ -91,6 +92,13 @@ export function MessageList({ messages, onBuildPlan, isGenerating }: MessageList
               Build this plan
             </Button>
           </div>
+        )}
+        {/* When the conversation overlaps with what another builder is up
+            for, offer the connection — only after the reply settles */}
+        {!isGenerating && lastMessage?.role === 'assistant' && !lastMessage.isStreaming && (
+          <ConnectionSuggestion
+            conversationText={messages.slice(-3).map(m => (typeof m.content === 'string' ? m.content : '')).join('\n')}
+          />
         )}
         <div ref={bottomRef} />
       </div>
