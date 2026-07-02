@@ -1,32 +1,24 @@
 import { useState } from 'react';
 import { getThemeMode, setThemeMode, type ThemeMode } from '@/theme';
-import { Sun, Moon, Monitor } from 'lucide-react';
+import { Sun, Moon } from 'lucide-react';
 
-const NEXT: Record<ThemeMode, ThemeMode> = { system: 'dark', dark: 'light', light: 'system' };
-const LABEL: Record<ThemeMode, string> = {
-  system: 'Theme: match device',
-  dark: 'Theme: dark',
-  light: 'Theme: light',
-};
-
+/** A plain light/dark switch — tap to flip. */
 export function ThemeToggle() {
   const [mode, setMode] = useState<ThemeMode>(getThemeMode);
 
-  function cycle() {
-    const next = NEXT[mode];
+  function toggle() {
+    const next = mode === 'dark' ? 'light' : 'dark';
     setThemeMode(next);
     setMode(next);
   }
 
-  const Icon = mode === 'dark' ? Moon : mode === 'light' ? Sun : Monitor;
-
   return (
     <button
-      onClick={cycle}
-      title={`${LABEL[mode]} — click to change`}
+      onClick={toggle}
+      title={mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
       className="inline-flex items-center justify-center size-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
     >
-      <Icon className="size-3.5" />
+      {mode === 'dark' ? <Moon className="size-3.5" /> : <Sun className="size-3.5" />}
     </button>
   );
 }

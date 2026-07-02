@@ -35,7 +35,7 @@ function LandingPage({ onUnlock }: { onUnlock: () => void }) {
   }
 
   return (
-    <div className="min-h-dvh overflow-y-auto bg-[#1C1917] text-[#FAFAF9]" style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>
+    <div className="min-h-dvh overflow-y-auto bg-[#261e18] text-[#FAFAF9]" style={{ fontFamily: "'Inter Variable', system-ui, sans-serif" }}>
       <div className="max-w-2xl mx-auto px-6 py-16 sm:py-24 space-y-16">
 
         {/* Hero */}
@@ -58,7 +58,7 @@ function LandingPage({ onUnlock }: { onUnlock: () => void }) {
 
         {/* What it is */}
         <section className="space-y-4">
-          <h2 className="text-xs uppercase tracking-[0.2em] text-[#78716C]">What this is</h2>
+          <h2 className="font-sans text-xs uppercase tracking-[0.2em] text-[#78716C]">What this is</h2>
           <p className="text-[#E7E5E4] leading-relaxed">
             Most app builders start from a blank slate. This one starts from a
             commons. Every conversation draws on the tools, stories, and
@@ -86,7 +86,7 @@ function LandingPage({ onUnlock }: { onUnlock: () => void }) {
 
         {/* The way */}
         <section className="space-y-4">
-          <h2 className="text-xs uppercase tracking-[0.2em] text-[#78716C]">The way we build</h2>
+          <h2 className="font-sans text-xs uppercase tracking-[0.2em] text-[#78716C]">The way we build</h2>
           <p className="text-[#E7E5E4] leading-relaxed">
             Technology is the smaller part of this work. Ninety percent is
             presence — knowing your neighbors, listening well, showing up.
@@ -98,7 +98,7 @@ function LandingPage({ onUnlock }: { onUnlock: () => void }) {
         </section>
 
         {/* Invitation + gate */}
-        <section className="rounded-2xl border border-[#44403C] bg-[#292524] p-8 space-y-5 text-center">
+        <section className="rounded-2xl border border-[#4e443c] bg-[#332a23] p-8 space-y-5 text-center">
           <h2 className="text-xl font-semibold">We're in a community pilot</h2>
           <p className="text-sm text-[#D6D3D1] leading-relaxed max-w-md mx-auto">
             Invited builders get free building — no API keys, no credit card —
@@ -113,14 +113,14 @@ function LandingPage({ onUnlock }: { onUnlock: () => void }) {
               onChange={e => { setInput(e.target.value); setError(false); }}
               onKeyDown={e => e.key === 'Enter' && handleSubmit()}
               placeholder="Passcode"
-              className={`flex-1 rounded-lg border bg-[#1C1917] px-3 py-2 text-center tracking-[0.3em] text-sm outline-none placeholder:text-[#78716C] placeholder:tracking-normal ${
-                error ? 'border-[#E86F4E]' : 'border-[#44403C] focus:border-[#A8A29E]'
+              className={`flex-1 rounded-lg border bg-[#261e18] px-3 py-2 text-center tracking-[0.3em] text-sm outline-none placeholder:text-[#78716C] placeholder:tracking-normal ${
+                error ? 'border-[#E86F4E]' : 'border-[#4e443c] focus:border-[#A8A29E]'
               }`}
             />
             <button
               onClick={handleSubmit}
               disabled={!input.trim()}
-              className="rounded-lg bg-[#FAFAF9] text-[#1C1917] px-4 py-2 text-sm font-medium hover:bg-[#E7E5E4] disabled:opacity-40 transition-colors"
+              className="rounded-lg bg-[#D2764B] text-[#FAFAF9] px-4 py-2 text-sm font-medium hover:bg-[#C4693F] disabled:opacity-40 transition-colors"
             >
               Enter
             </button>
@@ -162,7 +162,7 @@ function LandingPage({ onUnlock }: { onUnlock: () => void }) {
 
 function ValueCard({ color, title, children }: { color: string; title: string; children: ReactNode }) {
   return (
-    <div className="rounded-xl border border-[#44403C] p-4 space-y-1.5 text-left">
+    <div className="rounded-xl border border-[#4e443c] p-4 space-y-1.5 text-left">
       <div className="flex items-center gap-2">
         <span className="size-2.5 rounded-full shrink-0" style={{ background: color }} />
         <h3 className="text-sm font-semibold">{title}</h3>

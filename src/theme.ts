@@ -1,28 +1,25 @@
-/** Light/dark/system theme, applied via the `.dark` class on <html>. */
+/** Light/dark theme, applied via the `.dark` class on <html>. */
 
-export type ThemeMode = 'light' | 'dark' | 'system';
+export type ThemeMode = 'light' | 'dark';
 
 const STORAGE_KEY = 'rb-theme';
-const media = window.matchMedia('(prefers-color-scheme: dark)');
 
 export function getThemeMode(): ThemeMode {
   const stored = localStorage.getItem(STORAGE_KEY);
-  return stored === 'light' || stored === 'dark' ? stored : 'system';
+  if (stored === 'light' || stored === 'dark') return stored;
+  // First visit (or legacy "system" setting): start from the device
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
 export function setThemeMode(mode: ThemeMode) {
-  if (mode === 'system') localStorage.removeItem(STORAGE_KEY);
-  else localStorage.setItem(STORAGE_KEY, mode);
+  localStorage.setItem(STORAGE_KEY, mode);
   apply();
 }
 
 function apply() {
-  const mode = getThemeMode();
-  const dark = mode === 'dark' || (mode === 'system' && media.matches);
-  document.documentElement.classList.toggle('dark', dark);
+  document.documentElement.classList.toggle('dark', getThemeMode() === 'dark');
 }
 
 export function initTheme() {
   apply();
-  media.addEventListener('change', apply);
 }
