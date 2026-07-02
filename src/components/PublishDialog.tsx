@@ -13,13 +13,15 @@ import { useDeployStore } from '@/store/deploy-store';
 import { useEnvStore } from '@/store/env-store';
 import { exportProjectZip, downloadBlob } from '@/project/export';
 import { buildEnvJs } from '@/project/env-module';
+import { publishToCommunityHosting } from '@/project/deploy-community';
+import { useAuthStore, cloudEnabled } from '@/store/auth-store';
 import { deployToNetlify } from '@/project/deploy-netlify';
 import { deployToVercel } from '@/project/deploy-vercel';
 import { Upload, Download, ExternalLink, Globe, Check, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CommonsSubmitCard } from './CommonsSubmitCard';
 
-type DeployTarget = 'download' | 'netlify' | 'vercel';
+type DeployTarget = 'community' | 'download' | 'netlify' | 'vercel';
 
 interface DnsInstruction {
   type: string;
@@ -31,12 +33,13 @@ interface DeployResult {
   url: string;
   adminUrl?: string;
   dnsInstructions?: DnsInstruction[];
+  totalViews?: number;
 }
 
 export function PublishDialog() {
   const [open, setOpen] = useState(false);
   const [projectName, setProjectName] = useState('my-community-app');
-  const [activeTarget, setActiveTarget] = useState<DeployTarget>('download');
+  const [activeTarget, setActiveTarget] = useState<DeployTarget>('community');
   const [deploying, setDeploying] = useState(false);
   const [result, setResult] = useState<DeployResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -55,6 +58,7 @@ export function PublishDialog() {
   const envVars = useEnvStore(s => s.vars);
   const envRecord = Object.fromEntries(envVars.map(v => [v.key, v.value]));
   const publicEnvVars = envVars.filter(v => !v.isSecret).map(v => ({ key: v.key, value: v.value }));
+  const user = useAuthStore(s => s.user);
 
   const resetState = () => {
     setResult(null);
@@ -76,7 +80,10 @@ export function PublishDialog() {
     setResult(null);
 
     try {
-      if (activeTarget === 'download') {
+      if (activeTarget === 'community') {
+        const res = await publishToCommunityHosting(files, projectName, publicEnvVars);
+        setResult({ url: res.url, totalViews: res.total_views });
+      } else if (activeTarget === 'download') {
         const blob = await exportProjectZip(files, projectName, lineage, publicEnvVars);
         const safeName = projectName.replace(/[^a-zA-Z0-9-_]/g, '-');
         downloadBlob(blob, `${safeName}.zip`);
@@ -111,6 +118,7 @@ export function PublishDialog() {
   };
 
   const targets: { id: DeployTarget; label: string; icon: string }[] = [
+    { id: 'community', label: 'Community', icon: '🌱' },
     { id: 'download', label: 'Download', icon: '📦' },
     { id: 'netlify', label: 'Netlify', icon: '▲' },
     { id: 'vercel', label: 'Vercel', icon: '◆' },
@@ -169,6 +177,19 @@ export function PublishDialog() {
               ))}
             </div>
           </div>
+
+          {/* Community hosting info */}
+          {activeTarget === 'community' && (
+            <div className="rounded-lg border border-dashed border-green-600/40 bg-green-600/5 p-3 space-y-1">
+              <p className="text-xs font-medium">🌱 Free hosting from the Relational Tech Project</p>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                One click, no accounts or tokens — your app goes live at a shareable
+                link with simple visit counts. Every builder gets 3 sites
+                (republish anytime by using the same name).
+                {!cloudEnabled ? ' Community hosting needs the cloud backend configured.' : !user ? ' Sign in (top right) to publish.' : ''}
+              </p>
+            </div>
+          )}
 
           {/* Token input for Netlify */}
           {activeTarget === 'netlify' && (
@@ -242,13 +263,18 @@ export function PublishDialog() {
           {/* Deploy button */}
           <Button
             onClick={handleDeploy}
-            disabled={deploying || !projectName.trim()}
+            disabled={deploying || !projectName.trim() || (activeTarget === 'community' && (!cloudEnabled || !user))}
             className="w-full gap-2"
           >
             {deploying ? (
               <>
                 <Loader2 className="size-4 animate-spin" />
                 {activeTarget === 'download' ? 'Packaging...' : 'Deploying...'}
+              </>
+            ) : activeTarget === 'community' ? (
+              <>
+                <Globe className="size-4" />
+                Publish to community hosting
               </>
             ) : activeTarget === 'download' ? (
               <>
@@ -285,6 +311,11 @@ export function PublishDialog() {
               >
                 {result.url} <ExternalLink className="size-2.5" />
               </a>
+              {result.totalViews !== undefined && result.totalViews > 0 && (
+                <p className="text-[11px] text-muted-foreground">
+                  {result.totalViews.toLocaleString()} visit{result.totalViews === 1 ? '' : 's'} so far
+                </p>
+              )}
 
               {/* DNS instructions for custom domain */}
               {result.dnsInstructions && result.dnsInstructions.length > 0 && (
