@@ -20,6 +20,8 @@ export interface CommunitySite {
   updated_at: string;
   total_views: number;
   week_views: number;
+  /** Daily view counts, oldest → newest (up to 30 days) */
+  daily?: { day: string; views: number }[];
   feedback: SiteFeedback[];
 }
 

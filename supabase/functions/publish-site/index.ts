@@ -116,6 +116,8 @@ Deno.serve(async (req: Request) => {
           updated_at: s.updated_at,
           total_views: totalViews,
           week_views: weekViews,
+          // Oldest → newest, for the dashboard's activity sparkline
+          daily: stats.slice().reverse(),
           feedback,
         };
       }));

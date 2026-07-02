@@ -4,6 +4,51 @@ import { Button } from '@/components/ui/button';
 import { Globe, Eye, MessageCircle, Trash2, ExternalLink, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 
 /**
+ * Two weeks of daily views as a quiet inline sparkline — enough to answer
+ * "is anyone using it?" at a glance, gap days included.
+ */
+function ViewSparkline({ daily }: { daily: { day: string; views: number }[] }) {
+  const DAYS = 14;
+  // Fill missing days with zeros so gaps read as gaps
+  const byDay = new Map(daily.map(d => [d.day, Number(d.views)]));
+  const bars: number[] = [];
+  for (let i = DAYS - 1; i >= 0; i--) {
+    const day = new Date(Date.now() - i * 86400_000).toISOString().slice(0, 10);
+    bars.push(byDay.get(day) ?? 0);
+  }
+  const max = Math.max(...bars);
+  if (max === 0) return null;
+
+  const W = 56;
+  const H = 14;
+  const bw = W / DAYS;
+  return (
+    <svg
+      width={W}
+      height={H}
+      viewBox={`0 0 ${W} ${H}`}
+      className="shrink-0 opacity-80"
+      aria-label="Views over the last two weeks"
+    >
+      {bars.map((v, i) => {
+        const h = v === 0 ? 1 : Math.max(2, Math.round((v / max) * H));
+        return (
+          <rect
+            key={i}
+            x={i * bw + 0.5}
+            y={H - h}
+            width={bw - 1}
+            height={h}
+            rx={0.5}
+            className={v === 0 ? 'fill-muted-foreground/25' : 'fill-primary'}
+          />
+        );
+      })}
+    </svg>
+  );
+}
+
+/**
  * A builder's live community-hosted sites: views (is it alive?), neighbor
  * notes (is it serving?), and take-down. The dashboard's evidence-of-value
  * surface — what a local relational technologist shows their neighborhood.
@@ -59,6 +104,7 @@ export function YourSites() {
                   <ExternalLink className="size-3 text-muted-foreground" />
                 </a>
                 <div className="ml-auto flex items-center gap-3 text-[11px] text-muted-foreground shrink-0">
+                  {site.daily && site.daily.length > 0 && <ViewSparkline daily={site.daily} />}
                   <span className="inline-flex items-center gap-1" title={`${site.week_views} this week`}>
                     <Eye className="size-3" />
                     {site.total_views}

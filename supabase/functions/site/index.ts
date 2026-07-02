@@ -191,9 +191,18 @@ Deno.serve(async (req: Request) => {
         : content + widget;
     }
 
+    // Supabase's gateway rewrites text/html GET responses on *.supabase.co
+    // to text/plain (anti-phishing). Trusted fronts (the Vercel /s/ proxy)
+    // send x-rb-raw and get HTML disguised as text/x-rb-html, which they
+    // translate back before it reaches the browser.
+    let contentType = String(file.content_type);
+    if (req.headers.get('x-rb-raw') === '1' && contentType.startsWith('text/html')) {
+      contentType = 'text/x-rb-html; charset=utf-8';
+    }
+
     return new Response(req.method === 'HEAD' ? null : content, {
       headers: {
-        'Content-Type': file.content_type,
+        'Content-Type': contentType,
         'Cache-Control': `public, max-age=${CACHE_TTL_SECONDS}`,
         'X-Hosted-By': 'Relational Builder Community Hosting',
       },
