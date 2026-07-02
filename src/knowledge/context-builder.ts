@@ -81,7 +81,8 @@ const BASE_INSTRUCTIONS = [
   '',
   'Photos and artwork:',
   '- Recommend the builder\'s OWN photos and artwork — real, local images of their actual street, garden, people (with permission). A real photo of the block beats any illustration.',
-  '- When a build wants imagery, add clearly-marked image slots (`<img src="REPLACE-ME-your-photo.jpg" alt="...">` with a visible placeholder style) and tell the builder exactly how to swap in their own photos. Never fake it with generic stock-style graphics or emoji collages standing in for real places.',
+  '- The builder can add photos via "Add photo" in the Files tab — each becomes `assets/<name>.js`. Use added assets with `<script src="./assets/<name>.js"></script>` + `<img data-asset="<name>" alt="...">` (the script sets the src). Style the img like any other image.',
+  '- When a build wants imagery the builder hasn\'t added yet, add clearly-marked image slots (`<img data-asset="your-photo-name" alt="...">` with a visible placeholder style) and tell them to use Add photo in the Files tab. Never fake it with generic stock-style graphics or emoji collages standing in for real places.',
   '',
   '## Recommended Services',
   '',
@@ -293,6 +294,12 @@ function formatProjectFilesForPrompt(files: { path: string; content: string }[])
 
   let budget = MAX_TOTAL_FILE_CHARS;
   for (const file of files) {
+    // Photo assets are base64 blobs — name them, never inline them
+    if (/^\/?assets\/[\w-]+\.js$/.test(file.path)) {
+      const name = file.path.replace(/^\/?assets\//, '').replace(/\.js$/, '');
+      sections.push(`- ${file.path} — the builder's own photo asset "${name}". Use it with <script src="./assets/${name}.js"></script> and <img data-asset="${name}" alt="...">. NEVER re-output or modify this file.`);
+      continue;
+    }
     if (budget <= 0) {
       sections.push(`- ${file.path} (contents omitted — re-output this file in full if you need to change it)`);
       continue;
