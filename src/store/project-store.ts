@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { VirtualFS, type FileEntry, type TreeNode } from '@/project/virtual-fs';
-import { extractFiles, type ExtractedFile } from '@/project/code-extractor';
+import { extractOperations, applyEdits, type ExtractedFile } from '@/project/code-extractor';
 
 /** A restorable snapshot of the file system, taken after an AI change */
 export interface Checkpoint {
@@ -53,6 +53,8 @@ interface ProjectState {
 
   /** Extract files from a completed AI message and write them to the FS */
   applyMessageFiles: (markdown: string, msgId?: string) => ExtractedFile[];
+  /** Human-readable warnings from the last applyMessageFiles (e.g. edits that didn't match) */
+  lastApplyWarnings: string[];
   /** Restore the file system to a checkpoint */
   restoreCheckpoint: (checkpointId: string) => void;
 
@@ -70,6 +72,7 @@ export const useProjectStore = create<ProjectState>()(persist((set, get) => ({
   lineage: null,
   checkpoints: [],
   activeCheckpointId: null,
+  lastApplyWarnings: [],
 
   selectFile: (path) => set({ selectedFile: path }),
 
@@ -107,10 +110,35 @@ export const useProjectStore = create<ProjectState>()(persist((set, get) => ({
   },
 
   applyMessageFiles: (markdown, msgId) => {
-    const files = extractFiles(markdown);
-    if (files.length === 0) return files;
-
+    const { writes, edits } = extractOperations(markdown);
     const { fs, checkpoints } = get();
+    const warnings: string[] = [];
+
+    // Resolve targeted edits against current file contents
+    const editResults: ExtractedFile[] = [];
+    for (const edit of edits) {
+      const existing = fs.getFile(edit.path);
+      if (!existing) {
+        warnings.push(`Edit to ${edit.path} skipped — that file doesn't exist.`);
+        continue;
+      }
+      const { content, failed } = applyEdits(existing.content, edit.edits);
+      if (failed === edit.edits.length) {
+        warnings.push(`Edits to ${edit.path} didn't match the current file — ask the AI to re-output the whole file.`);
+        continue;
+      }
+      if (failed > 0) {
+        warnings.push(`${failed} of ${edit.edits.length} edits to ${edit.path} didn't match and were skipped.`);
+      }
+      editResults.push({ path: edit.path, content, language: existing.language });
+    }
+
+    const files: ExtractedFile[] = [...writes, ...editResults];
+    if (files.length === 0) {
+      set({ lastApplyWarnings: warnings });
+      return files;
+    }
+
     const nextCheckpoints = [...checkpoints];
 
     // First AI change to a workspace that already has files (imported, pulled
@@ -142,6 +170,7 @@ export const useProjectStore = create<ProjectState>()(persist((set, get) => ({
       version: s.version + 1,
       checkpoints: nextCheckpoints.slice(-MAX_CHECKPOINTS),
       activeCheckpointId: newCheckpointId,
+      lastApplyWarnings: warnings,
     }));
     // Auto-select the first file if nothing is selected
     if (!get().selectedFile) {

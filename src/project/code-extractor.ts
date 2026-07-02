@@ -23,9 +23,36 @@ export interface ExtractedFile {
   language: string;
 }
 
-/** Extract all file blocks from a complete markdown string */
+/** One search/replace pair inside an edit block */
+export interface FileEdit {
+  search: string;
+  replace: string;
+}
+
+/** A targeted edit to an existing file (```edit filename="...") */
+export interface ExtractedEdit {
+  path: string;
+  edits: FileEdit[];
+}
+
+export interface ExtractionResult {
+  writes: ExtractedFile[];
+  edits: ExtractedEdit[];
+}
+
+/** Extract all file blocks from a complete markdown string (writes only) */
 export function extractFiles(markdown: string): ExtractedFile[] {
-  const files: ExtractedFile[] = [];
+  return extractOperations(markdown).writes;
+}
+
+/**
+ * Extract both whole-file writes and targeted edit blocks.
+ * Edit blocks use the fence language `edit` and contain one or more
+ * SEARCH/REPLACE pairs (`<<<<<<< SEARCH` / `=======` / `>>>>>>> REPLACE`).
+ */
+export function extractOperations(markdown: string): ExtractionResult {
+  const writes: ExtractedFile[] = [];
+  const edits: ExtractedEdit[] = [];
   const lines = markdown.split('\n');
 
   let i = 0;
@@ -56,15 +83,93 @@ export function extractFiles(markdown: string): ExtractedFile[] {
         parseFilenameFromFenceArgs(fenceArgs) ??
         parseFilenameFromPrecedingLines(lines, lines.indexOf(line));
 
-      if (filename) {
-        files.push({ path: filename, content, language });
+      if (!filename) continue;
+
+      if (language === 'edit') {
+        const pairs = parseEditPairs(content);
+        if (pairs.length > 0) edits.push({ path: filename, edits: pairs });
+      } else {
+        writes.push({ path: filename, content, language });
       }
     } else {
       i++;
     }
   }
 
-  return files;
+  return { writes, edits };
+}
+
+/** Parse SEARCH/REPLACE pairs out of an edit block's body */
+function parseEditPairs(content: string): FileEdit[] {
+  const pairs: FileEdit[] = [];
+  const lines = content.split('\n');
+  let mode: 'idle' | 'search' | 'replace' = 'idle';
+  let search: string[] = [];
+  let replace: string[] = [];
+
+  for (const line of lines) {
+    if (/^<{5,}\s*SEARCH\s*$/.test(line.trim())) {
+      mode = 'search';
+      search = [];
+      replace = [];
+    } else if (/^={5,}\s*$/.test(line.trim()) && mode === 'search') {
+      mode = 'replace';
+    } else if (/^>{5,}\s*REPLACE\s*$/.test(line.trim()) && mode === 'replace') {
+      pairs.push({ search: search.join('\n'), replace: replace.join('\n') });
+      mode = 'idle';
+    } else if (mode === 'search') {
+      search.push(line);
+    } else if (mode === 'replace') {
+      replace.push(line);
+    }
+  }
+
+  return pairs;
+}
+
+/**
+ * Apply search/replace edits to file content.
+ * Tries an exact match first, then a whitespace-tolerant line match.
+ * Returns the new content plus how many edits couldn't be applied.
+ */
+export function applyEdits(
+  original: string,
+  edits: FileEdit[],
+): { content: string; failed: number } {
+  let content = original;
+  let failed = 0;
+
+  for (const edit of edits) {
+    if (edit.search && content.includes(edit.search)) {
+      content = content.replace(edit.search, edit.replace);
+      continue;
+    }
+
+    // Whitespace-tolerant fallback: match a window of lines by trimmed equality
+    const contentLines = content.split('\n');
+    const searchLines = edit.search.split('\n');
+    let matched = false;
+    if (searchLines.length > 0 && edit.search.trim()) {
+      for (let start = 0; start <= contentLines.length - searchLines.length; start++) {
+        let ok = true;
+        for (let j = 0; j < searchLines.length; j++) {
+          if (contentLines[start + j].trim() !== searchLines[j].trim()) {
+            ok = false;
+            break;
+          }
+        }
+        if (ok) {
+          contentLines.splice(start, searchLines.length, ...edit.replace.split('\n'));
+          content = contentLines.join('\n');
+          matched = true;
+          break;
+        }
+      }
+    }
+    if (!matched) failed++;
+  }
+
+  return { content, failed };
 }
 
 /**

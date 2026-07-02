@@ -27,6 +27,24 @@ const BASE_INSTRUCTIONS = [
   '',
   'Always include the filename attribute on every code block that represents a file. Generate complete, working code that can run in a browser. Prefer vanilla HTML/CSS/JS for simplicity unless the user requests a specific framework.',
   '',
+  '## Editing Existing Files',
+  '',
+  'For small or medium changes to a file that already exists, use a targeted edit block instead of re-outputting the whole file — it is faster and cheaper:',
+  '',
+  '```edit filename="app.js"',
+  '<<<<<<< SEARCH',
+  'const title = "Neighborhood Events";',
+  '=======',
+  'const title = "Sunset Neighborhood Events";',
+  '>>>>>>> REPLACE',
+  '```',
+  '',
+  'Rules for edit blocks:',
+  '- The SEARCH text must be copied EXACTLY from the current file contents shown to you, including indentation',
+  '- Include enough surrounding lines to make the match unique in the file',
+  '- Use multiple SEARCH/REPLACE pairs in one edit block for several changes to the same file',
+  '- For new files, large rewrites, or when unsure of the current contents, output the complete file with a filename annotation instead',
+  '',
   '## Recommended Services',
   '',
   'When a project needs backend, hosting, or integrations, recommend these services that the relational tech community uses:',
@@ -96,12 +114,23 @@ export interface ContextOptions {
   mode?: 'plan' | 'build';
   /** AI guidance blocks for services the user has connected in the Services tab */
   connectedServiceGuidance?: string[];
+  /** Current project files (build mode) so edits match reality */
+  projectFiles?: { path: string; content: string }[];
 }
+
+// Keep the file snapshot bounded: big files get truncated, and past the total
+// budget only paths are listed. Community-tier budgets thank us.
+const MAX_FILE_CHARS = 8000;
+const MAX_TOTAL_FILE_CHARS = 40000;
 
 /** Build the full system prompt with RTP context */
 export function buildSystemPrompt(options: ContextOptions = {}): string {
   const base = options.mode === 'plan' ? PLAN_INSTRUCTIONS : BASE_INSTRUCTIONS;
   const sections = [base, '', formatPrinciplesForPrompt()];
+
+  if (options.projectFiles && options.projectFiles.length > 0 && options.mode !== 'plan') {
+    sections.push('', formatProjectFilesForPrompt(options.projectFiles));
+  }
 
   if (options.connectedServiceGuidance && options.connectedServiceGuidance.length > 0) {
     sections.push(
@@ -129,6 +158,33 @@ export function buildSystemPrompt(options: ContextOptions = {}): string {
 
   if (options.networkEntries && options.networkEntries.length > 0) {
     sections.push('', formatNetworkForPrompt(options.networkEntries));
+  }
+
+  return sections.join('\n');
+}
+
+function formatProjectFilesForPrompt(files: { path: string; content: string }[]): string {
+  const sections: string[] = [
+    '## Current Project Files',
+    '',
+    'These are the files as they exist RIGHT NOW. Edit blocks must match this content exactly. Files may differ from earlier messages (restores, GitHub pulls, imports).',
+    '',
+  ];
+
+  let budget = MAX_TOTAL_FILE_CHARS;
+  for (const file of files) {
+    if (budget <= 0) {
+      sections.push(`- ${file.path} (contents omitted — re-output this file in full if you need to change it)`);
+      continue;
+    }
+    let body = file.content;
+    let note = '';
+    if (body.length > MAX_FILE_CHARS) {
+      body = body.slice(0, MAX_FILE_CHARS);
+      note = '\n... (truncated — re-output this file in full if you need to change the truncated part)';
+    }
+    budget -= body.length;
+    sections.push(`### ${file.path}`, '```', body + note, '```', '');
   }
 
   return sections.join('\n');

@@ -53,6 +53,8 @@ export function ChatPanel() {
     const commonsResults = await searchCommons(content);
     const relevant = commonsResults.length > 0 ? null : getRelevantContext(content);
     const connectedServices = getConnectedIntegrations(useEnvStore.getState().vars);
+    const projectFiles = useProjectStore.getState().getAllFiles()
+      .map(f => ({ path: f.path, content: f.content }));
     const updatedPrompt = buildSystemPrompt({
       commonsResults,
       tools: relevant?.tools,
@@ -60,6 +62,7 @@ export function ChatPanel() {
       networkEntries: relevant?.networkEntries,
       mode: currentMode,
       connectedServiceGuidance: connectedServices.map(s => s.aiGuidance),
+      projectFiles,
     });
     setSystemPrompt(updatedPrompt);
 
@@ -87,7 +90,14 @@ export function ChatPanel() {
             // Extract code blocks into the virtual file system (build mode only)
             if (currentMode === 'build') {
               const msg = useChatStore.getState().messages.find(m => m.id === msgId);
-              if (msg) applyMessageFiles(msg.content, msgId);
+              if (msg) {
+                applyMessageFiles(msg.content, msgId);
+                // Surface edits that couldn't be applied cleanly
+                const warnings = useProjectStore.getState().lastApplyWarnings;
+                if (warnings.length > 0) {
+                  appendToMessage(msgId, `\n\n> ⚠️ ${warnings.join(' ')}`);
+                }
+              }
             }
             setIsGenerating(false);
             setAbortController(null);
