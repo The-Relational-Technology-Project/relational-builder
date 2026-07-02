@@ -35,7 +35,10 @@ const CONTENT_TYPES: Record<string, string> = {
   js: 'text/javascript; charset=utf-8',
   mjs: 'text/javascript; charset=utf-8',
   json: 'application/json',
+  // PWAs: web app manifests need their own type for installability
+  webmanifest: 'application/manifest+json',
   svg: 'image/svg+xml',
+  ico: 'image/x-icon',
   md: 'text/markdown; charset=utf-8',
   txt: 'text/plain; charset=utf-8',
   xml: 'application/xml',
