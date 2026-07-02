@@ -11,6 +11,7 @@ import { useCommunityStore } from '@/store/community-store';
 import { searchCommons } from '@/knowledge/commons-search';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
+import { HomeDashboard } from '@/components/HomeDashboard';
 
 export function ChatPanel() {
   const messages = useChatStore(s => s.messages);
@@ -164,7 +165,7 @@ export function ChatPanel() {
   return (
     <div className="flex flex-col h-full">
       {messages.length === 0 ? (
-        <WelcomeScreen onSelectIdea={handleSend} disabled={!!needsKey} />
+        <HomeDashboard onSelectIdea={handleSend} disabled={!!needsKey} />
       ) : (
         <MessageList messages={messages} onBuildPlan={handleBuildPlan} isGenerating={isGenerating} />
       )}
@@ -181,41 +182,6 @@ export function ChatPanel() {
         mode={mode}
         onModeChange={setMode}
       />
-    </div>
-  );
-}
-
-const STARTER_IDEAS = [
-  { label: 'Neighborhood event calendar', prompt: 'Build me a neighborhood event calendar where community members can post and discover local events, with categories for block parties, meetings, cleanups, and gatherings.' },
-  { label: 'Mutual aid request board', prompt: 'Build a mutual aid request board where neighbors can post needs and offers — things like rides, meals, childcare, tool lending — with a simple claim system.' },
-  { label: 'Community resource directory', prompt: 'Build a community resource directory that maps local organizations, services, and mutual aid networks with search and category filters.' },
-  { label: 'Local civic info hub', prompt: 'Build a local civic information hub where residents can find meeting schedules, elected officials, zoning updates, and community announcements.' },
-];
-
-function WelcomeScreen({ onSelectIdea, disabled }: { onSelectIdea: (prompt: string) => void; disabled: boolean }) {
-  return (
-    <div className="flex-1 flex items-center justify-center">
-      <div className="text-center space-y-4 max-w-md px-4">
-        <h2 className="text-2xl font-semibold tracking-tight">
-          Build relational technology
-        </h2>
-        <p className="text-muted-foreground text-sm leading-relaxed">
-          Describe what you want to build and AI will generate working code,
-          informed by principles and patterns from the Relational Tech community.
-        </p>
-        <div className="grid grid-cols-2 gap-2 pt-2">
-          {STARTER_IDEAS.map(idea => (
-            <button
-              key={idea.label}
-              className="text-left text-xs border rounded-lg p-3 hover:bg-muted transition-colors text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
-              onClick={() => onSelectIdea(idea.prompt)}
-              disabled={disabled}
-            >
-              {idea.label}
-            </button>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
