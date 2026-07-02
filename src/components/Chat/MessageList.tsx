@@ -62,6 +62,7 @@ interface MessageListProps {
 
 export function MessageList({ messages, onBuildPlan, isGenerating }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
+  const reviewing = useChatStore(s => s.reviewing);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -85,6 +86,11 @@ export function MessageList({ messages, onBuildPlan, isGenerating }: MessageList
         {messages.map(msg => (
           <MessageBubble key={msg.id} message={msg} />
         ))}
+        {reviewing && (
+          <p className="text-[11px] text-muted-foreground pl-1 animate-pulse">
+            Giving the build a quick once-over…
+          </p>
+        )}
         {showBuildAction && (
           <div className="flex justify-start pl-1">
             <Button size="sm" onClick={onBuildPlan}>

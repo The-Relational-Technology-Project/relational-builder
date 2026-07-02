@@ -16,6 +16,7 @@ import { useStudioStore } from '@/store/studio-store';
 import { useAuthStore } from '@/store/auth-store';
 import { searchCommons } from '@/knowledge/commons-search';
 import { buildMentionContext } from '@/knowledge/mentions';
+import { runQualityReview, messageProducedFiles } from '@/knowledge/review-pass';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { HomeDashboard } from '@/components/HomeDashboard';
@@ -139,6 +140,11 @@ export function ChatPanel() {
                 }
                 // Arm exactly one automatic error→fix pass after normal builds
                 useChatStore.setState({ autoFixArmed: !wasFix });
+                // …and one background quality review (thrown errors win the
+                // race; fix sends are never re-reviewed, so neither can loop)
+                if (!wasFix && messageProducedFiles(msg.content)) {
+                  runQualityReview(content);
+                }
               }
             }
             setIsGenerating(false);

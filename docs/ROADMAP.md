@@ -101,3 +101,14 @@ everything exportable — no enclosure, including by us.
   projects. The real design is env scoped to the project record — needs a
   decision on whether secrets sync to cloud projects (they currently never
   leave the browser except at deploy time) and what invited editors see.
+
+- **Agents position (asked July 2, answered July 3)** — Lovable and Claude
+  Code lean on multi-agent orchestration; we deliberately don't. At pilot
+  scale the wins come from two bounded passes, both shipped: auto-fix (one
+  error→fix pass when a build throws) and the quality review (one background
+  Haiku read of every normal build against the person's request; confident
+  defects queue exactly one fix send through the same no-loop machinery;
+  silence when solid). Full orchestration — parallel specialists, verify
+  loops with browser automation — costs multiples per build in tokens and
+  latency and needs server-side infrastructure; revisit only if quality
+  gaps persist that these two passes can't close.

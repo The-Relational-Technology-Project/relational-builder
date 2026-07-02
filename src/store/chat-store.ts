@@ -37,6 +37,8 @@ interface ChatState {
   /** One automatic error→fix pass is allowed after each normal build */
   autoFixArmed: boolean;
   queueFix: (content: string) => void;
+  /** True while the background quality review reads the build */
+  reviewing: boolean;
   /** Prefill the input without sending (e.g. answering a plan question) */
   draftMessage: string | null;
   setDraftMessage: (content: string | null) => void;
@@ -78,6 +80,7 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
   pendingFixSend: false,
   autoFixArmed: false,
   queueFix: (content: string) => set({ queuedMessage: content, pendingFixSend: true }),
+  reviewing: false,
 
   draftMessage: null,
   setDraftMessage: (content: string | null) => set({ draftMessage: content }),
