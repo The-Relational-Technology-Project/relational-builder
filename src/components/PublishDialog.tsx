@@ -21,6 +21,8 @@ import { Upload, Download, ExternalLink, Globe, Check, Loader2 } from 'lucide-re
 import { cn } from '@/lib/utils';
 import { CommonsSubmitCard } from './CommonsSubmitCard';
 import { suggestProjectName } from '@/project/suggest-name';
+import { runSecurityScan, type SecurityFinding } from '@/project/security-scan';
+import { ShieldAlert } from 'lucide-react';
 
 type DeployTarget = 'community' | 'download' | 'netlify' | 'vercel';
 
@@ -44,6 +46,7 @@ export function PublishDialog() {
   const [deploying, setDeploying] = useState(false);
   const [result, setResult] = useState<DeployResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [scanFindings, setScanFindings] = useState<SecurityFinding[] | null>(null);
 
   const getAllFiles = useProjectStore(s => s.getAllFiles);
   const fileCount = useProjectStore(s => s.getFileCount());
@@ -65,6 +68,7 @@ export function PublishDialog() {
     setResult(null);
     setError(null);
     setDeploying(false);
+    setScanFindings(null);
   };
 
   const handleClose = (v: boolean) => {
@@ -77,9 +81,20 @@ export function PublishDialog() {
     }
   };
 
-  const handleDeploy = async () => {
+  const handleDeploy = async (skipScan = false) => {
     const files = getAllFiles();
     if (files.length === 0) return;
+
+    // Publish-time security check: warn (with specifics) before anything
+    // secret-shaped ships in public code; the builder decides from there
+    if (!skipScan) {
+      const findings = runSecurityScan(files);
+      if (findings.length > 0) {
+        setScanFindings(findings);
+        return;
+      }
+    }
+    setScanFindings(null);
 
     setDeploying(true);
     setError(null);
@@ -266,9 +281,40 @@ export function PublishDialog() {
             </div>
           )}
 
+          {/* Security scan findings — read before shipping */}
+          {scanFindings && scanFindings.length > 0 && (
+            <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 space-y-2">
+              <p className="text-xs font-medium text-destructive flex items-center gap-1.5">
+                <ShieldAlert className="size-3.5" />
+                Hold on — this looks like it would ship a secret
+              </p>
+              <div className="space-y-1 max-h-32 overflow-y-auto">
+                {scanFindings.slice(0, 8).map((f, i) => (
+                  <p key={i} className="text-[11px] text-destructive/90">
+                    <span className="font-mono">{f.path}:{f.line}</span> — {f.issue}
+                    <span className="block font-mono text-[10px] opacity-70 truncate">{f.snippet}</span>
+                  </p>
+                ))}
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                Anything published is public. Move secrets to the Env tab (marked
+                secret) and ask the AI to use <code>env</code> instead — or publish
+                anyway if you're sure these are safe.
+              </p>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setScanFindings(null)}>
+                  Let me fix it first
+                </Button>
+                <Button size="sm" variant="destructive" className="h-7 text-xs" onClick={() => handleDeploy(true)}>
+                  Publish anyway
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Deploy button */}
           <Button
-            onClick={handleDeploy}
+            onClick={() => handleDeploy()}
             disabled={deploying || !projectName.trim() || (activeTarget === 'community' && (!cloudEnabled || !user))}
             className="w-full gap-2"
           >

@@ -5,12 +5,15 @@ import App from './App.tsx'
 import { Landing } from './components/Landing.tsx'
 import { initTheme } from './theme.ts'
 import { useChatStore } from './store/chat-store.ts'
+import { useProjectStore } from './store/project-store.ts'
 
 initTheme()
 
-// Dev-only handle for driving/inspecting chat state from the console
+// Dev-only handles for driving/inspecting state from the console
 if (import.meta.env.DEV) {
-  (window as unknown as Record<string, unknown>).__rbChat = useChatStore
+  const w = window as unknown as Record<string, unknown>
+  w.__rbChat = useChatStore
+  w.__rbProject = useProjectStore
 }
 
 createRoot(document.getElementById('root')!).render(
