@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/auth-store';
 import { fetchDirectory, requestConnection, type DirectoryBuilder } from '@/knowledge/connections';
 import { ConnectionsDialog } from '@/components/ConnectionsDialog';
+import { plantSharedPrompt } from '@/cloud/prompts';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { HeartHandshake, CalendarClock, MailPlus, Loader2, MapPin, Check } from 'lucide-react';
+import { HeartHandshake, CalendarClock, MailPlus, Loader2, MapPin, Check, ScrollText } from 'lucide-react';
 
 const STEWARD_CAL = 'https://cal.com/joshnesbit/';
 
@@ -101,6 +102,21 @@ export function BuildersDirectory() {
               )}
             </div>
             {b.note && <p className="text-[11px] text-muted-foreground">{b.note}</p>}
+            {(b.prompts?.length ?? 0) > 0 && (
+              <div className="flex flex-wrap gap-1 pt-0.5">
+                {b.prompts!.map(p => (
+                  <button
+                    key={p.slug}
+                    onClick={() => plantSharedPrompt(p.slug)}
+                    className="inline-flex items-center gap-1 rounded-full border border-dashed px-2 py-0.5 text-[10px] text-muted-foreground hover:text-foreground hover:border-foreground/40 transition-colors"
+                    title={`Grow your own version of "${p.title}"`}
+                  >
+                    <ScrollText className="size-2.5" />
+                    <span className="truncate max-w-36">{p.title}</span>
+                  </button>
+                ))}
+              </div>
+            )}
             <div className="flex gap-2 pt-0.5 items-center">
               {b.cal_link && (
                 <a

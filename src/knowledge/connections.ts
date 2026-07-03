@@ -13,6 +13,8 @@ export interface DirectoryBuilder {
   note: string | null;
   cal_link: string | null;
   allow_requests: boolean;
+  /** Prompts this builder has shared — seeds you can grow from */
+  prompts?: { title: string; slug: string }[];
 }
 
 async function call(body: Record<string, unknown>): Promise<Record<string, unknown>> {

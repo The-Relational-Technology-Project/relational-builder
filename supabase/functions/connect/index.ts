@@ -144,17 +144,37 @@ Deno.serve(async (req: Request) => {
         { headers: svc() },
       );
       const rows = res.ok ? await res.json() : [];
-      const builders = rows
-        .filter((p: { email: string }) => p.email.toLowerCase() !== user.email)
-        .map((p: Record<string, unknown>) => ({
-          id: p.id,
-          name: p.display_name || 'A builder',
-          neighborhood: p.neighborhood ?? null,
-          note: p.connect_note ?? null,
-          cal_link: p.cal_link ?? null,
-          allow_requests: Boolean(p.allow_requests),
-          // email deliberately omitted
-        }));
+      const visible = rows.filter((p: { email: string }) => p.email.toLowerCase() !== user.email);
+
+      // Prompts travel with profiles: attach each builder's shared prompts
+      // (title + slug only — already public by their own choice to share)
+      const promptsByOwner = new Map<string, { title: string; slug: string }[]>();
+      if (visible.length > 0) {
+        const ids = visible.map((p: { id: string }) => p.id).join(',');
+        const promptsRes = await fetch(
+          rest(`/prompts?owner_id=in.(${ids})&is_shared=eq.true&share_slug=not.is.null&select=owner_id,title,share_slug&order=updated_at.desc&limit=60`),
+          { headers: svc() },
+        );
+        const shared = promptsRes.ok ? await promptsRes.json() : [];
+        for (const p of shared as { owner_id: string; title: string; share_slug: string }[]) {
+          const mine = promptsByOwner.get(p.owner_id) ?? [];
+          if (mine.length < 2) {
+            mine.push({ title: p.title, slug: p.share_slug });
+            promptsByOwner.set(p.owner_id, mine);
+          }
+        }
+      }
+
+      const builders = visible.map((p: Record<string, unknown>) => ({
+        id: p.id,
+        name: p.display_name || 'A builder',
+        neighborhood: p.neighborhood ?? null,
+        note: p.connect_note ?? null,
+        cal_link: p.cal_link ?? null,
+        allow_requests: Boolean(p.allow_requests),
+        prompts: promptsByOwner.get(String(p.id)) ?? [],
+        // email deliberately omitted
+      }));
       return json({ builders });
     }
 

@@ -17,9 +17,11 @@ import {
   sharePrompt,
   unsharePrompt,
   promptShareUrl,
+  listPromptVersions,
   type BuildPrompt,
+  type PromptVersion,
 } from '@/cloud/prompts';
-import { ScrollText, Sparkles, Loader2, Copy, Check, Link2, Globe } from 'lucide-react';
+import { ScrollText, Sparkles, Loader2, Copy, Check, Link2, Globe, History, ChevronDown, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 /**
@@ -236,6 +238,14 @@ export function PromptDialog() {
                   )}
                 </div>
               )}
+
+              {existing && (
+                <VersionHistory
+                  promptId={existing.id}
+                  currentBody={body}
+                  onRestore={(v) => { setTitle(v.title); setBody(v.body); }}
+                />
+              )}
             </>
           )}
 
@@ -243,5 +253,72 @@ export function PromptDialog() {
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/**
+ * The prompt's version trail — every save is a snapshot. View any earlier
+ * version and restore it into the editor (saving then adds a new version;
+ * nothing is ever lost).
+ */
+function VersionHistory({
+  promptId,
+  currentBody,
+  onRestore,
+}: {
+  promptId: string;
+  currentBody: string;
+  onRestore: (v: PromptVersion) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [versions, setVersions] = useState<PromptVersion[] | null>(null);
+
+  useEffect(() => {
+    if (!open || versions !== null) return;
+    listPromptVersions(promptId).then(setVersions).catch(() => setVersions([]));
+  }, [open, versions, promptId]);
+
+  return (
+    <div className="space-y-1.5">
+      <button
+        onClick={() => setOpen(!open)}
+        className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+      >
+        {open ? <ChevronDown className="size-3" /> : <ChevronRight className="size-3" />}
+        <History className="size-3" />
+        History
+      </button>
+      {open && (
+        <div className="rounded-lg border divide-y">
+          {versions === null && (
+            <div className="p-3 flex justify-center"><Loader2 className="size-3.5 animate-spin text-muted-foreground" /></div>
+          )}
+          {versions?.length === 0 && (
+            <p className="p-2.5 text-[11px] text-muted-foreground">No saves yet — history starts at your first save.</p>
+          )}
+          {versions?.map(v => {
+            const isCurrent = v.body === currentBody;
+            return (
+              <div key={v.id} className="flex items-center gap-2 px-2.5 py-1.5">
+                <span className="text-[11px] font-medium shrink-0">v{v.version}</span>
+                <span className="text-[11px] text-muted-foreground truncate flex-1">
+                  {new Date(v.created_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                  {isCurrent ? ' · matches editor' : ''}
+                </span>
+                {!isCurrent && (
+                  <button
+                    onClick={() => onRestore(v)}
+                    className="text-[11px] text-muted-foreground hover:text-foreground underline decoration-dotted shrink-0"
+                    title="Load this version into the editor"
+                  >
+                    Restore
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }

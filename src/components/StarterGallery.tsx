@@ -9,8 +9,10 @@ import {
   type StudioBuildPlan,
 } from '@/knowledge/studio-plans';
 import { remixRepo } from '@/project/remix';
+import { listNetworkPrompts, plantSharedPrompt, type NetworkPrompt } from '@/cloud/prompts';
+import { useAuthStore } from '@/store/auth-store';
 import { Badge } from '@/components/ui/badge';
-import { Shuffle, FileDown, Loader2 } from 'lucide-react';
+import { Shuffle, FileDown, Loader2, ScrollText } from 'lucide-react';
 
 type SharedPlan = Pick<StudioBuildPlan, 'id' | 'title' | 'recommended_track' | 'created_at'>;
 
@@ -27,15 +29,34 @@ export function StarterGallery({ disabled }: { disabled?: boolean }) {
   const setLineage = useProjectStore(s => s.setLineage);
 
   const [plans, setPlans] = useState<SharedPlan[]>([]);
+  const [networkPrompts, setNetworkPrompts] = useState<NetworkPrompt[]>([]);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const userId = useAuthStore(s => s.user?.id);
 
   useEffect(() => {
     listSharedBuildPlans(4).then(setPlans).catch(() => {});
-  }, []);
+    // The network prompt library — other builders' shared seeds
+    listNetworkPrompts(8)
+      .then(all => setNetworkPrompts(all.filter(p => p.owner_id !== userId).slice(0, 4)))
+      .catch(() => {});
+  }, [userId]);
 
   const remixable = tools.filter(t => t.github_url).slice(0, 6);
-  if (remixable.length === 0 && plans.length === 0) return null;
+  if (remixable.length === 0 && plans.length === 0 && networkPrompts.length === 0) return null;
+
+  async function startFromNetworkPrompt(p: NetworkPrompt) {
+    setBusyId(p.share_slug);
+    setError(null);
+    try {
+      const ok = await plantSharedPrompt(p.share_slug);
+      if (!ok) throw new Error('That prompt is no longer shared');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not fetch that prompt');
+    } finally {
+      setBusyId(null);
+    }
+  }
 
   async function startFromTool(toolId: string, repo: string) {
     setBusyId(toolId);
@@ -116,11 +137,35 @@ export function StarterGallery({ disabled }: { disabled?: boolean }) {
             </p>
           </button>
         ))}
+        {networkPrompts.map(p => (
+          <button
+            key={p.share_slug}
+            disabled={disabled || busyId !== null}
+            onClick={() => startFromNetworkPrompt(p)}
+            className="text-left border rounded-lg p-3 hover:bg-muted transition-colors disabled:opacity-50 space-y-1"
+          >
+            <div className="flex items-center gap-1.5">
+              {busyId === p.share_slug ? (
+                <Loader2 className="size-3 animate-spin shrink-0" />
+              ) : (
+                <ScrollText className="size-3 text-muted-foreground shrink-0" />
+              )}
+              <span className="text-xs font-medium truncate">{p.title}</span>
+              <Badge variant="outline" className="text-[9px] ml-auto shrink-0">prompt</Badge>
+            </div>
+            <p className="text-[11px] text-muted-foreground line-clamp-2">
+              {p.body}
+            </p>
+            {p.author_name && (
+              <p className="text-[10px] text-muted-foreground/70">shared by {p.author_name}</p>
+            )}
+          </button>
+        ))}
       </div>
       {error && <p className="text-[11px] text-destructive">{error}</p>}
       <p className="text-[11px] text-muted-foreground">
-        Live from the RT Studio library — remix a working tool or start from a
-        shared plan. Credit travels with your version.
+        Live from the network — remix a working tool, start from a shared
+        plan, or grow a shared prompt. Credit travels with your version.
       </p>
     </div>
   );
