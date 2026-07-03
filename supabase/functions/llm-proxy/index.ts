@@ -156,7 +156,9 @@ async function checkCommunityAccess(token: string, model: string): Promise<Commu
       status: 403,
     };
   }
-  const budget = Number(members[0].daily_token_budget ?? 750000);
+  // Generous by design: early adopters deserve great experiences. The DB row
+  // can still lower (or raise) any individual member's budget.
+  const budget = Number(members[0].daily_token_budget ?? 5000000);
 
   const today = new Date().toISOString().slice(0, 10);
   const usageRes = await fetch(
@@ -194,6 +196,19 @@ function recordCommunityUsage(email: string, inputTokens: number, outputTokens: 
 }
 
 // ── Anthropic (translate OpenAI format → Anthropic Messages API) ─────
+
+// Models on the adaptive-thinking API surface (Opus 4.7+, Sonnet 5, Fable).
+// On Sonnet 5 adaptive thinking runs even when the field is omitted — set it
+// explicitly with display: "summarized" so the reasoning streams back as a
+// progress signal instead of a silent stall.
+const ADAPTIVE_THINKING_RE = /opus-4-[78]|sonnet-5|fable/;
+
+// Output ceiling when the client doesn't say: real multi-file builds need far
+// more than the old 8192 (thinking spends from the same budget). Haiku 4.5
+// caps at 64k total output.
+function defaultMaxTokens(model: string): number {
+  return /haiku/.test(model) ? 32000 : 64000;
+}
 
 async function proxyAnthropic(
   body: Record<string, unknown>,
@@ -266,12 +281,16 @@ async function proxyAnthropic(
     .filter((m) => m.role !== 'system')
     .map((m) => ({ role: m.role, content: toAnthropicContent(m.content) }));
 
+  const model = String(body.model ?? '');
   const anthropicBody: Record<string, unknown> = {
     model: body.model,
-    max_tokens: (body.max_tokens as number) ?? 8192,
+    max_tokens: (body.max_tokens as number) ?? defaultMaxTokens(model),
     stream: body.stream ?? true,
     messages: conversationMsgs,
   };
+  if (ADAPTIVE_THINKING_RE.test(model)) {
+    anthropicBody.thinking = { type: 'adaptive', display: 'summarized' };
+  }
   if (systemMsg) {
     anthropicBody.system = contentText(systemMsg.content);
   }
@@ -295,9 +314,11 @@ async function proxyAnthropic(
   }
 
   if (!body.stream) {
-    // Non-streaming: translate Anthropic response to OpenAI format
+    // Non-streaming: translate Anthropic response to OpenAI format.
+    // Thinking blocks can precede the text block — find the text explicitly.
     const data = await upstream.json();
-    const content = data.content?.[0]?.text ?? '';
+    const content =
+      data.content?.find((b: { type?: string }) => b.type === 'text')?.text ?? '';
     if (communityEmail) {
       recordCommunityUsage(
         communityEmail,
@@ -347,12 +368,35 @@ async function proxyAnthropic(
               const parsed = JSON.parse(data);
               if (parsed.type === 'message_start' && parsed.message?.usage) {
                 inputTokens = Number(parsed.message.usage.input_tokens ?? 0);
-              } else if (parsed.type === 'message_delta' && parsed.usage) {
-                outputTokens = Number(parsed.usage.output_tokens ?? outputTokens);
+              } else if (parsed.type === 'message_delta') {
+                if (parsed.usage) {
+                  outputTokens = Number(parsed.usage.output_tokens ?? outputTokens);
+                }
+                // Tell the client WHY generation stopped — "length" means the
+                // reply was cut off at max_tokens and may end mid-file
+                if (parsed.delta?.stop_reason) {
+                  const finish =
+                    parsed.delta.stop_reason === 'max_tokens' ? 'length' : 'stop';
+                  const chunk = {
+                    choices: [{ index: 0, delta: {}, finish_reason: finish }],
+                  };
+                  controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+                }
               } else if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
                 // Emit as OpenAI-format SSE
                 const chunk = {
                   choices: [{ index: 0, delta: { content: parsed.delta.text } }],
+                };
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+              } else if (
+                parsed.type === 'content_block_delta' &&
+                parsed.delta?.type === 'thinking_delta' &&
+                parsed.delta?.thinking
+              ) {
+                // Summarized reasoning → progress signal for the client UI
+                // (reasoning_content is the de-facto OpenAI-format field)
+                const chunk = {
+                  choices: [{ index: 0, delta: { reasoning_content: parsed.delta.thinking } }],
                 };
                 controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
               }

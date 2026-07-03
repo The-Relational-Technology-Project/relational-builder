@@ -24,7 +24,7 @@ export const useProviderStore = create<ProviderState>()(
   persist(
     (set, get) => ({
       activeProviderId: 'claude',
-      activeModelId: 'claude-sonnet-5',
+      activeModelId: 'claude-opus-4-8',
       apiKeys: {},
       availableModels: [],
 
@@ -74,8 +74,8 @@ export const useProviderStore = create<ProviderState>()(
     }),
     {
       name: 'rb-provider-config',
-      version: 3,
-      migrate: (persisted) => {
+      version: 4,
+      migrate: (persisted, version) => {
         const state = persisted as Partial<ProviderState>;
 
         // v1: persisted configs may point at retired Anthropic model IDs
@@ -95,16 +95,19 @@ export const useProviderStore = create<ProviderState>()(
           state.activeModelId = 'claude-sonnet-5';
         }
 
-        // v3: Sonnet 5 became the default. Anyone keyless still sitting on
-        // Opus (the old default they never chose) moves to Sonnet once —
-        // Opus stays available as an explicit choice that spends the
-        // community budget faster.
+        // v3 moved keyless builders Opus→Sonnet to protect the pilot budget.
+        // v4 reverses it: Opus 4.8 is the community default — early adopters
+        // deserve the best experience, and budgets got a lot bigger. Only
+        // keyless builders on Sonnet (the default they never chose) move;
+        // run it only when upgrading from ≤3 so a deliberate later switch
+        // back to Sonnet sticks.
         if (
+          version <= 3 &&
           state.activeProviderId === 'claude' &&
-          state.activeModelId === 'claude-opus-4-8' &&
+          state.activeModelId === 'claude-sonnet-5' &&
           !state.apiKeys?.['claude']
         ) {
-          state.activeModelId = 'claude-sonnet-5';
+          state.activeModelId = 'claude-opus-4-8';
         }
 
         return state as ProviderState;

@@ -91,6 +91,48 @@ function CollapsedCode({
   );
 }
 
+/**
+ * What's happening during the wait — the phase, elapsed time, and the model's
+ * own summarized thinking streaming past. Long waits should never look dead.
+ */
+function GenerationStatus() {
+  const progress = useChatStore(s => s.progress);
+  const startedAt = progress?.startedAt;
+  const [, tick] = useState(0);
+  useEffect(() => {
+    if (!startedAt) return;
+    const t = setInterval(() => tick(n => n + 1), 1000);
+    return () => clearInterval(t);
+  }, [startedAt]);
+  if (!progress) return null;
+
+  const secs = Math.max(0, Math.floor((Date.now() - progress.startedAt) / 1000));
+  const elapsed = secs >= 60 ? `${Math.floor(secs / 60)}m ${secs % 60}s` : `${secs}s`;
+  const label =
+    progress.phase === 'waiting'
+      ? 'Reaching Claude…'
+      : progress.phase === 'thinking'
+        ? 'Thinking it through…'
+        : 'Writing — files land in the chat and Files tab as they finish…';
+  const snippet =
+    progress.phase === 'thinking'
+      ? progress.thinking.replace(/\s+/g, ' ').trim().slice(-140)
+      : '';
+
+  return (
+    <div className="pl-1 space-y-1">
+      <p className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Loader2 className="size-3.5 animate-spin shrink-0" />
+        <span>{label}</span>
+        {secs >= 3 && <span className="text-muted-foreground/60 tabular-nums">{elapsed}</span>}
+      </p>
+      {snippet && (
+        <p className="text-sm text-muted-foreground/70 italic truncate">…{snippet}</p>
+      )}
+    </div>
+  );
+}
+
 interface MessageListProps {
   messages: DisplayMessage[];
   onBuildPlan?: () => void;
@@ -141,7 +183,7 @@ export function MessageList({ messages, onBuildPlan, isGenerating }: MessageList
           return (
             <div key={msg.id}>
               {newSitting && (
-                <p className="text-center text-[11px] text-muted-foreground/70 pt-2 pb-3">
+                <p className="text-center text-xs text-muted-foreground/70 pt-2 pb-3">
                   {formatSitting(msg.timestamp)}
                 </p>
               )}
@@ -149,8 +191,9 @@ export function MessageList({ messages, onBuildPlan, isGenerating }: MessageList
             </div>
           );
         })}
+        {isGenerating && <GenerationStatus />}
         {reviewing && (
-          <p className="text-[11px] text-muted-foreground pl-1 animate-pulse">
+          <p className="text-sm text-muted-foreground pl-1 animate-pulse">
             Giving the build a quick once-over…
           </p>
         )}
@@ -199,7 +242,7 @@ function MessageBubble({ message }: { message: DisplayMessage }) {
   return (
     <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
       <div
-        className={`text-sm ${
+        className={`text-[0.9375rem] ${
           isUser
             ? 'max-w-[85%] rounded-xl px-4 py-2.5 bg-primary text-primary-foreground'
             : message.isPlan
@@ -208,7 +251,7 @@ function MessageBubble({ message }: { message: DisplayMessage }) {
         }`}
       >
         {message.isPlan && (
-          <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1.5">
+          <div className="text-xs uppercase tracking-wide text-muted-foreground mb-1.5">
             Build plan
           </div>
         )}
@@ -229,7 +272,7 @@ function MessageBubble({ message }: { message: DisplayMessage }) {
             <p className="whitespace-pre-wrap">{message.content}</p>
           </div>
         ) : (
-          <div className="prose prose-sm dark:prose-invert max-w-none prose-pre:p-0 prose-pre:bg-transparent">
+          <div className="prose prose-sm dark:prose-invert max-w-none prose-pre:p-0 prose-pre:bg-transparent prose-p:text-[0.9375rem] prose-li:text-[0.9375rem]">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
@@ -283,7 +326,7 @@ function MessageBubble({ message }: { message: DisplayMessage }) {
       {checkpoint && (
         <div className="mt-1 pl-1">
           {isLatest ? (
-            <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
+            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
               <History className="size-2.5" />
               {checkpoint.label} · current
             </span>
@@ -294,7 +337,7 @@ function MessageBubble({ message }: { message: DisplayMessage }) {
                   restoreCheckpoint(checkpoint.id);
                 }
               }}
-              className="inline-flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground underline decoration-dotted"
+              className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground underline decoration-dotted"
               title="Put the project files back to how they were after this change"
             >
               <History className="size-2.5" />

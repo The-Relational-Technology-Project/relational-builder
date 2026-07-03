@@ -119,15 +119,30 @@ export function ChatPanel() {
     const controller = new AbortController();
     setAbortController(controller);
     setIsGenerating(true);
+    useChatStore.getState().beginProgress();
+    let finishReason: string | null = null;
+    let sawToken = false;
 
     try {
       await provider.chat(
         chatMessages,
         activeModelId,
         {
-          onToken: (token) => appendToMessage(msgId, token),
+          onToken: (token) => {
+            if (!sawToken) {
+              sawToken = true;
+              useChatStore.getState().progressWriting();
+            }
+            appendToMessage(msgId, token);
+          },
+          onReasoning: (text) => useChatStore.getState().progressReasoning(text),
+          onFinishReason: (reason) => { finishReason = reason; },
           onComplete: () => {
+            useChatStore.getState().endProgress();
             finalizeMessage(msgId);
+            // The reply hit the output cap mid-file — ask for the rest once,
+            // through the fix channel (fix sends never re-arm, so no loop)
+            const truncated = finishReason === 'length';
             // Extract code blocks into the virtual file system (build mode only)
             if (currentMode === 'build') {
               const msg = useChatStore.getState().messages.find(m => m.id === msgId);
@@ -138,12 +153,19 @@ export function ChatPanel() {
                 if (warnings.length > 0) {
                   appendToMessage(msgId, `\n\n> ⚠️ ${warnings.join(' ')}`);
                 }
-                // Arm exactly one automatic error→fix pass after normal builds
-                useChatStore.setState({ autoFixArmed: !wasFix });
-                // …and one background quality review (thrown errors win the
-                // race; fix sends are never re-reviewed, so neither can loop)
-                if (!wasFix && messageProducedFiles(msg.content)) {
-                  runQualityReview(content);
+                if (truncated && !wasFix) {
+                  appendToMessage(msgId, '\n\n> ⚠️ That reply hit the length limit — asking for the rest automatically.');
+                  useChatStore.getState().queueFix(
+                    'Your previous reply was cut off by the output limit, likely mid-file. Re-output the file that was cut off — complete, from its first line — plus any files you had planned but not yet written. Do not repeat files that were already complete.',
+                  );
+                } else {
+                  // Arm exactly one automatic error→fix pass after normal builds
+                  useChatStore.setState({ autoFixArmed: !wasFix });
+                  // …and one background quality review (thrown errors win the
+                  // race; fix sends are never re-reviewed, so neither can loop)
+                  if (!wasFix && messageProducedFiles(msg.content)) {
+                    runQualityReview(content);
+                  }
                 }
               }
             }
@@ -151,6 +173,7 @@ export function ChatPanel() {
             setAbortController(null);
           },
           onError: (error) => {
+            useChatStore.getState().endProgress();
             appendToMessage(msgId, `\n\n**Error:** ${error.message}`);
             finalizeMessage(msgId);
             setIsGenerating(false);
@@ -160,6 +183,7 @@ export function ChatPanel() {
         controller.signal,
       );
     } catch (err) {
+      useChatStore.getState().endProgress();
       if (!controller.signal.aborted) {
         const msg = err instanceof Error ? err.message : String(err);
         appendToMessage(msgId, `\n\n**Error:** ${msg}`);
@@ -196,6 +220,7 @@ export function ChatPanel() {
   const handleStop = useCallback(() => {
     const controller = useChatStore.getState().abortController;
     controller?.abort();
+    useChatStore.getState().endProgress();
     setIsGenerating(false);
     setAbortController(null);
     // Finalize any streaming message

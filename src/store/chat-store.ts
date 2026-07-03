@@ -5,6 +5,17 @@ import { buildSystemPrompt } from '@/knowledge/context-builder';
 
 export type ChatMode = 'plan' | 'build';
 
+export interface GenerationProgress {
+  startedAt: number;
+  /** waiting → thinking (reasoning streams) → writing (reply streams) */
+  phase: 'waiting' | 'thinking' | 'writing';
+  /** Rolling tail of the model's summarized reasoning */
+  thinking: string;
+}
+
+/** Keep only the readable tail of the reasoning feed */
+const THINKING_TAIL_CHARS = 600;
+
 export interface DisplayMessage {
   id: string;
   role: 'user' | 'assistant';
@@ -39,6 +50,15 @@ interface ChatState {
   queueFix: (content: string) => void;
   /** True while the background quality review reads the build */
   reviewing: boolean;
+  /** Live generation progress — what's happening during the wait
+   *  (transient: never persisted, cleared when generation ends) */
+  progress: GenerationProgress | null;
+  beginProgress: () => void;
+  /** Streamed reasoning summary — flips the phase to "thinking" */
+  progressReasoning: (text: string) => void;
+  /** First reply token — flips the phase to "writing" */
+  progressWriting: () => void;
+  endProgress: () => void;
   /** Prefill the input without sending (e.g. answering a plan question) */
   draftMessage: string | null;
   setDraftMessage: (content: string | null) => void;
@@ -83,6 +103,23 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
   autoFixArmed: false,
   queueFix: (content: string) => set({ queuedMessage: content, pendingFixSend: true }),
   reviewing: false,
+
+  progress: null,
+  beginProgress: () =>
+    set({ progress: { startedAt: Date.now(), phase: 'waiting', thinking: '' } }),
+  progressReasoning: (text: string) =>
+    set(state => {
+      if (!state.progress) return state;
+      const thinking = (state.progress.thinking + text).slice(-THINKING_TAIL_CHARS);
+      return { progress: { ...state.progress, phase: 'thinking' as const, thinking } };
+    }),
+  progressWriting: () =>
+    set(state =>
+      state.progress && state.progress.phase !== 'writing'
+        ? { progress: { ...state.progress, phase: 'writing' as const } }
+        : state,
+    ),
+  endProgress: () => set({ progress: null }),
 
   draftMessage: null,
   setDraftMessage: (content: string | null) => set({ draftMessage: content }),

@@ -119,10 +119,19 @@ export class OpenAICompatibleProvider implements LLMProvider {
 
           try {
             const parsed = JSON.parse(data);
-            const token = parsed.choices?.[0]?.delta?.content;
+            const choice = parsed.choices?.[0];
+            const token = choice?.delta?.content;
             if (token) {
               fullText += token;
               callbacks.onToken(token);
+            }
+            // Reasoning-capable providers (DeepSeek et al.) stream thinking here
+            const reasoning = choice?.delta?.reasoning_content;
+            if (reasoning) {
+              callbacks.onReasoning?.(reasoning);
+            }
+            if (choice?.finish_reason) {
+              callbacks.onFinishReason?.(choice.finish_reason);
             }
           } catch {
             // skip malformed JSON chunks

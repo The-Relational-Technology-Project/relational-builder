@@ -32,12 +32,23 @@ function toAnthropicContent(content: string | ContentPart[]): unknown {
 const PROXY_URL = import.meta.env.VITE_LLM_PROXY_URL ?? '';
 
 // Claude 5 family + current 4.x. Aliases only — no date suffixes.
-// Sonnet first: it's the default and what the community tier steers to.
+// Opus first: it's the default for free community builds — early adopters
+// get the best model; smart throttling to Sonnet can come later.
 export const CLAUDE_MODELS: ModelInfo[] = [
-  { id: 'claude-sonnet-5', name: 'Claude Sonnet 5', provider: 'claude' },
   { id: 'claude-opus-4-8', name: 'Claude Opus 4.8', provider: 'claude' },
+  { id: 'claude-sonnet-5', name: 'Claude Sonnet 5', provider: 'claude' },
   { id: 'claude-haiku-4-5', name: 'Claude Haiku 4.5', provider: 'claude' },
 ];
+
+// Real multi-file builds need far more than the old 8192 — adaptive thinking
+// spends from the same budget. Haiku 4.5 caps at 64k output tokens total.
+function maxTokensFor(model: string): number {
+  return /haiku/.test(model) ? 32000 : 64000;
+}
+
+// Models on the adaptive-thinking API surface (explicit config beats Sonnet
+// 5's silent default; summarized display streams reasoning back as progress)
+const ADAPTIVE_THINKING_RE = /opus-4-[78]|sonnet-5|fable/;
 
 export class ClaudeProvider implements LLMProvider {
   readonly id = 'claude';
@@ -110,7 +121,7 @@ export class ClaudeProvider implements LLMProvider {
       headers,
       body: JSON.stringify({
         model,
-        max_tokens: 8192,
+        max_tokens: maxTokensFor(model),
         stream: true,
         messages: messages.map(m => ({ role: m.role, content: m.content })),
       }),
@@ -143,10 +154,13 @@ export class ClaudeProvider implements LLMProvider {
 
     const body: Record<string, unknown> = {
       model,
-      max_tokens: 8192,
+      max_tokens: maxTokensFor(model),
       stream: true,
       messages: conversationMsgs,
     };
+    if (ADAPTIVE_THINKING_RE.test(model)) {
+      body.thinking = { type: 'adaptive', display: 'summarized' };
+    }
     if (systemMsg) {
       body.system = contentToText(systemMsg.content);
     }
@@ -201,10 +215,18 @@ export class ClaudeProvider implements LLMProvider {
 
           try {
             const parsed = JSON.parse(data);
-            const token = parsed.choices?.[0]?.delta?.content;
+            const choice = parsed.choices?.[0];
+            const token = choice?.delta?.content;
             if (token) {
               fullText += token;
               callbacks.onToken(token);
+            }
+            const reasoning = choice?.delta?.reasoning_content;
+            if (reasoning) {
+              callbacks.onReasoning?.(reasoning);
+            }
+            if (choice?.finish_reason) {
+              callbacks.onFinishReason?.(choice.finish_reason);
             }
           } catch {
             // skip malformed chunks
@@ -250,6 +272,16 @@ export class ClaudeProvider implements LLMProvider {
             if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
               fullText += parsed.delta.text;
               callbacks.onToken(parsed.delta.text);
+            } else if (
+              parsed.type === 'content_block_delta' &&
+              parsed.delta?.type === 'thinking_delta' &&
+              parsed.delta?.thinking
+            ) {
+              callbacks.onReasoning?.(parsed.delta.thinking);
+            } else if (parsed.type === 'message_delta' && parsed.delta?.stop_reason) {
+              callbacks.onFinishReason?.(
+                parsed.delta.stop_reason === 'max_tokens' ? 'length' : 'stop',
+              );
             }
           } catch {
             // skip non-JSON lines

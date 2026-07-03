@@ -12,8 +12,8 @@ import {
 
 /** Short, human descriptions so choosing a model doesn't require model trivia */
 const MODEL_HINTS: Record<string, string> = {
-  'claude-sonnet-5': 'Fast and capable — great for most building',
-  'claude-opus-4-8': 'Deepest reasoning — slower, spends budget faster',
+  'claude-opus-4-8': 'The best builder — recommended for everything',
+  'claude-sonnet-5': 'Faster and lighter — great for quick tweaks',
   'claude-haiku-4-5': 'Quickest and lightest',
 };
 
@@ -50,7 +50,7 @@ export function ModelSelector() {
       </SelectTrigger>
       <SelectContent className="min-w-64 max-w-72">
         {onCommunityKey && (
-          <p className="px-2 py-1.5 text-[11px] leading-snug text-muted-foreground">
+          <p className="px-2 py-1.5 text-xs leading-snug text-muted-foreground">
             Included with community access — every model draws on the same daily budget.
           </p>
         )}
@@ -67,7 +67,7 @@ export function ModelSelector() {
               <span className="flex flex-col gap-0.5 py-0.5">
                 <span>{model.name}</span>
                 {hint && (
-                  <span className="text-[11px] text-muted-foreground whitespace-normal">
+                  <span className="text-xs text-muted-foreground whitespace-normal">
                     {covered ? hint : 'Needs your own API key'}
                   </span>
                 )}

@@ -5,10 +5,11 @@ import { useProviderStore } from '@/store/provider-store';
 
 /**
  * Models covered by the RTP community key (mirror of the proxy's allowlist).
- * Sonnet 5 is the default; Opus 4.8 is an explicit choice that spends the
- * daily community budget noticeably faster.
+ * Opus 4.8 is the default — early adopters get the best model; Sonnet 5 is
+ * the lighter choice. Smart throttling (e.g. after initial builds) can come
+ * later.
  */
-export const COMMUNITY_MODELS = ['claude-sonnet-5', 'claude-opus-4-8', 'claude-haiku-4-5'];
+export const COMMUNITY_MODELS = ['claude-opus-4-8', 'claude-sonnet-5', 'claude-haiku-4-5'];
 
 /**
  * Community access (Tier 3): RTP-subsidized Claude for invited builders.
@@ -78,14 +79,14 @@ export const useCommunityStore = create<CommunityState>()((set) => ({
     });
 
     // Community default: a member with no personal Claude key gets steered to
-    // Sonnet 5 (the pilot's covered model) instead of a model that would 403.
+    // Opus 4.8 (the pilot's flagship model) instead of a model that would 403.
     const providers = useProviderStore.getState();
     if (
       providers.activeProviderId === 'claude' &&
       !providers.apiKeys['claude'] &&
       !COMMUNITY_MODELS.includes(providers.activeModelId)
     ) {
-      providers.setActiveModel('claude-sonnet-5');
+      providers.setActiveModel('claude-opus-4-8');
     }
   },
 

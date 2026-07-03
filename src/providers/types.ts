@@ -20,6 +20,11 @@ export function contentToText(content: string | ContentPart[]): string {
 
 export interface StreamCallbacks {
   onToken: (token: string) => void;
+  /** Summarized model reasoning streamed while it thinks — a progress
+   *  signal for the UI, never part of the reply content */
+  onReasoning?: (text: string) => void;
+  /** Why generation stopped; "length" means it hit the output cap mid-reply */
+  onFinishReason?: (reason: string) => void;
   onComplete: (fullText: string) => void;
   onError: (error: Error) => void;
 }

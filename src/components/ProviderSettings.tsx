@@ -97,13 +97,13 @@ export function ProviderSettings() {
 
               {provider.id === 'claude' && communityActive && (
                 <div className="rounded-md bg-green-600/10 border border-green-600/30 px-2.5 py-1.5">
-                  <p className="text-[11px] text-foreground">
+                  <p className="text-xs text-foreground">
                     <span className="font-medium">Community access active</span> — free building
-                    courtesy of the Relational Tech Project. Sonnet 5, Opus 4.8, and Haiku 4.5
-                    are all covered by your daily budget.
+                    courtesy of the Relational Tech Project. Opus 4.8 (the best builder),
+                    Sonnet 5, and Haiku 4.5 are all covered by your daily budget.
                   </p>
                   {dailyBudget > 0 && (
-                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                    <p className="text-xs text-muted-foreground mt-0.5">
                       Today: {Math.round(usedToday / 1000)}k of {Math.round(dailyBudget / 1000)}k tokens used.
                       Add your own key below anytime to use other models.
                     </p>
@@ -186,7 +186,7 @@ export function ProviderSettings() {
                       useKnowledgeStore.setState({ loaded: false, error: null });
                       loadAll();
                     }}
-                    className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground underline"
+                    className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground underline"
                   >
                     <RefreshCw className="size-3" />
                     Retry
