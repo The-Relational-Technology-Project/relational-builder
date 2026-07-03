@@ -34,7 +34,6 @@ export interface NetworkPrompt {
   body: string;
   share_slug: string;
   author_name: string | null;
-  owner_id: string;
   updated_at: string;
 }
 
@@ -137,9 +136,12 @@ export async function listPromptVersions(promptId: string): Promise<PromptVersio
  */
 export async function listNetworkPrompts(limit = 12): Promise<NetworkPrompt[]> {
   if (!builderClient) return [];
+  // owner_id is deliberately NOT selected — it's revoked from the anon key
+  // (a stable user UUID shouldn't reach anonymous clients). Exclude your
+  // own via the slugs from listMyPrompts, not by owner id.
   const { data } = await builderClient
     .from('prompts')
-    .select('title, body, share_slug, author_name, owner_id, updated_at')
+    .select('title, body, share_slug, author_name, updated_at')
     .eq('is_shared', true)
     .not('share_slug', 'is', null)
     .order('updated_at', { ascending: false })

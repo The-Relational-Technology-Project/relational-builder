@@ -133,7 +133,7 @@ Deno.serve(async (req: Request) => {
     if (action === 'auth_signout') {
       const token = String(body.member_token ?? '');
       if (token) {
-        await fetch(restUrl(`/app_sessions?token=eq.${encodeURIComponent(token)}&app_id=eq.${appId}`), {
+        await fetch(restUrl(`/app_sessions?token=eq.${encodeURIComponent(token)}&app_id=eq.${encodeURIComponent(appId)}`), {
           method: 'DELETE',
           headers: svcHeaders(),
         });
@@ -151,7 +151,7 @@ Deno.serve(async (req: Request) => {
         const visFilter = member ? '' : `&visibility=eq.public`;
         const res = await fetch(
           restUrl(
-            `/app_documents?app_id=eq.${appId}&collection=eq.${encodeURIComponent(collection)}` +
+            `/app_documents?app_id=eq.${encodeURIComponent(appId)}&collection=eq.${encodeURIComponent(collection)}` +
             `&select=id,data,member_id,member_name,visibility,created_at,updated_at&order=created_at.desc&limit=${limit}${visFilter}`,
           ),
           { headers: svcHeaders() },
@@ -163,7 +163,7 @@ Deno.serve(async (req: Request) => {
         const id = String(body.id ?? '');
         if (!id) return json({ error: 'id required' }, 400);
         const res = await fetch(
-          restUrl(`/app_documents?id=eq.${encodeURIComponent(id)}&app_id=eq.${appId}&select=id,data,member_id,member_name,visibility,created_at,updated_at`),
+          restUrl(`/app_documents?id=eq.${encodeURIComponent(id)}&app_id=eq.${encodeURIComponent(appId)}&select=id,data,member_id,member_name,visibility,created_at,updated_at`),
           { headers: svcHeaders() },
         );
         const docs = await res.json();
@@ -184,7 +184,7 @@ Deno.serve(async (req: Request) => {
         }
         // Soft cap on total docs per app
         const countRes = await fetch(
-          restUrl(`/app_documents?app_id=eq.${appId}&select=id`),
+          restUrl(`/app_documents?app_id=eq.${encodeURIComponent(appId)}&select=id`),
           { headers: { ...svcHeaders(), Prefer: 'count=exact', Range: '0-0' } },
         );
         const total = Number(countRes.headers.get('content-range')?.split('/')[1] ?? 0);
@@ -231,7 +231,7 @@ Deno.serve(async (req: Request) => {
         const owned = await ownershipCheck(appId, id, member);
         if (owned !== true) return owned;
         const res = await fetch(
-          restUrl(`/app_documents?id=eq.${encodeURIComponent(id)}&app_id=eq.${appId}`),
+          restUrl(`/app_documents?id=eq.${encodeURIComponent(id)}&app_id=eq.${encodeURIComponent(appId)}`),
           {
             method: 'PATCH',
             headers: { ...svcHeaders(), Prefer: 'return=representation' },
@@ -249,7 +249,7 @@ Deno.serve(async (req: Request) => {
         const owned = await ownershipCheck(appId, id, member);
         if (owned !== true) return owned;
         await fetch(
-          restUrl(`/app_documents?id=eq.${encodeURIComponent(id)}&app_id=eq.${appId}`),
+          restUrl(`/app_documents?id=eq.${encodeURIComponent(id)}&app_id=eq.${encodeURIComponent(appId)}`),
           { method: 'DELETE', headers: svcHeaders() },
         );
         return json({ ok: true });
@@ -272,13 +272,15 @@ interface Member {
 const CODE_TTL_MS = 10 * 60 * 1000;
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const MAX_CODES_PER_HOUR = 5;
+/** Wrong-guess cap per issued sign-in code — defeats brute-forcing a 6-digit code */
+const MAX_VERIFY_ATTEMPTS = 6;
 
 /** Resolve a member from a session token (null when absent/expired) */
 async function resolveMember(appId: string, tokenRaw: unknown): Promise<Member | null> {
   const token = String(tokenRaw ?? '');
   if (!token) return null;
   const res = await fetch(
-    restUrl(`/app_sessions?token=eq.${encodeURIComponent(token)}&app_id=eq.${appId}&select=member_id,expires_at`),
+    restUrl(`/app_sessions?token=eq.${encodeURIComponent(token)}&app_id=eq.${encodeURIComponent(appId)}&select=member_id,expires_at`),
     { headers: svcHeaders() },
   );
   const sessions = res.ok ? await res.json() : [];
@@ -294,7 +296,7 @@ async function resolveMember(appId: string, tokenRaw: unknown): Promise<Member |
 /** Creator-owned documents can only change under their creator's session */
 async function ownershipCheck(appId: string, docId: string, member: Member | null): Promise<true | Response> {
   const res = await fetch(
-    restUrl(`/app_documents?id=eq.${encodeURIComponent(docId)}&app_id=eq.${appId}&select=member_id`),
+    restUrl(`/app_documents?id=eq.${encodeURIComponent(docId)}&app_id=eq.${encodeURIComponent(appId)}&select=member_id`),
     { headers: svcHeaders() },
   );
   const docs = res.ok ? await res.json() : [];
@@ -316,7 +318,7 @@ async function authRequest(appId: string, appName: string, body: Record<string, 
   // Modest per-email throttle
   const hourAgo = new Date(Date.now() - 3600_000).toISOString();
   const recentRes = await fetch(
-    restUrl(`/app_login_codes?app_id=eq.${appId}&email=eq.${encodeURIComponent(email)}&created_at=gte.${encodeURIComponent(hourAgo)}&select=id`),
+    restUrl(`/app_login_codes?app_id=eq.${encodeURIComponent(appId)}&email=eq.${encodeURIComponent(email)}&created_at=gte.${encodeURIComponent(hourAgo)}&select=id`),
     { headers: svcHeaders() },
   );
   const recent = recentRes.ok ? await recentRes.json() : [];
@@ -369,23 +371,49 @@ async function authVerify(appId: string, body: Record<string, unknown>): Promise
   const code = String(body.code ?? '').trim();
   if (!email || !code) return json({ error: 'email and code required' }, 400);
 
+  // Fetch the most recent live code for this email — NOT filtered by the
+  // submitted code — so we can count and cap guesses. This is what stops
+  // a 6-digit code from being brute-forced: at most MAX_VERIFY_ATTEMPTS
+  // tries per issued code, then it's burned.
   const codeRes = await fetch(
-    restUrl(`/app_login_codes?app_id=eq.${appId}&email=eq.${encodeURIComponent(email)}&code=eq.${encodeURIComponent(code)}&used=eq.false&select=id,name,expires_at&order=created_at.desc&limit=1`),
+    restUrl(`/app_login_codes?app_id=eq.${encodeURIComponent(appId)}&email=eq.${encodeURIComponent(email)}&used=eq.false&select=id,name,code,attempts,expires_at&order=created_at.desc&limit=1`),
     { headers: svcHeaders() },
   );
   const codes = codeRes.ok ? await codeRes.json() : [];
   if (!codes.length || new Date(codes[0].expires_at) < new Date()) {
     return json({ error: 'That code is wrong or expired — request a fresh one' }, 403);
   }
-  await fetch(restUrl(`/app_login_codes?id=eq.${codes[0].id}`), {
+  const row = codes[0];
+  const attempts = Number(row.attempts ?? 0);
+  if (attempts >= MAX_VERIFY_ATTEMPTS) {
+    // Burn it so guessing can't continue on this code
+    await fetch(restUrl(`/app_login_codes?id=eq.${encodeURIComponent(String(row.id))}`), {
+      method: 'PATCH',
+      headers: svcHeaders(),
+      body: JSON.stringify({ used: true }),
+    });
+    return json({ error: 'Too many tries — request a fresh code' }, 429);
+  }
+  if (String(row.code) !== code) {
+    // Wrong guess: count it against this code
+    await fetch(restUrl(`/app_login_codes?id=eq.${encodeURIComponent(String(row.id))}`), {
+      method: 'PATCH',
+      headers: svcHeaders(),
+      body: JSON.stringify({ attempts: attempts + 1 }),
+    });
+    return json({ error: 'That code is wrong or expired — request a fresh one' }, 403);
+  }
+  // Correct: burn the code
+  await fetch(restUrl(`/app_login_codes?id=eq.${encodeURIComponent(String(row.id))}`), {
     method: 'PATCH',
     headers: svcHeaders(),
     body: JSON.stringify({ used: true }),
   });
+  // (below, references to codes[0].name continue to work)
 
   // Upsert the member (name from the sign-in request wins when present)
   const existingRes = await fetch(
-    restUrl(`/app_members?app_id=eq.${appId}&email=eq.${encodeURIComponent(email)}&select=id,email,name`),
+    restUrl(`/app_members?app_id=eq.${encodeURIComponent(appId)}&email=eq.${encodeURIComponent(email)}&select=id,email,name`),
     { headers: svcHeaders() },
   );
   const existing = existingRes.ok ? await existingRes.json() : [];
@@ -537,7 +565,7 @@ async function handleAdmin(req: Request, body: Record<string, unknown>, action: 
       const limit = Math.min(Number(body.limit ?? 50) || 50, MAX_LIST_LIMIT);
       const res = await fetch(
         restUrl(
-          `/app_documents?app_id=eq.${appId}&collection=eq.${encodeURIComponent(collection)}` +
+          `/app_documents?app_id=eq.${encodeURIComponent(appId)}&collection=eq.${encodeURIComponent(collection)}` +
           `&select=id,data,member_id,member_name,visibility,created_at,updated_at&order=created_at.desc&limit=${limit}`,
         ),
         { headers: svcHeaders() },
@@ -549,7 +577,7 @@ async function handleAdmin(req: Request, body: Record<string, unknown>, action: 
       const id = String(body.id ?? '');
       if (!id) return json({ error: 'id required' }, 400);
       await fetch(
-        restUrl(`/app_documents?id=eq.${encodeURIComponent(id)}&app_id=eq.${appId}`),
+        restUrl(`/app_documents?id=eq.${encodeURIComponent(id)}&app_id=eq.${encodeURIComponent(appId)}`),
         { method: 'DELETE', headers: svcHeaders() },
       );
       return json({ ok: true });
@@ -557,7 +585,7 @@ async function handleAdmin(req: Request, body: Record<string, unknown>, action: 
 
     case 'admin_members': {
       const res = await fetch(
-        restUrl(`/app_members?app_id=eq.${appId}&select=id,email,name,created_at&order=created_at.desc&limit=200`),
+        restUrl(`/app_members?app_id=eq.${encodeURIComponent(appId)}&select=id,email,name,created_at&order=created_at.desc&limit=200`),
         { headers: svcHeaders() },
       );
       return json({ members: await res.json() });
@@ -566,7 +594,7 @@ async function handleAdmin(req: Request, body: Record<string, unknown>, action: 
     case 'admin_rename_app': {
       const name = String(body.name ?? '').trim().slice(0, 120);
       if (!name) return json({ error: 'name required' }, 400);
-      await fetch(restUrl(`/cloud_apps?id=eq.${appId}`), {
+      await fetch(restUrl(`/cloud_apps?id=eq.${encodeURIComponent(appId)}`), {
         method: 'PATCH',
         headers: svcHeaders(),
         body: JSON.stringify({ name }),
@@ -576,7 +604,7 @@ async function handleAdmin(req: Request, body: Record<string, unknown>, action: 
 
     case 'admin_delete_app': {
       // FKs cascade: documents, members, sessions, and codes go with the app
-      await fetch(restUrl(`/cloud_apps?id=eq.${appId}`), {
+      await fetch(restUrl(`/cloud_apps?id=eq.${encodeURIComponent(appId)}`), {
         method: 'DELETE',
         headers: svcHeaders(),
       });

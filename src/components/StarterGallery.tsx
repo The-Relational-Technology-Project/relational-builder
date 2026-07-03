@@ -9,7 +9,7 @@ import {
   type StudioBuildPlan,
 } from '@/knowledge/studio-plans';
 import { remixRepo } from '@/project/remix';
-import { listNetworkPrompts, plantSharedPrompt, type NetworkPrompt } from '@/cloud/prompts';
+import { listNetworkPrompts, listMyPrompts, plantSharedPrompt, type NetworkPrompt } from '@/cloud/prompts';
 import { useAuthStore } from '@/store/auth-store';
 import { Badge } from '@/components/ui/badge';
 import { Shuffle, FileDown, Loader2, ScrollText } from 'lucide-react';
@@ -36,9 +36,16 @@ export function StarterGallery({ disabled }: { disabled?: boolean }) {
 
   useEffect(() => {
     listSharedBuildPlans(4).then(setPlans).catch(() => {});
-    // The network prompt library — other builders' shared seeds
-    listNetworkPrompts(8)
-      .then(all => setNetworkPrompts(all.filter(p => p.owner_id !== userId).slice(0, 4)))
+    // The network prompt library — other builders' shared seeds. Exclude
+    // your own by slug (owner_id is no longer exposed to the client).
+    Promise.all([
+      listNetworkPrompts(8),
+      userId ? listMyPrompts().catch(() => []) : Promise.resolve([]),
+    ])
+      .then(([all, mine]) => {
+        const mySlugs = new Set(mine.map(p => p.share_slug).filter(Boolean));
+        setNetworkPrompts(all.filter(p => !mySlugs.has(p.share_slug)).slice(0, 4));
+      })
       .catch(() => {});
   }, [userId]);
 
