@@ -49,13 +49,13 @@ export function FilePanel() {
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={adding}
-          className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground disabled:opacity-50"
+          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground disabled:opacity-50"
           title="Add one of your own photos to the project — real, local images beat any illustration"
         >
           {adding ? <Loader2 className="size-3 animate-spin" /> : <ImagePlus className="size-3" />}
           Add photo
         </button>
-        {notice && <span className="text-[10px] text-muted-foreground truncate">{notice}</span>}
+        {notice && <span className="text-xs text-muted-foreground truncate">{notice}</span>}
       </div>
       <div className="flex flex-1 min-h-0">
         {/* File tree sidebar */}

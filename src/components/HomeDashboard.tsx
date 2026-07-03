@@ -133,7 +133,7 @@ function SignedInDashboard({ onSelectIdea, disabled, composer }: HomeDashboardPr
                     )}
                     <span className="text-[15px] font-medium truncate">{p.name}</span>
                     {p.owner_id !== user?.id && (
-                      <Badge variant="outline" className="text-[10px] shrink-0 ml-auto">shared</Badge>
+                      <Badge variant="outline" className="text-xs shrink-0 ml-auto">shared</Badge>
                     )}
                   </div>
                   {promptByProject.get(p.id) ? (

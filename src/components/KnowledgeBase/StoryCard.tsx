@@ -11,7 +11,7 @@ export function StoryCard({ story }: StoryCardProps) {
   return (
     <div className="border rounded-lg p-3 text-xs space-y-1.5 hover:bg-muted/50 transition-colors">
       <h4 className="font-medium text-foreground leading-tight">{title}</h4>
-      <p className="text-[10px] text-muted-foreground font-medium">
+      <p className="text-xs text-muted-foreground font-medium">
         {story.attribution}
       </p>
       <p className="text-muted-foreground leading-relaxed">

@@ -121,3 +121,20 @@ everything exportable — no enclosure, including by us.
   versions (a prompt evolves as the app does; keep the trail), and
   screenshots alongside prompts in the gallery (needs a preview-capture
   path; Sandpack iframes are cross-origin).
+
+- **Show consequences, not fine print (July 4 audit)** — the tiny-text audit
+  (docs/TINY-TEXT-AUDIT.md) found ~10 places where a muted explainer papers
+  over UI that should speak for itself. The pattern for fixes: inline state
+  feedback where the choice is made — "1 of 3 free sites" badges on Publish,
+  per-variable public/secret consequences in Env, a live "Saved · synced"
+  indicator on cloud projects, one-click "Ask AI to fix it" per security
+  finding. Two copy-level wins shipped July 4; the structural ones are queued
+  here.
+
+- **Smart model throttling (July 4)** — Opus 4.8 is now the default for free
+  community builds with a 5M/day budget, on the belief that early adopters
+  deserve the best experience. When cost matters: throttle smartly rather
+  than flatly — e.g. Opus for planning + first builds of a project, Sonnet 5
+  for follow-up edits; or step down only after a builder's Nth build of the
+  day. The proxy already knows per-member usage; the client already knows
+  build-vs-edit.

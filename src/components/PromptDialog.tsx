@@ -207,7 +207,7 @@ export function PromptDialog() {
               </div>
 
               {canSave && !currentProjectId && (
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   Save this project to the cloud to keep and share its prompt.
                 </p>
               )}
@@ -219,14 +219,14 @@ export function PromptDialog() {
                       <Globe className="size-3.5 text-muted-foreground" />
                       {shareUrl ? 'Shared — anyone with the link can build from it' : 'Share this prompt'}
                     </p>
-                    <Button variant="outline" size="sm" className="h-6 text-[11px]" onClick={handleShareToggle}>
+                    <Button variant="outline" size="sm" className="h-6 text-xs" onClick={handleShareToggle}>
                       {shareUrl ? 'Stop sharing' : 'Share'}
                     </Button>
                   </div>
                   {shareUrl && (
                     <button
                       onClick={() => copy('link', shareUrl)}
-                      className="w-full flex items-center gap-1.5 rounded-md border px-2 py-1.5 text-[11px] font-mono text-muted-foreground hover:text-foreground truncate"
+                      className="w-full flex items-center gap-1.5 rounded-md border px-2 py-1.5 text-xs font-mono text-muted-foreground hover:text-foreground truncate"
                       title="Copy the remix link"
                     >
                       <Link2 className="size-3 shrink-0" />
@@ -294,21 +294,21 @@ function VersionHistory({
             <div className="p-3 flex justify-center"><Loader2 className="size-3.5 animate-spin text-muted-foreground" /></div>
           )}
           {versions?.length === 0 && (
-            <p className="p-2.5 text-[11px] text-muted-foreground">No saves yet — history starts at your first save.</p>
+            <p className="p-2.5 text-xs text-muted-foreground">No saves yet — history starts at your first save.</p>
           )}
           {versions?.map(v => {
             const isCurrent = v.body === currentBody;
             return (
               <div key={v.id} className="flex items-center gap-2 px-2.5 py-1.5">
-                <span className="text-[11px] font-medium shrink-0">v{v.version}</span>
-                <span className="text-[11px] text-muted-foreground truncate flex-1">
+                <span className="text-xs font-medium shrink-0">v{v.version}</span>
+                <span className="text-xs text-muted-foreground truncate flex-1">
                   {new Date(v.created_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
                   {isCurrent ? ' · matches editor' : ''}
                 </span>
                 {!isCurrent && (
                   <button
                     onClick={() => onRestore(v)}
-                    className="text-[11px] text-muted-foreground hover:text-foreground underline decoration-dotted shrink-0"
+                    className="text-xs text-muted-foreground hover:text-foreground underline decoration-dotted shrink-0"
                     title="Load this version into the editor"
                   >
                     Restore

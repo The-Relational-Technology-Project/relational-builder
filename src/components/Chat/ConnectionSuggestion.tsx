@@ -80,7 +80,7 @@ export function ConnectionSuggestion({ conversationText }: { conversationText: s
           {builder.name} might be good to talk to
         </span>
         {builder.neighborhood && (
-          <span className="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground shrink-0">
+          <span className="inline-flex items-center gap-0.5 text-xs text-muted-foreground shrink-0">
             <MapPin className="size-2.5" />
             {builder.neighborhood}
           </span>
@@ -94,7 +94,7 @@ export function ConnectionSuggestion({ conversationText }: { conversationText: s
         </button>
       </div>
       {builder.note && (
-        <p className="text-[11px] text-muted-foreground">"{builder.note}"</p>
+        <p className="text-xs text-muted-foreground">"{builder.note}"</p>
       )}
       <div className="flex gap-3 items-center">
         {builder.cal_link && (
@@ -102,21 +102,21 @@ export function ConnectionSuggestion({ conversationText }: { conversationText: s
             href={builder.cal_link}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline"
+            className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
           >
             <CalendarClock className="size-3" />
             Book a call
           </a>
         )}
         {builder.allow_requests && (sent ? (
-          <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+          <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
             <Check className="size-3" />
             Request sent — if they accept, you'll both get an intro email
           </span>
         ) : !requesting && (
           <button
             onClick={() => setRequesting(true)}
-            className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
+            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
           >
             <MailPlus className="size-3" />
             Request intro
@@ -133,16 +133,16 @@ export function ConnectionSuggestion({ conversationText }: { conversationText: s
             className="h-8 text-xs"
           />
           <div className="flex gap-2 justify-end">
-            <Button variant="ghost" size="sm" className="h-6 text-[11px]" onClick={() => setRequesting(false)} disabled={busy}>
+            <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setRequesting(false)} disabled={busy}>
               Cancel
             </Button>
-            <Button size="sm" className="h-6 text-[11px]" onClick={sendRequest} disabled={busy || !message.trim()}>
+            <Button size="sm" className="h-6 text-xs" onClick={sendRequest} disabled={busy || !message.trim()}>
               {busy ? <Loader2 className="size-3 animate-spin" /> : 'Send request'}
             </Button>
           </div>
         </div>
       )}
-      {error && <p className="text-[11px] text-destructive">{error}</p>}
+      {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   );
 }

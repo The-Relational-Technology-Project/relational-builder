@@ -102,7 +102,7 @@ function ConnectView({ onConnected }: { onConnected: () => void }) {
           className="h-8 text-sm font-mono"
           onKeyDown={e => e.key === 'Enter' && handleConnect()}
         />
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           Needs <code className="bg-muted px-1 rounded">repo</code> scope.{' '}
           <a
             href="https://github.com/settings/tokens/new?scopes=repo&description=Relational+Builder"
@@ -184,7 +184,7 @@ function RepoListView() {
     <div className="space-y-3 pt-2">
       <div className="flex items-center justify-between">
         <p className="text-xs text-muted-foreground">Signed in as <span className="font-medium text-foreground">{username}</span></p>
-        <button onClick={clearAll} className="text-[11px] text-muted-foreground hover:text-foreground underline">
+        <button onClick={clearAll} className="text-xs text-muted-foreground hover:text-foreground underline">
           Sign out
         </button>
       </div>
@@ -236,7 +236,7 @@ function RepoListView() {
               className="w-full text-left px-2 py-1.5 rounded hover:bg-muted transition-colors"
             >
               <div className="text-xs font-medium truncate">{repo.full_name}</div>
-              <div className="text-[11px] text-muted-foreground">
+              <div className="text-xs text-muted-foreground">
                 {repo.private ? 'Private' : 'Public'} · {repo.default_branch}
               </div>
             </button>
@@ -340,7 +340,7 @@ function ConnectedView() {
           >
             {connectedRepo.fullName} <ExternalLink className="size-2.5" />
           </a>
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Branch: {connectedRepo.branch}
             {connectedRepo.lastSyncSha && (
               <> · Last sync: {connectedRepo.lastSyncSha.slice(0, 7)}</>
@@ -349,7 +349,7 @@ function ConnectedView() {
         </div>
         <button
           onClick={disconnectRepo}
-          className="text-[11px] text-muted-foreground hover:text-foreground"
+          className="text-xs text-muted-foreground hover:text-foreground"
           title="Disconnect"
         >
           <Unplug className="size-3.5" />

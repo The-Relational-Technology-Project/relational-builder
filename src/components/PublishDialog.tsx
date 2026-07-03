@@ -181,7 +181,7 @@ export function PublishDialog() {
               placeholder="my-community-app"
               className="h-8 text-sm"
             />
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               {fileCount} file{fileCount !== 1 ? 's' : ''} with .reltech.yml manifest
             </p>
           </div>
@@ -212,7 +212,7 @@ export function PublishDialog() {
           {activeTarget === 'community' && (
             <div className="rounded-lg border border-dashed border-green-600/40 bg-green-600/5 p-3 space-y-1">
               <p className="text-xs font-medium">🌱 Free hosting from the Relational Tech Project</p>
-              <p className="text-[11px] text-muted-foreground leading-relaxed">
+              <p className="text-xs text-muted-foreground leading-relaxed">
                 One click, no accounts or tokens — your app goes live at a shareable
                 link with simple visit counts. Every builder gets 3 sites
                 (republish anytime by using the same name).
@@ -232,7 +232,7 @@ export function PublishDialog() {
                 placeholder="nfp_..."
                 className="h-8 text-sm font-mono"
               />
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 Get one at{' '}
                 <a
                   href="https://app.netlify.com/user/applications#personal-access-tokens"
@@ -257,7 +257,7 @@ export function PublishDialog() {
                 placeholder="..."
                 className="h-8 text-sm font-mono"
               />
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 Get one at{' '}
                 <a
                   href="https://vercel.com/account/tokens"
@@ -284,7 +284,7 @@ export function PublishDialog() {
                 placeholder="myapp.ourneighborhood.org"
                 className="h-8 text-sm"
               />
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 You'll need to update DNS records with your domain registrar after deploying.
               </p>
             </div>
@@ -299,13 +299,13 @@ export function PublishDialog() {
               </p>
               <div className="space-y-1 max-h-32 overflow-y-auto">
                 {scanFindings.slice(0, 8).map((f, i) => (
-                  <p key={i} className="text-[11px] text-destructive/90">
+                  <p key={i} className="text-xs text-destructive/90">
                     <span className="font-mono">{f.path}:{f.line}</span> — {f.issue}
-                    <span className="block font-mono text-[10px] opacity-70 truncate">{f.snippet}</span>
+                    <span className="block font-mono text-xs opacity-70 truncate">{f.snippet}</span>
                   </p>
                 ))}
               </div>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 Anything published is public. Move secrets to the Env tab (marked
                 secret) and ask the AI to use <code>env</code> instead — or publish
                 anyway if you're sure these are safe.
@@ -373,7 +373,7 @@ export function PublishDialog() {
                 {result.url} <ExternalLink className="size-2.5" />
               </a>
               {result.totalViews !== undefined && result.totalViews > 0 && (
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   {result.totalViews.toLocaleString()} visit{result.totalViews === 1 ? '' : 's'} so far
                 </p>
               )}
@@ -382,11 +382,11 @@ export function PublishDialog() {
               {result.dnsInstructions && result.dnsInstructions.length > 0 && (
                 <div className="mt-2 pt-2 border-t space-y-1.5">
                   <p className="text-xs font-medium">DNS setup for your custom domain:</p>
-                  <p className="text-[11px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     Add this record with your domain registrar:
                   </p>
                   <div className="bg-background rounded border overflow-hidden">
-                    <table className="w-full text-[11px]">
+                    <table className="w-full text-xs">
                       <thead>
                         <tr className="border-b bg-muted/30">
                           <th className="px-2 py-1 text-left font-medium">Type</th>
@@ -405,7 +405,7 @@ export function PublishDialog() {
                       </tbody>
                     </table>
                   </div>
-                  <p className="text-[10px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     DNS changes can take up to 48 hours to propagate. SSL is automatic.
                   </p>
                 </div>
@@ -422,7 +422,7 @@ export function PublishDialog() {
                 <li>Unzip and push to a new GitHub repository</li>
                 <li>
                   Add the{' '}
-                  <code className="bg-muted px-1 rounded text-[11px]">relational-tech</code>{' '}
+                  <code className="bg-muted px-1 rounded text-xs">relational-tech</code>{' '}
                   topic to your repo
                 </li>
                 <li>

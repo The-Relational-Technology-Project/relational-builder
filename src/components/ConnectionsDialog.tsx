@@ -89,7 +89,7 @@ export function ConnectionsDialog({ open, onOpenChange }: { open: boolean; onOpe
                   onChange={e => setCalLink(e.target.value)}
                   placeholder="https://cal.com/you or Calendly"
                 />
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   Sharing this shows a "Book a call" button on your card — leave it
                   empty if you'd rather not be bookable directly.
                 </p>

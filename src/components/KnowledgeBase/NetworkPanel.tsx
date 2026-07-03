@@ -41,12 +41,12 @@ export function NetworkPanel() {
             href="https://updates.relationaltechproject.org"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-1"
+            className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
           >
             Full feed <ExternalLink className="size-2.5" />
           </a>
         </div>
-        <p className="text-[10px] text-muted-foreground mt-0.5">
+        <p className="text-xs text-muted-foreground mt-0.5">
           Recent updates from relational tech builders
         </p>
       </div>
@@ -83,7 +83,7 @@ function FeedCard({ entry }: { entry: FeedEntry }) {
             >
               {entry.repo.name}
             </a>
-            <span className="text-[10px] text-muted-foreground shrink-0">{timeAgo}</span>
+            <span className="text-xs text-muted-foreground shrink-0">{timeAgo}</span>
           </div>
           <p className="text-xs text-muted-foreground leading-relaxed">{entry.summary}</p>
           {entry.tags.length > 0 && (
@@ -91,7 +91,7 @@ function FeedCard({ entry }: { entry: FeedEntry }) {
               {entry.tags.slice(0, 4).map(tag => (
                 <span
                   key={tag}
-                  className="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded"
+                  className="text-xs bg-muted text-muted-foreground px-1.5 py-0.5 rounded"
                 >
                   {tag}
                 </span>

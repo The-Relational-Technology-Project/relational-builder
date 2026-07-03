@@ -57,7 +57,7 @@ export function PasscodeGate({ children }: { children: ReactNode }) {
             Enter
           </Button>
         </div>
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           Curious about the project?{' '}
           <a
             href="https://github.com/The-Relational-Technology-Project/relational-builder"

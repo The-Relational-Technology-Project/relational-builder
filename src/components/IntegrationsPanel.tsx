@@ -25,7 +25,7 @@ export function IntegrationsPanel() {
       {INTEGRATIONS.map(def => (
         <IntegrationCard key={def.id} def={def} isConnected={connected.has(def.id)} />
       ))}
-      <p className="text-[11px] text-muted-foreground leading-relaxed px-1 pt-1">
+      <p className="text-xs text-muted-foreground leading-relaxed px-1 pt-1">
         The AI writes code for whatever you connect. Public keys flow into the
         live preview; secret keys only reach Netlify or Vercel when you deploy.
       </p>
@@ -68,13 +68,13 @@ function IntegrationCard({ def, isConnected }: { def: IntegrationDef; isConnecte
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium">{def.name}</span>
             {isConnected && (
-              <Badge className="text-[10px] gap-0.5 bg-green-600 hover:bg-green-600">
+              <Badge className="text-xs gap-0.5 bg-green-600 hover:bg-green-600">
                 <Check className="size-2.5" />
                 Connected
               </Badge>
             )}
           </div>
-          <p className="text-[11px] text-muted-foreground">{def.tagline}</p>
+          <p className="text-xs text-muted-foreground">{def.tagline}</p>
         </div>
         {isConnected ? (
           <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs shrink-0" onClick={handleDisconnect}>
@@ -97,9 +97,9 @@ function IntegrationCard({ def, isConnected }: { def: IntegrationDef; isConnecte
         <div className="space-y-2 pt-1">
           {def.fields.map(f => (
             <div key={f.envKey} className="space-y-1">
-              <label className="text-[11px] font-medium flex items-center gap-1.5">
+              <label className="text-xs font-medium flex items-center gap-1.5">
                 {f.label}
-                <code className="text-[10px] text-muted-foreground font-normal">{f.envKey}</code>
+                <code className="text-xs text-muted-foreground font-normal">{f.envKey}</code>
                 {f.isSecret && <Badge variant="outline" className="text-[9px]">secret</Badge>}
               </label>
               <Input
@@ -116,7 +116,7 @@ function IntegrationCard({ def, isConnected }: { def: IntegrationDef; isConnecte
               href={def.keysUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[11px] text-muted-foreground underline hover:text-foreground inline-flex items-center gap-1"
+              className="text-xs text-muted-foreground underline hover:text-foreground inline-flex items-center gap-1"
             >
               {def.keysLabel} <ExternalLink className="size-2.5" />
             </a>
@@ -124,7 +124,7 @@ function IntegrationCard({ def, isConnected }: { def: IntegrationDef; isConnecte
               Connect {def.name}
             </Button>
           </div>
-          <p className="text-[10px] text-muted-foreground leading-relaxed">{def.setupHint}</p>
+          <p className="text-xs text-muted-foreground leading-relaxed">{def.setupHint}</p>
         </div>
       )}
     </div>

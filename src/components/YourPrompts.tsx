@@ -60,7 +60,7 @@ export function YourPrompts({
               <ScrollText className="size-4 text-muted-foreground shrink-0" />
               <span className="text-[15px] font-medium truncate">{p.title}</span>
               {p.is_shared && (
-                <span className="ml-auto shrink-0 text-[10px] rounded-full border border-green-600/40 text-green-700 dark:text-green-400 px-1.5 py-0.5">
+                <span className="ml-auto shrink-0 text-xs rounded-full border border-green-600/40 text-green-700 dark:text-green-400 px-1.5 py-0.5">
                   shared
                 </span>
               )}
@@ -71,7 +71,7 @@ export function YourPrompts({
             <div className="flex items-center gap-2 pt-0.5 text-muted-foreground">
               <button
                 onClick={() => buildFromPrompt(p)}
-                className="inline-flex items-center gap-1 text-[11px] hover:text-foreground"
+                className="inline-flex items-center gap-1 text-xs hover:text-foreground"
                 title="Plant it in the composer — grow a fresh version"
               >
                 <Hammer className="size-3" />
@@ -79,7 +79,7 @@ export function YourPrompts({
               </button>
               <button
                 onClick={() => copy(`p-${p.id}`, p.body)}
-                className="inline-flex items-center gap-1 text-[11px] hover:text-foreground"
+                className="inline-flex items-center gap-1 text-xs hover:text-foreground"
                 title="Copy the prompt"
               >
                 {copied === `p-${p.id}` ? <Check className="size-3 text-green-600" /> : <Copy className="size-3" />}
@@ -91,7 +91,7 @@ export function YourPrompts({
                     ? copy(`l-${p.id}`, promptShareUrl(p.share_slug))
                     : toggleShare(p)
                 }
-                className="inline-flex items-center gap-1 text-[11px] hover:text-foreground"
+                className="inline-flex items-center gap-1 text-xs hover:text-foreground"
                 title={p.is_shared ? 'Copy the share link' : 'Share as a link'}
               >
                 {copied === `l-${p.id}` ? <Check className="size-3 text-green-600" /> : <Link2 className="size-3" />}

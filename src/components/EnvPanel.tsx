@@ -34,7 +34,7 @@ export function EnvPanel() {
             <Plus className="size-3.5" />
           </Button>
         </div>
-        <p className="text-[11px] text-muted-foreground leading-relaxed">
+        <p className="text-xs text-muted-foreground leading-relaxed">
           Add API keys and config. Public vars are injected into the preview.
           Secret vars are only sent at deploy time.
         </p>
@@ -82,7 +82,7 @@ export function EnvPanel() {
         <div className="px-3 py-2 border-t bg-muted/30">
           <div className="flex items-start gap-1.5">
             <AlertTriangle className="size-3 text-amber-500 mt-0.5 shrink-0" />
-            <p className="text-[10px] text-muted-foreground leading-relaxed">
+            <p className="text-xs text-muted-foreground leading-relaxed">
               Secret vars are stored locally and sent only to deploy platforms
               (Netlify/Vercel). They are never included in shared previews.
             </p>
@@ -134,7 +134,7 @@ function AddVarForm({
         <button
           onClick={() => setIsSecret(!isSecret)}
           className={cn(
-            'inline-flex items-center gap-1 text-[11px] rounded px-1.5 py-0.5 transition-colors',
+            'inline-flex items-center gap-1 text-xs rounded px-1.5 py-0.5 transition-colors',
             isSecret
               ? 'bg-amber-500/10 text-amber-600'
               : 'bg-muted text-muted-foreground hover:text-foreground',
@@ -213,7 +213,7 @@ function EnvVarRow({
               setEditValue(envVar.value);
               setEditing(true);
             }}
-            className="p-1 rounded hover:bg-muted text-[10px] text-muted-foreground hover:text-foreground"
+            className="p-1 rounded hover:bg-muted text-xs text-muted-foreground hover:text-foreground"
           >
             Edit
           </button>
@@ -232,19 +232,19 @@ function EnvVarRow({
             value={editValue}
             onChange={(e) => setEditValue(e.target.value)}
             type={envVar.isSecret ? 'password' : 'text'}
-            className="h-6 text-[11px] font-mono flex-1"
+            className="h-6 text-xs font-mono flex-1"
             autoFocus
             onKeyDown={(e) => {
               if (e.key === 'Enter') handleSave();
               if (e.key === 'Escape') setEditing(false);
             }}
           />
-          <Button size="sm" className="h-6 text-[10px] px-2" onClick={handleSave}>
+          <Button size="sm" className="h-6 text-xs px-2" onClick={handleSave}>
             Save
           </Button>
         </div>
       ) : (
-        <p className="text-[11px] font-mono text-muted-foreground truncate">
+        <p className="text-xs font-mono text-muted-foreground truncate">
           {showValue ? envVar.value : '•'.repeat(Math.min(envVar.value.length, 24))}
         </p>
       )}

@@ -156,7 +156,7 @@ function UnsupportedPreview({ fileCount }: { fileCount: number }) {
     <div className="flex items-center justify-center h-full px-6">
       <div className="max-w-sm text-center space-y-3">
         <Boxes className="size-8 mx-auto text-muted-foreground/70" />
-        <p className="text-sm font-medium">This one runs after you deploy</p>
+        <p className="text-sm font-medium">Your app is fine — it just runs after you publish</p>
         <p className="text-xs text-muted-foreground leading-relaxed">
           You remixed a full app ({fileCount} files) built with Vite and path
           aliases — more build tooling than the instant in-browser preview can

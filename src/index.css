@@ -136,6 +136,9 @@
     }
   html {
     @apply font-sans;
+    /* Slightly larger root: every rem-based size (nearly all our type)
+       scales up together — reading the Builder shouldn't mean squinting. */
+    font-size: 17px;
     }
   h1, h2, h3 {
     font-family: var(--font-heading);

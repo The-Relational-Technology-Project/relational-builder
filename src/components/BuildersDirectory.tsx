@@ -53,7 +53,7 @@ export function BuildersDirectory() {
         </p>
         <button
           onClick={() => setSettingsOpen(true)}
-          className="text-[11px] text-muted-foreground hover:text-foreground underline decoration-dotted"
+          className="text-xs text-muted-foreground hover:text-foreground underline decoration-dotted"
         >
           {profile?.open_to_connecting ? 'Your connection settings' : 'Open yourself to connecting'}
         </button>
@@ -66,7 +66,7 @@ export function BuildersDirectory() {
             <HeartHandshake className="size-3.5 text-primary shrink-0" />
             RTP stewards
           </div>
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Advising, gift builds (we build your first version with you),
             Builder walkthroughs, partnership exploration.
           </p>
@@ -75,14 +75,14 @@ export function BuildersDirectory() {
               href={STEWARD_CAL}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline"
+              className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
             >
               <CalendarClock className="size-3" />
               Book a call
             </a>
             <a
               href="mailto:humans@relationaltechproject.org"
-              className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
+              className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
             >
               <MailPlus className="size-3" />
               Write to us
@@ -95,20 +95,20 @@ export function BuildersDirectory() {
             <div className="flex items-center gap-1.5 text-xs font-medium">
               <span className="truncate">{b.name}</span>
               {b.neighborhood && (
-                <span className="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground font-normal shrink-0">
+                <span className="inline-flex items-center gap-0.5 text-xs text-muted-foreground font-normal shrink-0">
                   <MapPin className="size-2.5" />
                   {b.neighborhood}
                 </span>
               )}
             </div>
-            {b.note && <p className="text-[11px] text-muted-foreground">{b.note}</p>}
+            {b.note && <p className="text-xs text-muted-foreground">{b.note}</p>}
             {(b.prompts?.length ?? 0) > 0 && (
               <div className="flex flex-wrap gap-1 pt-0.5">
                 {b.prompts!.map(p => (
                   <button
                     key={p.slug}
                     onClick={() => plantSharedPrompt(p.slug)}
-                    className="inline-flex items-center gap-1 rounded-full border border-dashed px-2 py-0.5 text-[10px] text-muted-foreground hover:text-foreground hover:border-foreground/40 transition-colors"
+                    className="inline-flex items-center gap-1 rounded-full border border-dashed px-2 py-0.5 text-xs text-muted-foreground hover:text-foreground hover:border-foreground/40 transition-colors"
                     title={`Grow your own version of "${p.title}"`}
                   >
                     <ScrollText className="size-2.5" />
@@ -123,21 +123,21 @@ export function BuildersDirectory() {
                   href={b.cal_link}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline"
+                  className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
                 >
                   <CalendarClock className="size-3" />
                   Book a call
                 </a>
               )}
               {b.allow_requests && (sentIds.has(b.id) ? (
-                <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
                   <Check className="size-3" />
                   Request sent — if they accept, you'll both get an intro email
                 </span>
               ) : requestingId === b.id ? null : (
                 <button
                   onClick={() => { setRequestingId(b.id); setMessage(''); setError(null); }}
-                  className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
+                  className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
                 >
                   <MailPlus className="size-3" />
                   Request intro
@@ -154,14 +154,14 @@ export function BuildersDirectory() {
                   className="h-8 text-xs"
                 />
                 <div className="flex gap-2 justify-end">
-                  <Button variant="ghost" size="sm" className="h-6 text-[11px]" onClick={() => setRequestingId(null)} disabled={busy}>
+                  <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setRequestingId(null)} disabled={busy}>
                     Cancel
                   </Button>
-                  <Button size="sm" className="h-6 text-[11px]" onClick={() => sendRequest(b.id)} disabled={busy || !message.trim()}>
+                  <Button size="sm" className="h-6 text-xs" onClick={() => sendRequest(b.id)} disabled={busy || !message.trim()}>
                     {busy ? <Loader2 className="size-3 animate-spin" /> : 'Send request'}
                   </Button>
                 </div>
-                <p className="text-[10px] text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   They get your note by email with accept/decline links. Only if they
                   accept do you both receive an intro — declining is silent.
                 </p>
@@ -170,7 +170,7 @@ export function BuildersDirectory() {
           </div>
         ))}
       </div>
-      {error && <p className="text-[11px] text-destructive">{error}</p>}
+      {error && <p className="text-xs text-destructive">{error}</p>}
 
       {settingsOpen && <ConnectionsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />}
     </div>

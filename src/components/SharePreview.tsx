@@ -105,7 +105,7 @@ function ShareContent() {
           )}
         </Button>
 
-        <p className="text-[11px] text-muted-foreground text-center">
+        <p className="text-xs text-muted-foreground text-center">
           Hosted on CodeSandbox — free, no account required
         </p>
       </div>
@@ -119,7 +119,7 @@ function ShareContent() {
         <div className="flex items-center gap-1.5">
           <Eye className="size-3.5 text-muted-foreground" />
           <label className="text-xs font-medium">Preview link</label>
-          <span className="text-[10px] text-muted-foreground ml-auto">
+          <span className="text-xs text-muted-foreground ml-auto">
             Share this with neighbors
           </span>
         </div>
@@ -152,7 +152,7 @@ function ShareContent() {
         <div className="flex items-center gap-1.5">
           <Code2 className="size-3.5 text-muted-foreground" />
           <label className="text-xs font-medium">Editor link</label>
-          <span className="text-[10px] text-muted-foreground ml-auto">
+          <span className="text-xs text-muted-foreground ml-auto">
             View &amp; edit the code
           </span>
         </div>
@@ -180,7 +180,7 @@ function ShareContent() {
         </div>
       </div>
 
-      <p className="text-[11px] text-muted-foreground text-center">
+      <p className="text-xs text-muted-foreground text-center">
         Preview links stay live on CodeSandbox. Anyone with the link can view the app.
       </p>
     </div>

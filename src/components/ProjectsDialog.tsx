@@ -82,7 +82,7 @@ export function ProjectsDialog() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium">{currentProjectName}</span>
-                    <Badge variant="secondary" className="text-[10px]">
+                    <Badge variant="secondary" className="text-xs">
                       {isOwner ? 'Owner' : 'Editor'}
                     </Badge>
                   </div>
@@ -205,10 +205,10 @@ export function ProjectsDialog() {
                     <div className="truncate font-medium text-xs">
                       {p.name}
                       {p.owner_id !== user.id && (
-                        <Badge variant="outline" className="ml-2 text-[10px]">shared with you</Badge>
+                        <Badge variant="outline" className="ml-2 text-xs">shared with you</Badge>
                       )}
                     </div>
-                    <div className="text-[10px] text-muted-foreground">
+                    <div className="text-xs text-muted-foreground">
                       Updated {new Date(p.updated_at).toLocaleString()}
                     </div>
                   </div>
@@ -243,7 +243,7 @@ export function ProjectsDialog() {
 
             {error && <p className="text-xs text-destructive">{error}</p>}
 
-            <p className="text-[11px] text-muted-foreground leading-relaxed">
+            <p className="text-xs text-muted-foreground leading-relaxed">
               Opening a cloud project replaces your current workspace. Edits
               auto-save and sync to collaborators within a couple of seconds
               (last save wins per project).

@@ -21,7 +21,7 @@ export function ToolCard({ tool }: ToolCardProps) {
           </a>
         )}
       </div>
-      <span className="inline-block text-[10px] bg-muted px-1.5 py-0.5 rounded font-medium">
+      <span className="inline-block text-xs bg-muted px-1.5 py-0.5 rounded font-medium">
         {tool.tool_category}
       </span>
       <p className="text-muted-foreground leading-relaxed">

@@ -102,7 +102,7 @@ function TabButton({
       {icon}
       {label}
       {badge !== undefined && (
-        <span className="bg-muted text-muted-foreground text-[10px] px-1 rounded">
+        <span className="bg-muted text-muted-foreground text-xs px-1 rounded">
           {badge}
         </span>
       )}

@@ -146,7 +146,7 @@ export function StarterGallery({ disabled }: { disabled?: boolean }) {
               <span className="text-xs font-medium truncate">{tool.name}</span>
               <Badge variant="outline" className="text-[9px] ml-auto shrink-0">starter</Badge>
             </div>
-            <p className="text-[11px] text-muted-foreground line-clamp-2">
+            <p className="text-xs text-muted-foreground line-clamp-2">
               {tool.summary ?? tool.description}
             </p>
           </button>
@@ -167,7 +167,7 @@ export function StarterGallery({ disabled }: { disabled?: boolean }) {
               <span className="text-xs font-medium truncate">{plan.title}</span>
               <Badge variant="outline" className="text-[9px] ml-auto shrink-0">plan</Badge>
             </div>
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               A shared build plan from the Studio — lands in chat as your starting draft.
             </p>
           </button>
@@ -188,17 +188,17 @@ export function StarterGallery({ disabled }: { disabled?: boolean }) {
               <span className="text-xs font-medium truncate">{p.title}</span>
               <Badge variant="outline" className="text-[9px] ml-auto shrink-0">prompt</Badge>
             </div>
-            <p className="text-[11px] text-muted-foreground line-clamp-2">
+            <p className="text-xs text-muted-foreground line-clamp-2">
               {p.body}
             </p>
             {p.author_name && (
-              <p className="text-[10px] text-muted-foreground/70">shared by {p.author_name}</p>
+              <p className="text-xs text-muted-foreground/70">shared by {p.author_name}</p>
             )}
           </button>
         ))}
       </div>
-      {error && <p className="text-[11px] text-destructive">{error}</p>}
-      <p className="text-[11px] text-muted-foreground">
+      {error && <p className="text-xs text-destructive">{error}</p>}
+      <p className="text-xs text-muted-foreground">
         Live from the network. Each one starts you with a prompt or plan to
         shape for your neighborhood — you build fresh, and credit travels with
         your version. To fork a tool's actual code, use Remix.

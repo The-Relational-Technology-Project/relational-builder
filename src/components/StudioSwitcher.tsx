@@ -43,7 +43,7 @@ export function StudioSwitcher() {
         </span>
       </SelectTrigger>
       <SelectContent className="max-w-64">
-        <p className="px-2 py-1.5 text-[11px] leading-snug text-muted-foreground">
+        <p className="px-2 py-1.5 text-xs leading-snug text-muted-foreground">
           Your studio — its principles and lineage travel with everything you build.
         </p>
         {options.map(studio => (
@@ -57,7 +57,7 @@ export function StudioSwitcher() {
             </span>
           </SelectItem>
         ))}
-        <p className="px-2 pt-1.5 pb-1 text-[11px] text-muted-foreground/70 border-t mt-1">
+        <p className="px-2 pt-1.5 pb-1 text-xs text-muted-foreground/70 border-t mt-1">
           More studios on the way
         </p>
       </SelectContent>

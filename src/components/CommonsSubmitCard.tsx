@@ -41,7 +41,7 @@ export function CommonsSubmitCard({
           <Check className="size-3.5 text-green-600" />
           <p className="text-xs font-medium">Shared with the commons</p>
         </div>
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           A steward will review it — once approved it joins the library and
           appears in the network feed, credited to {builderName}.
         </p>
@@ -85,7 +85,7 @@ export function CommonsSubmitCard({
 
       {expanded && (
         <div className="space-y-2">
-          <p className="text-[11px] text-muted-foreground leading-relaxed">
+          <p className="text-xs text-muted-foreground leading-relaxed">
             Offer this build back to the network so other neighborhoods can
             find and remix it. A steward reviews every contribution before it
             becomes public. You'll be credited by name.
@@ -117,7 +117,7 @@ export function CommonsSubmitCard({
               className="h-7 text-xs"
             />
           )}
-          <label className="flex items-start gap-2 text-[11px] text-muted-foreground cursor-pointer">
+          <label className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer">
             <input
               type="checkbox"
               checked={consented}
@@ -130,7 +130,7 @@ export function CommonsSubmitCard({
               and I want it offered to the commons.
             </span>
           </label>
-          {error && <p className="text-[11px] text-destructive">{error}</p>}
+          {error && <p className="text-xs text-destructive">{error}</p>}
           <Button
             size="sm"
             className="h-7 text-xs gap-1.5"

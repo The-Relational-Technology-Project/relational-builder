@@ -64,10 +64,12 @@ export function CloudPanel() {
       <div className="h-full flex items-center justify-center p-6">
         <div className="text-center space-y-2 max-w-xs">
           <Cloud className="size-8 mx-auto text-muted-foreground/60" />
-          <p className="text-sm font-medium">Community Cloud</p>
+          <p className="text-sm font-medium">
+            Sign in to give your apps shared data — no setup
+          </p>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Sign in and your apps get a shared data store hosted by RTP —
-            no database setup, no keys to paste.
+            Boards, RSVPs, and sign-ups your neighbors all see, hosted by RTP.
+            No database to create, no keys to paste.
           </p>
         </div>
       </div>
@@ -111,7 +113,7 @@ export function CloudPanel() {
 
         {overview && overview.apps.length > 0 && (
           <div className="space-y-2">
-            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
               App backends
             </p>
             {overview.apps.map(app => (
@@ -178,7 +180,7 @@ function ThisProjectCard({
               <Plug className="size-3.5 text-green-600 shrink-0" />
               <span className="truncate">{connectedApp?.name ?? 'Connected backend'}</span>
             </p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               This project reads and writes here — the AI uses it automatically.
             </p>
           </div>
@@ -201,7 +203,7 @@ function ThisProjectCard({
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
           <p className="text-sm font-medium">This project has no backend yet</p>
-          <p className="text-[11px] text-muted-foreground mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5">
             One click adds shared data — boards, RSVPs, sign-ups just work.
           </p>
         </div>
@@ -217,7 +219,7 @@ function ThisProjectCard({
         </div>
       </div>
       {atLimit && !choosing && (
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           You're using all {overview?.limits.max_apps} free backends — reuse one below, or remove one you no longer need.
         </p>
       )}
@@ -237,7 +239,7 @@ function ThisProjectCard({
           ))}
         </div>
       )}
-      {error && <p className="text-[11px] text-destructive">{error}</p>}
+      {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   );
 }
@@ -273,13 +275,13 @@ function AppCard({
         <Database className="size-3.5 text-muted-foreground shrink-0" />
         <span className="text-sm font-medium truncate">{app.name}</span>
         {app.app_id === connectedAppId && (
-          <Badge variant="outline" className="text-[10px] shrink-0 border-green-600/50 text-green-700 dark:text-green-400">
+          <Badge variant="outline" className="text-xs shrink-0 border-green-600/50 text-green-700 dark:text-green-400">
             this project
           </Badge>
         )}
         <ChevronRight className="size-3.5 text-muted-foreground ml-auto shrink-0 group-hover:translate-x-0.5 transition-transform" />
       </div>
-      <div className="flex items-center gap-3 mt-2 text-[11px] text-muted-foreground">
+      <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
         <span>{app.doc_count.toLocaleString()} documents</span>
         <span>{app.member_count.toLocaleString()} neighbors</span>
         <span className="ml-auto">{formatBytes(app.bytes)} of {formatBytes(limits.max_bytes)}</span>
@@ -344,7 +346,7 @@ function DetailTabButton({
     >
       {icon}
       {label}
-      {badge !== undefined && <span className="text-[10px] text-muted-foreground">{badge}</span>}
+      {badge !== undefined && <span className="text-xs text-muted-foreground">{badge}</span>}
     </button>
   );
 }
@@ -397,7 +399,7 @@ function DataBrowser({ appId }: { appId: string }) {
         >
           <FileJson className="size-3.5 text-muted-foreground shrink-0" />
           <span className="text-sm font-medium truncate">{c.collection}</span>
-          <span className="text-[11px] text-muted-foreground ml-auto shrink-0">
+          <span className="text-xs text-muted-foreground ml-auto shrink-0">
             {c.doc_count.toLocaleString()} · {formatBytes(c.bytes)}
           </span>
           <ChevronRight className="size-3.5 text-muted-foreground shrink-0 group-hover:translate-x-0.5 transition-transform" />
@@ -465,17 +467,17 @@ function DocumentsView({
             </button>
             {isOpen && (
               <div className="border-t px-3 py-2 space-y-2 bg-muted/30">
-                <pre className="text-[11px] font-mono whitespace-pre-wrap break-all max-h-56 overflow-y-auto">
+                <pre className="text-xs font-mono whitespace-pre-wrap break-all max-h-56 overflow-y-auto">
                   {JSON.stringify(doc.data, null, 2)}
                 </pre>
-                <div className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
+                <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
                   <span>
                     {doc.member_name ? `by ${doc.member_name}` : 'anonymous'} · {new Date(doc.created_at).toLocaleString()}
                   </span>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-6 gap-1 text-[11px] text-destructive hover:text-destructive"
+                    className="h-6 gap-1 text-xs text-destructive hover:text-destructive"
                     onClick={() => handleDelete(doc.id)}
                   >
                     <Trash2 className="size-3" />
@@ -524,9 +526,9 @@ function NeighborsView({ appId }: { appId: string }) {
           <div key={m.id} className="flex items-center gap-2 px-3 py-2">
             <div className="min-w-0">
               <p className="text-sm truncate">{m.name || m.email}</p>
-              {m.name && <p className="text-[11px] text-muted-foreground truncate">{m.email}</p>}
+              {m.name && <p className="text-xs text-muted-foreground truncate">{m.email}</p>}
             </div>
-            <span className="text-[11px] text-muted-foreground ml-auto shrink-0">
+            <span className="text-xs text-muted-foreground ml-auto shrink-0">
               joined {new Date(m.created_at).toLocaleDateString()}
             </span>
           </div>
@@ -591,7 +593,7 @@ function AppSettings({
       <div className="space-y-1.5">
         <label className="text-xs font-medium">Storage</label>
         <UsageBar value={app.bytes} max={limits.max_bytes} />
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           {formatBytes(app.bytes)} of {formatBytes(limits.max_bytes)} · {app.doc_count.toLocaleString()} of {limits.max_docs.toLocaleString()} documents
         </p>
       </div>
@@ -600,7 +602,7 @@ function AppSettings({
         <label className="text-xs font-medium">Connection</label>
         <CopyRow label="App ID" value={app.app_id} />
         <CopyRow label="App key" value={app.app_key} secret />
-        <p className="text-[11px] text-muted-foreground leading-relaxed">
+        <p className="text-xs text-muted-foreground leading-relaxed">
           These ship inside the app's pages, so everything stored here is
           community-public by design — great for shared neighborhood info,
           never for secrets.
@@ -609,7 +611,7 @@ function AppSettings({
 
       <div className="rounded-lg border border-destructive/30 p-3 space-y-1.5">
         <p className="text-xs font-medium text-destructive">Remove this backend</p>
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           Deletes all its data and neighbor accounts, and frees one of your {limits.max_apps} slots.
         </p>
         <Button
@@ -631,8 +633,8 @@ function CopyRow({ label, value, secret }: { label: string; value: string; secre
   const [copied, setCopied] = useState(false);
   return (
     <div className="flex items-center gap-2 rounded-md border px-2.5 py-1.5">
-      <span className="text-[11px] text-muted-foreground shrink-0 w-14">{label}</span>
-      <code className="text-[11px] font-mono truncate flex-1">
+      <span className="text-xs text-muted-foreground shrink-0 w-14">{label}</span>
+      <code className="text-xs font-mono truncate flex-1">
         {secret ? value.slice(0, 6) + '••••••••' : value}
       </code>
       <button

@@ -103,7 +103,7 @@ export function YourSites() {
                   {site.name}
                   <ExternalLink className="size-3 text-muted-foreground" />
                 </a>
-                <div className="ml-auto flex items-center gap-3 text-[11px] text-muted-foreground shrink-0">
+                <div className="ml-auto flex items-center gap-3 text-xs text-muted-foreground shrink-0">
                   {site.daily && site.daily.length > 0 && <ViewSparkline daily={site.daily} />}
                   <span className="inline-flex items-center gap-1" title={`${site.week_views} this week`}>
                     <Eye className="size-3" />
@@ -125,7 +125,7 @@ export function YourSites() {
                       <Button
                         variant="destructive"
                         size="sm"
-                        className="h-5 px-1.5 text-[10px]"
+                        className="h-5 px-1.5 text-xs"
                         onClick={() => handleDelete(site.slug)}
                         disabled={deleting !== null}
                       >
@@ -134,7 +134,7 @@ export function YourSites() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-5 px-1.5 text-[10px]"
+                        className="h-5 px-1.5 text-xs"
                         onClick={() => setConfirming(null)}
                         disabled={deleting !== null}
                       >
@@ -168,7 +168,7 @@ export function YourSites() {
           );
         })}
       </div>
-      <p className="text-[11px] text-muted-foreground">
+      <p className="text-xs text-muted-foreground">
         Neighbors can leave notes right on your site — they land here.
       </p>
     </div>

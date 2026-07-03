@@ -74,7 +74,7 @@ export function KBPanel() {
                 useKnowledgeStore.setState({ loaded: false, error: null });
                 loadAll();
               }}
-              className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground underline"
+              className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground underline"
             >
               <RefreshCw className="size-3" />
               Retry
@@ -104,7 +104,7 @@ function TabButton({ active, onClick, label }: { active: boolean; onClick: () =>
   return (
     <button
       onClick={onClick}
-      className={`text-[10px] px-2 py-0.5 rounded transition-colors ${
+      className={`text-xs px-2 py-0.5 rounded transition-colors ${
         active
           ? 'bg-foreground text-background font-medium'
           : 'text-muted-foreground hover:text-foreground'

@@ -187,7 +187,7 @@ export function MessageInput({
 
       {mentionMatches.length > 0 && (
         <div className="mb-2 rounded-lg border bg-popover shadow-md max-w-sm overflow-hidden">
-          <p className="px-2.5 pt-2 pb-1 text-[10px] uppercase tracking-wide text-muted-foreground">
+          <p className="px-2.5 pt-2 pb-1 text-xs uppercase tracking-wide text-muted-foreground">
             Reference one of your apps
           </p>
           {mentionMatches.map(m => (
@@ -200,7 +200,7 @@ export function MessageInput({
                 ? <FolderOpen className="size-3 text-muted-foreground shrink-0" />
                 : <Globe className="size-3 text-muted-foreground shrink-0" />}
               <span className="truncate">{m.name}</span>
-              <span className="ml-auto text-[10px] text-muted-foreground shrink-0">
+              <span className="ml-auto text-xs text-muted-foreground shrink-0">
                 {m.kind === 'project' ? 'project' : 'live site'}
               </span>
             </button>

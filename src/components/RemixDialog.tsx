@@ -62,7 +62,7 @@ export function RemixDialog() {
             continue or fork it — paste any public GitHub repo. Lineage is
             recorded automatically, so credit travels with your version.
           </p>
-          <p className="text-[11px] text-muted-foreground leading-relaxed">
+          <p className="text-xs text-muted-foreground leading-relaxed">
             Most of the time you want <strong>Start from the Studio</strong> on
             the home screen instead — it hands you a prompt to shape and build
             fresh, which previews here and adapts to your neighborhood. Forking

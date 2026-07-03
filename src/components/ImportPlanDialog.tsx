@@ -102,7 +102,7 @@ export function ImportPlanDialog() {
                 Fetch
               </Button>
             </div>
-            {fetchError && <p className="text-[11px] text-destructive">{fetchError}</p>}
+            {fetchError && <p className="text-xs text-destructive">{fetchError}</p>}
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="plan-text" className="text-xs">Build plan (markdown)</Label>
