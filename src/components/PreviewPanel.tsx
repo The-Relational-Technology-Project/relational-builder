@@ -10,7 +10,7 @@ import { useEnvStore } from '@/store/env-store';
 import { useChatStore } from '@/store/chat-store';
 import { buildEnvJs, buildEnvTs } from '@/project/env-module';
 import { INSPECT_SOURCE } from '@/preview/inspect-source';
-import { Wrench, MousePointerClick, Loader2 } from 'lucide-react';
+import { Wrench, MousePointerClick, Loader2, Boxes, Sparkles } from 'lucide-react';
 
 /**
  * Live preview of the generated project using Sandpack.
@@ -27,9 +27,21 @@ export function PreviewPanel() {
   void version;
   const files = getAllFiles();
 
-  const { sandpackFiles, template } = useMemo(() => {
+  const { sandpackFiles, template, unsupported } = useMemo(() => {
     if (files.length === 0) {
-      return { sandpackFiles: null, template: 'static' as const };
+      return { sandpackFiles: null, template: 'static' as const, unsupported: false };
+    }
+
+    // Full framework projects (Vite + shadcn/Lovable exports) use a build
+    // pipeline and `@/`-style path aliases that the in-browser bundler
+    // can't resolve — remixing one and throwing it at Sandpack yields a
+    // cryptic "Could not find module" error. Detect it and explain instead.
+    const usesPathAlias = files.some(
+      f => /\.(t|j)sx?$/.test(f.path) && /(?:from|import\()\s*['"]@\//.test(f.content),
+    );
+    const hasBuildConfig = files.some(f => /(^|\/)vite\.config\.[jt]s$/.test(f.path));
+    if (usesPathAlias || hasBuildConfig) {
+      return { sandpackFiles: null, template: 'static' as const, unsupported: true };
     }
 
     const spFiles: SandpackFiles = {};
@@ -79,8 +91,12 @@ export function PreviewPanel() {
       };
     }
 
-    return { sandpackFiles: spFiles, template: tmpl };
+    return { sandpackFiles: spFiles, template: tmpl, unsupported: false };
   }, [files, publicEnvVars]);
+
+  if (unsupported) {
+    return <UnsupportedPreview fileCount={files.length} />;
+  }
 
   if (!sandpackFiles) {
     return (
@@ -114,6 +130,48 @@ export function PreviewPanel() {
         <InspectablePreview />
         <PreviewErrorBanner />
       </SandpackProvider>
+    </div>
+  );
+}
+
+/**
+ * Shown when a remixed project is a full framework app (Vite + `@/` path
+ * aliases, its own build pipeline) that the in-browser bundler can't run.
+ * The files are all here and deploy fine — this replaces a cryptic Sandpack
+ * module error with a clear explanation and a path forward.
+ */
+function UnsupportedPreview({ fileCount }: { fileCount: number }) {
+  const setDraftMessage = useChatStore(s => s.setDraftMessage);
+
+  function askToAdapt() {
+    setDraftMessage(
+      "This project is a full Vite/React app with a build setup that the in-browser preview can't run. " +
+      'Please adapt it into a single-page version that previews here: keep the look and the core features, ' +
+      'but use plain React (or plain HTML/CSS/JS) with no `@/` path aliases, no Vite/Tailwind build config, ' +
+      'and inline or CDN dependencies only. Start by telling me your plan, then build it.',
+    );
+  }
+
+  return (
+    <div className="flex items-center justify-center h-full px-6">
+      <div className="max-w-sm text-center space-y-3">
+        <Boxes className="size-8 mx-auto text-muted-foreground/70" />
+        <p className="text-sm font-medium">This one runs after you deploy</p>
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          You remixed a full app ({fileCount} files) built with Vite and path
+          aliases — more build tooling than the instant in-browser preview can
+          run. Everything's here and working: browse it in <strong>Files</strong>,
+          adapt it with the AI, and <strong>Publish</strong> or{' '}
+          <strong>Download</strong> will deploy the real thing.
+        </p>
+        <button
+          onClick={askToAdapt}
+          className="inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-medium hover:bg-muted transition-colors"
+        >
+          <Sparkles className="size-3.5 text-primary" />
+          Ask the AI to make a preview-friendly version
+        </button>
+      </div>
     </div>
   );
 }
