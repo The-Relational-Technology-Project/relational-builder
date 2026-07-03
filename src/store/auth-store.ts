@@ -32,6 +32,9 @@ interface AuthState {
   /** True once the profile row has been fetched (or there's no user) */
   profileLoaded: boolean;
   initialized: boolean;
+  /** Bumping this opens the sign-in dialog from anywhere in the app */
+  signInPromptCount: number;
+  promptSignIn: () => void;
 
   /** Wire up the Supabase auth listener — call once on app mount */
   init: () => void;
@@ -47,6 +50,8 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   profile: null,
   profileLoaded: false,
   initialized: false,
+  signInPromptCount: 0,
+  promptSignIn: () => set(s => ({ signInPromptCount: s.signInPromptCount + 1 })),
 
   init: () => {
     if (get().initialized || !builderClient) {

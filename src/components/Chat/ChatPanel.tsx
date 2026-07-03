@@ -13,7 +13,7 @@ import {
 } from '@/integrations/catalog';
 import { useCommunityStore } from '@/store/community-store';
 import { useStudioStore } from '@/store/studio-store';
-import { useAuthStore } from '@/store/auth-store';
+import { useAuthStore, cloudEnabled } from '@/store/auth-store';
 import { searchCommons } from '@/knowledge/commons-search';
 import { buildMentionContext } from '@/knowledge/mentions';
 import { runQualityReview, messageProducedFiles } from '@/knowledge/review-pass';
@@ -217,6 +217,27 @@ export function ChatPanel() {
   // Building: it's the chat input, pinned below the conversation.
   // A project opened with files but no chat yet is still "building".
   const fileCount = useProjectStore(s => s.getFileCount());
+  const authUser = useAuthStore(s => s.user);
+  // Someone who just passed the invitation gate needs sign-in, not an API
+  // key — signing in enrolls them in free community building automatically
+  const signInIsTheDoor = !!needsKey && cloudEnabled && !authUser;
+
+  const needsKeyHint = signInIsTheDoor ? (
+    <p className="text-xs text-center text-muted-foreground">
+      <button
+        onClick={() => useAuthStore.getState().promptSignIn()}
+        className="font-medium text-primary hover:underline"
+      >
+        Sign in
+      </button>
+      {' '}to start building — free building is part of your invitation
+    </p>
+  ) : needsKey ? (
+    <p className="text-xs text-center text-muted-foreground">
+      Add your API key in Settings to start building
+    </p>
+  ) : null;
+
   if (messages.length === 0 && fileCount === 0) {
     return (
       <div className="flex flex-col h-full">
@@ -226,11 +247,7 @@ export function ChatPanel() {
           composer={
             <div className="space-y-2">
               <MessageInput {...composerProps} variant="hero" />
-              {needsKey && (
-                <p className="text-xs text-center text-muted-foreground">
-                  Add your API key in Settings to start building
-                </p>
-              )}
+              {needsKeyHint}
             </div>
           }
         />
@@ -242,8 +259,8 @@ export function ChatPanel() {
     <div className="flex flex-col h-full">
       <MessageList messages={messages} onBuildPlan={handleBuildPlan} isGenerating={isGenerating} />
       {needsKey && (
-        <div className="px-4 py-2 text-xs text-center text-muted-foreground bg-muted/50 border-t">
-          Add your API key in Settings to start building
+        <div className="px-4 py-2 text-xs text-center bg-muted/50 border-t">
+          {needsKeyHint}
         </div>
       )}
       <MessageInput {...composerProps} />

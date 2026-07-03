@@ -168,7 +168,7 @@ export function PublishDialog() {
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Publish Project</DialogTitle>
+          <DialogTitle>Put it out there</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 pt-2">

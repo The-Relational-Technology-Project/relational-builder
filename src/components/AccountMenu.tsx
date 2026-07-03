@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuthStore, cloudEnabled } from '@/store/auth-store';
 import {
   Dialog,
@@ -90,12 +90,19 @@ export function AccountMenu() {
 
 function SignInDialog() {
   const signIn = useAuthStore(s => s.signIn);
+  const signInPromptCount = useAuthStore(s => s.signInPromptCount);
 
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Anywhere in the app can ask for the sign-in dialog (e.g. the home
+  // hero's "sign in to start building" hint)
+  useEffect(() => {
+    if (signInPromptCount > 0) setOpen(true);
+  }, [signInPromptCount]);
 
   async function handleSignIn() {
     const trimmed = email.trim();

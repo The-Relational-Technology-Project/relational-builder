@@ -67,7 +67,7 @@ export function ProjectsDialog() {
       </DialogTrigger>
       <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Cloud projects</DialogTitle>
+          <DialogTitle>Your projects</DialogTitle>
         </DialogHeader>
 
         {!user ? (
