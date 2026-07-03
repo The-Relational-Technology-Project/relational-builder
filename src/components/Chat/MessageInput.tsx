@@ -87,9 +87,22 @@ export function MessageInput({
     }, 0);
   }, [draftMessage, maxHeight]);
 
+  // A follow-up typed mid-generation queues instead of being lost — it
+  // sends the moment the current reply finishes (Lovable's best trick)
+  const queuedMessage = useChatStore(s => s.queuedMessage);
+  const queuedFollowUp = isGenerating && queuedMessage !== null ? queuedMessage : null;
+
   const handleSubmit = useCallback(() => {
     const trimmed = input.trim();
     if ((!trimmed && attachments.length === 0) || disabled) return;
+    if (isGenerating) {
+      // Queue text-only follow-ups; images wait for the next turn
+      if (!trimmed || attachments.length > 0) return;
+      useChatStore.getState().queueMessage(trimmed);
+      setInput('');
+      if (textareaRef.current) textareaRef.current.style.height = 'auto';
+      return;
+    }
     onSend(trimmed || 'Here’s an image for reference.', attachments);
     setInput('');
     setAttachments([]);
@@ -97,7 +110,7 @@ export function MessageInput({
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
-  }, [input, attachments, disabled, onSend]);
+  }, [input, attachments, disabled, isGenerating, onSend]);
 
   function handleKeyDown(e: React.KeyboardEvent) {
     if (mentionMatches.length > 0 && (e.key === 'Enter' || e.key === 'Tab')) {
@@ -111,7 +124,6 @@ export function MessageInput({
     }
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      if (isGenerating) return;
       handleSubmit();
     }
   }
@@ -196,6 +208,20 @@ export function MessageInput({
         </div>
       )}
 
+      {queuedFollowUp && (
+        <div className="mb-2 flex items-center gap-2 rounded-lg border border-dashed px-2.5 py-1.5 text-xs text-muted-foreground">
+          <span className="shrink-0 font-medium">Sends next:</span>
+          <span className="truncate">{queuedFollowUp}</span>
+          <button
+            onClick={() => useChatStore.getState().clearQueuedMessage()}
+            className="ml-auto shrink-0 hover:text-foreground"
+            title="Cancel the queued follow-up"
+          >
+            <X className="size-3" />
+          </button>
+        </div>
+      )}
+
       {/* One quiet container: write on top, act along the bottom */}
       <div
         className={`rounded-xl border bg-background transition-shadow focus-within:border-ring focus-within:ring-1 focus-within:ring-ring ${
@@ -211,9 +237,11 @@ export function MessageInput({
           placeholder={
             hero
               ? 'What does your neighborhood need? Describe it in your own words…'
-              : mode === 'plan'
-                ? 'What should we think through?'
-                : 'Describe a change or something new…'
+              : isGenerating
+                ? 'Queue a follow-up — it sends when this finishes…'
+                : mode === 'plan'
+                  ? 'What should we think through?'
+                  : 'Describe a change or something new…'
           }
           disabled={disabled}
           rows={hero ? 3 : 2}

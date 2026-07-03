@@ -175,13 +175,14 @@ export function ChatPanel() {
     getRelevantContext, setSystemPrompt,
   ]);
 
-  // Messages queued from elsewhere in the app (e.g. the preview's
-  // "Ask AI to fix it" button) — always run as build-mode requests.
+  // Messages queued while the AI was busy: error fixes always run in build
+  // mode; a person's queued follow-up keeps whatever mode they were in.
   const queuedMessage = useChatStore(s => s.queuedMessage);
   useEffect(() => {
     if (!queuedMessage || isGenerating) return;
+    const wasFix = useChatStore.getState().pendingFixSend;
     useChatStore.getState().clearQueuedMessage();
-    setMode('build');
+    if (wasFix) setMode('build');
     handleSend(queuedMessage);
   }, [queuedMessage, isGenerating, setMode, handleSend]);
 

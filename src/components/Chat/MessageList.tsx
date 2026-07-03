@@ -6,7 +6,44 @@ import { useProjectStore } from '@/store/project-store';
 import { CodeBlock } from './CodeBlock';
 import { ConnectionSuggestion } from './ConnectionSuggestion';
 import { Button } from '@/components/ui/button';
-import { Hammer, History, FileCode, ChevronDown, ChevronRight, Loader2 } from 'lucide-react';
+import { Hammer, History, FileCode, ChevronDown, ChevronRight, Loader2, Copy, Check, ArrowDown } from 'lucide-react';
+
+/** "Today at 4:26 PM" / "Tuesday at 9:12 AM" — calm dividers between sittings */
+function formatSitting(ts: number): string {
+  const d = new Date(ts);
+  const now = new Date();
+  const time = d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  const sameDay = d.toDateString() === now.toDateString();
+  if (sameDay) return `Today at ${time}`;
+  const yesterday = new Date(now.getTime() - 86400_000);
+  if (d.toDateString() === yesterday.toDateString()) return `Yesterday at ${time}`;
+  const withinWeek = now.getTime() - d.getTime() < 6 * 86400_000;
+  const day = withinWeek
+    ? d.toLocaleDateString(undefined, { weekday: 'long' })
+    : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  return `${day} at ${time}`;
+}
+
+/** A new sitting starts after 20 quiet minutes */
+const SITTING_GAP_MS = 20 * 60 * 1000;
+
+/** Small copy affordance for assistant replies */
+function CopyMessage({ content }: { content: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      onClick={() => {
+        navigator.clipboard.writeText(content);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1200);
+      }}
+      className="text-muted-foreground/60 hover:text-foreground transition-colors"
+      title="Copy message"
+    >
+      {copied ? <Check className="size-3 text-green-600" /> : <Copy className="size-3" />}
+    </button>
+  );
+}
 
 /**
  * Code in chat renders as a compact file card — the code itself lives in the
@@ -62,11 +99,25 @@ interface MessageListProps {
 
 export function MessageList({ messages, onBuildPlan, isGenerating }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const reviewing = useChatStore(s => s.reviewing);
+  // Reading back through history shouldn't fight the auto-scroll — only
+  // follow the stream while the person is already near the bottom
+  const [nearBottom, setNearBottom] = useState(true);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, messages[messages.length - 1]?.content]);
+    const el = scrollRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      setNearBottom(el.scrollHeight - el.scrollTop - el.clientHeight < 120);
+    };
+    el.addEventListener('scroll', onScroll, { passive: true });
+    return () => el.removeEventListener('scroll', onScroll);
+  }, []);
+
+  useEffect(() => {
+    if (nearBottom) bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, messages[messages.length - 1]?.content, nearBottom]);
 
   if (messages.length === 0) {
     return null;
@@ -81,11 +132,23 @@ export function MessageList({ messages, onBuildPlan, isGenerating }: MessageList
     !lastMessage.isStreaming;
 
   return (
-    <div className="flex-1 overflow-y-auto">
-      <div className="max-w-3xl mx-auto py-4 px-4 space-y-4">
-        {messages.map(msg => (
-          <MessageBubble key={msg.id} message={msg} />
-        ))}
+    <div className="flex-1 relative min-h-0">
+      <div ref={scrollRef} className="h-full overflow-y-auto">
+        <div className="max-w-3xl mx-auto py-4 px-4 space-y-4">
+        {messages.map((msg, i) => {
+          const prev = messages[i - 1];
+          const newSitting = !prev || msg.timestamp - prev.timestamp > SITTING_GAP_MS;
+          return (
+            <div key={msg.id}>
+              {newSitting && (
+                <p className="text-center text-[11px] text-muted-foreground/70 pt-2 pb-3">
+                  {formatSitting(msg.timestamp)}
+                </p>
+              )}
+              <MessageBubble message={msg} />
+            </div>
+          );
+        })}
         {reviewing && (
           <p className="text-[11px] text-muted-foreground pl-1 animate-pulse">
             Giving the build a quick once-over…
@@ -107,7 +170,17 @@ export function MessageList({ messages, onBuildPlan, isGenerating }: MessageList
           />
         )}
         <div ref={bottomRef} />
+        </div>
       </div>
+      {!nearBottom && (
+        <button
+          onClick={() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' })}
+          className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 rounded-full border bg-background/95 shadow-md p-2 text-muted-foreground hover:text-foreground transition-colors"
+          title="Jump to the latest"
+        >
+          <ArrowDown className="size-3.5" />
+        </button>
+      )}
     </div>
   );
 }
@@ -201,6 +274,11 @@ function MessageBubble({ message }: { message: DisplayMessage }) {
       </div>
       {message.isPlan && !message.isStreaming && (
         <PlanQuestionChips content={message.content} />
+      )}
+      {!isUser && !message.isStreaming && message.content.trim() && (
+        <div className="mt-1 pl-1 flex items-center gap-2">
+          <CopyMessage content={message.content} />
+        </div>
       )}
       {checkpoint && (
         <div className="mt-1 pl-1">

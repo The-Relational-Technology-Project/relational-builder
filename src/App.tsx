@@ -29,7 +29,7 @@ import { RBMark } from '@/components/PasscodeGate';
 
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { Plus, MessageSquare, PanelsTopLeft } from 'lucide-react';
+import { Plus, MessageSquare, PanelsTopLeft, Menu, X, Cloud, CloudOff, Loader2 } from 'lucide-react';
 
 /** True below the md breakpoint — drives the stacked mobile layout */
 function useIsMobile() {
@@ -92,16 +92,20 @@ function App() {
 
   const isMobile = useIsMobile();
   const [mobileTab, setMobileTab] = useState<'chat' | 'workspace'>('chat');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const currentProjectName = useCloudStore(s => s.currentProjectName);
+  const syncStatus = useCloudStore(s => s.syncStatus);
 
   return (
     <div className="h-dvh flex flex-col bg-background text-foreground">
       {needsOnboarding && <BuilderOnboarding />}
-      {/* Toolbar — scrolls horizontally on small screens instead of wrapping */}
-      <header className="flex items-center justify-between gap-2 px-3 md:px-4 py-2 border-b shrink-0 overflow-x-auto">
-        <div className="flex items-center gap-2 md:gap-3 shrink-0">
+      {/* Desktop toolbar */}
+      <header className="hidden md:flex items-center justify-between gap-2 px-4 py-2 border-b shrink-0">
+        <div className="flex items-center gap-3 shrink-0">
           <div className="flex items-center gap-1.5">
             <RBMark className="size-5 shrink-0" />
-            <h1 className="text-sm font-semibold tracking-tight whitespace-nowrap hidden sm:block">
+            <h1 className="text-sm font-semibold tracking-tight whitespace-nowrap">
               Relational Builder
             </h1>
           </div>
@@ -110,10 +114,10 @@ function App() {
           <StudioSwitcher />
           <CloudStatus />
         </div>
-        <div className="flex items-center gap-1 md:gap-2 shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" onClick={handleNewProject}>
             <Plus className="size-3" />
-            <span className="hidden sm:inline">New Project</span>
+            New Project
           </Button>
           {!hasProject && <ImportPlanDialog />}
           {!hasProject && <RemixDialog />}
@@ -127,6 +131,72 @@ function App() {
           <ProviderSettings />
         </div>
       </header>
+
+      {/* Mobile toolbar: mark · centered project pill · menu (Lovable-calm).
+          The action sheet stays mounted (hidden by class) so any dialog a
+          row opens survives the sheet closing. */}
+      <header className="flex md:hidden items-center gap-2 px-3 py-2 border-b shrink-0">
+        <RBMark className="size-5 shrink-0" />
+        <div className="flex-1 flex justify-center min-w-0">
+          <div className="inline-flex items-center gap-1.5 max-w-full rounded-full border px-3 py-1 text-xs">
+            {currentProjectName ? (
+              <>
+                {syncStatus === 'saving' ? (
+                  <Loader2 className="size-3 animate-spin shrink-0 text-muted-foreground" />
+                ) : syncStatus === 'error' ? (
+                  <CloudOff className="size-3 shrink-0 text-destructive" />
+                ) : (
+                  <Cloud className="size-3 shrink-0 text-green-600" />
+                )}
+                <span className="truncate font-medium">{currentProjectName}</span>
+              </>
+            ) : (
+              <span className="truncate font-medium">
+                {hasProject ? 'New project' : 'Relational Builder'}
+              </span>
+            )}
+          </div>
+        </div>
+        <button
+          onClick={() => setMobileMenuOpen(o => !o)}
+          className="shrink-0 rounded-md p-1.5 text-muted-foreground hover:text-foreground"
+          aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+        >
+          {mobileMenuOpen ? <X className="size-4.5" /> : <Menu className="size-4.5" />}
+        </button>
+      </header>
+      <div className={mobileMenuOpen ? 'md:hidden relative z-30' : 'hidden'}>
+        <div
+          className="fixed inset-0 bg-black/30"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+        <div
+          className="absolute left-0 right-0 border-b bg-background shadow-lg px-3 py-3 space-y-3"
+          onClick={() => setMobileMenuOpen(false)}
+        >
+          <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+            <ModelSelector />
+            <StudioSwitcher />
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Button variant="outline" size="sm" className="h-8 gap-1 text-xs" onClick={handleNewProject}>
+              <Plus className="size-3" />
+              New Project
+            </Button>
+            {!hasProject && <ImportPlanDialog />}
+            {!hasProject && <RemixDialog />}
+            <ProjectsDialog />
+            {hasProject && <SharePreview />}
+            {hasProject && <PublishDialog />}
+            <GitHubSync />
+          </div>
+          <div className="flex items-center gap-1.5 pt-1 border-t">
+            <ThemeToggle />
+            <AccountMenu />
+            <ProviderSettings />
+          </div>
+        </div>
+      </div>
 
       {/* Main content — home gets the full width (nothing to preview yet);
           building gets split panels on desktop, a tab-switched stack on mobile */}

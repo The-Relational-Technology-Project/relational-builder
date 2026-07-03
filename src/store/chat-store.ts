@@ -75,7 +75,9 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
   setMode: (mode: ChatMode) => set({ mode }),
 
   queuedMessage: null,
-  queueMessage: (content: string) => set({ queuedMessage: content }),
+  // A person's queued follow-up replaces any pending auto-fix — their
+  // intent wins, and it must not inherit the fix send's special handling
+  queueMessage: (content: string) => set({ queuedMessage: content, pendingFixSend: false }),
   clearQueuedMessage: () => set({ queuedMessage: null }),
   pendingFixSend: false,
   autoFixArmed: false,
