@@ -54,14 +54,20 @@ export function RemixDialog() {
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Remix from the network</DialogTitle>
+          <DialogTitle>Fork a tool's code</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Start from a tool another neighborhood already built. Paste any
-            public GitHub repo — the Network tab in Settings shows what the
-            relational tech network has been shipping. Lineage is recorded
-            automatically, so credit travels with your version.
+            Pull an existing tool's actual code into your workspace to
+            continue or fork it — paste any public GitHub repo. Lineage is
+            recorded automatically, so credit travels with your version.
+          </p>
+          <p className="text-[11px] text-muted-foreground leading-relaxed">
+            Most of the time you want <strong>Start from the Studio</strong> on
+            the home screen instead — it hands you a prompt to shape and build
+            fresh, which previews here and adapts to your neighborhood. Forking
+            real code is for continuing a specific app (and full framework apps
+            run only after you deploy).
           </p>
           <Input
             value={repoRef}

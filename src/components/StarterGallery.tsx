@@ -8,20 +8,25 @@ import {
   studioPlanToMarkdown,
   type StudioBuildPlan,
 } from '@/knowledge/studio-plans';
-import { remixRepo } from '@/project/remix';
 import { listNetworkPrompts, listMyPrompts, plantSharedPrompt, type NetworkPrompt } from '@/cloud/prompts';
+import { getCachedStarter, cacheStarter } from '@/cloud/starter-prompts';
+import { distillStarterPrompt } from '@/knowledge/prompt-distiller';
+import { useCloudStore } from '@/store/cloud-store';
+import { useEnvStore } from '@/store/env-store';
 import { useAuthStore } from '@/store/auth-store';
+import type { Tool } from '@/knowledge/types';
 import { Badge } from '@/components/ui/badge';
-import { Shuffle, FileDown, Loader2, ScrollText } from 'lucide-react';
+import { Sparkles, FileDown, Loader2, ScrollText } from 'lucide-react';
 
 type SharedPlan = Pick<StudioBuildPlan, 'id' | 'title' | 'recommended_track' | 'created_at'>;
 
 /**
  * Start from the Studio — one-click starting points pulled live from the
- * RT Studio library. Remixable tools become your workspace (via the remix
- * flow); shared build plans land in chat as your starting draft. Lineage
- * travels either way. The field's answer to blank-page paralysis, with
- * the commons as the template library.
+ * RT Studio library. Tools become a place-adaptable *build prompt* (distilled
+ * once, cached for everyone) that lands in Plan mode so you shape it for your
+ * neighborhood before building fresh — truer to the prompt-as-seed model than
+ * cloning one place's code. Shared build plans and network prompts start the
+ * same way. Lineage travels throughout.
  */
 export function StarterGallery({ disabled }: { disabled?: boolean }) {
   const tools = useKnowledgeStore(s => s.tools);
@@ -65,13 +70,36 @@ export function StarterGallery({ disabled }: { disabled?: boolean }) {
     }
   }
 
-  async function startFromTool(toolId: string, repo: string) {
-    setBusyId(toolId);
+  // Prompt-level remixing: a Studio tool becomes a place-adaptable build
+  // prompt (cached once, distilled on first pick) that lands in Plan mode so
+  // the builder shapes it for their neighborhood before building fresh.
+  async function startFromTool(tool: Tool) {
+    const key = tool.github_url!;
+    setBusyId(tool.id);
     setError(null);
     try {
-      await remixRepo(repo);
+      let starter = await getCachedStarter(key);
+      if (!starter) {
+        const distilled = await distillStarterPrompt(tool);
+        starter = { tool_key: key, title: distilled.title, body: distilled.body };
+        cacheStarter(starter).catch(() => {}); // warm the shared cache, best-effort
+      }
+
+      // Fresh workspace, Plan mode, the starter seeded as the opening draft
+      useCloudStore.getState().closeProject();
+      useProjectStore.getState().clearProject();
+      useChatStore.getState().clearMessages();
+      useEnvStore.getState().clearAll();
+      useChatStore.getState().setMode('plan');
+      setLineage({
+        source: 'prompt',
+        promptTitle: starter.title,
+        sourceUrl: key,
+        importedAt: new Date().toISOString(),
+      });
+      useChatStore.getState().setDraftMessage(starter.body);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not pull that project');
+      setError(e instanceof Error ? e.message : 'Could not start from that tool');
     } finally {
       setBusyId(null);
     }
@@ -106,17 +134,17 @@ export function StarterGallery({ disabled }: { disabled?: boolean }) {
           <button
             key={tool.id}
             disabled={disabled || busyId !== null}
-            onClick={() => startFromTool(tool.id, tool.github_url!)}
+            onClick={() => startFromTool(tool)}
             className="text-left border rounded-lg p-3 hover:bg-muted transition-colors disabled:opacity-50 space-y-1"
           >
             <div className="flex items-center gap-1.5">
               {busyId === tool.id ? (
                 <Loader2 className="size-3 animate-spin shrink-0" />
               ) : (
-                <Shuffle className="size-3 text-muted-foreground shrink-0" />
+                <Sparkles className="size-3 text-muted-foreground shrink-0" />
               )}
               <span className="text-xs font-medium truncate">{tool.name}</span>
-              <Badge variant="outline" className="text-[9px] ml-auto shrink-0">remix</Badge>
+              <Badge variant="outline" className="text-[9px] ml-auto shrink-0">starter</Badge>
             </div>
             <p className="text-[11px] text-muted-foreground line-clamp-2">
               {tool.summary ?? tool.description}
@@ -171,8 +199,9 @@ export function StarterGallery({ disabled }: { disabled?: boolean }) {
       </div>
       {error && <p className="text-[11px] text-destructive">{error}</p>}
       <p className="text-[11px] text-muted-foreground">
-        Live from the network — remix a working tool, start from a shared
-        plan, or grow a shared prompt. Credit travels with your version.
+        Live from the network. Each one starts you with a prompt or plan to
+        shape for your neighborhood — you build fresh, and credit travels with
+        your version. To fork a tool's actual code, use Remix.
       </p>
     </div>
   );
