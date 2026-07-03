@@ -15,6 +15,8 @@ import { exportProjectZip, downloadBlob } from '@/project/export';
 import { buildEnvJs } from '@/project/env-module';
 import { publishToCommunityHosting } from '@/project/deploy-community';
 import { useAuthStore, cloudEnabled } from '@/store/auth-store';
+import { useCloudStore } from '@/store/cloud-store';
+import { getPromptForProject } from '@/cloud/prompts';
 import { deployToNetlify } from '@/project/deploy-netlify';
 import { deployToVercel } from '@/project/deploy-vercel';
 import { Upload, Download, ExternalLink, Globe, Check, Loader2 } from 'lucide-react';
@@ -101,11 +103,18 @@ export function PublishDialog() {
     setResult(null);
 
     try {
+      // The build prompt ships in .reltech.yml when this project has one —
+      // the code and the seed travel together
+      const cloudProjectId = useCloudStore.getState().currentProjectId;
+      const buildPrompt = cloudProjectId
+        ? await getPromptForProject(cloudProjectId).catch(() => null)
+        : null;
+
       if (activeTarget === 'community') {
         const res = await publishToCommunityHosting(files, projectName, publicEnvVars);
         setResult({ url: res.url, totalViews: res.total_views });
       } else if (activeTarget === 'download') {
-        const blob = await exportProjectZip(files, projectName, lineage, publicEnvVars);
+        const blob = await exportProjectZip(files, projectName, lineage, publicEnvVars, buildPrompt);
         const safeName = projectName.replace(/[^a-zA-Z0-9-_]/g, '-');
         downloadBlob(blob, `${safeName}.zip`);
         setResult({ url: '' }); // signals success for download
@@ -114,7 +123,7 @@ export function PublishDialog() {
           setError('Please enter your Netlify access token');
           return;
         }
-        const blob = await exportProjectZip(files, projectName, lineage, publicEnvVars);
+        const blob = await exportProjectZip(files, projectName, lineage, publicEnvVars, buildPrompt);
         const domain = customDomain.trim() || undefined;
         const res = await deployToNetlify(blob, projectName, netlifyToken, envRecord, domain);
         setResult({ url: res.siteUrl, adminUrl: res.adminUrl, dnsInstructions: res.dnsInstructions });

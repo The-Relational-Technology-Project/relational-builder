@@ -5,6 +5,7 @@ import { ChatPanel } from '@/components/Chat/ChatPanel';
 import { RightPanel } from '@/components/RightPanel';
 import { ResizableLayout } from '@/components/ResizableLayout';
 import { PublishDialog } from '@/components/PublishDialog';
+import { PromptDialog } from '@/components/PromptDialog';
 import { ImportPlanDialog } from '@/components/ImportPlanDialog';
 import { RemixDialog } from '@/components/RemixDialog';
 import { SharePreview } from '@/components/SharePreview';
@@ -58,6 +59,8 @@ function App() {
     initCloudSync();
     useCommunityStore.getState().init();
     useStudioStore.getState().init();
+    // Shared build prompts arrive by link, ready to send
+    import('@/cloud/prompts').then(m => m.handlePromptDeepLink()).catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const clearMessages = useChatStore(s => s.clearMessages);
@@ -122,6 +125,7 @@ function App() {
           {!hasProject && <ImportPlanDialog />}
           {!hasProject && <RemixDialog />}
           <ProjectsDialog />
+          {hasProject && <PromptDialog />}
           {hasProject && <SharePreview />}
           {hasProject && <PublishDialog />}
           <GitHubSync />
@@ -186,6 +190,7 @@ function App() {
             {!hasProject && <ImportPlanDialog />}
             {!hasProject && <RemixDialog />}
             <ProjectsDialog />
+            {hasProject && <PromptDialog />}
             {hasProject && <SharePreview />}
             {hasProject && <PublishDialog />}
             <GitHubSync />

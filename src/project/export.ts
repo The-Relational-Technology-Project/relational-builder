@@ -10,7 +10,11 @@ const yamlEscape = (s: string) => s.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
  * Lineage keeps the chain of credit unbroken when a project starts from a
  * Studio build plan or a commons remix — the network watcher surfaces it.
  */
-export function generateManifest(projectName: string, lineage?: ProjectLineage | null): string {
+export function generateManifest(
+  projectName: string,
+  lineage?: ProjectLineage | null,
+  buildPrompt?: { title: string; body: string } | null,
+): string {
   const lines = [
     '# .reltech.yml — see github.com/The-Relational-Technology-Project/watcher',
     'version: 2',
@@ -26,6 +30,12 @@ export function generateManifest(projectName: string, lineage?: ProjectLineage |
     if (lineage.planTitle) {
       lines.push(`  remixed_from: "${yamlEscape(lineage.planTitle)}"`);
     }
+    if (lineage.promptTitle) {
+      lines.push(`  grown_from_prompt: "${yamlEscape(lineage.promptTitle)}"`);
+      if (lineage.promptSlug) {
+        lines.push(`  grown_from_prompt_id: "${yamlEscape(lineage.promptSlug)}"`);
+      }
+    }
     if (lineage.sourceUrl) {
       lines.push(`  remixed_from_url: "${yamlEscape(lineage.sourceUrl)}"`);
     }
@@ -39,13 +49,27 @@ export function generateManifest(projectName: string, lineage?: ProjectLineage |
       const noteBits =
         lineage.source === 'rtp-studio-plan'
           ? 'Started from an RTP Studio build plan'
-          : 'Remixed from a relational tech commons project';
+          : lineage.source === 'prompt'
+            ? 'Grown from a shared build prompt'
+            : 'Remixed from a relational tech commons project';
       const dateBit = lineage.importedAt ? ` on ${lineage.importedAt.slice(0, 10)}` : '';
       lines.push(`  note: "${yamlEscape(`${noteBits}${dateBit}, built with Relational Builder.`)}"`);
     } else if (lineage.studioLabel) {
       lines.push(`  note: "${yamlEscape(`Built within ${lineage.studioLabel}, with Relational Builder.`)}"`);
     }
     lines.push('');
+  }
+
+  // The prompt travels with the code: anyone holding this repo can grow a
+  // fresh version of the app — new models, their place, their aesthetics
+  if (buildPrompt?.body) {
+    lines.push(
+      'prompt:',
+      `  title: "${yamlEscape(buildPrompt.title)}"`,
+      '  body: |',
+      ...buildPrompt.body.split('\n').map(l => `    ${l}`),
+      '',
+    );
   }
 
   lines.push(
@@ -72,6 +96,7 @@ export async function exportProjectZip(
   projectName: string,
   lineage?: ProjectLineage | null,
   publicEnvVars?: PublicEnvVar[],
+  buildPrompt?: { title: string; body: string } | null,
 ): Promise<Blob> {
   const zip = new JSZip();
 
@@ -89,7 +114,7 @@ export async function exportProjectZip(
   }
 
   // Add .reltech.yml manifest
-  zip.file('.reltech.yml', generateManifest(projectName, lineage));
+  zip.file('.reltech.yml', generateManifest(projectName, lineage, buildPrompt));
 
   // Add a basic README
   zip.file(

@@ -3,6 +3,8 @@ import { useAuthStore, cloudEnabled } from '@/store/auth-store';
 import { useCloudStore } from '@/store/cloud-store';
 import { useCommunityStore } from '@/store/community-store';
 import { YourSites } from '@/components/YourSites';
+import { YourPrompts } from '@/components/YourPrompts';
+import { listMyPrompts, type BuildPrompt } from '@/cloud/prompts';
 import { StarterGallery } from '@/components/StarterGallery';
 import { DesignSystemDialog } from '@/components/DesignSystemDialog';
 import { BuildersDirectory } from '@/components/BuildersDirectory';
@@ -63,10 +65,20 @@ function SignedInDashboard({ onSelectIdea, disabled, composer }: HomeDashboardPr
   const openProject = useCloudStore(s => s.openProject);
   const communityActive = useCommunityStore(s => s.active);
   const [openingId, setOpeningId] = useState<string | null>(null);
+  const [prompts, setPrompts] = useState<BuildPrompt[]>([]);
+
+  const refreshPrompts = () => listMyPrompts().then(setPrompts).catch(() => {});
 
   useEffect(() => {
     refreshProjects();
+    refreshPrompts();
   }, [refreshProjects]);
+
+  // The gallery speaks in prompts: each project card shows the prompt
+  // that would grow it, when one has been distilled
+  const promptByProject = new Map(
+    prompts.filter(p => p.project_id).map(p => [p.project_id as string, p]),
+  );
 
   const profile = useAuthStore(s => s.profile);
   const firstName = (user?.email ?? '').split('@')[0].split(/[._-]/)[0];
@@ -124,14 +136,22 @@ function SignedInDashboard({ onSelectIdea, disabled, composer }: HomeDashboardPr
                       <Badge variant="outline" className="text-[10px] shrink-0 ml-auto">shared</Badge>
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1.5">
-                    Updated {formatRelative(p.updated_at)}
-                  </p>
+                  {promptByProject.get(p.id) ? (
+                    <p className="text-xs text-muted-foreground mt-1.5 line-clamp-2 leading-relaxed">
+                      {promptByProject.get(p.id)!.body}
+                    </p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground mt-1.5">
+                      Updated {formatRelative(p.updated_at)}
+                    </p>
+                  )}
                 </button>
               ))}
             </div>
           </div>
         )}
+
+        <YourPrompts prompts={prompts} onChanged={refreshPrompts} />
 
         <YourSites />
 

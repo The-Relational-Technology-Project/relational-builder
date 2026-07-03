@@ -19,7 +19,7 @@ const MAX_CHECKPOINTS = 10;
 /** Provenance of this project — flows into the .reltech.yml manifest on export */
 export interface ProjectLineage {
   /** Where the starting point came from */
-  source: 'rtp-studio-plan' | 'remix' | null;
+  source: 'rtp-studio-plan' | 'remix' | 'prompt' | null;
   /** Title of the imported build plan, if any */
   planTitle?: string;
   /** URL of the build plan or remixed project, if known */
@@ -29,6 +29,9 @@ export interface ProjectLineage {
   /** Studio frame the project was built within, if any */
   studioSlug?: string;
   studioLabel?: string;
+  /** When grown from a shared build prompt */
+  promptSlug?: string;
+  promptTitle?: string;
 }
 
 interface ProjectState {

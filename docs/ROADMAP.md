@@ -112,3 +112,12 @@ everything exportable — no enclosure, including by us.
   loops with browser automation — costs multiples per build in tokens and
   latency and needs server-side infrastructure; revisit only if quality
   gaps persist that these two passes can't close.
+
+- **Prompts as first-class (started July 3)** — prompts table + distiller +
+  share links + dashboard shipped; the prompt now travels in .reltech.yml.
+  Next moves when ready: shared prompts on builder directory cards (the
+  "prompts travel with profiles" half), a commons prompt library (Studio
+  sync like tools/build plans — the real "GitHub for prompts"), prompt
+  versions (a prompt evolves as the app does; keep the trail), and
+  screenshots alongside prompts in the gallery (needs a preview-capture
+  path; Sandpack iframes are cross-origin).
