@@ -1,4 +1,6 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { extractOperations } from '@/project/code-extractor';
+import { RotateCcw, X } from 'lucide-react';
 import { useChatStore } from '@/store/chat-store';
 import { useProviderStore } from '@/store/provider-store';
 import { useProjectStore } from '@/store/project-store';
@@ -19,7 +21,83 @@ import { buildMentionContext } from '@/knowledge/mentions';
 import { runQualityReview, messageProducedFiles } from '@/knowledge/review-pass';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
+import { Button } from '@/components/ui/button';
 import { HomeDashboard } from '@/components/HomeDashboard';
+
+/** An unterminated fence means the reply was cut off mid-file */
+function endsInsideCodeFence(content: string): boolean {
+  return content.split('\n').filter(l => l.startsWith('```')).length % 2 === 1;
+}
+
+/**
+ * A build reply whose files never reached the project — the tab reloaded or
+ * the network dropped mid-generation, so the extraction in onComplete never
+ * ran. The chat text survives (it persists per-token); the files don't. Offer
+ * one tap to recover them instead of leaving a finished-looking reply next to
+ * an empty preview.
+ */
+function BuildRecovery() {
+  const messages = useChatStore(s => s.messages);
+  const checkpoints = useProjectStore(s => s.checkpoints);
+  const version = useProjectStore(s => s.version);
+  const [dismissedId, setDismissedId] = useState<string | null>(
+    () => localStorage.getItem('rb-recovery-dismissed'),
+  );
+
+  const last = messages[messages.length - 1];
+  const candidate = useMemo(() => {
+    if (!last || last.role !== 'assistant' || last.isStreaming || last.isPlan) return null;
+    if (dismissedId === last.id) return null;
+    // Applied builds leave a checkpoint stamped with the message id
+    if (checkpoints.some(c => c.msgId === last.id)) return null;
+    const { writes } = extractOperations(last.content);
+    if (writes.length === 0) return null;
+    // Cloud-synced projects carry files but not checkpoints — if every file
+    // already matches the project, there is nothing to recover
+    const fs = useProjectStore.getState().fs;
+    const missing = writes.filter(w => fs.getFile(w.path)?.content !== w.content);
+    if (missing.length === 0) return null;
+    return { msgId: last.id, content: last.content, fileCount: writes.length };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [last, checkpoints, dismissedId, version]);
+
+  if (!candidate) return null;
+
+  const recover = () => {
+    useProjectStore.getState().applyMessageFiles(candidate.content, candidate.msgId);
+    if (endsInsideCodeFence(candidate.content)) {
+      // The reply was also cut off mid-file — finish it through the fix
+      // channel (fix sends never re-arm anything, so this can't loop)
+      useChatStore.getState().queueFix(
+        'Your previous reply was interrupted, likely mid-file. Re-output the file that was cut off — complete, from its first line — plus any files you had planned but not yet written. Do not repeat files that were already complete.',
+      );
+    }
+  };
+
+  const dismiss = () => {
+    localStorage.setItem('rb-recovery-dismissed', candidate.msgId);
+    setDismissedId(candidate.msgId);
+  };
+
+  return (
+    <div className="mx-4 mb-2 flex items-center gap-3 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2.5">
+      <p className="text-sm flex-1">
+        That build was interrupted before its files reached your project.
+      </p>
+      <Button size="sm" variant="outline" onClick={recover} className="shrink-0">
+        <RotateCcw className="size-3.5 mr-1.5" />
+        Recover {candidate.fileCount} {candidate.fileCount === 1 ? 'file' : 'files'}
+      </Button>
+      <button
+        onClick={dismiss}
+        className="text-muted-foreground hover:text-foreground shrink-0"
+        title="Dismiss"
+      >
+        <X className="size-3.5" />
+      </button>
+    </div>
+  );
+}
 
 export function ChatPanel() {
   const messages = useChatStore(s => s.messages);
@@ -283,6 +361,7 @@ export function ChatPanel() {
   return (
     <div className="flex flex-col h-full">
       <MessageList messages={messages} onBuildPlan={handleBuildPlan} isGenerating={isGenerating} />
+      {!isGenerating && <BuildRecovery />}
       {needsKey && (
         <div className="px-4 py-2 text-xs text-center bg-muted/50 border-t">
           {needsKeyHint}
