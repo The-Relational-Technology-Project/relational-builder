@@ -103,7 +103,7 @@ function App() {
   const syncStatus = useCloudStore(s => s.syncStatus);
 
   return (
-    <div className="h-dvh flex flex-col bg-background text-foreground">
+    <div className="h-dvh flex flex-col overflow-x-hidden bg-background text-foreground">
       {needsOnboarding && <BuilderOnboarding />}
       {/* Desktop toolbar */}
       <header className="hidden md:flex items-center justify-between gap-2 px-4 py-2 border-b shrink-0">
@@ -164,7 +164,7 @@ function App() {
         </div>
         <button
           onClick={() => setMobileMenuOpen(o => !o)}
-          className="shrink-0 rounded-md p-1.5 text-muted-foreground hover:text-foreground"
+          className="shrink-0 rounded-md p-2 -mr-1 text-muted-foreground hover:text-foreground"
           aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
         >
           {mobileMenuOpen ? <X className="size-4.5" /> : <Menu className="size-4.5" />}
@@ -213,7 +213,7 @@ function App() {
             <div className="flex-1 min-h-0">
               {mobileTab === 'chat' ? <ChatPanel /> : <RightPanel />}
             </div>
-            <nav className="flex border-t shrink-0" aria-label="Mobile panels">
+            <nav className="flex border-t shrink-0 pb-[env(safe-area-inset-bottom)]" aria-label="Mobile panels">
               <button
                 onClick={() => setMobileTab('chat')}
                 className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium transition-colors ${

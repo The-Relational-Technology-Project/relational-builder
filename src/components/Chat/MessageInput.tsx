@@ -163,7 +163,7 @@ export function MessageInput({
   }
 
   return (
-    <div className={hero ? 'w-full' : 'border-t bg-background px-3 pb-3 pt-2 md:px-4'}>
+    <div className={hero ? 'w-full min-w-0' : 'border-t bg-background px-3 pb-3 pt-2 md:px-4'}>
       {attachments.length > 0 && (
         <div className="flex gap-2 mb-2">
           {attachments.map((url, i) => (
@@ -249,7 +249,7 @@ export function MessageInput({
             hero ? 'px-4 pt-4 pb-1 text-base min-h-[88px]' : 'px-3.5 pt-3 pb-1 text-sm min-h-[64px]'
           }`}
         />
-        <div className="flex items-center gap-1 px-2 pb-2">
+        <div className="flex items-center gap-1 px-2 pb-2 min-w-0">
           <input
             ref={fileInputRef}
             type="file"

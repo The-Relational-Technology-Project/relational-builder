@@ -94,11 +94,11 @@ function SignedInDashboard({ onSelectIdea, disabled, composer }: HomeDashboardPr
 
   return (
     <div className="flex-1 overflow-y-auto">
-      <div className="max-w-3xl mx-auto px-4 md:px-6 py-10 md:py-14 space-y-10">
+      <div className="max-w-3xl mx-auto px-4 md:px-6 py-7 md:py-14 space-y-8 md:space-y-10">
         {/* Hero: greeting + the composer itself */}
         <div className="space-y-6">
           <div className="text-center space-y-2">
-            <h2 className="text-3xl font-semibold tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-balance">
               What are we building, {displayName}?
             </h2>
             {communityActive && (
@@ -198,10 +198,10 @@ function StyleNudge({ projectCount }: { projectCount: number }) {
 export function WelcomeScreen({ onSelectIdea, disabled, composer }: HomeDashboardProps) {
   return (
     <div className="flex-1 overflow-y-auto">
-      <div className="min-h-full flex items-center justify-center px-4 py-10">
+      <div className="min-h-full flex items-center justify-center px-4 py-8 sm:py-10">
         <div className="w-full max-w-2xl space-y-6">
           <div className="text-center space-y-3">
-            <h2 className="text-3xl font-semibold tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-balance">
               Build relational technology
             </h2>
             <p className="text-muted-foreground text-[15px] leading-relaxed max-w-md mx-auto">

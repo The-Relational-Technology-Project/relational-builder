@@ -133,12 +133,20 @@
     font-feature-settings: "kern" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Nothing should ever scroll the page sideways on a phone — inner panels
+       own their own scroll. A stray wide child clips instead of shoving the
+       whole layout past the right edge. */
+    overflow-x: hidden;
     }
   html {
     @apply font-sans;
     /* Slightly larger root: every rem-based size (nearly all our type)
        scales up together — reading the Builder shouldn't mean squinting. */
     font-size: 17px;
+    /* Hold that root size on iOS: Safari otherwise auto-inflates text in
+       some conditions, which pushed the composer's send button off-screen. */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
     }
   h1, h2, h3 {
     font-family: var(--font-heading);
