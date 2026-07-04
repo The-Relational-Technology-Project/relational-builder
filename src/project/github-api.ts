@@ -41,6 +41,100 @@ export interface SyncResult {
   filesChanged: number;
 }
 
+export interface RemoteCommit {
+  sha: string;
+  message: string;
+  author: string;
+  date: string;
+}
+
+export interface RemoteFileChange {
+  path: string;
+  status: 'added' | 'modified' | 'removed' | 'renamed';
+  previousPath?: string;
+}
+
+/** Get the latest commit SHA on a branch */
+export async function getBranchHead(
+  token: string,
+  repoFullName: string,
+  branch: string,
+): Promise<string> {
+  const res = await fetch(
+    `${API}/repos/${repoFullName}/git/refs/heads/${branch}`,
+    { headers: headers(token) },
+  );
+  if (!res.ok) throw new Error(`Branch "${branch}" not found`);
+  const ref = await res.json();
+  return ref.object.sha;
+}
+
+/**
+ * Compare two commits — what happened on GitHub since we last synced.
+ * Returns null when the base commit is unreachable (history was rewritten).
+ */
+export async function compareCommits(
+  token: string,
+  repoFullName: string,
+  base: string,
+  head: string,
+): Promise<{ commits: RemoteCommit[]; files: RemoteFileChange[] } | null> {
+  const res = await fetch(
+    `${API}/repos/${repoFullName}/compare/${base}...${head}`,
+    { headers: headers(token) },
+  );
+  if (res.status === 404) return null; // force-push / rebase — base is gone
+  if (!res.ok) throw new Error(`Failed to compare commits (${res.status})`);
+  const data = await res.json();
+  const commits: RemoteCommit[] = (data.commits ?? []).map(
+    (c: { sha: string; commit: { message: string; author?: { name?: string; date?: string } } }) => ({
+      sha: c.sha,
+      message: c.commit.message.split('\n')[0],
+      author: c.commit.author?.name ?? 'unknown',
+      date: c.commit.author?.date ?? '',
+    }),
+  );
+  const files: RemoteFileChange[] = (data.files ?? [])
+    .filter((f: { status: string }) =>
+      ['added', 'modified', 'removed', 'renamed'].includes(f.status),
+    )
+    .map((f: { filename: string; status: string; previous_filename?: string }) => ({
+      path: '/' + f.filename,
+      status: f.status as RemoteFileChange['status'],
+      previousPath: f.previous_filename ? '/' + f.previous_filename : undefined,
+    }));
+  return { commits, files };
+}
+
+/** Extensions the virtual file system can't hold — skip when pulling */
+const BINARY_EXT = /\.(png|jpe?g|gif|webp|avif|ico|woff2?|ttf|otf|eot|mp[34]|webm|wav|zip|gz|pdf)$/i;
+
+export function isBinaryPath(path: string): boolean {
+  return BINARY_EXT.test(path);
+}
+
+/** Fetch one file's content at a specific ref (branch or commit SHA) */
+export async function getFileAtRef(
+  token: string,
+  repoFullName: string,
+  path: string,
+  ref: string,
+): Promise<string | null> {
+  const clean = path.startsWith('/') ? path.slice(1) : path;
+  const res = await fetch(
+    `${API}/repos/${repoFullName}/contents/${encodeURIComponent(clean).replace(/%2F/g, '/')}?ref=${ref}`,
+    { headers: headers(token) },
+  );
+  if (!res.ok) return null;
+  const data = await res.json();
+  if (data.encoding !== 'base64' || typeof data.content !== 'string') return null;
+  try {
+    return atob(data.content.replace(/\n/g, ''));
+  } catch {
+    return null; // not valid text
+  }
+}
+
 /** Get a public repo's metadata (works unauthenticated, for remixing) */
 export async function getRepoInfo(repoFullName: string, token = ''): Promise<GitHubRepo> {
   const res = await fetch(`${API}/repos/${repoFullName}`, { headers: headers(token) });
@@ -181,6 +275,17 @@ export async function pushFiles(
   const ref = await refRes.json();
   const parentSha = ref.object.sha;
 
+  // Find the parent commit's tree — pushing on top of it means a push only
+  // adds and updates files. It never deletes something that exists only on
+  // GitHub (a README, workflows, docs written outside the Builder).
+  const parentCommitRes = await fetch(
+    `${API}/repos/${repoFullName}/git/commits/${parentSha}`,
+    { headers: h },
+  );
+  if (!parentCommitRes.ok) throw new Error('Failed to read current commit');
+  const parentCommit = await parentCommitRes.json();
+  const baseTreeSha = parentCommit.tree.sha;
+
   // 2. Create blobs for each file
   const blobShas = await Promise.all(
     files.map(async (file) => {
@@ -212,7 +317,7 @@ export async function pushFiles(
     {
       method: 'POST',
       headers: h,
-      body: JSON.stringify({ tree: blobShas }),
+      body: JSON.stringify({ base_tree: baseTreeSha, tree: blobShas }),
     },
   );
   if (!treeRes.ok) throw new Error('Failed to create tree');

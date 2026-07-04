@@ -23,10 +23,19 @@ const TIER_LABELS: Record<number, string> = {
   3: 'Community Access',
 };
 
-export function ProviderSettings() {
+interface ProviderSettingsProps {
+  /** Controlled open state — when provided, the internal trigger is hidden */
+  open?: boolean;
+  onOpenChange?: (v: boolean) => void;
+  hideTrigger?: boolean;
+}
+
+export function ProviderSettings({ open: controlledOpen, onOpenChange, hideTrigger }: ProviderSettingsProps = {}) {
   const { apiKeys, setApiKey, removeApiKey, activeProviderId, setActiveProvider } =
     useProviderStore();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
   const [keyInputs, setKeyInputs] = useState<Record<string, string>>({});
   const [showKB, setShowKB] = useState(false);
 
@@ -61,9 +70,11 @@ export function ProviderSettings() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger className={buttonVariants({ variant: 'outline', size: 'sm' })}>
-        Settings
-      </DialogTrigger>
+      {!hideTrigger && (
+        <DialogTrigger className={buttonVariants({ variant: 'outline', size: 'sm' })}>
+          Settings
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Settings</DialogTitle>

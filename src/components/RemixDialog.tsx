@@ -17,8 +17,16 @@ import { Shuffle, Loader2 } from 'lucide-react';
  * the commons loop. Scale spreads neighborhood to neighborhood through
  * remixing, and lineage keeps the chain of credit unbroken.
  */
-export function RemixDialog() {
-  const [open, setOpen] = useState(false);
+interface DialogControl {
+  open?: boolean;
+  onOpenChange?: (v: boolean) => void;
+  hideTrigger?: boolean;
+}
+
+export function RemixDialog({ open: controlledOpen, onOpenChange, hideTrigger }: DialogControl = {}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
   const [repoRef, setRepoRef] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,10 +56,12 @@ export function RemixDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger className={buttonVariants({ variant: 'ghost', size: 'sm' }) + ' h-7 gap-1 text-xs'}>
-        <Shuffle className="size-3" />
-        Remix
-      </DialogTrigger>
+      {!hideTrigger && (
+        <DialogTrigger className={buttonVariants({ variant: 'ghost', size: 'sm' }) + ' h-7 gap-1 text-xs'}>
+          <Shuffle className="size-3" />
+          Remix
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Fork a tool's code</DialogTitle>

@@ -18,10 +18,12 @@ import {
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CircleUser, MailCheck, LogOut, MapPin, Palette, HeartHandshake } from 'lucide-react';
+import { CircleUser, MailCheck, LogOut, MapPin, Palette, HeartHandshake, Sun, Moon, SlidersHorizontal } from 'lucide-react';
 import { BuilderOnboarding } from '@/components/BuilderOnboarding';
 import { DesignSystemDialog } from '@/components/DesignSystemDialog';
 import { ConnectionsDialog } from '@/components/ConnectionsDialog';
+import { ProviderSettings } from '@/components/ProviderSettings';
+import { getThemeMode, setThemeMode, type ThemeMode } from '@/theme';
 
 /**
  * Account: signed out it's a magic-link sign-in dialog (no passwords);
@@ -36,6 +38,14 @@ export function AccountMenu() {
   const [editingProfile, setEditingProfile] = useState(false);
   const [editingStyle, setEditingStyle] = useState(false);
   const [editingConnections, setEditingConnections] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [themeMode, setThemeState] = useState<ThemeMode>(getThemeMode);
+
+  function toggleTheme() {
+    const next = themeMode === 'dark' ? 'light' : 'dark';
+    setThemeMode(next);
+    setThemeState(next);
+  }
 
   if (!cloudEnabled) return null;
 
@@ -75,6 +85,19 @@ export function AccountMenu() {
             Connections
           </DropdownMenuItem>
           <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={toggleTheme} className="gap-2 text-xs">
+            {themeMode === 'dark' ? (
+              <Sun className="size-3.5 text-muted-foreground" />
+            ) : (
+              <Moon className="size-3.5 text-muted-foreground" />
+            )}
+            {themeMode === 'dark' ? 'Light mode' : 'Dark mode'}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setSettingsOpen(true)} className="gap-2 text-xs">
+            <SlidersHorizontal className="size-3.5 text-muted-foreground" />
+            Models & API keys
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => signOut()} className="gap-2 text-xs">
             <LogOut className="size-3.5 text-muted-foreground" />
             Sign out
@@ -84,6 +107,7 @@ export function AccountMenu() {
       {editingProfile && <BuilderOnboarding onDone={() => setEditingProfile(false)} />}
       {editingStyle && <DesignSystemDialog open={editingStyle} onOpenChange={setEditingStyle} />}
       {editingConnections && <ConnectionsDialog open={editingConnections} onOpenChange={setEditingConnections} />}
+      {settingsOpen && <ProviderSettings open={settingsOpen} onOpenChange={setSettingsOpen} hideTrigger />}
     </>
   );
 }

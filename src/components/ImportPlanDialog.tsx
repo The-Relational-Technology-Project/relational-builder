@@ -20,8 +20,17 @@ import { fetchStudioBuildPlan, studioPlanToMarkdown } from '@/knowledge/studio-p
  * "Build this plan" action, and its provenance is recorded as project
  * lineage so it flows into the .reltech.yml manifest on export.
  */
-export function ImportPlanDialog() {
-  const [open, setOpen] = useState(false);
+interface DialogControl {
+  /** Controlled open state — when provided, the internal trigger is hidden */
+  open?: boolean;
+  onOpenChange?: (v: boolean) => void;
+  hideTrigger?: boolean;
+}
+
+export function ImportPlanDialog({ open: controlledOpen, onOpenChange, hideTrigger }: DialogControl = {}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
   const [plan, setPlan] = useState('');
   const [sourceUrl, setSourceUrl] = useState('');
   const [studioRef, setStudioRef] = useState('');
@@ -65,10 +74,12 @@ export function ImportPlanDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger className={buttonVariants({ variant: 'ghost', size: 'sm' }) + ' h-7 gap-1 text-xs'}>
-        <FileDown className="size-3" />
-        Import Plan
-      </DialogTrigger>
+      {!hideTrigger && (
+        <DialogTrigger className={buttonVariants({ variant: 'ghost', size: 'sm' }) + ' h-7 gap-1 text-xs'}>
+          <FileDown className="size-3" />
+          Import Plan
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Import a build plan</DialogTitle>

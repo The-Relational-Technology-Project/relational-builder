@@ -57,6 +57,8 @@ interface ProjectState {
   hydrateFiles: (entries: FileEntry[], lineage: ProjectLineage | null) => void;
   clearProject: () => void;
 
+  /** Snapshot the current files as a restorable checkpoint (e.g. before a GitHub pull) */
+  takeCheckpoint: (label: string) => void;
   /** Extract files from a completed AI message and write them to the FS */
   applyMessageFiles: (markdown: string, msgId?: string) => ExtractedFile[];
   /** Human-readable warnings from the last applyMessageFiles (e.g. edits that didn't match) */
@@ -113,6 +115,19 @@ export const useProjectStore = create<ProjectState>()(persist((set, get) => ({
   clearProject: () => {
     get().fs.clear();
     set({ version: 0, selectedFile: null, fs: new VirtualFS(), lineage: null, checkpoints: [], activeCheckpointId: null });
+  },
+
+  takeCheckpoint: (label) => {
+    const { fs, checkpoints } = get();
+    if (fs.getPaths().length === 0) return;
+    const checkpoint: Checkpoint = {
+      id: `ckpt-${Date.now()}-manual`,
+      msgId: null,
+      label,
+      timestamp: Date.now(),
+      files: fs.toJSON(),
+    };
+    set({ checkpoints: [...checkpoints, checkpoint].slice(-MAX_CHECKPOINTS) });
   },
 
   applyMessageFiles: (markdown, msgId) => {

@@ -6,7 +6,7 @@ import { useProjectStore } from '@/store/project-store';
 import { CodeBlock } from './CodeBlock';
 import { ConnectionSuggestion } from './ConnectionSuggestion';
 import { Button } from '@/components/ui/button';
-import { Hammer, History, FileCode, ChevronDown, ChevronRight, Loader2, Copy, Check, ArrowDown } from 'lucide-react';
+import { Hammer, History, FileCode, ChevronDown, ChevronRight, Loader2, Copy, Check, ArrowDown, GitBranch } from 'lucide-react';
 
 /** "Today at 4:26 PM" / "Tuesday at 9:12 AM" — calm dividers between sittings */
 function formatSitting(ts: number): string {
@@ -247,12 +247,20 @@ function MessageBubble({ message }: { message: DisplayMessage }) {
             ? 'max-w-[85%] rounded-xl px-4 py-2.5 bg-primary text-primary-foreground'
             : message.isPlan
               ? 'w-full rounded-xl px-4 py-3 bg-muted/60 border border-dashed border-primary/40'
-              : 'w-full px-1'
+              : message.isSync
+                ? 'w-full rounded-xl px-4 py-3 bg-primary/5 border border-primary/20'
+                : 'w-full px-1'
         }`}
       >
         {message.isPlan && (
           <div className="text-xs uppercase tracking-wide text-muted-foreground mb-1.5">
             Build plan
+          </div>
+        )}
+        {message.isSync && (
+          <div className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-primary/80 mb-1.5">
+            <GitBranch className="size-3" />
+            Synced from GitHub
           </div>
         )}
         {isUser ? (

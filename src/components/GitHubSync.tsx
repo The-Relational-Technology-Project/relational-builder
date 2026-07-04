@@ -10,15 +10,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useGitHubStore } from '@/store/github-store';
 import { useProjectStore } from '@/store/project-store';
+import { useCloudStore } from '@/store/cloud-store';
 import {
   getUser,
   listRepos,
   createRepo,
   pushFiles,
-  pullFiles,
   addReltechTopic,
   type GitHubRepo,
 } from '@/project/github-api';
+import { projectRepoKey, checkPushSafety, pullRemoteChanges } from '@/project/github-sync';
 import { generateManifest } from '@/project/export';
 import {
   GitBranch,
@@ -29,6 +30,7 @@ import {
   Loader2,
   ExternalLink,
   Unplug,
+  AlertTriangle,
 } from 'lucide-react';
 
 type View = 'connect' | 'repos' | 'connected';
@@ -37,7 +39,9 @@ export function GitHubSync() {
   const [open, setOpen] = useState(false);
   const token = useGitHubStore(s => s.token);
   const username = useGitHubStore(s => s.username);
-  const connectedRepo = useGitHubStore(s => s.connectedRepo);
+  const repos = useGitHubStore(s => s.repos);
+  const currentProjectId = useCloudStore(s => s.currentProjectId);
+  const connectedRepo = repos[currentProjectId ?? 'local'] ?? null;
 
   const view: View = connectedRepo ? 'connected' : token && username ? 'repos' : 'connect';
 
@@ -92,6 +96,11 @@ function ConnectView({ onConnected }: { onConnected: () => void }) {
 
   return (
     <div className="space-y-4 pt-2">
+      <p className="text-sm text-muted-foreground">
+        Connect a repo and your project syncs both ways. Edit in Claude Code or any
+        editor, push, and the Builder notices — pulling the changes back in and telling
+        you if anything (like a migration) needs a hand.
+      </p>
       <div className="space-y-1.5">
         <label className="text-xs font-medium">Personal access token</label>
         <Input
@@ -147,7 +156,7 @@ function RepoListView() {
   }, [token]);
 
   const handleSelectRepo = (repo: GitHubRepo) => {
-    connectRepo({
+    connectRepo(projectRepoKey(), {
       fullName: repo.full_name,
       branch: repo.default_branch,
       htmlUrl: repo.html_url,
@@ -163,7 +172,7 @@ function RepoListView() {
       const repo = await createRepo(token, newName, 'Built with Relational Builder');
       // Add relational-tech topic
       await addReltechTopic(token, repo.full_name).catch(() => {});
-      connectRepo({
+      connectRepo(projectRepoKey(), {
         fullName: repo.full_name,
         branch: repo.default_branch,
         htmlUrl: repo.html_url,
@@ -251,12 +260,13 @@ function RepoListView() {
 
 function ConnectedView() {
   const token = useGitHubStore(s => s.token);
-  const connectedRepo = useGitHubStore(s => s.connectedRepo)!;
+  const currentProjectId = useCloudStore(s => s.currentProjectId);
+  const repoKey = currentProjectId ?? 'local';
+  const connectedRepo = useGitHubStore(s => s.repos[repoKey])!;
   const updateLastSync = useGitHubStore(s => s.updateLastSync);
   const disconnectRepo = useGitHubStore(s => s.disconnectRepo);
 
   const getAllFiles = useProjectStore(s => s.getAllFiles);
-  const writeFile = useProjectStore(s => s.writeFile);
   const fileCount = useProjectStore(s => s.getFileCount());
 
   const [pushing, setPushing] = useState(false);
@@ -264,14 +274,17 @@ function ConnectedView() {
   const [message, setMessage] = useState('');
   const [commitMsg, setCommitMsg] = useState('Update from Relational Builder');
   const [error, setError] = useState<string | null>(null);
+  // When GitHub is ahead of us, confirm before overwriting
+  const [pushWarning, setPushWarning] = useState<{ aheadBy: number } | null>(null);
 
-  const handlePush = useCallback(async () => {
+  const doPush = useCallback(async () => {
     const files = getAllFiles();
     if (files.length === 0) return;
 
     setPushing(true);
     setError(null);
     setMessage('');
+    setPushWarning(null);
     try {
       // Include the .reltech.yml manifest (with lineage) unless the project
       // already carries its own — the network watcher reads it from the repo.
@@ -295,37 +308,46 @@ function ConnectedView() {
         filesToPush,
         commitMsg,
       );
-      updateLastSync(result.commitSha);
+      updateLastSync(repoKey, result.commitSha);
       setMessage(`Pushed ${result.filesChanged} files`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Push failed');
     } finally {
       setPushing(false);
     }
-  }, [token, connectedRepo, commitMsg, getAllFiles, updateLastSync]);
+  }, [token, connectedRepo, commitMsg, getAllFiles, updateLastSync, repoKey]);
+
+  const handlePush = useCallback(async () => {
+    // Don't clobber work that landed on GitHub since we last synced
+    setPushing(true);
+    setError(null);
+    const remote = await checkPushSafety();
+    setPushing(false);
+    if (remote && (remote.aheadBy > 0 || remote.fullResync)) {
+      setPushWarning({ aheadBy: remote.aheadBy });
+      return;
+    }
+    doPush();
+  }, [doPush]);
 
   const handlePull = useCallback(async () => {
     setPulling(true);
     setError(null);
     setMessage('');
     try {
-      const result = await pullFiles(
-        token,
-        connectedRepo.fullName,
-        connectedRepo.branch,
+      const summary = await pullRemoteChanges();
+      const changed = summary.applied.length + summary.deleted.length;
+      setMessage(
+        changed > 0
+          ? `Pulled ${changed} file${changed > 1 ? 's' : ''} — see the summary in chat`
+          : 'Already up to date',
       );
-      // Write all fetched files into VFS
-      for (const file of result.files) {
-        writeFile(file.path, file.content);
-      }
-      updateLastSync(result.commitSha);
-      setMessage(`Pulled ${result.files.length} files`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Pull failed');
     } finally {
       setPulling(false);
     }
-  }, [token, connectedRepo, writeFile, updateLastSync]);
+  }, []);
 
   return (
     <div className="space-y-4 pt-2">
@@ -348,13 +370,20 @@ function ConnectedView() {
           </p>
         </div>
         <button
-          onClick={disconnectRepo}
+          onClick={() => disconnectRepo(repoKey)}
           className="text-xs text-muted-foreground hover:text-foreground"
           title="Disconnect"
         >
           <Unplug className="size-3.5" />
         </button>
       </div>
+
+      <p className="text-xs text-muted-foreground leading-relaxed">
+        Edit this project anywhere — Claude Code, your own editor — and{' '}
+        <span className="text-foreground">Pull</span> brings the changes back with a
+        plain-language summary. Push writes your Builder changes on top without deleting
+        files that live only in the repo.
+      </p>
 
       {/* Commit message */}
       <div className="space-y-1.5">
@@ -396,6 +425,33 @@ function ConnectedView() {
           Pull
         </Button>
       </div>
+
+      {/* Push-would-overwrite warning */}
+      {pushWarning && (
+        <div className="rounded-lg border border-amber-500/50 bg-amber-500/10 p-3 space-y-2">
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="size-4 text-amber-600 shrink-0 mt-0.5" />
+            <p className="text-xs">
+              GitHub has{' '}
+              <span className="font-medium">
+                {pushWarning.aheadBy > 0
+                  ? `${pushWarning.aheadBy} commit${pushWarning.aheadBy > 1 ? 's' : ''}`
+                  : 'changes'}
+              </span>{' '}
+              the Builder hasn't seen. Pull first so you don't lose them — or push anyway
+              to keep your version.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" className="flex-1 h-7 text-xs" onClick={() => { setPushWarning(null); handlePull(); }}>
+              Pull first
+            </Button>
+            <Button size="sm" variant="ghost" className="flex-1 h-7 text-xs" onClick={() => { setPushWarning(null); doPush(); }}>
+              Push anyway
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Status messages */}
       {error && (

@@ -4,6 +4,7 @@ import { builderClient } from '@/cloud/builder-client';
 import { useAuthStore } from '@/store/auth-store';
 import { useProjectStore, type ProjectLineage } from '@/store/project-store';
 import { useChatStore, type ChatMode, type DisplayMessage } from '@/store/chat-store';
+import { useGitHubStore } from '@/store/github-store';
 import type { FileEntry } from '@/project/virtual-fs';
 
 export interface CloudProjectSummary {
@@ -149,6 +150,9 @@ export const useCloudStore = create<CloudState>()((set, get) => ({
       .single();
 
     if (error) return { error: error.message };
+
+    // A repo connected while this was a local project follows it into the cloud
+    useGitHubStore.getState().moveRepo('local', data.id);
 
     set({
       currentProjectId: data.id,

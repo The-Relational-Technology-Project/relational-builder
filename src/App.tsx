@@ -6,8 +6,7 @@ import { RightPanel } from '@/components/RightPanel';
 import { ResizableLayout } from '@/components/ResizableLayout';
 import { PublishDialog } from '@/components/PublishDialog';
 import { PromptDialog } from '@/components/PromptDialog';
-import { ImportPlanDialog } from '@/components/ImportPlanDialog';
-import { RemixDialog } from '@/components/RemixDialog';
+import { StartFromMenu } from '@/components/StartFromMenu';
 import { SharePreview } from '@/components/SharePreview';
 import { GitHubSync } from '@/components/GitHubSync';
 import { useProviderStore } from '@/store/provider-store';
@@ -15,7 +14,7 @@ import { useProjectStore } from '@/store/project-store';
 import { useChatStore } from '@/store/chat-store';
 import { useKnowledgeStore } from '@/store/knowledge-store';
 import { useEnvStore } from '@/store/env-store';
-import { useAuthStore } from '@/store/auth-store';
+import { useAuthStore, cloudEnabled } from '@/store/auth-store';
 import { useCloudStore } from '@/store/cloud-store';
 import { useCommunityStore } from '@/store/community-store';
 import { useStudioStore } from '@/store/studio-store';
@@ -84,6 +83,9 @@ function App() {
 
   // First sign-in → the place-grounded builder onboarding
   const authUser = useAuthStore(s => s.user);
+  // Theme + model/key settings live in the account menu once someone's signed
+  // in. Only when they aren't (or cloud is off) do they need standalone icons.
+  const showStandaloneSettings = !(cloudEnabled && authUser);
   const profile = useAuthStore(s => s.profile);
   const profileLoaded = useAuthStore(s => s.profileLoaded);
   const needsOnboarding = !!authUser && profileLoaded && !profile?.profile_completed;
@@ -122,17 +124,16 @@ function App() {
             <Plus className="size-3" />
             New Project
           </Button>
-          {!hasProject && <ImportPlanDialog />}
-          {!hasProject && <RemixDialog />}
+          {!hasProject && <StartFromMenu />}
           <ProjectsDialog />
           {hasProject && <PromptDialog />}
           {hasProject && <SharePreview />}
           {hasProject && <PublishDialog />}
           <GitHubSync />
           <Separator orientation="vertical" className="h-5" />
-          <ThemeToggle />
+          {showStandaloneSettings && <ThemeToggle />}
           <AccountMenu />
-          <ProviderSettings />
+          {showStandaloneSettings && <ProviderSettings />}
         </div>
       </header>
 
@@ -187,8 +188,7 @@ function App() {
               <Plus className="size-3" />
               New Project
             </Button>
-            {!hasProject && <ImportPlanDialog />}
-            {!hasProject && <RemixDialog />}
+            {!hasProject && <StartFromMenu />}
             <ProjectsDialog />
             {hasProject && <PromptDialog />}
             {hasProject && <SharePreview />}
@@ -196,9 +196,9 @@ function App() {
             <GitHubSync />
           </div>
           <div className="flex items-center gap-1.5 pt-1 border-t">
-            <ThemeToggle />
+            {showStandaloneSettings && <ThemeToggle />}
             <AccountMenu />
-            <ProviderSettings />
+            {showStandaloneSettings && <ProviderSettings />}
           </div>
         </div>
       </div>

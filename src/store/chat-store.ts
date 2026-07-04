@@ -24,6 +24,9 @@ export interface DisplayMessage {
   isStreaming?: boolean;
   /** True for assistant messages produced in plan mode (renders a "Build this plan" action) */
   isPlan?: boolean;
+  /** True for Builder-generated notes (e.g. a GitHub pull summary) — shown
+   * with a badge, included in history so the AI knows what happened */
+  isSync?: boolean;
   /** Attached images as data URLs (downscaled client-side) */
   attachments?: string[];
 }
@@ -63,6 +66,8 @@ interface ChatState {
   draftMessage: string | null;
   setDraftMessage: (content: string | null) => void;
   addUserMessage: (content: string, attachments?: string[]) => void;
+  /** Add a Builder-generated note (e.g. GitHub pull summary) to the conversation */
+  addSyncMessage: (content: string) => void;
   startAssistantMessage: (isPlan?: boolean) => string;
   /** Add an imported build plan (e.g. from RTP Studio) as a plan message */
   importBuildPlan: (planMarkdown: string) => void;
@@ -150,6 +155,17 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
     };
     set(state => ({ messages: [...state.messages, msg] }));
     return id;
+  },
+
+  addSyncMessage: (content: string) => {
+    const msg: DisplayMessage = {
+      id: nextId(),
+      role: 'assistant',
+      content,
+      timestamp: Date.now(),
+      isSync: true,
+    };
+    set(state => ({ messages: [...state.messages, msg] }));
   },
 
   importBuildPlan: (planMarkdown: string) => {
@@ -242,7 +258,19 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
           ],
         });
       } else {
-        chatMsgs.push({ role: msg.role, content: text });
+        // Builder-generated notes (GitHub pull summaries) can land right
+        // after an assistant reply — merge consecutive same-role text
+        // messages so providers always see alternating roles
+        const prev = chatMsgs[chatMsgs.length - 1];
+        if (
+          prev &&
+          prev.role === msg.role &&
+          typeof prev.content === 'string'
+        ) {
+          prev.content = `${prev.content}\n\n${text}`;
+        } else {
+          chatMsgs.push({ role: msg.role, content: text });
+        }
       }
     }
 

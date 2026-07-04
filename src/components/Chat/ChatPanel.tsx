@@ -23,6 +23,7 @@ import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { Button } from '@/components/ui/button';
 import { HomeDashboard } from '@/components/HomeDashboard';
+import { GitHubChangesBanner } from '@/components/GitHubChangesBanner';
 
 /** An unterminated fence means the reply was cut off mid-file */
 function endsInsideCodeFence(content: string): boolean {
@@ -361,6 +362,7 @@ export function ChatPanel() {
   return (
     <div className="flex flex-col h-full">
       <MessageList messages={messages} onBuildPlan={handleBuildPlan} isGenerating={isGenerating} />
+      {!isGenerating && <GitHubChangesBanner />}
       {!isGenerating && <BuildRecovery />}
       {needsKey && (
         <div className="px-4 py-2 text-xs text-center bg-muted/50 border-t">

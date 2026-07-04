@@ -22,6 +22,15 @@ export function RightPanel() {
 
   const [activeTab, setActiveTab] = useState<Tab>('preview');
 
+  // Raw env vars are a power-user surface — Services is the friendly front
+  // door that writes them. Only show the Env tab once something's in it.
+  const showEnvTab = envCount > 0;
+  // If the active tab disappears (env cleared on New Project), fall back.
+  // Setting state during render is fine here — it converges immediately.
+  if (activeTab === 'env' && !showEnvTab) {
+    setActiveTab('preview');
+  }
+
   return (
     <div className="flex flex-col h-full">
       {/* Tab bar */}
@@ -53,13 +62,15 @@ export function RightPanel() {
           label="Services"
           badge={connectedCount > 0 ? connectedCount : undefined}
         />
-        <TabButton
-          active={activeTab === 'env'}
-          onClick={() => setActiveTab('env')}
-          icon={<KeyRound className="size-3" />}
-          label="Env"
-          badge={envCount > 0 ? envCount : undefined}
-        />
+        {showEnvTab && (
+          <TabButton
+            active={activeTab === 'env'}
+            onClick={() => setActiveTab('env')}
+            icon={<KeyRound className="size-3" />}
+            label="Env"
+            badge={envCount}
+          />
+        )}
       </div>
 
       {/* Tab content */}

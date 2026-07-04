@@ -25,6 +25,13 @@ export function StudioSwitcher() {
     ? studios
     : [activeStudio, ...studios];
 
+  // Progressive disclosure: the switcher only earns toolbar space when there's
+  // an actual choice — more than one studio, or a non-default one deep-linked
+  // in. For everyone building in the default Relational Tech Studio, it's just
+  // a non-actionable label, so we hide it.
+  const isDefaultOnly = options.length <= 1 && activeStudio.slug === 'rt';
+  if (isDefaultOnly) return null;
+
   return (
     <Select
       value={activeStudio.slug}
