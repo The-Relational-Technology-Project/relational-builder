@@ -90,38 +90,43 @@
     --sidebar-ring: hsl(16 55% 50%);
 }
 
+/*
+ * Dark mode reads like a good terminal, not a dim café: a true near-black
+ * neutral base with plenty of contrast, and the brand clay/green/gold kept
+ * strictly as accents. (The old warm-brown dark washed everything muddy.)
+ */
 .dark {
-    --background: hsl(20 25% 12%);
-    --foreground: hsl(30 40% 92%);
-    --card: hsl(20 25% 16%);
-    --card-foreground: hsl(30 40% 92%);
-    --popover: hsl(20 25% 16%);
-    --popover-foreground: hsl(30 40% 92%);
-    --primary: hsl(16 55% 55%);
-    --primary-foreground: hsl(20 25% 12%);
-    --secondary: hsl(20 20% 22%);
-    --secondary-foreground: hsl(30 40% 92%);
-    --muted: hsl(20 20% 22%);
-    --muted-foreground: hsl(28 20% 65%);
-    --accent: hsl(20 20% 24%);
-    --accent-foreground: hsl(30 40% 92%);
-    --destructive: hsl(0 60% 50%);
-    --border: hsl(20 18% 26%);
-    --input: hsl(20 20% 24%);
-    --ring: hsl(16 55% 55%);
-    --chart-1: hsl(16 55% 55%);
-    --chart-2: hsl(145 30% 50%);
-    --chart-3: hsl(40 65% 55%);
-    --chart-4: hsl(28 20% 65%);
-    --chart-5: hsl(200 40% 55%);
-    --sidebar: hsl(20 25% 16%);
-    --sidebar-foreground: hsl(30 40% 92%);
-    --sidebar-primary: hsl(16 55% 55%);
-    --sidebar-primary-foreground: hsl(20 25% 12%);
-    --sidebar-accent: hsl(20 20% 22%);
-    --sidebar-accent-foreground: hsl(30 40% 92%);
-    --sidebar-border: hsl(20 18% 26%);
-    --sidebar-ring: hsl(16 55% 55%);
+    --background: hsl(0 0% 7%);
+    --foreground: hsl(30 10% 92%);
+    --card: hsl(0 0% 10%);
+    --card-foreground: hsl(30 10% 92%);
+    --popover: hsl(0 0% 10%);
+    --popover-foreground: hsl(30 10% 92%);
+    --primary: hsl(16 70% 58%);
+    --primary-foreground: hsl(0 0% 7%);
+    --secondary: hsl(0 0% 15%);
+    --secondary-foreground: hsl(30 10% 92%);
+    --muted: hsl(0 0% 14%);
+    --muted-foreground: hsl(30 5% 64%);
+    --accent: hsl(0 0% 16%);
+    --accent-foreground: hsl(30 10% 92%);
+    --destructive: hsl(0 65% 55%);
+    --border: hsl(0 0% 19%);
+    --input: hsl(0 0% 16%);
+    --ring: hsl(16 70% 58%);
+    --chart-1: hsl(16 70% 58%);
+    --chart-2: hsl(145 35% 52%);
+    --chart-3: hsl(40 70% 58%);
+    --chart-4: hsl(30 5% 64%);
+    --chart-5: hsl(200 45% 58%);
+    --sidebar: hsl(0 0% 10%);
+    --sidebar-foreground: hsl(30 10% 92%);
+    --sidebar-primary: hsl(16 70% 58%);
+    --sidebar-primary-foreground: hsl(0 0% 7%);
+    --sidebar-accent: hsl(0 0% 15%);
+    --sidebar-accent-foreground: hsl(30 10% 92%);
+    --sidebar-border: hsl(0 0% 19%);
+    --sidebar-ring: hsl(16 70% 58%);
 }
 
 @layer base {
