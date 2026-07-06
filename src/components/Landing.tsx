@@ -12,9 +12,23 @@ const ENTERED_KEY = 'rb-entered';
  * link), and members walk straight in. Invitation passcodes still work as
  * a quiet fallback while invites carrying them circulate — entering one
  * also feeds the enroll-community self-enrollment flow.
- * The warm dark palette matches the brand mark and social card, independent
- * of the app's light/dark theme.
+ * Warm light palette drawn from the brand mark, independent of the app's
+ * light/dark theme. Copy stays short — the door matters more than the tour.
  */
+
+// Brand palette on warm paper
+const C = {
+  bg: '#FAF7F2',
+  ink: '#261e18',
+  body: '#4A4038',
+  muted: '#8A7D71',
+  border: '#E5DCD0',
+  card: '#FFFFFF',
+  orange: '#D2764B',
+  orangeDeep: '#C4693F',
+  green: '#3D8B6D',
+  yellow: '#E8B84E',
+};
 export function Landing({ children }: { children: ReactNode }) {
   const [granted, setGranted] = useState(
     () =>
@@ -35,80 +49,59 @@ function LandingPage({ onUnlock }: { onUnlock: () => void }) {
   }
 
   return (
-    <div className="min-h-dvh overflow-y-auto bg-[#261e18] text-[#FAFAF9]" style={{ fontFamily: "'Inter Variable', system-ui, sans-serif" }}>
-      <div className="max-w-2xl mx-auto px-6 py-16 sm:py-24 space-y-16">
+    <div
+      className="min-h-dvh overflow-y-auto"
+      style={{ background: C.bg, color: C.ink, fontFamily: "'Inter Variable', system-ui, sans-serif" }}
+    >
+      <div className="max-w-2xl mx-auto px-6 py-14 sm:py-20 space-y-12">
 
         {/* Hero */}
-        <header className="space-y-6 text-center">
+        <header className="space-y-5 text-center">
           <RBMark className="size-14 mx-auto" />
           <div className="space-y-3">
             <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight">
               Relational Builder
             </h1>
-            <p className="text-lg sm:text-xl text-[#D6D3D1] leading-relaxed">
+            <p className="text-lg sm:text-xl leading-relaxed" style={{ color: C.body }}>
               Build tools for your neighborhood,<br className="sm:hidden" /> with your neighborhood.
             </p>
           </div>
-          <p className="text-sm text-[#A8A29E] max-w-md mx-auto leading-relaxed">
-            An open-source AI app builder for relational technology — describe
-            what your community needs in plain language, and shape a working
-            tool together.
+          <p className="text-sm max-w-md mx-auto leading-relaxed" style={{ color: C.muted }}>
+            Describe what your community needs in plain language and shape a
+            working tool together — starting from the commons of the{' '}
+            <a href="https://relationaltechproject.org" className="underline underline-offset-2" style={{ textDecorationColor: C.border, color: C.body }}>
+              Relational Technology Project
+            </a>
+            , not a blank slate.
           </p>
         </header>
 
-        {/* What it is */}
-        <section className="space-y-4">
-          <h2 className="font-sans text-xs uppercase tracking-[0.2em] text-[#78716C]">What this is</h2>
-          <p className="text-[#E7E5E4] leading-relaxed">
-            Most app builders start from a blank slate. This one starts from a
-            commons. Every conversation draws on the tools, stories, and
-            recipes of real community builders — block parties and mutual aid
-            pods, tool libraries and neighborhood calendars — carried from
-            garden to garden by the{' '}
-            <a href="https://relationaltechproject.org" className="underline decoration-[#78716C] underline-offset-2 hover:decoration-[#FAFAF9]">
-              Relational Technology Project
-            </a>
-            . And when your tool is ready, you can offer it back, so the next
-            neighborhood starts where you left off.
-          </p>
-          <div className="grid sm:grid-cols-3 gap-3 pt-2">
-            <ValueCard color="#E86F4E" title="Describe it">
-              Say what your neighborhood needs. Plan together first, or build right away — no code required.
-            </ValueCard>
-            <ValueCard color="#3D8B6D" title="Shape it together">
-              Invite a neighbor as editor. Watch the live preview. Restore any version. Ask the AI to fix what breaks.
-            </ValueCard>
-            <ValueCard color="#E8B84E" title="Offer it back">
-              Publish to your own domain, and share the tool to the commons — credited to you, ready to remix.
-            </ValueCard>
-          </div>
-        </section>
-
-        {/* The way */}
-        <section className="space-y-4">
-          <h2 className="font-sans text-xs uppercase tracking-[0.2em] text-[#78716C]">The way we build</h2>
-          <p className="text-[#E7E5E4] leading-relaxed">
-            Technology is the smaller part of this work. Ninety percent is
-            presence — knowing your neighbors, listening well, showing up.
-            The tools here exist to serve that ninety percent, never to
-            replace it. We build for agency, belonging, and trust, and we
-            grow the way trust grows: person to person, at the speed of
-            invitation.
-          </p>
-        </section>
+        <div className="grid sm:grid-cols-3 gap-3">
+          <ValueCard color={C.orange} title="Describe it">
+            Say what your neighborhood needs — no code required.
+          </ValueCard>
+          <ValueCard color={C.green} title="Shape it together">
+            Invite a neighbor in, watch the live preview, restore any version.
+          </ValueCard>
+          <ValueCard color={C.yellow} title="Offer it back">
+            Publish it, then share it to the commons for the next neighborhood.
+          </ValueCard>
+        </div>
 
         {/* The front door */}
-        <section className="rounded-2xl border border-[#4e443c] bg-[#332a23] p-8 space-y-5 text-center">
+        <section
+          className="rounded-2xl border p-8 space-y-5 text-center"
+          style={{ borderColor: C.border, background: C.card }}
+        >
           <h2 className="text-xl font-semibold">We're in a community pilot</h2>
-          <p className="text-sm text-[#D6D3D1] leading-relaxed max-w-md mx-auto">
-            Approved builders get free building — no API keys, no credit card —
-            courtesy of the Relational Technology Project. Ask for an account
-            and a real person will welcome you in, usually within a day.
+          <p className="text-sm leading-relaxed max-w-md mx-auto" style={{ color: C.body }}>
+            Approved builders build free — no API keys, no credit card. Ask for
+            an account and a real person will welcome you in, usually within a day.
           </p>
           <RequestAccountForm />
-          <p className="text-xs text-[#A8A29E]">
+          <p className="text-xs" style={{ color: C.muted }}>
             Already approved?{' '}
-            <button onClick={enter} className="underline decoration-[#78716C] underline-offset-2 hover:decoration-[#FAFAF9]">
+            <button onClick={enter} className="underline underline-offset-2 hover:opacity-80" style={{ color: C.body }}>
               Come on in and sign in
             </button>
           </p>
@@ -116,21 +109,23 @@ function LandingPage({ onUnlock }: { onUnlock: () => void }) {
         </section>
 
         {/* Footer */}
-        <footer className="text-center space-y-2 text-xs text-[#78716C]">
+        <footer className="text-center space-y-2 text-xs" style={{ color: C.muted }}>
+          <p>
+            The tools here serve presence — knowing your neighbors, listening
+            well, showing up — never replace it.
+          </p>
           <p>
             Open source under MIT —{' '}
             <a
               href="https://github.com/The-Relational-Technology-Project/relational-builder"
               target="_blank"
               rel="noopener noreferrer"
-              className="underline decoration-[#57534E] underline-offset-2 hover:decoration-[#A8A29E]"
+              className="underline underline-offset-2 hover:opacity-80"
             >
               read the code
             </a>
-          </p>
-          <p>
-            A project of{' '}
-            <a href="https://relationaltechproject.org" className="underline decoration-[#57534E] underline-offset-2 hover:decoration-[#A8A29E]">
+            {' '}· a project of{' '}
+            <a href="https://relationaltechproject.org" className="underline underline-offset-2 hover:opacity-80">
               The Relational Technology Project
             </a>
           </p>
@@ -163,7 +158,7 @@ function RequestAccountForm() {
 
   if (outcome === 'pending') {
     return (
-      <p className="text-sm text-[#D6D3D1] leading-relaxed max-w-md mx-auto">
+      <p className="text-sm leading-relaxed max-w-md mx-auto" style={{ color: C.body }}>
         Request sent — thank you! A real person reviews every request; you'll
         get a welcome email as soon as yours is approved.
       </p>
@@ -171,7 +166,7 @@ function RequestAccountForm() {
   }
   if (outcome === 'already-member') {
     return (
-      <p className="text-sm text-[#D6D3D1] leading-relaxed max-w-md mx-auto">
+      <p className="text-sm leading-relaxed max-w-md mx-auto" style={{ color: C.body }}>
         Good news — this email is already approved. Come on in below and sign
         in with it.
       </p>
@@ -179,7 +174,7 @@ function RequestAccountForm() {
   }
 
   const inputClass =
-    'w-full rounded-lg border border-[#4e443c] bg-[#261e18] px-3 py-2 text-sm outline-none placeholder:text-[#78716C] focus:border-[#A8A29E]';
+    'w-full rounded-lg border px-3 py-2 text-sm outline-none placeholder:text-[#8A7D71] border-[#E5DCD0] bg-[#FAF7F2] focus:border-[#D2764B]';
 
   return (
     <div className="max-w-sm mx-auto space-y-2 text-left">
@@ -203,7 +198,7 @@ function RequestAccountForm() {
         rows={3}
         className={`${inputClass} resize-none`}
       />
-      {error && <p className="text-xs text-[#E86F4E] text-center">{error}</p>}
+      {error && <p className="text-xs text-center" style={{ color: C.orangeDeep }}>{error}</p>}
       <button
         onClick={submit}
         disabled={busy || !email.includes('@')}
@@ -236,9 +231,9 @@ function PasscodeFallback({ onUnlock }: { onUnlock: () => void }) {
 
   if (!open) {
     return (
-      <p className="text-xs text-[#78716C]">
+      <p className="text-xs" style={{ color: C.muted }}>
         Holding an invite with a passcode?{' '}
-        <button onClick={() => setOpen(true)} className="underline decoration-[#57534E] underline-offset-2 hover:decoration-[#A8A29E]">
+        <button onClick={() => setOpen(true)} className="underline underline-offset-2 hover:opacity-80">
           Enter it here
         </button>
       </p>
@@ -256,31 +251,32 @@ function PasscodeFallback({ onUnlock }: { onUnlock: () => void }) {
           onKeyDown={e => e.key === 'Enter' && handleSubmit()}
           placeholder="Passcode"
           autoFocus
-          className={`flex-1 rounded-lg border bg-[#261e18] px-3 py-2 text-center tracking-[0.3em] text-sm outline-none placeholder:text-[#78716C] placeholder:tracking-normal ${
-            error ? 'border-[#E86F4E]' : 'border-[#4e443c] focus:border-[#A8A29E]'
+          className={`flex-1 rounded-lg border bg-[#FAF7F2] px-3 py-2 text-center tracking-[0.3em] text-sm outline-none placeholder:text-[#8A7D71] placeholder:tracking-normal ${
+            error ? 'border-[#D2764B]' : 'border-[#E5DCD0] focus:border-[#D2764B]'
           }`}
         />
         <button
           onClick={handleSubmit}
           disabled={!input.trim()}
-          className="rounded-lg border border-[#4e443c] text-[#FAFAF9] px-4 py-2 text-sm hover:border-[#A8A29E] disabled:opacity-40 transition-colors"
+          className="rounded-lg border px-4 py-2 text-sm disabled:opacity-40 transition-colors hover:border-[#D2764B]"
+          style={{ borderColor: C.border, color: C.ink }}
         >
           Enter
         </button>
       </div>
-      {error && <p className="text-xs text-[#E86F4E]">That's not it — check your invitation.</p>}
+      {error && <p className="text-xs" style={{ color: C.orangeDeep }}>That's not it — check your invitation.</p>}
     </div>
   );
 }
 
 function ValueCard({ color, title, children }: { color: string; title: string; children: ReactNode }) {
   return (
-    <div className="rounded-xl border border-[#4e443c] p-4 space-y-1.5 text-left">
+    <div className="rounded-xl border p-4 space-y-1.5 text-left" style={{ borderColor: C.border, background: C.card }}>
       <div className="flex items-center gap-2">
         <span className="size-2.5 rounded-full shrink-0" style={{ background: color }} />
         <h3 className="text-sm font-semibold">{title}</h3>
       </div>
-      <p className="text-xs text-[#A8A29E] leading-relaxed">{children}</p>
+      <p className="text-xs leading-relaxed" style={{ color: C.muted }}>{children}</p>
     </div>
   );
 }

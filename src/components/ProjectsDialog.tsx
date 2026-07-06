@@ -14,10 +14,13 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Cloud, FolderOpen, Trash2, UserPlus, X, Loader2, Users } from 'lucide-react';
 import { suggestProjectName } from '@/project/suggest-name';
+import { YourPrompts } from '@/components/YourPrompts';
+import { listMyPrompts, type BuildPrompt } from '@/cloud/prompts';
 
 /**
- * Cloud projects: save the current workspace, open saved projects,
- * and invite collaborators by email.
+ * The Projects page: save the current workspace, open saved projects,
+ * invite collaborators by email — and the builder's prompt library,
+ * the seeds distilled from what they've built.
  */
 export function ProjectsDialog() {
   const user = useAuthStore(s => s.user);
@@ -40,9 +43,15 @@ export function ProjectsDialog() {
   const [inviteEmail, setInviteEmail] = useState('');
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [prompts, setPrompts] = useState<BuildPrompt[]>([]);
+
+  const refreshPrompts = () => listMyPrompts().then(setPrompts).catch(() => {});
 
   useEffect(() => {
-    if (open && user) refreshProjects();
+    if (open && user) {
+      refreshProjects();
+      refreshPrompts();
+    }
     // Offer a name drawn from the conversation instead of a blank field
     if (open) {
       setNewName(prev => prev || (suggestProjectName() ?? ''));
@@ -65,7 +74,7 @@ export function ProjectsDialog() {
         <Cloud className="size-3.5" />
         Projects
       </DialogTrigger>
-      <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Your projects</DialogTitle>
         </DialogHeader>
@@ -248,6 +257,17 @@ export function ProjectsDialog() {
               auto-save and sync to collaborators within a couple of seconds
               (last save wins per project).
             </p>
+
+            {prompts.length > 0 && (
+              <>
+                <Separator />
+                <YourPrompts
+                  prompts={prompts}
+                  onChanged={refreshPrompts}
+                  onBuildFrom={() => setOpen(false)}
+                />
+              </>
+            )}
           </div>
         )}
       </DialogContent>

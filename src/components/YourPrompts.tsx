@@ -18,9 +18,12 @@ import { ScrollText, Copy, Check, Link2, Trash2, Hammer } from 'lucide-react';
 export function YourPrompts({
   prompts,
   onChanged,
+  onBuildFrom,
 }: {
   prompts: BuildPrompt[];
   onChanged: () => void;
+  /** Called after a prompt is planted in the composer (e.g. to close a dialog) */
+  onBuildFrom?: () => void;
 }) {
   const [copied, setCopied] = useState<string | null>(null);
 
@@ -40,6 +43,7 @@ export function YourPrompts({
       importedAt: new Date().toISOString(),
     });
     useChatStore.getState().setDraftMessage(p.body);
+    onBuildFrom?.();
   }
 
   async function toggleShare(p: BuildPrompt) {

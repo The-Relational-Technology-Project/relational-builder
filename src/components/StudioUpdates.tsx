@@ -5,10 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Users, Sparkles, Share2, UserPlus } from 'lucide-react';
 
 /**
- * The studio's life on a builder's home: recent shares, publishes, and new
- * joins across the studios they belong to. Belonging comes first — a builder
- * who's active in a studio frame but hasn't joined gets a gentle invitation
- * instead of a feed.
+ * Network Updates — the network's life on a builder's home: recent shares,
+ * publishes, and new joins across the studios they belong to, each item noting
+ * which studio it happened in. Belonging comes first — a builder who's active
+ * in a studio frame but hasn't joined gets a gentle invitation instead of a feed.
  */
 
 function timeAgo(iso: string): string {
@@ -19,11 +19,11 @@ function timeAgo(iso: string): string {
   return days < 7 ? `${days}d ago` : new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
-function entryLine(e: StudioActivityEntry, studioLabel: string): { icon: typeof Share2; text: string } {
+function entryLine(e: StudioActivityEntry): { icon: typeof Share2; text: string } {
   const who = e.actor_name || 'A builder';
   switch (e.kind) {
     case 'join':
-      return { icon: UserPlus, text: `${who} joined ${studioLabel}` };
+      return { icon: UserPlus, text: `${who} joined` };
     case 'share':
       return { icon: Share2, text: `${who} shared a prompt${e.title ? `: ${e.title}` : ''}` };
     case 'publish':
@@ -31,7 +31,7 @@ function entryLine(e: StudioActivityEntry, studioLabel: string): { icon: typeof 
   }
 }
 
-export function StudioUpdates() {
+export function NetworkUpdates() {
   const activeStudio = useStudioStore(s => s.activeStudio);
   const memberships = useStudioStore(s => s.memberships);
   const membershipsLoaded = useStudioStore(s => s.membershipsLoaded);
@@ -93,9 +93,7 @@ export function StudioUpdates() {
   return (
     <section className="space-y-2">
       <div className="flex items-center gap-2">
-        <h2 className="text-sm font-medium text-muted-foreground">
-          {memberships.length === 1 ? labelFor(memberships[0].studio_slug) : 'Your studios'}
-        </h2>
+        <h2 className="text-sm font-medium text-muted-foreground">Network Updates</h2>
         {activeStudio && !isMemberOfActive && (
           <button
             className="text-xs text-primary hover:underline"
@@ -107,12 +105,12 @@ export function StudioUpdates() {
       </div>
       {activity.length === 0 ? (
         <p className="text-sm text-muted-foreground/70">
-          Quiet so far — shares and new members will show up here.
+          Quiet so far — shares and new members across your studios will show up here.
         </p>
       ) : (
         <ul className="space-y-1.5">
           {activity.map(e => {
-            const { icon: Icon, text } = entryLine(e, labelFor(e.studio_slug));
+            const { icon: Icon, text } = entryLine(e);
             return (
               <li key={e.id} className="flex items-center gap-2 text-sm">
                 <Icon className="size-3.5 text-muted-foreground shrink-0" />
@@ -121,6 +119,9 @@ export function StudioUpdates() {
                 ) : (
                   <span className="truncate">{text}</span>
                 )}
+                <span className="shrink-0 rounded-full border px-2 py-0.5 text-[10px] text-muted-foreground">
+                  {labelFor(e.studio_slug)}
+                </span>
                 <span className="text-xs text-muted-foreground/60 shrink-0 tabular-nums">
                   {timeAgo(e.created_at)}
                 </span>

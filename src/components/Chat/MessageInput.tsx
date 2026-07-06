@@ -4,6 +4,7 @@ import { SendHorizontal, Square, Map, Hammer, ImagePlus, X, FolderOpen, Globe } 
 import { useChatStore, type ChatMode } from '@/store/chat-store';
 import { fileToDataUrl, isImageFile } from '@/lib/image';
 import { listMentionables, type Mentionable } from '@/knowledge/mentions';
+import { ModelSelector } from '@/components/ModelSelector';
 
 const MAX_ATTACHMENTS = 3;
 
@@ -261,16 +262,30 @@ export function MessageInput({
               e.target.value = '';
             }}
           />
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={disabled || attachments.length >= MAX_ATTACHMENTS}
-            title="Attach an image — a sketch, screenshot, or mockup"
-            className="size-8 text-muted-foreground hover:text-foreground"
-          >
-            <ImagePlus className="size-4" />
-          </Button>
+          {hero ? (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={disabled || attachments.length >= MAX_ATTACHMENTS}
+              title="Screenshots, local art, a photo of your place, a mood board — visuals shape the design"
+              className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground rounded-full px-3"
+            >
+              <ImagePlus className="size-4" />
+              <span className="hidden sm:inline">Add an image</span>
+            </Button>
+          ) : (
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={disabled || attachments.length >= MAX_ATTACHMENTS}
+              title="Attach an image — a sketch, screenshot, or mockup"
+              className="size-8 text-muted-foreground hover:text-foreground"
+            >
+              <ImagePlus className="size-4" />
+            </Button>
+          )}
           {onModeChange && (
             <div className="inline-flex rounded-full border p-0.5 gap-0.5 ml-0.5" role="group" aria-label="Chat mode">
               <button
@@ -301,7 +316,9 @@ export function MessageInput({
               </button>
             </div>
           )}
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-1 min-w-0">
+            {/* Model choice lives here, with the conversation — not in the main nav */}
+            <ModelSelector className="h-8 max-w-[150px] gap-1 border-none bg-transparent px-2 text-xs text-muted-foreground shadow-none hover:text-foreground" />
             {isGenerating ? (
               <Button
                 size="icon"
@@ -326,6 +343,19 @@ export function MessageInput({
           </div>
         </div>
       </div>
+
+      {hero && attachments.length === 0 && (
+        <p className="mt-2 text-center text-xs text-muted-foreground">
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={disabled}
+            className="underline decoration-dotted underline-offset-2 hover:text-foreground"
+          >
+            Add an image to shape the design
+          </button>
+          {' '}— a screenshot you love, local art, a photo of your place, a mood board.
+        </p>
+      )}
     </div>
   );
 }

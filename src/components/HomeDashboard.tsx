@@ -3,15 +3,11 @@ import { useAuthStore, cloudEnabled } from '@/store/auth-store';
 import { useCloudStore } from '@/store/cloud-store';
 import { useCommunityStore } from '@/store/community-store';
 import { YourSites } from '@/components/YourSites';
-import { YourPrompts } from '@/components/YourPrompts';
-import { listMyPrompts, type BuildPrompt } from '@/cloud/prompts';
-import { StarterGallery } from '@/components/StarterGallery';
-import { StudioUpdates } from '@/components/StudioUpdates';
+import { NetworkUpdates } from '@/components/StudioUpdates';
+import { StartFromOptions } from '@/components/StartFromMenu';
 import { DesignSystemDialog } from '@/components/DesignSystemDialog';
 import { BuildersDirectory } from '@/components/BuildersDirectory';
-import { Palette } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { FolderOpen, Loader2, Sparkles } from 'lucide-react';
+import { Palette, Sparkles } from 'lucide-react';
 
 const STARTER_IDEAS = [
   { label: 'Neighborhood event calendar', prompt: 'Build me a neighborhood event calendar where community members can post and discover local events, with categories for block parties, meetings, cleanups, and gatherings.' },
@@ -64,23 +60,13 @@ function SignedInDashboard({ onSelectIdea, disabled, composer }: HomeDashboardPr
   const user = useAuthStore(s => s.user);
   const projects = useCloudStore(s => s.projects);
   const refreshProjects = useCloudStore(s => s.refreshProjects);
-  const openProject = useCloudStore(s => s.openProject);
   const communityActive = useCommunityStore(s => s.active);
-  const [openingId, setOpeningId] = useState<string | null>(null);
-  const [prompts, setPrompts] = useState<BuildPrompt[]>([]);
 
-  const refreshPrompts = () => listMyPrompts().then(setPrompts).catch(() => {});
-
+  // Projects themselves live on the Projects page now; the count still
+  // feeds the style nudge below
   useEffect(() => {
     refreshProjects();
-    refreshPrompts();
   }, [refreshProjects]);
-
-  // The gallery speaks in prompts: each project card shows the prompt
-  // that would grow it, when one has been distilled
-  const promptByProject = new Map(
-    prompts.filter(p => p.project_id).map(p => [p.project_id as string, p]),
-  );
 
   const profile = useAuthStore(s => s.profile);
   const firstName = (user?.email ?? '').split('@')[0].split(/[._-]/)[0];
@@ -88,16 +74,11 @@ function SignedInDashboard({ onSelectIdea, disabled, composer }: HomeDashboardPr
     profile?.display_name?.trim() ||
     (firstName ? firstName.charAt(0).toUpperCase() + firstName.slice(1) : 'neighbor');
 
-  async function handleOpen(id: string) {
-    setOpeningId(id);
-    await openProject(id);
-    setOpeningId(null);
-  }
-
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="max-w-3xl mx-auto px-4 md:px-6 py-7 md:py-14 space-y-8 md:space-y-10">
-        {/* Hero: greeting + the composer itself */}
+        {/* Hero: greeting + the composer itself. Projects and prompts live on
+            the Projects page; the Gallery is the place to browse the network. */}
         <div className="space-y-6">
           <div className="text-center space-y-2">
             <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-balance">
@@ -106,62 +87,20 @@ function SignedInDashboard({ onSelectIdea, disabled, composer }: HomeDashboardPr
             {communityActive && (
               <div className="inline-flex items-center gap-1.5 text-xs text-green-700 dark:text-green-400 bg-green-600/10 border border-green-600/30 rounded-full px-3 py-1">
                 <Sparkles className="size-3" />
-                Community access active — building is on us
+                Community access active
               </div>
             )}
           </div>
           {composer}
           <IdeaChips onSelectIdea={onSelectIdea} disabled={disabled} />
+          <StartFromOptions />
         </div>
 
-        <StudioUpdates />
-
-        {projects.length > 0 && (
-          <div className="space-y-3">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Your projects
-            </p>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {projects.slice(0, 6).map(p => (
-                <button
-                  key={p.id}
-                  onClick={() => handleOpen(p.id)}
-                  disabled={disabled || openingId !== null}
-                  className="text-left border rounded-xl p-4 hover:bg-muted hover:border-foreground/20 transition-colors disabled:opacity-50 group"
-                >
-                  <div className="flex items-center gap-2">
-                    {openingId === p.id ? (
-                      <Loader2 className="size-4 animate-spin shrink-0" />
-                    ) : (
-                      <FolderOpen className="size-4 text-muted-foreground group-hover:text-foreground shrink-0" />
-                    )}
-                    <span className="text-[15px] font-medium truncate">{p.name}</span>
-                    {p.owner_id !== user?.id && (
-                      <Badge variant="outline" className="text-xs shrink-0 ml-auto">shared</Badge>
-                    )}
-                  </div>
-                  {promptByProject.get(p.id) ? (
-                    <p className="text-xs text-muted-foreground mt-1.5 line-clamp-2 leading-relaxed">
-                      {promptByProject.get(p.id)!.body}
-                    </p>
-                  ) : (
-                    <p className="text-xs text-muted-foreground mt-1.5">
-                      Updated {formatRelative(p.updated_at)}
-                    </p>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <YourPrompts prompts={prompts} onChanged={refreshPrompts} />
+        <NetworkUpdates />
 
         <YourSites />
 
         <StyleNudge projectCount={projects.length} />
-
-        <StarterGallery disabled={disabled} />
 
         <BuildersDirectory />
       </div>
@@ -215,20 +154,9 @@ export function WelcomeScreen({ onSelectIdea, disabled, composer }: HomeDashboar
           </div>
           {composer}
           <IdeaChips onSelectIdea={onSelectIdea} disabled={disabled} />
+          <StartFromOptions />
         </div>
       </div>
     </div>
   );
-}
-
-function formatRelative(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const minutes = Math.floor(diff / 60000);
-  if (minutes < 1) return 'just now';
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d ago`;
-  return new Date(iso).toLocaleDateString();
 }
