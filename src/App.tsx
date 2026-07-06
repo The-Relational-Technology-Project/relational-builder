@@ -1,12 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ProviderSettings } from '@/components/ProviderSettings';
-import { ModelSelector } from '@/components/ModelSelector';
 import { ChatPanel } from '@/components/Chat/ChatPanel';
 import { RightPanel } from '@/components/RightPanel';
 import { ResizableLayout } from '@/components/ResizableLayout';
 import { PublishDialog } from '@/components/PublishDialog';
 import { PromptDialog } from '@/components/PromptDialog';
-import { StartFromMenu } from '@/components/StartFromMenu';
 import { SharePreview } from '@/components/SharePreview';
 import { GitHubSync } from '@/components/GitHubSync';
 import { useProviderStore } from '@/store/provider-store';
@@ -18,6 +16,7 @@ import { useAuthStore, cloudEnabled } from '@/store/auth-store';
 import { useCloudStore } from '@/store/cloud-store';
 import { useCommunityStore } from '@/store/community-store';
 import { useStudioStore } from '@/store/studio-store';
+import { useUIStore } from '@/store/ui-store';
 import { StudioSwitcher } from '@/components/StudioSwitcher';
 import { BuilderOnboarding } from '@/components/BuilderOnboarding';
 import { initCloudSync } from '@/cloud/sync';
@@ -102,10 +101,11 @@ function App() {
 
   // The Studio Gallery is its own space next to Home; starting a build
   // (from the gallery or anywhere else) always lands back in the workspace
-  const [galleryOpen, setGalleryOpen] = useState(false);
+  const galleryOpen = useUIStore(s => s.galleryOpen);
+  const setGalleryOpen = useUIStore(s => s.setGalleryOpen);
   useEffect(() => {
     if (hasProject) setGalleryOpen(false);
-  }, [hasProject]);
+  }, [hasProject, setGalleryOpen]);
 
   const currentProjectName = useCloudStore(s => s.currentProjectName);
   const syncStatus = useCloudStore(s => s.syncStatus);
@@ -123,7 +123,6 @@ function App() {
             </h1>
           </div>
           <Separator orientation="vertical" className="h-5" />
-          <ModelSelector />
           <StudioSwitcher />
           <CloudStatus />
         </div>
@@ -137,13 +136,12 @@ function App() {
               variant={galleryOpen ? 'secondary' : 'ghost'}
               size="sm"
               className="h-7 gap-1 text-xs"
-              onClick={() => setGalleryOpen(o => !o)}
+              onClick={() => setGalleryOpen(!galleryOpen)}
             >
               <LayoutGrid className="size-3" />
               Gallery
             </Button>
           )}
-          {!hasProject && <StartFromMenu />}
           <ProjectsDialog />
           {hasProject && <PromptDialog />}
           {hasProject && <SharePreview />}
@@ -199,7 +197,6 @@ function App() {
           onClick={() => setMobileMenuOpen(false)}
         >
           <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
-            <ModelSelector />
             <StudioSwitcher />
           </div>
           <div className="flex flex-wrap items-center gap-1.5">
@@ -212,13 +209,12 @@ function App() {
                 variant="outline"
                 size="sm"
                 className="h-8 gap-1 text-xs"
-                onClick={() => setGalleryOpen(o => !o)}
+                onClick={() => setGalleryOpen(!galleryOpen)}
               >
                 <LayoutGrid className="size-3" />
                 Gallery
               </Button>
             )}
-            {!hasProject && <StartFromMenu />}
             <ProjectsDialog />
             {hasProject && <PromptDialog />}
             {hasProject && <SharePreview />}

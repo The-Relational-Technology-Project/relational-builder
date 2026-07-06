@@ -88,7 +88,7 @@ Example:
 supabase secrets set ALLOWED_ORIGINS="https://builder.relationaltechproject.org,http://localhost:5173"
 ```
 
-## 3. Email via Resend (relationalbuilder.xyz)
+## 3. Email via Resend (relationalbuilder.org)
 
 Two separate email paths, both through the verified Resend domain:
 
@@ -102,7 +102,7 @@ emails/hour — not enough for a pilot. In the Supabase dashboard:
 | Port | `465` |
 | Username | `resend` |
 | Password | *your Resend API key* |
-| Sender | `Relational Builder <hello@relationalbuilder.xyz>` |
+| Sender | `Relational Builder <hello@relationalbuilder.org>` |
 
 **b) Invite notifications.** The `notify-invite` edge function sends a
 branded email when someone adds a collaborator (includes the pilot passcode).

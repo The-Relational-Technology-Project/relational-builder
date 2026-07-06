@@ -39,4 +39,4 @@ A directory of builders who've opted in lives right on the home screen — with 
 
 ## Where it lives
 
-relationalbuilder.xyz — open source, invitation-based during the pilot. Reach the stewards at humans@relationaltechproject.org.
+relationalbuilder.org — open source, invitation-based during the pilot. Reach the stewards at humans@relationaltechproject.org.

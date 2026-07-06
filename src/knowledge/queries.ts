@@ -1,6 +1,29 @@
 import { supabase } from './supabase-client';
 import type { Tool, Story, Prompt } from './types';
 
+/**
+ * RT Studio stores some gallery images as site-relative paths (e.g.
+ * `/images/gallery/foo.png`) that only resolve on the Studio's own site.
+ * Qualify those against the Studio origin so they load here too; fully
+ * qualified URLs (Supabase storage buckets etc.) pass through untouched.
+ */
+const STUDIO_SITE_ORIGIN = 'https://studio.relationaltechproject.org';
+
+export function resolveStudioAssetUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  return url.startsWith('/') ? `${STUDIO_SITE_ORIGIN}${url}` : url;
+}
+
+function resolveToolImages(tool: Tool): Tool {
+  return {
+    ...tool,
+    image_url: resolveStudioAssetUrl(tool.image_url),
+    screenshot_urls: tool.screenshot_urls
+      ?.map(u => resolveStudioAssetUrl(u))
+      .filter((u): u is string => !!u) ?? tool.screenshot_urls,
+  };
+}
+
 /** Fetch all tools ordered by sort_order */
 export async function fetchTools(): Promise<Tool[]> {
   const { data, error } = await supabase
@@ -12,7 +35,7 @@ export async function fetchTools(): Promise<Tool[]> {
     console.error('Failed to fetch tools:', error.message);
     return [];
   }
-  return data ?? [];
+  return (data ?? []).map(resolveToolImages);
 }
 
 /** Fetch all stories ordered by most recent */

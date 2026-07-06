@@ -13,7 +13,7 @@
  *
  * Deploy: supabase functions deploy request-account --no-verify-jwt
  * Secrets:
- *   RESEND_API_KEY  — Resend key for the relationalbuilder.xyz domain
+ *   RESEND_API_KEY  — Resend key for the relationalbuilder.org domain
  *   STEWARD_EMAIL   — where request notifications go
  *                     (default josh@relationaltechproject.org)
  *   APP_URL         — link target (default https://relational-builder.vercel.app)
@@ -107,7 +107,7 @@ Deno.serve(async (req: Request) => {
         method: 'POST',
         headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          from: 'Relational Builder <hello@relationalbuilder.xyz>',
+          from: 'Relational Builder <hello@relationalbuilder.org>',
           to: [steward],
           subject: `Account request: ${name ?? email}`,
           html: [

@@ -1,7 +1,7 @@
 /**
  * Supabase Edge Function: notify-invite
  *
- * Sends a branded email (via Resend, from relationalbuilder.xyz) when someone
+ * Sends a branded email (via Resend, from relationalbuilder.org) when someone
  * is invited to collaborate on a project. Fire-and-forget from the client —
  * the invite itself is already created via RLS-protected insert; this only
  * handles the notification. No-ops with 503 until RESEND_API_KEY is set.
@@ -12,7 +12,7 @@
  * Deploy:
  *   supabase functions deploy notify-invite --no-verify-jwt
  * Secrets:
- *   RESEND_API_KEY   — Resend key for the relationalbuilder.xyz domain
+ *   RESEND_API_KEY   — Resend key for the relationalbuilder.org domain
  *   APP_URL          — link target (default https://relational-builder.vercel.app)
  *   ACCESS_CODE      — pilot passcode to include in the email (optional)
  */
@@ -87,7 +87,7 @@ Deno.serve(async (req: Request) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'Relational Builder <invites@relationalbuilder.xyz>',
+        from: 'Relational Builder <invites@relationalbuilder.org>',
         to: [invitee_email],
         reply_to: inviterEmail,
         subject: `${inviterEmail} invited you to build "${projectName}" together`,

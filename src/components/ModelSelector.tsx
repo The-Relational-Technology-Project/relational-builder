@@ -17,7 +17,7 @@ const MODEL_HINTS: Record<string, string> = {
   'claude-haiku-4-5': 'Quickest and lightest',
 };
 
-export function ModelSelector() {
+export function ModelSelector({ className }: { className?: string }) {
   const { activeProviderId, activeModelId, availableModels, apiKeys, setActiveModel, refreshModels } =
     useProviderStore();
   const communityActive = useCommunityStore(s => s.active);
@@ -43,7 +43,7 @@ export function ModelSelector() {
       value={activeModelId}
       onValueChange={(value) => { if (value) setActiveModel(value); }}
     >
-      <SelectTrigger className="w-auto max-w-[200px] h-8 text-xs gap-1.5">
+      <SelectTrigger className={className ?? 'w-auto max-w-[200px] h-8 text-xs gap-1.5'}>
         <SelectValue placeholder="Select model...">
           {activeModel?.name ?? activeModelId}
         </SelectValue>

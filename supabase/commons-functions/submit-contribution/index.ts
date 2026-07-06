@@ -166,7 +166,7 @@ serve(async (req) => {
         ? {
             slug: sourceSlug,
             display_name: studioLabel ?? sourceSlug,
-            home_url: "https://relationalbuilder.xyz",
+            home_url: "https://relationalbuilder.org",
             publish_key_hash: "managed-by-submit-contribution",
             steward_email: STEWARD_EMAIL,
             notes:
