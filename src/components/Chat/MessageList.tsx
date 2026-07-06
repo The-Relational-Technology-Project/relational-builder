@@ -154,14 +154,20 @@ function WaitActivity() {
   const saved = useChatStore(s => s.sharingPlanSaved);
   const startedAt = useChatStore(s => s.progress?.startedAt);
   const [notes, setNotes] = useState(() => localStorage.getItem(SHARING_PLAN_DRAFT_KEY) ?? '');
-  const [, tick] = useState(0);
+  const [elapsed, setElapsed] = useState(0);
   const wasGenerating = useRef(false);
 
   // One-second heartbeat while waiting, to cross the show threshold
   useEffect(() => {
     if (!startedAt) return;
-    const t = setInterval(() => tick(n => n + 1), 1000);
-    return () => clearInterval(t);
+    const t = setInterval(
+      () => setElapsed(Math.floor((Date.now() - startedAt) / 1000)),
+      1000,
+    );
+    return () => {
+      clearInterval(t);
+      setElapsed(0);
+    };
   }, [startedAt]);
 
   // Build finished → any notes become a sharing plan in the conversation
@@ -182,7 +188,6 @@ function WaitActivity() {
     setNotes('');
   }, [isGenerating]);
 
-  const elapsed = startedAt ? Math.floor((Date.now() - startedAt) / 1000) : 0;
   const show =
     isGenerating && mode === 'build' && !saved && elapsed >= WAIT_ACTIVITY_AFTER_S;
   if (!show) return null;
