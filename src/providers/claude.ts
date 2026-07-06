@@ -169,7 +169,19 @@ export class ClaudeProvider implements LLMProvider {
       body.thinking = { type: 'adaptive', display: 'summarized' };
     }
     if (systemMsg) {
-      body.system = contentToText(systemMsg.content);
+      // Same cache segmentation the proxy applies (see llm-proxy): the
+      // CACHE_BREAK markers become cache_control breakpoints
+      const parts = contentToText(systemMsg.content)
+        .split('<<<RB_CACHE_BREAK>>>')
+        .map(p => p.trim())
+        .filter(Boolean);
+      body.system = parts.length > 1
+        ? parts.map((p, i) =>
+            i < parts.length - 1
+              ? { type: 'text', text: p, cache_control: { type: 'ephemeral' } }
+              : { type: 'text', text: p },
+          )
+        : parts[0] ?? '';
     }
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {

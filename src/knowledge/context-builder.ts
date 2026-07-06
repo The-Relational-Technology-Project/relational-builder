@@ -269,6 +269,16 @@ const MAX_FILE_CHARS = 16000;
 const MAX_TOTAL_FILE_CHARS = 120000;
 
 /** Build the full system prompt with RTP context */
+/**
+ * Cache-boundary marker inside the system prompt. It never reaches a model:
+ * the llm-proxy (and the Claude direct path) split the prompt on it into
+ * system blocks with `cache_control` breakpoints — stable instructions and
+ * the project-files snapshot get cached; retrieval results stay volatile.
+ * Other providers strip it. Anthropic cache reads bill at ~0.1×, which is
+ * the single biggest lever on community-plan cost.
+ */
+export const CACHE_BREAK = '<<<RB_CACHE_BREAK>>>';
+
 export function buildSystemPrompt(options: ContextOptions = {}): string {
   const base = options.mode === 'plan' ? PLAN_INSTRUCTIONS : BASE_INSTRUCTIONS;
   const sections = [base, '', formatPrinciplesForPrompt()];
@@ -292,8 +302,13 @@ export function buildSystemPrompt(options: ContextOptions = {}): string {
     );
   }
 
+  // Everything above is stable across sends in a session — cacheable.
+  sections.push(CACHE_BREAK);
+
   if (options.projectFiles && options.projectFiles.length > 0 && options.mode !== 'plan') {
     sections.push('', formatProjectFilesForPrompt(options.projectFiles));
+    // Files change once per build, not per message — their own cache segment.
+    sections.push(CACHE_BREAK);
   }
 
   if (options.references && options.references.length > 0) {

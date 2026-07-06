@@ -292,7 +292,24 @@ async function proxyAnthropic(
     anthropicBody.thinking = { type: 'adaptive', display: 'summarized' };
   }
   if (systemMsg) {
-    anthropicBody.system = contentText(systemMsg.content);
+    // The Builder marks stability boundaries in its system prompt; each
+    // boundary becomes a prompt-cache breakpoint (stable instructions and
+    // the project-files snapshot cache at ~0.1× on repeat sends, which is
+    // most of a build conversation's input). Max 4 breakpoints per request;
+    // the client sends at most 2.
+    const CACHE_BREAK = '<<<RB_CACHE_BREAK>>>';
+    const systemText = contentText(systemMsg.content);
+    const parts = systemText
+      .split(CACHE_BREAK)
+      .map((p) => p.trim())
+      .filter(Boolean);
+    anthropicBody.system = parts.length > 1
+      ? parts.map((p, i) =>
+          i < parts.length - 1
+            ? { type: 'text', text: p, cache_control: { type: 'ephemeral' } }
+            : { type: 'text', text: p },
+        )
+      : parts[0] ?? '';
   }
 
   const upstream = await fetch('https://api.anthropic.com/v1/messages', {
