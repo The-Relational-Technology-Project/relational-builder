@@ -1,18 +1,26 @@
 import { useState, type ReactNode } from 'react';
-import { RBMark } from './PasscodeGate';
+import { RBMark } from './RBMark';
+import { requestAccount, type RequestOutcome } from '@/cloud/account-requests';
 
 const ACCESS_CODE = import.meta.env.VITE_ACCESS_CODE ?? '';
 const STORAGE_KEY = 'rb-access-granted';
+const ENTERED_KEY = 'rb-entered';
 
 /**
- * Public landing page + pilot gate. No sign-up flow by design — the pilot
- * grows at the speed of trust, through invitations that carry the passcode.
+ * Public landing page. The passcode wall is retired: the front door is
+ * "request an account" (a steward approves each one; sign-in is a magic
+ * link), and members walk straight in. Invitation passcodes still work as
+ * a quiet fallback while invites carrying them circulate — entering one
+ * also feeds the enroll-community self-enrollment flow.
  * The warm dark palette matches the brand mark and social card, independent
  * of the app's light/dark theme.
  */
 export function Landing({ children }: { children: ReactNode }) {
   const [granted, setGranted] = useState(
-    () => !ACCESS_CODE || localStorage.getItem(STORAGE_KEY) === ACCESS_CODE,
+    () =>
+      !ACCESS_CODE ||
+      localStorage.getItem(ENTERED_KEY) === '1' ||
+      localStorage.getItem(STORAGE_KEY) === ACCESS_CODE,
   );
 
   if (granted) return <>{children}</>;
@@ -21,17 +29,9 @@ export function Landing({ children }: { children: ReactNode }) {
 }
 
 function LandingPage({ onUnlock }: { onUnlock: () => void }) {
-  const [input, setInput] = useState('');
-  const [error, setError] = useState(false);
-
-  function handleSubmit() {
-    if (input.trim() === ACCESS_CODE) {
-      localStorage.setItem(STORAGE_KEY, ACCESS_CODE);
-      onUnlock();
-    } else {
-      setError(true);
-      setInput('');
-    }
+  function enter() {
+    localStorage.setItem(ENTERED_KEY, '1');
+    onUnlock();
   }
 
   return (
@@ -97,42 +97,22 @@ function LandingPage({ onUnlock }: { onUnlock: () => void }) {
           </p>
         </section>
 
-        {/* Invitation + gate */}
+        {/* The front door */}
         <section className="rounded-2xl border border-[#4e443c] bg-[#332a23] p-8 space-y-5 text-center">
           <h2 className="text-xl font-semibold">We're in a community pilot</h2>
           <p className="text-sm text-[#D6D3D1] leading-relaxed max-w-md mx-auto">
-            Invited builders get free building — no API keys, no credit card —
-            courtesy of the Relational Technology Project. Invitations come
-            with a passcode.
+            Approved builders get free building — no API keys, no credit card —
+            courtesy of the Relational Technology Project. Ask for an account
+            and a real person will welcome you in, usually within a day.
           </p>
-          <div className="flex gap-2 max-w-xs mx-auto">
-            <input
-              type="password"
-              inputMode="numeric"
-              value={input}
-              onChange={e => { setInput(e.target.value); setError(false); }}
-              onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-              placeholder="Passcode"
-              className={`flex-1 rounded-lg border bg-[#261e18] px-3 py-2 text-center tracking-[0.3em] text-sm outline-none placeholder:text-[#78716C] placeholder:tracking-normal ${
-                error ? 'border-[#E86F4E]' : 'border-[#4e443c] focus:border-[#A8A29E]'
-              }`}
-            />
-            <button
-              onClick={handleSubmit}
-              disabled={!input.trim()}
-              className="rounded-lg bg-[#D2764B] text-[#FAFAF9] px-4 py-2 text-sm font-medium hover:bg-[#C4693F] disabled:opacity-40 transition-colors"
-            >
-              Enter
-            </button>
-          </div>
-          {error && <p className="text-xs text-[#E86F4E]">That's not it — check your invitation.</p>}
+          <RequestAccountForm />
           <p className="text-xs text-[#A8A29E]">
-            No invite yet? Write to{' '}
-            <a href="mailto:humans@relationaltechproject.org" className="underline decoration-[#78716C] underline-offset-2 hover:decoration-[#FAFAF9]">
-              humans@relationaltechproject.org
-            </a>{' '}
-            and tell us about your neighborhood.
+            Already approved?{' '}
+            <button onClick={enter} className="underline decoration-[#78716C] underline-offset-2 hover:decoration-[#FAFAF9]">
+              Come on in and sign in
+            </button>
           </p>
+          <PasscodeFallback onUnlock={onUnlock} />
         </section>
 
         {/* Footer */}
@@ -156,6 +136,139 @@ function LandingPage({ onUnlock }: { onUnlock: () => void }) {
           </p>
         </footer>
       </div>
+    </div>
+  );
+}
+
+/** The open front door: ask, and a steward approves — then sign-in is just a magic link */
+function RequestAccountForm() {
+  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
+  const [reason, setReason] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [outcome, setOutcome] = useState<RequestOutcome | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function submit() {
+    setBusy(true);
+    setError(null);
+    try {
+      setOutcome(await requestAccount({ email, name, reason }));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not send your request');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (outcome === 'pending') {
+    return (
+      <p className="text-sm text-[#D6D3D1] leading-relaxed max-w-md mx-auto">
+        Request sent — thank you! A real person reviews every request; you'll
+        get a welcome email as soon as yours is approved.
+      </p>
+    );
+  }
+  if (outcome === 'already-member') {
+    return (
+      <p className="text-sm text-[#D6D3D1] leading-relaxed max-w-md mx-auto">
+        Good news — this email is already approved. Come on in below and sign
+        in with it.
+      </p>
+    );
+  }
+
+  const inputClass =
+    'w-full rounded-lg border border-[#4e443c] bg-[#261e18] px-3 py-2 text-sm outline-none placeholder:text-[#78716C] focus:border-[#A8A29E]';
+
+  return (
+    <div className="max-w-sm mx-auto space-y-2 text-left">
+      <input
+        type="email"
+        value={email}
+        onChange={e => setEmail(e.target.value)}
+        placeholder="you@example.org"
+        className={inputClass}
+      />
+      <input
+        value={name}
+        onChange={e => setName(e.target.value)}
+        placeholder="Your name"
+        className={inputClass}
+      />
+      <textarea
+        value={reason}
+        onChange={e => setReason(e.target.value)}
+        placeholder="What are you hoping to build, and for which neighborhood or community?"
+        rows={3}
+        className={`${inputClass} resize-none`}
+      />
+      {error && <p className="text-xs text-[#E86F4E] text-center">{error}</p>}
+      <button
+        onClick={submit}
+        disabled={busy || !email.includes('@')}
+        className="w-full rounded-lg bg-[#D2764B] text-[#FAFAF9] px-4 py-2 text-sm font-medium hover:bg-[#C4693F] disabled:opacity-40 transition-colors"
+      >
+        {busy ? 'Sending…' : 'Request an account'}
+      </button>
+    </div>
+  );
+}
+
+/**
+ * Invitation passcodes still circulate on printed invites; they keep working
+ * here quietly. Entering one stores it for enroll-community self-enrollment.
+ */
+function PasscodeFallback({ onUnlock }: { onUnlock: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [input, setInput] = useState('');
+  const [error, setError] = useState(false);
+
+  function handleSubmit() {
+    if (input.trim() === ACCESS_CODE) {
+      localStorage.setItem(STORAGE_KEY, ACCESS_CODE);
+      onUnlock();
+    } else {
+      setError(true);
+      setInput('');
+    }
+  }
+
+  if (!open) {
+    return (
+      <p className="text-xs text-[#78716C]">
+        Holding an invite with a passcode?{' '}
+        <button onClick={() => setOpen(true)} className="underline decoration-[#57534E] underline-offset-2 hover:decoration-[#A8A29E]">
+          Enter it here
+        </button>
+      </p>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex gap-2 max-w-xs mx-auto">
+        <input
+          type="password"
+          inputMode="numeric"
+          value={input}
+          onChange={e => { setInput(e.target.value); setError(false); }}
+          onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+          placeholder="Passcode"
+          autoFocus
+          className={`flex-1 rounded-lg border bg-[#261e18] px-3 py-2 text-center tracking-[0.3em] text-sm outline-none placeholder:text-[#78716C] placeholder:tracking-normal ${
+            error ? 'border-[#E86F4E]' : 'border-[#4e443c] focus:border-[#A8A29E]'
+          }`}
+        />
+        <button
+          onClick={handleSubmit}
+          disabled={!input.trim()}
+          className="rounded-lg border border-[#4e443c] text-[#FAFAF9] px-4 py-2 text-sm hover:border-[#A8A29E] disabled:opacity-40 transition-colors"
+        >
+          Enter
+        </button>
+      </div>
+      {error && <p className="text-xs text-[#E86F4E]">That's not it — check your invitation.</p>}
     </div>
   );
 }

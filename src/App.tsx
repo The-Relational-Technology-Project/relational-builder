@@ -25,7 +25,7 @@ import { AccountMenu } from '@/components/AccountMenu';
 import { ProjectsDialog } from '@/components/ProjectsDialog';
 import { CloudStatus } from '@/components/CloudStatus';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { RBMark } from '@/components/PasscodeGate';
+import { RBMark } from '@/components/RBMark';
 
 import { StudioGallery } from '@/components/StudioGallery';
 import { Separator } from '@/components/ui/separator';

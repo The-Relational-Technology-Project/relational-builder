@@ -3,7 +3,7 @@ import { useAuthStore, type BuilderProfile } from '@/store/auth-store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { RBMark } from '@/components/PasscodeGate';
+import { RBMark } from '@/components/RBMark';
 import { Loader2, ArrowRight, ArrowLeft, MapPin, User, Cpu, Sparkles, Shield } from 'lucide-react';
 
 type Step = 'welcome' | 'about' | 'dreams' | 'tech' | 'consent';
