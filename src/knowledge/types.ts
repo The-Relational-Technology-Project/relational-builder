@@ -11,6 +11,17 @@ export interface Tool {
   image_url: string | null;
   sort_order: number;
   created_at: string;
+  // Deployment + lineage columns (RT Studio's "three take-up paths":
+  // remix the prompt / fork the code / use the hosted version)
+  screenshot_urls?: string[] | null;
+  hosted_url?: string | null;
+  hosted_by?: string | null;
+  lovable_url?: string | null;
+  creator_name?: string | null;
+  creator_url?: string | null;
+  lineage_note?: string | null;
+  is_joinable?: boolean | null;
+  tags?: string[] | null;
 }
 
 export interface Story {

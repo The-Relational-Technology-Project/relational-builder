@@ -9,10 +9,7 @@ import {
   type StudioBuildPlan,
 } from '@/knowledge/studio-plans';
 import { listNetworkPrompts, listMyPrompts, plantSharedPrompt, type NetworkPrompt } from '@/cloud/prompts';
-import { getCachedStarter, cacheStarter } from '@/cloud/starter-prompts';
-import { distillStarterPrompt } from '@/knowledge/prompt-distiller';
-import { useCloudStore } from '@/store/cloud-store';
-import { useEnvStore } from '@/store/env-store';
+import { startFromStudioTool } from '@/project/start-from-tool';
 import { useAuthStore } from '@/store/auth-store';
 import type { Tool } from '@/knowledge/types';
 import { Badge } from '@/components/ui/badge';
@@ -74,30 +71,10 @@ export function StarterGallery({ disabled }: { disabled?: boolean }) {
   // prompt (cached once, distilled on first pick) that lands in Plan mode so
   // the builder shapes it for their neighborhood before building fresh.
   async function startFromTool(tool: Tool) {
-    const key = tool.github_url!;
     setBusyId(tool.id);
     setError(null);
     try {
-      let starter = await getCachedStarter(key);
-      if (!starter) {
-        const distilled = await distillStarterPrompt(tool);
-        starter = { tool_key: key, title: distilled.title, body: distilled.body };
-        cacheStarter(starter).catch(() => {}); // warm the shared cache, best-effort
-      }
-
-      // Fresh workspace, Plan mode, the starter seeded as the opening draft
-      useCloudStore.getState().closeProject();
-      useProjectStore.getState().clearProject();
-      useChatStore.getState().clearMessages();
-      useEnvStore.getState().clearAll();
-      useChatStore.getState().setMode('plan');
-      setLineage({
-        source: 'prompt',
-        promptTitle: starter.title,
-        sourceUrl: key,
-        importedAt: new Date().toISOString(),
-      });
-      useChatStore.getState().setDraftMessage(starter.body);
+      await startFromStudioTool(tool);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not start from that tool');
     } finally {

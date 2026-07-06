@@ -27,9 +27,10 @@ import { CloudStatus } from '@/components/CloudStatus';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { RBMark } from '@/components/PasscodeGate';
 
+import { StudioGallery } from '@/components/StudioGallery';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { Plus, MessageSquare, PanelsTopLeft, Menu, X, Cloud, CloudOff, Loader2 } from 'lucide-react';
+import { Plus, MessageSquare, PanelsTopLeft, Menu, X, Cloud, CloudOff, Loader2, LayoutGrid } from 'lucide-react';
 
 /** True below the md breakpoint — drives the stacked mobile layout */
 function useIsMobile() {
@@ -99,6 +100,13 @@ function App() {
   const [mobileTab, setMobileTab] = useState<'chat' | 'workspace'>('chat');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // The Studio Gallery is its own space next to Home; starting a build
+  // (from the gallery or anywhere else) always lands back in the workspace
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  useEffect(() => {
+    if (hasProject) setGalleryOpen(false);
+  }, [hasProject]);
+
   const currentProjectName = useCloudStore(s => s.currentProjectName);
   const syncStatus = useCloudStore(s => s.syncStatus);
 
@@ -124,6 +132,17 @@ function App() {
             <Plus className="size-3" />
             New Project
           </Button>
+          {!hasProject && (
+            <Button
+              variant={galleryOpen ? 'secondary' : 'ghost'}
+              size="sm"
+              className="h-7 gap-1 text-xs"
+              onClick={() => setGalleryOpen(o => !o)}
+            >
+              <LayoutGrid className="size-3" />
+              Gallery
+            </Button>
+          )}
           {!hasProject && <StartFromMenu />}
           <ProjectsDialog />
           {hasProject && <PromptDialog />}
@@ -188,6 +207,17 @@ function App() {
               <Plus className="size-3" />
               New Project
             </Button>
+            {!hasProject && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 gap-1 text-xs"
+                onClick={() => setGalleryOpen(o => !o)}
+              >
+                <LayoutGrid className="size-3" />
+                Gallery
+              </Button>
+            )}
             {!hasProject && <StartFromMenu />}
             <ProjectsDialog />
             {hasProject && <PromptDialog />}
@@ -207,7 +237,7 @@ function App() {
           building gets split panels on desktop, a tab-switched stack on mobile */}
       <main className="flex-1 min-h-0">
         {!hasProject ? (
-          <ChatPanel />
+          galleryOpen ? <StudioGallery onClose={() => setGalleryOpen(false)} /> : <ChatPanel />
         ) : isMobile ? (
           <div className="h-full flex flex-col">
             <div className="flex-1 min-h-0">

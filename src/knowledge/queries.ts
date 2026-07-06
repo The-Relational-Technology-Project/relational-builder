@@ -5,7 +5,7 @@ import type { Tool, Story, Prompt } from './types';
 export async function fetchTools(): Promise<Tool[]> {
   const { data, error } = await supabase
     .from('tools')
-    .select('id, name, description, summary, tool_category, url, github_url, image_url, sort_order, created_at')
+    .select('id, name, description, summary, tool_category, url, github_url, image_url, sort_order, created_at, screenshot_urls, hosted_url, hosted_by, lovable_url, creator_name, creator_url, lineage_note, is_joinable, tags')
     .order('sort_order', { ascending: true });
 
   if (error) {
