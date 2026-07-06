@@ -59,6 +59,17 @@ export async function submitToCommons(submission: CommonsSubmission): Promise<Su
     if (!res.ok) {
       return { ok: false, error: data.error ?? `Submission failed (${res.status})` };
     }
+    // Offering a build to the commons is studio life too (best-effort)
+    void (async () => {
+      const [{ useStudioStore }, { recordStudioActivity }] = await Promise.all([
+        import('@/store/studio-store'),
+        import('@/cloud/studios'),
+      ]);
+      const studio = useStudioStore.getState().activeStudio;
+      if (studio) {
+        void recordStudioActivity('publish', studio.slug, submission.title, submission.sourceUrl);
+      }
+    })();
     return { ok: true, contributionId: data.contribution_id };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : 'Submission failed' };

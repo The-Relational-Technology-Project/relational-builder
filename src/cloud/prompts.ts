@@ -164,7 +164,19 @@ export async function sharePrompt(prompt: BuildPrompt): Promise<{ slug: string; 
     .update({ is_shared: true, share_slug: slug, author_name: authorName })
     .eq('id', prompt.id);
   if (error) throw new Error(error.message);
-  return { slug, url: promptShareUrl(slug) };
+  const url = promptShareUrl(slug);
+  // A share is studio life — let the builder's studios see it (best-effort)
+  if (!prompt.share_slug) {
+    void (async () => {
+      const [{ useStudioStore }, { recordStudioActivity }] = await Promise.all([
+        import('@/store/studio-store'),
+        import('@/cloud/studios'),
+      ]);
+      const studio = useStudioStore.getState().activeStudio;
+      if (studio) void recordStudioActivity('share', studio.slug, prompt.title, url);
+    })();
+  }
+  return { slug, url };
 }
 
 export async function unsharePrompt(id: string): Promise<void> {

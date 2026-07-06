@@ -6,6 +6,7 @@ import { YourSites } from '@/components/YourSites';
 import { YourPrompts } from '@/components/YourPrompts';
 import { listMyPrompts, type BuildPrompt } from '@/cloud/prompts';
 import { StarterGallery } from '@/components/StarterGallery';
+import { StudioUpdates } from '@/components/StudioUpdates';
 import { DesignSystemDialog } from '@/components/DesignSystemDialog';
 import { BuildersDirectory } from '@/components/BuildersDirectory';
 import { Palette } from 'lucide-react';
@@ -111,6 +112,8 @@ function SignedInDashboard({ onSelectIdea, disabled, composer }: HomeDashboardPr
           {composer}
           <IdeaChips onSelectIdea={onSelectIdea} disabled={disabled} />
         </div>
+
+        <StudioUpdates />
 
         {projects.length > 0 && (
           <div className="space-y-3">
