@@ -18,6 +18,7 @@ const STARTER_IDEAS = [
   { label: 'Mutual aid request board', prompt: 'Build a mutual aid request board where neighbors can post needs and offers — things like rides, meals, childcare, tool lending — with a simple claim system.' },
   { label: 'Community resource directory', prompt: 'Build a community resource directory that maps local organizations, services, and mutual aid networks with search and category filters.' },
   { label: 'Local civic info hub', prompt: 'Build a local civic information hub where residents can find meeting schedules, elected officials, zoning updates, and community announcements.' },
+  { label: 'Printable neighborhood flyer', prompt: 'Make a print-ready flyer (letter size) announcing a neighborhood event, with bold readable-from-across-the-room type, space for the details, tear-off tabs along the bottom, and a Print / Save as PDF button.' },
 ];
 
 interface HomeDashboardProps {
