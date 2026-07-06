@@ -362,8 +362,6 @@ export function ChatPanel() {
     return (
       <div className="flex flex-col h-full">
         <HomeDashboard
-          onSelectIdea={handleSend}
-          disabled={!!needsKey}
           composer={
             <div className="space-y-2">
               <CommunityBudgetBanner />

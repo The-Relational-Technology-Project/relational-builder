@@ -9,17 +9,7 @@ import { DesignSystemDialog } from '@/components/DesignSystemDialog';
 import { BuildersDirectory } from '@/components/BuildersDirectory';
 import { Palette, Sparkles } from 'lucide-react';
 
-const STARTER_IDEAS = [
-  { label: 'Neighborhood event calendar', prompt: 'Build me a neighborhood event calendar where community members can post and discover local events, with categories for block parties, meetings, cleanups, and gatherings.' },
-  { label: 'Mutual aid request board', prompt: 'Build a mutual aid request board where neighbors can post needs and offers — things like rides, meals, childcare, tool lending — with a simple claim system.' },
-  { label: 'Community resource directory', prompt: 'Build a community resource directory that maps local organizations, services, and mutual aid networks with search and category filters.' },
-  { label: 'Local civic info hub', prompt: 'Build a local civic information hub where residents can find meeting schedules, elected officials, zoning updates, and community announcements.' },
-  { label: 'Printable neighborhood flyer', prompt: 'Make a print-ready flyer (letter size) announcing a neighborhood event, with bold readable-from-across-the-room type, space for the details, tear-off tabs along the bottom, and a Print / Save as PDF button.' },
-];
-
 interface HomeDashboardProps {
-  onSelectIdea: (prompt: string) => void;
-  disabled: boolean;
   /** The hero composer, rendered by ChatPanel so send logic stays in one place */
   composer?: ReactNode;
 }
@@ -29,34 +19,16 @@ interface HomeDashboardProps {
  * composer, their cloud projects and sites. Signed-out (or local-only)
  * builders get the welcome hero with the same composer.
  */
-export function HomeDashboard({ onSelectIdea, disabled, composer }: HomeDashboardProps) {
+export function HomeDashboard({ composer }: HomeDashboardProps) {
   const user = useAuthStore(s => s.user);
 
   if (!cloudEnabled || !user) {
-    return <WelcomeScreen onSelectIdea={onSelectIdea} disabled={disabled} composer={composer} />;
+    return <WelcomeScreen composer={composer} />;
   }
-  return <SignedInDashboard onSelectIdea={onSelectIdea} disabled={disabled} composer={composer} />;
+  return <SignedInDashboard composer={composer} />;
 }
 
-/** Small tappable prompts under the composer — a nudge, not a catalog */
-function IdeaChips({ onSelectIdea, disabled }: { onSelectIdea: (p: string) => void; disabled: boolean }) {
-  return (
-    <div className="flex flex-wrap justify-center gap-2">
-      {STARTER_IDEAS.map(idea => (
-        <button
-          key={idea.label}
-          className="text-sm border rounded-full px-3.5 py-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          onClick={() => onSelectIdea(idea.prompt)}
-          disabled={disabled}
-        >
-          {idea.label}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function SignedInDashboard({ onSelectIdea, disabled, composer }: HomeDashboardProps) {
+function SignedInDashboard({ composer }: HomeDashboardProps) {
   const user = useAuthStore(s => s.user);
   const projects = useCloudStore(s => s.projects);
   const refreshProjects = useCloudStore(s => s.refreshProjects);
@@ -92,7 +64,6 @@ function SignedInDashboard({ onSelectIdea, disabled, composer }: HomeDashboardPr
             )}
           </div>
           {composer}
-          <IdeaChips onSelectIdea={onSelectIdea} disabled={disabled} />
           <StartFromOptions />
         </div>
 
