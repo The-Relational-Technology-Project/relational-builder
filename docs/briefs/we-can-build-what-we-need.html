@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>We can build what we need — The Relational Tech Project</title>
+<link rel="stylesheet" href="brief.css" />
+<style>
+  /* Figure 1 — one commons, five doors */
+  .doors {
+    display: grid;
+    grid-template-columns: 1fr 0.62in 1.72in;
+    gap: 0 8pt;
+    align-items: center;
+  }
+  .doors .door-list { display: flex; flex-direction: column; gap: 6pt; }
+  .door {
+    display: flex;
+    align-items: baseline;
+    gap: 6pt;
+    font-size: 8pt;
+    line-height: 1.4;
+  }
+  .door .dot { flex-shrink: 0; align-self: center; }
+  .door strong { color: var(--ink); font-weight: 600; white-space: nowrap; }
+  .door span { color: var(--soft); }
+  .doors .flow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4pt;
+    font-size: 6.6pt;
+    color: var(--faint);
+    text-align: center;
+    line-height: 1.3;
+  }
+  .doors .flow .arr { font-size: 10pt; color: var(--clay); line-height: 1; }
+  .doors .flow .arr.back { color: var(--green); }
+  .commons-circle {
+    background: var(--paper);
+    border: 1.5pt solid var(--clay-bright);
+    border-radius: 12pt;
+    padding: 10pt 10pt;
+    text-align: center;
+  }
+  .commons-circle .t {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 10pt;
+    color: var(--ink);
+    line-height: 1.2;
+    margin-bottom: 3pt;
+  }
+  .commons-circle .c { font-size: 7.2pt; color: var(--soft); line-height: 1.4; }
+  .commons-circle .c b { color: var(--clay); font-weight: 650; }
+
+  /* Figure 2 — the resourcing loop */
+  .loop-row {
+    display: flex;
+    align-items: stretch;
+    gap: 6pt;
+    margin-bottom: 9pt;
+  }
+  .loop-step {
+    flex: 1;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 8pt;
+    padding: 6pt 9pt;
+  }
+  .loop-step .t { font-size: 8.4pt; font-weight: 650; color: var(--ink); margin-bottom: 1pt; }
+  .loop-step .c { font-size: 7pt; line-height: 1.35; color: var(--soft); }
+  .loop-arrow {
+    align-self: center;
+    color: var(--clay);
+    font-size: 10pt;
+    flex-shrink: 0;
+  }
+  .loop-repeat {
+    text-align: center;
+    font-size: 7.2pt;
+    color: var(--faint);
+    margin-bottom: 9pt;
+  }
+  .loop-repeat b { color: var(--clay); font-weight: 600; }
+  .mix-title {
+    font-size: 7pt;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--soft);
+    font-weight: 600;
+    margin-bottom: 5pt;
+  }
+  .mix-bar {
+    display: flex;
+    height: 9pt;
+    border-radius: 5pt;
+    overflow: hidden;
+    margin-bottom: 7pt;
+  }
+  .mix-bar .seg1 { width: 50%; background: var(--clay-bright); }
+  .mix-bar .seg2 { width: 25%; background: var(--green); }
+  .mix-bar .seg3 { width: 25%; background: var(--gold); }
+  .mix-legend { display: flex; gap: 12pt; }
+  .mix-legend .item { flex: 1; font-size: 7.2pt; line-height: 1.35; color: var(--soft); }
+  .mix-legend .item b { display: block; font-size: 8pt; color: var(--ink); font-weight: 650; }
+  .mix-legend .pct { font-family: var(--serif); font-weight: 600; }
+  .mix-legend .item:nth-child(1) .pct { color: var(--clay); }
+  .mix-legend .item:nth-child(2) .pct { color: var(--green); }
+  .mix-legend .item:nth-child(3) .pct { color: var(--gold-ink); }
+</style>
+</head>
+<body>
+
+<!-- ================================ PAGE 1 ================================ -->
+<section class="page">
+  <div class="page-body">
+    <div class="kicker">
+      <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+        <path d="M14 32 L24 14 L34 32" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.45"/>
+        <path d="M14 32 L34 32" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" opacity="0.45"/>
+        <circle cx="24" cy="13" r="5.5" fill="#E86F4E"/><circle cx="13" cy="33" r="5.5" fill="#3D8B6D"/><circle cx="35" cy="33" r="5.5" fill="#E8B84E"/>
+      </svg>
+      The Relational Tech Project
+    </div>
+
+    <h1>We can build what we need.</h1>
+    <p class="dek">Local relational technologists, the relational economy, and an experiment worth running now.</p>
+    <p class="byline"><strong>Josh Nesbit</strong>, Outer Sunset, SF <span class="sep">+</span> <strong>Deborah Tien</strong>, Kitsap Peninsula, WA <span class="sep">·</span> July 2026</p>
+
+    <div class="shortver">
+      <h3>The short version</h3>
+      <ul>
+        <li>The economy under American life is shifting fast. As intelligence becomes abundant, the things only people can offer one another — <strong>trust, presence, deep knowledge of a place</strong> — become the scarce and valuable inputs.</li>
+        <li>A hopeful role is emerging: the <strong>local relational technologist</strong>. A neighbor who hosts the gatherings, learns what a block dreams about, and builds tools with the hundred people who use them.</li>
+        <li>Nobody starts from scratch. A shared commons of <strong>363 tools, stories, and recipes</strong> travels with every build — licensed so no one, including us, can enclose it.</li>
+        <li>It is already taking root in roughly <strong>250 places across 14 countries</strong>, spread by relationships more than by marketing.</li>
+        <li>The experiment we want to run: fund <strong>200 technologists for a year each</strong>, and prove the role can pay for itself close to home.</li>
+      </ul>
+    </div>
+
+    <h2>The moment we're in</h2>
+    <p class="section-dek">Two stories that are really one.</p>
+    <p>The economy underneath American life is changing faster than our institutions can describe it. The people building AI are unusually candid on this point: Anthropic's chief executive has warned that AI could eliminate half of entry-level white-collar jobs within five years<sup>1</sup>, and the same company now funds a research program dedicated to understanding what comes after<sup>2</sup>. The fabric those jobs once helped weave has been thinning for far longer. By 2020, Americans were spending twenty minutes a day with friends, down from a full hour in 2003, and roughly half of adults reported loneliness<sup>3</sup>. Civic scientists have tracked that slow unraveling for decades<sup>4</sup>.</p>
+    <p>We read these as one story, not two. As intelligence becomes abundant, the things only people can offer one another — trust, presence, deep knowledge of a place — become the scarce and valuable inputs. We believe the next economy will need to pay people for relational work, and for the past year we have been practicing a version of that work in our own neighborhoods.</p>
+  </div>
+  <div class="footer">
+    <span>The Relational Tech Project · relationaltechproject.org</span>
+    <span class="pg">1 / 5</span>
+  </div>
+</section>
+
+<!-- ================================ PAGE 2 ================================ -->
+<section class="page">
+  <div class="page-body">
+    <h2>A new role</h2>
+    <p class="section-dek">Somewhere between neighbor and builder — think of the neighborhood baker.</p>
+    <p>Josh has spent the past year serving as what we call a local relational technologist in San Francisco's Outer Sunset<sup>5</sup>. The role is simple to describe and rich in practice. You get to know the people around you. You host gatherings and ask what your neighbors dream about for the place you share. When someone names something out loud — a calendar people can actually find, a way to borrow a ladder before buying one, a hub for the block — you build it with them, doing community work during the day and directing AI to write software overnight.</p>
+    <p>A helpful comparison is the neighborhood baker. Plenty of people bake once to see what it feels like, and that is welcome, but life on a block changes when someone treats the craft seriously<sup>5</sup>. Our working ratio is one primary builder for roughly a hundred neighbors who co-create and rely on each tool, and at that scale the software stays accountable to the people it serves<sup>5</sup>. This is not another app for everyone. The role exists because every neighborhood is different, and tools grown inside a place can fit it in ways we do not believe any platform will.</p>
+    <p>Some will hold the role full time. Others will hold it the way an artist holds a fellowship — for a season, with the neighborhood itself as the residency. We think this is among the most hopeful roles emerging in the AI economy, in part because it is one of the few these tools strengthen rather than threaten.</p>
+
+    <h2>Where this comes from</h2>
+    <p class="section-dek">A folding table in a driveway, a Tanzanian invention workshop, and a two-hour sketch.</p>
+    <p>Neither of us is new to the underlying question. Josh spent fifteen years building Medic, an open source health platform created with community health workers across Africa and Asia, then came home to San Francisco and realized he had built for the world without knowing the people next door<sup>6</sup>. The repair began with a folding table in the driveway, free coffee and donuts, flyers his kids helped deliver, and the forty neighbors who showed up<sup>6</sup>. Deborah spent five years at Twende, a Tanzanian workshop where people invent their own technologies, serving as its first Executive Director, before returning to test block-scale connection practices in New Jersey, Louisiana, Wisconsin, and Michigan through Common Agency<sup>6, 7</sup>. The questions that followed every build — who maintains this, who decides, who pays — have shaped everything since.</p>
+    <p>The two of us and our co-founder Sadev Parikh, who contributes as a volunteer, first met at a small retreat in May 2025 and sketched this project within two hours of meeting<sup>8</sup>. The Relational Tech Project is the nonprofit result: a commons where local builders learn, share, and remix tools while cultivating what we call healthy relational soil<sup>8</sup>.</p>
+
+  </div>
+  <div class="footer">
+    <span>The Relational Tech Project · relationaltechproject.org</span>
+    <span class="pg">2 / 5</span>
+  </div>
+</section>
+
+<!-- ================================ PAGE 3 ================================ -->
+<section class="page">
+  <div class="page-body">
+    <h2>The commons we're building</h2>
+    <p class="section-dek">One shared library, many doors, lineage on everything.</p>
+    <p>Underneath the network sits shared infrastructure, stewarded as a commons<sup>10</sup>. The library now spans 363 items — tools, stories, recipes, frameworks, field references — each carrying its lineage<sup>13</sup>. The Studio holds the remixable collection; Watcher turns every public change into a plain-language post, so a builder in Lexington can learn from a fix made in the Outer Sunset without anyone scheduling a call<sup>12</sup>. The newest door is <em>Relational Builder</em>, our open-source, web-based builder: a neighbor describes what they need in plain language and AI builds it with them, grounded in the relational tech principles, live in the preview, published free with a channel for neighbor feedback<sup>16</sup>. An MCP server pipes the same commons into Claude, Cursor, or whatever tool a builder already uses<sup>13</sup>. Our licensing and attribution choices<sup>15</sup> are made so that no one, including us, can enclose what neighbors have built together.</p>
+
+    <figure>
+      <div class="fig-frame">
+        <div class="fig-head">
+          <span class="t">One commons, five doors</span>
+          <span class="n">RTP · July 2026</span>
+        </div>
+        <div class="doors">
+          <div class="door-list">
+            <div class="door"><span class="dot clay"></span><div><strong>Relational Builder</strong> <span>— plain words in; build, preview, publish free</span></div></div>
+            <div class="door"><span class="dot green"></span><div><strong>Studio + Sidekick</strong> <span>— remix a tool over a cup of coffee</span></div></div>
+            <div class="door"><span class="dot gold"></span><div><strong>Watcher</strong> <span>— a plain-language feed of every change</span></div></div>
+            <div class="door"><span class="dot clay"></span><div><strong>MCP server</strong> <span>— the commons inside any AI tool</span></div></div>
+            <div class="door"><span class="dot green"></span><div><strong>Forks, on purpose</strong> <span>— your street, your org, your domain</span></div></div>
+          </div>
+          <div class="flow">
+            <span class="arr">→</span>
+            offer back
+            <span class="arr back">←</span>
+            take what fits
+          </div>
+          <div class="commons-circle">
+            <div class="t">The global commons</div>
+            <div class="c"><b>363</b> tools, stories &amp; recipes<br/>lineage attached to every item</div>
+          </div>
+        </div>
+        <div class="fig-note">Open licenses, attribution, and steward review — built so no one, including us, can enclose it.</div>
+      </div>
+      <figcaption><span class="fig-label">Figure 1</span>Every door goes both ways: take what fits your place, offer back what you grow.</figcaption>
+    </figure>
+
+    <h2>How it spreads</h2>
+    <p class="section-dek">Fidelity and desire — recipes travel, and so does trust.</p>
+    <p>What we build matters less than how it gets built. The practice moves in a spiral we teach openly: observe who already cares for their neighbors, invite people into dreaming, relate as ideas take shape, build with the people who will use the thing, then share it and watch what happens<sup>9</sup>.</p>
+    <div class="flowstrip">
+      observe <span class="arrow">→</span> dream <span class="arrow">→</span> relate <span class="arrow">→</span> build <span class="arrow">→</span> share <span class="arrow">→ ↻</span>
+    </div>
+    <p>Tools made this way tend to take root, and some of them travel. We call the traveling part locality-to-locality spreading: a steward in one place remixes a recipe from another, keeping what fits and changing what does not<sup>10</sup>.</p>
+    <p>We work both sides of what makes ideas move. One side is <strong>fidelity</strong>: recipes, lineage, and guardrails travel with every tool, so quality holds as it spreads. Inside Relational Builder the unit of spread is the prompt itself — every build distills into a self-contained, travel-ready recipe that another neighborhood can replant and reshape for its own place, with credit traveling automatically<sup>16</sup>. The other side is <strong>desire</strong>: the work happens in public, looks joyful, and is practiced by people you might want to learn from. Trust in a message tends to come from trust in the messenger, so the unit of spread here is a relationship<sup>10</sup>. Our neighborhood site, outersunset.today, has already been remixed by stewards for the Richmond, Noe Valley, Sisters in Oregon, and Oak Park — each with its own local keeper<sup>11</sup>.</p>
+
+  </div>
+  <div class="footer">
+    <span>The Relational Tech Project · relationaltechproject.org</span>
+    <span class="pg">3 / 5</span>
+  </div>
+</section>
+
+<!-- ================================ PAGE 4 ================================ -->
+<section class="page">
+  <div class="page-body">
+    <h2>Where it's taking root</h2>
+    <p class="section-dek">We mapped the network in June, and the picture surprised us.</p>
+    <div class="stats">
+      <div class="stat"><div class="num">~250</div><div class="lbl">places across 14 countries where relational tech is present</div></div>
+      <div class="stat"><div class="num">151</div><div class="lbl">communities set up Community Supplies in eight weeks this spring</div></div>
+      <div class="stat"><div class="num">218</div><div class="lbl">builder profiles in the Studio, with 27 working prototypes</div></div>
+      <div class="stat"><div class="num">16</div><div class="lbl">organizers across 15 states in our first microgrant cohort</div></div>
+    </div>
+    <p>We pulled the map from six live systems<sup>11</sup>. Community Supplies, our tool for neighborhood lending libraries, reached Johannesburg, Tijuana, and Bangalore, with The Washington Post's April coverage accelerating the inbound<sup>11, 14</sup>. Relational Builder went from repository to community pilot in weeks<sup>16</sup>. The detail we keep returning to is who shows up: there are two of us doing the spreading, and builders from Novi Sad, Tampere, Laramie, and Hialeah found the commons on their own — people we have never met, already representing relational tech in their own neighborhoods and networks.</p>
+    <p>The harder question is not whether the role spreads, but whether it lasts.</p>
+
+    <figure>
+      <div class="fig-frame">
+        <div class="fig-head">
+          <span class="t">The resourcing loop</span>
+          <span class="n">A sustained model · in test</span>
+        </div>
+        <div class="loop-row">
+          <div class="loop-step"><div class="t">The work</div><div class="c">builds tools, hosts gatherings, meets real needs</div></div>
+          <span class="loop-arrow">→</span>
+          <div class="loop-step"><div class="t">The value</div><div class="c">needs met close to home; trust and belonging grow</div></div>
+          <span class="loop-arrow">→</span>
+          <div class="loop-step"><div class="t">The support</div><div class="c">neighbors, city, and nation help pay for the role</div></div>
+          <span class="loop-arrow">→</span>
+          <div class="loop-step"><div class="t">Sustained</div><div class="c">a salary, plus the shared commons underneath</div></div>
+        </div>
+        <div class="loop-repeat" style="margin-bottom: 9pt;">…and the loop repeats <b>↻</b> — philanthropy primes it, then steps down</div>
+        <div class="mix-title">Who sustains it, at steady state</div>
+        <div class="mix-bar"><div class="seg1"></div><div class="seg2"></div><div class="seg3"></div></div>
+        <div class="mix-legend">
+          <div class="item"><b><span class="pct">~50%</span> Neighborhood</b>recurring gifts, plus paying for builds and services</div>
+          <div class="item"><b><span class="pct">~25%</span> Local government</b>library, school, parks, and civic contracts</div>
+          <div class="item"><b><span class="pct">~25%</span> The nation</b>national service, plus an emerging AI dividend</div>
+        </div>
+        <div class="fig-note">A target mix we are testing, not today's reality — the funded year is how a place closes the gap.</div>
+      </div>
+      <figcaption><span class="fig-label">Figure 2</span>Work creates local value, value earns three streams of support, and that support sustains the role.</figcaption>
+    </figure>
+
+    <h2>The experiment</h2>
+    <p class="section-dek">200 fully funded builders. Three landscapes. One loop to close.</p>
+    <p>We would like to run the experiment this moment is asking for: hire the first generation of local relational technologists, give each a fully funded year, and prove the role can pay for itself close to home. Income support and retraining matter; this is their complement — creating new roles, not only cushioning the exit from old ones. The plan places 200 technologists across three American landscapes:</p>
+    <ul class="points">
+      <li><strong>San Francisco — at least 100</strong>, one rooted in every neighborhood and hired from the neighborhoods they serve, in the city where this practice was born.</li>
+      <li><strong>Baltimore — 50 with Thread</strong>, an organization we have already shipped five community tools with, alongside city and state partners.</li>
+      <li><strong>Rural America — 50 with AmeriCorps</strong> and state service commissions, where Deborah lives and works, in towns where one builder can shift what a place believes is possible.</li>
+    </ul>
+  </div>
+  <div class="footer">
+    <span>The Relational Tech Project · relationaltechproject.org</span>
+    <span class="pg">4 / 5</span>
+  </div>
+</section>
+
+<!-- ================================ PAGE 5 ================================ -->
+<section class="page">
+  <div class="page-body">
+    <p>These are well-paid years on purpose: if relational work is to be valued, the first cohort has to be paid like it. Each position is a one-year hire that doubles as a one-year runway, and the point of the year is to close the loop in Figure 2 — half neighborhood, a quarter city, a quarter nation (a meaningful build runs about a thousand dollars today). Philanthropy primes the loop and then steps down: at most half of a builder's costs in year two, a quarter in year three. If a place does not step up, the role winds down there, and we will say so plainly.</p>
+    <p>We do not have that loop fully solved, and closing it is the experiment. We prove the role in a handful of places, measure what matters to us — needs met closer to home, neighbors known and trusted, tools still alive a year on, each place's real revenue mix — then use the network's collective intelligence to learn how the loop closes in different kinds of neighborhoods. From there we help thousands step into the role, then millions. We can think of no better use of these tools: AI put to work reweaving the social fabric it is straining, creating meaningful and well-paid work, and leaving people with more real relationships than they started with. What we learn, including what fails, goes into the commons for any city to pick up.</p>
+
+    <h2>An invitation</h2>
+    <p class="section-dek">There is room in this future for you.</p>
+    <p>Here is the future we can see from our own front steps: a relational technologist rooted in every neighborhood. Tools grown in place, instead of platforms fitted to no one. Needs met closer to home, neighbors known by name, and people ending each year with more real relationships than they started with. We are building toward that future in the open, and it gets closer every time someone joins.</p>
+    <p>If you want to see the work up close, come to the Outer Sunset. We will introduce you to neighbors, show you what they have built together, and answer the question you came with. If you are a builder, request an account and grow something with your block. If you are an organizer, a city, or a fellow traveler who believes relational work can be real work, write to us. Come build the next economy's first jobs with us.</p>
+
+    <p class="signoff">With love for our neighborhoods, Josh + Deborah</p>
+    <p class="contact">josh@relationaltechproject.org <span class="sep">·</span> deborah@relationaltechproject.org</p>
+
+    <div class="refs">
+      <h4>References</h4>
+      <ol>
+        <li>D. Amodei, interview in Axios, "Behind the Curtain," May 2025.</li>
+        <li>Anthropic, "Introducing the Anthropic Economic Futures Program," June 2025. anthropic.com</li>
+        <li>Office of the U.S. Surgeon General, <i>Our Epidemic of Loneliness and Isolation</i>, 2023.</li>
+        <li>R. D. Putnam, <i>Bowling Alone: The Collapse and Revival of American Community</i>, 2000.</li>
+        <li>J. Nesbit, "The Local Relational Technologist," Relational Tech Project on Substack, December 2025.</li>
+        <li>S. Pressler, "Building tech that's relational, place-based, participatory, and ~weird~," Connective Tissue, September 2025.</li>
+        <li>D. Tien, "Why don't we know our neighbors?," New_ Public, September 2024.</li>
+        <li>D. Tien and J. Nesbit, "Hello World(Builder)," Relational Tech Project on Substack, September 2025.</li>
+        <li>Relational Tech Project, "We can build what we need," Metagov seminar materials, June 2026.</li>
+        <li>D. Tien and J. Nesbit, "Locality-to-Locality Spreading," Relational Tech Project on Substack, May 2026.</li>
+        <li>Relational Tech Project, "Where Relational Tech Is Taking Root," internal report, June 10, 2026.</li>
+        <li>Relational Tech Network feed, generated by Watcher. updates.relationaltechproject.org</li>
+        <li>Relational Tech MCP server v0.6.0 and Studio commons library. mcp.relationaltechproject.org</li>
+        <li>The Washington Post, on neighborhood sharing economies and Community Supplies, April 14, 2026.</li>
+        <li>J. Nesbit, "From Vibe to Vision Coding," joshnesbit.substack.com, July 2025.</li>
+        <li>Relational Builder, open source. github.com/The-Relational-Technology-Project/relational-builder · relationalbuilder.org</li>
+      </ol>
+    </div>
+  </div>
+  <div class="footer">
+    <span>The Relational Tech Project · relationaltechproject.org</span>
+    <span class="pg">5 / 5</span>
+  </div>
+</section>
+
+</body>
+</html>

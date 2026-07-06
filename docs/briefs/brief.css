@@ -1,0 +1,404 @@
+/*
+ * Brief design system — print styles shared by the RTP briefs.
+ * Mirrors the Relational Builder brand: Fraunces headings, Inter body,
+ * the warm craft palette from src/index.css, and the tri-node mark.
+ *
+ * Render with: node docs/briefs/build-pdfs.mjs  (headless Chromium)
+ */
+
+@font-face {
+  font-family: 'Fraunces';
+  src: url('fonts/fraunces-latin-full-normal.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Fraunces';
+  src: url('fonts/fraunces-latin-full-italic.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: italic;
+}
+@font-face {
+  font-family: 'Inter';
+  src: url('fonts/inter-latin-wght-normal.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Inter';
+  src: url('fonts/inter-latin-wght-italic.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: italic;
+}
+
+:root {
+  /* Craft palette, tuned for paper */
+  --paper: #f7f1e7;
+  --card: #fcf8f1;
+  --ink: #3e2f22;
+  --body: #4a3a2c;
+  --soft: #7c6653;
+  --faint: #a08a74;
+  --line: #e4d6c4;
+  --line-soft: #ece2d2;
+  --clay: #c25e38;        /* primary, deepened for print */
+  --clay-bright: #e86f4e; /* the mark's coral */
+  --green: #3d8b6d;
+  --gold: #e8b84e;
+  --gold-ink: #a97f1e;
+
+  --serif: 'Fraunces', Georgia, serif;
+  --sans: 'Inter', system-ui, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body { background: #e9e0d2; }
+
+.page {
+  width: 8.5in;
+  height: 11in;
+  background: var(--paper);
+  padding: 0.72in 0.9in 0.5in;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--sans);
+  font-size: 9.3pt;
+  line-height: 1.55;
+  color: var(--body);
+  font-variation-settings: 'wght' 400;
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+  page-break-after: always;
+  overflow: hidden;
+}
+
+@page { size: letter; margin: 0; }
+@media print {
+  html, body { background: none; }
+}
+
+.page-body { flex: 1 1 auto; min-height: 0; }
+
+/* ---------- masthead ---------- */
+
+.kicker {
+  display: flex;
+  align-items: center;
+  gap: 7pt;
+  font-size: 7.2pt;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--clay);
+  font-weight: 600;
+  margin-bottom: 14pt;
+}
+.kicker svg { width: 13pt; height: 13pt; color: var(--soft); }
+
+h1 {
+  font-family: var(--serif);
+  font-weight: 590;
+  font-size: 28pt;
+  line-height: 1.12;
+  letter-spacing: -0.012em;
+  color: var(--ink);
+  margin-bottom: 9pt;
+}
+
+.dek {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 420;
+  font-size: 12pt;
+  line-height: 1.42;
+  color: var(--soft);
+  margin-bottom: 10pt;
+  max-width: 6.1in;
+}
+
+.byline {
+  font-size: 7.6pt;
+  letter-spacing: 0.02em;
+  color: var(--faint);
+  margin-bottom: 15pt;
+}
+.byline strong { color: var(--soft); font-weight: 550; }
+.byline .sep { margin: 0 5pt; color: var(--line); }
+
+/* ---------- the short version ---------- */
+
+.shortver {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10pt;
+  padding: 13pt 16pt 12pt;
+  margin-bottom: 16pt;
+}
+.shortver h3 {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 550;
+  font-size: 10.5pt;
+  color: var(--ink);
+  margin-bottom: 7pt;
+}
+.shortver ul { list-style: none; }
+.shortver li {
+  position: relative;
+  padding-left: 15pt;
+  font-size: 8.7pt;
+  line-height: 1.5;
+  margin-bottom: 5pt;
+  color: var(--body);
+}
+.shortver li:last-child { margin-bottom: 0; }
+.shortver li::before {
+  content: '';
+  position: absolute;
+  left: 2pt;
+  top: 4.6pt;
+  width: 5pt;
+  height: 5pt;
+  border-radius: 50%;
+  background: var(--clay-bright);
+}
+.shortver li:nth-child(3n+2)::before { background: var(--green); }
+.shortver li:nth-child(3n+3)::before { background: var(--gold); }
+.shortver li strong { color: var(--ink); font-weight: 600; }
+
+/* ---------- sections ---------- */
+
+h2 {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 13.5pt;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+  margin: 17pt 0 3pt;
+}
+h2:first-child { margin-top: 0; }
+
+.section-dek {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 9.6pt;
+  color: var(--faint);
+  margin-bottom: 8pt;
+}
+
+p { margin-bottom: 6.5pt; }
+p:last-child { margin-bottom: 0; }
+p strong { color: var(--ink); font-weight: 600; }
+em { font-family: var(--serif); font-size: 1.04em; }
+
+sup {
+  font-size: 6.2pt;
+  color: var(--clay);
+  font-weight: 550;
+  line-height: 0;
+  letter-spacing: 0.04em;
+}
+
+/* bulleted key points inside sections */
+.points { list-style: none; margin: 3pt 0 8pt; }
+.points li {
+  position: relative;
+  padding-left: 14pt;
+  margin-bottom: 3.5pt;
+  line-height: 1.5;
+}
+.points li::before {
+  content: '';
+  position: absolute;
+  left: 1pt;
+  top: 5pt;
+  width: 4.6pt;
+  height: 4.6pt;
+  border-radius: 50%;
+  background: var(--clay-bright);
+}
+.points li:nth-child(3n+2)::before { background: var(--green); }
+.points li:nth-child(3n+3)::before { background: var(--gold); }
+.points li strong { color: var(--ink); font-weight: 600; }
+
+/* pull quote */
+.pull {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 480;
+  font-size: 12.5pt;
+  line-height: 1.45;
+  color: var(--ink);
+  border-left: 2.5pt solid var(--clay-bright);
+  padding: 2pt 0 2pt 14pt;
+  margin: 9pt 0;
+}
+
+/* small inline flow strip (observe → dream → …) */
+.flowstrip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7pt;
+  font-size: 8.2pt;
+  color: var(--soft);
+  font-weight: 550;
+  margin: 9pt 0 10pt;
+}
+.flowstrip .arrow { color: var(--faint); font-weight: 400; }
+
+/* stat row */
+.stats {
+  display: flex;
+  gap: 10pt;
+  margin: 8pt 0 9pt;
+}
+.stats .stat {
+  flex: 1;
+  background: var(--card);
+  border: 1px solid var(--line-soft);
+  border-radius: 8pt;
+  padding: 6.5pt 10pt 6pt;
+}
+.stats .num {
+  font-family: var(--serif);
+  font-weight: 590;
+  font-size: 14pt;
+  line-height: 1.1;
+  color: var(--clay);
+}
+.stats .stat:nth-child(2) .num { color: var(--green); }
+.stats .stat:nth-child(3) .num { color: var(--gold-ink); }
+.stats .stat:nth-child(4) .num { color: var(--ink); }
+.stats .lbl {
+  font-size: 6.9pt;
+  line-height: 1.35;
+  color: var(--soft);
+  margin-top: 2pt;
+}
+
+/* ---------- figures ---------- */
+
+figure { margin: 10pt 0 0; }
+.fig-frame {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10pt;
+  padding: 11pt 15pt;
+}
+.fig-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8pt;
+}
+.fig-head .t {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 10.5pt;
+  color: var(--ink);
+}
+.fig-head .n { font-size: 6.8pt; letter-spacing: 0.12em; text-transform: uppercase; color: var(--faint); }
+figcaption {
+  font-size: 7.8pt;
+  line-height: 1.45;
+  color: var(--soft);
+  margin-top: 6pt;
+}
+figcaption .fig-label {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 600;
+  color: var(--clay);
+  margin-right: 4pt;
+}
+.fig-note {
+  border-top: 1px dashed var(--line);
+  margin-top: 7pt;
+  padding-top: 5pt;
+  font-size: 7.4pt;
+  color: var(--soft);
+  text-align: center;
+}
+
+/* dot legend used in figures */
+.dot {
+  display: inline-block;
+  width: 5pt;
+  height: 5pt;
+  border-radius: 50%;
+  margin-right: 5pt;
+  vertical-align: 0.5pt;
+}
+.dot.clay { background: var(--clay-bright); }
+.dot.green { background: var(--green); }
+.dot.gold { background: var(--gold); }
+.dot.soft { background: var(--faint); }
+
+/* ---------- footer ---------- */
+
+.footer {
+  flex-shrink: 0;
+  border-top: 1px solid var(--line-soft);
+  margin-top: 10pt;
+  padding-top: 6pt;
+  display: flex;
+  justify-content: space-between;
+  font-size: 6.8pt;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.footer .pg { color: var(--clay); font-weight: 600; }
+
+/* ---------- signature & contact ---------- */
+
+.signoff {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 11.5pt;
+  color: var(--ink);
+  margin: 8pt 0 3pt;
+}
+.contact {
+  font-size: 7.4pt;
+  letter-spacing: 0.06em;
+  color: var(--clay);
+  font-weight: 550;
+}
+.contact .sep { color: var(--line); margin: 0 4pt; }
+
+/* ---------- references ---------- */
+
+.refs { margin-top: 11pt; border-top: 1px solid var(--line-soft); padding-top: 8pt; }
+.refs h4 {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 8.5pt;
+  color: var(--ink);
+  margin-bottom: 4pt;
+}
+.refs ol {
+  columns: 3;
+  column-gap: 16pt;
+  list-style: none;
+  counter-reset: ref;
+  font-size: 6pt;
+  line-height: 1.3;
+  color: var(--soft);
+}
+.refs li {
+  counter-increment: ref;
+  position: relative;
+  padding-left: 10pt;
+  margin-bottom: 2.2pt;
+  break-inside: avoid;
+}
+.refs li::before {
+  content: counter(ref);
+  position: absolute;
+  left: 0;
+  color: var(--clay);
+  font-weight: 600;
+}

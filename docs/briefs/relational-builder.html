@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Relational Builder — The Relational Tech Project</title>
+<link rel="stylesheet" href="brief.css" />
+<style>
+  /* ---------- app mockups, drawn in the current UI ---------- */
+  .app {
+    border: 1px solid var(--line);
+    border-radius: 10pt;
+    overflow: hidden;
+    background: #f3ebe2; /* app --background */
+    box-shadow: 0 1pt 3pt rgba(62, 47, 34, 0.06);
+  }
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #fcf8f1;
+    border-bottom: 1px solid var(--line-soft);
+    padding: 5pt 9pt;
+  }
+  .topbar .brand { display: flex; align-items: center; gap: 5pt; }
+  .topbar .brand svg { width: 11pt; height: 11pt; color: var(--soft); }
+  .topbar .brand .name { font-family: var(--serif); font-weight: 600; font-size: 8.5pt; color: var(--ink); }
+  .chip {
+    font-size: 6.2pt;
+    color: var(--soft);
+    border: 1px solid var(--line);
+    border-radius: 20pt;
+    padding: 1.5pt 6pt;
+    background: #f7f1e7;
+  }
+  .topbar .actions { display: flex; gap: 8pt; font-size: 6.4pt; color: var(--soft); align-items: center; }
+  .topbar .actions .primary { color: #fff; background: var(--clay); border-radius: 20pt; padding: 2pt 7pt; font-weight: 600; }
+
+  .app-cols { display: flex; }
+  .chatpane {
+    width: 39%;
+    background: #fcf8f1;
+    border-right: 1px solid var(--line-soft);
+    padding: 7pt 8pt;
+    display: flex;
+    flex-direction: column;
+    gap: 5pt;
+    font-size: 6.8pt;
+    line-height: 1.45;
+    color: var(--body);
+  }
+  .bubble-user {
+    align-self: flex-end;
+    background: var(--clay);
+    color: #fdf6f0;
+    border-radius: 8pt 8pt 2pt 8pt;
+    padding: 5pt 7pt;
+    max-width: 88%;
+  }
+  .assistant { padding: 0 2pt; }
+  .assistant .what { font-weight: 650; color: var(--ink); margin: 4pt 0 2pt; }
+  .assistant ul { list-style: none; margin: 0; }
+  .assistant li { position: relative; padding-left: 9pt; margin-bottom: 2pt; }
+  .assistant li::before { content: ''; position: absolute; left: 0; top: 3.4pt; width: 3.4pt; height: 3.4pt; border-radius: 50%; background: var(--green); }
+  .assistant .try { color: var(--clay); font-weight: 550; margin-top: 3pt; }
+  .composer {
+    margin-top: auto;
+    background: #f7f1e7;
+    border: 1px solid var(--line);
+    border-radius: 8pt;
+    padding: 5pt 7pt;
+    color: var(--faint);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .composer .send { width: 11pt; height: 11pt; border-radius: 50%; background: var(--clay); color: #fff; font-size: 6.5pt; display: flex; align-items: center; justify-content: center; }
+  .previewpane { flex: 1; display: flex; flex-direction: column; }
+  .tabs { display: flex; gap: 4pt; padding: 5pt 8pt; font-size: 6.2pt; color: var(--soft); }
+  .tabs .tab { padding: 1.5pt 7pt; border-radius: 20pt; }
+  .tabs .tab.active { background: #fcf8f1; border: 1px solid var(--line); color: var(--ink); font-weight: 600; }
+  .canvas { flex: 1; margin: 0 8pt 8pt; background: #fdfaf5; border: 1px solid var(--line-soft); border-radius: 7pt; overflow: hidden; position: relative; }
+
+  /* the tool library app inside the preview */
+  .toolapp-head { background: var(--clay); color: #fdf3ec; text-align: center; padding: 7pt 8pt 6.5pt; }
+  .toolapp-head .t { font-family: var(--serif); font-weight: 600; font-size: 11pt; }
+  .toolapp-head .s { font-size: 6.6pt; opacity: 0.92; margin-top: 1.5pt; }
+  .toolapp-body { padding: 8pt 12pt 10pt; }
+  .lendrow { display: flex; gap: 5pt; margin-bottom: 7pt; }
+  .lendrow .field { flex: 1; background: #fff; border: 1px solid var(--line); border-radius: 6pt; padding: 4pt 7pt; font-size: 6.6pt; color: var(--faint); }
+  .lendrow .btn { background: var(--green); color: #fff; border-radius: 6pt; padding: 4pt 9pt; font-size: 6.8pt; font-weight: 650; }
+  .tool-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #fff;
+    border: 1px solid var(--line-soft);
+    border-radius: 7pt;
+    padding: 5pt 8pt;
+    margin-bottom: 4.5pt;
+  }
+  .tool-item .l { display: flex; align-items: center; gap: 6pt; }
+  .tool-item .n { font-size: 7.4pt; font-weight: 650; color: var(--ink); }
+  .tool-item .m { font-size: 6.2pt; color: var(--faint); }
+  .badge { font-size: 5.8pt; font-weight: 600; border-radius: 20pt; padding: 1.2pt 6pt; }
+  .badge.ok { color: var(--green); background: rgba(61, 139, 109, 0.12); }
+  .badge.back { color: var(--gold-ink); background: rgba(232, 184, 78, 0.18); }
+  .pointat {
+    position: absolute;
+    right: 7pt;
+    bottom: 7pt;
+    background: var(--ink);
+    color: #f7f1e7;
+    font-size: 6pt;
+    border-radius: 20pt;
+    padding: 2.5pt 7pt;
+  }
+
+  /* studio gallery mockup */
+  .gallery { padding: 10pt 12pt 12pt; }
+  .gallery-head .t { font-family: var(--serif); font-weight: 600; font-size: 10.5pt; color: var(--ink); }
+  .gallery-head .s { font-size: 6.8pt; color: var(--soft); margin: 2pt 0 8pt; }
+  .cards { display: flex; gap: 8pt; }
+  .gcard { flex: 1; background: #fcf8f1; border: 1px solid var(--line-soft); border-radius: 8pt; overflow: hidden; }
+  .gcard .art { height: 34pt; display: flex; align-items: center; justify-content: center; font-family: var(--serif); font-weight: 600; font-size: 7.5pt; color: #fdf6ee; }
+  .gcard:nth-child(1) .art { background: var(--green); }
+  .gcard:nth-child(2) .art { background: var(--clay); }
+  .gcard:nth-child(3) .art { background: var(--gold); color: #5d4512; }
+  .gcard .body { padding: 6pt 8pt 8pt; }
+  .gcard .n { font-size: 7.6pt; font-weight: 650; color: var(--ink); }
+  .gcard .by { font-size: 6pt; color: var(--faint); margin: 1pt 0 3pt; }
+  .gcard .d { font-size: 6.4pt; line-height: 1.4; color: var(--soft); margin-bottom: 5pt; }
+  .gcard .row { display: flex; gap: 4pt; }
+  .gcard .b1 { font-size: 6pt; border: 1px solid var(--line); border-radius: 20pt; padding: 1.5pt 7pt; color: var(--soft); }
+  .gcard .b2 { font-size: 6pt; background: var(--clay); color: #fff; border-radius: 20pt; padding: 1.5pt 7pt; font-weight: 600; }
+
+  /* front door mockup */
+  .frontdoor { padding: 11pt 0 12pt; text-align: center; }
+  .frontdoor svg { width: 18pt; height: 18pt; color: var(--soft); margin-bottom: 4pt; }
+  .frontdoor .t { font-family: var(--serif); font-weight: 600; font-size: 12pt; color: var(--ink); }
+  .frontdoor .s { font-size: 7pt; color: var(--soft); max-width: 4.4in; margin: 3pt auto 6pt; line-height: 1.5; }
+  .frontdoor .box {
+    width: 4.6in;
+    margin: 0 auto 6pt;
+    background: #fcf8f1;
+    border: 1px solid var(--line);
+    border-radius: 9pt;
+    padding: 8pt 10pt 6pt;
+    text-align: left;
+    font-size: 7pt;
+    color: var(--faint);
+  }
+  .frontdoor .box .row { display: flex; justify-content: space-between; align-items: center; margin-top: 8pt; }
+  .frontdoor .box .modes { display: flex; gap: 4pt; }
+  .frontdoor .box .mode { font-size: 5.8pt; border: 1px solid var(--line); border-radius: 20pt; padding: 1.2pt 6pt; color: var(--soft); }
+  .frontdoor .box .mode.active { background: var(--clay); border-color: var(--clay); color: #fff; font-weight: 600; }
+  .frontdoor .box .send { width: 11pt; height: 11pt; border-radius: 50%; background: var(--clay); color: #fff; font-size: 6.5pt; display: flex; align-items: center; justify-content: center; }
+  .seedrow { display: flex; justify-content: center; flex-wrap: nowrap; gap: 4pt; margin: 0 auto; }
+  .seed { white-space: nowrap; }
+  .seed { font-size: 6.2pt; color: var(--soft); border: 1px solid var(--line); border-radius: 20pt; padding: 2pt 8pt; background: #fcf8f1; }
+
+  /* feature grid */
+  .features {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 9pt 22pt;
+    margin: 10pt 0 4pt;
+  }
+  .feature { position: relative; padding-left: 15pt; font-size: 8.6pt; line-height: 1.5; }
+  .feature::before {
+    content: '';
+    position: absolute;
+    left: 2pt;
+    top: 4.4pt;
+    width: 5pt;
+    height: 5pt;
+    border-radius: 50%;
+    background: var(--clay-bright);
+  }
+  .feature:nth-child(3n+2)::before { background: var(--green); }
+  .feature:nth-child(3n+3)::before { background: var(--gold); }
+  .feature strong { color: var(--ink); font-weight: 650; }
+  .feature span { color: var(--soft); }
+</style>
+</head>
+<body>
+
+<!-- ================================ PAGE 1 ================================ -->
+<section class="page">
+  <div class="page-body">
+    <div class="kicker">
+      <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+        <path d="M14 32 L24 14 L34 32" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.45"/>
+        <path d="M14 32 L34 32" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" opacity="0.45"/>
+        <circle cx="24" cy="13" r="5.5" fill="#E86F4E"/><circle cx="13" cy="33" r="5.5" fill="#3D8B6D"/><circle cx="35" cy="33" r="5.5" fill="#E8B84E"/>
+      </svg>
+      The Relational Tech Project
+    </div>
+
+    <h1>Relational Builder</h1>
+    <p class="dek">Describe what your neighborhood needs, in your own words, and build it together with AI — grounded in the relational tech commons, offered back to the commons.</p>
+    <p class="byline"><strong>An open-source builder for relational technology</strong> <span class="sep">·</span> relationalbuilder.org <span class="sep">·</span> July 2026</p>
+
+    <div class="shortver">
+      <h3>The short version</h3>
+      <ul>
+        <li><strong>Say it in your own words.</strong> A builder types what their neighborhood needs; AI writes the software while they watch it run in a live preview.</li>
+        <li><strong>One click publishes</strong> to free community hosting, with a built-in way for neighbors to leave notes back.</li>
+        <li><strong>Every build starts from the commons</strong> — 363 tools, stories, and recipes with lineage attached, shaped by the five relational tech principles.</li>
+        <li><strong>Free for invited builders.</strong> Sign in with an email link and build on frontier models — no API key, no credit card, no signup maze.</li>
+        <li><strong>Finished builds flow back:</strong> distilled into travel-ready prompts, offered to the commons consent-first, credited by name.</li>
+      </ul>
+    </div>
+
+    <p>Relational Builder is a web-based app builder for the tools neighborhoods actually need: the calendar people can find, the lending library for the block, the meal train for a recovering neighbor, the flyer for the laundromat corkboard. It is not a general-purpose app factory — every conversation searches what real neighborhoods have already learned, so each build starts from a place, not a blank page.</p>
+
+    <figure>
+      <div class="app">
+        <div class="topbar">
+          <div class="brand">
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden><path d="M14 32 L24 14 L34 32" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.45"/><path d="M14 32 L34 32" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" opacity="0.45"/><circle cx="24" cy="13" r="5.5" fill="#E86F4E"/><circle cx="13" cy="33" r="5.5" fill="#3D8B6D"/><circle cx="35" cy="33" r="5.5" fill="#E8B84E"/></svg>
+            <span class="name">Relational Builder</span>
+            <span class="chip">Claude Opus 4.8 ▾</span>
+          </div>
+          <div class="actions"><span>Share</span><span class="primary">Publish</span><span>⚙</span></div>
+        </div>
+        <div class="app-cols">
+          <div class="chatpane">
+            <div class="bubble-user">Our block keeps buying things we could share. Can you build a tool library board for Alma Street?</div>
+            <div class="assistant">
+              Love this — a lending board is classic relational tech: the ladder is the excuse, the knock on the door is the point.
+              <div class="what">What changed</div>
+              <ul>
+                <li>A warm, single-page board: post what you can lend, one tap to mark it borrowed or returned</li>
+                <li>Door numbers, not accounts</li>
+              </ul>
+              <div class="try">Try adding your ladder →</div>
+            </div>
+            <div class="composer"><span>Describe a change or something new…</span><span class="send">↑</span></div>
+          </div>
+          <div class="previewpane">
+            <div class="tabs"><span class="tab active">Preview</span><span class="tab">Files</span><span class="tab">Cloud</span></div>
+            <div class="canvas">
+              <div class="toolapp-head">
+                <div class="t">Alma Street Tool Library</div>
+                <div class="s">Borrow before you buy — 14 households sharing so far</div>
+              </div>
+              <div class="toolapp-body">
+                <div class="lendrow"><span class="field">What can you lend? e.g. 6-foot ladder</span><span class="btn">Share it</span></div>
+                <div class="tool-item"><div class="l"><span class="dot green"></span><div><div class="n">6-foot ladder</div><div class="m">Rosa · #214 · “just knock”</div></div></div><span class="badge ok">available</span></div>
+                <div class="tool-item"><div class="l"><span class="dot gold"></span><div><div class="n">Stand mixer</div><div class="m">Devon · #208</div></div></div><span class="badge back">back Friday</span></div>
+                <div class="tool-item"><div class="l"><span class="dot green"></span><div><div class="n">Folding tables (3)</div><div class="m">Marcus · #202 · great for block parties</div></div></div><span class="badge ok">available</span></div>
+              </div>
+              <div class="pointat">✦ Point at it</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <figcaption><span class="fig-label">The loop in one screen</span>A neighbor asked for a tool-lending board for their street; the app runs live in the preview as the conversation shapes it.</figcaption>
+    </figure>
+  </div>
+  <div class="footer">
+    <span>The Relational Tech Project · relationalbuilder.org</span>
+    <span class="pg">1 / 3</span>
+  </div>
+</section>
+
+<!-- ================================ PAGE 2 ================================ -->
+<section class="page">
+  <div class="page-body">
+    <h2>A different kind of builder</h2>
+    <p class="section-dek">AI app builders are suddenly everywhere. What makes this one relational is everything wrapped around the code.</p>
+
+    <div class="features">
+      <div class="feature"><strong>Vision before code.</strong> <span>Plan mode is a real visioning phase: it grounds the tool in your place and people, weaves in commons examples by name, and asks one question at a time.</span></div>
+      <div class="feature"><strong>The commons in every prompt.</strong> <span>Semantic search across the whole library on every message — patterns, stories, and recipes from the network inform each build.</span></div>
+      <div class="feature"><strong>Studios as first-class homes.</strong> <span>Builders belong to studios (Relational Tech Studio, Thread in Baltimore, yours next); a studio's principles layer onto every build.</span></div>
+      <div class="feature"><strong>Waits that build relationships.</strong> <span>While a first build runs, the chat asks: who else cares about this? Who spreads the word? The sharing plan saves into the project.</span></div>
+      <div class="feature"><strong>Point at it.</strong> <span>Click any element in the running app and describe the change in plain words. Click text and just type the new wording.</span></div>
+      <div class="feature"><strong>Community Cloud.</strong> <span>One click gives any app a free shared data store with neighbor email-code sign-in — no database accounts, no SQL.</span></div>
+      <div class="feature"><strong>Hosting with a return channel.</strong> <span>Free RTP hosting for finished apps, with privacy-friendly visit counts and a built-in “leave a note” widget for neighbors.</span></div>
+      <div class="feature"><strong>Prompts as seeds.</strong> <span>Every build distills into a self-contained prompt — versioned, shareable by link, replantable in another neighborhood with credit traveling along.</span></div>
+      <div class="feature"><strong>Paper counts too.</strong> <span>Print-ready flyers, posters, and newsletters with real page sizes and tear-off tabs — some of the best relational tech goes on a corkboard.</span></div>
+      <div class="feature"><strong>Grows with the builder.</strong> <span>Apps can add their own AI features, an admin page for editing without chat, and a personal design system that makes each builder's apps feel like their place.</span></div>
+    </div>
+
+    <figure>
+      <div class="app">
+        <div class="topbar">
+          <div class="brand">
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden><path d="M14 32 L24 14 L34 32" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.45"/><path d="M14 32 L34 32" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" opacity="0.45"/><circle cx="24" cy="13" r="5.5" fill="#E86F4E"/><circle cx="13" cy="33" r="5.5" fill="#3D8B6D"/><circle cx="35" cy="33" r="5.5" fill="#E8B84E"/></svg>
+            <span class="name">Relational Builder</span>
+          </div>
+          <div class="actions"><span>＋ New project</span><span class="chip">Gallery</span><span>⚙</span></div>
+        </div>
+        <div class="gallery">
+          <div class="gallery-head">
+            <div class="t">Studio Gallery</div>
+            <div class="s">Tools built across the network — see them running, trace their lineage, and grow your own version for your neighborhood.</div>
+          </div>
+          <div class="cards">
+            <div class="gcard">
+              <div class="art">Community Supplies</div>
+              <div class="body">
+                <div class="n">Community Supplies</div>
+                <div class="by">by Josh, Outer Sunset · open source</div>
+                <div class="d">The neighborhood lending library: 151 communities set one up in eight weeks this spring.</div>
+                <div class="row"><span class="b1">Details</span><span class="b2">Build it</span></div>
+              </div>
+            </div>
+            <div class="gcard">
+              <div class="art">Outer Sunset Today</div>
+              <div class="body">
+                <div class="n">Outer Sunset Today</div>
+                <div class="by">by Outer Sunset neighbors · open source</div>
+                <div class="d">The neighborhood site pattern — already remixed by the Richmond, Noe Valley, Sisters OR, and Oak Park.</div>
+                <div class="row"><span class="b1">Details</span><span class="b2">Build it</span></div>
+              </div>
+            </div>
+            <div class="gcard">
+              <div class="art">Meal Train</div>
+              <div class="body">
+                <div class="n">Meal Train</div>
+                <div class="by">by Kitsap Peninsula builders · open source</div>
+                <div class="d">Care, coordinated: open slots neighbors claim in one tap — no accounts, no spreadsheet.</div>
+                <div class="row"><span class="b1">Details</span><span class="b2">Build it</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <figcaption><span class="fig-label">The Studio Gallery</span>“Build it” doesn't clone code — it distills the tool into a place-adaptable prompt, so each neighborhood grows its own version.</figcaption>
+    </figure>
+  </div>
+  <div class="footer">
+    <span>The Relational Tech Project · relationalbuilder.org</span>
+    <span class="pg">2 / 3</span>
+  </div>
+</section>
+
+<!-- ================================ PAGE 3 ================================ -->
+<section class="page">
+  <div class="page-body">
+    <h2>Why it matters</h2>
+    <p class="section-dek">Community work is 90 percent presence and relationship. Technology is the last 10.</p>
+    <p>What AI changes is who can do that 10 percent. A year ago, a neighborhood tool meant finding (and usually paying) a developer, or settling for a platform built for everyone and fitted to no one. Now the distance between “someone should make…” said out loud at a block party and a working tool neighbors are using is one conversation. Relational Builder exists to make sure that new capability lands relationally: grounded in principles, accountable to a place, feeding a commons no one can enclose — instead of arriving as one more extractive platform with a neighborhood-shaped logo.</p>
+    <p>The details are deliberate. Free community access means the person who hosts the potluck — not just the person with the API key — can build. Consent-first sharing and steward review mean the commons grows with care. Lineage on everything means credit travels, and remixing is honored as the way good tools spread: locality to locality, keeping what fits, changing what doesn't.</p>
+
+    <h2>Millions building</h2>
+    <p class="section-dek">The workshop for a new kind of work.</p>
+    <p>Our white paper, <em>We can build what we need</em>, describes a new role — the local relational technologist — and an experiment: 200 fully funded builders across San Francisco, Baltimore, and rural America, each proving the role can pay for itself close to home. Relational Builder is that role's workshop. It is how a technologist directs AI to write software overnight after a day of community work; how the hundred neighbors around them co-create instead of just consuming; and how the recipes travel, so a meal train grown on one street replants in Novi Sad, Tampere, or Hialeah without anyone scheduling a call.</p>
+
+    <div class="pull">Prove one loop. Run it in thousands of neighborhoods. Open it to millions of people building what they need, with the people around them.</div>
+
+    <p>Every piece of the Builder points at that scale: prompts as seeds so tools spread without dependence, studios so organizations can host their own gardens, open licenses so nothing gets enclosed, and a commons that gets richer with every build offered back. The software is open source, the practice is teachable, and the door is open — anyone can request an account, and a real person answers.</p>
+
+    <figure>
+      <div class="app">
+        <div class="frontdoor">
+          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden><path d="M14 32 L24 14 L34 32" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.45"/><path d="M14 32 L34 32" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" opacity="0.45"/><circle cx="24" cy="13" r="5.5" fill="#E86F4E"/><circle cx="13" cy="33" r="5.5" fill="#3D8B6D"/><circle cx="35" cy="33" r="5.5" fill="#E8B84E"/></svg>
+          <div class="t">Build relational technology</div>
+          <div class="s">Describe what your neighborhood needs, and build it together with AI — informed by patterns from the Relational Tech community.</div>
+          <div class="box">
+            What does your neighborhood need? Describe it in your own words…
+            <div class="row">
+              <div class="modes"><span class="mode">✎ Plan</span><span class="mode active">⚒ Build</span></div>
+              <span class="send">↑</span>
+            </div>
+          </div>
+          <div class="seedrow">
+            <span class="seed">Neighborhood event calendar</span>
+            <span class="seed">Mutual aid request board</span>
+            <span class="seed">Community resource directory</span>
+            <span class="seed">Local civic info hub</span>
+            <span class="seed">Printable neighborhood flyer</span>
+          </div>
+        </div>
+      </div>
+      <figcaption><span class="fig-label">The front door</span>“What does your neighborhood need? Describe it in your own words.” Starter seeds included.</figcaption>
+    </figure>
+
+    <p class="contact" style="margin-top: 9pt; font-size: 6.8pt; white-space: nowrap;">relationalbuilder.org <span class="sep">·</span> github.com/The-Relational-Technology-Project/relational-builder <span class="sep">·</span> josh@relationaltechproject.org</p>
+  </div>
+  <div class="footer">
+    <span>The Relational Tech Project · relationalbuilder.org</span>
+    <span class="pg">3 / 3</span>
+  </div>
+</section>
+
+</body>
+</html>
