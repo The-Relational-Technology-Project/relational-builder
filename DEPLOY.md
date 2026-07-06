@@ -18,9 +18,15 @@ nothing in this guide touches it.
    [`supabase/migrations/20260702000000_builder_core.sql`](supabase/migrations/20260702000000_builder_core.sql).
    This creates `profiles`, `projects`, `project_members`, all RLS policies,
    the invite-linking triggers, and adds `projects` to the Realtime publication.
-3. **Auth → URL Configuration**: set *Site URL* to your production URL
-   (e.g. `https://builder.relationaltechproject.org`) and add
-   `http://localhost:5173` to *Redirect URLs* for local dev.
+3. **Auth → URL Configuration**: set *Site URL* to your canonical production
+   URL (e.g. `https://relationalbuilder.org`) and list every origin a magic
+   link may return to under *Redirect URLs* — the canonical domain
+   (`https://relationalbuilder.org/**`), any `*.vercel.app` preview you sign in
+   from, and `http://localhost:5173` for local dev. **This is what decides
+   where a magic link lands:** if the redirect target isn't allow-listed here,
+   Supabase ignores it and falls back to *Site URL*, so a sign-in can end up on
+   the wrong domain (e.g. the `*.vercel.app` URL instead of `.org`). The client
+   pins its redirect to `VITE_SITE_URL` (see below).
    Magic-link email sign-in is enabled by default; no other providers needed.
 4. **Settings → API**: copy the *Project URL* and *anon public* key into your
    env:
@@ -110,7 +116,7 @@ It no-ops until the key is set:
 
 ```bash
 supabase functions deploy notify-invite --no-verify-jwt
-supabase secrets set RESEND_API_KEY=re_... APP_URL=https://relational-builder.vercel.app ACCESS_CODE=6767
+supabase secrets set RESEND_API_KEY=re_... APP_URL=https://relationalbuilder.org ACCESS_CODE=6767
 ```
 
 **c) Account requests (the open front door).** Anyone can request an
@@ -139,6 +145,9 @@ Vite bakes them in at build time):
 - `VITE_BUILDER_SUPABASE_URL`
 - `VITE_BUILDER_SUPABASE_ANON_KEY`
 - `VITE_LLM_PROXY_URL`
+- `VITE_SITE_URL` — canonical domain magic-link sign-in returns to
+  (`https://relationalbuilder.org`). Set this so sign-ins from a preview URL
+  still land on the real domain; must also be in Supabase's Redirect URLs.
 - `VITE_ACCESS_CODE` — pilot passcode gate (client-side, soft)
 - `VITE_SUPER_ADMIN_EMAILS` (optional — who sees the account-requests dashboard; default joshuanesbit@gmail.com)
 - `VITE_RTP_MODEL_URL` (optional — Tier 1 model endpoint)

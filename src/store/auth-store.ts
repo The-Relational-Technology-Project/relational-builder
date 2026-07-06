@@ -1,6 +1,31 @@
 import { create } from 'zustand';
 import { builderClient, cloudEnabled } from '@/cloud/builder-client';
 
+/**
+ * Where a magic link should land the builder. In production this is pinned to
+ * the canonical domain (VITE_SITE_URL, e.g. https://relationalbuilder.org) so a
+ * sign-in started on any origin — a *.vercel.app preview, an old bookmark —
+ * still returns to the real front door. Unset (local dev) falls back to the
+ * current origin. NB: the target must also be in Supabase Auth's Redirect URLs
+ * allow-list, or Supabase ignores it and uses its own Site URL.
+ */
+function siteUrl(): string {
+  const configured = import.meta.env.VITE_SITE_URL as string | undefined;
+  return configured?.replace(/\/$/, '') || window.location.origin;
+}
+
+/**
+ * After a magic-link redirect Supabase consumes the token from the URL hash
+ * but can leave a bare "#" (or the spent token) behind. Wipe it so the address
+ * bar reads clean.
+ */
+function clearAuthHash() {
+  const h = window.location.hash;
+  if (h === '#' || h.includes('access_token') || h.includes('error=')) {
+    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+  }
+}
+
 export interface AuthUser {
   id: string;
   email: string;
@@ -71,6 +96,8 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       const prev = get().user?.id;
       set({ user: u?.email ? { id: u.id, email: u.email } : null });
       if (u?.id !== prev) get().refreshProfile();
+      // Token's been consumed by now — tidy the address bar
+      clearAuthHash();
     });
   },
 
@@ -78,7 +105,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     if (!builderClient) return { error: 'Cloud features are not configured' };
     const { error } = await builderClient.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: window.location.origin },
+      options: { emailRedirectTo: siteUrl() },
     });
     return { error: error?.message ?? null };
   },
