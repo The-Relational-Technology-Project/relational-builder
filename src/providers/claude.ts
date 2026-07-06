@@ -130,7 +130,14 @@ export class ClaudeProvider implements LLMProvider {
 
     if (!res.ok) {
       const text = await res.text().catch(() => res.statusText);
-      throw new Error(`Claude API error (${res.status}): ${text}`);
+      // The proxy speaks human ({"error": "You've reached today's…"}) —
+      // surface its words directly instead of wrapping them in status codes
+      let friendly: string | null = null;
+      try {
+        const parsed = JSON.parse(text) as { error?: unknown };
+        if (typeof parsed.error === 'string') friendly = parsed.error;
+      } catch { /* not JSON — fall through to the raw form */ }
+      throw new Error(friendly ?? `Claude API error (${res.status}): ${text}`);
     }
 
     // Parse OpenAI-format SSE (proxy already translated from Anthropic)

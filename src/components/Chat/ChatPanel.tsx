@@ -26,6 +26,7 @@ import { MessageInput } from './MessageInput';
 import { Button } from '@/components/ui/button';
 import { HomeDashboard } from '@/components/HomeDashboard';
 import { GitHubChangesBanner } from '@/components/GitHubChangesBanner';
+import { CommunityBudgetBanner } from '@/components/CommunityBudgetBanner';
 
 /** An unterminated fence means the reply was cut off mid-file */
 function endsInsideCodeFence(content: string): boolean {
@@ -262,6 +263,8 @@ export function ChatPanel() {
             }
             setIsGenerating(false);
             setAbortController(null);
+            // Keep the budget picture honest after every generation
+            if (useCommunityStore.getState().active) void useCommunityStore.getState().check();
           },
           onError: (error) => {
             useChatStore.getState().endProgress();
@@ -269,6 +272,7 @@ export function ChatPanel() {
             finalizeMessage(msgId);
             setIsGenerating(false);
             setAbortController(null);
+            if (useCommunityStore.getState().active) void useCommunityStore.getState().check();
           },
         },
         controller.signal,
@@ -362,6 +366,7 @@ export function ChatPanel() {
           disabled={!!needsKey}
           composer={
             <div className="space-y-2">
+              <CommunityBudgetBanner />
               <MessageInput {...composerProps} variant="hero" />
               {needsKeyHint}
             </div>
@@ -376,6 +381,7 @@ export function ChatPanel() {
       <MessageList messages={messages} onBuildPlan={handleBuildPlan} isGenerating={isGenerating} />
       {!isGenerating && <GitHubChangesBanner />}
       {!isGenerating && <BuildRecovery />}
+      {!isGenerating && <CommunityBudgetBanner />}
       {needsKey && (
         <div className="px-4 py-2 text-xs text-center bg-muted/50 border-t">
           {needsKeyHint}
