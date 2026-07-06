@@ -1,10 +1,11 @@
 /**
- * Supabase Edge Function: admin-requests — the steward's side of the door.
+ * Supabase Edge Function: admin-requests — the steward's side of the door,
+ * and the rest of the super admin dashboard's server half.
  *
- * Lists and decides account requests. Only super admins may call it: the
- * caller's verified session email must be in SUPER_ADMIN_EMAILS.
+ * Only super admins may call it: the caller's verified session email must be
+ * in SUPER_ADMIN_EMAILS.
  *
- * POST JSON:
+ * POST JSON — account requests:
  *   { action: "list" }                     → { requests: [...] }
  *   { action: "approve", id }              → adds community membership,
  *                                            emails the person a welcome
@@ -12,11 +13,26 @@
  *                                            the steward reaches out
  *                                            personally when it matters)
  *
+ * POST JSON — commons review queue (proxied to the RT Commons project's
+ * steward-bridge function; the commons keeps its own review logic):
+ *   { action: "commons_list" }             → { contributions: [...] }
+ *   { action: "commons_review", id,
+ *     decision: "approve" | "reject",
+ *     notes? }                             → review result, passed through
+ *
+ * POST JSON — studio gallery curation (which KB tools belong to which
+ * studios; reads are public, writes come only through here):
+ *   { action: "gallery_add", studio_slug, tool_id, tool_name? }
+ *   { action: "gallery_remove", studio_slug, tool_id }
+ *
  * Deploy: supabase functions deploy admin-requests --no-verify-jwt
  * Secrets:
- *   SUPER_ADMIN_EMAILS — comma-separated (default joshuanesbit@gmail.com)
- *   RESEND_API_KEY     — for the welcome email (optional but recommended)
- *   APP_URL            — sign-in link target
+ *   SUPER_ADMIN_EMAILS  — comma-separated (default joshuanesbit@gmail.com)
+ *   RESEND_API_KEY      — for the welcome email (optional but recommended)
+ *   APP_URL             — sign-in link target
+ *   COMMONS_URL         — RT Commons project URL (default the RTP website
+ *                         project)
+ *   COMMONS_BRIDGE_KEY  — shared secret for the commons steward-bridge
  */
 
 const CORS = {
@@ -73,6 +89,63 @@ Deno.serve(async (req: Request) => {
 
     const body = await req.json().catch(() => ({}));
     const action = String(body.action ?? '');
+
+    // --- Commons review queue (proxied to the commons' steward-bridge) ---
+    if (action === 'commons_list' || action === 'commons_review') {
+      const commonsUrl = Deno.env.get('COMMONS_URL') ?? 'https://odowkowcinyoxejyzhwl.supabase.co';
+      const bridgeKey = Deno.env.get('COMMONS_BRIDGE_KEY') ?? '';
+      if (!bridgeKey) return json({ error: 'COMMONS_BRIDGE_KEY not configured' }, 500);
+      const bridgeBody =
+        action === 'commons_list'
+          ? { action: 'list' }
+          : {
+              action: 'review',
+              contribution_id: String(body.id ?? ''),
+              decision: String(body.decision ?? ''),
+              steward_name: callerEmail,
+              steward_notes: body.notes ?? null,
+            };
+      const res = await fetch(`${commonsUrl}/functions/v1/steward-bridge`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-bridge-key': bridgeKey },
+        body: JSON.stringify(bridgeBody),
+      });
+      const result = await res.json().catch(() => ({}));
+      return json(result, res.status);
+    }
+
+    // --- Studio gallery curation ---
+    if (action === 'gallery_add' || action === 'gallery_remove') {
+      const studioSlug = String(body.studio_slug ?? '').trim().toLowerCase();
+      const toolId = String(body.tool_id ?? '').trim();
+      if (!studioSlug || !toolId) {
+        return json({ error: 'studio_slug and tool_id are required' }, 400);
+      }
+      if (action === 'gallery_add') {
+        const res = await fetch(rest('/studio_gallery_links'), {
+          method: 'POST',
+          headers: { ...svc(), Prefer: 'resolution=ignore-duplicates' },
+          body: JSON.stringify({
+            studio_slug: studioSlug,
+            tool_id: toolId,
+            tool_name: body.tool_name ?? null,
+            added_by: callerEmail,
+          }),
+        });
+        if (!res.ok && res.status !== 409) {
+          return json({ error: 'Could not save the gallery link' }, 500);
+        }
+      } else {
+        await fetch(
+          rest(
+            `/studio_gallery_links?studio_slug=eq.${encodeURIComponent(studioSlug)}` +
+              `&tool_id=eq.${encodeURIComponent(toolId)}`,
+          ),
+          { method: 'DELETE', headers: svc() },
+        );
+      }
+      return json({ ok: true });
+    }
 
     if (action === 'list') {
       const res = await fetch(

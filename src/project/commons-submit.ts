@@ -32,6 +32,11 @@ export interface SubmitResult {
 
 export async function submitToCommons(submission: CommonsSubmission): Promise<SubmitResult> {
   try {
+    // Builds grow inside a studio frame — the contribution carries it, so
+    // studio-scoped views of the commons know where this one came from
+    const { useStudioStore } = await import('@/store/studio-store');
+    const activeStudio = useStudioStore.getState().activeStudio;
+
     const res = await fetch(`${COMMONS_URL}/functions/v1/submit-contribution`, {
       method: 'POST',
       headers: {
@@ -49,6 +54,10 @@ export async function submitToCommons(submission: CommonsSubmission): Promise<Su
         contact_email: submission.contactEmail || undefined,
         source_url: submission.sourceUrl || undefined,
         tags: submission.tags?.slice(0, 8),
+        submitted_via: 'relational-builder',
+        ...(activeStudio
+          ? { studio_slug: activeStudio.slug, studio_label: activeStudio.label }
+          : {}),
         // The UI only calls this after the builder reviewed the draft and
         // explicitly checked the consent box
         builder_confirmed: true,
@@ -60,16 +69,11 @@ export async function submitToCommons(submission: CommonsSubmission): Promise<Su
       return { ok: false, error: data.error ?? `Submission failed (${res.status})` };
     }
     // Offering a build to the commons is studio life too (best-effort)
-    void (async () => {
-      const [{ useStudioStore }, { recordStudioActivity }] = await Promise.all([
-        import('@/store/studio-store'),
-        import('@/cloud/studios'),
-      ]);
-      const studio = useStudioStore.getState().activeStudio;
-      if (studio) {
-        void recordStudioActivity('publish', studio.slug, submission.title, submission.sourceUrl);
-      }
-    })();
+    if (activeStudio) {
+      void import('@/cloud/studios').then(({ recordStudioActivity }) =>
+        recordStudioActivity('publish', activeStudio.slug, submission.title, submission.sourceUrl),
+      );
+    }
     return { ok: true, contributionId: data.contribution_id };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : 'Submission failed' };

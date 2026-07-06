@@ -50,7 +50,8 @@ export async function requestAccount(input: {
   return data.status === 'already-member' ? 'already-member' : 'pending';
 }
 
-async function adminCall(body: Record<string, unknown>): Promise<Record<string, unknown>> {
+/** Authenticated call into the admin-requests function (shared by the whole super admin dashboard) */
+export async function adminCall(body: Record<string, unknown>): Promise<Record<string, unknown>> {
   if (!builderClient) throw new Error('Cloud backend not configured');
   const { data } = await builderClient.auth.getSession();
   const token = data.session?.access_token;

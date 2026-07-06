@@ -64,6 +64,16 @@ export async function listStudios(): Promise<StudioContext[]> {
     .filter(s => s.slug && PUBLIC_STUDIO_SLUGS.includes(s.slug));
 }
 
+/** Every studio in the network, unlisted ones included — steward tooling only */
+export async function listAllStudios(): Promise<StudioContext[]> {
+  const { data, error } = await supabase
+    .from('studios')
+    .select('*')
+    .order('sort_order', { ascending: true });
+  if (error || !data) return [];
+  return (data as Record<string, unknown>[]).map(toContext).filter(s => s.slug);
+}
+
 export async function fetchStudio(slug: string): Promise<StudioContext | null> {
   const clean = slug.trim().toLowerCase();
   if (!clean) return null;

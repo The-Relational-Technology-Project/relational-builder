@@ -1,6 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useKnowledgeStore } from '@/store/knowledge-store';
+import { useStudioStore } from '@/store/studio-store';
 import { fetchPrompts, searchItems } from '@/knowledge/queries';
+import { fetchGalleryLinks, studioSlugsForTool, type GalleryLink } from '@/cloud/gallery-links';
 import { startFromStudioTool } from '@/project/start-from-tool';
 import type { Tool, Prompt } from '@/knowledge/types';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -30,24 +32,76 @@ const CATEGORIES = [
   { key: 'tech_for_building', label: 'Tech for building' },
 ] as const;
 
+export interface StudioBadge {
+  slug: string;
+  label: string;
+  color: string | null;
+}
+
 export function StudioGallery({ onClose }: { onClose: () => void }) {
   const tools = useKnowledgeStore(s => s.tools);
   const loaded = useKnowledgeStore(s => s.loaded);
+  const memberships = useStudioStore(s => s.memberships);
+  const activeStudio = useStudioStore(s => s.activeStudio);
+  const studios = useStudioStore(s => s.studios);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<string>('all');
   const [detail, setDetail] = useState<Tool | null>(null);
   const [prompts, setPrompts] = useState<Prompt[]>([]);
+  const [links, setLinks] = useState<GalleryLink[]>([]);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPrompts().then(setPrompts).catch(() => {});
+    fetchGalleryLinks().then(setLinks).catch(() => {});
   }, []);
 
+  // The viewer's studios: the frame they're building in plus everywhere they belong
+  const mySlugs = useMemo(() => {
+    const slugs = new Set(memberships.map(m => m.studio_slug));
+    if (activeStudio) slugs.add(activeStudio.slug);
+    return slugs;
+  }, [memberships, activeStudio]);
+
+  const studioMeta = useMemo(() => {
+    const map = new Map<string, StudioBadge>();
+    for (const s of studios) map.set(s.slug, { slug: s.slug, label: s.label, color: s.color });
+    if (activeStudio && !map.has(activeStudio.slug)) {
+      map.set(activeStudio.slug, { slug: activeStudio.slug, label: activeStudio.label, color: activeStudio.color });
+    }
+    for (const m of memberships) {
+      if (!map.has(m.studio_slug)) {
+        map.set(m.studio_slug, { slug: m.studio_slug, label: m.studio_label, color: null });
+      }
+    }
+    return map;
+  }, [studios, activeStudio, memberships]);
+
+  /** Badges for a tool, scoped to the viewer's own studios */
+  const badgesFor = useCallback(
+    (tool: Tool): StudioBadge[] =>
+      studioSlugsForTool(tool, links)
+        .filter(slug => mySlugs.has(slug))
+        .map(slug => studioMeta.get(slug) ?? { slug, label: slug, color: null }),
+    [links, mySlugs, studioMeta],
+  );
+
+  const anyStudioTools = useMemo(
+    () => tools.some(t => badgesFor(t).length > 0),
+    [tools, badgesFor],
+  );
+
   const filtered = useMemo(() => {
-    const byCat = category === 'all' ? tools : tools.filter(t => t.tool_category === category);
-    return searchItems(byCat, query);
-  }, [tools, query, category]);
+    const byCat =
+      category === 'all' ? tools
+      : category === 'mine' ? tools.filter(t => badgesFor(t).length > 0)
+      : tools.filter(t => t.tool_category === category);
+    // Your studios' tools surface first — the gallery greets you with your own
+    return [...searchItems(byCat, query)].sort(
+      (a, b) => Number(badgesFor(b).length > 0) - Number(badgesFor(a).length > 0),
+    );
+  }, [tools, query, category, badgesFor]);
 
   const promptsFor = (tool: Tool) => prompts.filter(p => p.parent_tool_id === tool.id);
 
@@ -90,7 +144,7 @@ export function StudioGallery({ onClose }: { onClose: () => void }) {
             className="h-8 w-56 text-sm"
           />
           <div className="flex gap-1">
-            {CATEGORIES.map(c => (
+            {[...CATEGORIES, ...(anyStudioTools ? [{ key: 'mine', label: 'Your studios' } as const] : [])].map(c => (
               <button
                 key={c.key}
                 onClick={() => setCategory(c.key)}
@@ -120,6 +174,7 @@ export function StudioGallery({ onClose }: { onClose: () => void }) {
               <GalleryCard
                 key={tool.id}
                 tool={tool}
+                studioBadges={badgesFor(tool)}
                 busy={busyId === tool.id}
                 anyBusy={busyId !== null}
                 onOpen={() => setDetail(tool)}
@@ -144,13 +199,17 @@ export function StudioGallery({ onClose }: { onClose: () => void }) {
 }
 
 function GalleryCard({
-  tool, busy, anyBusy, onOpen, onBuild,
+  tool, studioBadges, busy, anyBusy, onOpen, onBuild,
 }: {
-  tool: Tool; busy: boolean; anyBusy: boolean;
+  tool: Tool; studioBadges: StudioBadge[]; busy: boolean; anyBusy: boolean;
   onOpen: () => void; onBuild: () => void;
 }) {
+  const highlight = studioBadges[0]?.color ?? null;
   return (
-    <div className="group border rounded-xl overflow-hidden flex flex-col bg-background hover:border-foreground/25 transition-colors">
+    <div
+      className="group border rounded-xl overflow-hidden flex flex-col bg-background hover:border-foreground/25 transition-colors"
+      style={highlight ? { borderColor: highlight } : undefined}
+    >
       <button onClick={onOpen} className="block w-full aspect-[16/10] bg-muted overflow-hidden">
         {tool.image_url ? (
           <img
@@ -177,6 +236,22 @@ function GalleryCard({
         </div>
         {tool.creator_name && (
           <p className="text-xs text-muted-foreground -mt-1">by {tool.creator_name}</p>
+        )}
+        {studioBadges.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {studioBadges.map(b => (
+              <span
+                key={b.slug}
+                className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] text-muted-foreground"
+              >
+                <span
+                  className="size-1.5 rounded-full shrink-0"
+                  style={{ background: b.color ?? 'hsl(var(--muted-foreground))' }}
+                />
+                {b.label}
+              </span>
+            ))}
+          </div>
         )}
         <p className="text-sm text-muted-foreground line-clamp-3 flex-1">
           {tool.summary ?? tool.description}
