@@ -51,9 +51,14 @@
   }
 
   function describe(el) {
+    var raw = (el.innerText || el.value || '').trim();
     return {
       tag: tagOf(el),
-      text: (el.innerText || el.value || '').trim().slice(0, 80),
+      text: raw.slice(0, 80),
+      fullText: raw.slice(0, 400),
+      // A "copy" element: readable text without much structure under it —
+      // the chat offers a rewrite-this-text prefill instead of a generic one
+      isCopy: raw.length > 0 && raw.length <= 400 && el.childElementCount <= 2,
       path: cssPath(el),
       html: (el.outerHTML || '').slice(0, 500)
     };

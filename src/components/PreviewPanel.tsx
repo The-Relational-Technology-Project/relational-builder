@@ -197,13 +197,27 @@ function InspectablePreview() {
     function onMessage(e: MessageEvent) {
       const d = e.data;
       if (!d || d.type !== 'rb-selected' || !d.el) return;
-      const el = d.el as { tag: string; text: string; path: string; html: string };
-      const bits = [
-        `About this element in the preview: \`${el.tag}\`${el.text ? ` ("${el.text}")` : ''}`,
-        ...(el.path && el.path !== el.tag ? [`Found at: \`${el.path}\``] : []),
-        '',
-        'Change it so that ',
-      ];
+      const el = d.el as {
+        tag: string; text: string; fullText?: string; isCopy?: boolean;
+        path: string; html: string;
+      };
+      // Text elements get a rewrite-friendly prefill: the current wording is
+      // quoted so the AI changes exactly that copy, verbatim, nothing else.
+      // Other elements keep the generic describe-the-change prefill.
+      const bits = el.isCopy && el.fullText
+        ? [
+            'Copy change — this text in the preview:',
+            `"${el.fullText}"`,
+            ...(el.path && el.path !== el.tag ? [`(in \`${el.path}\`)`] : []),
+            '',
+            'Replace it with: ',
+          ]
+        : [
+            `About this element in the preview: \`${el.tag}\`${el.text ? ` ("${el.text}")` : ''}`,
+            ...(el.path && el.path !== el.tag ? [`Found at: \`${el.path}\``] : []),
+            '',
+            'Change it so that ',
+          ];
       setDraftMessage(bits.join('\n'));
       setSelecting(false);
     }
