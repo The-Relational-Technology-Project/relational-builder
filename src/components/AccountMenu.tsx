@@ -18,8 +18,10 @@ import {
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CircleUser, MailCheck, LogOut, MapPin, Palette, HeartHandshake, Sun, Moon, SlidersHorizontal } from 'lucide-react';
+import { CircleUser, MailCheck, LogOut, MapPin, Palette, HeartHandshake, Sun, Moon, SlidersHorizontal, DoorOpen } from 'lucide-react';
 import { BuilderOnboarding } from '@/components/BuilderOnboarding';
+import { SuperAdminDialog } from '@/components/SuperAdminDialog';
+import { isSuperAdmin } from '@/cloud/account-requests';
 import { DesignSystemDialog } from '@/components/DesignSystemDialog';
 import { ConnectionsDialog } from '@/components/ConnectionsDialog';
 import { ProviderSettings } from '@/components/ProviderSettings';
@@ -39,6 +41,7 @@ export function AccountMenu() {
   const [editingStyle, setEditingStyle] = useState(false);
   const [editingConnections, setEditingConnections] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(false);
   const [themeMode, setThemeState] = useState<ThemeMode>(getThemeMode);
 
   function toggleTheme() {
@@ -97,6 +100,12 @@ export function AccountMenu() {
             <SlidersHorizontal className="size-3.5 text-muted-foreground" />
             Models & API keys
           </DropdownMenuItem>
+          {isSuperAdmin(user.email) && (
+            <DropdownMenuItem onClick={() => setAdminOpen(true)} className="gap-2 text-xs">
+              <DoorOpen className="size-3.5 text-muted-foreground" />
+              Account requests
+            </DropdownMenuItem>
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => signOut()} className="gap-2 text-xs">
             <LogOut className="size-3.5 text-muted-foreground" />
@@ -108,6 +117,7 @@ export function AccountMenu() {
       {editingStyle && <DesignSystemDialog open={editingStyle} onOpenChange={setEditingStyle} />}
       {editingConnections && <ConnectionsDialog open={editingConnections} onOpenChange={setEditingConnections} />}
       {settingsOpen && <ProviderSettings open={settingsOpen} onOpenChange={setSettingsOpen} hideTrigger />}
+      {adminOpen && <SuperAdminDialog open={adminOpen} onOpenChange={setAdminOpen} />}
     </>
   );
 }

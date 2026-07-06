@@ -113,6 +113,20 @@ supabase functions deploy notify-invite --no-verify-jwt
 supabase secrets set RESEND_API_KEY=re_... APP_URL=https://relational-builder.vercel.app ACCESS_CODE=6767
 ```
 
+**c) Account requests (the open front door).** Anyone can request an
+account from the passcode screen; the steward gets an email and approves
+in the super admin dashboard (account menu → Account requests, visible to
+`VITE_SUPER_ADMIN_EMAILS`). Approval creates community membership and
+sends the requester a welcome email.
+
+```bash
+# Run supabase/migrations/20260706010000_account_requests.sql in the SQL editor, then:
+supabase functions deploy request-account --no-verify-jwt
+supabase functions deploy admin-requests --no-verify-jwt
+supabase secrets set STEWARD_EMAIL=josh@relationaltechproject.org \
+  SUPER_ADMIN_EMAILS=joshuanesbit@gmail.com
+```
+
 ## 4. Deploy the builder itself (Vercel)
 
 ```bash
@@ -126,6 +140,7 @@ Vite bakes them in at build time):
 - `VITE_BUILDER_SUPABASE_ANON_KEY`
 - `VITE_LLM_PROXY_URL`
 - `VITE_ACCESS_CODE` — pilot passcode gate (client-side, soft)
+- `VITE_SUPER_ADMIN_EMAILS` (optional — who sees the account-requests dashboard; default joshuanesbit@gmail.com)
 - `VITE_RTP_MODEL_URL` (optional — Tier 1 model endpoint)
 
 For a custom domain, add it in Vercel and remember to add the same origin to

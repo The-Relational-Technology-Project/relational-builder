@@ -1,6 +1,8 @@
 import { useState, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { requestAccount, type RequestOutcome } from '@/cloud/account-requests';
+import { Loader2 } from 'lucide-react';
 
 /**
  * Simple passcode gate for the pilot period. This is a soft, client-side
@@ -18,8 +20,13 @@ export function PasscodeGate({ children }: { children: ReactNode }) {
   );
   const [input, setInput] = useState('');
   const [shake, setShake] = useState(false);
+  const [requesting, setRequesting] = useState(false);
 
   if (granted) return <>{children}</>;
+
+  if (requesting) {
+    return <RequestAccountScreen onBack={() => setRequesting(false)} />;
+  }
 
   function handleSubmit() {
     if (input.trim() === ACCESS_CODE) {
@@ -58,6 +65,15 @@ export function PasscodeGate({ children }: { children: ReactNode }) {
           </Button>
         </div>
         <p className="text-xs text-muted-foreground">
+          No invite yet?{' '}
+          <button
+            onClick={() => setRequesting(true)}
+            className="underline hover:text-foreground"
+          >
+            Request an account
+          </button>
+        </p>
+        <p className="text-xs text-muted-foreground">
           Curious about the project?{' '}
           <a
             href="https://github.com/The-Relational-Technology-Project/relational-builder"
@@ -68,6 +84,96 @@ export function PasscodeGate({ children }: { children: ReactNode }) {
             It's open source.
           </a>
         </p>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The open front door: anyone can ask for an account. The steward gets an
+ * email, approves in the super admin dashboard, and the requester gets a
+ * welcome email — after which sign-in is just a magic link.
+ */
+function RequestAccountScreen({ onBack }: { onBack: () => void }) {
+  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
+  const [reason, setReason] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [outcome, setOutcome] = useState<RequestOutcome | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function submit() {
+    setBusy(true);
+    setError(null);
+    try {
+      setOutcome(await requestAccount({ email, name, reason }));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not send your request');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="h-screen flex items-center justify-center bg-background text-foreground px-4">
+      <div className="w-full max-w-sm text-center space-y-4">
+        <RBMark className="size-10 mx-auto" />
+        {outcome === 'pending' ? (
+          <>
+            <h1 className="text-lg font-semibold tracking-tight">Request sent</h1>
+            <p className="text-sm text-muted-foreground">
+              Thanks! A real person reviews every request — you'll get a welcome
+              email as soon as yours is approved, usually within a day.
+            </p>
+          </>
+        ) : outcome === 'already-member' ? (
+          <>
+            <h1 className="text-lg font-semibold tracking-tight">You already have access</h1>
+            <p className="text-sm text-muted-foreground">
+              This email is already approved — ask the person who invited you for
+              the current passcode, or reply to your welcome email.
+            </p>
+            <Button variant="outline" size="sm" onClick={onBack}>Back</Button>
+          </>
+        ) : (
+          <>
+            <div>
+              <h1 className="text-lg font-semibold tracking-tight">Request an account</h1>
+              <p className="text-xs text-muted-foreground mt-1">
+                Tell us a little about you — a real person approves each request.
+              </p>
+            </div>
+            <div className="space-y-2 text-left">
+              <Input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="you@example.org"
+                autoFocus
+              />
+              <Input
+                value={name}
+                onChange={e => setName(e.target.value)}
+                placeholder="Your name"
+              />
+              <textarea
+                value={reason}
+                onChange={e => setReason(e.target.value)}
+                placeholder="What are you hoping to build, and for which neighborhood or community?"
+                rows={3}
+                className="w-full resize-none rounded-md border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+            </div>
+            {error && <p className="text-xs text-destructive">{error}</p>}
+            <div className="flex gap-2 justify-center">
+              <Button variant="outline" onClick={onBack} disabled={busy}>Back</Button>
+              <Button onClick={submit} disabled={busy || !email.includes('@')}>
+                {busy && <Loader2 className="size-3.5 mr-1.5 animate-spin" />}
+                Send request
+              </Button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
