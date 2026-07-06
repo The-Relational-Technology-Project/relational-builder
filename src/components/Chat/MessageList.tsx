@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { buildNotifyGranted } from '@/notify/build-ready';
 import { useChatStore, type DisplayMessage } from '@/store/chat-store';
 import { useProjectStore } from '@/store/project-store';
 import { CodeBlock } from './CodeBlock';
@@ -133,6 +134,88 @@ function GenerationStatus() {
   );
 }
 
+/** Drafts survive reloads and tab switches mid-build */
+const SHARING_PLAN_DRAFT_KEY = 'rb-sharing-plan-draft';
+
+/** Show the wait activity once a build has clearly become a wait */
+const WAIT_ACTIVITY_AFTER_S = 20;
+
+/**
+ * Something worth doing while the build runs: sketch who this is for.
+ * First builds can take minutes — instead of a dead wait, the person plans
+ * how the tool meets its neighbors. Notes written here land in the chat as
+ * a sharing plan when the build finishes, so the thinking isn't lost (and
+ * the AI sees it too). Once per project — after the plan is saved, waits
+ * are quiet again.
+ */
+function WaitActivity() {
+  const isGenerating = useChatStore(s => s.isGenerating);
+  const mode = useChatStore(s => s.mode);
+  const saved = useChatStore(s => s.sharingPlanSaved);
+  const startedAt = useChatStore(s => s.progress?.startedAt);
+  const [notes, setNotes] = useState(() => localStorage.getItem(SHARING_PLAN_DRAFT_KEY) ?? '');
+  const [, tick] = useState(0);
+  const wasGenerating = useRef(false);
+
+  // One-second heartbeat while waiting, to cross the show threshold
+  useEffect(() => {
+    if (!startedAt) return;
+    const t = setInterval(() => tick(n => n + 1), 1000);
+    return () => clearInterval(t);
+  }, [startedAt]);
+
+  // Build finished → any notes become a sharing plan in the conversation
+  useEffect(() => {
+    if (isGenerating) {
+      wasGenerating.current = true;
+      return;
+    }
+    if (!wasGenerating.current) return;
+    wasGenerating.current = false;
+    const text = (localStorage.getItem(SHARING_PLAN_DRAFT_KEY) ?? '').trim();
+    if (!text || useChatStore.getState().sharingPlanSaved) return;
+    useChatStore.getState().addSyncMessage(
+      `**Sharing plan** (written while your app was building)\n\n${text}`,
+    );
+    useChatStore.getState().markSharingPlanSaved();
+    localStorage.removeItem(SHARING_PLAN_DRAFT_KEY);
+    setNotes('');
+  }, [isGenerating]);
+
+  const elapsed = startedAt ? Math.floor((Date.now() - startedAt) / 1000) : 0;
+  const show =
+    isGenerating && mode === 'build' && !saved && elapsed >= WAIT_ACTIVITY_AFTER_S;
+  if (!show) return null;
+
+  const update = (value: string) => {
+    setNotes(value);
+    localStorage.setItem(SHARING_PLAN_DRAFT_KEY, value);
+  };
+
+  return (
+    <div className="rounded-xl border border-dashed border-primary/40 bg-primary/5 px-4 py-3 space-y-2">
+      <p className="text-sm font-medium">While this builds — a two-minute plan for sharing it</p>
+      <ul className="text-sm text-muted-foreground space-y-1 list-disc pl-4">
+        <li>Who else cares about what you're building?</li>
+        <li>Who would have good ideas to make it better?</li>
+        <li>Who would spread the word about it?</li>
+      </ul>
+      <textarea
+        value={notes}
+        onChange={e => update(e.target.value)}
+        placeholder="A few names, a few notes — this saves into your project when the build finishes"
+        rows={3}
+        className="w-full resize-none rounded-md border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-primary/50"
+      />
+      {buildNotifyGranted() && (
+        <p className="text-xs text-muted-foreground/70">
+          Feel free to switch tabs — you'll get a notification when it's ready.
+        </p>
+      )}
+    </div>
+  );
+}
+
 interface MessageListProps {
   messages: DisplayMessage[];
   onBuildPlan?: () => void;
@@ -192,6 +275,7 @@ export function MessageList({ messages, onBuildPlan, isGenerating }: MessageList
           );
         })}
         {isGenerating && <GenerationStatus />}
+        <WaitActivity />
         {reviewing && (
           <p className="text-sm text-muted-foreground pl-1 animate-pulse">
             Giving the build a quick once-over…

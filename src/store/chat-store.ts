@@ -53,6 +53,9 @@ interface ChatState {
   queueFix: (content: string) => void;
   /** True while the background quality review reads the build */
   reviewing: boolean;
+  /** The wait-time sharing plan has been saved into this conversation */
+  sharingPlanSaved: boolean;
+  markSharingPlanSaved: () => void;
   /** Live generation progress — what's happening during the wait
    *  (transient: never persisted, cleared when generation ends) */
   progress: GenerationProgress | null;
@@ -108,6 +111,8 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
   autoFixArmed: false,
   queueFix: (content: string) => set({ queuedMessage: content, pendingFixSend: true }),
   reviewing: false,
+  sharingPlanSaved: false,
+  markSharingPlanSaved: () => set({ sharingPlanSaved: true }),
 
   progress: null,
   beginProgress: () =>
@@ -130,7 +135,14 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
   setDraftMessage: (content: string | null) => set({ draftMessage: content }),
 
   hydrateChat: (messages: DisplayMessage[], mode: ChatMode) =>
-    set({ messages: messages.map(m => ({ ...m, isStreaming: false })), mode }),
+    set({
+      messages: messages.map(m => ({ ...m, isStreaming: false })),
+      mode,
+      // Cloud-loaded chats carry the plan inside the messages themselves
+      sharingPlanSaved: messages.some(
+        m => m.isSync && m.content.startsWith('**Sharing plan**'),
+      ),
+    }),
 
   addUserMessage: (content: string, attachments?: string[]) => {
     const msg: DisplayMessage = {
@@ -211,7 +223,7 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
 
   setSystemPrompt: (prompt: string) => set({ systemPrompt: prompt }),
 
-  clearMessages: () => set({ messages: [] }),
+  clearMessages: () => set({ messages: [], sharingPlanSaved: false }),
 
   toChatMessages: (): ChatMessage[] => {
     const { systemPrompt, messages } = get();
@@ -281,5 +293,6 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
   partialize: (state) => ({
     messages: state.messages.map(m => ({ ...m, isStreaming: false })),
     mode: state.mode,
+    sharingPlanSaved: state.sharingPlanSaved,
   } as unknown as ChatState),
 }));

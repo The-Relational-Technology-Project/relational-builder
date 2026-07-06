@@ -16,9 +16,11 @@ import {
 import { useCommunityStore } from '@/store/community-store';
 import { useStudioStore } from '@/store/studio-store';
 import { useAuthStore, cloudEnabled } from '@/store/auth-store';
+import { useCloudStore } from '@/store/cloud-store';
 import { searchCommons } from '@/knowledge/commons-search';
 import { buildMentionContext } from '@/knowledge/mentions';
 import { runQualityReview, messageProducedFiles } from '@/knowledge/review-pass';
+import { requestBuildNotifyPermission, notifyBuildReady } from '@/notify/build-ready';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { Button } from '@/components/ui/button';
@@ -138,6 +140,12 @@ export function ChatPanel() {
     const wasFix = useChatStore.getState().pendingFixSend;
     useChatStore.setState({ pendingFixSend: false });
 
+    // First build of a project: ask (once) to notify when it's ready — long
+    // builds shouldn't require babysitting a spinner
+    const isFirstBuild =
+      currentMode === 'build' && useProjectStore.getState().getFileCount() === 0;
+    if (isFirstBuild) requestBuildNotifyPermission();
+
     // Retrieval: hybrid semantic+text search against the RT Commons (the
     // canonical knowledge base), falling back to local TF-IDF scoring of the
     // Studio KB when the commons is unreachable.
@@ -227,6 +235,10 @@ export function ChatPanel() {
               const msg = useChatStore.getState().messages.find(m => m.id === msgId);
               if (msg) {
                 applyMessageFiles(msg.content, msgId);
+                // The one notification we ever send: first build ready, tab hidden
+                if (isFirstBuild && messageProducedFiles(msg.content)) {
+                  notifyBuildReady(useCloudStore.getState().currentProjectName ?? undefined);
+                }
                 // Surface edits that couldn't be applied cleanly
                 const warnings = useProjectStore.getState().lastApplyWarnings;
                 if (warnings.length > 0) {
