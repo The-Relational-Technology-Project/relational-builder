@@ -40,7 +40,7 @@ function page(title: string, message: string): Response {
 <div style="max-width:420px;padding:32px;text-align:center">
 <h1 style="font-size:22px">${title}</h1>
 <p style="line-height:1.6;color:#6B5D54">${message}</p>
-<p style="font-size:12px;color:#6B5D54;margin-top:24px">Relational Builder · relationalbuilder.xyz</p>
+<p style="font-size:12px;color:#6B5D54;margin-top:24px">Relational Builder · relationalbuilder.org</p>
 </div></body>`,
     { headers: { 'Content-Type': 'text/html; charset=utf-8' } },
   );
@@ -62,7 +62,7 @@ async function sendEmail(to: string, subject: string, text: string): Promise<boo
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
     body: JSON.stringify({
-      from: 'Relational Builder <hello@relationalbuilder.xyz>',
+      from: 'Relational Builder <hello@relationalbuilder.org>',
       to: [to],
       subject,
       text,

@@ -25,7 +25,7 @@ inviting neighbors to log into hosted apps.
 
 ### Community-hosted sites share an origin with the builder app (and with each other)
 
-**What:** Hosted sites are served at `https://relationalbuilder.xyz/s/<slug>/`
+**What:** Hosted sites are served at `https://relationalbuilder.org/s/<slug>/`
 via a Vercel proxy (added when we fixed the text/plain rendering bug). Because
 they run on the **same origin** as the builder app, a malicious published site's
 JavaScript can read `localStorage` for that origin — which includes:
@@ -47,13 +47,13 @@ problem GitHub solves with `github.io` and Lovable with per-project subdomains.
 
 **Fix (needs DNS + Vercel — Josh):**
 - **Phase 1 (must-do, closes builder-token theft):** serve all hosted sites from
-  a dedicated origin off the apex, e.g. `sites.relationalbuilder.xyz`. Attach the
+  a dedicated origin off the apex, e.g. `sites.relationalbuilder.org`. Attach the
   subdomain to the Vercel project and move the `/s/:path` rewrite so it only
   answers on that host; make the apex refuse `/s/`. A different origin can't read
   the app's `localStorage`. The `api/site.ts` proxy code is unchanged — only the
   host it answers on moves.
 - **Phase 2 (closes cross-app neighbor tokens):** per-slug subdomains
-  (`<slug>.sites.relationalbuilder.xyz`) with a wildcard cert, so no two hosted
+  (`<slug>.sites.relationalbuilder.org`) with a wildcard cert, so no two hosted
   apps share an origin either. Follow-up after Phase 1.
 
 Until Phase 1 ships, treat hosted-site URLs as you would any user-published

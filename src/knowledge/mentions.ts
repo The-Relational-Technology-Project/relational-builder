@@ -83,7 +83,7 @@ export async function buildMentionContext(text: string): Promise<string[]> {
         [
           `## Referenced Site: ${mention.name}`,
           '',
-          `The builder mentioned their live community-hosted site "${mention.name}" (https://relationalbuilder.xyz/s/${mention.id}/). Treat it as prior art of theirs — match or borrow from it as they ask.`,
+          `The builder mentioned their live community-hosted site "${mention.name}" (https://relationalbuilder.org/s/${mention.id}/). Treat it as prior art of theirs — match or borrow from it as they ask.`,
         ].join('\n'),
       );
       continue;

@@ -346,7 +346,7 @@ async function authRequest(appId: string, appName: string, body: Record<string, 
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${resendKey}` },
     body: JSON.stringify({
-      from: 'Relational Builder <hello@relationalbuilder.xyz>',
+      from: 'Relational Builder <hello@relationalbuilder.org>',
       to: [email],
       subject: `${code} is your sign-in code for ${appName}`,
       text: [

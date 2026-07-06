@@ -204,7 +204,7 @@ Deno.serve(async (req: Request) => {
           method: 'POST',
           headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            from: 'Relational Builder <hello@relationalbuilder.xyz>',
+            from: 'Relational Builder <hello@relationalbuilder.org>',
             to: [request.email],
             subject: "You're in — welcome to Relational Builder",
             html: [
