@@ -1,6 +1,8 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { RBMark } from './RBMark';
 import { requestAccount, type RequestOutcome } from '@/cloud/account-requests';
+import { useAuthStore, cloudEnabled } from '@/store/auth-store';
+import { MailCheck } from 'lucide-react';
 
 const ACCESS_CODE = import.meta.env.VITE_ACCESS_CODE ?? '';
 const STORAGE_KEY = 'rb-access-granted';
@@ -30,6 +32,7 @@ const C = {
   yellow: '#E8B84E',
 };
 export function Landing({ children }: { children: ReactNode }) {
+  const user = useAuthStore(s => s.user);
   const [granted, setGranted] = useState(
     () =>
       !ACCESS_CODE ||
@@ -37,7 +40,16 @@ export function Landing({ children }: { children: ReactNode }) {
       localStorage.getItem(STORAGE_KEY) === ACCESS_CODE,
   );
 
-  if (granted) return <>{children}</>;
+  // App (which normally inits auth) is gated below, so init here too — that
+  // way a magic-link redirect landing on this page still gets its session
+  // detected. init() guards against running twice, so App's call is a no-op.
+  useEffect(() => {
+    useAuthStore.getState().init();
+  }, []);
+
+  // A signed-in builder is always through the door: after signing in from the
+  // panel below, the magic-link redirect returns here and walks them straight in.
+  if (granted || user) return <>{children}</>;
 
   return <LandingPage onUnlock={() => setGranted(true)} />;
 }
@@ -99,12 +111,7 @@ function LandingPage({ onUnlock }: { onUnlock: () => void }) {
             an account and a real person will welcome you in, usually within a day.
           </p>
           <RequestAccountForm />
-          <p className="text-xs" style={{ color: C.muted }}>
-            Already approved?{' '}
-            <button onClick={enter} className="underline underline-offset-2 hover:opacity-80" style={{ color: C.body }}>
-              Come on in and sign in
-            </button>
-          </p>
+          <SignInPanel onEnter={enter} />
           <PasscodeFallback onUnlock={onUnlock} />
         </section>
 
@@ -206,6 +213,99 @@ function RequestAccountForm() {
       >
         {busy ? 'Sending…' : 'Request an account'}
       </button>
+    </div>
+  );
+}
+
+/**
+ * Existing builders sign in right here — a clear CTA, not a buried link. The
+ * magic-link email form is the very next thing after "Sign in": send it and a
+ * one-tap link arrives; the redirect lands the builder straight in the app
+ * (Landing waves signed-in builders through). When cloud auth isn't configured
+ * we fall back to the old "come on in" walk-through.
+ */
+function SignInPanel({ onEnter }: { onEnter: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState('');
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  if (!cloudEnabled) {
+    return (
+      <p className="text-sm" style={{ color: C.body }}>
+        Already a builder?{' '}
+        <button onClick={onEnter} className="font-medium underline underline-offset-2 hover:opacity-80" style={{ color: C.orangeDeep }}>
+          Come on in
+        </button>
+      </p>
+    );
+  }
+
+  async function submit() {
+    const trimmed = email.trim();
+    if (!trimmed) return;
+    setSending(true);
+    setError(null);
+    const { error: err } = await useAuthStore.getState().signIn(trimmed);
+    setSending(false);
+    if (err) setError(err);
+    else setSent(true);
+  }
+
+  const inputClass =
+    'flex-1 rounded-lg border px-3 py-2 text-sm outline-none placeholder:text-[#8A7D71] border-[#E5DCD0] bg-[#FAF7F2] focus:border-[#D2764B]';
+
+  return (
+    <div className="pt-5 border-t space-y-3" style={{ borderColor: C.border }}>
+      {sent ? (
+        <div className="max-w-sm mx-auto space-y-1.5">
+          <div className="flex items-center justify-center gap-2 text-sm font-medium">
+            <MailCheck className="size-4" style={{ color: C.green }} />
+            Check your email
+          </div>
+          <p className="text-xs leading-relaxed" style={{ color: C.body }}>
+            We sent a sign-in link to <strong>{email}</strong>. Open it in this
+            browser and you'll land right in — no password needed.
+          </p>
+        </div>
+      ) : open ? (
+        <div className="max-w-sm mx-auto space-y-2">
+          <p className="text-sm" style={{ color: C.body }}>
+            Welcome back — we'll email you a one-tap sign-in link.
+          </p>
+          <div className="flex gap-2">
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && submit()}
+              placeholder="you@example.org"
+              autoFocus
+              className={inputClass}
+            />
+            <button
+              onClick={submit}
+              disabled={sending || !email.includes('@')}
+              className="rounded-lg bg-[#D2764B] text-[#FAFAF9] px-4 py-2 text-sm font-medium hover:bg-[#C4693F] disabled:opacity-40 transition-colors whitespace-nowrap"
+            >
+              {sending ? 'Sending…' : 'Send link'}
+            </button>
+          </div>
+          {error && <p className="text-xs text-center" style={{ color: C.orangeDeep }}>{error}</p>}
+        </div>
+      ) : (
+        <div className="flex items-center justify-center gap-2 text-sm">
+          <span style={{ color: C.body }}>Already a builder?</span>
+          <button
+            onClick={() => setOpen(true)}
+            className="rounded-lg border px-4 py-1.5 font-medium hover:border-[#D2764B] transition-colors"
+            style={{ borderColor: C.border, color: C.ink }}
+          >
+            Sign in
+          </button>
+        </div>
+      )}
     </div>
   );
 }

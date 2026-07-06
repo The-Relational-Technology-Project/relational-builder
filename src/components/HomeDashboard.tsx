@@ -138,22 +138,20 @@ function StyleNudge({ projectCount }: { projectCount: number }) {
   );
 }
 
-export function WelcomeScreen({ onSelectIdea, disabled, composer }: HomeDashboardProps) {
+export function WelcomeScreen({ composer }: HomeDashboardProps) {
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="min-h-full flex items-center justify-center px-4 py-8 sm:py-10">
         <div className="w-full max-w-2xl space-y-6">
           <div className="text-center space-y-3">
             <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-balance">
-              Build relational technology
+              Let's build what you need.
             </h2>
             <p className="text-muted-foreground text-[15px] leading-relaxed max-w-md mx-auto">
-              Describe what your neighborhood needs, and build it together with
-              AI — informed by patterns from the Relational Tech community.
+              You co-create with your neighbors, AI helps implement your vision.
             </p>
           </div>
           {composer}
-          <IdeaChips onSelectIdea={onSelectIdea} disabled={disabled} />
           <StartFromOptions />
         </div>
       </div>
