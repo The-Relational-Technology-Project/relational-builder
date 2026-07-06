@@ -101,6 +101,57 @@ export const INTEGRATIONS: IntegrationDef[] = [
     ].join('\n'),
     setupHint: 'Stored as a secret. Scraping runs in serverless functions once deployed — the AI wires the browser to call your function, not Firecrawl directly.',
   },
+  {
+    id: 'claude',
+    name: 'Claude (Anthropic)',
+    tagline: 'AI features inside your app — summaries, drafting, Q&A',
+    keysUrl: 'https://console.anthropic.com/settings/keys',
+    keysLabel: 'console.anthropic.com → API Keys',
+    fields: [
+      { envKey: 'ANTHROPIC_API_KEY', label: 'API key', placeholder: 'sk-ant-...', isSecret: true },
+    ],
+    aiGuidance: [
+      '- **Claude (Anthropic) is connected** for AI features inside the app. The key lives in the secret env var `ANTHROPIC_API_KEY` — it must NEVER appear in browser code or be sent to the browser.',
+      '  Generate a serverless function (`netlify/functions/ai.mts` for Netlify or `api/ai.ts` for Vercel) that POSTs to `https://api.anthropic.com/v1/messages` with headers `x-api-key: <key>`, `anthropic-version: 2023-06-01`, `content-type: application/json`, and body `{ model, max_tokens, system, messages }`. The browser calls that function with `fetch` — never Anthropic directly.',
+      '  Model choice: `claude-haiku-4-5` for everyday in-app features (summaries, rewording, simple Q&A — fast and cheap); `claude-sonnet-5` when the feature needs real reasoning or longer writing.',
+      '  Keep max_tokens modest (500–2000) for app features, pass user content in `messages` (never concatenated into the system prompt), and show a friendly loading state — responses take a few seconds.',
+      '  Say clearly: AI features run once the app is deployed (Netlify/Vercel carry the secret); they will not work in the builder preview.',
+    ].join('\n'),
+    setupHint: 'Stored as a secret. AI features run in serverless functions once the app is deployed — the key never reaches the browser or the preview.',
+  },
+  {
+    id: 'gemini',
+    name: 'Google Gemini',
+    tagline: 'AI text + image generation for your app',
+    keysUrl: 'https://aistudio.google.com/apikey',
+    keysLabel: 'aistudio.google.com → Get API key',
+    fields: [
+      { envKey: 'GEMINI_API_KEY', label: 'API key', placeholder: 'AIza...', isSecret: true },
+    ],
+    aiGuidance: [
+      '- **Google Gemini is connected** for AI features inside the app. The key lives in the secret env var `GEMINI_API_KEY` — it must NEVER appear in browser code.',
+      '  Generate a serverless function (`netlify/functions/ai.mts` for Netlify or `api/ai.ts` for Vercel) that POSTs to `https://generativelanguage.googleapis.com/v1beta/models/<model>:generateContent` with the `x-goog-api-key` header. The browser calls that function with `fetch` — never Google directly.',
+      '  Use a current Gemini Flash model for text features; Gemini also generates and edits images (useful for flyers and artwork) via its image-capable models — return the base64 image data from the function.',
+      '  Say clearly: AI features run once the app is deployed (Netlify/Vercel carry the secret); they will not work in the builder preview.',
+    ].join('\n'),
+    setupHint: 'Stored as a secret. AI features (including image generation) run in serverless functions once deployed — the key never reaches the browser.',
+  },
+  {
+    id: 'openai',
+    name: 'OpenAI',
+    tagline: 'AI text + image generation for your app',
+    keysUrl: 'https://platform.openai.com/api-keys',
+    keysLabel: 'platform.openai.com → API keys',
+    fields: [
+      { envKey: 'OPENAI_API_KEY', label: 'API key', placeholder: 'sk-...', isSecret: true },
+    ],
+    aiGuidance: [
+      '- **OpenAI is connected** for AI features inside the app. The key lives in the secret env var `OPENAI_API_KEY` — it must NEVER appear in browser code.',
+      '  Generate a serverless function (`netlify/functions/ai.mts` for Netlify or `api/ai.ts` for Vercel) that calls `https://api.openai.com/v1/chat/completions` (text) or `https://api.openai.com/v1/images/generations` (images) with the `Authorization: Bearer` header. The browser calls that function with `fetch` — never OpenAI directly.',
+      '  Say clearly: AI features run once the app is deployed (Netlify/Vercel carry the secret); they will not work in the builder preview.',
+    ].join('\n'),
+    setupHint: 'Stored as a secret. AI features (including image generation) run in serverless functions once deployed — the key never reaches the browser.',
+  },
 ];
 
 /** Which integrations are fully connected, given the current env vars */
