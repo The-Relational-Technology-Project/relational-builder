@@ -10,6 +10,7 @@ import { useEnvStore } from '@/store/env-store';
 import { useChatStore } from '@/store/chat-store';
 import { buildEnvJs, buildEnvTs } from '@/project/env-module';
 import { INSPECT_SOURCE } from '@/preview/inspect-source';
+import { resolveReactEntry } from '@/preview/react-entry';
 import { Wrench, MousePointerClick, Loader2, Boxes, Sparkles } from 'lucide-react';
 
 /**
@@ -95,23 +96,15 @@ export function PreviewPanel() {
     }
 
     // Sandpack's react/react-ts templates are create-react-app shaped: their
-    // entry is a ROOT /index.tsx that imports a ROOT /App.tsx. A generated app
-    // that follows Vite conventions instead (index.html + /src/main.tsx +
-    // /src/App.tsx) never overrides that entry, so Sandpack silently bundles
-    // its OWN default files and renders the template's "Hello world" — ignoring
-    // every generated file. Point Sandpack at the real entry when the app
-    // didn't already put one at the root the template expects.
-    let entry: string | undefined;
-    if (tmpl === 'react' || tmpl === 'react-ts') {
-      const has = (p: string) => spFiles[p] !== undefined;
-      if (!has('/index.tsx') && !has('/index.jsx')) {
-        entry = [
-          '/src/main.tsx', '/src/main.jsx',
-          '/src/index.tsx', '/src/index.jsx',
-          '/main.tsx', '/main.jsx',
-        ].find(has);
-      }
-    }
+    // entry is a ROOT /index.tsx that imports a ROOT /App.tsx, and the template
+    // ships a default /App.tsx that renders "Hello world". A generated app that
+    // doesn't overwrite that exact entry never gets bundled — Sandpack renders
+    // its own default files instead. resolveReactEntry finds (or synthesizes)
+    // the real entry so the generated app actually runs.
+    const entry =
+      tmpl === 'react' || tmpl === 'react-ts'
+        ? resolveReactEntry(spFiles, tmpl)
+        : undefined;
 
     // Generated apps commonly load styling/tooling from a CDN in their
     // index.html — the Tailwind Play CDN, Google Fonts, Alpine, etc. For React
