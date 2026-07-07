@@ -27,6 +27,13 @@ export interface DisplayMessage {
   /** True for Builder-generated notes (e.g. a GitHub pull summary) — shown
    * with a badge, included in history so the AI knows what happened */
   isSync?: boolean;
+  /** True for automatic sends the Builder makes on the person's behalf
+   * (quality-review fixes, error auto-fixes, length-limit continues). These
+   * ride as role:'user' so the model acts on them, but must render as a
+   * distinct Builder note — never as the person's own chat bubble. */
+  isAuto?: boolean;
+  /** Short badge label for an isAuto message (e.g. "Quality review") */
+  autoLabel?: string;
   /** Attached images as data URLs (downscaled client-side) */
   attachments?: string[];
 }
@@ -50,7 +57,10 @@ interface ChatState {
   pendingFixSend: boolean;
   /** One automatic error→fix pass is allowed after each normal build */
   autoFixArmed: boolean;
-  queueFix: (content: string) => void;
+  /** Badge label for the pending auto-fix send, so the chat can mark it as a
+   * Builder action rather than one of the person's own messages */
+  pendingFixLabel: string | null;
+  queueFix: (content: string, label?: string) => void;
   /** True while the background quality review reads the build */
   reviewing: boolean;
   /** The wait-time sharing plan has been saved into this conversation */
@@ -68,7 +78,11 @@ interface ChatState {
   /** Prefill the input without sending (e.g. answering a plan question) */
   draftMessage: string | null;
   setDraftMessage: (content: string | null) => void;
-  addUserMessage: (content: string, attachments?: string[]) => void;
+  addUserMessage: (
+    content: string,
+    attachments?: string[],
+    auto?: { label?: string },
+  ) => void;
   /** Add a Builder-generated note (e.g. GitHub pull summary) to the conversation */
   addSyncMessage: (content: string) => void;
   startAssistantMessage: (isPlan?: boolean) => string;
@@ -105,11 +119,14 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
   queuedMessage: null,
   // A person's queued follow-up replaces any pending auto-fix — their
   // intent wins, and it must not inherit the fix send's special handling
-  queueMessage: (content: string) => set({ queuedMessage: content, pendingFixSend: false }),
+  queueMessage: (content: string) =>
+    set({ queuedMessage: content, pendingFixSend: false, pendingFixLabel: null }),
   clearQueuedMessage: () => set({ queuedMessage: null }),
   pendingFixSend: false,
   autoFixArmed: false,
-  queueFix: (content: string) => set({ queuedMessage: content, pendingFixSend: true }),
+  pendingFixLabel: null,
+  queueFix: (content: string, label?: string) =>
+    set({ queuedMessage: content, pendingFixSend: true, pendingFixLabel: label ?? 'Automatic fix' }),
   reviewing: false,
   sharingPlanSaved: false,
   markSharingPlanSaved: () => set({ sharingPlanSaved: true }),
@@ -144,13 +161,15 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
       ),
     }),
 
-  addUserMessage: (content: string, attachments?: string[]) => {
+  addUserMessage: (content: string, attachments?: string[], auto?: { label?: string }) => {
     const msg: DisplayMessage = {
       id: nextId(),
       role: 'user',
       content,
       timestamp: Date.now(),
       attachments: attachments?.length ? attachments : undefined,
+      isAuto: auto ? true : undefined,
+      autoLabel: auto?.label,
     };
     set(state => ({ messages: [...state.messages, msg] }));
   },
