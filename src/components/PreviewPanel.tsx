@@ -27,9 +27,9 @@ export function PreviewPanel() {
   void version;
   const files = getAllFiles();
 
-  const { sandpackFiles, template, entry, unsupported } = useMemo(() => {
+  const { sandpackFiles, template, entry, externalResources, unsupported } = useMemo(() => {
     if (files.length === 0) {
-      return { sandpackFiles: null, template: 'static' as const, entry: undefined, unsupported: false };
+      return { sandpackFiles: null, template: 'static' as const, entry: undefined, externalResources: [], unsupported: false };
     }
 
     // Full framework projects (Vite + shadcn/Lovable exports) use a build
@@ -41,7 +41,7 @@ export function PreviewPanel() {
     );
     const hasBuildConfig = files.some(f => /(^|\/)vite\.config\.[jt]s$/.test(f.path));
     if (usesPathAlias || hasBuildConfig) {
-      return { sandpackFiles: null, template: 'static' as const, entry: undefined, unsupported: true };
+      return { sandpackFiles: null, template: 'static' as const, entry: undefined, externalResources: [], unsupported: true };
     }
 
     const spFiles: SandpackFiles = {};
@@ -113,7 +113,31 @@ export function PreviewPanel() {
       }
     }
 
-    return { sandpackFiles: spFiles, template: tmpl, entry, unsupported: false };
+    // Generated apps commonly load styling/tooling from a CDN in their
+    // index.html — the Tailwind Play CDN, Google Fonts, Alpine, etc. For React
+    // templates Sandpack serves its OWN HTML shell and drops those tags, so the
+    // app renders unstyled (every Tailwind utility becomes a no-op). Forward
+    // them to the preview as external resources — Sandpack's supported path for
+    // exactly this (e.g. the Tailwind Play CDN). Static templates keep their own
+    // index.html as the shell, so they already load these directly.
+    const externalFromHtml: string[] = [];
+    if (tmpl === 'react' || tmpl === 'react-ts') {
+      const htmlFile = files.find(f => /(^|\/)index\.html$/.test(f.path));
+      const html = htmlFile?.content ?? '';
+      for (const m of html.matchAll(/<script[^>]*\bsrc=["'](https?:\/\/[^"']+)["'][^>]*>/gi)) {
+        externalFromHtml.push(m[1]);
+      }
+      for (const m of html.matchAll(/<link\b[^>]*>/gi)) {
+        const tag = m[0];
+        const href = tag.match(/\bhref=["'](https?:\/\/[^"']+)["']/i)?.[1];
+        // Only forward actual stylesheets/fonts — skip preconnect, icons, etc.
+        if (href && (/\brel=["']stylesheet["']/i.test(tag) || /fonts\.googleapis|\.css(\?|$)/i.test(href))) {
+          externalFromHtml.push(href);
+        }
+      }
+    }
+
+    return { sandpackFiles: spFiles, template: tmpl, entry, externalResources: externalFromHtml, unsupported: false };
   }, [files, publicEnvVars]);
 
   if (unsupported) {
@@ -145,7 +169,9 @@ export function PreviewPanel() {
         options={{
           autoReload: true,
           autorun: true,
-          externalResources: template === 'static' ? [] : [`${window.location.origin}/inspect.js`],
+          externalResources: template === 'static'
+            ? []
+            : [`${window.location.origin}/inspect.js`, ...externalResources],
         }}
         theme="dark"
         style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
