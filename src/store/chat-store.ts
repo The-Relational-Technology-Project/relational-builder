@@ -11,6 +11,9 @@ export interface GenerationProgress {
   phase: 'waiting' | 'thinking' | 'writing';
   /** Rolling tail of the model's summarized reasoning */
   thinking: string;
+  /** A deliberate wait (e.g. busy upstream, retrying) — shown instead of the
+   *  phase label until the stream actually starts */
+  notice?: string | null;
 }
 
 /** Keep only the readable tail of the reasoning feed */
@@ -74,6 +77,8 @@ interface ChatState {
   progressReasoning: (text: string) => void;
   /** First reply token — flips the phase to "writing" */
   progressWriting: () => void;
+  /** Explain a deliberate wait (busy upstream, automatic retry) */
+  progressNotice: (text: string) => void;
   endProgress: () => void;
   /** Prefill the input without sending (e.g. answering a plan question) */
   draftMessage: string | null;
@@ -138,13 +143,17 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
     set(state => {
       if (!state.progress) return state;
       const thinking = (state.progress.thinking + text).slice(-THINKING_TAIL_CHARS);
-      return { progress: { ...state.progress, phase: 'thinking' as const, thinking } };
+      return { progress: { ...state.progress, phase: 'thinking' as const, thinking, notice: null } };
     }),
   progressWriting: () =>
     set(state =>
       state.progress && state.progress.phase !== 'writing'
-        ? { progress: { ...state.progress, phase: 'writing' as const } }
+        ? { progress: { ...state.progress, phase: 'writing' as const, notice: null } }
         : state,
+    ),
+  progressNotice: (text: string) =>
+    set(state =>
+      state.progress ? { progress: { ...state.progress, notice: text } } : state,
     ),
   endProgress: () => set({ progress: null }),
 

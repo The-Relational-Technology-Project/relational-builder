@@ -25,6 +25,9 @@ export interface StreamCallbacks {
   onReasoning?: (text: string) => void;
   /** Why generation stopped; "length" means it hit the output cap mid-reply */
   onFinishReason?: (reason: string) => void;
+  /** A transient upstream failure (rate limit, overload) is being retried
+   *  automatically — a chance to tell the person the wait is deliberate */
+  onRetry?: (attempt: number, maxAttempts: number) => void;
   onComplete: (fullText: string) => void;
   onError: (error: Error) => void;
 }

@@ -110,11 +110,12 @@ function GenerationStatus() {
   const secs = Math.max(0, Math.floor((Date.now() - progress.startedAt) / 1000));
   const elapsed = secs >= 60 ? `${Math.floor(secs / 60)}m ${secs % 60}s` : `${secs}s`;
   const label =
-    progress.phase === 'waiting'
+    progress.notice ??
+    (progress.phase === 'waiting'
       ? 'Reaching Claude…'
       : progress.phase === 'thinking'
         ? 'Thinking it through…'
-        : 'Writing — files land in the chat and Files tab as they finish…';
+        : 'Writing — files land in the chat and Files tab as they finish…');
   const snippet =
     progress.phase === 'thinking'
       ? progress.thinking.replace(/\s+/g, ' ').trim().slice(-140)

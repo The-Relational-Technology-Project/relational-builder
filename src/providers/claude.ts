@@ -50,6 +50,23 @@ function maxTokensFor(model: string): number {
 // 5's silent default; summarized display streams reasoning back as progress)
 const ADAPTIVE_THINKING_RE = /opus-4-[78]|sonnet-5|fable/;
 
+// Transient upstream failures worth retrying before the stream starts:
+// 429 rate limit, 5xx hiccups, 529 Anthropic overloaded. NOT the community
+// daily budget's 429 — that one won't clear in ten seconds.
+const RETRY_STATUSES = new Set([429, 500, 502, 503, 504, 529]);
+const RETRY_DELAYS_MS = [2000, 5000, 10000];
+
+function abortableSleep(ms: number, signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(resolve, ms);
+    signal?.addEventListener(
+      'abort',
+      () => { clearTimeout(t); reject(new DOMException('Aborted', 'AbortError')); },
+      { once: true },
+    );
+  });
+}
+
 export class ClaudeProvider implements LLMProvider {
   readonly id = 'claude';
   readonly name = 'Claude (Anthropic)';
@@ -116,29 +133,60 @@ export class ClaudeProvider implements LLMProvider {
       headers['x-community-token'] = token;
     }
 
-    const res = await fetch(PROXY_URL, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({
-        model,
-        max_tokens: maxTokensFor(model),
-        stream: true,
-        messages: messages.map(m => ({ role: m.role, content: m.content })),
-      }),
-      signal,
+    const body = JSON.stringify({
+      model,
+      max_tokens: maxTokensFor(model),
+      stream: true,
+      messages: messages.map(m => ({ role: m.role, content: m.content })),
     });
 
-    if (!res.ok) {
-      const text = await res.text().catch(() => res.statusText);
-      // The proxy speaks human ({"error": "You've reached today's…"}) —
-      // surface its words directly instead of wrapping them in status codes
+    // Transient failures (rate limits, overload, network blips) retry with
+    // backoff before the stream starts — a busy evening with many builders on
+    // the shared key should feel like a pause, not an error. Nothing has
+    // streamed yet on these paths, so a retry never duplicates output.
+    const maxAttempts = RETRY_DELAYS_MS.length + 1;
+    let res: Response | null = null;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      let r: Response;
+      try {
+        r = await fetch(PROXY_URL, { method: 'POST', headers, body, signal });
+      } catch (err) {
+        if (signal?.aborted || attempt === maxAttempts) throw err;
+        callbacks.onRetry?.(attempt, maxAttempts);
+        await abortableSleep(RETRY_DELAYS_MS[attempt - 1], signal);
+        continue;
+      }
+
+      if (r.ok) {
+        res = r;
+        break;
+      }
+
+      const text = await r.text().catch(() => r.statusText);
+      // The proxy speaks human ({"error": "You've reached today's…"}), and
+      // Anthropic pass-through errors nest theirs ({"error": {"message"…}}) —
+      // surface those words directly instead of wrapping them in status codes
       let friendly: string | null = null;
       try {
         const parsed = JSON.parse(text) as { error?: unknown };
         if (typeof parsed.error === 'string') friendly = parsed.error;
+        else if (
+          parsed.error && typeof parsed.error === 'object' &&
+          typeof (parsed.error as { message?: unknown }).message === 'string'
+        ) friendly = (parsed.error as { message: string }).message;
       } catch { /* not JSON — fall through to the raw form */ }
-      throw new Error(friendly ?? `Claude API error (${res.status}): ${text}`);
+
+      // The community daily budget answers 429 too, but retrying it is
+      // hopeless — it resets tomorrow, so let its message through now
+      const retryable =
+        RETRY_STATUSES.has(r.status) && !(friendly ?? '').includes('budget');
+      if (!retryable || attempt === maxAttempts) {
+        throw new Error(friendly ?? `Claude API error (${r.status}): ${text}`);
+      }
+      callbacks.onRetry?.(attempt, maxAttempts);
+      await abortableSleep(RETRY_DELAYS_MS[attempt - 1], signal);
     }
+    if (!res) throw new Error('No response from the LLM proxy');
 
     // Parse OpenAI-format SSE (proxy already translated from Anthropic)
     await this.readOpenAIStream(res, callbacks, signal);

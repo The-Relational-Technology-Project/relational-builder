@@ -66,7 +66,8 @@ Set these as Edge Function secrets (`supabase secrets set KEY=value`):
 | Secret | Purpose | Default |
 |---|---|---|
 | `ALLOWED_ORIGINS` | Comma-separated list of allowed browser origins. **List every origin the app is served from, including the canonical apex domain** — a missing origin is blocked by CORS. Entries may use a `*` wildcard (e.g. `https://*.vercel.app`) to cover preview deploys. Unset = allow all (dev). | unset |
-| `RATE_LIMIT_PER_MIN` | Best-effort per-IP request cap per minute | `30` |
+| `RATE_LIMIT_PER_MIN` | Best-effort per-minute request cap, keyed per credential (community token or BYOK key) so a room on shared venue WiFi doesn't throttle itself; per-IP only for credential-less requests | `30` |
+| `RATE_LIMIT_PER_MIN_PER_IP` | Loose per-IP backstop on credentialed traffic (bounds credential-rotation abuse from a single address) | `RATE_LIMIT_PER_MIN` × 20 |
 | `RTP_MODEL_URL` | Base URL of the RTP-hosted vLLM instance (Tier 1) | `https://api.relationaltech.org` |
 | `ANTHROPIC_COMMUNITY_KEY` | RTP's shared Anthropic key for the community pilot (Tier 3). Never reaches the browser. | unset (community access off) |
 | `COMMUNITY_MODELS` | Models the community key may be used with | `claude-sonnet-5,claude-haiku-4-5` |
@@ -148,7 +149,10 @@ Vite bakes them in at build time):
 - `VITE_SITE_URL` — canonical domain magic-link sign-in returns to
   (`https://relationalbuilder.org`). Set this so sign-ins from a preview URL
   still land on the real domain; must also be in Supabase's Redirect URLs.
-- `VITE_ACCESS_CODE` — pilot passcode gate (client-side, soft)
+- `VITE_ACCESS_CODE` — pilot passcode gate (client-side, soft). Comma-separate
+  to run several codes at once (standing invite code + a revocable event code);
+  keep it in sync with the `enroll-community` `ACCESS_CODE` secret. A
+  `?code=X` link/QR enters a code automatically.
 - `VITE_SUPER_ADMIN_EMAILS` (optional — who sees the account-requests dashboard; default joshuanesbit@gmail.com)
 - `VITE_RTP_MODEL_URL` (optional — Tier 1 model endpoint)
 

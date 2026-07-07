@@ -66,23 +66,44 @@ function corsHeaders(req: Request): Record<string, string> {
   return headers;
 }
 
-// Best-effort per-IP rate limit (per warm isolate). A determined abuser can
-// still rotate IPs or hit cold starts — this guards against accidental loops
-// and casual abuse, which is the realistic threat for a BYOK proxy.
+// Best-effort rate limit (per warm isolate). A determined abuser can still
+// rotate IPs or hit cold starts — this guards against accidental loops and
+// casual abuse, which is the realistic threat for a BYOK proxy.
+//
+// Keyed per credential, not per IP: a workshop room shares one NAT'd IP, so
+// an IP-keyed limit makes fifty phones on venue WiFi collectively throttle
+// each other. Requests that carry a community token or a BYOK key get their
+// own bucket; a much looser per-IP bucket remains as a backstop against
+// credential-less floods and rotated fake tokens.
 const RATE_LIMIT = Number(Deno.env.get('RATE_LIMIT_PER_MIN') ?? '30');
+const IP_RATE_LIMIT = Number(
+  Deno.env.get('RATE_LIMIT_PER_MIN_PER_IP') ?? String(RATE_LIMIT * 20),
+);
 const rateBuckets = new Map<string, { count: number; windowStart: number }>();
 
-function isRateLimited(req: Request): boolean {
-  const ip =
-    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
-  const now = Date.now();
-  const bucket = rateBuckets.get(ip);
+function bumpBucket(key: string, limit: number, now: number): boolean {
+  const bucket = rateBuckets.get(key);
   if (!bucket || now - bucket.windowStart > 60_000) {
-    rateBuckets.set(ip, { count: 1, windowStart: now });
+    rateBuckets.set(key, { count: 1, windowStart: now });
     return false;
   }
   bucket.count += 1;
-  return bucket.count > RATE_LIMIT;
+  return bucket.count > limit;
+}
+
+function isRateLimited(req: Request): boolean {
+  const now = Date.now();
+  const ip =
+    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+  const credential =
+    req.headers.get('x-community-token') ?? req.headers.get('Authorization') ?? '';
+  if (credential) {
+    return (
+      bumpBucket(`cred:${credential}`, RATE_LIMIT, now) ||
+      bumpBucket(`ip:${ip}`, IP_RATE_LIMIT, now)
+    );
+  }
+  return bumpBucket(`ip:${ip}`, RATE_LIMIT, now);
 }
 
 Deno.serve(async (req: Request) => {

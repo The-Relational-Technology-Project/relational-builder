@@ -228,6 +228,10 @@ export function ChatPanel() {
             appendToMessage(msgId, token);
           },
           onReasoning: (text) => useChatStore.getState().progressReasoning(text),
+          onRetry: () =>
+            useChatStore.getState().progressNotice(
+              'Lots of building happening right now — retrying automatically, hang tight…',
+            ),
           onFinishReason: (reason) => { finishReason = reason; },
           onComplete: () => {
             useChatStore.getState().endProgress();
