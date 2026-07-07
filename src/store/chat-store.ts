@@ -117,7 +117,10 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
   isGenerating: false,
   abortController: null,
   systemPrompt: buildSystemPrompt(),
-  mode: 'build' as ChatMode,
+  // Plan is the default for a fresh start: new builders bring seeds of ideas,
+  // and plan mode now meets them conversationally. "Build this plan" (or the
+  // toggle) moves to build mode when the vision is ready.
+  mode: 'plan' as ChatMode,
 
   setMode: (mode: ChatMode) => set({ mode }),
 
@@ -251,7 +254,11 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
 
   setSystemPrompt: (prompt: string) => set({ systemPrompt: prompt }),
 
-  clearMessages: () => set({ messages: [], sharingPlanSaved: false }),
+  // Every fresh start (new project, planted prompt, gallery start) clears the
+  // conversation — and returns to plan mode, the default for new builds.
+  // Paths that want a different mode set it right after (fix sends and
+  // "Build this plan" already flip to build themselves).
+  clearMessages: () => set({ messages: [], sharingPlanSaved: false, mode: 'plan' }),
 
   toChatMessages: (): ChatMessage[] => {
     const { systemPrompt, messages } = get();

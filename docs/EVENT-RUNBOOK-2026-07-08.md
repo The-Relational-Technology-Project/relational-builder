@@ -93,7 +93,9 @@ where you want to be.
 
 - **`relationalbuilder.org/?code=BUILDJAM`** big, plus a QR of the same URL.
 - "Sign in with your email → type the 6-digit code from the email."
-- "Tell it what your block needs. Plain words. It builds; you steer."
+- "Tell it what your block needs — even half an idea. Plain words. It starts
+  in Plan mode: it'll explore directions with you, then press **Build this
+  plan** when it feels right."
 - "Done? Publish → Community hosting → show your neighbor."
 
 ## During the event — triage cheat sheet
