@@ -9,10 +9,15 @@ import { useCommunityStore } from '@/store/community-store';
  *
  * The bounded auto-fix catches builds that THROW. This catches builds that
  * merely don't work: dead buttons, handlers never attached, broken
- * references, unreadable contrast. After a normal build settles, a fast
- * cheap model (Haiku) reads the files against the person's request; if it
- * finds concrete defects, ONE fix request is queued through the same
- * no-loop machinery as auto-fix (fix sends are never themselves reviewed).
+ * references, unreadable contrast. A fast cheap model (Haiku) reads the files
+ * against the person's request; if it finds concrete defects, ONE fix request
+ * is queued through the same no-loop machinery as auto-fix (fix sends are
+ * never themselves reviewed).
+ *
+ * Runs only on the FIRST build of a project (see the trigger in ChatPanel).
+ * Later builds are incremental — reviewing the whole codebase against a small
+ * follow-up ask just re-raises old issues every time — so the automatic pass
+ * stays out of the way once the app is established.
  *
  * Deliberately not full multi-agent orchestration: one extra cheap call,
  * one bounded correction, silence when the build is solid.

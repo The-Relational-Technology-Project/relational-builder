@@ -258,9 +258,16 @@ export function ChatPanel() {
                 } else {
                   // Arm exactly one automatic error→fix pass after normal builds
                   useChatStore.setState({ autoFixArmed: !wasFix });
-                  // …and one background quality review (thrown errors win the
-                  // race; fix sends are never re-reviewed, so neither can loop)
-                  if (!wasFix && messageProducedFiles(msg.content)) {
+                  // …and one background quality review, but ONLY on the very
+                  // first build of a project. Later builds are incremental: the
+                  // reviewer reads the whole codebase against just the current
+                  // (often small) ask, so it re-surfaces pre-existing issues
+                  // from old files every time — reading as "reviewing stale code
+                  // / re-raising things already addressed." First build is where
+                  // the whole-codebase review actually matches the request.
+                  // (Thrown errors win the race; fix sends are never reviewed,
+                  // so neither can loop.)
+                  if (!wasFix && isFirstBuild && messageProducedFiles(msg.content)) {
                     runQualityReview(content);
                   }
                 }
