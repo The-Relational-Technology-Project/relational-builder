@@ -5,6 +5,7 @@ import type { EnvVar } from '@/store/env-store';
 import { buildEnvJs, buildEnvTs } from '@/project/env-module';
 import { bundleProject, findFrameworkEntry } from '@/preview/bundler/bundle';
 import { buildShellHtml, ERROR_RELAY } from '@/preview/bundler/shell';
+import { KIT_FILES } from '@/kit';
 import { INSPECT_SOURCE } from '@/preview/inspect-source';
 import { PointAtIt } from './PointAtIt';
 import { FixBanner } from './FixBanner';
@@ -39,7 +40,10 @@ export function FrameworkPreview({
 
     // Small debounce: streaming builds write several files back-to-back
     const timer = setTimeout(async () => {
-      const vfs: Record<string, string> = {};
+      // Kit merges UNDERNEATH the project: `@/components/ui/*` imports
+      // resolve from the kit for free, and a project file at the same
+      // path overrides it. Unused kit files cost nothing.
+      const vfs: Record<string, string> = { ...KIT_FILES };
       for (const f of files) {
         vfs[f.path.startsWith('/') ? f.path : '/' + f.path] = f.content;
       }
