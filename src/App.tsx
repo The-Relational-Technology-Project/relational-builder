@@ -21,7 +21,7 @@ import { StudioSwitcher } from '@/components/StudioSwitcher';
 import { BuilderOnboarding } from '@/components/BuilderOnboarding';
 import { initCloudSync } from '@/cloud/sync';
 import { AccountMenu } from '@/components/AccountMenu';
-import { ProjectsDialog } from '@/components/ProjectsDialog';
+import { ProjectsButton, ProjectsPage } from '@/components/ProjectsPage';
 import { CloudStatus } from '@/components/CloudStatus';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { RBMark } from '@/components/RBMark';
@@ -66,14 +66,16 @@ function App() {
   const clearProject = useProjectStore(s => s.clearProject);
   const closeCloudProject = useCloudStore(s => s.closeProject);
 
+  const setProjectsOpen = useUIStore(s => s.setProjectsOpen);
   const handleNewProject = useCallback(() => {
     closeCloudProject();
     clearMessages();
     clearProject();
+    setProjectsOpen(false);
     // A fresh project starts with a fresh environment — service keys and
     // Community Cloud backends belong to the app they were connected for
     useEnvStore.getState().clearAll();
-  }, [clearMessages, clearProject, closeCloudProject]);
+  }, [clearMessages, clearProject, closeCloudProject, setProjectsOpen]);
 
   // Focused building mode: start-from actions live on the home state,
   // ship actions appear once there's a project to ship
@@ -103,6 +105,7 @@ function App() {
   // (from the gallery or anywhere else) always lands back in the workspace
   const galleryOpen = useUIStore(s => s.galleryOpen);
   const setGalleryOpen = useUIStore(s => s.setGalleryOpen);
+  const projectsOpen = useUIStore(s => s.projectsOpen);
   useEffect(() => {
     if (hasProject) setGalleryOpen(false);
   }, [hasProject, setGalleryOpen]);
@@ -142,7 +145,7 @@ function App() {
               Gallery
             </Button>
           )}
-          <ProjectsDialog />
+          <ProjectsButton />
           {hasProject && <PromptDialog />}
           {hasProject && <SharePreview />}
           {hasProject && <PublishDialog />}
@@ -215,7 +218,7 @@ function App() {
                 Gallery
               </Button>
             )}
-            <ProjectsDialog />
+            <ProjectsButton mobile />
             {hasProject && <PromptDialog />}
             {hasProject && <SharePreview />}
             {hasProject && <PublishDialog />}
@@ -232,7 +235,9 @@ function App() {
       {/* Main content — home gets the full width (nothing to preview yet);
           building gets split panels on desktop, a tab-switched stack on mobile */}
       <main className="flex-1 min-h-0">
-        {!hasProject ? (
+        {projectsOpen ? (
+          <ProjectsPage />
+        ) : !hasProject ? (
           galleryOpen ? <StudioGallery onClose={() => setGalleryOpen(false)} /> : <ChatPanel />
         ) : isMobile ? (
           <div className="h-full flex flex-col">

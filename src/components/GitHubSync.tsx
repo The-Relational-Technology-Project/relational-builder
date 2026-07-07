@@ -43,7 +43,13 @@ export function GitHubSync() {
   const currentProjectId = useCloudStore(s => s.currentProjectId);
   const connectedRepo = repos[currentProjectId ?? 'local'] ?? null;
 
-  const view: View = connectedRepo ? 'connected' : token && username ? 'repos' : 'connect';
+  // The token is stored ONCE, globally, and persisted. A saved token alone
+  // means "connected to GitHub" — the username is cosmetic and gets backfilled
+  // in the repo list. Each project still picks its own repo, but the token is
+  // never asked for again. (Previously this also required `username`, so any
+  // persisted state that lost it re-prompted for the token on every project.)
+  void username;
+  const view: View = connectedRepo ? 'connected' : token ? 'repos' : 'connect';
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -138,6 +144,7 @@ function RepoListView() {
   const token = useGitHubStore(s => s.token);
   const username = useGitHubStore(s => s.username);
   const connectRepo = useGitHubStore(s => s.connectRepo);
+  const setUsername = useGitHubStore(s => s.setUsername);
   const clearAll = useGitHubStore(s => s.clearAll);
 
   const [repos, setRepos] = useState<GitHubRepo[]>([]);
@@ -146,14 +153,23 @@ function RepoListView() {
   const [newName, setNewName] = useState('');
   const [showCreate, setShowCreate] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [badToken, setBadToken] = useState(false);
   const [filter, setFilter] = useState('');
 
   useEffect(() => {
     listRepos(token)
       .then(setRepos)
-      .catch(() => setError('Failed to load repos'))
+      // A saved token that no longer works (expired/revoked) is the one case
+      // where we DO need a new token — offer that explicitly.
+      .catch(() => { setError('That saved token didn\'t work — it may have expired.'); setBadToken(true); })
       .finally(() => setLoading(false));
   }, [token]);
+
+  // Backfill the display name from the saved token (older sessions persisted a
+  // token without it). Cosmetic — never blocks the repo list.
+  useEffect(() => {
+    if (!username && token) getUser(token).then(setUsername).catch(() => {});
+  }, [username, token, setUsername]);
 
   const handleSelectRepo = (repo: GitHubRepo) => {
     connectRepo(projectRepoKey(), {
@@ -192,11 +208,22 @@ function RepoListView() {
   return (
     <div className="space-y-3 pt-2">
       <div className="flex items-center justify-between">
-        <p className="text-xs text-muted-foreground">Signed in as <span className="font-medium text-foreground">{username}</span></p>
+        <p className="text-xs text-muted-foreground">
+          {username ? <>Signed in as <span className="font-medium text-foreground">{username}</span></> : 'Connected to GitHub'}
+        </p>
         <button onClick={clearAll} className="text-xs text-muted-foreground hover:text-foreground underline">
-          Sign out
+          {badToken ? 'Use a different token' : 'Sign out'}
         </button>
       </div>
+
+      {badToken && (
+        <div className="rounded-lg border border-amber-500/50 bg-amber-500/10 p-2.5">
+          <p className="text-xs">
+            Your saved token didn't work — it may have expired or been revoked.{' '}
+            <button onClick={clearAll} className="underline font-medium">Enter a new token</button>.
+          </p>
+        </div>
+      )}
 
       {/* Create new repo */}
       {showCreate ? (
@@ -227,7 +254,7 @@ function RepoListView() {
         className="h-8 text-sm"
       />
 
-      {error && <p className="text-xs text-destructive">{error}</p>}
+      {error && !badToken && <p className="text-xs text-destructive">{error}</p>}
 
       {/* Repo list */}
       <div className="max-h-48 overflow-y-auto space-y-1 -mx-1">
