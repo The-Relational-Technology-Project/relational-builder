@@ -6,8 +6,7 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { Cloud, FolderOpen, Trash2, UserPlus, X, Loader2, Users, HardDrive } from 'lucide-react';
-import { suggestProjectName } from '@/project/suggest-name';
+import { FolderOpen, Trash2, UserPlus, X, Loader2, Users } from 'lucide-react';
 import {
   useLocalProjects,
   openLocalProject,
@@ -36,7 +35,7 @@ export function ProjectsButton({ mobile }: { mobile?: boolean }) {
         (mobile ? ' h-8 gap-1 text-xs' : ' h-7 gap-1 text-xs')
       }
     >
-      <Cloud className="size-3.5" />
+      <FolderOpen className="size-3.5" />
       Projects
     </button>
   );
@@ -55,19 +54,12 @@ export function ProjectsPage() {
   const currentProjectId = useCloudStore(s => s.currentProjectId);
   const currentProjectName = useCloudStore(s => s.currentProjectName);
   const isOwner = useCloudStore(s => s.isOwner);
-  const projects = useCloudStore(s => s.projects);
   const members = useCloudStore(s => s.members);
   const refreshProjects = useCloudStore(s => s.refreshProjects);
-  const createProject = useCloudStore(s => s.createProject);
-  const openProject = useCloudStore(s => s.openProject);
   const closeProject = useCloudStore(s => s.closeProject);
-  const deleteProject = useCloudStore(s => s.deleteProject);
   const inviteMember = useCloudStore(s => s.inviteMember);
   const removeMember = useCloudStore(s => s.removeMember);
 
-  // Seed once at mount (the page mounts when it opens) with a name drawn from
-  // the conversation instead of a blank field.
-  const [newName, setNewName] = useState(() => suggestProjectName() ?? '');
   const [inviteEmail, setInviteEmail] = useState('');
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -98,7 +90,7 @@ export function ProjectsPage() {
         {/* Page header */}
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
-            <Cloud className="size-6 text-primary shrink-0" />
+            <FolderOpen className="size-6 text-primary shrink-0" />
             <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Projects</h1>
           </div>
           <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-xs shrink-0" onClick={close}>
@@ -107,7 +99,7 @@ export function ProjectsPage() {
           </Button>
         </div>
 
-        <LocalShelf onOpened={close} />
+        <MergedProjects onOpened={close} />
 
         {!user ? (
           <p className="text-sm text-muted-foreground">
@@ -204,103 +196,7 @@ export function ProjectsPage() {
               </section>
             )}
 
-            {/* Save current workspace as a new cloud project */}
-            {!currentProjectId && (
-              <section className="space-y-2">
-                <p className="text-sm font-medium">Save current workspace to the cloud</p>
-                <div className="flex gap-2 max-w-md">
-                  <Input
-                    value={newName}
-                    onChange={e => setNewName(e.target.value)}
-                    placeholder="Project name..."
-                    className="h-9 text-sm"
-                  />
-                  <Button
-                    disabled={!newName.trim() || busy === 'create'}
-                    onClick={() =>
-                      run('create', async () => {
-                        const r = await createProject(newName.trim());
-                        if (!r.error) setNewName('');
-                        return r;
-                      })
-                    }
-                  >
-                    {busy === 'create' ? <Loader2 className="size-4 animate-spin" /> : 'Save'}
-                  </Button>
-                </div>
-              </section>
-            )}
-
-            {/* Project list */}
-            <section className="space-y-3">
-              <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                Your projects
-              </h2>
-              {projects.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No cloud projects yet.</p>
-              ) : (
-                <div className="grid gap-2.5 sm:grid-cols-2">
-                  {projects.map(p => (
-                    <div key={p.id} className="flex items-center justify-between gap-2 border rounded-lg px-3.5 py-3">
-                      <div className="min-w-0">
-                        <div className="truncate font-medium text-sm">
-                          {p.name}
-                          {p.owner_id !== user.id && (
-                            <Badge variant="outline" className="ml-2 text-xs">shared with you</Badge>
-                          )}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          Updated {new Date(p.updated_at).toLocaleString()}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 gap-1 text-xs"
-                          disabled={p.id === currentProjectId || busy === `open-${p.id}`}
-                          onClick={() =>
-                            run(`open-${p.id}`, async () => {
-                              // The work being replaced goes to the local
-                              // shelf first — opening is never destructive
-                              saveCurrentLocally();
-                              detachLocalTracking();
-                              const r = await openProject(p.id);
-                              if (!r || !r.error) close();
-                              return r;
-                            })
-                          }
-                        >
-                          {busy === `open-${p.id}` ? <Loader2 className="size-3 animate-spin" /> : <FolderOpen className="size-3" />}
-                          {p.id === currentProjectId ? 'Open now' : 'Open'}
-                        </Button>
-                        {p.owner_id === user.id && (
-                          <button
-                            onClick={() => {
-                              if (window.confirm(`Delete "${p.name}" from the cloud? This can't be undone.`)) {
-                                run(`delete-${p.id}`, () => deleteProject(p.id));
-                              }
-                            }}
-                            className="text-muted-foreground hover:text-destructive p-1"
-                            title="Delete cloud project"
-                          >
-                            <Trash2 className="size-3.5" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {error && <p className="text-xs text-destructive">{error}</p>}
-
-              <p className="text-xs text-muted-foreground leading-relaxed max-w-prose">
-                Opening a cloud project replaces your current workspace. Edits
-                auto-save and sync to collaborators within a couple of seconds
-                (last save wins per project).
-              </p>
-            </section>
+            {error && <p className="text-xs text-destructive">{error}</p>}
 
             {/* Live community-hosted sites — moved here from the home screen.
                 YourSites carries its own heading and self-hides when empty. */}
@@ -324,34 +220,96 @@ export function ProjectsPage() {
 }
 
 /**
- * Projects saved on this device — the always-on safety net. Every project
- * autosaves here as you build (signed in or not); "New Project" stashes
- * the current one rather than destroying it.
+ * Every project in one list — the ones on this device and the ones on the
+ * builder's account — newest first, no filing system to think about.
+ * Opening any project keeps the one being replaced automatically.
  */
-function LocalShelf({ onOpened }: { onOpened: () => void }) {
+function MergedProjects({ onOpened }: { onOpened: () => void }) {
+  const user = useAuthStore(s => s.user);
   const shelf = useLocalProjects(s => s.shelf);
-  const currentId = useLocalProjects(s => s.currentId);
-  if (shelf.length === 0) return null;
+  const localCurrentId = useLocalProjects(s => s.currentId);
+  const cloudProjects = useCloudStore(s => s.projects);
+  const currentProjectId = useCloudStore(s => s.currentProjectId);
+  const openProject = useCloudStore(s => s.openProject);
+  const deleteProject = useCloudStore(s => s.deleteProject);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const entries = [
+    ...shelf.map(m => ({
+      key: `local-${m.id}`,
+      id: m.id,
+      kind: 'local' as const,
+      name: m.name,
+      updatedAt: m.updatedAt,
+      current: m.id === localCurrentId,
+      canDelete: true,
+      shared: false,
+    })),
+    ...(user
+      ? cloudProjects.map(p => ({
+          key: `cloud-${p.id}`,
+          id: p.id,
+          kind: 'cloud' as const,
+          name: p.name,
+          updatedAt: Date.parse(p.updated_at),
+          current: p.id === currentProjectId,
+          canDelete: p.owner_id === user.id,
+          shared: p.owner_id !== user.id,
+        }))
+      : []),
+  ].sort((a, b) => b.updatedAt - a.updatedAt);
+
+  if (entries.length === 0) return null;
+
+  async function open(entry: (typeof entries)[number]) {
+    if (entry.kind === 'local') {
+      if (openLocalProject(entry.id)) onOpened();
+      return;
+    }
+    setBusy(entry.key);
+    setError(null);
+    // The work being replaced is kept automatically — opening is never destructive
+    saveCurrentLocally();
+    detachLocalTracking();
+    const r = await openProject(entry.id);
+    setBusy(null);
+    if (r?.error) setError(r.error);
+    else onOpened();
+  }
+
+  async function remove(entry: (typeof entries)[number]) {
+    if (!window.confirm(`Delete "${entry.name}"? This can't be undone.`)) return;
+    if (entry.kind === 'local') {
+      deleteLocalProject(entry.id);
+      return;
+    }
+    setBusy(entry.key);
+    await deleteProject(entry.id);
+    setBusy(null);
+  }
 
   return (
     <section className="space-y-3">
-      <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
-        <HardDrive className="size-3.5" />
-        On this device
+      <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+        Your projects
       </h2>
       <div className="grid gap-2.5 sm:grid-cols-2">
-        {shelf.map(p => (
-          <div key={p.id} className="flex items-center justify-between gap-2 border rounded-lg px-3.5 py-3">
+        {entries.map(entry => (
+          <div key={entry.key} className="flex items-center justify-between gap-2 border rounded-lg px-3.5 py-3">
             <div className="min-w-0">
               <div className="truncate font-medium text-sm">
-                {p.name}
-                {p.id === currentId && (
+                {entry.name}
+                {entry.current && (
                   <Badge variant="secondary" className="ml-2 text-xs">Open now</Badge>
+                )}
+                {entry.shared && (
+                  <Badge variant="outline" className="ml-2 text-xs">shared with you</Badge>
                 )}
               </div>
               <div className="text-xs text-muted-foreground">
-                {p.fileCount} file{p.fileCount === 1 ? '' : 's'} · saved{' '}
-                {new Date(p.updatedAt).toLocaleString(undefined, {
+                Saved{' '}
+                {new Date(entry.updatedAt).toLocaleString(undefined, {
                   month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
                 })}
               </div>
@@ -361,29 +319,26 @@ function LocalShelf({ onOpened }: { onOpened: () => void }) {
                 variant="ghost"
                 size="sm"
                 className="h-7 gap-1 text-xs"
-                disabled={p.id === currentId}
-                onClick={() => {
-                  if (openLocalProject(p.id)) onOpened();
-                }}
+                disabled={entry.current || busy === entry.key}
+                onClick={() => open(entry)}
               >
-                <FolderOpen className="size-3" />
-                Open
+                {busy === entry.key ? <Loader2 className="size-3 animate-spin" /> : <FolderOpen className="size-3" />}
+                {entry.current ? 'Open now' : 'Open'}
               </Button>
-              <button
-                onClick={() => {
-                  if (window.confirm(`Delete "${p.name}" from this device? This can't be undone.`)) {
-                    deleteLocalProject(p.id);
-                  }
-                }}
-                className="text-muted-foreground hover:text-destructive p-1"
-                title="Delete from this device"
-              >
-                <Trash2 className="size-3.5" />
-              </button>
+              {entry.canDelete && (
+                <button
+                  onClick={() => remove(entry)}
+                  className="text-muted-foreground hover:text-destructive p-1"
+                  title="Delete project"
+                >
+                  <Trash2 className="size-3.5" />
+                </button>
+              )}
             </div>
           </div>
         ))}
       </div>
+      {error && <p className="text-xs text-destructive">{error}</p>}
     </section>
   );
 }

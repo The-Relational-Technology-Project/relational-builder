@@ -20,7 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { CircleUser, MailCheck, LogOut, MapPin, Palette, HeartHandshake, Sun, Moon, SlidersHorizontal, DoorOpen } from 'lucide-react';
 import { BuilderOnboarding } from '@/components/BuilderOnboarding';
-import { SuperAdminDialog } from '@/components/SuperAdminDialog';
+import { useUIStore } from '@/store/ui-store';
 import { isSuperAdmin } from '@/cloud/account-requests';
 import { DesignSystemDialog } from '@/components/DesignSystemDialog';
 import { ConnectionsDialog } from '@/components/ConnectionsDialog';
@@ -41,7 +41,7 @@ export function AccountMenu() {
   const [editingStyle, setEditingStyle] = useState(false);
   const [editingConnections, setEditingConnections] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [adminOpen, setAdminOpen] = useState(false);
+  const setStewardOpen = useUIStore(st => st.setStewardOpen);
   const [themeMode, setThemeState] = useState<ThemeMode>(getThemeMode);
 
   function toggleTheme() {
@@ -101,9 +101,9 @@ export function AccountMenu() {
             Models & API keys
           </DropdownMenuItem>
           {isSuperAdmin(user.email) && (
-            <DropdownMenuItem onClick={() => setAdminOpen(true)} className="gap-2 text-xs">
+            <DropdownMenuItem onClick={() => setStewardOpen(true)} className="gap-2 text-xs">
               <DoorOpen className="size-3.5 text-muted-foreground" />
-              Account requests
+              Steward
             </DropdownMenuItem>
           )}
           <DropdownMenuSeparator />
@@ -117,7 +117,6 @@ export function AccountMenu() {
       {editingStyle && <DesignSystemDialog open={editingStyle} onOpenChange={setEditingStyle} />}
       {editingConnections && <ConnectionsDialog open={editingConnections} onOpenChange={setEditingConnections} />}
       {settingsOpen && <ProviderSettings open={settingsOpen} onOpenChange={setSettingsOpen} hideTrigger />}
-      {adminOpen && <SuperAdminDialog open={adminOpen} onOpenChange={setAdminOpen} />}
     </>
   );
 }

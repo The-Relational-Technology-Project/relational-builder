@@ -17,58 +17,57 @@ import {
 } from '@/cloud/gallery-links';
 import { listAllStudios, type StudioContext } from '@/knowledge/studio-context';
 import { useKnowledgeStore } from '@/store/knowledge-store';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { useUIStore } from '@/store/ui-store';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, X, Loader2, ChevronDown, ChevronRight } from 'lucide-react';
+import { Check, X, Loader2, ChevronDown, ChevronRight, ShieldCheck } from 'lucide-react';
 
 /**
- * The super admin dashboard — every steward task in one place:
- *  - Door: pending account requests, one-tap approve/decline
- *  - Commons: the RT Commons contribution review queue (absorbed from
- *    RT Studio; decisions flow through the commons' own review function)
- *  - Gallery: which Studio Gallery tools belong to which studios, powering
- *    studio-scoped highlighting
+ * The Steward page — every steward task in one full-width space (these
+ * queues outgrew a dialog):
+ *  - Account requests: pending requests, one-tap approve/decline
+ *  - Commons review: the RT Commons contribution review queue (absorbed
+ *    from RT Studio; decisions flow through the commons' review function)
+ *  - Studio gallery: which Studio Gallery tools belong to which studios,
+ *    powering studio-scoped highlighting
  * Visibility is gated by email client-side for convenience; the
  * admin-requests edge function is the real boundary.
  */
-export function SuperAdminDialog({
-  open,
-  onOpenChange,
-}: {
-  open: boolean;
-  onOpenChange: (v: boolean) => void;
-}) {
+export function StewardPage() {
+  const setStewardOpen = useUIStore(s => s.setStewardOpen);
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Steward dashboard</DialogTitle>
-        </DialogHeader>
+    <div className="flex-1 overflow-y-auto h-full">
+      <div className="max-w-4xl mx-auto px-4 md:px-8 py-8 md:py-12 space-y-8">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <ShieldCheck className="size-6 text-primary shrink-0" />
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Steward</h1>
+          </div>
+          <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-xs shrink-0" onClick={() => setStewardOpen(false)}>
+            <X className="size-3.5" />
+            Close
+          </Button>
+        </div>
         <Tabs defaultValue="door">
-          <TabsList className="w-full">
-            <TabsTrigger value="door" className="flex-1 text-xs">Account requests</TabsTrigger>
-            <TabsTrigger value="commons" className="flex-1 text-xs">Commons review</TabsTrigger>
-            <TabsTrigger value="gallery" className="flex-1 text-xs">Studio gallery</TabsTrigger>
+          <TabsList className="w-full sm:w-auto">
+            <TabsTrigger value="door" className="flex-1 sm:flex-none text-xs sm:px-4">Account requests</TabsTrigger>
+            <TabsTrigger value="commons" className="flex-1 sm:flex-none text-xs sm:px-4">Commons review</TabsTrigger>
+            <TabsTrigger value="gallery" className="flex-1 sm:flex-none text-xs sm:px-4">Studio gallery</TabsTrigger>
           </TabsList>
-          <TabsContent value="door" className="pt-3">
-            <RequestsTab active={open} />
+          <TabsContent value="door" className="pt-4">
+            <RequestsTab active />
           </TabsContent>
-          <TabsContent value="commons" className="pt-3">
+          <TabsContent value="commons" className="pt-4">
             <CommonsTab />
           </TabsContent>
-          <TabsContent value="gallery" className="pt-3">
+          <TabsContent value="gallery" className="pt-4">
             <GalleryTab />
           </TabsContent>
         </Tabs>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 }
 

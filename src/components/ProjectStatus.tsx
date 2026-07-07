@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Cloud, CloudOff, Loader2, Check, HardDrive } from 'lucide-react';
+import { Cloud, CloudOff, Check, Loader2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -22,90 +22,69 @@ import {
 } from '@/project/local-projects';
 
 /**
- * The header's save state — always visible once there's work, so a builder
- * never has to wonder whether their project is safe:
- *
- * - Cloud project open → the sync indicator (unchanged).
- * - Otherwise → "Saved on this device · name", opening a small dialog to
- *   rename or move it to the cloud.
+ * The project's name + saved state in the header. One quiet model: work
+ * saves automatically (no spinners — saving isn't an event, it's the
+ * baseline), and clicking opens a small dialog to rename or, when signed
+ * in, keep the project on the builder's account so it follows them across
+ * devices. The only state that ever shouts is a sync failure.
  */
 export function ProjectStatus() {
-  const cloudProjectId = useCloudStore(s => s.currentProjectId);
-  if (cloudProjectId) return <CloudIndicator />;
-  return <LocalIndicator />;
-}
-
-function CloudIndicator() {
-  const currentProjectName = useCloudStore(s => s.currentProjectName);
-  const syncStatus = useCloudStore(s => s.syncStatus);
-  const syncError = useCloudStore(s => s.syncError);
-
-  return (
-    <div
-      className="flex items-center gap-1.5 text-xs text-muted-foreground"
-      title={syncError ?? undefined}
-    >
-      {syncStatus === 'saving' ? (
-        <Loader2 className="size-3 animate-spin" />
-      ) : syncStatus === 'error' ? (
-        <CloudOff className="size-3 text-destructive" />
-      ) : (
-        <Cloud className="size-3 text-green-600" />
-      )}
-      <span className="max-w-[140px] truncate">{currentProjectName}</span>
-      {syncStatus === 'error' && <span className="text-destructive">sync failed</span>}
-    </div>
-  );
-}
-
-function LocalIndicator() {
   const fileCount = useProjectStore(s => s.getFileCount());
   const messageCount = useChatStore(s => s.messages.length);
-  const currentId = useLocalProjects(s => s.currentId);
-  const currentName = useLocalProjects(s => s.currentName);
-  const savedAt = useLocalProjects(s => s.savedAt);
+
+  const cloudProjectId = useCloudStore(s => s.currentProjectId);
+  const cloudProjectName = useCloudStore(s => s.currentProjectName);
+  const syncStatus = useCloudStore(s => s.syncStatus);
+  const renameCloudProject = useCloudStore(s => s.renameProject);
+  const createProject = useCloudStore(s => s.createProject);
+
+  const localName = useLocalProjects(s => s.currentName);
+  const user = useAuthStore(s => s.user);
+  const setProjectsOpen = useUIStore(s => s.setProjectsOpen);
 
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
-  const [cloudBusy, setCloudBusy] = useState(false);
-  const [cloudError, setCloudError] = useState<string | null>(null);
-
-  const user = useAuthStore(s => s.user);
-  const createProject = useCloudStore(s => s.createProject);
-  const setProjectsOpen = useUIStore(s => s.setProjectsOpen);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (fileCount === 0 && messageCount === 0) return null;
 
-  const saved = savedAt !== null && currentId !== null;
-  const label = saved ? currentName || 'Saved on this device' : 'Saving…';
+  const isCloud = cloudProjectId !== null;
+  const displayName = isCloud ? cloudProjectName : localName;
+  const syncFailed = isCloud && syncStatus === 'error';
 
   function handleOpen(v: boolean) {
     setOpen(v);
     if (v) {
-      // Make sure the very latest state is on the shelf, then edit its name
-      saveCurrentLocally();
-      setName(useLocalProjects.getState().currentName);
-      setCloudError(null);
+      // The freshest state goes on the shelf before its name is edited
+      if (!isCloud) saveCurrentLocally();
+      setName(isCloud ? cloudProjectName : useLocalProjects.getState().currentName);
+      setError(null);
     }
   }
 
   function commitRename() {
-    const id = useLocalProjects.getState().currentId;
-    if (id && name.trim()) renameLocalProject(id, name);
+    const trimmed = name.trim();
+    if (!trimmed || trimmed === displayName) return;
+    if (isCloud) {
+      void renameCloudProject(trimmed);
+    } else {
+      const id = useLocalProjects.getState().currentId;
+      if (id) renameLocalProject(id, trimmed);
+    }
   }
 
-  async function moveToCloud() {
-    commitRename();
-    setCloudBusy(true);
-    setCloudError(null);
-    const finalName = name.trim() || currentName || 'My project';
+  async function saveToAccount() {
+    setSaving(true);
+    setError(null);
+    const finalName = name.trim() || displayName || 'My project';
     const result = await createProject(finalName);
-    setCloudBusy(false);
+    setSaving(false);
     if (result.error) {
-      setCloudError(result.error);
+      setError(result.error);
       return;
     }
-    // Graduated to the cloud — the local copy would only shadow it
+    // The project lives on the account now — the shelf copy would only shadow it
     const id = useLocalProjects.getState().currentId;
     if (id) deleteLocalProject(id);
     setOpen(false);
@@ -115,20 +94,24 @@ function LocalIndicator() {
     <Dialog open={open} onOpenChange={handleOpen}>
       <DialogTrigger
         className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-        title="Your work saves on this device automatically — click to rename or move it to the cloud"
+        title="Your work saves automatically — click to rename"
       >
-        {saved ? <Check className="size-3 text-green-600" /> : <Loader2 className="size-3 animate-spin" />}
-        <HardDrive className="size-3" />
-        <span className="max-w-[140px] truncate">{label}</span>
+        {syncFailed ? (
+          <CloudOff className="size-3 text-destructive" />
+        ) : (
+          <Check className="size-3 text-green-600" />
+        )}
+        <span className="max-w-[160px] truncate">{displayName || 'Saved'}</span>
+        {syncFailed && <span className="text-destructive">sync failed</span>}
       </DialogTrigger>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle>This project is saved</DialogTitle>
+          <DialogTitle>Project</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 pt-1">
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Your work saves on this device automatically as you build. Starting
-            a new project keeps it — find it any time under{' '}
+            Your work saves automatically. Starting a new project keeps this
+            one — find it any time in{' '}
             <button
               className="underline underline-offset-2 hover:text-foreground"
               onClick={() => { setOpen(false); setProjectsOpen(true); }}
@@ -146,21 +129,23 @@ function LocalIndicator() {
               className="h-8 text-sm"
             />
           </div>
-          {cloudEnabled && (
+          {cloudEnabled && !isCloud && (
             user ? (
               <div className="space-y-2">
-                <Button size="sm" className="w-full h-8 text-xs gap-1.5" onClick={moveToCloud} disabled={cloudBusy}>
-                  {cloudBusy ? <Loader2 className="size-3 animate-spin" /> : <Cloud className="size-3" />}
-                  Save to the cloud
+                <Button size="sm" className="w-full h-8 text-xs gap-1.5" onClick={saveToAccount} disabled={saving}>
+                  {saving ? <Loader2 className="size-3 animate-spin" /> : <Cloud className="size-3" />}
+                  Save
                 </Button>
                 <p className="text-[11px] text-muted-foreground">
-                  Cloud projects follow you across devices and can be shared with collaborators.
+                  Keeps this project on your account — it follows you across
+                  devices and can be shared with collaborators.
                 </p>
-                {cloudError && <p className="text-xs text-destructive">{cloudError}</p>}
+                {error && <p className="text-xs text-destructive">{error}</p>}
               </div>
             ) : (
               <p className="text-xs text-muted-foreground">
-                Sign in (top right) to also save it to the cloud — across devices, with collaborators.
+                Sign in (top right) to keep projects across devices and share
+                them with collaborators.
               </p>
             )
           )}
