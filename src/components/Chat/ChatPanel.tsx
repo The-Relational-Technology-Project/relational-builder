@@ -74,6 +74,7 @@ function BuildRecovery() {
       // channel (fix sends never re-arm anything, so this can't loop)
       useChatStore.getState().queueFix(
         'Your previous reply was interrupted, likely mid-file. Re-output the file that was cut off — complete, from its first line — plus any files you had planned but not yet written. Do not repeat files that were already complete.',
+        'Finishing the build',
       );
     }
   };
@@ -137,9 +138,12 @@ export function ChatPanel() {
 
     // Mode is read fresh from the store: "Build this plan" flips it right before sending
     const currentMode = useChatStore.getState().mode;
-    // Fix requests (auto or manual) never re-arm the automatic pass
+    // Fix requests (auto or manual) never re-arm the automatic pass. They ride
+    // as a user turn so the model acts on them, but render as a Builder note —
+    // not the person's own chat bubble — via the captured label.
     const wasFix = useChatStore.getState().pendingFixSend;
-    useChatStore.setState({ pendingFixSend: false });
+    const fixLabel = useChatStore.getState().pendingFixLabel;
+    useChatStore.setState({ pendingFixSend: false, pendingFixLabel: null });
 
     // First build of a project: ask (once) to notify when it's ready — long
     // builds shouldn't require babysitting a spinner
@@ -189,7 +193,7 @@ export function ChatPanel() {
       }
     }
 
-    addUserMessage(content, attachments);
+    addUserMessage(content, attachments, wasFix ? { label: fixLabel ?? 'Automatic fix' } : undefined);
 
     // Build messages array including the new user message (with any images)
     const newUserContent = attachments?.length
@@ -249,6 +253,7 @@ export function ChatPanel() {
                   appendToMessage(msgId, '\n\n> ⚠️ That reply hit the length limit — asking for the rest automatically.');
                   useChatStore.getState().queueFix(
                     'Your previous reply was cut off by the output limit, likely mid-file. Re-output the file that was cut off — complete, from its first line — plus any files you had planned but not yet written. Do not repeat files that were already complete.',
+                    'Finishing the build',
                   );
                 } else {
                   // Arm exactly one automatic error→fix pass after normal builds

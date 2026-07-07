@@ -7,7 +7,7 @@ import { useProjectStore } from '@/store/project-store';
 import { CodeBlock } from './CodeBlock';
 import { ConnectionSuggestion } from './ConnectionSuggestion';
 import { Button } from '@/components/ui/button';
-import { Hammer, History, FileCode, ChevronDown, ChevronRight, Loader2, Copy, Check, ArrowDown, GitBranch } from 'lucide-react';
+import { Hammer, History, FileCode, ChevronDown, ChevronRight, Loader2, Copy, Check, ArrowDown, GitBranch, Sparkles } from 'lucide-react';
 
 /** "Today at 4:26 PM" / "Tuesday at 9:12 AM" — calm dividers between sittings */
 function formatSitting(ts: number): string {
@@ -317,11 +317,57 @@ export function MessageList({ messages, onBuildPlan, isGenerating }: MessageList
   );
 }
 
+/**
+ * A send the Builder made automatically on the person's behalf — a quality
+ * review, an error auto-fix, a length-limit continue. It rides the chat as a
+ * user turn so the model acts on it, but it is NOT the person's message, so it
+ * renders as a calm, distinct Builder note (collapsed by default — the body is
+ * a machine instruction the person rarely needs to read).
+ */
+function AutoMessage({ message }: { message: DisplayMessage }) {
+  const [expanded, setExpanded] = useState(false);
+  const label = message.autoLabel ?? 'Automatic fix';
+  // First non-empty line reads as a human summary of what the Builder is doing
+  const summary = message.content.split('\n').map(l => l.trim()).find(Boolean) ?? '';
+
+  return (
+    <div className="flex flex-col items-start">
+      <div className="w-full rounded-xl border border-border/60 bg-muted/40 px-3.5 py-2.5">
+        <button
+          onClick={() => setExpanded(e => !e)}
+          className="w-full flex items-center gap-1.5 text-left"
+          title={expanded ? 'Hide details' : 'Show what the Builder sent'}
+        >
+          <Sparkles className="size-3 text-muted-foreground shrink-0" />
+          <span className="text-xs uppercase tracking-wide text-muted-foreground shrink-0">
+            {label} · from Relational Builder
+          </span>
+          <span className="ml-auto text-muted-foreground shrink-0">
+            {expanded ? <ChevronDown className="size-3" /> : <ChevronRight className="size-3" />}
+          </span>
+        </button>
+        {!expanded && summary && (
+          <p className="mt-1 text-sm text-muted-foreground/80 truncate">{summary}</p>
+        )}
+        {expanded && (
+          <p className="mt-1.5 text-sm text-muted-foreground whitespace-pre-wrap">
+            {message.content}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function MessageBubble({ message }: { message: DisplayMessage }) {
   const isUser = message.role === 'user';
   const checkpoints = useProjectStore(s => s.checkpoints);
   const activeCheckpointId = useProjectStore(s => s.activeCheckpointId);
   const restoreCheckpoint = useProjectStore(s => s.restoreCheckpoint);
+
+  // Auto sends (quality review, error fix, length continue) render as a
+  // distinct Builder note — after the hooks above, to keep hook order stable.
+  if (message.isAuto) return <AutoMessage message={message} />;
 
   const checkpoint = !isUser ? checkpoints.find(c => c.msgId === message.id) : undefined;
   const isLatest = checkpoint &&

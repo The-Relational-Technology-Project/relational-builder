@@ -124,6 +124,7 @@ export function runQualityReview(userAsk: string): void {
         '',
         'Fix these. Use targeted edit blocks where possible and change nothing else.',
       ].join('\n'),
+      'Quality review',
     );
   }, REVIEW_DELAY_MS);
 }

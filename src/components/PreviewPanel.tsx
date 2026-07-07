@@ -71,12 +71,15 @@ export function PreviewPanel() {
       tmpl = 'vanilla';
     }
 
-    // Inject public env vars: /env.js works everywhere (global + ES module);
-    // /src/env.ts serves typed imports in React templates
-    if (publicEnvVars.length > 0) {
-      spFiles['/env.js'] = { code: buildEnvJs(publicEnvVars) };
-      spFiles['/src/env.ts'] = { code: buildEnvTs(publicEnvVars) };
-    }
+    // Inject the public env module ALWAYS, even when empty. Generated apps
+    // commonly `import { env } from "./env"` (or "./env.js"); if the module is
+    // missing the whole bundle fails to resolve and the preview falls back to a
+    // blank/"Hello world" shell. An empty `env` object keeps the app rendering
+    // — a missing key reads as `undefined` (handled in code) instead of a hard
+    // build failure. /env.js works everywhere; /src/env.ts serves typed
+    // imports in React templates.
+    spFiles['/env.js'] = { code: buildEnvJs(publicEnvVars) };
+    spFiles['/src/env.ts'] = { code: buildEnvTs(publicEnvVars) };
 
     // "Point at it" inspector — preview-only, never written to the project.
     // Static pages get the script as a file + tag; bundled templates load
@@ -282,7 +285,7 @@ function PreviewErrorBanner() {
   useEffect(() => {
     if (!error || !autoFixArmed || isGenerating) return;
     useChatStore.setState({ autoFixArmed: false });
-    queueFix(fixPrompt(errorText));
+    queueFix(fixPrompt(errorText), 'Fixing a preview error');
   }, [error, autoFixArmed, isGenerating, errorText, queueFix]);
 
   if (!error) return null;
@@ -302,7 +305,7 @@ function PreviewErrorBanner() {
         </span>
       ) : (
         <button
-          onClick={() => queueFix(fixPrompt(errorText))}
+          onClick={() => queueFix(fixPrompt(errorText), 'Fixing a preview error')}
           className="inline-flex items-center gap-1 rounded-md bg-destructive text-destructive-foreground px-2.5 py-1 text-xs font-medium hover:opacity-90 shrink-0"
         >
           <Wrench className="size-3" />
