@@ -130,6 +130,8 @@ function SignInDialog() {
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [code, setCode] = useState('');
+  const [verifying, setVerifying] = useState(false);
 
   // Anywhere in the app can ask for the sign-in dialog (e.g. the home
   // hero's "sign in to start building" hint)
@@ -148,11 +150,26 @@ function SignInDialog() {
     else setSent(true);
   }
 
+  // The magic link can open in the mail app's own browser (especially on
+  // phones), stranding the session away from this tab — the 6-digit code
+  // from the same email signs in right here instead.
+  async function handleVerifyCode() {
+    const trimmed = code.trim();
+    if (trimmed.length < 6) return;
+    setVerifying(true);
+    setError(null);
+    const { error: err } = await useAuthStore.getState().verifyCode(email.trim(), trimmed);
+    setVerifying(false);
+    if (err) setError(err);
+    else setOpen(false);
+  }
+
   function handleOpenChange(v: boolean) {
     setOpen(v);
     if (!v) {
       setSent(false);
       setError(null);
+      setCode('');
     }
   }
 
@@ -171,15 +188,35 @@ function SignInDialog() {
         </DialogHeader>
 
         {sent ? (
-          <div className="space-y-2">
+          <div className="space-y-3">
             <div className="flex items-center gap-2 text-sm font-medium">
               <MailCheck className="size-4 text-green-600" />
               Check your email
             </div>
             <p className="text-xs text-muted-foreground">
-              We sent a sign-in link to <strong>{email}</strong>. Open it in this
-              browser and you'll be signed in — no password needed.
+              We sent a sign-in link to <strong>{email}</strong> — tap it, or
+              type the 6-digit code from that email here. No password needed.
             </p>
+            <div className="flex gap-2">
+              <Input
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                value={code}
+                onChange={e => { setCode(e.target.value); setError(null); }}
+                onKeyDown={e => e.key === 'Enter' && handleVerifyCode()}
+                placeholder="6-digit code"
+                className="text-center tracking-[0.3em] placeholder:tracking-normal"
+              />
+              <Button
+                size="sm"
+                className="h-9"
+                onClick={handleVerifyCode}
+                disabled={verifying || code.trim().length < 6}
+              >
+                {verifying ? 'Checking…' : 'Sign in'}
+              </Button>
+            </div>
+            {error && <p className="text-xs text-destructive">{error}</p>}
           </div>
         ) : (
           <div className="space-y-3">

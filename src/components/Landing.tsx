@@ -4,9 +4,38 @@ import { requestAccount, type RequestOutcome } from '@/cloud/account-requests';
 import { useAuthStore, cloudEnabled } from '@/store/auth-store';
 import { MailCheck } from 'lucide-react';
 
-const ACCESS_CODE = import.meta.env.VITE_ACCESS_CODE ?? '';
+// One or more invitation passcodes, comma-separated — extra codes can be
+// minted for a workshop or event and retired afterwards without touching
+// the standing invite code.
+const ACCESS_CODES = (import.meta.env.VITE_ACCESS_CODE ?? '')
+  .split(',')
+  .map((s: string) => s.trim())
+  .filter(Boolean);
 const STORAGE_KEY = 'rb-access-granted';
 const ENTERED_KEY = 'rb-entered';
+
+/** The canonical stored form of a valid passcode, or null if it doesn't match */
+function matchAccessCode(input: string): string | null {
+  const entered = input.trim().toLowerCase();
+  return ACCESS_CODES.find((c: string) => c.toLowerCase() === entered) ?? null;
+}
+
+/**
+ * An event link or QR code can carry the passcode — relationalbuilder.org/?code=X
+ * walks the whole room through the door with zero typing. The spent param is
+ * scrubbed from the address bar either way.
+ */
+function consumeCodeParam(): string | null {
+  const params = new URLSearchParams(window.location.search);
+  const raw = params.get('code');
+  if (raw === null) return null;
+  params.delete('code');
+  const qs = params.toString();
+  window.history.replaceState(null, '', window.location.pathname + (qs ? `?${qs}` : '') + window.location.hash);
+  const matched = matchAccessCode(raw);
+  if (matched) localStorage.setItem(STORAGE_KEY, matched);
+  return matched;
+}
 
 /**
  * Public landing page. The passcode wall is retired: the front door is
@@ -35,9 +64,10 @@ export function Landing({ children }: { children: ReactNode }) {
   const user = useAuthStore(s => s.user);
   const [granted, setGranted] = useState(
     () =>
-      !ACCESS_CODE ||
+      consumeCodeParam() !== null ||
+      ACCESS_CODES.length === 0 ||
       localStorage.getItem(ENTERED_KEY) === '1' ||
-      localStorage.getItem(STORAGE_KEY) === ACCESS_CODE,
+      matchAccessCode(localStorage.getItem(STORAGE_KEY) ?? '') !== null,
   );
 
   // App (which normally inits auth) is gated below, so init here too — that
@@ -259,15 +289,16 @@ function SignInPanel({ onEnter }: { onEnter: () => void }) {
   return (
     <div className="pt-5 border-t space-y-3" style={{ borderColor: C.border }}>
       {sent ? (
-        <div className="max-w-sm mx-auto space-y-1.5">
+        <div className="max-w-sm mx-auto space-y-2">
           <div className="flex items-center justify-center gap-2 text-sm font-medium">
             <MailCheck className="size-4" style={{ color: C.green }} />
             Check your email
           </div>
           <p className="text-xs leading-relaxed" style={{ color: C.body }}>
-            We sent a sign-in link to <strong>{email}</strong>. Open it in this
-            browser and you'll land right in — no password needed.
+            We sent a sign-in link to <strong>{email}</strong> — tap it, or type
+            the 6-digit code from that email here. No password needed.
           </p>
+          <CodeEntry email={email} />
         </div>
       ) : open ? (
         <div className="max-w-sm mx-auto space-y-2">
@@ -311,6 +342,53 @@ function SignInPanel({ onEnter }: { onEnter: () => void }) {
 }
 
 /**
+ * The 6-digit code path: on phones the magic link often opens in the mail
+ * app's own browser, stranding the session away from this tab. Typing the
+ * code from the same email signs in right here, whatever browser this is.
+ */
+function CodeEntry({ email }: { email: string }) {
+  const [code, setCode] = useState('');
+  const [verifying, setVerifying] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function verify() {
+    const trimmed = code.trim();
+    if (trimmed.length < 6) return;
+    setVerifying(true);
+    setError(null);
+    const { error: err } = await useAuthStore.getState().verifyCode(email, trimmed);
+    setVerifying(false);
+    // Success needs no handling — the session lands via onAuthStateChange and
+    // Landing waves signed-in builders through
+    if (err) setError(err);
+  }
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex gap-2">
+        <input
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          value={code}
+          onChange={e => { setCode(e.target.value); setError(null); }}
+          onKeyDown={e => e.key === 'Enter' && verify()}
+          placeholder="6-digit code"
+          className="flex-1 rounded-lg border px-3 py-2 text-center tracking-[0.3em] text-sm outline-none placeholder:text-[#8A7D71] placeholder:tracking-normal border-[#E5DCD0] bg-[#FAF7F2] focus:border-[#D2764B]"
+        />
+        <button
+          onClick={verify}
+          disabled={verifying || code.trim().length < 6}
+          className="rounded-lg bg-[#D2764B] text-[#FAFAF9] px-4 py-2 text-sm font-medium hover:bg-[#C4693F] disabled:opacity-40 transition-colors whitespace-nowrap"
+        >
+          {verifying ? 'Checking…' : 'Sign in'}
+        </button>
+      </div>
+      {error && <p className="text-xs text-center" style={{ color: C.orangeDeep }}>{error}</p>}
+    </div>
+  );
+}
+
+/**
  * Invitation passcodes still circulate on printed invites; they keep working
  * here quietly. Entering one stores it for enroll-community self-enrollment.
  */
@@ -320,8 +398,9 @@ function PasscodeFallback({ onUnlock }: { onUnlock: () => void }) {
   const [error, setError] = useState(false);
 
   function handleSubmit() {
-    if (input.trim() === ACCESS_CODE) {
-      localStorage.setItem(STORAGE_KEY, ACCESS_CODE);
+    const matched = matchAccessCode(input);
+    if (matched) {
+      localStorage.setItem(STORAGE_KEY, matched);
       onUnlock();
     } else {
       setError(true);
@@ -345,7 +424,6 @@ function PasscodeFallback({ onUnlock }: { onUnlock: () => void }) {
       <div className="flex gap-2 max-w-xs mx-auto">
         <input
           type="password"
-          inputMode="numeric"
           value={input}
           onChange={e => { setInput(e.target.value); setError(false); }}
           onKeyDown={e => e.key === 'Enter' && handleSubmit()}

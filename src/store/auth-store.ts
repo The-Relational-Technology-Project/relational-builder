@@ -65,6 +65,9 @@ interface AuthState {
   init: () => void;
   /** Send a magic link to the given email */
   signIn: (email: string) => Promise<{ error: string | null }>;
+  /** Sign in with the 6-digit code from the magic-link email — the phone-proof
+   *  path when the link would open in the wrong browser */
+  verifyCode: (email: string, code: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   saveProfile: (fields: Partial<BuilderProfile>) => Promise<{ error: string | null }>;
@@ -107,6 +110,17 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       email,
       options: { emailRedirectTo: siteUrl() },
     });
+    return { error: error?.message ?? null };
+  },
+
+  verifyCode: async (email: string, code: string) => {
+    if (!builderClient) return { error: 'Cloud features are not configured' };
+    const { error } = await builderClient.auth.verifyOtp({
+      email,
+      token: code.trim(),
+      type: 'email',
+    });
+    // Session lands via onAuthStateChange — nothing else to set here
     return { error: error?.message ?? null };
   },
 

@@ -12,7 +12,9 @@
  *   - Idempotent: existing members return ok immediately
  *
  * Deploy: supabase functions deploy enroll-community --no-verify-jwt
- * Secrets: ACCESS_CODE (same code the invitations carry)
+ * Secrets: ACCESS_CODE (the code the invitations carry — comma-separate to
+ *   run several at once, e.g. a standing invite code plus a revocable
+ *   event code: "6767,BUILDJAM")
  */
 
 const CORS = {
@@ -42,8 +44,11 @@ Deno.serve(async (req: Request) => {
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
 
   try {
-    const accessCode = Deno.env.get('ACCESS_CODE') ?? '';
-    if (!accessCode) return json({ error: 'Enrollment is not configured' }, 503);
+    const accessCodes = (Deno.env.get('ACCESS_CODE') ?? '')
+      .split(',')
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean);
+    if (accessCodes.length === 0) return json({ error: 'Enrollment is not configured' }, 503);
 
     // Who is asking?
     const token = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '');
@@ -58,7 +63,7 @@ Deno.serve(async (req: Request) => {
     if (!email) return json({ error: 'Sign in first' }, 401);
 
     const body = await req.json().catch(() => ({}));
-    if (String(body.passcode ?? '').trim() !== accessCode) {
+    if (!accessCodes.includes(String(body.passcode ?? '').trim().toLowerCase())) {
       return json({ error: 'That passcode does not match a current invitation' }, 403);
     }
 
