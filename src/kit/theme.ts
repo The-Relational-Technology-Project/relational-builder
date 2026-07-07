@@ -6,7 +6,9 @@
  * person), while the kit's classes (bg-background, text-primary,
  * border-border…) always resolve.
  */
-export const THEME_TEMPLATE = `:root {
+export const THEME_TEMPLATE = `@import "tailwindcss";
+
+:root {
   /* Vary these values per project — never the names */
   --background: #faf6ef;
   --foreground: #1c1917;

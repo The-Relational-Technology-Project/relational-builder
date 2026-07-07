@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { useProjectStore } from '@/store/project-store';
 import { useEnvStore } from '@/store/env-store';
 import { createPreviewLink } from '@/project/share-preview';
+import { needsBuild, buildStaticSite } from '@/project/build-for-publish';
 import {
   Share2,
   Loader2,
@@ -62,7 +63,12 @@ function ShareContent() {
     try {
       const files = getAllFiles();
       const publicVars = getPublicEnvVars();
-      const res = await createPreviewLink(files, publicVars);
+      // Framework projects share the BUILT site (a static page runs anywhere;
+      // the share host doesn't need to understand the RB stack)
+      const shareFiles = needsBuild(files)
+        ? await buildStaticSite(files, publicVars.map(v => ({ key: v.key, value: v.value })))
+        : files;
+      const res = await createPreviewLink(shareFiles, publicVars);
       setResult(res);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create preview');

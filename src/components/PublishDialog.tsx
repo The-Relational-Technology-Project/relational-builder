@@ -13,6 +13,7 @@ import { useDeployStore } from '@/store/deploy-store';
 import { useEnvStore } from '@/store/env-store';
 import { exportProjectZip, downloadBlob } from '@/project/export';
 import { buildEnvJs } from '@/project/env-module';
+import { needsBuild, buildStaticSite, materializeSource } from '@/project/build-for-publish';
 import { publishToCommunityHosting } from '@/project/deploy-community';
 import { useAuthStore, cloudEnabled } from '@/store/auth-store';
 import { useCloudStore } from '@/store/cloud-store';
@@ -110,11 +111,18 @@ export function PublishDialog() {
         ? await getPromptForProject(cloudProjectId).catch(() => null)
         : null;
 
+      // Framework projects build to static files first — hosting targets get
+      // the RUNNING site (same output the preview shows); Download gets the
+      // SOURCE plus a working Vite scaffold for npm install && npm run dev.
+      const isFramework = needsBuild(files);
+      const siteFiles = isFramework ? await buildStaticSite(files, publicEnvVars) : files;
+
       if (activeTarget === 'community') {
-        const res = await publishToCommunityHosting(files, projectName, publicEnvVars);
+        const res = await publishToCommunityHosting(siteFiles, projectName, publicEnvVars);
         setResult({ url: res.url, totalViews: res.total_views });
       } else if (activeTarget === 'download') {
-        const blob = await exportProjectZip(files, projectName, lineage, publicEnvVars, buildPrompt);
+        const sourceFiles = isFramework ? materializeSource(files) : files;
+        const blob = await exportProjectZip(sourceFiles, projectName, lineage, publicEnvVars, buildPrompt);
         const safeName = projectName.replace(/[^a-zA-Z0-9-_]/g, '-');
         downloadBlob(blob, `${safeName}.zip`);
         setResult({ url: '' }); // signals success for download
@@ -123,7 +131,7 @@ export function PublishDialog() {
           setError('Please enter your Netlify access token');
           return;
         }
-        const blob = await exportProjectZip(files, projectName, lineage, publicEnvVars, buildPrompt);
+        const blob = await exportProjectZip(siteFiles, projectName, lineage, publicEnvVars, buildPrompt);
         const domain = customDomain.trim() || undefined;
         const res = await deployToNetlify(blob, projectName, netlifyToken, envRecord, domain);
         setResult({ url: res.siteUrl, adminUrl: res.adminUrl, dnsInstructions: res.dnsInstructions });
@@ -134,9 +142,9 @@ export function PublishDialog() {
         }
         const domain = customDomain.trim() || undefined;
         const filesWithEnv =
-          publicEnvVars.length > 0 && !files.some(f => f.path.replace(/^\//, '') === 'env.js')
-            ? [...files, { path: '/env.js', content: buildEnvJs(publicEnvVars), language: 'javascript', createdAt: Date.now(), updatedAt: Date.now() }]
-            : files;
+          publicEnvVars.length > 0 && !siteFiles.some(f => f.path.replace(/^\//, '') === 'env.js')
+            ? [...siteFiles, { path: '/env.js', content: buildEnvJs(publicEnvVars), language: 'javascript', createdAt: Date.now(), updatedAt: Date.now() }]
+            : siteFiles;
         const res = await deployToVercel(filesWithEnv, projectName, vercelToken, envRecord, domain);
         setResult({ url: res.url, adminUrl: res.deploymentUrl, dnsInstructions: res.dnsInstructions });
       }

@@ -21,6 +21,7 @@ import {
 } from '@/project/github-api';
 import { projectRepoKey, checkPushSafety, pullRemoteChanges } from '@/project/github-sync';
 import { generateManifest } from '@/project/export';
+import { needsBuild, materializeSource } from '@/project/build-for-publish';
 import {
   GitBranch,
   ArrowUpFromLine,
@@ -313,9 +314,12 @@ function ConnectedView() {
     setMessage('');
     setPushWarning(null);
     try {
+      // Framework projects push their full runnable source: the kit files
+      // they import plus a Vite scaffold, so a clone runs with npm install.
+      const sourceFiles = needsBuild(files) ? materializeSource(files) : files;
       // Include the .reltech.yml manifest (with lineage) unless the project
       // already carries its own — the network watcher reads it from the repo.
-      const filesToPush = [...files];
+      const filesToPush = [...sourceFiles];
       const hasManifest = files.some(f => f.path.replace(/^\//, '') === '.reltech.yml');
       if (!hasManifest) {
         const { lineage } = useProjectStore.getState();
