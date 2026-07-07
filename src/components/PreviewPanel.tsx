@@ -27,9 +27,9 @@ export function PreviewPanel() {
   void version;
   const files = getAllFiles();
 
-  const { sandpackFiles, template, unsupported } = useMemo(() => {
+  const { sandpackFiles, template, entry, unsupported } = useMemo(() => {
     if (files.length === 0) {
-      return { sandpackFiles: null, template: 'static' as const, unsupported: false };
+      return { sandpackFiles: null, template: 'static' as const, entry: undefined, unsupported: false };
     }
 
     // Full framework projects (Vite + shadcn/Lovable exports) use a build
@@ -41,7 +41,7 @@ export function PreviewPanel() {
     );
     const hasBuildConfig = files.some(f => /(^|\/)vite\.config\.[jt]s$/.test(f.path));
     if (usesPathAlias || hasBuildConfig) {
-      return { sandpackFiles: null, template: 'static' as const, unsupported: true };
+      return { sandpackFiles: null, template: 'static' as const, entry: undefined, unsupported: true };
     }
 
     const spFiles: SandpackFiles = {};
@@ -94,7 +94,26 @@ export function PreviewPanel() {
       };
     }
 
-    return { sandpackFiles: spFiles, template: tmpl, unsupported: false };
+    // Sandpack's react/react-ts templates are create-react-app shaped: their
+    // entry is a ROOT /index.tsx that imports a ROOT /App.tsx. A generated app
+    // that follows Vite conventions instead (index.html + /src/main.tsx +
+    // /src/App.tsx) never overrides that entry, so Sandpack silently bundles
+    // its OWN default files and renders the template's "Hello world" — ignoring
+    // every generated file. Point Sandpack at the real entry when the app
+    // didn't already put one at the root the template expects.
+    let entry: string | undefined;
+    if (tmpl === 'react' || tmpl === 'react-ts') {
+      const has = (p: string) => spFiles[p] !== undefined;
+      if (!has('/index.tsx') && !has('/index.jsx')) {
+        entry = [
+          '/src/main.tsx', '/src/main.jsx',
+          '/src/index.tsx', '/src/index.jsx',
+          '/main.tsx', '/main.jsx',
+        ].find(has);
+      }
+    }
+
+    return { sandpackFiles: spFiles, template: tmpl, entry, unsupported: false };
   }, [files, publicEnvVars]);
 
   if (unsupported) {
@@ -122,6 +141,7 @@ export function PreviewPanel() {
         key={`sandpack-${version}`}
         template={template}
         files={sandpackFiles}
+        customSetup={entry ? { entry } : undefined}
         options={{
           autoReload: true,
           autorun: true,
