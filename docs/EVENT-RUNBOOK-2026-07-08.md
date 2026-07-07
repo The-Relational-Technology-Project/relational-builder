@@ -73,12 +73,14 @@ Anthropic key limits) with what to do about each.
 
 **6. Budget & cost sanity.** Each member gets `daily_token_budget` tokens
 (combined in+out) per day — check the current default on the
-`community_members` table. Napkin math for 56 people on Opus 4.8: a typical
-first build ≈ 100–200k tokens ≈ $2–6; a heavy evening per person ≈ 500k+.
-Room-scale worst case is a few hundred dollars on the shared key. If that's
-not okay, either lower per-member budgets for the batch you enroll tomorrow
-(`update community_members set daily_token_budget = …`) or announce Sonnet 5
-as the evening's model (fast, excellent, ~5× cheaper).
+`community_members` table. Free community building now steps down
+automatically: Opus 4.8 does each project's first build, then edits default
+to Sonnet 5 (~5× cheaper; a chat note explains the switch, and anyone can
+pin Opus back for a big change). Napkin math for 56 people: one Opus first
+build ≈ 100–200k tokens ≈ $2–6 each, with the edit tail on Sonnet — a
+realistic room-scale evening lands in the low hundreds of dollars worst
+case. If that's still too hot, lower per-member budgets for the batch you
+enroll tomorrow (`update community_members set daily_token_budget = …`).
 
 **7. Anthropic key headroom.** Check the community key's org rate-limit tier
 at console.anthropic.com — a dozen simultaneous Opus streams with 64k

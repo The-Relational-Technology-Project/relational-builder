@@ -12,13 +12,13 @@ import {
 
 /** Short, human descriptions so choosing a model doesn't require model trivia */
 const MODEL_HINTS: Record<string, string> = {
-  'claude-opus-4-8': 'The best builder — recommended for everything',
-  'claude-sonnet-5': 'Faster and lighter — great for quick tweaks',
+  'claude-opus-4-8': 'The best builder — does your first build, great for big changes',
+  'claude-sonnet-5': 'Fast and sharp — the default for quick edits',
   'claude-haiku-4-5': 'Quickest and lightest',
 };
 
 export function ModelSelector({ className }: { className?: string }) {
-  const { activeProviderId, activeModelId, availableModels, apiKeys, setActiveModel, refreshModels } =
+  const { activeProviderId, activeModelId, availableModels, apiKeys, pinModel, refreshModels } =
     useProviderStore();
   const communityActive = useCommunityStore(s => s.active);
 
@@ -41,7 +41,9 @@ export function ModelSelector({ className }: { className?: string }) {
   return (
     <Select
       value={activeModelId}
-      onValueChange={(value) => { if (value) setActiveModel(value); }}
+      // A choice made here is deliberate: it pins the model for this project,
+      // so the automatic first-build/edit defaults step aside
+      onValueChange={(value) => { if (value) pinModel(value); }}
     >
       <SelectTrigger className={className ?? 'w-auto max-w-[200px] h-8 text-xs gap-1.5'}>
         <SelectValue placeholder="Select model...">
@@ -51,7 +53,9 @@ export function ModelSelector({ className }: { className?: string }) {
       <SelectContent className="min-w-64 max-w-72">
         {onCommunityKey && (
           <p className="px-2 py-1.5 text-xs leading-snug text-muted-foreground">
-            Included with community access — every model draws on the same daily budget.
+            Included with community access — every model draws on the same
+            daily budget. First builds use Opus, edits default to Sonnet;
+            picking one here makes it stick for this project.
           </p>
         )}
         {models.map(model => {

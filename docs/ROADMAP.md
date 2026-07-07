@@ -131,10 +131,12 @@ everything exportable — no enclosure, including by us.
   finding. Two copy-level wins shipped July 4; the structural ones are queued
   here.
 
-- **Smart model throttling (July 4)** — Opus 4.8 is now the default for free
-  community builds with a 5M/day budget, on the belief that early adopters
-  deserve the best experience. When cost matters: throttle smartly rather
-  than flatly — e.g. Opus for planning + first builds of a project, Sonnet 5
-  for follow-up edits; or step down only after a builder's Nth build of the
-  day. The proxy already knows per-member usage; the client already knows
-  build-vs-edit.
+- **Smart model throttling (July 4; shipped July 7)** — Opus 4.8 is the
+  default for free community builds with a 5M/day budget, on the belief that
+  early adopters deserve the best experience. The step-down logic shipped
+  July 7: on the community key, Opus 4.8 handles planning + the first build
+  of a project, then edits default to Sonnet 5 — announced with a Builder
+  note in the chat, never switched silently. A model picked in the picker is
+  pinned for that project (fresh projects get fresh defaults). Still open if
+  cost pressure grows: step down only after a builder's Nth build of the day
+  (the proxy already knows per-member usage).

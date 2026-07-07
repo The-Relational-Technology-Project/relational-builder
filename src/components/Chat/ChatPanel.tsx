@@ -13,7 +13,11 @@ import {
   communityCloudConnected,
   COMMUNITY_CLOUD_GUIDANCE,
 } from '@/integrations/catalog';
-import { useCommunityStore } from '@/store/community-store';
+import {
+  useCommunityStore,
+  resolveCommunityModelDefault,
+  COMMUNITY_EDIT_MODEL,
+} from '@/store/community-store';
 import { useStudioStore } from '@/store/studio-store';
 import { useAuthStore, cloudEnabled } from '@/store/auth-store';
 import { useCloudStore } from '@/store/cloud-store';
@@ -32,6 +36,11 @@ import { CommunityBudgetBanner } from '@/components/CommunityBudgetBanner';
 function endsInsideCodeFence(content: string): boolean {
   return content.split('\n').filter(l => l.startsWith('```')).length % 2 === 1;
 }
+
+/** Shown once per project when free community building steps down to the
+ *  edit model — the model picker must never change behind anyone's back */
+const EDIT_MODEL_NOTE =
+  'Quick edits now run on **Claude Sonnet 5** — fast, sharp, and lighter on the shared community budget. Making a bigger change? Pick Claude Opus 4.8 in the model menu and it will stick for this project.';
 
 /**
  * A build reply whose files never reached the project — the tab reloaded or
@@ -151,6 +160,26 @@ export function ChatPanel() {
       currentMode === 'build' && useProjectStore.getState().getFileCount() === 0;
     if (isFirstBuild) requestBuildNotifyPermission();
 
+    // Free community building: Opus 4.8 does the first build, Sonnet 5 the
+    // edits — unless the person picked a model themselves. Fix sends stay on
+    // whatever model is active (a continuation must finish what it started).
+    let modelForSend = activeModelId;
+    if (!wasFix) {
+      const autoModel = resolveCommunityModelDefault(
+        useProjectStore.getState().getFileCount(),
+      );
+      if (autoModel) {
+        modelForSend = autoModel;
+        useProviderStore.getState().setActiveModel(autoModel);
+        // Stepping down at send time only happens when the post-build switch
+        // couldn't (e.g. a truncated first build finished via continuation) —
+        // same transparency either way
+        if (autoModel === COMMUNITY_EDIT_MODEL) {
+          useChatStore.getState().addSyncMessage(EDIT_MODEL_NOTE);
+        }
+      }
+    }
+
     // Retrieval: hybrid semantic+text search against the RT Commons (the
     // canonical knowledge base), falling back to local TF-IDF scoring of the
     // Studio KB when the commons is unreachable.
@@ -218,7 +247,7 @@ export function ChatPanel() {
     try {
       await provider.chat(
         chatMessages,
-        activeModelId,
+        modelForSend,
         {
           onToken: (token) => {
             if (!sawToken) {
@@ -273,6 +302,20 @@ export function ChatPanel() {
                   // so neither can loop.)
                   if (!wasFix && isFirstBuild && messageProducedFiles(msg.content)) {
                     runQualityReview(content);
+                  }
+                  // First build landed on the community key: step the default
+                  // down to Sonnet 5 for the edits ahead — visibly, with a
+                  // note, so the model picker never changes behind anyone's
+                  // back. (Truncated builds wait: their continuation must
+                  // finish on the model that started it.)
+                  if (isFirstBuild && messageProducedFiles(msg.content)) {
+                    const autoModel = resolveCommunityModelDefault(
+                      useProjectStore.getState().getFileCount(),
+                    );
+                    if (autoModel === COMMUNITY_EDIT_MODEL) {
+                      useProviderStore.getState().setActiveModel(autoModel);
+                      useChatStore.getState().addSyncMessage(EDIT_MODEL_NOTE);
+                    }
                   }
                 }
               }

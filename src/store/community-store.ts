@@ -78,15 +78,21 @@ export const useCommunityStore = create<CommunityState>()((set) => ({
       checked: true,
     });
 
-    // Community default: a member with no personal Claude key gets steered to
-    // Opus 4.8 (the pilot's flagship model) instead of a model that would 403.
+    // Community default: a member with no personal Claude key gets steered off
+    // a model that would 403 — onto the stage-appropriate default (Opus for a
+    // fresh project, Sonnet 5 once it has files).
     const providers = useProviderStore.getState();
     if (
       providers.activeProviderId === 'claude' &&
       !providers.apiKeys['claude'] &&
       !COMMUNITY_MODELS.includes(providers.activeModelId)
     ) {
-      providers.setActiveModel('claude-opus-4-8');
+      const { useProjectStore } = await import('@/store/project-store');
+      providers.setActiveModel(
+        useProjectStore.getState().getFileCount() === 0
+          ? COMMUNITY_FIRST_BUILD_MODEL
+          : COMMUNITY_EDIT_MODEL,
+      );
     }
   },
 
@@ -139,4 +145,32 @@ export async function getCommunitySessionToken(): Promise<string | null> {
 /** Non-React accessor for provider code */
 export function communityAccessActive(): boolean {
   return useCommunityStore.getState().active;
+}
+
+/**
+ * Smart model defaults for free community building: Opus 4.8 does the first
+ * build (vision and architecture are where the best model earns its cost),
+ * Sonnet 5 picks up the edits — faster, and ~5× lighter on the shared budget.
+ *
+ * Only applies when the person is building on the community key AND hasn't
+ * picked a model themselves (the picker pins their choice for the project).
+ * BYOK and other providers are never touched.
+ *
+ * Returns the model to switch to, or null when no change is called for.
+ */
+export const COMMUNITY_FIRST_BUILD_MODEL = 'claude-opus-4-8';
+export const COMMUNITY_EDIT_MODEL = 'claude-sonnet-5';
+
+export function resolveCommunityModelDefault(projectFileCount: number): string | null {
+  const providers = useProviderStore.getState();
+  const autoManaged =
+    useCommunityStore.getState().active &&
+    providers.activeProviderId === 'claude' &&
+    !providers.apiKeys['claude'] &&
+    !providers.modelPinned;
+  if (!autoManaged) return null;
+
+  const desired =
+    projectFileCount === 0 ? COMMUNITY_FIRST_BUILD_MODEL : COMMUNITY_EDIT_MODEL;
+  return providers.activeModelId === desired ? null : desired;
 }

@@ -3,6 +3,7 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 import { builderClient } from '@/cloud/builder-client';
 import { useAuthStore } from '@/store/auth-store';
 import { useProjectStore, type ProjectLineage } from '@/store/project-store';
+import { useProviderStore } from '@/store/provider-store';
 import { useChatStore, type ChatMode, type DisplayMessage } from '@/store/chat-store';
 import { useGitHubStore } from '@/store/github-store';
 import type { FileEntry } from '@/project/virtual-fs';
@@ -192,6 +193,8 @@ export const useCloudStore = create<CloudState>()((set, get) => ({
       syncStatus: 'saved',
       syncError: null,
     });
+    // Model pins are per project — opening a different one gets fresh defaults
+    useProviderStore.getState().clearModelPin();
     subscribeToProject(row.id);
     await get().refreshMembers();
     return { error: null };

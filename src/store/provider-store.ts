@@ -12,9 +12,16 @@ interface ProviderState {
   activeModelId: string;
   apiKeys: ApiKeyConfig;
   availableModels: ModelInfo[];
+  /** True when the person picked the current model themselves (via the model
+   *  picker) for this project — automatic defaults must respect it. Cleared
+   *  whenever a project is cleared or opened. */
+  modelPinned: boolean;
 
   setActiveProvider: (id: string) => void;
   setActiveModel: (id: string) => void;
+  /** A deliberate model choice: sets the model AND pins it for this project */
+  pinModel: (id: string) => void;
+  clearModelPin: () => void;
   setApiKey: (providerId: string, key: string) => void;
   removeApiKey: (providerId: string) => void;
   refreshModels: () => Promise<void>;
@@ -27,6 +34,7 @@ export const useProviderStore = create<ProviderState>()(
       activeModelId: 'claude-opus-4-8',
       apiKeys: {},
       availableModels: [],
+      modelPinned: false,
 
       setActiveProvider: (id: string) => {
         set({ activeProviderId: id });
@@ -42,6 +50,14 @@ export const useProviderStore = create<ProviderState>()(
 
       setActiveModel: (id: string) => {
         set({ activeModelId: id });
+      },
+
+      pinModel: (id: string) => {
+        set({ activeModelId: id, modelPinned: true });
+      },
+
+      clearModelPin: () => {
+        set({ modelPinned: false });
       },
 
       setApiKey: async (providerId: string, key: string) => {
@@ -116,6 +132,8 @@ export const useProviderStore = create<ProviderState>()(
         activeProviderId: state.activeProviderId,
         activeModelId: state.activeModelId,
         apiKeys: state.apiKeys,
+        // Survives reloads mid-project; cleared on project clear/open
+        modelPinned: state.modelPinned,
       }),
     },
   ),
