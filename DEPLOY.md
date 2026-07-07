@@ -65,7 +65,7 @@ Set these as Edge Function secrets (`supabase secrets set KEY=value`):
 
 | Secret | Purpose | Default |
 |---|---|---|
-| `ALLOWED_ORIGINS` | Comma-separated list of allowed browser origins. Unset = allow all (dev). | unset |
+| `ALLOWED_ORIGINS` | Comma-separated list of allowed browser origins. **List every origin the app is served from, including the canonical apex domain** — a missing origin is blocked by CORS. Entries may use a `*` wildcard (e.g. `https://*.vercel.app`) to cover preview deploys. Unset = allow all (dev). | unset |
 | `RATE_LIMIT_PER_MIN` | Best-effort per-IP request cap per minute | `30` |
 | `RTP_MODEL_URL` | Base URL of the RTP-hosted vLLM instance (Tier 1) | `https://api.relationaltech.org` |
 | `ANTHROPIC_COMMUNITY_KEY` | RTP's shared Anthropic key for the community pilot (Tier 3). Never reaches the browser. | unset (community access off) |
@@ -91,7 +91,7 @@ builders, a few sessions a week ≈ $50–200/month total.
 Example:
 
 ```bash
-supabase secrets set ALLOWED_ORIGINS="https://builder.relationaltechproject.org,http://localhost:5173"
+supabase secrets set ALLOWED_ORIGINS="https://relationalbuilder.org,https://*.vercel.app,http://localhost:5173"
 ```
 
 ## 3. Email via Resend (relationalbuilder.org)
