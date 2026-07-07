@@ -4,6 +4,7 @@ import { useStudioStore } from '@/store/studio-store';
 import { fetchPrompts, searchItems } from '@/knowledge/queries';
 import { fetchGalleryLinks, studioSlugsForTool, type GalleryLink } from '@/cloud/gallery-links';
 import { startFromStudioTool } from '@/project/start-from-tool';
+import { NetworkUpdates } from '@/components/StudioUpdates';
 import type { Tool, Prompt } from '@/knowledge/types';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -135,6 +136,10 @@ export function StudioGallery({ onClose }: { onClose: () => void }) {
             </p>
           </div>
         </div>
+
+        {/* The network's life alongside its library — recent shares, publishes,
+            and new members across the studios you belong to. */}
+        <NetworkUpdates />
 
         <div className="flex flex-wrap items-center gap-2">
           <Input

@@ -22,6 +22,7 @@ import { BuilderOnboarding } from '@/components/BuilderOnboarding';
 import { initCloudSync } from '@/cloud/sync';
 import { AccountMenu } from '@/components/AccountMenu';
 import { ProjectsButton, ProjectsPage } from '@/components/ProjectsPage';
+import { ConnectionsButton, ConnectionsPage } from '@/components/ConnectionsPage';
 import { ProjectStatus } from '@/components/ProjectStatus';
 import { StewardPage } from '@/components/StewardPage';
 import { initLocalAutosave, stashAndStartFresh } from '@/project/local-projects';
@@ -112,6 +113,7 @@ function App() {
   const galleryOpen = useUIStore(s => s.galleryOpen);
   const setGalleryOpen = useUIStore(s => s.setGalleryOpen);
   const projectsOpen = useUIStore(s => s.projectsOpen);
+  const connectionsOpen = useUIStore(s => s.connectionsOpen);
   const stewardOpen = useUIStore(s => s.stewardOpen);
   useEffect(() => {
     if (hasProject) setGalleryOpen(false);
@@ -153,10 +155,13 @@ function App() {
             </Button>
           )}
           <ProjectsButton />
+          <ConnectionsButton />
           {hasProject && <PromptDialog />}
           {hasProject && <SharePreview />}
           {hasProject && <PublishDialog />}
-          <GitHubSync />
+          {/* GitHub belongs with the code — surface it once there's a project
+              to sync, not on the home/network screens. */}
+          {hasProject && <GitHubSync />}
           <Separator orientation="vertical" className="h-5" />
           {showStandaloneSettings && <ThemeToggle />}
           <AccountMenu />
@@ -226,10 +231,11 @@ function App() {
               </Button>
             )}
             <ProjectsButton mobile />
+            <ConnectionsButton mobile />
             {hasProject && <PromptDialog />}
             {hasProject && <SharePreview />}
             {hasProject && <PublishDialog />}
-            <GitHubSync />
+            {hasProject && <GitHubSync />}
           </div>
           <div className="flex items-center gap-1.5 pt-1 border-t">
             {showStandaloneSettings && <ThemeToggle />}
@@ -244,6 +250,8 @@ function App() {
       <main className="flex-1 min-h-0">
         {stewardOpen ? (
           <StewardPage />
+        ) : connectionsOpen ? (
+          <ConnectionsPage />
         ) : projectsOpen ? (
           <ProjectsPage />
         ) : !hasProject ? (
