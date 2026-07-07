@@ -15,7 +15,7 @@ Relational Builder combines three things that don't yet exist together:
 ## Features
 
 - **Chat-driven building** -- describe what you want in plain language, get working code
-- **Plan & Build modes** -- Plan mode is a real visioning phase: it grounds the tool in your place and people, weaves in commons examples by name, names the neighboring practices around the tech, and asks one vision-level question at a time before anything gets built. Press "Build this plan" when it feels right — or build directly
+- **Plan & Build modes** -- Plan mode is a real visioning phase that meets the idea where it is: bring a seed of an idea and it explores with you first — reflecting your place back, offering 2–3 distinct directions drawn from the commons by name, gathering the context that actually shapes the build — while a fully-baked ask goes straight to a plan. It grounds the tool in your place and people, names the neighboring practices around the tech, and asks one vision-level question at a time. Press "Build this plan" when it feels right — or build directly
 - **Live progress while you wait** -- long generations show what's actually happening: reaching the model, the AI's own summarized thinking streaming past, files landing as they're written, elapsed time throughout
 - **Builds that finish** -- an output budget sized for real multi-file apps (64k tokens), automatic continuation if a reply is ever cut off mid-file, and a one-tap recovery banner if a reload or dropped connection interrupts a build before its files are saved
 - **Studio build plans** -- paste a Studio share link (or ID) and the plan is fetched as your starting draft, with lineage recorded automatically
