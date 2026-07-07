@@ -4,6 +4,12 @@
 
 An open-source, web-based app builder for relational technology. Users describe what they want to build in natural language; AI generates working code informed by RTP principles and community knowledge.
 
+## Working Agreement (owner's preference)
+
+- **Commit directly to `main`.** No feature branches for routine work.
+- **Commit and push automatically** when a change is complete and verified — don't wait to be asked.
+- These override the default "branch first / ask before pushing" workflow for this repo. Still call out anything genuinely risky or irreversible before doing it.
+
 ## Architecture
 
 ```
