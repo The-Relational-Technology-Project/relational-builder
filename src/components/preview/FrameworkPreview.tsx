@@ -4,11 +4,12 @@ import type { FileEntry } from '@/project/virtual-fs';
 import type { EnvVar } from '@/store/env-store';
 import { buildEnvJs, buildEnvTs } from '@/project/env-module';
 import { bundleProject, findFrameworkEntry } from '@/preview/bundler/bundle';
-import { buildShellHtml, ERROR_RELAY } from '@/preview/bundler/shell';
+import { buildShellHtml, ERROR_RELAY, NAV_BRIDGE } from '@/preview/bundler/shell';
 import { KIT_FILES } from '@/kit';
 import { INSPECT_SOURCE } from '@/preview/inspect-source';
 import { PointAtIt } from './PointAtIt';
 import { FixBanner } from './FixBanner';
+import type { PreviewHandle } from './PreviewToolbar';
 
 /**
  * Preview for framework-shaped projects: real multi-file React apps with
@@ -23,10 +24,13 @@ export function FrameworkPreview({
   files,
   version,
   publicEnvVars,
+  onHandle,
 }: {
   files: FileEntry[];
   version: number;
   publicEnvVars: EnvVar[];
+  /** Registers the toolbar's refresh/open/navigate controls for this engine */
+  onHandle?: (handle: PreviewHandle | null) => void;
 }) {
   const [html, setHtml] = useState<string | null>(null);
   const [buildError, setBuildError] = useState<string | null>(null);
@@ -77,7 +81,7 @@ export function FrameworkPreview({
         buildShellHtml({
           bundle: result,
           indexHtml: vfs['/index.html'],
-          bodyExtra: [`<script>\n${INSPECT_SOURCE}\n</script>`, ERROR_RELAY],
+          bodyExtra: [`<script>\n${INSPECT_SOURCE}\n</script>`, ERROR_RELAY, NAV_BRIDGE],
         }),
       );
     }, 250);
@@ -110,11 +114,34 @@ export function FrameworkPreview({
     };
   }, [html]);
 
+  // Offer the toolbar its controls for this engine
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  useEffect(() => {
+    if (!onHandle || html === null) return;
+    onHandle({
+      refresh: () =>
+        setSrc(URL.createObjectURL(new Blob([html], { type: 'text/html' }))),
+      openExternal: () => {
+        // A fresh URL per open: revoking the iframe's own URL later must not
+        // kill the tab, and vice versa
+        window.open(URL.createObjectURL(new Blob([html], { type: 'text/html' })), '_blank');
+      },
+      navigate: path => {
+        iframeRef.current?.contentWindow?.postMessage(
+          { type: 'rb-navigate', hash: '#' + path },
+          '*',
+        );
+      },
+    });
+    return () => onHandle(null);
+  }, [html, onHandle]);
+
   return (
-    <div className="h-full" style={{ display: 'flex', flexDirection: 'column' }}>
+    <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
       <PointAtIt>
         {src ? (
           <iframe
+            ref={iframeRef}
             src={src}
             title="App preview"
             sandbox="allow-scripts allow-forms allow-modals allow-popups allow-same-origin"

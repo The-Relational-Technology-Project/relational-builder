@@ -77,6 +77,26 @@ export function buildShellHtml(options: ShellOptions): string {
 }
 
 /**
+ * Script injected into live previews (never published): the builder's
+ * navigation bridge. Lets the preview toolbar drive the app's hash routes
+ * and keeps the toolbar's page dropdown in sync when the app navigates
+ * itself.
+ */
+export const NAV_BRIDGE = `<script>
+(function () {
+  window.addEventListener('message', function (e) {
+    var d = e.data;
+    if (d && d.type === 'rb-navigate' && typeof d.hash === 'string') {
+      location.hash = d.hash;
+    }
+  });
+  window.addEventListener('hashchange', function () {
+    try { parent.postMessage({ type: 'rb-hash', hash: location.hash }, '*'); } catch (err) {}
+  });
+})();
+</script>`;
+
+/**
  * Script injected into live previews (never published): forwards runtime
  * errors to the builder so the error banner and the error→AI-fix loop work
  * exactly like they do on the Sandpack path.

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   SandpackProvider,
   SandpackPreview,
@@ -12,9 +12,17 @@ import { buildEnvJs, buildEnvTs } from '@/project/env-module';
 import { INSPECT_SOURCE } from '@/preview/inspect-source';
 import { resolveReactEntry } from '@/preview/react-entry';
 import { detectPreviewKind } from '@/preview/detect';
+import { extractHashRoutes } from '@/preview/routes';
+import { buildStandaloneHtml } from '@/preview/standalone';
 import { FrameworkPreview } from './preview/FrameworkPreview';
 import { PointAtIt } from './preview/PointAtIt';
 import { FixBanner } from './preview/FixBanner';
+import {
+  PreviewToolbar,
+  DeviceFrame,
+  type PreviewDevice,
+  type PreviewHandle,
+} from './preview/PreviewToolbar';
 import { Boxes, Sparkles } from 'lucide-react';
 
 /**
@@ -39,6 +47,41 @@ export function PreviewPanel() {
   const files = getAllFiles();
   const kind = useMemo(() => detectPreviewKind(files), [files]);
 
+  // Toolbar state: device width, engine controls, page tracking
+  const [device, setDevice] = useState<PreviewDevice>('desktop');
+  const [handle, setHandle] = useState<PreviewHandle | null>(null);
+  const [currentRoute, setCurrentRoute] = useState('/');
+  const [reloadKey, setReloadKey] = useState(0);
+  const routes = useMemo(
+    () => (kind === 'framework' ? extractHashRoutes(files) : []),
+    [kind, files],
+  );
+
+  // The app reports its hash routes back (nav bridge) — keeps the page
+  // dropdown honest when the person navigates inside the preview
+  useEffect(() => {
+    function onMessage(e: MessageEvent) {
+      if (e.data?.type === 'rb-hash' && typeof e.data.hash === 'string') {
+        setCurrentRoute(e.data.hash.replace(/^#/, '') || '/');
+      }
+    }
+    window.addEventListener('message', onMessage);
+    return () => window.removeEventListener('message', onMessage);
+  }, []);
+
+  // Controls for the Sandpack engine, owned here (remount = refresh; a
+  // static app opens in a tab as one self-contained document)
+  const sandpackHandle = useMemo<PreviewHandle>(() => ({
+    refresh: () => setReloadKey(k => k + 1),
+    openExternal: files.some(f => f.path.replace(/^\//, '') === 'index.html')
+      ? () => {
+          const html = buildStandaloneHtml(files);
+          if (html) window.open(URL.createObjectURL(new Blob([html], { type: 'text/html' })), '_blank');
+        }
+      : null,
+    navigate: null,
+  }), [files]);
+
   if (files.length === 0) {
     return (
       <div className="flex items-center justify-center h-full text-muted-foreground text-sm text-center px-4">
@@ -56,13 +99,34 @@ export function PreviewPanel() {
     return <ServerAppNotice fileCount={files.length} />;
   }
 
-  if (kind === 'framework') {
-    return (
-      <FrameworkPreview files={files} version={version} publicEnvVars={publicEnvVars} />
-    );
-  }
-
-  return <SandpackPath files={files} version={version} publicEnvVars={publicEnvVars} />;
+  return (
+    <div className="h-full" style={{ display: 'flex', flexDirection: 'column' }}>
+      <PreviewToolbar
+        device={device}
+        onDevice={setDevice}
+        routes={routes}
+        currentRoute={currentRoute}
+        handle={kind === 'framework' ? handle : sandpackHandle}
+      />
+      <DeviceFrame device={device}>
+        {kind === 'framework' ? (
+          <FrameworkPreview
+            files={files}
+            version={version}
+            publicEnvVars={publicEnvVars}
+            onHandle={setHandle}
+          />
+        ) : (
+          <SandpackPath
+            key={`reload-${reloadKey}`}
+            files={files}
+            version={version}
+            publicEnvVars={publicEnvVars}
+          />
+        )}
+      </DeviceFrame>
+    </div>
+  );
 }
 
 /** The original instant path for simple tools, unchanged in behavior. */
@@ -165,7 +229,7 @@ function SandpackPath({
   }, [files, publicEnvVars]);
 
   return (
-    <div className="h-full" style={{ display: 'flex', flexDirection: 'column' }}>
+    <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
       <SandpackProvider
         // Remount on file-system changes: SandpackProvider holds stale error
         // state when the files prop changes underneath it (e.g. on restore)

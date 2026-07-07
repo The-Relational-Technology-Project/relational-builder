@@ -166,7 +166,10 @@ export function PublishDialog() {
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogTrigger
         className={cn(
-          "inline-flex items-center justify-center gap-1 rounded-md px-3 h-7 text-xs font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
+          // The one header action that makes the tool REAL — it reads as the
+          // primary CTA, not another nav item
+          "inline-flex items-center justify-center gap-1 rounded-full px-3.5 h-7 text-xs font-semibold transition-colors",
+          "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90",
           fileCount === 0 && "opacity-50 pointer-events-none"
         )}
         disabled={fileCount === 0}
