@@ -31,7 +31,13 @@ Chat/Builder Panel  |  Preview Sandbox (iframe)  |  RTP Knowledge Base Panel
 - **UI:** Tailwind CSS v4 + shadcn/ui
 - **State:** Zustand (persisted to localStorage)
 - **Database:** Supabase (Postgres) — shared with RTS Studio
-- **Preview:** WebContainer API or esbuild-wasm (TBD)
+- **Preview:** two engines, routed by project shape (`src/preview/detect.ts`):
+  - *Framework apps* (`@/` aliases, vite config, `/src/main.*`) — in-browser
+    esbuild-wasm bundler (`src/preview/bundler/`): bare imports pinned to esm.sh
+    via an import map, CSS collected for Tailwind v4's browser JIT (`@theme`
+    token blocks compile), blob-URL iframe. The same bundle+shell powers publish
+    builds (`src/project/build-for-publish.ts`), so preview output ≡ deployed output.
+  - *Simple tools* (single-file HTML/JS, plain React) — Sandpack, instant.
 - **Models:** Three-tier provider system
   - Tier 1: RTP-hosted open-source model (free default, no API key)
   - Tier 2: BYOK cloud models (Claude, OpenAI, OpenRouter)
@@ -41,7 +47,13 @@ Chat/Builder Panel  |  Preview Sandbox (iframe)  |  RTP Knowledge Base Panel
 
 - `src/providers/` — LLM provider abstraction (types, OpenAI-compatible, Claude, registry)
 - `src/store/` — Zustand stores (provider config, chat state, project state)
-- `src/project/` — Virtual file system and code extractor
+- `src/project/` — Virtual file system, code extractor, publish builds
+- `src/preview/` — preview engines: kind detection, esbuild-wasm bundler, inspector
+- `src/kit/` — the RB component kit: shadcn-aligned sources (`files/` mirrors a
+  generated project's `/src`) merged under the project VFS at bundle time and
+  materialized into exports/repos via `withKitFiles()`. The theme contract lives
+  in `src/kit/theme.ts` and is embedded into the system prompt — change either
+  and prompt, preview, and exported scaffolds all follow
 - `src/knowledge/` — Supabase client, RTP principles, context builder, queries
 - `src/components/` — React components (UI lives here)
 - `src/components/Chat/` — Chat interface (panel, messages, input, code blocks)
