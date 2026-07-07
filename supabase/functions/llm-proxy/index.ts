@@ -20,27 +20,50 @@
  */
 
 // Restrict CORS in production by setting ALLOWED_ORIGINS as a comma-separated
-// list of origins (e.g. "https://builder.relationaltechproject.org,http://localhost:5173").
-// Unset = allow all (development default).
+// list of origins. List every origin the app is served from, including the
+// canonical apex domain (e.g.
+// "https://relationalbuilder.org,https://relational-builder.vercel.app,http://localhost:5173").
+// Entries may contain a "*" wildcard to cover preview deploys
+// (e.g. "https://*.vercel.app"). Unset = allow all (development default).
 const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') ?? '')
   .split(',')
   .map((s) => s.trim())
   .filter(Boolean);
 
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// An origin is allowed if it matches an allowlist entry exactly, or matches a
+// wildcard entry where "*" stands in for any run of characters.
+function originAllowed(origin: string): boolean {
+  return ALLOWED_ORIGINS.some((allowed) => {
+    if (!allowed.includes('*')) return allowed === origin;
+    const pattern = new RegExp(
+      '^' + allowed.split('*').map(escapeRegExp).join('.*') + '$',
+    );
+    return pattern.test(origin);
+  });
+}
+
 function corsHeaders(req: Request): Record<string, string> {
   const origin = req.headers.get('Origin') ?? '';
-  const allowOrigin =
-    ALLOWED_ORIGINS.length === 0
-      ? '*'
-      : ALLOWED_ORIGINS.includes(origin)
-        ? origin
-        : ALLOWED_ORIGINS[0];
-  return {
-    'Access-Control-Allow-Origin': allowOrigin,
+  const headers: Record<string, string> = {
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-llm-provider, x-community-token',
     Vary: 'Origin',
   };
+  if (ALLOWED_ORIGINS.length === 0) {
+    // Development default: reflect all origins.
+    headers['Access-Control-Allow-Origin'] = '*';
+  } else if (origin && originAllowed(origin)) {
+    headers['Access-Control-Allow-Origin'] = origin;
+  }
+  // A disallowed origin gets no Access-Control-Allow-Origin header at all, so
+  // the browser blocks it with a clear "no 'Access-Control-Allow-Origin'
+  // header is present" error — rather than a misleading mismatch against some
+  // other allowed origin, which is easy to misread as a server bug.
+  return headers;
 }
 
 // Best-effort per-IP rate limit (per warm isolate). A determined abuser can
