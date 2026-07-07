@@ -2,10 +2,8 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { useAuthStore, cloudEnabled } from '@/store/auth-store';
 import { useCloudStore } from '@/store/cloud-store';
 import { useCommunityStore } from '@/store/community-store';
-import { NetworkUpdates } from '@/components/StudioUpdates';
 import { StartFromOptions } from '@/components/StartFromMenu';
 import { DesignSystemDialog } from '@/components/DesignSystemDialog';
-import { BuildersDirectory } from '@/components/BuildersDirectory';
 import { Palette, Sparkles } from 'lucide-react';
 
 interface HomeDashboardProps {
@@ -66,11 +64,7 @@ function SignedInDashboard({ composer }: HomeDashboardProps) {
           <StartFromOptions />
         </div>
 
-        <NetworkUpdates />
-
         <StyleNudge projectCount={projects.length} />
-
-        <BuildersDirectory />
       </div>
     </div>
   );

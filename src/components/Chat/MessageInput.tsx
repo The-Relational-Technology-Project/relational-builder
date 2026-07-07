@@ -246,8 +246,8 @@ export function MessageInput({
           }
           disabled={disabled}
           rows={hero ? 3 : 2}
-          className={`block w-full resize-none bg-transparent outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed ${
-            hero ? 'px-4 pt-4 pb-1 text-base min-h-[88px]' : 'px-3.5 pt-3 pb-1 text-sm min-h-[64px]'
+          className={`block w-full resize-none bg-transparent outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed text-sm ${
+            hero ? 'px-4 pt-4 pb-1 min-h-[80px]' : 'px-3.5 pt-3 pb-1 min-h-[64px]'
           }`}
         />
         <div className="flex items-center gap-1 px-2 pb-2 min-w-0">
@@ -343,19 +343,6 @@ export function MessageInput({
           </div>
         </div>
       </div>
-
-      {hero && attachments.length === 0 && (
-        <p className="mt-2 text-center text-xs text-muted-foreground">
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={disabled}
-            className="underline decoration-dotted underline-offset-2 hover:text-foreground"
-          >
-            Add an image to shape the design
-          </button>
-          {' '}— a screenshot you love, local art, a photo of your place, a mood board.
-        </p>
-      )}
     </div>
   );
 }
