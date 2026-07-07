@@ -22,7 +22,8 @@ import { BuilderOnboarding } from '@/components/BuilderOnboarding';
 import { initCloudSync } from '@/cloud/sync';
 import { AccountMenu } from '@/components/AccountMenu';
 import { ProjectsButton, ProjectsPage } from '@/components/ProjectsPage';
-import { CloudStatus } from '@/components/CloudStatus';
+import { ProjectStatus } from '@/components/ProjectStatus';
+import { initLocalAutosave, stashAndStartFresh } from '@/project/local-projects';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { RBMark } from '@/components/RBMark';
 
@@ -58,6 +59,7 @@ function App() {
     initCloudSync();
     useCommunityStore.getState().init();
     useStudioStore.getState().init();
+    initLocalAutosave();
     // Shared build prompts arrive by link, ready to send
     import('@/cloud/prompts').then(m => m.handlePromptDeepLink()).catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -68,6 +70,9 @@ function App() {
 
   const setProjectsOpen = useUIStore(s => s.setProjectsOpen);
   const handleNewProject = useCallback(() => {
+    // Never destructive: the current work is stashed on the local shelf
+    // (cloud projects are already saved in the cloud) before anything clears
+    stashAndStartFresh();
     closeCloudProject();
     clearMessages();
     clearProject();
@@ -127,7 +132,7 @@ function App() {
           </div>
           <Separator orientation="vertical" className="h-5" />
           <StudioSwitcher />
-          <CloudStatus />
+          <ProjectStatus />
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" onClick={handleNewProject}>

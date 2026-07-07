@@ -6,8 +6,15 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { Cloud, FolderOpen, Trash2, UserPlus, X, Loader2, Users } from 'lucide-react';
+import { Cloud, FolderOpen, Trash2, UserPlus, X, Loader2, Users, HardDrive } from 'lucide-react';
 import { suggestProjectName } from '@/project/suggest-name';
+import {
+  useLocalProjects,
+  openLocalProject,
+  deleteLocalProject,
+  saveCurrentLocally,
+  detachLocalTracking,
+} from '@/project/local-projects';
 import { YourPrompts } from '@/components/YourPrompts';
 import { YourSites } from '@/components/YourSites';
 import { listMyPrompts, type BuildPrompt } from '@/cloud/prompts';
@@ -19,7 +26,8 @@ import { listMyPrompts, type BuildPrompt } from '@/cloud/prompts';
 export function ProjectsButton({ mobile }: { mobile?: boolean }) {
   const projectsOpen = useUIStore(s => s.projectsOpen);
   const setProjectsOpen = useUIStore(s => s.setProjectsOpen);
-  if (!cloudEnabled) return null;
+  // Not cloud-gated: the local shelf means everyone has projects to come
+  // back to, signed in or not
   return (
     <button
       onClick={() => setProjectsOpen(!projectsOpen)}
@@ -99,9 +107,13 @@ export function ProjectsPage() {
           </Button>
         </div>
 
+        <LocalShelf onOpened={close} />
+
         {!user ? (
           <p className="text-sm text-muted-foreground">
-            Sign in (top right) to save projects to the cloud and invite collaborators.
+            {cloudEnabled
+              ? 'Sign in (top right) to also save projects to the cloud and invite collaborators.'
+              : 'Projects save on this device automatically as you build.'}
           </p>
         ) : (
           <>
@@ -249,6 +261,10 @@ export function ProjectsPage() {
                           disabled={p.id === currentProjectId || busy === `open-${p.id}`}
                           onClick={() =>
                             run(`open-${p.id}`, async () => {
+                              // The work being replaced goes to the local
+                              // shelf first — opening is never destructive
+                              saveCurrentLocally();
+                              detachLocalTracking();
                               const r = await openProject(p.id);
                               if (!r || !r.error) close();
                               return r;
@@ -304,5 +320,70 @@ export function ProjectsPage() {
         )}
       </div>
     </div>
+  );
+}
+
+/**
+ * Projects saved on this device — the always-on safety net. Every project
+ * autosaves here as you build (signed in or not); "New Project" stashes
+ * the current one rather than destroying it.
+ */
+function LocalShelf({ onOpened }: { onOpened: () => void }) {
+  const shelf = useLocalProjects(s => s.shelf);
+  const currentId = useLocalProjects(s => s.currentId);
+  if (shelf.length === 0) return null;
+
+  return (
+    <section className="space-y-3">
+      <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+        <HardDrive className="size-3.5" />
+        On this device
+      </h2>
+      <div className="grid gap-2.5 sm:grid-cols-2">
+        {shelf.map(p => (
+          <div key={p.id} className="flex items-center justify-between gap-2 border rounded-lg px-3.5 py-3">
+            <div className="min-w-0">
+              <div className="truncate font-medium text-sm">
+                {p.name}
+                {p.id === currentId && (
+                  <Badge variant="secondary" className="ml-2 text-xs">Open now</Badge>
+                )}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {p.fileCount} file{p.fileCount === 1 ? '' : 's'} · saved{' '}
+                {new Date(p.updatedAt).toLocaleString(undefined, {
+                  month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
+                })}
+              </div>
+            </div>
+            <div className="flex items-center gap-1 shrink-0">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 gap-1 text-xs"
+                disabled={p.id === currentId}
+                onClick={() => {
+                  if (openLocalProject(p.id)) onOpened();
+                }}
+              >
+                <FolderOpen className="size-3" />
+                Open
+              </Button>
+              <button
+                onClick={() => {
+                  if (window.confirm(`Delete "${p.name}" from this device? This can't be undone.`)) {
+                    deleteLocalProject(p.id);
+                  }
+                }}
+                className="text-muted-foreground hover:text-destructive p-1"
+                title="Delete from this device"
+              >
+                <Trash2 className="size-3.5" />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
