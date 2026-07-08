@@ -43,9 +43,18 @@ supabase secrets set COMMUNITY_MODELS="claude-opus-4-8,claude-sonnet-5,claude-ha
 
 ## 3. Auth settings via the Management API (required)
 
-Three settings in one PATCH: magic-link email must include the 6-digit
-code (the new code-entry UI depends on it), the email send rate must
-survive 56 sign-ins in ~45 minutes, and signups must be open.
+Settings to PATCH: the email templates must include the 6-digit code (the
+new code-entry UI depends on it), the email send rate must survive 56
+sign-ins in ~45 minutes, and signups must be open.
+
+**Both** email templates need the code, not just Magic Link. Supabase
+sends the **Confirm signup** template (`mailer_templates_confirmation_content`)
+to brand-new emails and Magic Link (`mailer_templates_magic_link_content`)
+only to returning ones — at an event nearly everyone is new, so the
+Confirmation template is the critical one. Also set `mailer_otp_length: 6`
+to match the UI's "6-digit" copy (it defaults/drifted to 8 here).
+`verifyOtp({type:'email'})` accepts the signup code either way — verified
+end to end.
 
 First GET the current config and inspect the existing magic-link template
 so you edit rather than clobber it (field names can drift between API
