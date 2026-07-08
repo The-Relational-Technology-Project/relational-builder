@@ -269,7 +269,7 @@ export function MessageInput({
               onClick={() => fileInputRef.current?.click()}
               disabled={disabled || attachments.length >= MAX_ATTACHMENTS}
               title="Screenshots, local art, a photo of your place, a mood board — visuals shape the design"
-              className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground rounded-full px-3"
+              className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground rounded-full px-3 shrink-0"
             >
               <ImagePlus className="size-4" />
               <span className="hidden sm:inline">Add an image</span>
@@ -287,7 +287,7 @@ export function MessageInput({
             </Button>
           )}
           {onModeChange && (
-            <div className="inline-flex rounded-full border p-0.5 gap-0.5 ml-0.5" role="group" aria-label="Chat mode">
+            <div className="inline-flex shrink-0 rounded-full border p-0.5 gap-0.5 ml-0.5" role="group" aria-label="Chat mode">
               <button
                 type="button"
                 onClick={() => onModeChange('plan')}
@@ -317,15 +317,16 @@ export function MessageInput({
             </div>
           )}
           <div className="ml-auto flex items-center gap-1 min-w-0">
-            {/* Model choice lives here, with the conversation — not in the main nav */}
-            <ModelSelector className="h-8 max-w-[150px] gap-1 border-none bg-transparent px-2 text-xs text-muted-foreground shadow-none hover:text-foreground" />
+            {/* Model choice lives here, with the conversation — not in the main nav.
+                Tighter cap on phones so the send button always stays on-screen. */}
+            <ModelSelector className="h-8 min-w-0 max-w-[116px] sm:max-w-[150px] gap-1 border-none bg-transparent px-2 text-xs text-muted-foreground shadow-none hover:text-foreground" />
             {isGenerating ? (
               <Button
                 size="icon"
                 variant="outline"
                 onClick={onStop}
                 title="Stop generating"
-                className="size-8 rounded-full"
+                className="size-8 shrink-0 rounded-full"
               >
                 <Square className="size-3.5" />
               </Button>
@@ -335,7 +336,7 @@ export function MessageInput({
                 onClick={handleSubmit}
                 disabled={(!input.trim() && attachments.length === 0) || disabled}
                 title="Send (Enter)"
-                className="size-8 rounded-full"
+                className="size-8 shrink-0 rounded-full"
               >
                 <SendHorizontal className="size-4" />
               </Button>

@@ -402,15 +402,17 @@ export function ChatPanel() {
   const signInIsTheDoor = !!needsKey && cloudEnabled && !authUser;
 
   const needsKeyHint = signInIsTheDoor ? (
-    <p className="text-xs text-center text-muted-foreground">
-      <button
+    <div className="flex flex-col items-center gap-2">
+      <Button
         onClick={() => useAuthStore.getState().promptSignIn()}
-        className="font-medium text-primary hover:underline"
+        className="h-11 rounded-full px-8 text-sm font-semibold w-full sm:w-auto"
       >
-        Sign in
-      </button>
-      {' '}to start building — free building is part of your invitation
-    </p>
+        Sign in to start building
+      </Button>
+      <p className="text-xs text-center text-muted-foreground">
+        Free building is part of your invitation
+      </p>
+    </div>
   ) : needsKey ? (
     <p className="text-xs text-center text-muted-foreground">
       Add your API key in Settings to start building
