@@ -98,9 +98,16 @@ export function StudioGallery({ onClose }: { onClose: () => void }) {
       category === 'all' ? tools
       : category === 'mine' ? tools.filter(t => badgesFor(t).length > 0)
       : tools.filter(t => t.tool_category === category);
-    // Your studios' tools surface first — the gallery greets you with your own
+    // Relational tech leads, tech-for-building trails, uncategorized between
+    const catRank = (t: Tool) =>
+      t.tool_category === 'relational_tech' ? 0
+      : t.tool_category === 'tech_for_building' ? 2
+      : 1;
+    // Your studios' tools surface first, then relational tech before tech for building
     return [...searchItems(byCat, query)].sort(
-      (a, b) => Number(badgesFor(b).length > 0) - Number(badgesFor(a).length > 0),
+      (a, b) =>
+        Number(badgesFor(b).length > 0) - Number(badgesFor(a).length > 0) ||
+        catRank(a) - catRank(b),
     );
   }, [tools, query, category, badgesFor]);
 
