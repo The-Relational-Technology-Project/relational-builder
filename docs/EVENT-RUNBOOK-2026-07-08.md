@@ -38,11 +38,18 @@ supabase functions deploy enroll-community --no-verify-jwt  # multi-code support
 
 **3. Supabase Auth dashboard** (project `texakzqqenzpxawktbgx`):
 
-- **Magic-link email template** (Authentication → Emails → Magic Link):
-  make sure the body includes the 6-digit code, e.g. add
-  `<p>Or type this code: {{ .Token }}</p>`. **The new code-entry box is
-  only useful if the email actually shows the code.** Keep the link too —
-  both work.
+- **BOTH email templates must carry the code** (Authentication → Emails).
+  Supabase sends the **Confirm signup** template to *brand-new* emails and
+  the **Magic Link** template only to returning ones — so for an event
+  (almost everyone is new) the Confirmation template is the one that
+  matters most. Edit **both** to include the code, e.g. add
+  `<p>Or type this code: {{ .Token }}</p>`, keeping the link too. **The
+  code-entry box is only useful if the email actually shows the code** —
+  and it silently won't if you only fix Magic Link.
+- **OTP length = 6** (Authentication → Sign In / Up, or config
+  `mailer_otp_length`). The app's code box and all the copy say "6-digit";
+  if this is 8 the email and the UI disagree. `verifyOtp({type:'email'})`
+  accepts the signup-confirmation code regardless — verified end to end.
 - **Email rate limit** (Authentication → Rate Limits): raise "emails sent
   per hour" to **≥200** for the evening — 56 people signing in between
   6:15 and 7:00 will blow through a default of 30/hr. (SMTP is already
