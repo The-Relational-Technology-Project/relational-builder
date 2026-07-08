@@ -11,8 +11,8 @@ the running app — no mockups.
 ```bash
 # from the repo root
 VITE_ACCESS_CODE=6767 npm run dev -- --port 5199 --strictPort
-# then, with playwright-core installed anywhere:
-node docs/brief/capture-screenshots.mjs
+npm i --no-save playwright-core   # once per checkout; stays out of package.json
+node docs/brief/capture-screenshots.mjs           # ONLY=workspace re-shoots a subset
 ```
 
 The capture script stages local state (a demo Alma Street Tool Library project,

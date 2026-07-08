@@ -21,28 +21,44 @@ const OUT = new URL('./images/', import.meta.url).pathname;
 const APP = process.env.APP_URL ?? 'http://localhost:5199/';
 const CHROMIUM = process.env.CHROMIUM ?? '/opt/pw-browsers/chromium';
 
+const indexHtml = `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Alma Street Tool Library</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>`;
+
 const indexCss = `@import "tailwindcss";
 
 :root {
   /* Vary these values per project — never the names */
-  --background: #faf5ec;
-  --foreground: #292018;
-  --card: #fffdf8;
-  --card-foreground: #292018;
-  --primary: #b4552d;
-  --primary-foreground: #fdf3ec;
-  --secondary: #efe6d6;
-  --secondary-foreground: #4a3a2c;
-  --muted: #f2ebdd;
-  --muted-foreground: #85715c;
-  --accent: #3d6b4f;
-  --accent-foreground: #f0f7f1;
-  --destructive: #b91c1c;
-  --destructive-foreground: #fef2f2;
-  --border: #e8ddc9;
-  --input: #d9ccb4;
-  --ring: #b4552d;
-  --radius: 0.75rem;
+  --background: #faf7ee;
+  --foreground: #24301f;
+  --card: #fffdf6;
+  --card-foreground: #24301f;
+  --primary: #2f5d3a;
+  --primary-foreground: #f3f8ef;
+  --secondary: #eee8d6;
+  --secondary-foreground: #47523c;
+  --muted: #f2edde;
+  --muted-foreground: #7d7a66;
+  --accent: #e0a028;
+  --accent-foreground: #3a2c07;
+  --destructive: #b34324;
+  --destructive-foreground: #fdf1ec;
+  --border: #e6dfc8;
+  --input: #d8d0b4;
+  --ring: #2f5d3a;
+  --radius: 1rem;
 }
 
 @theme inline {
@@ -68,13 +84,21 @@ const indexCss = `@import "tailwindcss";
 body {
   background: var(--background);
   color: var(--foreground);
+  font-family: 'Nunito Sans', system-ui, sans-serif;
+}
+
+.font-display {
+  font-family: 'Young Serif', Georgia, serif;
 }`;
 
-const appTsx = `import { useState } from 'react';
+const appTsx = `import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+type Category = 'Yard' | 'Kitchen' | 'Fix-it' | 'Party';
 
 interface Item {
   id: number;
@@ -82,29 +106,50 @@ interface Item {
   lender: string;
   door: string;
   note?: string;
+  category: Category;
   status: 'available' | 'borrowed';
   statusNote?: string;
 }
 
 const seed: Item[] = [
-  { id: 1, name: '6-foot ladder', lender: 'Rosa', door: '#214', note: '"just knock"', status: 'available' },
-  { id: 2, name: 'Stand mixer', lender: 'Devon', door: '#208', status: 'borrowed', statusNote: 'back Friday' },
-  { id: 3, name: 'Folding tables (3)', lender: 'Marcus', door: '#202', note: 'great for block parties', status: 'available' },
-  { id: 4, name: 'Pressure washer', lender: 'Nia', door: '#221', note: 'weekends only', status: 'available' },
+  { id: 1, name: '6-foot ladder', lender: 'Rosa', door: '#214', note: '"just knock"', category: 'Fix-it', status: 'available' },
+  { id: 2, name: 'Stand mixer', lender: 'Devon', door: '#208', category: 'Kitchen', status: 'borrowed', statusNote: 'back Friday' },
+  { id: 3, name: 'Folding tables (3)', lender: 'Marcus', door: '#202', note: 'great for block parties', category: 'Party', status: 'available' },
+  { id: 4, name: 'Pressure washer', lender: 'Nia', door: '#221', note: 'weekends only', category: 'Yard', status: 'available' },
+  { id: 5, name: 'Tamale steamer', lender: 'Lupe', door: '#217', note: 'fits 5 dozen', category: 'Kitchen', status: 'available' },
+  { id: 6, name: 'Hedge trimmer', lender: 'Sam', door: '#211', category: 'Yard', status: 'borrowed', statusNote: 'back Sunday' },
+  { id: 7, name: 'Projector + screen', lender: 'Amara', door: '#205', note: 'movie nights!', category: 'Party', status: 'available' },
+  { id: 8, name: 'Stud finder & drill', lender: 'Theo', door: '#219', category: 'Fix-it', status: 'available' },
 ];
+
+const wanted = [
+  { id: 1, name: 'Sewing machine', who: 'Priya', door: '#206', note: 'hemming curtains, any weekend' },
+  { id: 2, name: 'Wheelbarrow', who: 'Jules', door: '#224', note: 'moving compost to the corner garden' },
+];
+
+const CATEGORIES: Array<'All' | Category> = ['All', 'Yard', 'Kitchen', 'Fix-it', 'Party'];
+
+const catStyles: Record<Category, string> = {
+  Yard: 'bg-primary/10 text-primary',
+  Kitchen: 'bg-accent/20 text-accent-foreground',
+  'Fix-it': 'bg-secondary text-secondary-foreground',
+  Party: 'bg-destructive/10 text-destructive',
+};
 
 export default function App() {
   const [items, setItems] = useState(seed);
-  const [draft, setDraft] = useState('');
+  const [query, setQuery] = useState('');
+  const [category, setCategory] = useState<'All' | Category>('All');
 
-  const households = new Set(items.map(i => i.door)).size + 10;
+  const households = new Set(items.map(i => i.door)).size + 8;
 
-  function share() {
-    const name = draft.trim();
-    if (!name) return;
-    setItems([{ id: Date.now(), name, lender: 'You', door: '#—', status: 'available' }, ...items]);
-    setDraft('');
-  }
+  const visible = useMemo(
+    () => items.filter(i =>
+      (category === 'All' || i.category === category) &&
+      i.name.toLowerCase().includes(query.toLowerCase())
+    ),
+    [items, query, category],
+  );
 
   function toggle(id: number) {
     setItems(items.map(i => i.id === id
@@ -114,53 +159,114 @@ export default function App() {
 
   return (
     <div className="min-h-screen">
-      <header className="bg-primary text-primary-foreground px-6 py-8 text-center">
-        <h1 className="font-serif text-3xl font-semibold tracking-tight">Alma Street Tool Library</h1>
-        <p className="mt-1 text-sm opacity-90">Borrow before you buy — {households} households sharing so far</p>
+      <header className="bg-primary text-primary-foreground px-6 pt-10 pb-8 text-center">
+        <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-primary-foreground/70">Borrow before you buy</p>
+        <h1 className="font-display text-4xl mt-2">Alma Street Tool Library</h1>
+        <p className="mt-3 text-sm text-primary-foreground/85">
+          {items.length} things shared · {households} households · 41 borrows this spring
+        </p>
       </header>
 
-      <main className="mx-auto max-w-xl px-4 py-6 space-y-5">
-        <div className="flex gap-2">
-          <Input
-            value={draft}
-            onChange={e => setDraft(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && share()}
-            placeholder="What can you lend? e.g. 6-foot ladder"
-            className="bg-card"
-          />
-          <Button onClick={share} className="bg-accent text-accent-foreground hover:bg-accent/90 shrink-0">
-            Share it
-          </Button>
-        </div>
+      <main className="mx-auto max-w-3xl px-4 py-6">
+        <Tabs defaultValue="borrow">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <TabsList>
+              <TabsTrigger value="borrow">Borrow</TabsTrigger>
+              <TabsTrigger value="wanted">Wanted</TabsTrigger>
+              <TabsTrigger value="rules">How it works</TabsTrigger>
+            </TabsList>
+            <Button className="bg-accent text-accent-foreground hover:bg-accent/90">＋ Share something</Button>
+          </div>
 
-        <div className="space-y-3">
-          {items.map(item => (
-            <Card key={item.id} className="py-0">
-              <CardContent className="flex items-center gap-3 p-4">
-                <span className={item.status === 'available' ? 'size-2.5 rounded-full bg-accent shrink-0' : 'size-2.5 rounded-full bg-primary/50 shrink-0'} />
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium leading-tight">{item.name}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {item.lender} · {item.door}{item.note ? ' · ' + item.note : ''}
-                  </p>
-                </div>
-                <Badge
-                  onClick={() => toggle(item.id)}
-                  className={item.status === 'available'
-                    ? 'cursor-pointer bg-accent/15 text-accent border-accent/30'
-                    : 'cursor-pointer bg-secondary text-secondary-foreground'}
-                  variant="outline"
-                >
-                  {item.statusNote ?? item.status}
-                </Badge>
+          <TabsContent value="borrow" className="mt-4 space-y-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <Input
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                placeholder="Search the shelf…"
+                className="bg-card max-w-56"
+              />
+              <div className="flex gap-1.5">
+                {CATEGORIES.map(c => (
+                  <button
+                    key={c}
+                    onClick={() => setCategory(c)}
+                    className={
+                      'rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ' +
+                      (category === c
+                        ? 'border-primary bg-primary text-primary-foreground'
+                        : 'border-border bg-card text-muted-foreground hover:border-primary/40')
+                    }
+                  >
+                    {c}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              {visible.map(item => (
+                <Card key={item.id} className="py-0">
+                  <CardContent className="flex items-start gap-3 p-4">
+                    <div className="font-display grid size-10 shrink-0 place-items-center rounded-full bg-secondary text-base text-secondary-foreground">
+                      {item.lender[0]}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold leading-tight">{item.name}</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {item.lender} · {item.door}{item.note ? ' · ' + item.note : ''}
+                      </p>
+                      <span className={'mt-2 inline-block rounded-full px-2 py-0.5 text-[10px] font-bold ' + catStyles[item.category]}>
+                        {item.category}
+                      </span>
+                    </div>
+                    <Badge
+                      onClick={() => toggle(item.id)}
+                      variant="outline"
+                      className={item.status === 'available'
+                        ? 'cursor-pointer border-primary/30 bg-primary/10 text-primary'
+                        : 'cursor-pointer border-accent/40 bg-accent/15 text-accent-foreground'}
+                    >
+                      {item.statusNote ?? item.status}
+                    </Badge>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            {visible.length === 0 && (
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                Nothing on the shelf matches yet — maybe yours is the first?
+              </p>
+            )}
+            <p className="text-center text-xs text-muted-foreground">
+              One tap on a tag marks it borrowed or returned. Door numbers, not accounts.
+            </p>
+          </TabsContent>
+
+          <TabsContent value="wanted" className="mt-4 space-y-3">
+            {wanted.map(w => (
+              <Card key={w.id} className="py-0">
+                <CardContent className="flex items-center gap-3 p-4">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold leading-tight">{w.name}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">{w.who} · {w.door} · {w.note}</p>
+                  </div>
+                  <Button size="sm" variant="outline">I have one</Button>
+                </CardContent>
+              </Card>
+            ))}
+          </TabsContent>
+
+          <TabsContent value="rules" className="mt-4">
+            <Card className="py-0">
+              <CardContent className="space-y-2 p-5 text-sm leading-relaxed">
+                <p><b>1.</b> Knock, don't ghost — the point is meeting the neighbor, not just getting the ladder.</p>
+                <p><b>2.</b> Bring it back how you found it (or cleaner).</p>
+                <p><b>3.</b> Broke it? Say so — we'll figure it out together. Nobody keeps score.</p>
               </CardContent>
             </Card>
-          ))}
-        </div>
-
-        <p className="text-center text-xs text-muted-foreground">
-          One tap on a tag marks it borrowed or returned. Door numbers, not accounts.
-        </p>
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
@@ -184,6 +290,7 @@ const now = eve.getTime();
 
 const fe = (path, content, language) => ({ path, content, language, createdAt: now, updatedAt: now });
 const projectFiles = [
+  fe('/index.html', indexHtml, 'html'),
   fe('/src/main.tsx', mainTsx, 'tsx'),
   fe('/src/App.tsx', appTsx, 'tsx'),
   fe('/src/index.css', indexCss, 'css'),
@@ -203,10 +310,11 @@ const chatMessages = [
       'Love this — a lending board is classic relational tech: the ladder is the excuse, the knock on the door is the point.',
       '',
       '**What changed**',
-      '- A warm, single-page board: post what you can lend, one tap to mark it borrowed or returned',
-      '- Door numbers, not accounts — neighbors just say who they are',
+      '- A full lending shelf with **Borrow**, **Wanted**, and **How it works** tabs — post what you can lend, and one tap on a tag marks it borrowed or returned',
+      '- Search and category chips (Yard, Kitchen, Fix-it, Party) so the shelf stays findable as it grows; door numbers instead of accounts',
+      "- The look draws from Alma Street's garden gates: deep green and butter cream with a marigold accent, Young Serif on the headboard",
       '',
-      'Try adding your ladder — then we could add a "wanted" list, or print a flyer for the corkboard so the whole block knows.',
+      'Try adding your ladder. When it feels right, the **Cloud** tab gives the shelf shared storage so every household sees the same list — then **Publish** puts it on the block.',
     ].join('\n'),
     timestamp: now - 30_000,
   },
@@ -251,7 +359,11 @@ async function bridge(ctx) {
 
 const browser = await chromium.launch({ executablePath: CHROMIUM });
 
+// ONLY=workspace (comma-separated) re-shoots a subset
+const only = process.env.ONLY?.split(',').map(s => s.trim());
+
 async function shoot(label, { width, height }, prepare) {
+  if (only && !only.includes(label)) return;
   const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: 2, colorScheme: 'light' });
   await bridge(ctx);
   const page = await ctx.newPage();

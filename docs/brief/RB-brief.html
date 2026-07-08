@@ -50,7 +50,7 @@
     height: 11in;
     background: var(--cream);
     margin: 0 auto;
-    padding: 0.62in 0.72in 0.52in;
+    padding: 0.55in 0.72in 0.46in;
     position: relative;
     display: flex;
     flex-direction: column;
@@ -79,8 +79,8 @@
 
   h1 {
     font-family: 'Fraunces', Georgia, serif;
-    font-size: 34pt; font-weight: 560; letter-spacing: -0.01em;
-    margin: 18px 0 10px;
+    font-size: 33pt; font-weight: 560; letter-spacing: -0.01em;
+    margin: 13px 0 8px;
   }
   h2 {
     font-family: 'Fraunces', Georgia, serif;
@@ -90,7 +90,7 @@
   .lede {
     font-family: 'Fraunces', Georgia, serif;
     font-style: italic; font-weight: 460;
-    font-size: 13pt; line-height: 1.45; color: #4d4234;
+    font-size: 12.5pt; line-height: 1.42; color: #4d4234;
     max-width: 6.6in;
   }
   .sublede {
@@ -98,12 +98,12 @@
     font-size: 10.6pt; color: var(--muted); margin-bottom: 10px;
   }
   .meta {
-    margin-top: 10px; font-size: 9.2pt; color: var(--muted);
+    margin-top: 7px; font-size: 9.2pt; color: var(--muted);
   }
   .meta a, .links a { color: var(--terracotta); text-decoration: none; }
 
   p.body {
-    font-size: 9.8pt; line-height: 1.55; margin-bottom: 9px;
+    font-size: 9.8pt; line-height: 1.5; margin-bottom: 8px;
   }
 
   /* ---------- short version card ---------- */
@@ -111,8 +111,8 @@
     background: var(--card);
     border: 1px solid var(--line);
     border-radius: 10px;
-    padding: 16px 20px 14px;
-    margin: 16px 0 14px;
+    padding: 12px 18px 9px;
+    margin: 11px 0 10px;
   }
   .shortcard .title {
     font-family: 'Fraunces', Georgia, serif; font-style: italic;
@@ -121,7 +121,7 @@
   ul.dots { list-style: none; }
   ul.dots li {
     position: relative; padding-left: 17px;
-    font-size: 9.6pt; line-height: 1.5; margin-bottom: 6px;
+    font-size: 9.1pt; line-height: 1.42; margin-bottom: 4px;
   }
   ul.dots li::before {
     content: ''; position: absolute; left: 2px; top: 0.42em;
@@ -140,13 +140,14 @@
     box-shadow: 0 1.5px 6px rgba(60,45,30,.08);
   }
   .shot img { display: block; width: 100%; }
+  .shot.fit-page1 { max-width: 6.32in; margin: 0 auto; }
   /* fixed-height windows onto taller screenshots */
   .shot.crop-gallery { height: 3.35in; }
   .shot.crop-gallery img { height: 100%; object-fit: cover; object-position: center 19%; }
   .shot.crop-home { height: 2.5in; }
   .shot.crop-home img { height: 100%; object-fit: cover; object-position: center 72%; }
   .caption {
-    margin-top: 7px; font-size: 8.6pt; line-height: 1.45; color: #6d6154;
+    margin-top: 6px; font-size: 8.6pt; line-height: 1.45; color: #6d6154;
   }
   .caption .cap-label {
     font-family: 'Fraunces', Georgia, serif; font-style: italic;
@@ -216,7 +217,7 @@
 
   <p class="body">Relational Builder is a web-based app builder for the tools neighborhoods actually need: the calendar people can find, the lending library for the block, the meal train for a recovering neighbor, the flyer for the laundromat corkboard. It is not a general-purpose app factory — every conversation searches what real neighborhoods have already learned, so each build starts from a place, not a blank page.</p>
 
-  <div class="shot"><img src="images/workspace.png" alt="Relational Builder workspace: chat on the left, the Alma Street Tool Library running live in the preview on the right"></div>
+  <div class="shot fit-page1"><img src="images/workspace.png" alt="Relational Builder workspace: chat on the left, the Alma Street Tool Library running live in the preview on the right"></div>
   <p class="caption"><span class="cap-label">The loop in one screen</span> A neighbor asked for a tool-lending board for their street; the app runs live in the preview as the conversation shapes it.</p>
 
   <div class="foot"><span>The Relational Tech Project · relationalbuilder.org</span><span class="pg">1 / 3</span></div>
