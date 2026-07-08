@@ -210,17 +210,19 @@ function GalleryCard({
   onOpen: () => void; onBuild: () => void;
 }) {
   const highlight = studioBadges[0]?.color ?? null;
+  const [imgBroken, setImgBroken] = useState(false);
   return (
     <div
       className="group border rounded-xl overflow-hidden flex flex-col bg-background hover:border-foreground/25 transition-colors"
       style={highlight ? { borderColor: highlight } : undefined}
     >
       <button onClick={onOpen} className="block w-full aspect-[16/10] bg-muted overflow-hidden">
-        {tool.image_url ? (
+        {tool.image_url && !imgBroken ? (
           <img
             src={tool.image_url}
             alt={tool.name}
             loading="lazy"
+            onError={() => setImgBroken(true)}
             className="w-full h-full object-cover object-top group-hover:scale-[1.02] transition-transform"
           />
         ) : (

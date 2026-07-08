@@ -86,7 +86,7 @@ export async function distillBuildPrompt(): Promise<DistilledPrompt> {
         onError: err => reject(err),
       },
       new AbortController().signal,
-    );
+    ).catch(reject); // chat() can throw before streaming (sign-in, budget) — without this the promise hangs forever
   });
 
   const match = reply.match(/^TITLE:\s*(.+)$/m);
@@ -166,7 +166,7 @@ export async function distillStarterPrompt(tool: Tool): Promise<DistilledPrompt>
         onError: err => reject(err),
       },
       new AbortController().signal,
-    );
+    ).catch(reject); // chat() can throw before streaming (sign-in, budget) — without this the promise hangs forever
   });
 
   const match = reply.match(/^TITLE:\s*(.+)$/m);

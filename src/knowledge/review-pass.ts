@@ -105,7 +105,7 @@ export function runQualityReview(userAsk: string): void {
             onError: err => reject(err),
           },
           new AbortController().signal,
-        );
+        ).catch(reject); // chat() can throw before streaming — without this the promise (and the reviewing flag) hangs forever
       });
     } catch {
       return; // reviews never surface their own errors
