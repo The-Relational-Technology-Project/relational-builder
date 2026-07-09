@@ -1,115 +1,63 @@
-/**
- * Share preview via CodeSandbox.
- *
- * POSTs project files to the CodeSandbox define API (no auth required).
- * Returns a clean preview URL ({id}.csb.app) for sharing with neighbors
- * and an editor URL for developers who want to explore the code.
- */
-
 import type { FileEntry } from './virtual-fs';
-import type { EnvVar } from '@/store/env-store';
+import type { PublicEnvVar } from './env-module';
+import { buildEnvJs } from './env-module';
+import { builderClient } from '@/cloud/builder-client';
 
-const DEFINE_API = 'https://codesandbox.io/api/v1/sandboxes/define';
+/**
+ * Shareable preview links, hosted on community infrastructure.
+ *
+ * Previews are unlisted community-hosted sites under a random slug: they
+ * don't count against the builder's site cap, don't appear on the dashboard,
+ * and expire after PREVIEW_DAYS. (Previously these rode on CodeSandbox's
+ * anonymous define API, whose {id}.csb.app links stopped serving apps.)
+ */
 
-interface ShareResult {
-  /** Clean preview URL — just the running app, no IDE */
+/** Keep in sync with PREVIEW_DAYS in supabase/functions/publish-site. */
+export const PREVIEW_DAYS = 30;
+
+export interface ShareResult {
+  /** Clean preview URL — just the running app */
   previewUrl: string;
-  /** Editor URL — full CodeSandbox IDE with code */
-  editorUrl: string;
-  sandboxId: string;
+  slug: string;
+  /** When the link lapses (ISO timestamp), if the server reports it */
+  expiresAt: string | null;
 }
 
-/**
- * Detect the right CodeSandbox template based on file extensions.
- */
-function detectTemplate(files: FileEntry[]): string {
-  const paths = files.map(f => f.path);
-  if (paths.some(p => p.endsWith('.tsx'))) return 'react-ts';
-  if (paths.some(p => p.endsWith('.jsx'))) return 'react';
-  if (paths.some(p => p === '/index.html')) return 'static';
-  return 'vanilla';
-}
-
-/**
- * Build the CodeSandbox files payload from VFS entries.
- * CodeSandbox expects { "files": { "path": { "content": "..." } } }
- */
-function buildPayload(files: FileEntry[]) {
-  const csFiles: Record<string, { content: string }> = {};
-
-  for (const file of files) {
-    // CodeSandbox paths don't have leading slash
-    const path = file.path.startsWith('/') ? file.path.slice(1) : file.path;
-    csFiles[path] = { content: file.content };
-  }
-
-  // Ensure package.json exists — CodeSandbox needs it for React templates
-  if (!csFiles['package.json']) {
-    const template = detectTemplate(files);
-    const deps: Record<string, string> = {};
-
-    if (template === 'react-ts' || template === 'react') {
-      deps['react'] = '^18.2.0';
-      deps['react-dom'] = '^18.2.0';
-    }
-
-    csFiles['package.json'] = {
-      content: JSON.stringify(
-        {
-          name: 'relational-builder-preview',
-          private: true,
-          dependencies: deps,
-        },
-        null,
-        2,
-      ),
-    };
-  }
-
-  return csFiles;
-}
-
-/**
- * Create a shareable preview by posting to CodeSandbox.
- * No authentication required.
- */
 export async function createPreviewLink(
   files: FileEntry[],
-  publicEnvVars: EnvVar[] = [],
+  projectName: string,
+  publicEnvVars: PublicEnvVar[] = [],
 ): Promise<ShareResult> {
   if (files.length === 0) {
     throw new Error('No files to share');
   }
-
-  const csFiles = buildPayload(files);
-
-  // Inject public env vars as a virtual module (secrets are never shared)
-  if (publicEnvVars.length > 0) {
-    const entries = publicEnvVars
-      .map((v) => `  ${JSON.stringify(v.key)}: ${JSON.stringify(v.value)},`)
-      .join('\n');
-    csFiles['src/env.ts'] = {
-      content: `// Auto-generated from Environment panel\nexport const env = {\n${entries}\n} as const;\n`,
-    };
+  if (!builderClient) {
+    throw new Error('Preview links need the cloud backend configured');
+  }
+  const { data } = await builderClient.auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) {
+    throw new Error('Sign in (top right) to create a preview link');
   }
 
-  const res = await fetch(`${DEFINE_API}?json=1`, {
+  const payloadFiles = files.map(f => ({ path: f.path, content: f.content }));
+  if (publicEnvVars.length > 0 && !files.some(f => f.path.replace(/^\//, '') === 'env.js')) {
+    payloadFiles.push({ path: '/env.js', content: buildEnvJs(publicEnvVars) });
+  }
+
+  const url = import.meta.env.VITE_BUILDER_SUPABASE_URL;
+  const res = await fetch(`${url}/functions/v1/publish-site`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ files: csFiles }),
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ preview: true, name: projectName, files: payloadFiles }),
   });
-
+  const result = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Failed to create preview: ${text}`);
+    throw new Error(result.error ?? `Could not create the preview (${res.status})`);
   }
-
-  const data = await res.json();
-  const sandboxId: string = data.sandbox_id;
-
   return {
-    previewUrl: `https://${sandboxId}.csb.app`,
-    editorUrl: `https://codesandbox.io/s/${sandboxId}`,
-    sandboxId,
+    previewUrl: result.url,
+    slug: result.slug,
+    expiresAt: result.expires_at ?? null,
   };
 }

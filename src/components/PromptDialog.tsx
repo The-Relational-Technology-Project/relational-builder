@@ -9,9 +9,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useCloudStore } from '@/store/cloud-store';
 import { useAuthStore, cloudEnabled } from '@/store/auth-store';
+import { useLocalProjects, saveCurrentLocally } from '@/project/local-projects';
 import { distillBuildPrompt, promptLineage } from '@/knowledge/prompt-distiller';
 import {
   getPromptForProject,
+  getPromptById,
   savePrompt,
   sharePrompt,
   unsharePrompt,
@@ -27,7 +29,28 @@ import { Sparkles, Loader2, Copy, Check, Link2, Globe, History, ChevronDown, Che
  * as first-class. Distill the conversation into one self-contained prompt,
  * keep it with the project, and share it as a link that grows new versions
  * in other gardens.
+ *
+ * Saving works for ANY project, not just cloud ones: prompts always live in
+ * the builder's cloud prompt library (they show on the Projects page), and
+ * for local projects a small localStorage map remembers which prompt belongs
+ * to which project so reopening this dialog finds it again.
  */
+
+const PROMPT_LINKS_KEY = 'rb-local-prompt-links';
+
+function readPromptLinks(): Record<string, string> {
+  try {
+    return JSON.parse(localStorage.getItem(PROMPT_LINKS_KEY) ?? '{}') as Record<string, string>;
+  } catch {
+    return {};
+  }
+}
+
+function linkPromptToLocalProject(localProjectId: string, promptId: string) {
+  const links = readPromptLinks();
+  links[localProjectId] = promptId;
+  localStorage.setItem(PROMPT_LINKS_KEY, JSON.stringify(links));
+}
 export function PromptDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
   const currentProjectId = useCloudStore(s => s.currentProjectId);
   const user = useAuthStore(s => s.user);
@@ -44,12 +67,22 @@ export function PromptDialog({ open, onOpenChange }: { open: boolean; onOpenChan
   const canSave = cloudEnabled && !!user;
   const dirty = existing ? (title !== existing.title || body !== existing.body) : !!body;
 
-  // Load the project's prompt when the dialog opens
+  // Load the project's prompt when the dialog opens — cloud projects keep
+  // theirs by project id; local projects find theirs via the link map
   useEffect(() => {
     if (!open) return;
     setError(null);
-    if (!canSave || !currentProjectId) return;
-    getPromptForProject(currentProjectId)
+    if (!canSave) return;
+    let load: Promise<BuildPrompt | null>;
+    if (currentProjectId) {
+      load = getPromptForProject(currentProjectId);
+    } else {
+      const localId = useLocalProjects.getState().currentId;
+      const promptId = localId ? readPromptLinks()[localId] : undefined;
+      if (!promptId) return;
+      load = getPromptById(promptId);
+    }
+    load
       .then(p => {
         setExisting(p);
         if (p) {
@@ -88,6 +121,13 @@ export function PromptDialog({ open, onOpenChange }: { open: boolean; onOpenChan
         lineage: existing?.lineage ?? promptLineage(),
       });
       setExisting(saved);
+      // Local project? Make sure it has a shelf slot, then remember which
+      // prompt is its — so reopening this dialog picks it back up
+      if (!currentProjectId) {
+        saveCurrentLocally();
+        const localId = useLocalProjects.getState().currentId;
+        if (localId) linkPromptToLocalProject(localId, saved.id);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not save');
     } finally {
@@ -183,7 +223,7 @@ export function PromptDialog({ open, onOpenChange }: { open: boolean; onOpenChan
                   Redo
                 </Button>
                 <div className="ml-auto flex items-center gap-1.5">
-                  {canSave && currentProjectId && (
+                  {canSave && (
                     <Button
                       size="sm"
                       className="h-7 text-xs"
@@ -196,9 +236,9 @@ export function PromptDialog({ open, onOpenChange }: { open: boolean; onOpenChan
                 </div>
               </div>
 
-              {canSave && !currentProjectId && (
+              {cloudEnabled && !user && (
                 <p className="text-xs text-muted-foreground">
-                  Save this project to the cloud to keep and share its prompt.
+                  Sign in (top right) to save this prompt to your Projects page.
                 </p>
               )}
 

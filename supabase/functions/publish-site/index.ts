@@ -10,6 +10,11 @@
  *   - slug is derived from name when omitted; republishing an owned slug
  *     replaces the site
  *
+ * Preview links: { preview: true, name, files } creates an UNLISTED preview
+ * site under a random slug — outside the per-builder site cap, invisible on
+ * the dashboard, expiring after PREVIEW_DAYS. Old/expired previews are
+ * pruned on each new preview so they can't accumulate.
+ *
  * Also handles site management for the builder's dashboard:
  *   { action: 'list' }                  → the builder's sites with view
  *                                         stats + recent neighbor feedback
@@ -25,6 +30,8 @@ const CORS = {
 };
 
 const MAX_SITES_PER_BUILDER = 3;
+const MAX_PREVIEWS_PER_BUILDER = 10;
+const PREVIEW_DAYS = 30;
 const MAX_FILES = 150;
 const MAX_FILE_BYTES = 512 * 1024;
 const MAX_TOTAL_BYTES = 4 * 1024 * 1024;
@@ -91,8 +98,9 @@ Deno.serve(async (req: Request) => {
 
     // ---- Site management actions (dashboard) ----
     if (body.action === 'list') {
+      // Previews are unlisted — the dashboard shows real sites only
       const sitesRes = await fetch(
-        rest(`/community_sites?owner_email=eq.${encodeURIComponent(email)}&select=id,slug,name,created_at,updated_at&order=updated_at.desc`),
+        rest(`/community_sites?owner_email=eq.${encodeURIComponent(email)}&kind=eq.site&select=id,slug,name,created_at,updated_at&order=updated_at.desc`),
         { headers: svc() },
       );
       const sites = sitesRes.ok ? await sitesRes.json() : [];
@@ -163,27 +171,58 @@ Deno.serve(async (req: Request) => {
     }
     if (total > MAX_TOTAL_BYTES) return json({ error: 'Site too large (max 4MB total)' }, 413);
 
-    // Existing site with this slug? Owned → republish. Someone else's → suffix.
+    const isPreview = body.preview === true;
     let slug = requestedSlug;
     let siteId: string | null = null;
+    let expiresAt: string | null = null;
 
-    const existingRes = await fetch(
-      rest(`/community_sites?slug=eq.${encodeURIComponent(slug)}&select=id,owner_email`),
-      { headers: svc() },
-    );
-    const existing = existingRes.ok ? await existingRes.json() : [];
-    if (existing.length > 0) {
-      if (existing[0].owner_email === email) {
-        siteId = existing[0].id;
-      } else {
-        slug = `${slug}-${crypto.randomUUID().slice(0, 6)}`;
+    if (isPreview) {
+      // Previews: always a fresh unlisted site under a random slug, outside
+      // the site cap. Housekeeping first: expired previews go, and the
+      // oldest go once the builder is at their preview cap.
+      slug = `p-${crypto.randomUUID().replace(/-/g, '').slice(0, 10)}`;
+      const nowIso = new Date().toISOString();
+      await fetch(
+        rest(`/community_sites?owner_email=eq.${encodeURIComponent(email)}&kind=eq.preview&expires_at=lt.${encodeURIComponent(nowIso)}`),
+        { method: 'DELETE', headers: svc() },
+      ).catch(() => {});
+      const prevRes = await fetch(
+        rest(`/community_sites?owner_email=eq.${encodeURIComponent(email)}&kind=eq.preview&select=id&order=created_at.desc`),
+        { headers: svc() },
+      );
+      const previews: { id: string }[] = prevRes.ok ? await prevRes.json() : [];
+      for (const stale of previews.slice(MAX_PREVIEWS_PER_BUILDER - 1)) {
+        await fetch(rest(`/community_sites?id=eq.${stale.id}`), { method: 'DELETE', headers: svc() }).catch(() => {});
+      }
+
+      expiresAt = new Date(Date.now() + PREVIEW_DAYS * 86400_000).toISOString();
+      const createRes = await fetch(rest('/community_sites'), {
+        method: 'POST',
+        headers: { ...svc(), Prefer: 'return=representation' },
+        body: JSON.stringify({ slug, name, owner_email: email, kind: 'preview', expires_at: expiresAt }),
+      });
+      if (!createRes.ok) return json({ error: 'Could not create the preview' }, 500);
+      siteId = (await createRes.json())[0].id;
+    } else {
+      // Existing site with this slug? Owned → republish. Someone else's → suffix.
+      const existingRes = await fetch(
+        rest(`/community_sites?slug=eq.${encodeURIComponent(slug)}&select=id,owner_email`),
+        { headers: svc() },
+      );
+      const existing = existingRes.ok ? await existingRes.json() : [];
+      if (existing.length > 0) {
+        if (existing[0].owner_email === email) {
+          siteId = existing[0].id;
+        } else {
+          slug = `${slug}-${crypto.randomUUID().slice(0, 6)}`;
+        }
       }
     }
 
     if (!siteId) {
-      // New site — enforce the per-builder cap
+      // New site — enforce the per-builder cap (real sites only)
       const mineRes = await fetch(
-        rest(`/community_sites?owner_email=eq.${encodeURIComponent(email)}&select=id,slug,name`),
+        rest(`/community_sites?owner_email=eq.${encodeURIComponent(email)}&kind=eq.site&select=id,slug,name`),
         { headers: svc() },
       );
       const mine = mineRes.ok ? await mineRes.json() : [];
@@ -200,7 +239,7 @@ Deno.serve(async (req: Request) => {
       });
       if (!createRes.ok) return json({ error: 'Could not create site' }, 500);
       siteId = (await createRes.json())[0].id;
-    } else {
+    } else if (!isPreview) {
       await fetch(rest(`/community_sites?id=eq.${siteId}`), {
         method: 'PATCH',
         headers: svc(),
@@ -227,6 +266,12 @@ Deno.serve(async (req: Request) => {
     });
     if (!insertRes.ok) return json({ error: 'Could not upload site files' }, 500);
 
+    const appUrl = Deno.env.get('APP_URL') ?? 'https://relational-builder.vercel.app';
+
+    if (isPreview) {
+      return json({ ok: true, slug, url: `${appUrl}/s/${slug}/`, expires_at: expiresAt });
+    }
+
     // Total views so far (for republish feedback)
     const statsRes = await fetch(
       rest(`/site_stats?site_id=eq.${siteId}&select=views`),
@@ -235,7 +280,6 @@ Deno.serve(async (req: Request) => {
     const stats = statsRes.ok ? await statsRes.json() : [];
     const totalViews = stats.reduce((sum: number, s: { views: number }) => sum + Number(s.views), 0);
 
-    const appUrl = Deno.env.get('APP_URL') ?? 'https://relational-builder.vercel.app';
     return json({
       ok: true,
       slug,

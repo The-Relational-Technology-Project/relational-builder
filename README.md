@@ -49,7 +49,7 @@ Relational Builder combines three things that don't yet exist together:
 - **Deploy to Netlify/Vercel** -- deploy directly from the builder with a personal access token
 - **GitHub two-way sync** -- connect a GitHub repo, push project files as atomic commits, and pull remote changes back into the builder
 - **RAG-powered context** -- AI responses informed by the most relevant KB tools, stories, and network activity for each message
-- **Share preview links** -- generate a shareable link (via CodeSandbox) that anyone can open — no signup needed, perfect for sharing with neighbors
+- **Share preview links** -- generate a shareable link (hosted on community infrastructure, 30-day lifespan) that anyone can open — no signup needed, perfect for sharing with neighbors
 - **Service integrations** -- connect Supabase, Neon, Resend, and Firecrawl in the Services tab; the AI knows what's connected and generates code that uses it (secrets only ever reach deploy platforms)
 - **Environment variables** -- add API keys and config in the Env panel; public vars are injected into the live preview, secret vars are only sent to deploy platforms
 - **Custom domains** -- attach your own domain (e.g. myapp.ourneighborhood.org) when deploying to Netlify or Vercel, with DNS setup instructions
@@ -197,10 +197,9 @@ To join the relational tech network, push your code to GitHub and add the `relat
 
 ## Sharing Previews
 
-Click **Share** in the toolbar to generate a preview link powered by CodeSandbox. You get two URLs:
+Click **Share → Share preview** to generate a preview link hosted on RTP community infrastructure (the same place published sites live). You get a clean, neighbor-friendly URL (`/s/p-{id}/`) showing just the running app — no signup, no code, no IDE. Share it via text or email.
 
-- **Preview link** (`{id}.csb.app`) -- a clean, neighbor-friendly URL showing just the running app. No signup, no code, no IDE. Share this via text or email.
-- **Editor link** (`codesandbox.io/s/{id}`) -- the full CodeSandbox IDE for developers who want to view or remix the code.
+Preview links are unlisted, don't count against your 3 community-hosted sites, and expire after 30 days. When something's ready for a permanent home, use **Share → Publish** instead.
 
 Public environment variables are included in shared previews. Secret variables are never shared.
 
@@ -208,7 +207,7 @@ Public environment variables are included in shared previews. Secret variables a
 
 The **Env** tab in the right panel lets you manage API keys and config:
 
-- **Public vars** (e.g. `SUPABASE_URL`, `SUPABASE_ANON_KEY`) -- injected into the live preview and shared CodeSandbox links. Safe for client-side use (protected by RLS).
+- **Public vars** (e.g. `SUPABASE_URL`, `SUPABASE_ANON_KEY`) -- injected into the live preview and shared preview links. Safe for client-side use (protected by RLS).
 - **Secret vars** (e.g. `RESEND_API_KEY`, Supabase service role key) -- stored locally, shown masked in the UI, and only sent to deploy platforms as environment variables. Never included in previews or shared links.
 
 Generated code imports env vars from an auto-generated module: `import { env } from "./env"`. The AI knows about this system and will tell you which variables to add.

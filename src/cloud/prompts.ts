@@ -51,6 +51,15 @@ export async function listMyPrompts(): Promise<BuildPrompt[]> {
   return (data ?? []) as BuildPrompt[];
 }
 
+export async function getPromptById(id: string): Promise<BuildPrompt | null> {
+  const { data } = await client()
+    .from('prompts')
+    .select('id, project_id, title, body, is_shared, share_slug, author_name, lineage, created_at, updated_at')
+    .eq('id', id)
+    .maybeSingle();
+  return (data as BuildPrompt | null) ?? null;
+}
+
 export async function getPromptForProject(projectId: string): Promise<BuildPrompt | null> {
   const { data } = await client()
     .from('prompts')

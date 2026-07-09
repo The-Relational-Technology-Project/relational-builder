@@ -98,7 +98,7 @@ Deno.serve(async (req: Request) => {
     if (!filePath) filePath = 'index.html';
 
     const siteRes = await fetch(
-      rest(`/community_sites?slug=eq.${encodeURIComponent(slug)}&select=id,name`),
+      rest(`/community_sites?slug=eq.${encodeURIComponent(slug)}&select=id,name,kind,expires_at`),
       { headers: svc() },
     );
     const sites = siteRes.ok ? await siteRes.json() : [];
@@ -110,6 +110,15 @@ Deno.serve(async (req: Request) => {
     }
     const siteId = sites[0].id;
     const siteName = sites[0].name ?? slug;
+    // Preview links are lighter-weight sites: unlisted, no analytics or
+    // feedback widget, and they lapse on their own
+    const isPreview = sites[0].kind === 'preview';
+    if (isPreview && sites[0].expires_at && Date.parse(sites[0].expires_at) < Date.now()) {
+      return new Response('This preview link has expired — ask the builder for a fresh one.', {
+        status: 410,
+        headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+      });
+    }
 
     // ---- Neighbor feedback (widget POSTs here) ----
     if (req.method === 'POST') {
@@ -173,7 +182,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // Count page views (not asset requests) — fire and forget
-    if (servedIndex) {
+    if (servedIndex && !isPreview) {
       fetch(rest('/rpc/increment_site_views'), {
         method: 'POST',
         headers: { ...svc(), 'Content-Type': 'application/json' },
@@ -183,7 +192,7 @@ Deno.serve(async (req: Request) => {
 
     // Inject the neighbor-note widget into served HTML pages
     let content = file.content as string;
-    if (servedIndex && String(file.content_type).startsWith('text/html') &&
+    if (servedIndex && !isPreview && String(file.content_type).startsWith('text/html') &&
         !/name=["']rb-feedback["']\s+content=["']off["']/i.test(content)) {
       const widget = feedbackWidget(siteName);
       content = /<\/body>/i.test(content)
