@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { buildNotifyGranted } from '@/notify/build-ready';
@@ -7,7 +7,7 @@ import { useProjectStore } from '@/store/project-store';
 import { CodeBlock } from './CodeBlock';
 import { ConnectionSuggestion } from './ConnectionSuggestion';
 import { Button } from '@/components/ui/button';
-import { Hammer, History, FileCode, ChevronDown, ChevronRight, Loader2, Copy, Check, ArrowDown, GitBranch, Sparkles } from 'lucide-react';
+import { Hammer, History, FileCode, ChevronDown, ChevronRight, Loader2, Copy, Check, ArrowDown, ArrowRight, GitBranch, Sparkles } from 'lucide-react';
 
 /** "Today at 4:26 PM" / "Tuesday at 9:12 AM" — calm dividers between sittings */
 function formatSitting(ts: number): string {
@@ -460,7 +460,7 @@ function MessageBubble({ message }: { message: DisplayMessage }) {
         )}
       </div>
       {message.isPlan && !message.isStreaming && (
-        <PlanQuestionChips content={message.content} />
+        <PlanQuestionCards message={message} />
       )}
       {!isUser && !message.isStreaming && message.content.trim() && (
         <div className="mt-1 pl-1 flex items-center gap-2">
@@ -496,23 +496,42 @@ function MessageBubble({ message }: { message: DisplayMessage }) {
 
 const QUESTION_HEADING_RE = /^#{2,3}\s+Questions?\s+for\s+you\s*$/im;
 
-/**
- * Pull the "Question for you" out of a plan. The question renders ONLY as a
- * tappable chip (the section is stripped from the message body so it never
- * appears twice). Tapping prefills the input so the person just types their
- * answer. Plans now ask one question per reply.
- */
-export function extractPlanQuestions(content: string): string[] {
-  const section = content.split(QUESTION_HEADING_RE)[1];
-  if (!section) return [];
-  // Numbered items until the next heading
-  return (section.split(/^#{2,3}\s/m)[0].match(/^\s*\d+\.\s+(.+)$/gm) ?? [])
-    .map(line => line.replace(/^\s*\d+\.\s+/, '').replace(/\*\*/g, '').trim())
-    .filter(q => q.length > 5)
-    .slice(0, 3);
+export interface PlanQuestion {
+  question: string;
+  /** Tappable answer choices (dash bullets under the question); may be empty */
+  options: string[];
 }
 
-/** Remove the question section from the rendered body (chips replace it) */
+/**
+ * Pull the "Question for you" section out of a plan. Questions render ONLY
+ * as answer cards (the section is stripped from the message body so it never
+ * appears twice). Each numbered item is a question; dash bullets directly
+ * under it become one-tap answer options.
+ */
+export function extractPlanQuestions(content: string): PlanQuestion[] {
+  const section = content.split(QUESTION_HEADING_RE)[1];
+  if (!section) return [];
+  const body = section.split(/^#{2,3}\s/m)[0];
+  const questions: PlanQuestion[] = [];
+  for (const raw of body.split('\n')) {
+    const line = raw.trim();
+    const qMatch = /^\d+\.\s+(.+)$/.exec(line);
+    if (qMatch) {
+      const question = qMatch[1].replace(/\*\*/g, '').trim();
+      if (question.length > 5) questions.push({ question, options: [] });
+      continue;
+    }
+    const oMatch = /^[-*]\s+(.+)$/.exec(line);
+    if (oMatch && questions.length > 0) {
+      const option = oMatch[1].replace(/\*\*/g, '').trim();
+      const current = questions[questions.length - 1];
+      if (option && current.options.length < 4) current.options.push(option);
+    }
+  }
+  return questions.slice(0, 3);
+}
+
+/** Remove the question section from the rendered body (cards replace it) */
 export function stripPlanQuestions(content: string): string {
   const idx = content.search(QUESTION_HEADING_RE);
   if (idx === -1) return content;
@@ -522,23 +541,159 @@ export function stripPlanQuestions(content: string): string {
   return (content.slice(0, idx).trimEnd() + (rest ? `\n\n## ${rest}` : '')).trimEnd();
 }
 
-function PlanQuestionChips({ content }: { content: string }) {
-  const setDraftMessage = useChatStore(s => s.setDraftMessage);
-  const questions = extractPlanQuestions(content);
+/**
+ * Plan questions as one-tap answer cards: options are pills, free text is one
+ * tap away, and the composed "question → answer" lines send themselves — no
+ * copying questions into the composer. One question sends on tap; several
+ * stage and send together once all are answered (or early via Send answers).
+ * Only the newest plan's cards are live; older plans keep a quiet transcript
+ * of what was asked.
+ */
+function PlanQuestionCards({ message }: { message: DisplayMessage }) {
+  const questions = useMemo(() => extractPlanQuestions(message.content), [message.content]);
+  const isNewest = useChatStore(s => s.messages[s.messages.length - 1]?.id === message.id);
+  const isGenerating = useChatStore(s => s.isGenerating);
+  const queueMessage = useChatStore(s => s.queueMessage);
+  const [answers, setAnswers] = useState<Record<number, string>>({});
+  const [sent, setSent] = useState(false);
+
   if (questions.length === 0) return null;
 
+  const send = (final: Record<number, string>) => {
+    const lines = questions
+      .map((q, i) => (final[i] ? `${q.question} → ${final[i]}` : null))
+      .filter(Boolean) as string[];
+    if (lines.length === 0) return;
+    setSent(true);
+    queueMessage(lines.join('\n'));
+  };
+
+  const answer = (i: number, value: string) => {
+    const next = { ...answers, [i]: value };
+    setAnswers(next);
+    // One question sends on tap; several send once the last one is answered
+    if (questions.length === 1 || questions.every((_, idx) => next[idx])) send(next);
+  };
+
+  if (!isNewest || sent) {
+    return (
+      <div className="mt-1.5 space-y-1 max-w-[85%] pl-1">
+        {questions.map((q, i) => (
+          <p key={i} className="text-xs text-muted-foreground">{q.question}</p>
+        ))}
+      </div>
+    );
+  }
+
+  const answeredCount = questions.filter((_, i) => answers[i]).length;
+
   return (
-    <div className="mt-1.5 flex flex-col items-start gap-1.5 max-w-[85%]">
+    <div className="mt-2 flex flex-col items-start gap-2 max-w-[85%]">
       {questions.map((q, i) => (
-        <button
+        <PlanQuestionCard
           key={i}
-          onClick={() => setDraftMessage(`${q}\n→ `)}
-          className="text-left text-xs border border-dashed border-primary/50 rounded-lg px-3 py-2 text-foreground hover:bg-primary/10 transition-colors"
-          title="Tap to answer this question"
-        >
-          {q}
-        </button>
+          question={q}
+          staged={answers[i] ?? null}
+          disabled={isGenerating}
+          onAnswer={value => answer(i, value)}
+        />
       ))}
+      {questions.length > 1 && answeredCount > 0 && answeredCount < questions.length && (
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-7 text-xs"
+          disabled={isGenerating}
+          onClick={() => send(answers)}
+        >
+          <ArrowRight className="size-3 mr-1" />
+          Send {answeredCount === 1 ? 'answer' : 'answers'} — skip the rest
+        </Button>
+      )}
+    </div>
+  );
+}
+
+function PlanQuestionCard({
+  question, staged, disabled, onAnswer,
+}: {
+  question: PlanQuestion;
+  staged: string | null;
+  disabled: boolean;
+  onAnswer: (value: string) => void;
+}) {
+  // Questions without options open straight into the text field
+  const [typing, setTyping] = useState(question.options.length === 0);
+  const [text, setText] = useState('');
+  const stagedIsCustom = !!staged && !question.options.includes(staged);
+
+  const submitText = () => {
+    const value = text.trim();
+    if (!value) return;
+    setTyping(question.options.length === 0);
+    setText('');
+    onAnswer(value);
+  };
+
+  const pill = (selected: boolean) =>
+    `inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs text-left transition-colors ${
+      selected
+        ? 'border-primary bg-primary/10 text-foreground'
+        : 'border-border text-foreground hover:bg-primary/10 hover:border-primary/50'
+    } disabled:opacity-50`;
+
+  return (
+    <div className="w-full rounded-lg border border-dashed border-primary/50 px-3 py-2.5 space-y-2">
+      <p className="text-sm">{question.question}</p>
+      {(question.options.length > 0 || stagedIsCustom) && (
+        <div className="flex flex-wrap gap-1.5">
+          {question.options.map(option => (
+            <button
+              key={option}
+              disabled={disabled}
+              onClick={() => onAnswer(option)}
+              className={pill(staged === option)}
+            >
+              {staged === option && <Check className="size-3 shrink-0" />}
+              {option}
+            </button>
+          ))}
+          {stagedIsCustom && (
+            <button disabled={disabled} onClick={() => setTyping(true)} className={pill(true)}>
+              <Check className="size-3 shrink-0" />
+              {staged}
+            </button>
+          )}
+          {question.options.length > 0 && !typing && (
+            <button
+              disabled={disabled}
+              onClick={() => setTyping(true)}
+              className="inline-flex items-center rounded-full border border-dashed px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors disabled:opacity-50"
+            >
+              Something else…
+            </button>
+          )}
+        </div>
+      )}
+      {typing && (
+        <div className="flex items-center gap-1.5">
+          <input
+            autoFocus={question.options.length > 0}
+            value={text}
+            disabled={disabled}
+            onChange={e => setText(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter') submitText();
+              if (e.key === 'Escape' && question.options.length > 0) setTyping(false);
+            }}
+            placeholder="Your answer…"
+            className="flex-1 min-w-0 rounded-md border bg-background px-2.5 py-1.5 text-xs placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
+          />
+          <Button size="sm" className="h-7 text-xs shrink-0" disabled={disabled || !text.trim()} onClick={submitText}>
+            <ArrowRight className="size-3" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
