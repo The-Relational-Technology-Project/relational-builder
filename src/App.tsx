@@ -88,6 +88,13 @@ function App() {
   const messageCount = useChatStore(s => s.messages.length);
   const hasProject = fileCount > 0 || messageCount > 0;
 
+  // The initial plan stays a full-width, focused conversation — clarifying
+  // questions and the plan deserve attention, not an empty preview pane.
+  // The split appears the moment building starts (mode flips to build /
+  // first files land); after that, later plan chats keep the two panes.
+  const chatMode = useChatStore(s => s.mode);
+  const planFocus = messageCount > 0 && fileCount === 0 && chatMode === 'plan';
+
   // First sign-in → the place-grounded builder onboarding
   const authUser = useAuthStore(s => s.user);
   // Theme + model/key settings live in the account menu once someone's signed
@@ -247,6 +254,10 @@ function App() {
           <StudioGallery onClose={() => setGalleryOpen(false)} />
         ) : !hasProject ? (
           <ChatPanel />
+        ) : planFocus ? (
+          <div className="h-full w-full max-w-3xl mx-auto">
+            <ChatPanel />
+          </div>
         ) : isMobile ? (
           <div className="h-full flex flex-col">
             <div className="flex-1 min-h-0">
