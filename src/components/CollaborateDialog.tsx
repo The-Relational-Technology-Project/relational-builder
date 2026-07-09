@@ -9,14 +9,22 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuthStore } from '@/store/auth-store';
 import { useCloudStore } from '@/store/cloud-store';
-import { Users, UserPlus, X, Loader2 } from 'lucide-react';
+import { useProjectStore } from '@/store/project-store';
+import {
+  useLocalProjects,
+  saveCurrentLocally,
+  deleteLocalProject,
+} from '@/project/local-projects';
+import { Users, UserPlus, X, Loader2, Cloud } from 'lucide-react';
 
 /**
  * Invite collaborators to the current project, right from the Share menu.
  * The same membership model as the Projects page — invite by email, and when
  * that person signs in the project appears in their list with live-syncing
  * edits. Guides through the prerequisites (sign in, save to cloud) instead
- * of hiding when they aren't met.
+ * of hiding when they aren't met — and a project saved on this device is
+ * recognized as such: one click keeps it on the account (collaboration
+ * syncs through the cloud) and the invite form appears.
  */
 export function CollaborateDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
   const user = useAuthStore(s => s.user);
@@ -26,6 +34,10 @@ export function CollaborateDialog({ open, onOpenChange }: { open: boolean; onOpe
   const members = useCloudStore(s => s.members);
   const inviteMember = useCloudStore(s => s.inviteMember);
   const removeMember = useCloudStore(s => s.removeMember);
+  const createProject = useCloudStore(s => s.createProject);
+
+  const localName = useLocalProjects(s => s.currentName);
+  const fileCount = useProjectStore(s => s.getFileCount());
 
   const [inviteEmail, setInviteEmail] = useState('');
   const [busy, setBusy] = useState<string | null>(null);
@@ -43,6 +55,21 @@ export function CollaborateDialog({ open, onOpenChange }: { open: boolean; onOpe
     run('invite', async () => {
       const r = await inviteMember(inviteEmail);
       if (!r.error) setInviteEmail('');
+      return r;
+    });
+
+  // Promote the device-saved project to the account, then the invite form
+  // takes over (currentProjectId flips). Mirrors the project pill's Save:
+  // the shelf copy is retired so it can't shadow the cloud project.
+  const saveToAccount = () =>
+    run('save', async () => {
+      saveCurrentLocally();
+      const name = useLocalProjects.getState().currentName || 'My project';
+      const r = await createProject(name);
+      if (!r.error) {
+        const localId = useLocalProjects.getState().currentId;
+        if (localId) deleteLocalProject(localId);
+      }
       return r;
     });
 
@@ -73,11 +100,25 @@ export function CollaborateDialog({ open, onOpenChange }: { open: boolean; onOpe
             </Button>
           </div>
         ) : !currentProjectId ? (
-          <p className="text-sm text-muted-foreground">
-            Save this project to the cloud first — name it from the project
-            pill in the header — then come back here to invite neighbors to
-            build it with you.
-          </p>
+          fileCount > 0 ? (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                <strong>{localName || 'This project'}</strong> is saved on this
+                device. Collaboration syncs edits live through your account —
+                keep the project there and the invite form opens right up.
+              </p>
+              <Button size="sm" className="gap-1.5" onClick={saveToAccount} disabled={busy === 'save'}>
+                {busy === 'save' ? <Loader2 className="size-3 animate-spin" /> : <Cloud className="size-3" />}
+                Save to my account &amp; invite
+              </Button>
+              {error && <p className="text-xs text-destructive">{error}</p>}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Start building first — once there's a project here, you can
+              invite neighbors to build it with you.
+            </p>
+          )
         ) : (
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">
