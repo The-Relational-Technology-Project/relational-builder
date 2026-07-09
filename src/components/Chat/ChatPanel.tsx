@@ -367,7 +367,7 @@ export function ChatPanel() {
   const handleBuildPlan = useCallback(() => {
     setMode('build');
     handleSend(
-      'Build the app described in the plan above. Generate complete, working files with filename annotations, following the plan\'s features, pages, and data decisions.',
+      'Build the app described in the plan above. Generate complete, working files with filename annotations, following the plan\'s features, look & feel, pages, and data decisions.',
     );
   }, [setMode, handleSend]);
 
