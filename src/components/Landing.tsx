@@ -4,48 +4,26 @@ import { requestAccount, type RequestOutcome } from '@/cloud/account-requests';
 import { useAuthStore, cloudEnabled } from '@/store/auth-store';
 import { MailCheck } from 'lucide-react';
 
-// One or more invitation passcodes, comma-separated — extra codes can be
-// minted for a workshop or event and retired afterwards without touching
-// the standing invite code.
-const ACCESS_CODES = (import.meta.env.VITE_ACCESS_CODE ?? '')
-  .split(',')
-  .map((s: string) => s.trim())
-  .filter(Boolean);
-const STORAGE_KEY = 'rb-access-granted';
 const ENTERED_KEY = 'rb-entered';
 
-/** The canonical stored form of a valid passcode, or null if it doesn't match */
-function matchAccessCode(input: string): string | null {
-  const entered = input.trim().toLowerCase();
-  return ACCESS_CODES.find((c: string) => c.toLowerCase() === entered) ?? null;
-}
-
 /**
- * An event link or QR code can carry the passcode — relationalbuilder.org/?code=X
- * walks the whole room through the door with zero typing. The spent param is
- * scrubbed from the address bar either way.
- */
-function consumeCodeParam(): string | null {
-  const params = new URLSearchParams(window.location.search);
-  const raw = params.get('code');
-  if (raw === null) return null;
-  params.delete('code');
-  const qs = params.toString();
-  window.history.replaceState(null, '', window.location.pathname + (qs ? `?${qs}` : '') + window.location.hash);
-  const matched = matchAccessCode(raw);
-  if (matched) localStorage.setItem(STORAGE_KEY, matched);
-  return matched;
-}
-
-/**
- * Public landing page. The passcode wall is retired: the front door is
- * "request an account" (a steward approves each one; sign-in is a magic
- * link), and members walk straight in. Invitation passcodes still work as
- * a quiet fallback while invites carrying them circulate — entering one
- * also feeds the enroll-community self-enrollment flow.
+ * Public landing page. Invitation passcodes are fully retired: the front
+ * door is "request an account" (a steward approves each one; sign-in is a
+ * magic link), and signed-in members walk straight in. A stale ?code= link
+ * from an old invite or event QR is scrubbed from the address bar and lands
+ * here like everyone else.
  * Warm light palette drawn from the brand mark, independent of the app's
  * light/dark theme. Copy stays short — the door matters more than the tour.
  */
+
+/** Old invite links carried ?code=X — drop the spent param quietly */
+function scrubCodeParam(): void {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('code') === null) return;
+  params.delete('code');
+  const qs = params.toString();
+  window.history.replaceState(null, '', window.location.pathname + (qs ? `?${qs}` : '') + window.location.hash);
+}
 
 // Brand palette on warm paper
 const C = {
@@ -62,13 +40,10 @@ const C = {
 };
 export function Landing({ children }: { children: ReactNode }) {
   const user = useAuthStore(s => s.user);
-  const [granted, setGranted] = useState(
-    () =>
-      consumeCodeParam() !== null ||
-      ACCESS_CODES.length === 0 ||
-      localStorage.getItem(ENTERED_KEY) === '1' ||
-      matchAccessCode(localStorage.getItem(STORAGE_KEY) ?? '') !== null,
-  );
+  const [granted, setGranted] = useState(() => {
+    scrubCodeParam();
+    return localStorage.getItem(ENTERED_KEY) === '1';
+  });
 
   // App (which normally inits auth) is gated below, so init here too — that
   // way a magic-link redirect landing on this page still gets its session
@@ -142,7 +117,6 @@ function LandingPage({ onUnlock }: { onUnlock: () => void }) {
           </p>
           <RequestAccountForm />
           <SignInPanel onEnter={enter} />
-          <PasscodeFallback onUnlock={onUnlock} />
         </section>
 
         {/* Footer */}
@@ -384,65 +358,6 @@ function CodeEntry({ email }: { email: string }) {
         </button>
       </div>
       {error && <p className="text-xs text-center" style={{ color: C.orangeDeep }}>{error}</p>}
-    </div>
-  );
-}
-
-/**
- * Invitation passcodes still circulate on printed invites; they keep working
- * here quietly. Entering one stores it for enroll-community self-enrollment.
- */
-function PasscodeFallback({ onUnlock }: { onUnlock: () => void }) {
-  const [open, setOpen] = useState(false);
-  const [input, setInput] = useState('');
-  const [error, setError] = useState(false);
-
-  function handleSubmit() {
-    const matched = matchAccessCode(input);
-    if (matched) {
-      localStorage.setItem(STORAGE_KEY, matched);
-      onUnlock();
-    } else {
-      setError(true);
-      setInput('');
-    }
-  }
-
-  if (!open) {
-    return (
-      <p className="text-xs" style={{ color: C.muted }}>
-        Holding an invite with a passcode?{' '}
-        <button onClick={() => setOpen(true)} className="underline underline-offset-2 hover:opacity-80">
-          Enter it here
-        </button>
-      </p>
-    );
-  }
-
-  return (
-    <div className="space-y-2">
-      <div className="flex gap-2 max-w-xs mx-auto">
-        <input
-          type="password"
-          value={input}
-          onChange={e => { setInput(e.target.value); setError(false); }}
-          onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-          placeholder="Passcode"
-          autoFocus
-          className={`flex-1 rounded-lg border bg-[#FAF7F2] px-3 py-2 text-center tracking-[0.3em] text-sm outline-none placeholder:text-[#8A7D71] placeholder:tracking-normal ${
-            error ? 'border-[#D2764B]' : 'border-[#E5DCD0] focus:border-[#D2764B]'
-          }`}
-        />
-        <button
-          onClick={handleSubmit}
-          disabled={!input.trim()}
-          className="rounded-lg border px-4 py-2 text-sm disabled:opacity-40 transition-colors hover:border-[#D2764B]"
-          style={{ borderColor: C.border, color: C.ink }}
-        >
-          Enter
-        </button>
-      </div>
-      {error && <p className="text-xs" style={{ color: C.orangeDeep }}>That's not it — check your invitation.</p>}
     </div>
   );
 }

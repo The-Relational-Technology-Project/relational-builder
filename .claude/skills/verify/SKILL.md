@@ -10,11 +10,11 @@ description: Build, launch, and drive Relational Builder to verify a change end-
 ```bash
 npm ci                       # once per container
 npm run build                # tsc -b && vite build — type errors surface here
-VITE_ACCESS_CODE=6767 npm run dev -- --port 5199 --strictPort   # background
+npm run dev -- --port 5199 --strictPort   # background
 ```
 
-`VITE_ACCESS_CODE` makes the public landing page render (without it the gate
-is open and you land straight in the app). To get past the landing in a
+The public landing page (request an account / sign in) renders for every
+signed-out visitor — passcodes are retired. To get past the landing in a
 script: `localStorage.setItem('rb-entered', '1')` then reload.
 
 ## Drive with Playwright

@@ -149,10 +149,6 @@ Vite bakes them in at build time):
 - `VITE_SITE_URL` — canonical domain magic-link sign-in returns to
   (`https://relationalbuilder.org`). Set this so sign-ins from a preview URL
   still land on the real domain; must also be in Supabase's Redirect URLs.
-- `VITE_ACCESS_CODE` — pilot passcode gate (client-side, soft). Comma-separate
-  to run several codes at once (standing invite code + a revocable event code);
-  keep it in sync with the `enroll-community` `ACCESS_CODE` secret. A
-  `?code=X` link/QR enters a code automatically.
 - `VITE_SUPER_ADMIN_EMAILS` (optional — who sees the account-requests dashboard; default joshuanesbit@gmail.com)
 - `VITE_RTP_MODEL_URL` (optional — Tier 1 model endpoint)
 
