@@ -4,6 +4,7 @@ import {
   adminDecideRequest,
   type AccountRequest,
 } from '@/cloud/account-requests';
+import { adminListAccounts, type StewardAccount } from '@/cloud/steward-accounts';
 import {
   adminListContributions,
   adminReviewContribution,
@@ -26,6 +27,7 @@ import { Check, X, Loader2, ChevronDown, ChevronRight, ShieldCheck } from 'lucid
 /**
  * The Steward page — every steward task in one full-width space (these
  * queues outgrew a dialog):
+ *  - Accounts: every builder, their place, and their cloud project count
  *  - Account requests: pending requests, one-tap approve/decline
  *  - Commons review: the RT Commons contribution review queue (absorbed
  *    from RT Studio; decisions flow through the commons' review function)
@@ -50,12 +52,16 @@ export function StewardPage() {
             Close
           </Button>
         </div>
-        <Tabs defaultValue="door">
+        <Tabs defaultValue="accounts">
           <TabsList className="w-full sm:w-auto">
+            <TabsTrigger value="accounts" className="flex-1 sm:flex-none text-xs sm:px-4">Accounts</TabsTrigger>
             <TabsTrigger value="door" className="flex-1 sm:flex-none text-xs sm:px-4">Account requests</TabsTrigger>
             <TabsTrigger value="commons" className="flex-1 sm:flex-none text-xs sm:px-4">Commons review</TabsTrigger>
             <TabsTrigger value="gallery" className="flex-1 sm:flex-none text-xs sm:px-4">Studio gallery</TabsTrigger>
           </TabsList>
+          <TabsContent value="accounts" className="pt-4">
+            <AccountsTab />
+          </TabsContent>
           <TabsContent value="door" className="pt-4">
             <RequestsTab active />
           </TabsContent>
@@ -66,6 +72,71 @@ export function StewardPage() {
             <GalleryTab />
           </TabsContent>
         </Tabs>
+      </div>
+    </div>
+  );
+}
+
+// --- Accounts: every builder, their place, their projects ---
+
+function AccountsTab() {
+  const [accounts, setAccounts] = useState<StewardAccount[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    adminListAccounts()
+      .then(setAccounts)
+      .catch(e => setError(e instanceof Error ? e.message : 'Could not load accounts'))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const totalProjects = useMemo(
+    () => accounts.reduce((sum, a) => sum + a.project_count, 0),
+    [accounts],
+  );
+
+  if (loading) {
+    return (
+      <p className="text-sm text-muted-foreground flex items-center gap-2">
+        <Loader2 className="size-3.5 animate-spin" /> Loading accounts…
+      </p>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {error && <p className="text-xs text-destructive">{error}</p>}
+      <p className="text-xs text-muted-foreground">
+        {accounts.length} {accounts.length === 1 ? 'account' : 'accounts'} ·{' '}
+        {totalProjects} cloud {totalProjects === 1 ? 'project' : 'projects'} — builds kept
+        only on someone's local shelf aren't counted.
+      </p>
+      <div className="space-y-1.5">
+        {accounts.map(a => (
+          <div key={a.id} className="rounded-lg border px-3 py-2 flex items-center gap-2.5">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-baseline gap-2 min-w-0">
+                <span className="text-sm font-medium truncate">{a.name || a.email}</span>
+                {a.name && (
+                  <span className="text-xs text-muted-foreground truncate">{a.email}</span>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground truncate">
+                {a.neighborhood || (a.profile_completed ? 'No neighborhood given' : 'Profile not completed yet')}
+              </p>
+            </div>
+            <Badge variant="outline" className="shrink-0 tabular-nums">
+              {a.project_count} {a.project_count === 1 ? 'project' : 'projects'}
+            </Badge>
+            <span className="text-xs text-muted-foreground/60 shrink-0 w-16 text-right">
+              {new Date(a.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+            </span>
+          </div>
+        ))}
+        {accounts.length === 0 && !error && (
+          <p className="text-sm text-muted-foreground">No accounts yet.</p>
+        )}
       </div>
     </div>
   );

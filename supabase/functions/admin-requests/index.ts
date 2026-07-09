@@ -25,6 +25,11 @@
  *   { action: "gallery_add", studio_slug, tool_id, tool_name? }
  *   { action: "gallery_remove", studio_slug, tool_id }
  *
+ * POST JSON — accounts overview (profiles + cloud project counts; both
+ * tables are RLS-locked to their owners, so the steward's cross-account
+ * view can only exist here, behind the service role):
+ *   { action: "accounts" }                 → { accounts: [...] }
+ *
  * Deploy: supabase functions deploy admin-requests --no-verify-jwt
  * Secrets:
  *   SUPER_ADMIN_EMAILS  — comma-separated (default joshuanesbit@gmail.com)
@@ -145,6 +150,37 @@ Deno.serve(async (req: Request) => {
         );
       }
       return json({ ok: true });
+    }
+
+    // --- Accounts overview: every builder, their place, their project count ---
+    if (action === 'accounts') {
+      const [profilesRes, projectsRes] = await Promise.all([
+        fetch(
+          rest(
+            '/profiles?select=id,email,display_name,full_name,neighborhood,profile_completed,created_at' +
+              '&order=created_at.desc&limit=1000',
+          ),
+          { headers: svc() },
+        ),
+        fetch(rest('/projects?select=owner_id&limit=10000'), { headers: svc() }),
+      ]);
+      if (!profilesRes.ok) return json({ error: 'Could not load accounts' }, 500);
+      const profiles: Array<Record<string, unknown>> = await profilesRes.json();
+      const owners: Array<{ owner_id: string }> = projectsRes.ok ? await projectsRes.json() : [];
+      const counts = new Map<string, number>();
+      for (const row of owners) {
+        counts.set(row.owner_id, (counts.get(row.owner_id) ?? 0) + 1);
+      }
+      const accounts = profiles.map(p => ({
+        id: p.id,
+        email: p.email,
+        name: p.full_name ?? p.display_name ?? null,
+        neighborhood: p.neighborhood ?? null,
+        profile_completed: !!p.profile_completed,
+        created_at: p.created_at,
+        project_count: counts.get(String(p.id)) ?? 0,
+      }));
+      return json({ accounts });
     }
 
     if (action === 'list') {
