@@ -4,9 +4,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useCloudStore } from '@/store/cloud-store';
 import { useAuthStore, cloudEnabled } from '@/store/auth-store';
@@ -21,8 +20,7 @@ import {
   type BuildPrompt,
   type PromptVersion,
 } from '@/cloud/prompts';
-import { ScrollText, Sparkles, Loader2, Copy, Check, Link2, Globe, History, ChevronDown, ChevronRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Sparkles, Loader2, Copy, Check, Link2, Globe, History, ChevronDown, ChevronRight } from 'lucide-react';
 
 /**
  * "Prompt to Build This" — the project's most remixable artifact, treated
@@ -30,8 +28,7 @@ import { cn } from '@/lib/utils';
  * keep it with the project, and share it as a link that grows new versions
  * in other gardens.
  */
-export function PromptDialog() {
-  const [open, setOpen] = useState(false);
+export function PromptDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
   const currentProjectId = useCloudStore(s => s.currentProjectId);
   const user = useAuthStore(s => s.user);
 
@@ -123,14 +120,7 @@ export function PromptDialog() {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger
-        className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'h-7 gap-1 text-xs')}
-        title="The prompt that would build this — create it, keep it, share it"
-      >
-        <ScrollText className="size-3" />
-        Prompt
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Prompt to build this</DialogTitle>

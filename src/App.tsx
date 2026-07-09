@@ -3,9 +3,7 @@ import { ProviderSettings } from '@/components/ProviderSettings';
 import { ChatPanel } from '@/components/Chat/ChatPanel';
 import { RightPanel } from '@/components/RightPanel';
 import { ResizableLayout } from '@/components/ResizableLayout';
-import { PublishDialog } from '@/components/PublishDialog';
-import { PromptDialog } from '@/components/PromptDialog';
-import { SharePreview } from '@/components/SharePreview';
+import { ShareMenu } from '@/components/ShareMenu';
 import { GitHubSync } from '@/components/GitHubSync';
 import { useProviderStore } from '@/store/provider-store';
 import { useProjectStore } from '@/store/project-store';
@@ -22,7 +20,7 @@ import { BuilderOnboarding } from '@/components/BuilderOnboarding';
 import { initCloudSync } from '@/cloud/sync';
 import { AccountMenu } from '@/components/AccountMenu';
 import { ProjectsButton, ProjectsPage } from '@/components/ProjectsPage';
-import { ConnectionsButton, ConnectionsPage } from '@/components/ConnectionsPage';
+import { ConnectionsPage } from '@/components/ConnectionsPage';
 import { ProjectStatus } from '@/components/ProjectStatus';
 import { StewardPage } from '@/components/StewardPage';
 import { initLocalAutosave, stashAndStartFresh } from '@/project/local-projects';
@@ -151,13 +149,13 @@ function App() {
             Gallery
           </Button>
           <ProjectsButton />
-          <ConnectionsButton />
-          {hasProject && <PromptDialog />}
-          {hasProject && <SharePreview />}
-          {hasProject && <PublishDialog />}
           {/* GitHub belongs with the code — surface it once there's a project
               to sync, not on the home/network screens. */}
           {hasProject && <GitHubSync />}
+          {/* Publish, Prompt, preview links, and collaborators live behind
+              one Share door — the header's single primary action.
+              (Connections moved to the account menu.) */}
+          {hasProject && <ShareMenu />}
           <Separator orientation="vertical" className="h-5" />
           {showStandaloneSettings && <ThemeToggle />}
           <AccountMenu />
@@ -225,10 +223,7 @@ function App() {
               Gallery
             </Button>
             <ProjectsButton mobile />
-            <ConnectionsButton mobile />
-            {hasProject && <PromptDialog />}
-            {hasProject && <SharePreview />}
-            {hasProject && <PublishDialog />}
+            {hasProject && <ShareMenu mobile />}
             {hasProject && <GitHubSync />}
           </div>
           <div className="flex items-center gap-1.5 pt-1 border-t">

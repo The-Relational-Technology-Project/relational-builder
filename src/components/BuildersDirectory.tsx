@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useAuthStore } from '@/store/auth-store';
 import { fetchDirectory, requestConnection, type DirectoryBuilder } from '@/knowledge/connections';
-import { ConnectionsDialog } from '@/components/ConnectionsDialog';
 import { plantSharedPrompt } from '@/cloud/prompts';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,9 +15,7 @@ const STEWARD_CAL = 'https://cal.com/joshnesbit/';
  * appear in the UI.
  */
 export function BuildersDirectory() {
-  const profile = useAuthStore(s => s.profile);
   const [builders, setBuilders] = useState<DirectoryBuilder[] | null>(null);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [requestingId, setRequestingId] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
@@ -47,17 +43,9 @@ export function BuildersDirectory() {
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-          Build with others
-        </p>
-        <button
-          onClick={() => setSettingsOpen(true)}
-          className="text-xs text-muted-foreground hover:text-foreground underline decoration-dotted"
-        >
-          {profile?.open_to_connecting ? 'Your connection settings' : 'Open yourself to connecting'}
-        </button>
-      </div>
+      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+        Build with others
+      </p>
 
       <div className="grid gap-2 sm:grid-cols-2">
         {/* RTP stewards — always available */}
@@ -171,8 +159,6 @@ export function BuildersDirectory() {
         ))}
       </div>
       {error && <p className="text-xs text-destructive">{error}</p>}
-
-      {settingsOpen && <ConnectionsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />}
     </div>
   );
 }

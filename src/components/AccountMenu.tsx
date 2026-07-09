@@ -21,9 +21,9 @@ import { Label } from '@/components/ui/label';
 import { CircleUser, MailCheck, LogOut, MapPin, Palette, HeartHandshake, Sun, Moon, SlidersHorizontal, DoorOpen } from 'lucide-react';
 import { BuilderOnboarding } from '@/components/BuilderOnboarding';
 import { useUIStore } from '@/store/ui-store';
+import { useConnectionsStore } from '@/store/connections-store';
 import { isSuperAdmin } from '@/cloud/account-requests';
 import { DesignSystemDialog } from '@/components/DesignSystemDialog';
-import { ConnectionsDialog } from '@/components/ConnectionsDialog';
 import { ProviderSettings } from '@/components/ProviderSettings';
 import { getThemeMode, setThemeMode, type ThemeMode } from '@/theme';
 
@@ -39,10 +39,18 @@ export function AccountMenu() {
 
   const [editingProfile, setEditingProfile] = useState(false);
   const [editingStyle, setEditingStyle] = useState(false);
-  const [editingConnections, setEditingConnections] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const setStewardOpen = useUIStore(st => st.setStewardOpen);
+  const setConnectionsOpen = useUIStore(st => st.setConnectionsOpen);
   const [themeMode, setThemeState] = useState<ThemeMode>(getThemeMode);
+
+  // The friendly signal that something's waiting on the Connections page —
+  // a warm dot on your name, never a red alarm
+  const inboxCount = useConnectionsStore(s => s.inbox.length);
+  const refreshInbox = useConnectionsStore(s => s.refreshInbox);
+  useEffect(() => {
+    if (user) refreshInbox();
+  }, [user, refreshInbox]);
 
   function toggleTheme() {
     const next = themeMode === 'dark' ? 'light' : 'dark';
@@ -58,11 +66,19 @@ export function AccountMenu() {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger
-          className={buttonVariants({ variant: 'ghost', size: 'sm' }) + ' h-7 gap-1 text-xs'}
-          title={user.email}
+          className={buttonVariants({ variant: 'ghost', size: 'sm' }) + ' h-7 gap-1 text-xs relative'}
+          title={inboxCount > 0 ? `${user.email} — connection requests waiting` : user.email}
         >
           <CircleUser className="size-3.5" />
           {profile?.display_name?.trim() || user.email.split('@')[0]}
+          {inboxCount > 0 && (
+            <>
+              <span className="absolute top-0.5 right-0.5 size-1.5 rounded-full bg-primary" aria-hidden />
+              <span className="sr-only">
+                {inboxCount} connection request{inboxCount === 1 ? '' : 's'} waiting
+              </span>
+            </>
+          )}
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-60">
           <DropdownMenuLabel className="font-normal">
@@ -83,9 +99,14 @@ export function AccountMenu() {
             <Palette className="size-3.5 text-muted-foreground" />
             Your style
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setEditingConnections(true)} className="gap-2 text-xs">
+          <DropdownMenuItem onClick={() => setConnectionsOpen(true)} className="gap-2 text-xs">
             <HeartHandshake className="size-3.5 text-muted-foreground" />
             Connections
+            {inboxCount > 0 && (
+              <span className="ml-auto rounded-full bg-primary/15 text-primary px-1.5 py-0.5 text-[10px] font-semibold leading-none">
+                {inboxCount}
+              </span>
+            )}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={toggleTheme} className="gap-2 text-xs">
@@ -115,7 +136,6 @@ export function AccountMenu() {
       </DropdownMenu>
       {editingProfile && <BuilderOnboarding onDone={() => setEditingProfile(false)} />}
       {editingStyle && <DesignSystemDialog open={editingStyle} onOpenChange={setEditingStyle} />}
-      {editingConnections && <ConnectionsDialog open={editingConnections} onOpenChange={setEditingConnections} />}
       {settingsOpen && <ProviderSettings open={settingsOpen} onOpenChange={setSettingsOpen} hideTrigger />}
     </>
   );

@@ -100,3 +100,22 @@ export function suggestConnection(
 export async function requestConnection(toId: string, message: string): Promise<void> {
   await call({ action: 'request', to_id: toId, message });
 }
+
+/** A pending request addressed to the signed-in builder — exactly what the
+ *  notification email carries (name + note); the sender's address stays
+ *  private until they accept. */
+export interface ConnectionRequest {
+  id: string;
+  from_name: string | null;
+  message: string | null;
+  created_at: string;
+}
+
+export async function fetchConnectionInbox(): Promise<ConnectionRequest[]> {
+  const result = await call({ action: 'inbox' });
+  return (result.requests as ConnectionRequest[]) ?? [];
+}
+
+export async function respondToConnection(id: string, decision: 'accept' | 'decline'): Promise<void> {
+  await call({ action: 'respond', id, decision });
+}

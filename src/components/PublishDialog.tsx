@@ -1,10 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,7 +19,7 @@ import { useCloudStore } from '@/store/cloud-store';
 import { getPromptForProject } from '@/cloud/prompts';
 import { deployToNetlify } from '@/project/deploy-netlify';
 import { deployToVercel } from '@/project/deploy-vercel';
-import { Upload, Download, ExternalLink, Globe, Check, Loader2 } from 'lucide-react';
+import { Download, ExternalLink, Globe, Check, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CommonsSubmitCard } from './CommonsSubmitCard';
 import { suggestProjectName } from '@/project/suggest-name';
@@ -42,8 +41,7 @@ interface DeployResult {
   totalViews?: number;
 }
 
-export function PublishDialog() {
-  const [open, setOpen] = useState(false);
+export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
   const [projectName, setProjectName] = useState('my-community-app');
   const [activeTarget, setActiveTarget] = useState<DeployTarget>('community');
   const [deploying, setDeploying] = useState(false);
@@ -75,14 +73,19 @@ export function PublishDialog() {
   };
 
   const handleClose = (v: boolean) => {
-    setOpen(v);
+    onOpenChange(v);
     if (!v) resetState();
-    // First open with the stock name → offer one drawn from the conversation
-    if (v && projectName === 'my-community-app') {
+  };
+
+  // First open with the stock name → offer one drawn from the conversation.
+  // (An effect, not a trigger handler: the dialog is opened from the Share
+  // menu, so open transitions arrive as props.)
+  useEffect(() => {
+    if (open && projectName === 'my-community-app') {
       const suggested = suggestProjectName();
       if (suggested) setProjectName(suggested);
     }
-  };
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleDeploy = async (skipScan = false) => {
     const files = getAllFiles();
@@ -164,19 +167,6 @@ export function PublishDialog() {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogTrigger
-        className={cn(
-          // The one header action that makes the tool REAL — it reads as the
-          // primary CTA, not another nav item
-          "inline-flex items-center justify-center gap-1 rounded-full px-3.5 h-7 text-xs font-semibold transition-colors",
-          "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90",
-          fileCount === 0 && "opacity-50 pointer-events-none"
-        )}
-        disabled={fileCount === 0}
-      >
-        <Upload className="size-3" />
-        Publish
-      </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Put it out there</DialogTitle>

@@ -45,26 +45,30 @@ function SignedInDashboard({ composer }: HomeDashboardProps) {
 
   return (
     <div className="flex-1 overflow-y-auto">
-      <div className="max-w-3xl mx-auto px-4 md:px-6 py-7 md:py-14 space-y-8 md:space-y-10">
-        {/* Hero: greeting + the composer itself. Projects and prompts live on
-            the Projects page; the Gallery is the place to browse the network. */}
-        <div className="space-y-6">
-          <div className="text-center space-y-2">
-            <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-balance">
-              What are we building, {displayName}?
-            </h2>
-            {communityActive && (
-              <div className="inline-flex items-center gap-1.5 text-xs text-green-700 dark:text-green-400 bg-green-600/10 border border-green-600/30 rounded-full px-3 py-1">
-                <Sparkles className="size-3" />
-                Community access active
-              </div>
-            )}
+      {/* Vertically centered like the welcome hero — the composer is the whole
+          point of this screen, so it sits at the middle, not riding the top */}
+      <div className="min-h-full flex items-center justify-center px-4 md:px-6 py-8">
+        <div className="w-full max-w-3xl space-y-8 md:space-y-10">
+          {/* Hero: greeting + the composer itself. Projects and prompts live on
+              the Projects page; the Gallery is the place to browse the network. */}
+          <div className="space-y-6">
+            <div className="text-center space-y-2">
+              <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-balance">
+                What are we building, {displayName}?
+              </h2>
+              {communityActive && (
+                <div className="inline-flex items-center gap-1.5 text-xs text-green-700 dark:text-green-400 bg-green-600/10 border border-green-600/30 rounded-full px-3 py-1">
+                  <Sparkles className="size-3" />
+                  Community access active
+                </div>
+              )}
+            </div>
+            {composer}
+            <StartFromOptions />
           </div>
-          {composer}
-          <StartFromOptions />
-        </div>
 
-        <StyleNudge projectCount={projects.length} />
+          <StyleNudge projectCount={projects.length} />
+        </div>
       </div>
     </div>
   );

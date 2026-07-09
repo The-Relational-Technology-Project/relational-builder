@@ -11,6 +11,8 @@
  * POST JSON (Authorization: Bearer <builder session>):
  *   {action:'directory'}                        → opted-in builders (no emails)
  *   {action:'request', to_id, message}          → send a connection request
+ *   {action:'inbox'}                            → pending requests addressed to me
+ *   {action:'respond', id, decision}            → answer one from inside the app
  * GET ?token=...&do=accept|decline              → B's response (from email links)
  *
  * Deploy: supabase functions deploy connect --no-verify-jwt
@@ -71,6 +73,43 @@ async function sendEmail(to: string, subject: string, text: string): Promise<boo
   return res.ok;
 }
 
+interface ConnectionRow {
+  id: string;
+  from_email: string;
+  from_name: string | null;
+  to_email: string;
+  message: string | null;
+  status: string;
+}
+
+/** Both parties said yes → the intro email that reveals addresses to each other */
+async function sendIntroEmails(r: ConnectionRow): Promise<void> {
+  const fromName = r.from_name || r.from_email;
+  const intro = [
+    `You're connected! ${fromName} (${r.from_email}) and ${r.to_email} both said yes to an introduction through Relational Builder.`,
+    '',
+    r.message ? `The note that started it: "${r.message}"` : '',
+    '',
+    'This email goes to you both — just hit reply-all and take it from here. Build something good together.',
+    '',
+    '— Relational Builder, a project of the Relational Technology Project',
+  ].filter(l => l !== undefined).join('\n');
+  await sendEmail(r.from_email, `Intro: you and ${r.to_email} are connected`, intro);
+  await sendEmail(r.to_email, `Intro: you and ${fromName} are connected`, intro);
+}
+
+async function settleRequest(r: ConnectionRow, decision: 'accept' | 'decline'): Promise<void> {
+  await fetch(rest(`/connection_requests?id=eq.${r.id}`), {
+    method: 'PATCH',
+    headers: svc(),
+    body: JSON.stringify({
+      status: decision === 'accept' ? 'accepted' : 'declined',
+      responded_at: new Date().toISOString(),
+    }),
+  });
+  if (decision === 'accept') await sendIntroEmails(r);
+}
+
 async function currentUser(req: Request): Promise<{ email: string } | null> {
   const token = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '');
   const userRes = await fetch(`${Deno.env.get('SUPABASE_URL')}/auth/v1/user`, {
@@ -104,30 +143,11 @@ Deno.serve(async (req: Request) => {
         return page('Already answered', `You already ${r.status} this request — nothing more to do.`);
       }
 
-      await fetch(rest(`/connection_requests?id=eq.${r.id}`), {
-        method: 'PATCH',
-        headers: svc(),
-        body: JSON.stringify({ status: decision === 'accept' ? 'accepted' : 'declined', responded_at: new Date().toISOString() }),
-      });
+      await settleRequest(r, decision as 'accept' | 'decline');
 
       if (decision === 'decline') {
         return page('Declined, quietly', 'No intro will be made, and they will not be notified. Thanks for taking a look.');
       }
-
-      // Accepted → intro email to both, revealing addresses to each other
-      const fromName = r.from_name || r.from_email;
-      const intro = [
-        `You're connected! ${fromName} (${r.from_email}) and ${r.to_email} both said yes to an introduction through Relational Builder.`,
-        '',
-        r.message ? `The note that started it: "${r.message}"` : '',
-        '',
-        'This email goes to you both — just hit reply-all and take it from here. Build something good together.',
-        '',
-        '— Relational Builder, a project of the Relational Technology Project',
-      ].filter(l => l !== undefined).join('\n');
-      await sendEmail(r.from_email, `Intro: you and ${r.to_email} are connected`, intro);
-      await sendEmail(r.to_email, `Intro: you and ${fromName} are connected`, intro);
-
       return page('Connected!', 'An intro email with both your addresses is on its way to each of you. Reply and take it from there.');
     }
 
@@ -176,6 +196,36 @@ Deno.serve(async (req: Request) => {
         // email deliberately omitted
       }));
       return json({ builders });
+    }
+
+    // Pending requests addressed to me — what the email carried and nothing
+    // more (from_name + note; the sender's address stays private until accept)
+    if (action === 'inbox') {
+      const res = await fetch(
+        rest(`/connection_requests?to_email=eq.${encodeURIComponent(user.email)}&status=eq.pending&select=id,from_name,message,created_at&order=created_at.desc`),
+        { headers: svc() },
+      );
+      return json({ requests: res.ok ? await res.json() : [] });
+    }
+
+    // Answer a request from inside the app — same consent flow as the email
+    // links, gated to the addressee's own session
+    if (action === 'respond') {
+      const id = String(body.id ?? '');
+      const decision = String(body.decision ?? '');
+      if (!id || !['accept', 'decline'].includes(decision)) {
+        return json({ error: 'Bad request' }, 400);
+      }
+      const rowsRes = await fetch(
+        rest(`/connection_requests?id=eq.${encodeURIComponent(id)}&select=*`),
+        { headers: svc() },
+      );
+      const rows = rowsRes.ok ? await rowsRes.json() : [];
+      const r = rows[0] as ConnectionRow | undefined;
+      if (!r || r.to_email.toLowerCase() !== user.email) return json({ error: 'Not found' }, 404);
+      if (r.status !== 'pending') return json({ error: 'Already answered' }, 409);
+      await settleRequest(r, decision as 'accept' | 'decline');
+      return json({ ok: true });
     }
 
     if (action === 'request') {

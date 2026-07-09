@@ -4,7 +4,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useProjectStore } from '@/store/project-store';
@@ -21,20 +20,9 @@ import {
   Code2,
 } from 'lucide-react';
 
-export function SharePreview() {
-  const [open, setOpen] = useState(false);
-  const fileCount = useProjectStore(s => s.getFileCount());
-
-  if (fileCount === 0) return null;
-
+export function SharePreview({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger
-        className="inline-flex items-center justify-center gap-1 rounded-md px-3 h-7 text-xs font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
-      >
-        <Share2 className="size-3" />
-        Share
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Share Preview</DialogTitle>
