@@ -133,7 +133,7 @@ export function StudioGallery({ onClose }: { onClose: () => void }) {
         <div className="flex items-start gap-3">
           <Button variant="ghost" size="sm" className="h-8 gap-1 -ml-2 shrink-0" onClick={onClose}>
             <ArrowLeft className="size-3.5" />
-            Home
+            Back
           </Button>
           <div className="min-w-0">
             <h1 className="text-xl font-semibold tracking-tight">Studio Gallery</h1>

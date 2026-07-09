@@ -1,5 +1,6 @@
 import { getCachedStarter, cacheStarter } from '@/cloud/starter-prompts';
 import { distillStarterPrompt } from '@/knowledge/prompt-distiller';
+import { stashAndStartFresh } from '@/project/local-projects';
 import { useCloudStore } from '@/store/cloud-store';
 import { useProjectStore } from '@/store/project-store';
 import { useChatStore } from '@/store/chat-store';
@@ -23,7 +24,10 @@ export async function startFromStudioTool(tool: Tool): Promise<void> {
     cacheStarter(starter).catch(() => {}); // warm the shared cache, best-effort
   }
 
-  // Fresh workspace, Plan mode, the starter seeded as the opening draft
+  // Fresh workspace, Plan mode, the starter seeded as the opening draft.
+  // Never destructive: the gallery is reachable mid-build, so any open work
+  // goes to the local shelf first (cloud projects are already saved).
+  stashAndStartFresh();
   useCloudStore.getState().closeProject();
   useProjectStore.getState().clearProject();
   useChatStore.getState().clearMessages();

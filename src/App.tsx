@@ -108,16 +108,14 @@ function App() {
   const [mobileTab, setMobileTab] = useState<'chat' | 'workspace'>('chat');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // The Studio Gallery is its own space next to Home; starting a build
-  // (from the gallery or anywhere else) always lands back in the workspace
+  // The Studio Gallery is its own space, reachable from Home AND mid-build —
+  // browsing the network's tools shouldn't require abandoning your project.
+  // Closing it returns to wherever you were (workspace or home).
   const galleryOpen = useUIStore(s => s.galleryOpen);
   const setGalleryOpen = useUIStore(s => s.setGalleryOpen);
   const projectsOpen = useUIStore(s => s.projectsOpen);
   const connectionsOpen = useUIStore(s => s.connectionsOpen);
   const stewardOpen = useUIStore(s => s.stewardOpen);
-  useEffect(() => {
-    if (hasProject) setGalleryOpen(false);
-  }, [hasProject, setGalleryOpen]);
 
   const currentProjectName = useCloudStore(s => s.currentProjectName);
   const syncStatus = useCloudStore(s => s.syncStatus);
@@ -143,17 +141,15 @@ function App() {
             <Plus className="size-3" />
             New Project
           </Button>
-          {!hasProject && (
-            <Button
-              variant={galleryOpen ? 'secondary' : 'ghost'}
-              size="sm"
-              className="h-7 gap-1 text-xs"
-              onClick={() => setGalleryOpen(!galleryOpen)}
-            >
-              <LayoutGrid className="size-3" />
-              Gallery
-            </Button>
-          )}
+          <Button
+            variant={galleryOpen ? 'secondary' : 'ghost'}
+            size="sm"
+            className="h-7 gap-1 text-xs"
+            onClick={() => setGalleryOpen(!galleryOpen)}
+          >
+            <LayoutGrid className="size-3" />
+            Gallery
+          </Button>
           <ProjectsButton />
           <ConnectionsButton />
           {hasProject && <PromptDialog />}
@@ -219,17 +215,15 @@ function App() {
               <Plus className="size-3" />
               New Project
             </Button>
-            {!hasProject && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 gap-1 text-xs"
-                onClick={() => setGalleryOpen(!galleryOpen)}
-              >
-                <LayoutGrid className="size-3" />
-                Gallery
-              </Button>
-            )}
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 gap-1 text-xs"
+              onClick={() => setGalleryOpen(!galleryOpen)}
+            >
+              <LayoutGrid className="size-3" />
+              Gallery
+            </Button>
             <ProjectsButton mobile />
             <ConnectionsButton mobile />
             {hasProject && <PromptDialog />}
@@ -254,8 +248,10 @@ function App() {
           <ConnectionsPage />
         ) : projectsOpen ? (
           <ProjectsPage />
+        ) : galleryOpen ? (
+          <StudioGallery onClose={() => setGalleryOpen(false)} />
         ) : !hasProject ? (
-          galleryOpen ? <StudioGallery onClose={() => setGalleryOpen(false)} /> : <ChatPanel />
+          <ChatPanel />
         ) : isMobile ? (
           <div className="h-full flex flex-col">
             <div className="flex-1 min-h-0">
