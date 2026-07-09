@@ -30,7 +30,9 @@
  * view can only exist here, behind the service role):
  *   { action: "accounts" }                 → { accounts: [...] }
  *
- * Deploy: supabase functions deploy admin-requests --no-verify-jwt
+ * Deploy: supabase functions deploy admin-requests
+ * (verify_jwt ON — every caller is a signed-in steward; the real gate is
+ * the SUPER_ADMIN_EMAILS check below.)
  * Secrets:
  *   SUPER_ADMIN_EMAILS  — comma-separated (default joshuanesbit@gmail.com)
  *   RESEND_API_KEY      — for the welcome email (optional but recommended)
@@ -236,6 +238,26 @@ Deno.serve(async (req: Request) => {
       const resendKey = Deno.env.get('RESEND_API_KEY') ?? '';
       const appUrl = Deno.env.get('APP_URL') ?? 'https://relational-builder.vercel.app';
       if (resendKey) {
+        // Known Studio member? Let them know their history is waiting —
+        // the studio_imports row is claimed (opt-in) during onboarding.
+        let studioLine = '';
+        try {
+          const importRes = await fetch(
+            rest(
+              `/studio_imports?email=eq.${encodeURIComponent(String(request.email ?? '').toLowerCase())}` +
+                '&claimed_at=is.null&declined_at=is.null&select=id&limit=1',
+            ),
+            { headers: svc() },
+          );
+          const importRows = importRes.ok ? await importRes.json() : [];
+          if (importRows.length > 0) {
+            studioLine =
+              `<p>We see you have a Studio account — you'll be able to bring your ` +
+              `profile and project info into Relational Builder during onboarding.</p>`;
+          }
+        } catch {
+          // best-effort: the welcome email goes out either way
+        }
         await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
@@ -246,6 +268,7 @@ Deno.serve(async (req: Request) => {
             html: [
               `<p>Hi${request.name ? ' ' + esc(request.name) : ''},</p>`,
               `<p>Your Relational Builder account is ready. Free community building is included — no API key, no credit card.</p>`,
+              ...(studioLine ? [studioLine] : []),
               `<p><a href="${appUrl}">Open Relational Builder</a> and sign in with this email address (we'll send you a sign-in link — no password to remember).</p>`,
               `<p>Build something your neighborhood will love.</p>`,
             ].join('\n'),

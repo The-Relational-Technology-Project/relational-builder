@@ -1,12 +1,18 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuthStore, type BuilderProfile } from '@/store/auth-store';
+import {
+  checkStudioImport,
+  claimStudioImport,
+  declineStudioImport,
+  type StudioImportCheck,
+} from '@/cloud/studio-import';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RBMark } from '@/components/RBMark';
-import { Loader2, ArrowRight, ArrowLeft, MapPin, User, Cpu, Sparkles, Shield } from 'lucide-react';
+import { Loader2, ArrowRight, ArrowLeft, MapPin, User, Cpu, Sparkles, Shield, Package } from 'lucide-react';
 
-type Step = 'welcome' | 'about' | 'dreams' | 'tech' | 'consent';
+type Step = 'welcome' | 'studio' | 'about' | 'dreams' | 'tech' | 'consent';
 const STEPS: Step[] = ['welcome', 'about', 'dreams', 'tech', 'consent'];
 
 const textareaClass =
@@ -36,9 +42,52 @@ export function BuilderOnboarding({ onDone }: { onDone?: () => void }) {
     profile?.email_opt_in === true ? 'yes' : profile?.email_opt_in === false ? 'no' : '',
   );
 
-  const index = STEPS.indexOf(step);
-  const goNext = () => setStep(STEPS[Math.min(index + 1, STEPS.length - 1)]);
-  const goBack = () => setStep(STEPS[Math.max(index - 1, 0)]);
+  // Known Studio member? Their staged history waits for a yes — the check is
+  // server-side, keyed on the verified session email, and quiet on failure.
+  const [studio, setStudio] = useState<StudioImportCheck | null>(null);
+  const [studioBusy, setStudioBusy] = useState<'claim' | 'decline' | null>(null);
+  const [studioImported, setStudioImported] = useState<number | null>(null);
+  useEffect(() => {
+    checkStudioImport()
+      .then(r => { if (r.available) setStudio(r); })
+      .catch(() => {});
+  }, []);
+
+  const steps: Step[] = studio
+    ? ['welcome', 'studio', 'about', 'dreams', 'tech', 'consent']
+    : STEPS;
+  const index = steps.indexOf(step);
+  const goNext = () => setStep(steps[Math.min(index + 1, steps.length - 1)]);
+  const goBack = () => setStep(steps[Math.max(index - 1, 0)]);
+
+  async function handleStudioChoice(bring: boolean) {
+    setStudioBusy(bring ? 'claim' : 'decline');
+    setError(null);
+    try {
+      if (bring) {
+        const r = await claimStudioImport();
+        const p = r.profile;
+        // Prefill without clobbering anything already typed or saved
+        if (p.full_name && !fullName.trim()) setFullName(p.full_name);
+        if (p.display_name && !displayName.trim()) setDisplayName(p.display_name);
+        if (p.neighborhood && !neighborhood.trim()) setNeighborhood(p.neighborhood);
+        if (p.neighborhood_description && !neighborhoodDescription.trim()) {
+          setNeighborhoodDescription(p.neighborhood_description);
+        }
+        if (p.dreams && !dreams.trim()) setDreams(p.dreams);
+        if (p.tech_familiarity && !techFamiliarity) setTechFamiliarity(p.tech_familiarity);
+        if (p.ai_coding_experience && !aiCodingExperience) setAiCodingExperience(p.ai_coding_experience);
+        setStudioImported(r.imported_prompts);
+      } else {
+        await declineStudioImport();
+        goNext();
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Something went wrong — try again?');
+    } finally {
+      setStudioBusy(null);
+    }
+  }
 
   async function handleComplete() {
     setSaving(true);
@@ -75,7 +124,7 @@ export function BuilderOnboarding({ onDone }: { onDone?: () => void }) {
       <div className="min-h-full flex items-center justify-center px-4 py-10">
         <div className="w-full max-w-md">
           <div className="flex gap-2 mb-8 justify-center">
-            {STEPS.map((s, i) => (
+            {steps.map((s, i) => (
               <div
                 key={s}
                 className={`h-1.5 w-10 rounded-full transition-colors ${i <= index ? 'bg-primary' : 'bg-muted'}`}
@@ -98,6 +147,95 @@ export function BuilderOnboarding({ onDone }: { onDone?: () => void }) {
                 Get started
                 <ArrowRight className="ml-2 size-4" />
               </Button>
+            </div>
+          )}
+
+          {step === 'studio' && studio && (
+            <div className="space-y-6">
+              <div className="text-center space-y-2">
+                <div className="mx-auto rounded-full bg-primary/10 p-3 w-fit">
+                  <Package className="size-6 text-primary" />
+                </div>
+                <h2 className="text-xl font-semibold">
+                  Welcome back{studio.display_name ? `, ${studio.display_name}` : ''}
+                </h2>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  You were part of RT Studio — the Studio has moved into
+                  Relational Builder, and we kept your things for you.
+                </p>
+              </div>
+
+              {studioImported === null ? (
+                <>
+                  <div className="rounded-lg border bg-muted/30 p-4 text-sm text-muted-foreground leading-relaxed">
+                    Bring over your Studio profile
+                    {studio.plan_count > 0 && (
+                      <>
+                        {' '}and your{' '}
+                        <span className="font-medium text-foreground">
+                          {studio.plan_count} build plan{studio.plan_count === 1 ? '' : 's'}
+                        </span>
+                      </>
+                    )}
+                    ? Your profile answers will prefill the next steps
+                    {studio.plan_count > 0 && ', and your build plans will be waiting in your prompt library, ready to build from'}.
+                  </div>
+                  <div className="space-y-2">
+                    <Button
+                      onClick={() => handleStudioChoice(true)}
+                      disabled={studioBusy !== null}
+                      className="w-full"
+                    >
+                      {studioBusy === 'claim' ? (
+                        <>
+                          <Loader2 className="mr-2 size-4 animate-spin" />
+                          Bringing it over...
+                        </>
+                      ) : (
+                        <>
+                          Yes, bring my Studio info over
+                          <ArrowRight className="ml-2 size-4" />
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => handleStudioChoice(false)}
+                      disabled={studioBusy !== null}
+                      className="w-full"
+                    >
+                      {studioBusy === 'decline' ? (
+                        <Loader2 className="mr-2 size-4 animate-spin" />
+                      ) : (
+                        'No thanks, start fresh'
+                      )}
+                    </Button>
+                    <p className="text-xs text-muted-foreground text-center">
+                      "Start fresh" deletes the Studio info we saved for you.
+                      Either way, you choose what your Builder profile says next.
+                    </p>
+                  </div>
+                  {error && <p className="text-xs text-destructive text-center">{error}</p>}
+                </>
+              ) : (
+                <>
+                  <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 text-sm leading-relaxed">
+                    Done! Your profile answers are filled in — review them in the
+                    next steps.
+                    {studioImported > 0 && (
+                      <>
+                        {' '}Your {studioImported} build plan{studioImported === 1 ? '' : 's'} are in
+                        your prompt library (Projects → Your prompts), ready to
+                        build from.
+                      </>
+                    )}
+                  </div>
+                  <Button onClick={goNext} className="w-full">
+                    Continue
+                    <ArrowRight className="ml-2 size-4" />
+                  </Button>
+                </>
+              )}
             </div>
           )}
 
