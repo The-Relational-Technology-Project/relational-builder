@@ -68,7 +68,7 @@ function App() {
   const clearProject = useProjectStore(s => s.clearProject);
   const closeCloudProject = useCloudStore(s => s.closeProject);
 
-  const setProjectsOpen = useUIStore(s => s.setProjectsOpen);
+  const setView = useUIStore(s => s.setView);
   const handleNewProject = useCallback(() => {
     // Never destructive: the current work is stashed on the local shelf
     // (cloud projects are already saved in the cloud) before anything clears
@@ -76,11 +76,11 @@ function App() {
     closeCloudProject();
     clearMessages();
     clearProject();
-    setProjectsOpen(false);
+    setView('builder');
     // A fresh project starts with a fresh environment — service keys and
     // Community Cloud backends belong to the app they were connected for
     useEnvStore.getState().clearAll();
-  }, [clearMessages, clearProject, closeCloudProject, setProjectsOpen]);
+  }, [clearMessages, clearProject, closeCloudProject, setView]);
 
   // Focused building mode: start-from actions live on the home state,
   // ship actions appear once there's a project to ship
@@ -113,14 +113,10 @@ function App() {
   const [mobileTab, setMobileTab] = useState<'chat' | 'workspace'>('chat');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // The Studio Gallery is its own space, reachable from Home AND mid-build —
-  // browsing the network's tools shouldn't require abandoning your project.
-  // Closing it returns to wherever you were (workspace or home).
-  const galleryOpen = useUIStore(s => s.galleryOpen);
-  const setGalleryOpen = useUIStore(s => s.setGalleryOpen);
-  const projectsOpen = useUIStore(s => s.projectsOpen);
-  const connectionsOpen = useUIStore(s => s.connectionsOpen);
-  const stewardOpen = useUIStore(s => s.stewardOpen);
+  // Which view fills the main area — the builder itself or one of the
+  // full-width pages. The header stays put; leaving a page happens through
+  // it (project name / wordmark), not per-page close buttons.
+  const view = useUIStore(s => s.view);
 
   const currentProjectName = useCloudStore(s => s.currentProjectName);
   const syncStatus = useCloudStore(s => s.syncStatus);
@@ -131,12 +127,18 @@ function App() {
       {/* Desktop toolbar */}
       <header className="hidden md:flex items-center justify-between gap-2 px-4 py-2 border-b shrink-0">
         <div className="flex items-center gap-3 shrink-0">
-          <div className="flex items-center gap-1.5">
+          {/* The wordmark is the way home — back to the builder (or the home
+              composer when nothing's open) from any page */}
+          <button
+            className="flex items-center gap-1.5 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            onClick={() => setView('builder')}
+            title="Back to building"
+          >
             <RBMark className="size-5 shrink-0" />
             <h1 className="text-sm font-semibold tracking-tight whitespace-nowrap">
               Relational Builder
             </h1>
-          </div>
+          </button>
           <Separator orientation="vertical" className="h-5" />
           <StudioSwitcher />
           <ProjectStatus />
@@ -147,10 +149,10 @@ function App() {
             New Project
           </Button>
           <Button
-            variant={galleryOpen ? 'secondary' : 'ghost'}
+            variant={view === 'gallery' ? 'secondary' : 'ghost'}
             size="sm"
             className="h-7 gap-1 text-xs"
-            onClick={() => setGalleryOpen(!galleryOpen)}
+            onClick={() => setView('gallery')}
           >
             <LayoutGrid className="size-3" />
             Gallery
@@ -174,9 +176,15 @@ function App() {
           The action sheet stays mounted (hidden by class) so any dialog a
           row opens survives the sheet closing. */}
       <header className="flex md:hidden items-center gap-2 px-3 py-2 border-b shrink-0">
-        <RBMark className="size-5 shrink-0" />
+        <button onClick={() => setView('builder')} aria-label="Back to building" className="shrink-0">
+          <RBMark className="size-5" />
+        </button>
         <div className="flex-1 flex justify-center min-w-0">
-          <div className="inline-flex items-center gap-1.5 max-w-full rounded-full border px-3 py-1 text-xs">
+          {/* Tapping the project pill returns to the builder from any page */}
+          <button
+            onClick={() => setView('builder')}
+            className="inline-flex items-center gap-1.5 max-w-full rounded-full border px-3 py-1 text-xs"
+          >
             {currentProjectName ? (
               <>
                 {syncStatus === 'saving' ? (
@@ -193,7 +201,7 @@ function App() {
                 {hasProject ? 'New project' : 'Relational Builder'}
               </span>
             )}
-          </div>
+          </button>
         </div>
         <button
           onClick={() => setMobileMenuOpen(o => !o)}
@@ -224,7 +232,7 @@ function App() {
               variant="outline"
               size="sm"
               className="h-8 gap-1 text-xs"
-              onClick={() => setGalleryOpen(!galleryOpen)}
+              onClick={() => setView('gallery')}
             >
               <LayoutGrid className="size-3" />
               Gallery
@@ -244,14 +252,14 @@ function App() {
       {/* Main content — home gets the full width (nothing to preview yet);
           building gets split panels on desktop, a tab-switched stack on mobile */}
       <main className="flex-1 min-h-0">
-        {stewardOpen ? (
+        {view === 'steward' ? (
           <StewardPage />
-        ) : connectionsOpen ? (
+        ) : view === 'connections' ? (
           <ConnectionsPage />
-        ) : projectsOpen ? (
+        ) : view === 'projects' ? (
           <ProjectsPage />
-        ) : galleryOpen ? (
-          <StudioGallery onClose={() => setGalleryOpen(false)} />
+        ) : view === 'gallery' ? (
+          <StudioGallery />
         ) : !hasProject ? (
           <ChatPanel />
         ) : planFocus ? (

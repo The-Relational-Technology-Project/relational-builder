@@ -40,8 +40,7 @@ export function AccountMenu() {
   const [editingProfile, setEditingProfile] = useState(false);
   const [editingStyle, setEditingStyle] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const setStewardOpen = useUIStore(st => st.setStewardOpen);
-  const setConnectionsOpen = useUIStore(st => st.setConnectionsOpen);
+  const setView = useUIStore(st => st.setView);
   const [themeMode, setThemeState] = useState<ThemeMode>(getThemeMode);
 
   // The friendly signal that something's waiting on the Connections page —
@@ -99,7 +98,7 @@ export function AccountMenu() {
             <Palette className="size-3.5 text-muted-foreground" />
             Your style
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setConnectionsOpen(true)} className="gap-2 text-xs">
+          <DropdownMenuItem onClick={() => setView('connections')} className="gap-2 text-xs">
             <HeartHandshake className="size-3.5 text-muted-foreground" />
             Connections
             {inboxCount > 0 && (
@@ -122,7 +121,7 @@ export function AccountMenu() {
             Models & API keys
           </DropdownMenuItem>
           {isSuperAdmin(user.email) && (
-            <DropdownMenuItem onClick={() => setStewardOpen(true)} className="gap-2 text-xs">
+            <DropdownMenuItem onClick={() => setView('steward')} className="gap-2 text-xs">
               <DoorOpen className="size-3.5 text-muted-foreground" />
               Steward
             </DropdownMenuItem>

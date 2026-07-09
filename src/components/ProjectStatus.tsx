@@ -40,7 +40,8 @@ export function ProjectStatus() {
 
   const localName = useLocalProjects(s => s.currentName);
   const user = useAuthStore(s => s.user);
-  const setProjectsOpen = useUIStore(s => s.setProjectsOpen);
+  const view = useUIStore(s => s.view);
+  const setView = useUIStore(s => s.setView);
 
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
@@ -90,19 +91,37 @@ export function ProjectStatus() {
     setOpen(false);
   }
 
+  const pillClass =
+    'flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors';
+  const pill = (
+    <>
+      {syncFailed ? (
+        <CloudOff className="size-3 text-destructive" />
+      ) : (
+        <Check className="size-3 text-green-600" />
+      )}
+      <span className="max-w-[160px] truncate">{displayName || 'Saved'}</span>
+      {syncFailed && <span className="text-destructive">sync failed</span>}
+    </>
+  );
+
+  // From any page, the project name is the way back to the work in
+  // progress; only on the builder itself does clicking it open rename.
+  if (view !== 'builder') {
+    return (
+      <button className={pillClass} title="Back to this project" onClick={() => setView('builder')}>
+        {pill}
+      </button>
+    );
+  }
+
   return (
     <Dialog open={open} onOpenChange={handleOpen}>
       <DialogTrigger
-        className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+        className={pillClass}
         title="Your work saves automatically — click to rename"
       >
-        {syncFailed ? (
-          <CloudOff className="size-3 text-destructive" />
-        ) : (
-          <Check className="size-3 text-green-600" />
-        )}
-        <span className="max-w-[160px] truncate">{displayName || 'Saved'}</span>
-        {syncFailed && <span className="text-destructive">sync failed</span>}
+        {pill}
       </DialogTrigger>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
@@ -114,7 +133,7 @@ export function ProjectStatus() {
             one — find it any time in{' '}
             <button
               className="underline underline-offset-2 hover:text-foreground"
-              onClick={() => { setOpen(false); setProjectsOpen(true); }}
+              onClick={() => { setOpen(false); setView('projects'); }}
             >
               Projects
             </button>.

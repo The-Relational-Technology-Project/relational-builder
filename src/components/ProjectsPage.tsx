@@ -23,15 +23,15 @@ import { listMyPrompts, type BuildPrompt } from '@/cloud/prompts';
  * the cloud-enabled gate lives in one place.
  */
 export function ProjectsButton({ mobile }: { mobile?: boolean }) {
-  const projectsOpen = useUIStore(s => s.projectsOpen);
-  const setProjectsOpen = useUIStore(s => s.setProjectsOpen);
+  const active = useUIStore(s => s.view === 'projects');
+  const setView = useUIStore(s => s.setView);
   // Not cloud-gated: the local shelf means everyone has projects to come
   // back to, signed in or not
   return (
     <button
-      onClick={() => setProjectsOpen(!projectsOpen)}
+      onClick={() => setView('projects')}
       className={
-        buttonVariants({ variant: projectsOpen && !mobile ? 'secondary' : mobile ? 'outline' : 'ghost', size: 'sm' }) +
+        buttonVariants({ variant: active && !mobile ? 'secondary' : mobile ? 'outline' : 'ghost', size: 'sm' }) +
         (mobile ? ' h-8 gap-1 text-xs' : ' h-7 gap-1 text-xs')
       }
     >
@@ -49,7 +49,7 @@ export function ProjectsButton({ mobile }: { mobile?: boolean }) {
  */
 export function ProjectsPage() {
   const user = useAuthStore(s => s.user);
-  const setProjectsOpen = useUIStore(s => s.setProjectsOpen);
+  const setView = useUIStore(s => s.setView);
 
   const currentProjectId = useCloudStore(s => s.currentProjectId);
   const currentProjectName = useCloudStore(s => s.currentProjectName);
@@ -82,24 +82,19 @@ export function ProjectsPage() {
     setBusy(null);
   }
 
-  const close = () => setProjectsOpen(false);
+  // Opening or building from a project lands you in the builder with it
+  const backToBuilder = () => setView('builder');
 
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="max-w-4xl mx-auto px-4 md:px-8 py-8 md:py-12 space-y-10">
         {/* Page header */}
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <FolderOpen className="size-6 text-primary shrink-0" />
-            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Projects</h1>
-          </div>
-          <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-xs shrink-0" onClick={close}>
-            <X className="size-3.5" />
-            Close
-          </Button>
+        <div className="flex items-center gap-2.5">
+          <FolderOpen className="size-6 text-primary shrink-0" />
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Projects</h1>
         </div>
 
-        <MergedProjects onOpened={close} />
+        <MergedProjects onOpened={backToBuilder} />
 
         {!user ? (
           <p className="text-sm text-muted-foreground">
@@ -208,7 +203,7 @@ export function ProjectsPage() {
                 <YourPrompts
                   prompts={prompts}
                   onChanged={refreshPrompts}
-                  onBuildFrom={close}
+                  onBuildFrom={backToBuilder}
                 />
               </section>
             )}

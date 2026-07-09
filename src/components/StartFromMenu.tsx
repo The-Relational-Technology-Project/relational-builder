@@ -11,7 +11,7 @@ import { LayoutGrid, FileDown, Shuffle } from 'lucide-react';
  * build plan and forking a repo stay as the quieter options beside it.
  */
 export function StartFromOptions() {
-  const setGalleryOpen = useUIStore(s => s.setGalleryOpen);
+  const setView = useUIStore(s => s.setView);
   const [importOpen, setImportOpen] = useState(false);
   const [remixOpen, setRemixOpen] = useState(false);
 
@@ -24,7 +24,7 @@ export function StartFromOptions() {
     <>
       <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5">
         <span className="text-xs text-muted-foreground/60">or start from</span>
-        <button className={optionClass} onClick={() => setGalleryOpen(true)}>
+        <button className={optionClass} onClick={() => setView('gallery')}>
           <LayoutGrid className="size-3" />
           the Gallery
         </button>

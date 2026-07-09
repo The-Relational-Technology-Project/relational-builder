@@ -18,7 +18,6 @@ import {
 } from '@/cloud/gallery-links';
 import { listAllStudios, type StudioContext } from '@/knowledge/studio-context';
 import { useKnowledgeStore } from '@/store/knowledge-store';
-import { useUIStore } from '@/store/ui-store';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -37,20 +36,12 @@ import { Check, X, Loader2, ChevronDown, ChevronRight, ShieldCheck } from 'lucid
  * admin-requests edge function is the real boundary.
  */
 export function StewardPage() {
-  const setStewardOpen = useUIStore(s => s.setStewardOpen);
-
   return (
     <div className="flex-1 overflow-y-auto h-full">
       <div className="max-w-4xl mx-auto px-4 md:px-8 py-8 md:py-12 space-y-8">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <ShieldCheck className="size-6 text-primary shrink-0" />
-            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Steward</h1>
-          </div>
-          <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-xs shrink-0" onClick={() => setStewardOpen(false)}>
-            <X className="size-3.5" />
-            Close
-          </Button>
+        <div className="flex items-center gap-2.5">
+          <ShieldCheck className="size-6 text-primary shrink-0" />
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Steward</h1>
         </div>
         <Tabs defaultValue="accounts">
           <TabsList className="w-full sm:w-auto">

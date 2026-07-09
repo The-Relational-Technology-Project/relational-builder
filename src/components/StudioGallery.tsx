@@ -15,8 +15,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { useUIStore } from '@/store/ui-store';
 import {
-  ArrowLeft, ExternalLink, GitBranch, GitFork, Globe, Hammer,
+  ExternalLink, GitBranch, GitFork, Globe, Hammer,
   ImageOff, Loader2, ScrollText, ChevronDown, ChevronRight,
 } from 'lucide-react';
 
@@ -39,7 +40,8 @@ export interface StudioBadge {
   color: string | null;
 }
 
-export function StudioGallery({ onClose }: { onClose: () => void }) {
+export function StudioGallery() {
+  const setView = useUIStore(s => s.setView);
   const tools = useKnowledgeStore(s => s.tools);
   const loaded = useKnowledgeStore(s => s.loaded);
   const memberships = useStudioStore(s => s.memberships);
@@ -119,7 +121,7 @@ export function StudioGallery({ onClose }: { onClose: () => void }) {
     try {
       await startFromStudioTool(tool);
       setDetail(null);
-      onClose(); // the fresh Plan-mode draft is waiting in the composer
+      setView('builder'); // the fresh Plan-mode draft is waiting in the composer
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not start from that tool');
     } finally {
@@ -130,18 +132,12 @@ export function StudioGallery({ onClose }: { onClose: () => void }) {
   return (
     <div className="h-full overflow-y-auto">
       <div className="max-w-5xl mx-auto px-4 md:px-6 py-6 space-y-5">
-        <div className="flex items-start gap-3">
-          <Button variant="ghost" size="sm" className="h-8 gap-1 -ml-2 shrink-0" onClick={onClose}>
-            <ArrowLeft className="size-3.5" />
-            Back
-          </Button>
-          <div className="min-w-0">
-            <h1 className="text-xl font-semibold tracking-tight">Studio Gallery</h1>
-            <p className="text-sm text-muted-foreground">
-              Tools built across the relational tech network — see them running, trace their
-              lineage, and grow your own version for your neighborhood.
-            </p>
-          </div>
+        <div className="min-w-0">
+          <h1 className="text-xl font-semibold tracking-tight">Studio Gallery</h1>
+          <p className="text-sm text-muted-foreground">
+            Tools built across the relational tech network — see them running, trace their
+            lineage, and grow your own version for your neighborhood.
+          </p>
         </div>
 
         {/* The network's life alongside its library — recent shares, publishes,

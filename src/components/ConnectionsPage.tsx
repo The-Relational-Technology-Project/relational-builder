@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
-import { useUIStore } from '@/store/ui-store';
 import { useAuthStore } from '@/store/auth-store';
 import { useConnectionsStore } from '@/store/connections-store';
 import { Button } from '@/components/ui/button';
 import { BuildersDirectory } from '@/components/BuildersDirectory';
 import { ConnectionSettings } from '@/components/ConnectionSettings';
-import { HeartHandshake, X, Loader2, MailPlus } from 'lucide-react';
+import { HeartHandshake, Loader2, MailPlus } from 'lucide-react';
 
 /**
  * The Connections page — a full-width space for the relational layer of the
@@ -16,7 +15,6 @@ import { HeartHandshake, X, Loader2, MailPlus } from 'lucide-react';
  * something here to check.
  */
 export function ConnectionsPage() {
-  const setConnectionsOpen = useUIStore(s => s.setConnectionsOpen);
   const user = useAuthStore(s => s.user);
   const refreshInbox = useConnectionsStore(s => s.refreshInbox);
 
@@ -27,21 +25,15 @@ export function ConnectionsPage() {
   return (
     <div className="flex-1 overflow-y-auto h-full">
       <div className="max-w-4xl mx-auto px-4 md:px-8 py-8 md:py-12 space-y-8">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <HeartHandshake className="size-6 text-primary shrink-0" />
-            <div className="min-w-0">
-              <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Connections</h1>
-              <p className="text-sm text-muted-foreground">
-                Find other builders, get a hand from RTP stewards, and choose how
-                you show up to the network.
-              </p>
-            </div>
+        <div className="flex items-center gap-2.5">
+          <HeartHandshake className="size-6 text-primary shrink-0" />
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Connections</h1>
+            <p className="text-sm text-muted-foreground">
+              Find other builders, get a hand from RTP stewards, and choose how
+              you show up to the network.
+            </p>
           </div>
-          <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-xs shrink-0" onClick={() => setConnectionsOpen(false)}>
-            <X className="size-3.5" />
-            Close
-          </Button>
         </div>
 
         <PendingRequests />

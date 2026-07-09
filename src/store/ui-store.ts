@@ -2,34 +2,23 @@ import { create } from 'zustand';
 
 /**
  * App-level view state that more than one surface needs to reach — e.g. the
- * Studio Gallery is toggled from the main nav AND from the home screen's
+ * Studio Gallery is opened from the main nav AND from the home screen's
  * start-from options.
  *
- * Gallery, Projects, Connections, and Steward are full-width pages that share
- * the main area — opening one closes the others.
+ * The main area shows exactly one view at a time: the builder itself, or one
+ * of the full-width pages (Gallery, Projects, Connections, Steward). Pages
+ * are plain destinations — the nav navigates between them, and returning to
+ * the builder happens through the header (project name / wordmark), not
+ * per-page close buttons.
  */
+export type AppView = 'builder' | 'gallery' | 'projects' | 'connections' | 'steward';
+
 interface UIState {
-  galleryOpen: boolean;
-  setGalleryOpen: (open: boolean) => void;
-  projectsOpen: boolean;
-  setProjectsOpen: (open: boolean) => void;
-  connectionsOpen: boolean;
-  setConnectionsOpen: (open: boolean) => void;
-  stewardOpen: boolean;
-  setStewardOpen: (open: boolean) => void;
+  view: AppView;
+  setView: (view: AppView) => void;
 }
 
 export const useUIStore = create<UIState>(set => ({
-  galleryOpen: false,
-  setGalleryOpen: open =>
-    set({ galleryOpen: open, ...(open ? { projectsOpen: false, connectionsOpen: false, stewardOpen: false } : {}) }),
-  projectsOpen: false,
-  setProjectsOpen: open =>
-    set({ projectsOpen: open, ...(open ? { galleryOpen: false, connectionsOpen: false, stewardOpen: false } : {}) }),
-  connectionsOpen: false,
-  setConnectionsOpen: open =>
-    set({ connectionsOpen: open, ...(open ? { galleryOpen: false, projectsOpen: false, stewardOpen: false } : {}) }),
-  stewardOpen: false,
-  setStewardOpen: open =>
-    set({ stewardOpen: open, ...(open ? { galleryOpen: false, projectsOpen: false, connectionsOpen: false } : {}) }),
+  view: 'builder',
+  setView: view => set({ view }),
 }));
