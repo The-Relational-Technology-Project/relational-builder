@@ -44,12 +44,17 @@ export function StewardPage() {
           <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Steward</h1>
         </div>
         <Tabs defaultValue="accounts">
-          <TabsList className="w-full sm:w-auto">
-            <TabsTrigger value="accounts" className="flex-1 sm:flex-none text-xs sm:px-4">Accounts</TabsTrigger>
-            <TabsTrigger value="door" className="flex-1 sm:flex-none text-xs sm:px-4">Account requests</TabsTrigger>
-            <TabsTrigger value="commons" className="flex-1 sm:flex-none text-xs sm:px-4">Commons review</TabsTrigger>
-            <TabsTrigger value="gallery" className="flex-1 sm:flex-none text-xs sm:px-4">Studio gallery</TabsTrigger>
-          </TabsList>
+          {/* Four labels don't fit a phone width — the strip scrolls edge-to-edge
+              instead of clipping (justify-center inside an overflowing list cuts
+              off both ends) */}
+          <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <TabsList className="w-max">
+              <TabsTrigger value="accounts" className="text-xs px-3 sm:px-4">Accounts</TabsTrigger>
+              <TabsTrigger value="door" className="text-xs px-3 sm:px-4">Account requests</TabsTrigger>
+              <TabsTrigger value="commons" className="text-xs px-3 sm:px-4">Commons review</TabsTrigger>
+              <TabsTrigger value="gallery" className="text-xs px-3 sm:px-4">Studio gallery</TabsTrigger>
+            </TabsList>
+          </div>
           <TabsContent value="accounts" className="pt-4">
             <AccountsTab />
           </TabsContent>
@@ -358,7 +363,7 @@ function CommonsTab() {
                       onChange={e => setNotes(e.target.value)}
                       placeholder="Steward notes (optional — saved with the decision)"
                       rows={2}
-                      className="w-full resize-none rounded-md border bg-background px-2.5 py-1.5 text-xs placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-ring"
+                      className="w-full resize-none rounded-md border bg-background px-2.5 py-1.5 text-base sm:text-xs placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-ring"
                     />
                     <div className="flex gap-2">
                       <Button

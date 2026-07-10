@@ -328,8 +328,10 @@ function RequestAccountForm() {
     );
   }
 
+  // text-base on mobile: iOS Safari zooms the whole page when focusing an
+  // input under 16px, and it stays zoomed — cutting off the layout
   const inputClass =
-    'w-full rounded-lg border px-3 py-2 text-sm outline-none placeholder:text-[#8A7D71] border-[#E5DCD0] bg-[#FAF7F2] focus:border-[#D2764B]';
+    'w-full rounded-lg border px-3 py-2 text-base sm:text-sm outline-none placeholder:text-[#8A7D71] border-[#E5DCD0] bg-[#FAF7F2] focus:border-[#D2764B]';
 
   return (
     <div className="max-w-sm mx-auto space-y-2 text-left">
@@ -401,8 +403,10 @@ function SignInPanel({ onEnter }: { onEnter: () => void }) {
     else setSent(true);
   }
 
+  // min-w-0 lets the input shrink so the row never pushes "Send link" off
+  // the screen; text-base on mobile stops iOS Safari's focus zoom
   const inputClass =
-    'flex-1 rounded-lg border px-3 py-2 text-sm outline-none placeholder:text-[#8A7D71] border-[#E5DCD0] bg-[#FAF7F2] focus:border-[#D2764B]';
+    'flex-1 min-w-0 rounded-lg border px-3 py-2 text-base sm:text-sm outline-none placeholder:text-[#8A7D71] border-[#E5DCD0] bg-[#FAF7F2] focus:border-[#D2764B]';
 
   return (
     <div className="pt-5 border-t space-y-3" style={{ borderColor: C.border }}>
@@ -491,7 +495,7 @@ function CodeEntry({ email }: { email: string }) {
           onChange={e => { setCode(e.target.value); setError(null); }}
           onKeyDown={e => e.key === 'Enter' && verify()}
           placeholder="6-digit code"
-          className="flex-1 rounded-lg border px-3 py-2 text-center tracking-[0.3em] text-sm outline-none placeholder:text-[#8A7D71] placeholder:tracking-normal border-[#E5DCD0] bg-[#FAF7F2] focus:border-[#D2764B]"
+          className="flex-1 min-w-0 rounded-lg border px-3 py-2 text-center tracking-[0.3em] text-base sm:text-sm outline-none placeholder:text-[#8A7D71] placeholder:tracking-normal border-[#E5DCD0] bg-[#FAF7F2] focus:border-[#D2764B]"
         />
         <button
           onClick={verify}
