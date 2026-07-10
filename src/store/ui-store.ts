@@ -2,7 +2,7 @@ import { create } from 'zustand';
 
 /**
  * App-level view state that more than one surface needs to reach — e.g. the
- * Studio Gallery is opened from the main nav AND from the home screen's
+ * The Commons Gallery is opened from the main nav AND from the home screen's
  * start-from options.
  *
  * The main area shows exactly one view at a time: the builder itself, or one

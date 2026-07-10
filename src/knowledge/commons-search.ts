@@ -9,10 +9,10 @@
  * unreachable, so retrieval never blocks building.
  */
 
-const COMMONS_URL =
+export const COMMONS_URL =
   import.meta.env.VITE_COMMONS_SUPABASE_URL ?? 'https://odowkowcinyoxejyzhwl.supabase.co';
 
-const COMMONS_ANON_KEY =
+export const COMMONS_ANON_KEY =
   import.meta.env.VITE_COMMONS_SUPABASE_ANON_KEY ??
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kb3drb3djaW55b3hlanl6aHdsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ2OTE5MzksImV4cCI6MjA3MDI2NzkzOX0.2Y2Dw66ORJ5DyBA11H5ziNFtdH1dG9BcOmFWYSicTSc';
 
@@ -23,6 +23,8 @@ export interface CommonsSearchResult {
   title: string;
   summary: string | null;
   attribution: { name?: string; neighborhood?: string } | null;
+  /** Which studio's shelf this entry sits on (e.g. 'civic-media', 'rtp-canonical') */
+  source_studio_slug?: string | null;
   tags: string[] | null;
   similarity?: number;
   match: 'semantic' | 'text' | 'both';

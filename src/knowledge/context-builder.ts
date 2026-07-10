@@ -1,5 +1,6 @@
 import { formatPrinciplesForPrompt } from './rtp-principles';
 import { formatStudioForPrompt, type StudioContext } from './studio-context';
+import type { DomainFrame } from './frames';
 import { PINNED_VERSIONS } from '@/preview/bundler/versions';
 import { THEME_TEMPLATE } from '@/kit/theme';
 import type { Tool, Story } from './types';
@@ -321,6 +322,8 @@ export interface ContextOptions {
   projectFiles?: { path: string; content: string }[];
   /** Active studio frame — its principles layer onto the base */
   studio?: StudioContext | null;
+  /** Domain frames (civic media, practice-first, …) — from lineage or sensed from retrieval */
+  frames?: DomainFrame[];
   /** The builder's profile — place, dreams, and comfort level */
   builderProfile?: BuilderProfileContext | null;
   /** Resolved @ mention context — other apps the builder referenced */
@@ -388,6 +391,12 @@ export function buildSystemPrompt(options: ContextOptions = {}): string {
 
   if (options.studio) {
     sections.push('', formatStudioForPrompt(options.studio));
+  }
+
+  // Domain frames layer like studio principles but travel with the project
+  // (lineage) or the moment (retrieval sensing), not with membership
+  for (const frame of options.frames ?? []) {
+    sections.push('', frame.principles);
   }
 
   if (options.builderProfile && (options.builderProfile.neighborhood || options.builderProfile.dreams || options.builderProfile.display_name)) {

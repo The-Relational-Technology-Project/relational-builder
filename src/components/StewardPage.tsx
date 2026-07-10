@@ -30,7 +30,7 @@ import { Check, X, Loader2, ChevronDown, ChevronRight, ShieldCheck } from 'lucid
  *  - Account requests: pending requests, one-tap approve/decline
  *  - Commons review: the RT Commons contribution review queue (absorbed
  *    from RT Studio; decisions flow through the commons' review function)
- *  - Studio gallery: which Studio Gallery tools belong to which studios,
+ *  - Studio gallery: which Commons Gallery tools belong to which studios,
  *    powering studio-scoped highlighting
  * Visibility is gated by email client-side for convenience; the
  * admin-requests edge function is the real boundary.
@@ -479,7 +479,7 @@ function GalleryTab() {
     <div className="space-y-3">
       <p className="text-xs text-muted-foreground">
         Mark which gallery tools belong to each studio — members see their
-        studios' tools highlighted (and sorted first) in the Studio Gallery.
+        studios' tools highlighted (and sorted first) in the Commons Gallery.
       </p>
       {error && <p className="text-xs text-destructive">{error}</p>}
 

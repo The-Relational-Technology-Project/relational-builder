@@ -3,7 +3,7 @@ import { adminCall } from '@/cloud/account-requests';
 import type { Tool } from '@/knowledge/types';
 
 /**
- * Studio ↔ gallery-tool links: which Studio Gallery tools belong to which
+ * Studio ↔ gallery-tool links: which Commons Gallery tools belong to which
  * studios, so the gallery can highlight the viewer's studios' work.
  *
  * Two sources merge here:

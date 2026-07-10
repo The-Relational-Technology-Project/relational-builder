@@ -22,6 +22,7 @@ import { useStudioStore } from '@/store/studio-store';
 import { useAuthStore, cloudEnabled } from '@/store/auth-store';
 import { useCloudStore } from '@/store/cloud-store';
 import { searchCommons } from '@/knowledge/commons-search';
+import { detectFrames, framesFromSlugs } from '@/knowledge/frames';
 import { buildMentionContext } from '@/knowledge/mentions';
 import { runQualityReview, messageProducedFiles } from '@/knowledge/review-pass';
 import { requestBuildNotifyPermission, notifyBuildReady } from '@/notify/build-ready';
@@ -196,6 +197,15 @@ export function ChatPanel() {
       .map(f => ({ path: f.path, content: f.content }));
     const activeStudio = useStudioStore.getState().activeStudio;
     const builderProfile = useAuthStore.getState().profile;
+
+    // Domain frames: the project's own (stamped at remix or on a prior turn)
+    // plus any sensed from what retrieval just surfaced — no mode switch,
+    // the commons answering with civic media entries is the signal itself
+    const lineageFrameSlugs = useProjectStore.getState().lineage?.frames ?? [];
+    const sensedFrames = detectFrames(commonsResults);
+    const frameSlugs = [...new Set([...lineageFrameSlugs, ...sensedFrames.map(f => f.slug)])];
+    const frames = framesFromSlugs(frameSlugs);
+
     const updatedPrompt = buildSystemPrompt({
       commonsResults,
       tools: relevant?.tools,
@@ -205,19 +215,23 @@ export function ChatPanel() {
       connectedServiceGuidance: serviceGuidance,
       projectFiles,
       studio: activeStudio,
+      frames,
       builderProfile,
       references,
     });
     setSystemPrompt(updatedPrompt);
 
-    // The studio frame travels with the project — record it in lineage
-    if (activeStudio) {
+    // The studio frame travels with the project — record it in lineage,
+    // along with any newly sensed domain frames so they persist across turns
+    {
       const { lineage, setLineage } = useProjectStore.getState();
-      if (lineage?.studioSlug !== activeStudio.slug) {
+      const studioChanged = activeStudio && lineage?.studioSlug !== activeStudio.slug;
+      const framesChanged = frameSlugs.length !== lineageFrameSlugs.length;
+      if (studioChanged || framesChanged) {
         setLineage({
           ...(lineage ?? { source: null }),
-          studioSlug: activeStudio.slug,
-          studioLabel: activeStudio.label,
+          ...(activeStudio ? { studioSlug: activeStudio.slug, studioLabel: activeStudio.label } : {}),
+          ...(frameSlugs.length > 0 ? { frames: frameSlugs } : {}),
         });
       }
     }

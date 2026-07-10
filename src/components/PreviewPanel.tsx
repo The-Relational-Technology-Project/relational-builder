@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import {
   SandpackProvider,
   SandpackPreview,
   useSandpack,
   type SandpackFiles,
 } from '@codesandbox/sandpack-react';
+import type { FileEntry } from '@/project/virtual-fs';
 import { useProjectStore } from '@/store/project-store';
 import { useEnvStore } from '@/store/env-store';
 import { useChatStore } from '@/store/chat-store';
@@ -97,6 +100,10 @@ export function PreviewPanel() {
 
   if (kind === 'server') {
     return <ServerAppNotice fileCount={files.length} />;
+  }
+
+  if (kind === 'document') {
+    return <DocumentPreview files={files} />;
   }
 
   return (
@@ -275,6 +282,52 @@ function SandpackErrorBridge() {
  * fine; this replaces a cryptic bundler error with a clear explanation and a
  * path forward.
  */
+
+/**
+ * Program builds — plans, program docs, materials — read like pages, they
+ * don't run. Markdown files render directly; multiple docs get tabs.
+ */
+function DocumentPreview({ files }: { files: FileEntry[] }) {
+  const docs = useMemo(
+    () => files.filter(f => /\.md$/i.test(f.path)),
+    [files],
+  );
+  const [active, setActive] = useState<string | null>(null);
+  const activePath = active && docs.some(d => d.path === active) ? active : docs[0]?.path;
+  const doc = docs.find(d => d.path === activePath);
+
+  return (
+    <div className="h-full flex flex-col">
+      {docs.length > 1 && (
+        <div className="flex gap-1 border-b px-2 py-1.5 overflow-x-auto shrink-0">
+          {docs.map(d => (
+            <button
+              key={d.path}
+              onClick={() => setActive(d.path)}
+              className={`rounded-full border px-2.5 py-0.5 text-xs whitespace-nowrap transition-colors ${
+                d.path === activePath
+                  ? 'bg-foreground text-background border-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {d.path.replace(/^\//, '')}
+            </button>
+          ))}
+        </div>
+      )}
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-2xl mx-auto px-6 py-8 prose prose-sm dark:prose-invert">
+          {doc ? (
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{doc.content}</ReactMarkdown>
+          ) : (
+            <p className="text-muted-foreground text-sm">No document selected.</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ServerAppNotice({ fileCount }: { fileCount: number }) {
   const setDraftMessage = useChatStore(s => s.setDraftMessage);
 

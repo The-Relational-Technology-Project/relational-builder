@@ -27,7 +27,7 @@ import { initLocalAutosave, stashAndStartFresh } from '@/project/local-projects'
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { RBMark } from '@/components/RBMark';
 
-import { StudioGallery } from '@/components/StudioGallery';
+import { CommonsGallery } from '@/components/CommonsGallery';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { Plus, MessageSquare, PanelsTopLeft, Menu, X, Cloud, CloudOff, Loader2, LayoutGrid } from 'lucide-react';
@@ -259,7 +259,7 @@ function App() {
         ) : view === 'projects' ? (
           <ProjectsPage />
         ) : view === 'gallery' ? (
-          <StudioGallery />
+          <CommonsGallery />
         ) : !hasProject ? (
           <ChatPanel />
         ) : planFocus ? (
