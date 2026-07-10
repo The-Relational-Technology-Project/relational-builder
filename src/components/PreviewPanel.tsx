@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import {
@@ -72,6 +72,26 @@ export function PreviewPanel() {
     return () => window.removeEventListener('message', onMessage);
   }, []);
 
+  // One project, several kinds of output: the app, standalone materials
+  // (flyers, sign-up sheets — any .html beside the app's own entry), and
+  // program docs (.md). Tabs appear only when there's more than the app.
+  const docs = useMemo(() => files.filter(f => /\.md$/i.test(f.path)), [files]);
+  const materials = useMemo(
+    () => files.filter(f => /\.html?$/i.test(f.path) && f.path.replace(/^\//, '') !== 'index.html'),
+    [files],
+  );
+  const [output, setOutput] = useState<string>('app');
+  const outputTabs = useMemo(() => {
+    if (kind !== 'framework' && kind !== 'sandpack') return [];
+    const tabs = [{ id: 'app', label: 'App' }];
+    for (const m of materials) tabs.push({ id: `file:${m.path}`, label: m.path.replace(/^\//, '') });
+    if (docs.length > 0) tabs.push({ id: 'docs', label: 'Docs' });
+    return tabs;
+  }, [kind, materials, docs]);
+  useEffect(() => {
+    if (output !== 'app' && !outputTabs.some(t => t.id === output)) setOutput('app');
+  }, [outputTabs, output]);
+
   // Controls for the Sandpack engine, owned here (remount = refresh; a
   // static app opens in a tab as one self-contained document)
   const sandpackHandle = useMemo<PreviewHandle>(() => ({
@@ -106,8 +126,50 @@ export function PreviewPanel() {
     return <DocumentPreview files={files} />;
   }
 
+  const tabsRow = outputTabs.length > 1 ? (
+    <div className="flex gap-1 border-b px-2 py-1.5 overflow-x-auto shrink-0">
+      {outputTabs.map(t => (
+        <button
+          key={t.id}
+          onClick={() => setOutput(t.id)}
+          className={`rounded-full border px-2.5 py-0.5 text-xs whitespace-nowrap transition-colors ${
+            t.id === output
+              ? 'bg-foreground text-background border-foreground'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          {t.label}
+        </button>
+      ))}
+    </div>
+  ) : null;
+
+  if (tabsRow && output === 'docs') {
+    return (
+      <div className="h-full flex flex-col">
+        {tabsRow}
+        <div className="flex-1 min-h-0">
+          <DocumentPreview files={files} />
+        </div>
+      </div>
+    );
+  }
+
+  const materialFile = tabsRow && output.startsWith('file:')
+    ? files.find(f => f.path === output.slice('file:'.length))
+    : undefined;
+  if (tabsRow && materialFile) {
+    return (
+      <div className="h-full flex flex-col">
+        {tabsRow}
+        <MaterialPreview file={materialFile} />
+      </div>
+    );
+  }
+
   return (
     <div className="h-full" style={{ display: 'flex', flexDirection: 'column' }}>
+      {tabsRow}
       <PreviewToolbar
         device={device}
         onDevice={setDevice}
@@ -282,6 +344,45 @@ function SandpackErrorBridge() {
  * fine; this replaces a cryptic bundler error with a clear explanation and a
  * path forward.
  */
+
+/**
+ * A standalone material — a flyer, sign-up sheet, or info card that lives
+ * beside the app as its own printable HTML page. Rendered without scripts
+ * (materials are documents, not programs), with print as the primary act.
+ */
+function MaterialPreview({ file }: { file: FileEntry }) {
+  const frameRef = useRef<HTMLIFrameElement | null>(null);
+  return (
+    <div className="flex-1 min-h-0 flex flex-col">
+      <div className="flex items-center justify-end gap-1.5 border-b px-2 py-1 shrink-0">
+        <button
+          onClick={() => frameRef.current?.contentWindow?.print()}
+          className="rounded border px-2 py-0.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+        >
+          Print
+        </button>
+        <button
+          onClick={() => {
+            window.open(
+              URL.createObjectURL(new Blob([file.content], { type: 'text/html' })),
+              '_blank',
+            );
+          }}
+          className="rounded border px-2 py-0.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+        >
+          Open in tab
+        </button>
+      </div>
+      <iframe
+        ref={frameRef}
+        srcDoc={file.content}
+        sandbox="allow-same-origin allow-modals"
+        title={file.path}
+        className="flex-1 w-full bg-white"
+      />
+    </div>
+  );
+}
 
 /**
  * Program builds — plans, program docs, materials — read like pages, they

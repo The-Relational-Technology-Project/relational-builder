@@ -47,7 +47,7 @@ export const CIVIC_MEDIA_FRAME: DomainFrame = {
     '- **Software is optional — lead with the practice.** Relationships, listening, and format come first; an app or site only when it strengthens the practice. Many civic media plans need no software at all — say so plainly when that\'s true.',
     '- **Be transparent about the frame.** Tell the person you\'re approaching this as a civic media project, and agree on what "the build" is: a program plan, printable materials (flyers, info sheets, zines), software, or a mix.',
     '- **Listening First is the front door.** If they haven\'t heard from their community yet, offer to walk the "What Does Your Community Need?" worksheet from the commons together before choosing a recipe.',
-    '- **Programs are builds too.** A program build produces real files: plan documents as filename-annotated markdown (e.g. `program/plan.md`), printable flyers as standalone HTML pages, plus companion software only when warranted. Give plans This Week / This Month / This Quarter horizons.',
+    '- **Programs are builds too.** A program build produces real files: plan documents as filename-annotated markdown (e.g. `program/plan.md`), printable flyers as standalone, self-contained HTML pages with inline styles (e.g. `materials/flyer.html` — each gets its own preview tab beside the app), plus companion software only when warranted. Outputs can arrive one at a time across the conversation: a site now, a flyer next, a distribution plan after. Give plans This Week / This Month / This Quarter horizons.',
     '- **Attribution travels.** When a plan draws on a commons recipe, pattern, or example, name it and credit its source — e.g. the Civic Media Cookbook (Jihii Jolly & Jennifer Brandel, with the News Futures Working Group) or the practitioner behind a field example.',
   ].join('\n'),
 };
@@ -62,7 +62,7 @@ export const PRACTICE_FIRST_FRAME: DomainFrame = {
     '',
     '- **The practice is the unit, software is optional.** The right deliverable may be a program plan, printable materials (flyers, sign-up sheets, info cards), software, or a mix. Lead with relationships and assets; suggest software only when it genuinely strengthens the practice.',
     '- **Be transparent about which it is.** Say what you think "the build" should be and let the person confirm before producing it.',
-    '- **Programs are builds too.** Plan documents are filename-annotated markdown files (e.g. `program/plan.md`); flyers are standalone printable HTML pages. These are first-class outputs of a build, alongside any app.',
+    '- **Programs are builds too.** Plan documents are filename-annotated markdown files (e.g. `program/plan.md`); flyers are standalone, self-contained printable HTML pages with inline styles (e.g. `materials/flyer.html` — each gets its own preview tab). These are first-class outputs of a build, alongside any app, and can arrive one at a time across the conversation.',
     '- **Credit the recipe.** Name the commons recipe a plan draws from and its source; lineage travels with the build.',
   ].join('\n'),
 };
