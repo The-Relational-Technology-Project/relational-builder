@@ -36,7 +36,9 @@ const corsHeaders = {
 
 const OPEN_STUDIO_SLUG = "open-contributions";
 const STEWARD_EMAIL = "humans@relationaltechproject.org";
-const ALLOWED_TYPES = ["tool", "story", "recipe", "prompt", "community_note"];
+// "program" — a commons-informed plan built in the Relational Builder:
+// program docs plus optional printable materials, software optional
+const ALLOWED_TYPES = ["tool", "story", "recipe", "prompt", "community_note", "program"];
 const PER_IP_HOURLY_LIMIT = 5;
 const GLOBAL_HOURLY_LIMIT = 30;
 

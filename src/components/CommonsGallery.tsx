@@ -333,6 +333,17 @@ export function CommonsGallery() {
         )}
       </div>
 
+      <footer className="max-w-5xl mx-auto px-4 md:px-6 pb-6 text-center text-xs text-muted-foreground">
+        Made with care for neighbors everywhere ·{' '}
+        <a href="#privacy" className="underline underline-offset-2 hover:text-foreground">
+          Privacy &amp; Terms
+        </a>
+        {' '}·{' '}
+        <a href="#contact" className="underline underline-offset-2 hover:text-foreground">
+          Contact
+        </a>
+      </footer>
+
       {detail && (
         <ToolDetailDialog
           tool={detail}

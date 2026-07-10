@@ -104,8 +104,9 @@ function LandingPage({ onUnlock }: { onUnlock: () => void }) {
             </p>
           </div>
           <p className="text-sm max-w-md mx-auto leading-relaxed" style={{ color: C.muted }}>
-            Describe what your community needs in plain language and shape a
-            working tool together — starting from the commons of the{' '}
+            Describe what your community needs in plain language and shape it
+            together — a working tool, a program plan, printable flyers, or all
+            three — starting from the commons of the{' '}
             <a href="https://relationaltechproject.org" className="underline underline-offset-2" style={{ textDecorationColor: C.border, color: C.body }}>
               Relational Technology Project
             </a>
@@ -231,7 +232,7 @@ const FAQ_ITEMS: { q: string; a: string }[] = [
   },
   {
     q: 'What can I build?',
-    a: 'Whatever your block actually needs. You may find inspiration in the Gallery: daily neighborhood digests, lending libraries, welcome guides, block-level hubs, directories of local groups and third spaces, walking guides layered with local history. Tools here are intentionally small and specific, so you and your neighbors quickly use them for information and coordination, and spend more of your time meeting face-to-face.',
+    a: 'Whatever your block actually needs — and not only software. The Commons Gallery holds three shelves to start from: relational tech tools built across the network, civic media recipes from News Futures and the Civic Media Cookbook, and Neighboring Recipes for gathering, care, and connection. A build might be a working tool (a neighborhood digest, a lending library, a block-level hub), a program (a commons-informed plan for your newsletter, care web, or story circle), printable flyers to put up at the corner store — or all of these together. Everything is intentionally small and specific, so you and your neighbors spend more of your time meeting face-to-face.',
   },
   {
     q: 'Is it really free? How is this sustained?',

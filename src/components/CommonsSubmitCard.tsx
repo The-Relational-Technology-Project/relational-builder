@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useProjectStore } from '@/store/project-store';
 import { useAuthStore } from '@/store/auth-store';
-import { submitToCommons } from '@/project/commons-submit';
+import {
+  submitToCommons, detectProjectOutputs, composeProgramBody,
+} from '@/project/commons-submit';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Check, Loader2, Sprout } from 'lucide-react';
+import { Check, Loader2, Map as MapIcon, Sprout, Wrench } from 'lucide-react';
 
 /**
  * "Share it to the RT Commons" — shown after a successful publish.
@@ -20,7 +22,20 @@ export function CommonsSubmitCard({
   sourceUrl?: string;
 }) {
   const lineage = useProjectStore(s => s.lineage);
+  const version = useProjectStore(s => s.version);
+  const getAllFiles = useProjectStore(s => s.getAllFiles);
   const user = useAuthStore(s => s.user);
+
+  // What this project actually holds decides what can be offered: a working
+  // tool, a program (plan docs + printable materials), or either
+  const outputs = useMemo(() => {
+    void version;
+    return detectProjectOutputs(getAllFiles().map(f => ({ path: f.path, content: f.content })));
+  }, [version, getAllFiles]);
+  const hasProgram = outputs.docs.length > 0 || outputs.materials.length > 0;
+  const [shareAs, setShareAs] = useState<'tool' | 'program' | null>(null);
+  const effectiveType: 'tool' | 'program' =
+    shareAs ?? (hasProgram && (!outputs.hasApp || outputs.docs.length > 0) ? 'program' : 'tool');
 
   const [expanded, setExpanded] = useState(false);
   const [builderName, setBuilderName] = useState('');
@@ -53,17 +68,30 @@ export function CommonsSubmitCard({
     setSubmitting(true);
     setError(null);
     const lineageNote = lineage?.planTitle
-      ? ` Started from the "${lineage.planTitle}" build plan.`
-      : '';
+      ? `Started from the "${lineage.planTitle}" build plan.`
+      : lineage?.promptTitle
+        ? `Grown from "${lineage.promptTitle}" in the commons.`
+        : '';
+    // The project's frames travel as tags, so a civic media program lands on
+    // the civic media shelf of the commons
+    const frameTags = (lineage?.frames ?? []).filter(f => f !== 'practice-first');
     const result = await submitToCommons({
       title: projectName,
       summary: summary.trim(),
-      body: `Built with Relational Builder.${lineageNote}`,
+      body:
+        effectiveType === 'program'
+          ? composeProgramBody(outputs, lineageNote)
+          : `Built with Relational Builder.${lineageNote ? ` ${lineageNote}` : ''}`,
       builderName: builderName.trim(),
       neighborhood: neighborhood.trim() || undefined,
       contactEmail: user?.email,
       sourceUrl: effectiveUrl,
-      tags: ['community-tool', 'relational-builder'],
+      contributionType: effectiveType,
+      tags: [
+        effectiveType === 'program' ? 'program' : 'community-tool',
+        'relational-builder',
+        ...frameTags,
+      ],
     });
     setSubmitting(false);
     if (result.ok) setDone(true);
@@ -90,6 +118,36 @@ export function CommonsSubmitCard({
             find and remix it. A steward reviews every contribution before it
             becomes public. You'll be credited by name.
           </p>
+          {hasProgram && outputs.hasApp && (
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-muted-foreground">Share as:</span>
+              {(['program', 'tool'] as const).map(t => (
+                <button
+                  key={t}
+                  onClick={() => setShareAs(t)}
+                  className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs transition-colors ${
+                    effectiveType === t
+                      ? 'bg-foreground text-background border-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {t === 'program' ? <MapIcon className="size-3" /> : <Wrench className="size-3" />}
+                  {t === 'program' ? 'Program (plan + materials)' : 'Working tool'}
+                </button>
+              ))}
+            </div>
+          )}
+          {effectiveType === 'program' && (
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              A program contribution shares the substance itself:{' '}
+              {outputs.docs.length > 0 &&
+                `${outputs.docs.length} plan ${outputs.docs.length === 1 ? 'doc' : 'docs'}`}
+              {outputs.docs.length > 0 && outputs.materials.length > 0 && ' and '}
+              {outputs.materials.length > 0 &&
+                `${outputs.materials.length} printable ${outputs.materials.length === 1 ? 'material' : 'materials'}`}
+              {' '}go into the commons entry, remixable by the next neighborhood.
+            </p>
+          )}
           <Input
             value={builderName}
             onChange={e => setBuilderName(e.target.value)}
@@ -126,7 +184,8 @@ export function CommonsSubmitCard({
             />
             <span>
               I've reviewed what will be shared (name, neighborhood, summary,
-              and link{lineage?.planTitle ? ', plus its build-plan lineage' : ''})
+              {effectiveType === 'program' ? ' link, and the program docs and materials themselves' : ' and link'}
+              {lineage?.planTitle || lineage?.promptTitle ? ', plus its lineage' : ''})
               and I want it offered to the commons.
             </span>
           </label>

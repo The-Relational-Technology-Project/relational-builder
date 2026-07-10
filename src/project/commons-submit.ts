@@ -22,6 +22,8 @@ export interface CommonsSubmission {
   contactEmail?: string;
   sourceUrl?: string;
   tags?: string[];
+  /** What kind of contribution this is — a working tool or a program (plan + materials) */
+  contributionType?: 'tool' | 'program';
 }
 
 export interface SubmitResult {
@@ -45,7 +47,7 @@ export async function submitToCommons(submission: CommonsSubmission): Promise<Su
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        contribution_type: 'tool',
+        contribution_type: submission.contributionType ?? 'tool',
         title: submission.title,
         summary: submission.summary,
         body: submission.body,
@@ -78,4 +80,57 @@ export async function submitToCommons(submission: CommonsSubmission): Promise<Su
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : 'Submission failed' };
   }
+}
+
+/**
+ * What kinds of output this project holds — a program (plan docs, printable
+ * materials) can be shared back to the commons as remixable knowledge, not
+ * just the software.
+ */
+export interface ProjectOutputs {
+  hasApp: boolean;
+  /** Program documents — every .md except the repo README */
+  docs: { path: string; content: string }[];
+  /** Standalone printable materials — any .html beside the app's own entry */
+  materials: { path: string; content: string }[];
+}
+
+export function detectProjectOutputs(
+  files: { path: string; content: string }[],
+): ProjectOutputs {
+  const norm = (p: string) => p.replace(/^\//, '');
+  return {
+    hasApp: files.some(f => norm(f.path) === 'index.html' || /\.[jt]sx?$/i.test(f.path)),
+    docs: files.filter(f => /\.md$/i.test(f.path) && !/(^|\/)readme\.md$/i.test(f.path)),
+    materials: files.filter(f => /\.html?$/i.test(f.path) && norm(f.path) !== 'index.html'),
+  };
+}
+
+// The submit function caps body at 20k chars — leave room for the note
+const PROGRAM_BODY_LIMIT = 19000;
+
+/**
+ * A program contribution carries its actual substance: the plan documents
+ * in full, then each printable material as remixable HTML. Whoever finds it
+ * in the commons gets the whole program, not a link.
+ */
+export function composeProgramBody(outputs: ProjectOutputs, lineageNote?: string): string {
+  const parts: string[] = [
+    `A program built with Relational Builder.${lineageNote ? ` ${lineageNote}` : ''}`,
+  ];
+  for (const doc of outputs.docs) {
+    parts.push(`\n## ${doc.path.replace(/^\//, '')}\n\n${doc.content.trim()}`);
+  }
+  for (const m of outputs.materials) {
+    parts.push(
+      `\n## ${m.path.replace(/^\//, '')} (printable material)\n\n` +
+      '```html\n' + m.content.trim() + '\n```',
+    );
+  }
+  let body = parts.join('\n');
+  if (body.length > PROGRAM_BODY_LIMIT) {
+    body = body.slice(0, PROGRAM_BODY_LIMIT) +
+      '\n\n…(truncated for the commons — the full program lives with the builder)';
+  }
+  return body;
 }

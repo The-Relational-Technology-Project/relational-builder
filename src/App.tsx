@@ -33,6 +33,26 @@ import { Button } from '@/components/ui/button';
 import { Plus, MessageSquare, PanelsTopLeft, Menu, X, Cloud, CloudOff, Loader2, LayoutGrid } from 'lucide-react';
 
 /** True below the md breakpoint — drives the stacked mobile layout */
+/**
+ * The landing footer's essentials, inside the app for signed-in builders —
+ * Privacy & Terms and Contact stay one tap away (the #privacy / #contact
+ * pages win over the app shell, signed in or not).
+ */
+function AppFooter() {
+  return (
+    <footer className="shrink-0 border-t px-4 py-2 text-center text-xs text-muted-foreground">
+      Made with care for neighbors everywhere ·{' '}
+      <a href="#privacy" className="underline underline-offset-2 hover:text-foreground">
+        Privacy &amp; Terms
+      </a>
+      {' '}·{' '}
+      <a href="#contact" className="underline underline-offset-2 hover:text-foreground">
+        Contact
+      </a>
+    </footer>
+  );
+}
+
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(
     () => window.matchMedia('(max-width: 767px)').matches,
@@ -261,7 +281,12 @@ function App() {
         ) : view === 'gallery' ? (
           <CommonsGallery />
         ) : !hasProject ? (
-          <ChatPanel />
+          <div className="h-full flex flex-col">
+            <div className="flex-1 min-h-0">
+              <ChatPanel />
+            </div>
+            <AppFooter />
+          </div>
         ) : planFocus ? (
           <div className="h-full w-full max-w-3xl mx-auto">
             <ChatPanel />

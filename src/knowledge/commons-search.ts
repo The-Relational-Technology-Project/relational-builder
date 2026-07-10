@@ -19,7 +19,7 @@ export const COMMONS_ANON_KEY =
 export interface CommonsSearchResult {
   id: string;
   slug: string;
-  kind: string; // tool | story | prompt | recipe | reference | framework | methodology
+  kind: string; // tool | story | prompt | recipe | reference | framework | methodology | program
   title: string;
   summary: string | null;
   attribution: { name?: string; neighborhood?: string } | null;
