@@ -14,7 +14,6 @@ import {
 } from '@/knowledge/commons-items';
 import { startFromStudioTool } from '@/project/start-from-tool';
 import { startFromCommonsItem } from '@/project/start-from-commons';
-import { NetworkUpdates } from '@/components/StudioUpdates';
 import type { Tool, Prompt } from '@/knowledge/types';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -345,10 +344,6 @@ export function CommonsGallery() {
               : 'Your studio’s own examples, prompts, and materials — for approved members to build from and remix, with the studio’s principles live in every build.'}
           </p>
         </div>
-
-        {/* The network's life alongside its library — recent shares, publishes,
-            and new members across the studios you belong to. */}
-        <NetworkUpdates />
 
         {/* Which library you're browsing — the commons, or a studio you've
             been approved into. The switch only appears once you belong

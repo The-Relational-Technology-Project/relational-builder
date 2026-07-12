@@ -4,6 +4,7 @@ import { useConnectionsStore } from '@/store/connections-store';
 import { Button } from '@/components/ui/button';
 import { BuildersDirectory } from '@/components/BuildersDirectory';
 import { ConnectionSettings } from '@/components/ConnectionSettings';
+import { NetworkUpdates } from '@/components/StudioUpdates';
 import { HeartHandshake, Loader2, MailPlus } from 'lucide-react';
 
 /**
@@ -37,6 +38,8 @@ export function ConnectionsPage() {
         </div>
 
         <PendingRequests />
+
+        <NetworkUpdates />
 
         <BuildersDirectory />
 

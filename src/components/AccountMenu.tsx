@@ -95,7 +95,7 @@ export function AccountMenu() {
             {profile?.neighborhood && (
               <p className="text-xs text-muted-foreground inline-flex items-center gap-1 mt-0.5">
                 <MapPin className="size-3" />
-                Building in {profile.neighborhood}
+                {profile.neighborhood.replace(/\bSan Francisco\b/gi, 'SF')}
               </p>
             )}
           </DropdownMenuLabel>
