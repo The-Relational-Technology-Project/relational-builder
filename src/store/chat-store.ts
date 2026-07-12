@@ -30,6 +30,10 @@ export interface DisplayMessage {
   /** True for Builder-generated notes (e.g. a GitHub pull summary) — shown
    * with a badge, included in history so the AI knows what happened */
   isSync?: boolean;
+  /** Badge label for an isSync note. Defaults to "Synced from GitHub" so
+   * existing sync messages keep their chip; other Builder notes (model
+   * step-down, sharing plan) pass their own so they aren't mislabeled. */
+  syncLabel?: string;
   /** True for automatic sends the Builder makes on the person's behalf
    * (quality-review fixes, error auto-fixes, length-limit continues). These
    * ride as role:'user' so the model acts on them, but must render as a
@@ -89,7 +93,7 @@ interface ChatState {
     auto?: { label?: string },
   ) => void;
   /** Add a Builder-generated note (e.g. GitHub pull summary) to the conversation */
-  addSyncMessage: (content: string) => void;
+  addSyncMessage: (content: string, label?: string) => void;
   startAssistantMessage: (isPlan?: boolean) => string;
   /** Add an imported build plan (e.g. from RTP Studio) as a plan message */
   importBuildPlan: (planMarkdown: string) => void;
@@ -200,13 +204,14 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
     return id;
   },
 
-  addSyncMessage: (content: string) => {
+  addSyncMessage: (content: string, label?: string) => {
     const msg: DisplayMessage = {
       id: nextId(),
       role: 'assistant',
       content,
       timestamp: Date.now(),
       isSync: true,
+      ...(label ? { syncLabel: label } : {}),
     };
     set(state => ({ messages: [...state.messages, msg] }));
   },
