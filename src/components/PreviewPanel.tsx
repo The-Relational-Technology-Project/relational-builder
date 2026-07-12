@@ -81,15 +81,22 @@ export function PreviewPanel() {
     [files],
   );
   const [output, setOutput] = useState<string>('app');
+  // A build can be all paper — materials and a plan with no app entry. Then
+  // there is nothing for an App tab to run: don't offer one, land on the
+  // first real output instead of a blank sandbox.
+  const hasApp = useMemo(
+    () => files.some(f => /\.([jt]sx?)$/i.test(f.path) || f.path.replace(/^\//, '') === 'index.html'),
+    [files],
+  );
   const outputTabs = useMemo(() => {
     if (kind !== 'framework' && kind !== 'sandpack') return [];
-    const tabs = [{ id: 'app', label: 'App' }];
+    const tabs = hasApp ? [{ id: 'app', label: 'App' }] : [];
     for (const m of materials) tabs.push({ id: `file:${m.path}`, label: m.path.replace(/^\//, '') });
     if (docs.length > 0) tabs.push({ id: 'docs', label: 'Docs' });
     return tabs;
-  }, [kind, materials, docs]);
+  }, [kind, materials, docs, hasApp]);
   useEffect(() => {
-    if (output !== 'app' && !outputTabs.some(t => t.id === output)) setOutput('app');
+    if (!outputTabs.some(t => t.id === output)) setOutput(outputTabs[0]?.id ?? 'app');
   }, [outputTabs, output]);
 
   // Controls for the Sandpack engine, owned here (remount = refresh; a
@@ -126,7 +133,7 @@ export function PreviewPanel() {
     return <DocumentPreview files={files} />;
   }
 
-  const tabsRow = outputTabs.length > 1 ? (
+  const tabsRow = outputTabs.length > 1 || (outputTabs.length === 1 && outputTabs[0].id !== 'app') ? (
     <div className="flex gap-1 border-b px-2 py-1.5 overflow-x-auto shrink-0">
       {outputTabs.map(t => (
         <button
