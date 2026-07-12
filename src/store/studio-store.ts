@@ -5,8 +5,12 @@ import {
   listMyStudioMemberships,
   joinStudio as joinStudioCloud,
   leaveStudio as leaveStudioCloud,
+  fetchStudioAccessMap,
   type StudioMembership,
+  type MembershipStatus,
+  type StudioAccess,
 } from '@/cloud/studios';
+import { fetchVisibleStudioItems, type StudioLibraryItem } from '@/cloud/studio-library';
 import { useAuthStore } from '@/store/auth-store';
 
 /**
@@ -16,6 +20,10 @@ import { useAuthStore } from '@/store/auth-store';
  * life (shares, new joins) show up on their home, and their joining shows
  * up for everyone else in the studio.
  *
+ * Gated studios (like Thread Studio) add a door and a shelf: joining files a
+ * request for a Studio Admin, and approved members get the studio's private
+ * library — in the gallery and woven into the AI's context as they build.
+ *
  * Deep links work: /?studio=thread activates that studio on load, so a
  * Studio can link its members straight into a studio-framed Builder.
  */
@@ -24,15 +32,31 @@ interface StudioState {
   activeStudio: StudioContext | null;
   studios: StudioContext[];
   loaded: boolean;
-  /** Studios this builder belongs to (loaded per signed-in user) */
+  /** Studios this builder belongs to — including pending gated requests */
   memberships: StudioMembership[];
   membershipsLoaded: boolean;
+  /** slug → 'open' | 'gated', from studio_settings (public read) */
+  accessMap: Map<string, StudioAccess>;
+  /** Every studio library item this builder can see (RLS decides) */
+  library: StudioLibraryItem[];
+  libraryLoaded: boolean;
   init: () => Promise<void>;
   loadStudios: () => Promise<void>;
   loadMemberships: () => Promise<void>;
-  joinStudio: (studio: StudioContext) => Promise<void>;
+  loadLibrary: () => Promise<void>;
+  joinStudio: (studio: StudioContext) => Promise<MembershipStatus | null>;
   leaveStudio: (slug: string) => Promise<void>;
   setStudio: (studio: StudioContext | null) => void;
+}
+
+/** Approved memberships only — pending requests don't grant anything yet */
+export function approvedMemberships(memberships: StudioMembership[]): StudioMembership[] {
+  return memberships.filter(m => m.status === 'approved');
+}
+
+/** Studios where this builder holds the Studio Admin role */
+export function adminMemberships(memberships: StudioMembership[]): StudioMembership[] {
+  return memberships.filter(m => m.status === 'approved' && m.role === 'admin');
 }
 
 export const useStudioStore = create<StudioState>()(
@@ -43,6 +67,9 @@ export const useStudioStore = create<StudioState>()(
       loaded: false,
       memberships: [],
       membershipsLoaded: false,
+      accessMap: new Map(),
+      library: [],
+      libraryLoaded: false,
 
       init: async () => {
         // URL param wins over the persisted choice — this is how a Studio
@@ -69,6 +96,7 @@ export const useStudioStore = create<StudioState>()(
           if (fallback) set({ activeStudio: fallback });
         }
         get().loadStudios();
+        fetchStudioAccessMap().then(accessMap => set({ accessMap })).catch(() => {});
 
         // Memberships follow the signed-in user
         let lastUserId: string | null = null;
@@ -77,7 +105,7 @@ export const useStudioStore = create<StudioState>()(
           if (id !== lastUserId) {
             lastUserId = id;
             if (id) get().loadMemberships();
-            else set({ memberships: [], membershipsLoaded: false });
+            else set({ memberships: [], membershipsLoaded: false, library: [], libraryLoaded: false });
           }
         });
         if (useAuthStore.getState().user) get().loadMemberships();
@@ -85,17 +113,46 @@ export const useStudioStore = create<StudioState>()(
 
       loadStudios: async () => {
         const studios = await listStudios();
-        set({ studios, loaded: true });
+        // Keep member studios (merged below) that the public list doesn't carry
+        const extras = get().studios.filter(
+          s => !studios.some(pub => pub.slug === s.slug),
+        );
+        set({ studios: [...studios, ...extras], loaded: true });
       },
 
       loadMemberships: async () => {
         const memberships = await listMyStudioMemberships();
         set({ memberships, membershipsLoaded: true });
+        // Approved membership makes a studio yours even when it isn't listed
+        // publicly — pull its config so the switcher and gallery can show it
+        const known = new Set(get().studios.map(s => s.slug));
+        const missing = approvedMemberships(memberships)
+          .map(m => m.studio_slug)
+          .filter(slug => !known.has(slug));
+        if (missing.length > 0) {
+          const fetched = await Promise.all(missing.map(fetchStudio));
+          const extras = fetched.filter((s): s is StudioContext => !!s);
+          if (extras.length > 0) {
+            set(state => ({
+              studios: [
+                ...state.studios,
+                ...extras.filter(e => !state.studios.some(s => s.slug === e.slug)),
+              ],
+            }));
+          }
+        }
+        void get().loadLibrary();
+      },
+
+      loadLibrary: async () => {
+        const library = await fetchVisibleStudioItems();
+        set({ library, libraryLoaded: true });
       },
 
       joinStudio: async (studio: StudioContext) => {
-        const ok = await joinStudioCloud(studio.slug, studio.label);
-        if (ok) await get().loadMemberships();
+        const status = await joinStudioCloud(studio.slug, studio.label);
+        if (status) await get().loadMemberships();
+        return status;
       },
 
       leaveStudio: async (slug: string) => {

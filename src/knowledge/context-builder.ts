@@ -339,12 +339,28 @@ export interface ContextOptions {
   projectFiles?: { path: string; content: string }[];
   /** Active studio frame — its principles layer onto the base */
   studio?: StudioContext | null;
+  /** The active studio's private library, for approved members only */
+  studioLibraryItems?: StudioLibraryPromptItem[];
   /** Domain frames (civic media, practice-first, …) — from lineage or sensed from retrieval */
   frames?: DomainFrame[];
   /** The builder's profile — place, dreams, and comfort level */
   builderProfile?: BuilderProfileContext | null;
   /** Resolved @ mention context — other apps the builder referenced */
   references?: string[];
+}
+
+/**
+ * The slice of a studio library item the prompt needs. Structurally matches
+ * StudioLibraryItem from the cloud layer — declared here so knowledge/
+ * doesn't import from cloud/.
+ */
+export interface StudioLibraryPromptItem {
+  kind: 'principle' | 'example' | 'story' | 'prompt' | 'tool' | 'recipe';
+  title: string;
+  summary: string | null;
+  body: string | null;
+  attribution: string | null;
+  url: string | null;
 }
 
 export interface BuilderProfileContext {
@@ -408,6 +424,12 @@ export function buildSystemPrompt(options: ContextOptions = {}): string {
 
   if (options.studio) {
     sections.push('', formatStudioForPrompt(options.studio));
+    // The studio's private library — only fetched for approved members, so
+    // its presence here already implies access. Stable across sends within
+    // a session, so it lives in the cacheable half of the prompt.
+    if (options.studioLibraryItems && options.studioLibraryItems.length > 0) {
+      sections.push('', formatStudioLibraryForPrompt(options.studio.label, options.studioLibraryItems));
+    }
   }
 
   // Domain frames layer like studio principles but travel with the project
@@ -506,6 +528,46 @@ function formatProjectFilesForPrompt(files: { path: string; content: string }[])
   }
 
   return sections.join('\n');
+}
+
+// Principles carry their full text (they steer every decision); other kinds
+// ride as compact entries. Caps keep a well-stocked shelf from crowding out
+// the build itself.
+const STUDIO_PRINCIPLE_LIMIT = 16;
+const STUDIO_PRINCIPLE_CHARS = 2000;
+const STUDIO_ITEM_LIMIT = 24;
+const STUDIO_ITEM_CHARS = 400;
+
+function formatStudioLibraryForPrompt(
+  studioLabel: string,
+  items: StudioLibraryPromptItem[],
+): string {
+  const lines = [
+    `## ${studioLabel}'s Library`,
+    '',
+    `This builder is an approved member of ${studioLabel}, and these are the studio's own principles, examples, and materials. They are studio-private: draw on them freely in conversation and in what you build for this member, but treat them as ${studioLabel}'s knowledge — grounded in its community — rather than public commons content.`,
+  ];
+
+  const principles = items.filter(i => i.kind === 'principle');
+  if (principles.length > 0) {
+    lines.push('', `### ${studioLabel}'s principles`, '');
+    for (const p of principles.slice(0, STUDIO_PRINCIPLE_LIMIT)) {
+      const body = (p.body ?? p.summary ?? '').slice(0, STUDIO_PRINCIPLE_CHARS);
+      lines.push(`**${p.title}**${body ? `\n${body}` : ''}`, '');
+    }
+  }
+
+  const rest = items.filter(i => i.kind !== 'principle');
+  if (rest.length > 0) {
+    lines.push('', `### ${studioLabel}'s examples and materials`, '');
+    for (const item of rest.slice(0, STUDIO_ITEM_LIMIT)) {
+      const who = item.attribution ? ` — ${item.attribution}` : '';
+      const gist = (item.summary ?? item.body ?? '').slice(0, STUDIO_ITEM_CHARS);
+      lines.push(`- **${item.title}** (${item.kind}${who})${gist ? `: ${gist}` : ''}`);
+    }
+  }
+
+  return lines.join('\n');
 }
 
 function formatCommonsForPrompt(results: CommonsSearchResult[]): string {

@@ -23,6 +23,7 @@ import { ProjectsButton, ProjectsPage } from '@/components/ProjectsPage';
 import { ConnectionsPage } from '@/components/ConnectionsPage';
 import { ProjectStatus } from '@/components/ProjectStatus';
 import { StewardPage } from '@/components/StewardPage';
+import { StudioAdminPage } from '@/components/StudioAdminPage';
 import { initLocalAutosave, stashAndStartFresh } from '@/project/local-projects';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { RBMark } from '@/components/RBMark';
@@ -274,6 +275,8 @@ function App() {
       <main className="flex-1 min-h-0">
         {view === 'steward' ? (
           <StewardPage />
+        ) : view === 'studio-admin' ? (
+          <StudioAdminPage />
         ) : view === 'connections' ? (
           <ConnectionsPage />
         ) : view === 'projects' ? (
