@@ -32,6 +32,7 @@ import switchSrc from './files/components/ui/switch.tsx?raw';
 import checkboxSrc from './files/components/ui/checkbox.tsx?raw';
 import selectSrc from './files/components/ui/select.tsx?raw';
 import appBarSrc from './files/components/ui/app-bar.tsx?raw';
+import bottomNavSrc from './files/components/ui/bottom-nav.tsx?raw';
 import emptyStateSrc from './files/components/ui/empty-state.tsx?raw';
 import skeletonSrc from './files/components/ui/skeleton.tsx?raw';
 
@@ -52,6 +53,7 @@ export const KIT_FILES: Record<string, string> = {
   '/src/components/ui/checkbox.tsx': checkboxSrc,
   '/src/components/ui/select.tsx': selectSrc,
   '/src/components/ui/app-bar.tsx': appBarSrc,
+  '/src/components/ui/bottom-nav.tsx': bottomNavSrc,
   '/src/components/ui/empty-state.tsx': emptyStateSrc,
   '/src/components/ui/skeleton.tsx': skeletonSrc,
 };
