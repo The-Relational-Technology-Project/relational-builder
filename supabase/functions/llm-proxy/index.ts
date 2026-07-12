@@ -133,6 +133,9 @@ Deno.serve(async (req: Request) => {
     if (provider === 'anthropic') {
       const communityToken = req.headers.get('x-community-token');
       return await proxyAnthropic(body, authHeader, CORS_HEADERS, communityToken);
+    } else if (provider === 'gemini-image') {
+      const communityToken = req.headers.get('x-community-token');
+      return await proxyGeminiImage(body, authHeader, CORS_HEADERS, communityToken);
     } else if (provider === 'rtp') {
       return await proxyRTP(body, CORS_HEADERS);
     } else {
@@ -163,11 +166,16 @@ const COMMUNITY_MODELS = (Deno.env.get('COMMUNITY_MODELS') ?? 'claude-sonnet-5,c
 
 type CommunityGate = { email: string } | { error: string; status: number };
 
-async function checkCommunityAccess(token: string, model: string): Promise<CommunityGate> {
+async function checkCommunityAccess(
+  token: string,
+  model: string,
+  opts: { requiredKeyEnv?: string; skipModelCheck?: boolean } = {},
+): Promise<CommunityGate> {
+  const requiredKeyEnv = opts.requiredKeyEnv ?? 'ANTHROPIC_COMMUNITY_KEY';
   const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
   const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-  if (!supabaseUrl || !serviceKey || !Deno.env.get('ANTHROPIC_COMMUNITY_KEY')) {
+  if (!supabaseUrl || !serviceKey || !Deno.env.get(requiredKeyEnv)) {
     return { error: 'Community access is not configured on this server', status: 503 };
   }
 
@@ -180,7 +188,7 @@ async function checkCommunityAccess(token: string, model: string): Promise<Commu
   const email = String(user.email ?? '').toLowerCase();
   if (!email) return { error: 'Sign in to use community access', status: 401 };
 
-  if (!COMMUNITY_MODELS.includes(String(model))) {
+  if (!opts.skipModelCheck && !COMMUNITY_MODELS.includes(String(model))) {
     return {
       error: `Community access covers ${COMMUNITY_MODELS.join(' and ')} — switch to one of those models, or add your own API key in Settings to use ${model}.`,
       status: 403,
@@ -237,6 +245,108 @@ function recordCommunityUsage(email: string, inputTokens: number, outputTokens: 
     },
     body: JSON.stringify({ p_email: email, p_input: inputTokens, p_output: outputTokens }),
   }).catch(() => {});
+}
+
+// ── Gemini image generation (flyer art, icons, imagery for apps) ─────
+//
+// Not a chat: one prompt in, one image out as a data URL. BYOK Gemini keys
+// pass straight through; community members draw on the GEMINI_COMMUNITY_KEY
+// secret under the same allowlist and daily budget as chat. Image output
+// meters as output tokens (Gemini bills ~1290 tokens per generated image).
+
+const IMAGE_MODEL = Deno.env.get('COMMUNITY_IMAGE_MODEL') ?? 'gemini-3.1-flash-image';
+
+async function proxyGeminiImage(
+  body: Record<string, unknown>,
+  authHeader: string,
+  CORS_HEADERS: Record<string, string>,
+  communityToken: string | null,
+): Promise<Response> {
+  const jsonHeaders = { ...CORS_HEADERS, 'Content-Type': 'application/json' };
+
+  let apiKey = authHeader.replace(/^Bearer\s+/i, '');
+  let communityEmail: string | null = null;
+  if (!apiKey && communityToken) {
+    const gate = await checkCommunityAccess(communityToken, IMAGE_MODEL, {
+      requiredKeyEnv: 'GEMINI_COMMUNITY_KEY',
+      skipModelCheck: true,
+    });
+    if ('error' in gate) {
+      return new Response(JSON.stringify({ error: gate.error }), {
+        status: gate.status,
+        headers: jsonHeaders,
+      });
+    }
+    communityEmail = gate.email;
+    apiKey = Deno.env.get('GEMINI_COMMUNITY_KEY') ?? '';
+  }
+  if (!apiKey) {
+    return new Response(JSON.stringify({ error: 'Missing API key' }), {
+      status: 401,
+      headers: jsonHeaders,
+    });
+  }
+
+  const prompt = String(body.prompt ?? '').trim();
+  if (!prompt) {
+    return new Response(JSON.stringify({ error: 'Missing prompt' }), {
+      status: 400,
+      headers: jsonHeaders,
+    });
+  }
+
+  const upstream = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${IMAGE_MODEL}:generateContent`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+    },
+  );
+  if (!upstream.ok) {
+    const text = await upstream.text();
+    let friendly = `Image generation failed (${upstream.status})`;
+    try {
+      const parsed = JSON.parse(text);
+      if (parsed?.error?.message) friendly = String(parsed.error.message);
+    } catch { /* keep the fallback */ }
+    return new Response(JSON.stringify({ error: friendly }), {
+      status: upstream.status,
+      headers: jsonHeaders,
+    });
+  }
+
+  const data = await upstream.json();
+  type GeminiPart = { text?: string; inlineData?: { mimeType?: string; data?: string } };
+  const parts: GeminiPart[] = data?.candidates?.[0]?.content?.parts ?? [];
+  const img = parts.find((p) => p?.inlineData?.data);
+  if (!img?.inlineData?.data) {
+    return new Response(
+      JSON.stringify({ error: 'The model returned no image — try rephrasing the prompt' }),
+      { status: 502, headers: jsonHeaders },
+    );
+  }
+
+  if (communityEmail) {
+    const usage = data?.usageMetadata ?? {};
+    recordCommunityUsage(
+      communityEmail,
+      Number(usage.promptTokenCount ?? 0),
+      Number(usage.candidatesTokenCount ?? 1290),
+    );
+  }
+
+  const note = parts
+    .map((p) => (typeof p?.text === 'string' ? p.text : ''))
+    .filter(Boolean)
+    .join('\n') || null;
+  return new Response(
+    JSON.stringify({
+      image: `data:${img.inlineData.mimeType ?? 'image/png'};base64,${img.inlineData.data}`,
+      note,
+    }),
+    { headers: jsonHeaders },
+  );
 }
 
 // ── Anthropic (translate OpenAI format → Anthropic Messages API) ─────

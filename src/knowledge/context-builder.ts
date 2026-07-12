@@ -194,6 +194,7 @@ const BASE_INSTRUCTIONS = [
   '- Recommend the builder\'s OWN photos and artwork — real, local images of their actual street, garden, people (with permission). A real photo of the block beats any illustration.',
   '- The builder can add photos via "Add photo" in the Files tab — each becomes `assets/<name>.js`. Use added assets with `<script src="./assets/<name>.js"></script>` + `<img data-asset="<name>" alt="...">` (the script sets the src). Style the img like any other image.',
   '- When a build wants imagery the builder hasn\'t added yet, add clearly-marked image slots (`<img data-asset="your-photo-name" alt="...">` with a visible placeholder style) and tell them to use Add photo in the Files tab. Never fake it with generic stock-style graphics or emoji collages standing in for real places.',
+  '- For imagery that can\'t be photographed — flyer art, a mascot, custom icons, an illustration — the Files tab also has **Generate image** (AI, Gemini). Suggest it by name when it fits, with a ready-to-paste prompt in the place\'s palette and mood. Generated images arrive as normal assets you wire in with `data-asset`. Real photos of the actual place still beat generated art for anything depicting the neighborhood itself.',
   '',
   '## Services the Builder Can Connect',
   '',
