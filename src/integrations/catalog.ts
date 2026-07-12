@@ -35,8 +35,8 @@ export const INTEGRATIONS: IntegrationDef[] = [
     id: 'supabase',
     name: 'Supabase',
     tagline: 'Database, auth, storage, and realtime for your app',
-    keysUrl: 'https://supabase.com/dashboard/project/_/settings/api',
-    keysLabel: 'Project settings → API',
+    keysUrl: 'https://supabase.com/dashboard/project/_/settings/api-keys',
+    keysLabel: 'Project settings → API Keys',
     fields: [
       { envKey: 'SUPABASE_URL', label: 'Project URL', placeholder: 'https://xyz.supabase.co', isSecret: false },
       { envKey: 'SUPABASE_ANON_KEY', label: 'Anon (public) key', placeholder: 'eyJ...', isSecret: false },
@@ -105,8 +105,8 @@ export const INTEGRATIONS: IntegrationDef[] = [
     id: 'claude',
     name: 'Claude (Anthropic)',
     tagline: 'AI features inside your app — summaries, drafting, Q&A',
-    keysUrl: 'https://console.anthropic.com/settings/keys',
-    keysLabel: 'console.anthropic.com → API Keys',
+    keysUrl: 'https://platform.claude.com/settings/keys',
+    keysLabel: 'platform.claude.com → API Keys',
     fields: [
       { envKey: 'ANTHROPIC_API_KEY', label: 'API key', placeholder: 'sk-ant-...', isSecret: true },
     ],
@@ -159,6 +159,63 @@ export function getConnectedIntegrations(vars: EnvVar[]): IntegrationDef[] {
   const keys = new Set(vars.filter(v => v.value.trim()).map(v => v.key));
   return INTEGRATIONS.filter(def => def.fields.every(f => keys.has(f.envKey)));
 }
+
+// ── Guided services (no Connect button — the Builder walks you through) ──
+
+/**
+ * Services without a credentials-based integration the panel can hold —
+ * either the credentials don't fit the env-var model (Twilio needs a phone
+ * number purchase, Stripe wants webhooks eventually) or the simplest good
+ * path doesn't need keys at all (Payment Links, OpenStreetMap embeds).
+ * The panel links to them and hands off to chat; `aiSetup` is always in the
+ * system prompt, so the chat handoff genuinely works.
+ */
+export interface GuidedServiceDef {
+  id: string;
+  name: string;
+  tagline: string;
+  /** Service landing page */
+  url: string;
+  /** Prefilled chat message for the "Set up in chat" button */
+  chatPrompt: string;
+  /** Injected into the base system prompt so the AI can actually walk through setup */
+  aiSetup: string;
+}
+
+export const GUIDED_SERVICES: GuidedServiceDef[] = [
+  {
+    id: 'twilio',
+    name: 'Twilio',
+    tagline: 'Text-message and WhatsApp alerts and reminders',
+    url: 'https://www.twilio.com',
+    chatPrompt: 'I’d like my app to send text messages with Twilio. Can you walk me through setting up an account and wiring it into this project?',
+    aiSetup: '- **Twilio** (SMS/WhatsApp): walk them through signing up at twilio.com, getting a phone number, and finding the Account SID + Auth Token on the console home. Env vars: `TWILIO_ACCOUNT_SID` (secret), `TWILIO_AUTH_TOKEN` (secret), `TWILIO_FROM_NUMBER` (public). Send only from a serverless function: POST form-encoded `To`/`From`/`Body` to `https://api.twilio.com/2010-04-01/Accounts/{sid}/Messages.json` with HTTP Basic auth (SID as user, token as password). Trial accounts can only text verified numbers — always mention that.',
+  },
+  {
+    id: 'stripe',
+    name: 'Stripe',
+    tagline: 'Payments and donations',
+    url: 'https://stripe.com',
+    chatPrompt: 'I want to take payments or donations in this app with Stripe. What’s the simplest way to set that up?',
+    aiSetup: '- **Stripe** (payments/donations): for donations and simple payments, prefer a **Payment Link** created in the Stripe dashboard — it’s just a URL to put on a button, needs no keys, no code, no webhooks. Only for real in-app checkout: `STRIPE_SECRET_KEY` (secret) creating Checkout Sessions in a serverless function, `STRIPE_PUBLISHABLE_KEY` (public). Never collect card details directly.',
+  },
+  {
+    id: 'google-maps',
+    name: 'Google Maps',
+    tagline: 'Interactive maps of your neighborhood',
+    url: 'https://developers.google.com/maps',
+    chatPrompt: 'I’d like a map in my app. Can you walk me through the options and set one up?',
+    aiSetup: '- **Maps**: for "show a place or a few pins," prefer Leaflet + OpenStreetMap — no account, no key (`https://esm.sh/leaflet` or the Leaflet CDN + its CSS). Offer Google Maps when they specifically want it: env var `GOOGLE_MAPS_API_KEY` (public — it’s a browser key; tell them to restrict it to their site’s domain in the Google Cloud console), loaded via the Maps JavaScript API script tag.',
+  },
+  {
+    id: 'airtable',
+    name: 'Airtable',
+    tagline: 'Spreadsheet-style database your group already uses',
+    url: 'https://airtable.com',
+    chatPrompt: 'My group keeps data in Airtable. Can you connect my app to read from (or write to) our base?',
+    aiSetup: '- **Airtable**: env vars `AIRTABLE_TOKEN` (secret — a personal access token starting `pat`, created at airtable.com/create/tokens with data.records scopes) and `AIRTABLE_BASE_ID` (public, starts `app`). Call `https://api.airtable.com/v0/{baseId}/{tableName}` with `Authorization: Bearer` from a serverless function only — the token grants write access to the whole base.',
+  },
+];
 
 // ── Community Cloud (zero-setup, RTP-hosted — not BYOK) ─────────────
 

@@ -1,4 +1,5 @@
 import { formatPrinciplesForPrompt } from './rtp-principles';
+import { INTEGRATIONS, GUIDED_SERVICES } from '@/integrations/catalog';
 import { formatStudioForPrompt, type StudioContext } from './studio-context';
 import type { DomainFrame } from './frames';
 import { PINNED_VERSIONS } from '@/preview/bundler/versions';
@@ -187,18 +188,27 @@ const BASE_INSTRUCTIONS = [
   '- The builder can add photos via "Add photo" in the Files tab — each becomes `assets/<name>.js`. Use added assets with `<script src="./assets/<name>.js"></script>` + `<img data-asset="<name>" alt="...">` (the script sets the src). Style the img like any other image.',
   '- When a build wants imagery the builder hasn\'t added yet, add clearly-marked image slots (`<img data-asset="your-photo-name" alt="...">` with a visible placeholder style) and tell them to use Add photo in the Files tab. Never fake it with generic stock-style graphics or emoji collages standing in for real places.',
   '',
-  '## Recommended Services',
+  '## Services the Builder Can Connect',
   '',
-  'When a project needs backend, hosting, or integrations, recommend these services that the relational tech community uses:',
+  'When a project needs backend, email, AI, or other outside services, this is what\'s available. Two rules first:',
   '',
   '- **Shared data, zero setup:** Community Cloud — RTP-hosted storage with built-in neighbor sign-in, free (3 backends per builder). When the person wants neighbors to see the same data (boards, RSVPs, signups) and isn\'t asking for their own database, point them to the Cloud tab: one click to enable, then ask you to wire it up. Prefer this over walking a non-technical builder through Supabase setup.',
-  '- **Backend & Database:** Supabase (https://supabase.com) — Postgres database, auth, storage, and realtime. Free tier is generous. Use the Supabase JS client (@supabase/supabase-js).',
-  '- **Email:** Resend (https://resend.com) — Simple email API for transactional and marketing emails. Use their REST API or Node SDK.',
-  '- **SMS & Messaging:** Twilio (https://twilio.com) — SMS, voice, and WhatsApp APIs. Great for community notifications and alerts.',
-  '- **Web Scraping:** Firecrawl (https://firecrawl.dev) — Scrape websites and calendars to pull in community data. Integrates well with AI builders.',
-  '- **Hosting:** Netlify (https://netlify.com) or Vercel (https://vercel.com) — Deploy static sites and serverless functions. Both have generous free tiers.',
+  '- **Hosting:** Netlify (https://netlify.com) or Vercel (https://vercel.com) — the Publish button deploys there, including serverless functions. Both have generous free tiers.',
   '',
-  'When suggesting these services, include example code showing how to set them up. Use environment variables for API keys (e.g., SUPABASE_URL, RESEND_API_KEY).',
+  '**Services with a Connect button in the Services tab.** Each takes credentials, checks them live against the service, and stores them as env vars. When one of these fits, don\'t dictate env vars by hand — send the person to the Services tab: the Connect button links straight to the right key page and verifies what they paste. Once connected, you\'ll see it under "Connected Services" with full usage guidance.',
+  '',
+  ...INTEGRATIONS.map(def => {
+    const fields = def.fields
+      .map(f => `\`${f.envKey}\` (${f.isSecret ? 'secret' : 'public'})`)
+      .join(', ');
+    return `- **${def.name}** — ${def.tagline}. Sets ${fields}; keys from ${def.keysUrl}`;
+  }),
+  '',
+  '**Services you set up together in chat** (listed in the Services tab with a "Set up in chat" button — when someone clicks it, a message like "walk me through setting up X" arrives and these notes are your playbook):',
+  '',
+  ...GUIDED_SERVICES.map(def => def.aiSetup),
+  '',
+  'For guided services: walk through account creation and credentials step by step, tell them exactly which env vars to add in the Env tab (with the secret/public choice spelled out), and wire the code the same turn. Secret keys always mean a serverless function — never in browser code. For any service not listed here at all, the same pattern applies: help them set it up, keep credentials in env vars, be honest about what only works after deploy.',
   '',
   '## Environment Variables',
   '',
@@ -227,10 +237,9 @@ const BASE_INSTRUCTIONS = [
   '',
   'Never write `import { env } from "./env"` in a plain HTML file — browsers need the `./env.js` extension.',
   '',
-  'Tell the user which variables to add in the Env tab. For example:',
-  '- SUPABASE_URL (public) — their Supabase project URL',
-  '- SUPABASE_ANON_KEY (public) — the anon/public key (safe for client-side, protected by RLS)',
-  '- RESEND_API_KEY (secret) — only available server-side at deploy time',
+  'When a service has a Connect button (see Services the Builder Can Connect above), send the person to the Services tab instead of dictating env vars — it sets the right keys with the right secret/public flags and verifies them. Hand-added Env tab variables are for everything else. When you do name variables, spell out the secret/public choice:',
+  '- GOOGLE_MAPS_API_KEY (public) — browser keys, safe in the preview',
+  '- TWILIO_AUTH_TOKEN (secret) — only available server-side at deploy time',
   '',
   'Never hardcode API keys in generated code. Always reference them via `import { env } from "./env"`.',
 ].join('\n');
