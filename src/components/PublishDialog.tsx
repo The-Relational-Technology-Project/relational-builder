@@ -22,6 +22,7 @@ import { deployToVercel } from '@/project/deploy-vercel';
 import { Download, ExternalLink, Globe, Check, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CommonsSubmitCard } from './CommonsSubmitCard';
+import { StudioSubmitCard } from './StudioSubmitCard';
 import { suggestProjectName } from '@/project/suggest-name';
 import { runSecurityScan, type SecurityFinding } from '@/project/security-scan';
 import { ShieldAlert } from 'lucide-react';
@@ -441,6 +442,10 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
               </ol>
             </div>
           )}
+
+          {/* Offer back to your studio's gallery (gated-studio members) —
+              the studio remix loop's on-ramp */}
+          <StudioSubmitCard projectName={projectName} sourceUrl={result?.url || undefined} />
 
           {/* Offer to the commons — always available, deploy or not */}
           <CommonsSubmitCard projectName={projectName} sourceUrl={result?.url || undefined} />

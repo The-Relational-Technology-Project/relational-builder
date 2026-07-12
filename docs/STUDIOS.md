@@ -57,6 +57,29 @@ Studio identity (label, color) stays in the KB project's `studios` table, as bef
    the Thread frame; the gallery banner offers **Ask to join**, and approval
    unlocks the library.
 
+## The remix loop
+
+The loop a gated studio runs, end to end:
+
+1. An approved member finds a studio app example in the gallery (their
+   studio's shelf) and hits **Build with this** — the item opens in Plan
+   mode and its id is stamped into the project's lineage.
+2. They build their remix in the chat (with the studio's principles and
+   library in the AI's context throughout).
+3. From **Share → Put it out there**, they publish and then **Share it to
+   the studio's gallery** — the offer lands as `pending`, with `remix_of`
+   pointing at the shelf item it grew from, and shows up in the studio's
+   Network Updates.
+4. A Studio Admin reviews it (Studio admin → Library → "Offered by
+   members") and approves it onto the shelf.
+5. The next member finds the remix in the gallery — badged `remix`, lineage
+   in its details — and remixes that. And it continues.
+6. Later, the admin shares chosen items beyond the studio (per item:
+   visible to all RB builders, and optionally into the RT Commons queue).
+
+Pending offers are never injected into anyone's AI context and never leave
+the studio; members see their own pending offers badged "awaiting approval."
+
 ## Sharing to the commons
 
 A Studio Admin shares per-item (Studio admin → Library → share icon):

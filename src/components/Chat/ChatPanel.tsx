@@ -197,10 +197,13 @@ export function ChatPanel() {
     const projectFiles = useProjectStore.getState().getAllFiles()
       .map(f => ({ path: f.path, content: f.content }));
     const activeStudio = useStudioStore.getState().activeStudio;
-    // The active studio's private shelf — RLS already scoped the loaded
-    // library to what this builder may see, so filtering by slug is enough
+    // The active studio's approved shelf — RLS already scoped the loaded
+    // library to what this builder may see; pending offers stay out of the
+    // AI's context until an admin approves them
     const studioLibraryItems = activeStudio
-      ? useStudioStore.getState().library.filter(i => i.studio_slug === activeStudio.slug)
+      ? useStudioStore.getState().library.filter(
+          i => i.studio_slug === activeStudio.slug && i.status === 'approved',
+        )
       : [];
     const builderProfile = useAuthStore.getState().profile;
 

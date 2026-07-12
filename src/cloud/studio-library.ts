@@ -26,6 +26,8 @@ export const STUDIO_ITEM_KINDS: { key: StudioItemKind; label: string }[] = [
   { key: 'recipe', label: 'Recipe' },
 ];
 
+export type StudioItemStatus = 'pending' | 'approved';
+
 export interface StudioLibraryItem {
   id: string;
   studio_slug: string;
@@ -37,6 +39,11 @@ export interface StudioLibraryItem {
   attribution: string | null;
   tags: string[];
   visibility: StudioItemVisibility;
+  /** pending = a member's offer awaiting a Studio Admin; approved = on the shelf */
+  status: StudioItemStatus;
+  /** Lineage within the studio: the shelf item this one was remixed from */
+  remix_of: string | null;
+  created_by: string | null;
   commons_submitted_at: string | null;
   sort_order: number;
   created_at: string;
@@ -57,7 +64,8 @@ export interface StudioItemInput {
 
 const SELECT_COLUMNS =
   'id, studio_slug, kind, title, summary, body, url, attribution, tags, ' +
-  'visibility, commons_submitted_at, sort_order, created_at, updated_at';
+  'visibility, status, remix_of, created_by, commons_submitted_at, sort_order, ' +
+  'created_at, updated_at';
 
 /**
  * Every studio item this builder can see: their approved studios' shelves
@@ -75,6 +83,37 @@ export async function fetchVisibleStudioItems(): Promise<StudioLibraryItem[]> {
   return (data ?? []) as unknown as StudioLibraryItem[];
 }
 
+// --- Member share-back: the studio remix loop's on-ramp ---
+
+/**
+ * Offer a build back to the studio's gallery. It lands as `pending` and
+ * studio-private; a Studio Admin approves it onto the shelf, where the next
+ * member can find and remix it (remix_of keeps the lineage).
+ */
+export async function submitStudioItem(
+  input: StudioItemInput & { remix_of?: string | null },
+): Promise<StudioLibraryItem | null> {
+  const user = useAuthStore.getState().user;
+  if (!builderClient || !user) return null;
+  const { data, error } = await builderClient
+    .from('studio_library_items')
+    .insert({
+      ...input,
+      tags: input.tags ?? [],
+      status: 'pending',
+      visibility: 'studio',
+      created_by: user.id,
+    })
+    .select(SELECT_COLUMNS)
+    .single();
+  if (error) throw new Error(error.message);
+  // The offer is studio life — members see "X shared ..." in Network Updates
+  void import('@/cloud/studios').then(({ recordStudioActivity }) =>
+    recordStudioActivity('share', input.studio_slug, input.title, input.url ?? undefined),
+  );
+  return data as unknown as StudioLibraryItem;
+}
+
 // --- Studio Admin curation (RLS enforces the admin role) ---
 
 export async function createStudioItem(input: StudioItemInput): Promise<StudioLibraryItem | null> {
@@ -89,10 +128,16 @@ export async function createStudioItem(input: StudioItemInput): Promise<StudioLi
   return data as unknown as StudioLibraryItem;
 }
 
+/** Approve a member's pending offer onto the shelf (Studio Admin, via RLS) */
+export async function approveStudioItem(id: string): Promise<void> {
+  await updateStudioItem(id, { status: 'approved' });
+}
+
 export async function updateStudioItem(
   id: string,
   patch: Partial<StudioItemInput> & {
     visibility?: StudioItemVisibility;
+    status?: StudioItemStatus;
     commons_submitted_at?: string;
   },
 ): Promise<void> {

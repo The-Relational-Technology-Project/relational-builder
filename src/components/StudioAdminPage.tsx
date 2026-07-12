@@ -10,6 +10,7 @@ import {
   createStudioItem,
   updateStudioItem,
   deleteStudioItem,
+  approveStudioItem,
   setStudioItemVisibility,
   shareStudioItemToCommons,
   STUDIO_ITEM_KINDS,
@@ -294,12 +295,30 @@ function LibraryTab({ slug, label }: { slug: string; label: string }) {
     }
   }
 
+  // Member offers waiting for review lead; the approved shelf follows
+  const pendingItems = useMemo(() => items.filter(i => i.status === 'pending'), [items]);
+  const shelfItems = useMemo(() => items.filter(i => i.status === 'approved'), [items]);
+
+  async function decideOffer(item: StudioLibraryItem, approve: boolean) {
+    setBusyId(item.id);
+    setError(null);
+    try {
+      if (approve) await approveStudioItem(item.id);
+      else await deleteStudioItem(item.id);
+      await loadLibrary();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'That decision did not save');
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   const byKind = useMemo(() => {
     const groups = new Map<StudioItemKind, StudioLibraryItem[]>();
     for (const { key } of STUDIO_ITEM_KINDS) groups.set(key, []);
-    for (const item of items) groups.get(item.kind)?.push(item);
+    for (const item of shelfItems) groups.get(item.kind)?.push(item);
     return groups;
-  }, [items]);
+  }, [shelfItems]);
 
   return (
     <div className="space-y-4">
@@ -315,7 +334,69 @@ function LibraryTab({ slug, label }: { slug: string; label: string }) {
       </div>
       {error && <p className="text-xs text-destructive">{error}</p>}
 
-      {items.length === 0 ? (
+      {pendingItems.length > 0 && (
+        <div className="space-y-1.5">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">
+            Offered by members ({pendingItems.length})
+          </p>
+          {pendingItems.map(item => (
+            <div key={item.id} className="rounded-lg border border-amber-600/40 bg-amber-600/5 p-3 space-y-1.5">
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm font-medium truncate">{item.title}</span>
+                <Badge variant="outline" className="text-[9px] shrink-0">{item.kind}</Badge>
+                {item.remix_of && (
+                  <Badge variant="outline" className="text-[9px] shrink-0">
+                    remix of "{items.find(x => x.id === item.remix_of)?.title ?? 'a shelf item'}"
+                  </Badge>
+                )}
+              </div>
+              {item.attribution && (
+                <p className="text-xs text-muted-foreground">From {item.attribution}</p>
+              )}
+              {item.summary && (
+                <p className="text-xs text-muted-foreground line-clamp-3">{item.summary}</p>
+              )}
+              {item.url && (
+                <a
+                  href={item.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-xs underline decoration-dotted hover:text-primary"
+                >
+                  {item.url}
+                </a>
+              )}
+              <div className="flex gap-2 pt-1">
+                <Button
+                  size="sm"
+                  className="h-7 text-xs"
+                  disabled={busyId !== null}
+                  onClick={() => decideOffer(item, true)}
+                >
+                  {busyId === item.id ? (
+                    <Loader2 className="size-3 mr-1 animate-spin" />
+                  ) : (
+                    <Check className="size-3 mr-1" />
+                  )}
+                  Approve — joins the {label} gallery
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 text-xs"
+                  disabled={busyId !== null}
+                  onClick={() => decideOffer(item, false)}
+                >
+                  <X className="size-3 mr-1" />
+                  Decline
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {shelfItems.length === 0 && pendingItems.length === 0 ? (
         <p className="text-sm text-muted-foreground">
           The shelf is empty — add the studio's first principle or example.
         </p>

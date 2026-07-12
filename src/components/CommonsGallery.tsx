@@ -254,7 +254,7 @@ export function CommonsGallery() {
     const sharedEntries: GalleryEntry[] =
       category === 'all'
         ? studioLibrary
-            .filter(i => i.visibility === 'shared')
+            .filter(i => i.visibility === 'shared' && i.status === 'approved')
             .map(i => ({ key: `studio-${i.id}`, type: 'studio' as const, item: i }))
         : [];
 
@@ -483,6 +483,11 @@ export function CommonsGallery() {
         <StudioItemDetailDialog
           item={studioDetail}
           studioLabel={scopeLabel(studioDetail.studio_slug)}
+          remixOfTitle={
+            studioDetail.remix_of
+              ? studioLibrary.find(x => x.id === studioDetail.remix_of)?.title ?? null
+              : null
+          }
           onPlan={() => planStudioItem(studioDetail)}
           onOpenChange={open => { if (!open) setStudioDetail(null); }}
         />
@@ -510,9 +515,15 @@ function StudioItemCard({
           <span className="text-[10px] uppercase tracking-wide text-muted-foreground truncate">
             {studioLabel}
           </span>
-          <Badge variant="outline" className="ml-auto text-[9px] shrink-0">
-            {studioKindLabel(item.kind)}
-          </Badge>
+          <span className="ml-auto flex gap-1 shrink-0">
+            {item.status === 'pending' && (
+              <Badge variant="outline" className="text-[9px] text-amber-600 border-amber-600/40">
+                awaiting approval
+              </Badge>
+            )}
+            {item.remix_of && <Badge variant="outline" className="text-[9px]">remix</Badge>}
+            <Badge variant="outline" className="text-[9px]">{studioKindLabel(item.kind)}</Badge>
+          </span>
         </div>
         <button onClick={onOpen} className="font-medium text-[15px] hover:underline text-left leading-snug">
           {item.title}
@@ -547,9 +558,9 @@ function StudioItemCard({
 }
 
 function StudioItemDetailDialog({
-  item, studioLabel, onPlan, onOpenChange,
+  item, studioLabel, remixOfTitle, onPlan, onOpenChange,
 }: {
-  item: StudioLibraryItem; studioLabel: string;
+  item: StudioLibraryItem; studioLabel: string; remixOfTitle?: string | null;
   onPlan: () => void; onOpenChange: (open: boolean) => void;
 }) {
   return (
@@ -572,10 +583,17 @@ function StudioItemDetailDialog({
             {studioLabel}
           </p>
           {item.attribution && <p>{item.attribution}</p>}
+          {remixOfTitle && (
+            <p className="text-muted-foreground text-xs flex items-center gap-1">
+              <GitBranch className="size-3" /> Remixed from "{remixOfTitle}"
+            </p>
+          )}
           <p className="text-muted-foreground text-xs">
-            {item.visibility === 'shared'
-              ? `Shared by ${studioLabel} with all builders`
-              : `Part of ${studioLabel}'s library — visible to approved members`}
+            {item.status === 'pending'
+              ? `Offered to ${studioLabel} — waiting for a Studio Admin's approval`
+              : item.visibility === 'shared'
+                ? `Shared by ${studioLabel} with all builders`
+                : `Part of ${studioLabel}'s library — visible to approved members`}
           </p>
           {item.url && (
             <a

@@ -32,6 +32,8 @@ export interface ProjectLineage {
   /** When grown from a shared build prompt */
   promptSlug?: string;
   promptTitle?: string;
+  /** When remixed from a studio library item — powers the studio remix loop */
+  studioItemId?: string;
   /** Domain frames whose principles ride with this project (see knowledge/frames.ts) */
   frames?: string[];
 }

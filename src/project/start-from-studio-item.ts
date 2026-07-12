@@ -39,6 +39,9 @@ export function startFromStudioItem(item: StudioLibraryItem, studioLabel: string
     promptTitle: item.title,
     sourceUrl: item.url ?? undefined,
     importedAt: new Date().toISOString(),
+    // Remembering the shelf item closes the loop: sharing this build back
+    // to the studio records it as a remix of what it grew from
+    studioItemId: item.id,
   });
   useChatStore.getState().setDraftMessage(draft);
 }
