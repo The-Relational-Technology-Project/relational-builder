@@ -21,6 +21,8 @@ import { Label } from '@/components/ui/label';
 import { CircleUser, MailCheck, LogOut, MapPin, Palette, HeartHandshake, Sun, Moon, SlidersHorizontal, DoorOpen } from 'lucide-react';
 import { BuilderOnboarding } from '@/components/BuilderOnboarding';
 import { useUIStore } from '@/store/ui-store';
+import { useCloudStore } from '@/store/cloud-store';
+import { saveCurrentLocally } from '@/project/local-projects';
 import { useConnectionsStore } from '@/store/connections-store';
 import { isSuperAdmin } from '@/cloud/account-requests';
 import { DesignSystemDialog } from '@/components/DesignSystemDialog';
@@ -127,7 +129,21 @@ export function AccountMenu() {
             </DropdownMenuItem>
           )}
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => signOut()} className="gap-2 text-xs">
+          <DropdownMenuItem
+            onClick={() => {
+              // A cloud project can't sync signed out — hand the open
+              // workspace to the local shelf under its real name first,
+              // so edits keep saving and no guessed-name copy appears
+              const cloud = useCloudStore.getState();
+              if (cloud.currentProjectId) {
+                const name = cloud.currentProjectName;
+                cloud.closeProject();
+                saveCurrentLocally(name);
+              }
+              signOut();
+            }}
+            className="gap-2 text-xs"
+          >
             <LogOut className="size-3.5 text-muted-foreground" />
             Sign out
           </DropdownMenuItem>

@@ -230,6 +230,10 @@ export async function plantSharedPrompt(slug: string): Promise<boolean> {
   const { useProjectStore } = await import('@/store/project-store');
   const { useCloudStore } = await import('@/store/cloud-store');
   const { useEnvStore } = await import('@/store/env-store');
+  // Stash open work first — clearing without re-slotting would leave the
+  // autosaver pointed at the old project, saving the new build over it
+  const { stashAndStartFresh } = await import('@/project/local-projects');
+  stashAndStartFresh();
   useCloudStore.getState().closeProject();
   useChatStore.getState().clearMessages();
   useProjectStore.getState().clearProject();

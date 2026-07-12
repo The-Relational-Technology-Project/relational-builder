@@ -96,8 +96,12 @@ function deriveName(files: FileEntry[]): string {
 /**
  * Save the current workspace to its shelf slot. No-ops while a cloud
  * project is open (cloud autosync owns it) or when there's nothing yet.
+ *
+ * `fallbackName` beats the heuristics when a fresh slot is minted — pass it
+ * when the workspace already has a real name (e.g. a cloud project being
+ * detached), so the copy isn't re-christened from a stray chat phrase.
  */
-export function saveCurrentLocally(): void {
+export function saveCurrentLocally(fallbackName?: string): void {
   if (useCloudStore.getState().currentProjectId) return;
 
   const project = useProjectStore.getState();
@@ -110,7 +114,7 @@ export function saveCurrentLocally(): void {
     id = crypto.randomUUID();
   }
   const existing = readSnapshot(id);
-  const name = existing?.name ?? deriveName(files);
+  const name = existing?.name ?? (fallbackName?.trim() || deriveName(files));
 
   const snapshot: LocalProjectSnapshot = {
     id,

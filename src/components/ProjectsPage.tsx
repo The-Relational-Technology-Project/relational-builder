@@ -17,6 +17,9 @@ import {
 import { YourPrompts } from '@/components/YourPrompts';
 import { YourSites } from '@/components/YourSites';
 import { listMyPrompts, type BuildPrompt } from '@/cloud/prompts';
+import { useChatStore } from '@/store/chat-store';
+import { useProjectStore } from '@/store/project-store';
+import { useEnvStore } from '@/store/env-store';
 
 /**
  * The nav affordance that opens the Projects page. Kept next to the page so
@@ -114,7 +117,19 @@ export function ProjectsPage() {
                       {isOwner ? 'Owner' : 'Editor'}
                     </Badge>
                   </div>
-                  <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={closeProject}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => {
+                      // The workspace stays loaded after detaching — adopt a
+                      // local slot under the project's real name right away,
+                      // so the autosaver doesn't mint a copy with a guessed one
+                      const name = currentProjectName;
+                      closeProject();
+                      saveCurrentLocally(name);
+                    }}
+                  >
                     Detach
                   </Button>
                 </div>
@@ -277,11 +292,19 @@ function MergedProjects({ onOpened }: { onOpened: () => void }) {
     if (!window.confirm(`Delete "${entry.name}"? This can't be undone.`)) return;
     if (entry.kind === 'local') {
       deleteLocalProject(entry.id);
-      return;
+    } else {
+      setBusy(entry.key);
+      await deleteProject(entry.id);
+      setBusy(null);
     }
-    setBusy(entry.key);
-    await deleteProject(entry.id);
-    setBusy(null);
+    // Deleting the project that's open must also clear the workspace —
+    // otherwise the autosaver immediately re-shelves the leftover files as a
+    // "new" project with a guessed name, and the deleted thing keeps coming back
+    if (entry.current) {
+      useChatStore.getState().clearMessages();
+      useProjectStore.getState().clearProject();
+      useEnvStore.getState().clearAll();
+    }
   }
 
   return (
@@ -307,6 +330,7 @@ function MergedProjects({ onOpened }: { onOpened: () => void }) {
                 {new Date(entry.updatedAt).toLocaleString(undefined, {
                   month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
                 })}
+                {entry.kind === 'local' ? ' · on this device' : ' · cloud'}
               </div>
             </div>
             <div className="flex items-center gap-1 shrink-0">

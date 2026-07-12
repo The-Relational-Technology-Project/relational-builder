@@ -3,6 +3,7 @@ import { useProjectStore } from '@/store/project-store';
 import { useChatStore } from '@/store/chat-store';
 import { useCloudStore } from '@/store/cloud-store';
 import { useGitHubStore } from '@/store/github-store';
+import { stashAndStartFresh } from '@/project/local-projects';
 
 /**
  * Remix: pull a public repo from the relational tech network into the
@@ -72,8 +73,11 @@ export async function remixRepo(repoRef: string): Promise<RemixResult> {
     updatedAt: now,
   }));
 
-  // Remixing starts a fresh workspace: detach cloud project, load files with
-  // lineage, and seed the chat with an orientation message
+  // Remixing starts a fresh workspace: stash open work on the local shelf
+  // (and point the autosaver at a fresh slot — otherwise the remix would be
+  // saved over the previous project), detach cloud, load files with lineage,
+  // and seed the chat with an orientation message
+  stashAndStartFresh();
   useCloudStore.getState().closeProject();
   useProjectStore.getState().clearProject();
   useProjectStore.getState().hydrateFiles(entries, {
