@@ -17,11 +17,20 @@ import {
   type GalleryLink,
 } from '@/cloud/gallery-links';
 import { listAllStudios, type StudioContext } from '@/knowledge/studio-context';
+import {
+  fetchStudioAccessMap,
+  listStudioMembers,
+  stewardSetStudioAccess,
+  stewardSetStudioAdmin,
+  type StudioAccess,
+  type StudioMemberRow,
+} from '@/cloud/studios';
 import { useKnowledgeStore } from '@/store/knowledge-store';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, X, Loader2, ChevronDown, ChevronRight, ShieldCheck } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Check, X, Loader2, ChevronDown, ChevronRight, ShieldCheck, KeyRound, Lock, LockOpen } from 'lucide-react';
 
 /**
  * The Steward page — every steward task in one full-width space (these
@@ -32,6 +41,9 @@ import { Check, X, Loader2, ChevronDown, ChevronRight, ShieldCheck } from 'lucid
  *    from RT Studio; decisions flow through the commons' review function)
  *  - Studio gallery: which Commons Gallery tools belong to which studios,
  *    powering studio-scoped highlighting
+ *  - Studio access: which studios are gated (members need approval) and who
+ *    holds each studio's admin role — the role that approves members and
+ *    tends the studio's private library
  * Visibility is gated by email client-side for convenience; the
  * admin-requests edge function is the real boundary.
  */
@@ -53,6 +65,7 @@ export function StewardPage() {
               <TabsTrigger value="door" className="text-xs px-3 sm:px-4">Account requests</TabsTrigger>
               <TabsTrigger value="commons" className="text-xs px-3 sm:px-4">Commons review</TabsTrigger>
               <TabsTrigger value="gallery" className="text-xs px-3 sm:px-4">Studio gallery</TabsTrigger>
+              <TabsTrigger value="access" className="text-xs px-3 sm:px-4">Studio access</TabsTrigger>
             </TabsList>
           </div>
           <TabsContent value="accounts" className="pt-4">
@@ -66,6 +79,9 @@ export function StewardPage() {
           </TabsContent>
           <TabsContent value="gallery" className="pt-4">
             <GalleryTab />
+          </TabsContent>
+          <TabsContent value="access" className="pt-4">
+            <StudioAccessTab />
           </TabsContent>
         </Tabs>
       </div>
@@ -537,6 +553,178 @@ function GalleryTab() {
           );
         })}
       </div>
+    </div>
+  );
+}
+
+// --- Studio access: gated studios + Studio Admin grants ---
+
+function StudioAccessTab() {
+  const [studios, setStudios] = useState<StudioContext[]>([]);
+  const [accessMap, setAccessMap] = useState<Map<string, StudioAccess>>(new Map());
+  const [admins, setAdmins] = useState<Map<string, StudioMemberRow[]>>(new Map());
+  const [loading, setLoading] = useState(true);
+  const [busyKey, setBusyKey] = useState<string | null>(null);
+  const [emails, setEmails] = useState<Record<string, string>>({});
+  const [error, setError] = useState<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    setError(null);
+    try {
+      const [allStudios, access] = await Promise.all([listAllStudios(), fetchStudioAccessMap()]);
+      setStudios(allStudios);
+      setAccessMap(access);
+      const adminLists = await Promise.all(
+        allStudios.map(async s => {
+          const members = await listStudioMembers(s.slug);
+          return [s.slug, members.filter(m => m.role === 'admin' && m.status === 'approved')] as const;
+        }),
+      );
+      setAdmins(new Map(adminLists));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not load studio access');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  async function toggleAccess(studio: StudioContext) {
+    const current = accessMap.get(studio.slug) ?? 'open';
+    const next: StudioAccess = current === 'gated' ? 'open' : 'gated';
+    setBusyKey(`access-${studio.slug}`);
+    setError(null);
+    try {
+      await stewardSetStudioAccess(studio.slug, next);
+      setAccessMap(m => new Map(m).set(studio.slug, next));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'That change did not save');
+    } finally {
+      setBusyKey(null);
+    }
+  }
+
+  async function setAdmin(studio: StudioContext, email: string, grant: boolean) {
+    if (!email.trim()) return;
+    setBusyKey(`admin-${studio.slug}`);
+    setError(null);
+    try {
+      await stewardSetStudioAdmin(studio.slug, studio.label, email.trim(), grant);
+      setEmails(e => ({ ...e, [studio.slug]: '' }));
+      await refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'That change did not save');
+    } finally {
+      setBusyKey(null);
+    }
+  }
+
+  if (loading) {
+    return (
+      <p className="text-sm text-muted-foreground flex items-center gap-2">
+        <Loader2 className="size-3.5 animate-spin" /> Loading studios…
+      </p>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <p className="text-xs text-muted-foreground">
+        A gated studio approves its members: joining files a request that its
+        Studio Admins decide. Admins also tend the studio's private library —
+        what approved members see in the gallery and in the AI's context.
+        Granting admin is yours alone.
+      </p>
+      {error && <p className="text-xs text-destructive">{error}</p>}
+
+      {studios.map(studio => {
+        const gated = (accessMap.get(studio.slug) ?? 'open') === 'gated';
+        const studioAdmins = admins.get(studio.slug) ?? [];
+        return (
+          <div key={studio.slug} className="rounded-lg border p-3 space-y-2.5">
+            <div className="flex items-center gap-2">
+              <span
+                className="size-2 rounded-full shrink-0"
+                style={{ background: studio.color ?? 'hsl(var(--muted-foreground))' }}
+              />
+              <span className="text-sm font-medium">{studio.label}</span>
+              <Badge variant="outline" className="text-[10px]">
+                {gated ? 'gated' : 'open'}
+              </Badge>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 text-xs ml-auto"
+                disabled={busyKey !== null}
+                onClick={() => toggleAccess(studio)}
+              >
+                {busyKey === `access-${studio.slug}` ? (
+                  <Loader2 className="size-3 mr-1 animate-spin" />
+                ) : gated ? (
+                  <LockOpen className="size-3 mr-1" />
+                ) : (
+                  <Lock className="size-3 mr-1" />
+                )}
+                {gated ? 'Open it up' : 'Gate it'}
+              </Button>
+            </div>
+
+            <div className="space-y-1.5">
+              <p className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted-foreground">
+                <KeyRound className="size-3" /> Studio admins
+              </p>
+              {studioAdmins.length === 0 ? (
+                <p className="text-xs text-muted-foreground">None yet.</p>
+              ) : (
+                studioAdmins.map(a => (
+                  <div key={a.user_id} className="flex items-center gap-2 text-xs">
+                    <span className="truncate">{a.display_name || 'A builder'}</span>
+                    <button
+                      className="text-muted-foreground hover:text-foreground underline decoration-dotted ml-auto"
+                      disabled={busyKey !== null}
+                      onClick={() => {
+                        const email = window.prompt(
+                          `Revoke ${a.display_name || 'this admin'}'s role — confirm their account email:`,
+                        );
+                        if (email) void setAdmin(studio, email, false);
+                      }}
+                    >
+                      revoke
+                    </button>
+                  </div>
+                ))
+              )}
+              <div className="flex gap-1.5">
+                <Input
+                  value={emails[studio.slug] ?? ''}
+                  onChange={e => setEmails(v => ({ ...v, [studio.slug]: e.target.value }))}
+                  onKeyDown={e =>
+                    e.key === 'Enter' && setAdmin(studio, emails[studio.slug] ?? '', true)
+                  }
+                  placeholder="builder@example.org"
+                  className="h-7 text-xs flex-1"
+                />
+                <Button
+                  size="sm"
+                  className="h-7 text-xs shrink-0"
+                  disabled={busyKey !== null || !(emails[studio.slug] ?? '').trim()}
+                  onClick={() => setAdmin(studio, emails[studio.slug] ?? '', true)}
+                >
+                  {busyKey === `admin-${studio.slug}` ? (
+                    <Loader2 className="size-3 mr-1 animate-spin" />
+                  ) : (
+                    <KeyRound className="size-3 mr-1" />
+                  )}
+                  Grant admin
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

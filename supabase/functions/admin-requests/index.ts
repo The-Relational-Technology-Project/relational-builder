@@ -25,6 +25,13 @@
  *   { action: "gallery_add", studio_slug, tool_id, tool_name? }
  *   { action: "gallery_remove", studio_slug, tool_id }
  *
+ * POST JSON — studio access control (gated studios + Studio Admin grants;
+ * admins approve members and curate the private library client-side under
+ * RLS, but gating a studio and granting the admin role are steward acts):
+ *   { action: "studio_access_set", studio_slug, access: "open" | "gated" }
+ *   { action: "studio_admin_set", studio_slug, studio_label, email,
+ *     grant: boolean }
+ *
  * POST JSON — accounts overview (profiles + cloud project counts; both
  * tables are RLS-locked to their owners, so the steward's cross-account
  * view can only exist here, behind the service role):
@@ -150,6 +157,80 @@ Deno.serve(async (req: Request) => {
           ),
           { method: 'DELETE', headers: svc() },
         );
+      }
+      return json({ ok: true });
+    }
+
+    // --- Studio access: gate/ungate a studio ---
+    if (action === 'studio_access_set') {
+      const studioSlug = String(body.studio_slug ?? '').trim().toLowerCase();
+      const access = String(body.access ?? '');
+      if (!studioSlug || (access !== 'open' && access !== 'gated')) {
+        return json({ error: 'studio_slug and access (open|gated) are required' }, 400);
+      }
+      const res = await fetch(rest('/studio_settings?on_conflict=studio_slug'), {
+        method: 'POST',
+        headers: { ...svc(), Prefer: 'resolution=merge-duplicates' },
+        body: JSON.stringify({
+          studio_slug: studioSlug,
+          access,
+          updated_at: new Date().toISOString(),
+          updated_by: callerEmail,
+        }),
+      });
+      if (!res.ok) return json({ error: 'Could not save studio access' }, 500);
+      return json({ ok: true });
+    }
+
+    // --- Studio Admin grants: the role only the steward hands out ---
+    if (action === 'studio_admin_set') {
+      const studioSlug = String(body.studio_slug ?? '').trim().toLowerCase();
+      const studioLabel = String(body.studio_label ?? '').trim() || studioSlug;
+      const email = String(body.email ?? '').trim().toLowerCase();
+      const grant = body.grant === true;
+      if (!studioSlug || !email) {
+        return json({ error: 'studio_slug and email are required' }, 400);
+      }
+      // The person must already have a Builder account — the profile row is
+      // how an email becomes a user id
+      const profRes = await fetch(
+        rest(`/profiles?email=ilike.${encodeURIComponent(email)}&select=id,display_name&limit=1`),
+        { headers: svc() },
+      );
+      const profRows = profRes.ok ? await profRes.json() : [];
+      if (profRows.length === 0) {
+        return json({ error: `No builder account found for ${email}` }, 404);
+      }
+      const userId = String(profRows[0].id);
+      if (grant) {
+        // Granting admin also approves the membership — an admin who can't
+        // get through their own door helps nobody
+        const res = await fetch(
+          rest('/studio_memberships?on_conflict=user_id,studio_slug'),
+          {
+            method: 'POST',
+            headers: { ...svc(), Prefer: 'resolution=merge-duplicates' },
+            body: JSON.stringify({
+              user_id: userId,
+              studio_slug: studioSlug,
+              studio_label: studioLabel,
+              display_name: profRows[0].display_name ?? null,
+              role: 'admin',
+              status: 'approved',
+            }),
+          },
+        );
+        if (!res.ok) return json({ error: 'Could not grant the admin role' }, 500);
+      } else {
+        // Revoking admin keeps the membership — they're still a member
+        const res = await fetch(
+          rest(
+            `/studio_memberships?user_id=eq.${encodeURIComponent(userId)}` +
+              `&studio_slug=eq.${encodeURIComponent(studioSlug)}`,
+          ),
+          { method: 'PATCH', headers: svc(), body: JSON.stringify({ role: 'member' }) },
+        );
+        if (!res.ok) return json({ error: 'Could not revoke the admin role' }, 500);
       }
       return json({ ok: true });
     }

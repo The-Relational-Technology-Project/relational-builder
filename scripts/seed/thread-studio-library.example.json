@@ -1,0 +1,23 @@
+{
+  "studio_slug": "thread",
+  "items": [
+    {
+      "kind": "principle",
+      "title": "Relationships before programs",
+      "summary": "Every build starts from a real relationship a fellow already holds, not from an imagined user.",
+      "body": "Thread's work is woven from long-term, unconditional relationships. When a fellow builds a tool, it should deepen a relationship that already exists — a young person and their Family, a volunteer and their neighborhood — never substitute for one. Ask first: whose relationship does this serve, and how will they feel it?",
+      "attribution": "Thread",
+      "tags": ["thread", "baltimore", "relationships"],
+      "sort_order": 10
+    },
+    {
+      "kind": "example",
+      "title": "Replace this with a real Thread example",
+      "summary": "A short description of a tool or practice from the Thread community — what it is and who it served.",
+      "body": "The full story or write-up in markdown. This file is a TEMPLATE showing the shape the seed script expects — replace these entries with Thread's actual principles and examples, then run:\n\n  BUILDER_SUPABASE_URL=... BUILDER_SERVICE_ROLE_KEY=... node scripts/seed-studio-library.mjs scripts/seed/thread-studio-library.json",
+      "attribution": "A Thread fellow",
+      "tags": ["thread", "example"],
+      "sort_order": 20
+    }
+  ]
+}

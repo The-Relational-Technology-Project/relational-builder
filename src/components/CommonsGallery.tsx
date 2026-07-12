@@ -2,10 +2,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useKnowledgeStore } from '@/store/knowledge-store';
-import { useStudioStore } from '@/store/studio-store';
+import { useStudioStore, approvedMemberships, adminMemberships } from '@/store/studio-store';
 import { fetchPrompts, searchItems } from '@/knowledge/queries';
 import { fetchGalleryLinks, studioSlugsForTool, type GalleryLink } from '@/cloud/gallery-links';
 import { searchCommons } from '@/knowledge/commons-search';
+import { STUDIO_ITEM_KINDS, type StudioLibraryItem } from '@/cloud/studio-library';
+import { startFromStudioItem } from '@/project/start-from-studio-item';
 import {
   fetchCivicMediaCards, fetchNeighboringRecipeCards, fetchCommonsItemDetail,
   type CommonsCard, type CommonsItemDetail,
@@ -27,7 +29,7 @@ import { useUIStore } from '@/store/ui-store';
 import {
   BookOpen, ExternalLink, GitBranch, GitFork, Globe, Hammer,
   ImageOff, Loader2, Map as MapIcon, Newspaper, ScrollText, Sprout,
-  ChevronDown, ChevronRight,
+  ChevronDown, ChevronRight, Library, Lock, KeyRound,
 } from 'lucide-react';
 
 /**
@@ -69,7 +71,12 @@ export interface StudioBadge {
 
 type GalleryEntry =
   | { key: string; type: 'tool'; tool: Tool }
-  | { key: string; type: 'commons'; card: CommonsCard };
+  | { key: string; type: 'commons'; card: CommonsCard }
+  | { key: string; type: 'studio'; item: StudioLibraryItem };
+
+function studioKindLabel(kind: StudioLibraryItem['kind']): string {
+  return STUDIO_ITEM_KINDS.find(k => k.key === kind)?.label.toLowerCase() ?? kind;
+}
 
 /** Shelf presentation for a commons card */
 function shelfFor(card: CommonsCard): { label: string; icon: 'newspaper' | 'sprout' } {
@@ -96,10 +103,15 @@ export function CommonsGallery() {
   const memberships = useStudioStore(s => s.memberships);
   const activeStudio = useStudioStore(s => s.activeStudio);
   const studios = useStudioStore(s => s.studios);
+  const studioLibrary = useStudioStore(s => s.library);
+  const accessMap = useStudioStore(s => s.accessMap);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<string>('all');
+  // Which library is on the shelves: the commons, or one of the viewer's studios
+  const [scope, setScope] = useState<string>('commons');
   const [detail, setDetail] = useState<Tool | null>(null);
   const [commonsDetail, setCommonsDetail] = useState<CommonsCard | null>(null);
+  const [studioDetail, setStudioDetail] = useState<StudioLibraryItem | null>(null);
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [links, setLinks] = useState<GalleryLink[]>([]);
   const [civicCards, setCivicCards] = useState<CommonsCard[]>([]);
@@ -140,12 +152,28 @@ export function CommonsGallery() {
     return () => clearTimeout(timer);
   }, [query]);
 
-  // The viewer's studios: the frame they're building in plus everywhere they belong
+  // The viewer's studios: the frame they're building in plus everywhere they
+  // belong — approved memberships only; a pending request grants nothing yet
+  const myApproved = useMemo(() => approvedMemberships(memberships), [memberships]);
   const mySlugs = useMemo(() => {
-    const slugs = new Set(memberships.map(m => m.studio_slug));
+    const slugs = new Set(myApproved.map(m => m.studio_slug));
     if (activeStudio) slugs.add(activeStudio.slug);
     return slugs;
-  }, [memberships, activeStudio]);
+  }, [myApproved, activeStudio]);
+
+  const myAdminSlugs = useMemo(
+    () => new Set(adminMemberships(memberships).map(m => m.studio_slug)),
+    [memberships],
+  );
+
+  // Studio libraries this viewer can browse: approved membership in a gated
+  // studio, or any studio whose shelf actually holds items they can see
+  const libraryStudios = useMemo(() => {
+    const withItems = new Set(studioLibrary.map(i => i.studio_slug));
+    return myApproved.filter(
+      m => accessMap.get(m.studio_slug) === 'gated' || withItems.has(m.studio_slug),
+    );
+  }, [myApproved, accessMap, studioLibrary]);
 
   const studioMeta = useMemo(() => {
     const map = new Map<string, StudioBadge>();
@@ -182,6 +210,32 @@ export function CommonsGallery() {
   );
 
   const entries = useMemo<GalleryEntry[]>(() => {
+    const q = query.trim().toLowerCase();
+    const substringHit = (e: GalleryEntry) => {
+      if (e.type === 'tool') return searchItems([e.tool], query).length > 0;
+      if (e.type === 'studio') {
+        const i = e.item;
+        return [i.title, i.summary, i.body, i.attribution, ...i.tags]
+          .some(v => v && v.toLowerCase().includes(q));
+      }
+      const c = e.card;
+      return [c.title, c.summary, c.attribution?.name, ...(c.tags ?? [])]
+        .some(v => v && v.toLowerCase().includes(q));
+    };
+
+    // A studio's own library: its private shelf plus the public tools the
+    // studio has claimed — the commons categories don't apply here
+    if (scope !== 'commons') {
+      const shelf: GalleryEntry[] = studioLibrary
+        .filter(i => i.studio_slug === scope)
+        .map(i => ({ key: `studio-${i.id}`, type: 'studio' as const, item: i }));
+      const studioTools: GalleryEntry[] = galleryTools
+        .filter(t => studioSlugsForTool(t, links).includes(scope))
+        .map(t => ({ key: `tool-${t.id}`, type: 'tool' as const, tool: t }));
+      const all = [...shelf, ...studioTools];
+      return q ? all.filter(substringHit) : all;
+    }
+
     const toolEntries: GalleryEntry[] =
       category === 'all' || category === 'relational_tech' || category === 'mine'
         ? (category === 'mine' ? galleryTools.filter(t => badgesFor(t).length > 0) : galleryTools)
@@ -195,20 +249,23 @@ export function CommonsGallery() {
       category === 'all' || category === 'neighboring'
         ? neighboringCards.map(c => ({ key: `commons-${c.slug}`, type: 'commons' as const, card: c }))
         : [];
+    // Items studios have explicitly shared beyond their walls join the
+    // commons view for every signed-in builder
+    const sharedEntries: GalleryEntry[] =
+      category === 'all'
+        ? studioLibrary
+            .filter(i => i.visibility === 'shared')
+            .map(i => ({ key: `studio-${i.id}`, type: 'studio' as const, item: i }))
+        : [];
 
-    const q = query.trim().toLowerCase();
-    const substringHit = (e: GalleryEntry) => {
-      if (e.type === 'tool') return searchItems([e.tool], query).length > 0;
-      const c = e.card;
-      return [c.title, c.summary, c.attribution?.name, ...(c.tags ?? [])]
-        .some(v => v && v.toLowerCase().includes(q));
-    };
     const rankOf = (e: GalleryEntry): number | undefined =>
       e.type === 'commons'
         ? semanticRank.get(e.card.slug) ?? semanticRank.get(e.card.title.trim().toLowerCase())
-        : semanticRank.get(e.tool.name.trim().toLowerCase());
+        : e.type === 'tool'
+          ? semanticRank.get(e.tool.name.trim().toLowerCase())
+          : undefined;
 
-    const all = [...toolEntries, ...civicEntries, ...neighboringEntries];
+    const all = [...toolEntries, ...civicEntries, ...neighboringEntries, ...sharedEntries];
 
     if (!q) {
       // Browsing order: your studios' tools lead, then each shelf in turn
@@ -226,9 +283,19 @@ export function CommonsGallery() {
       .filter(x => x.rank !== undefined || x.sub)
       .sort((a, b) => (a.rank ?? 999) - (b.rank ?? 999))
       .map(x => x.e);
-  }, [galleryTools, civicCards, neighboringCards, category, query, badgesFor, semanticRank]);
+  }, [galleryTools, civicCards, neighboringCards, category, query, badgesFor, semanticRank, scope, studioLibrary, links]);
 
   const promptsFor = (tool: Tool) => prompts.filter(p => p.parent_tool_id === tool.id);
+
+  const scopeLabel = (slug: string) =>
+    libraryStudios.find(m => m.studio_slug === slug)?.studio_label ??
+    studioMeta.get(slug)?.label ?? slug;
+
+  function planStudioItem(item: StudioLibraryItem) {
+    startFromStudioItem(item, scopeLabel(item.studio_slug));
+    setStudioDetail(null);
+    setView('builder');
+  }
 
   async function buildTool(tool: Tool) {
     setBusyKey(`tool-${tool.id}`);
@@ -262,10 +329,13 @@ export function CommonsGallery() {
     <div className="h-full overflow-y-auto">
       <div className="max-w-5xl mx-auto px-4 md:px-6 py-6 space-y-5">
         <div className="min-w-0">
-          <h1 className="text-xl font-semibold tracking-tight">Commons Gallery</h1>
+          <h1 className="text-xl font-semibold tracking-tight">
+            {scope === 'commons' ? 'Commons Gallery' : `${scopeLabel(scope)} Library`}
+          </h1>
           <p className="text-sm text-muted-foreground">
-            Tools, practices, and recipes from the civic commons – ready to be remixed, with
-            attribution and lineage, for your place.
+            {scope === 'commons'
+              ? 'Tools, practices, and recipes from the civic commons – ready to be remixed, with attribution and lineage, for your place.'
+              : 'Your studio’s own principles, examples, and materials — visible to approved members, and woven into the AI’s context while you build.'}
           </p>
         </div>
 
@@ -273,28 +343,61 @@ export function CommonsGallery() {
             and new members across the studios you belong to. */}
         <NetworkUpdates />
 
-        <div className="flex flex-wrap items-center gap-2">
-          <Input
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            placeholder="Search the commons…"
-            className="h-8 w-56 text-sm"
-          />
-          <div className="flex flex-wrap gap-1">
-            {[...CATEGORIES, ...(anyStudioTools ? [{ key: 'mine', label: 'Your studios' } as const] : [])].map(c => (
+        {/* Which library you're browsing — the commons, or a studio you've
+            been approved into. The switch only appears once you belong
+            somewhere with its own shelf. */}
+        {libraryStudios.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Library className="size-3.5 text-muted-foreground" />
+            {[{ slug: 'commons', label: 'Commons' },
+              ...libraryStudios.map(m => ({ slug: m.studio_slug, label: m.studio_label }))].map(o => (
               <button
-                key={c.key}
-                onClick={() => setCategory(c.key)}
+                key={o.slug}
+                onClick={() => { setScope(o.slug); setCategory('all'); }}
                 className={`rounded-full border px-3 py-1 text-xs transition-colors ${
-                  category === c.key
+                  scope === o.slug
                     ? 'bg-foreground text-background border-foreground'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                {c.label}
+                {o.label}
               </button>
             ))}
+            {scope !== 'commons' && myAdminSlugs.has(scope) && (
+              <button
+                onClick={() => setView('studio-admin')}
+                className="inline-flex items-center gap-1 text-xs text-primary hover:underline ml-1"
+              >
+                <KeyRound className="size-3" /> Manage library
+              </button>
+            )}
           </div>
+        )}
+
+        <div className="flex flex-wrap items-center gap-2">
+          <Input
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder={scope === 'commons' ? 'Search the commons…' : `Search ${scopeLabel(scope)}…`}
+            className="h-8 w-56 text-sm"
+          />
+          {scope === 'commons' && (
+            <div className="flex flex-wrap gap-1">
+              {[...CATEGORIES, ...(anyStudioTools ? [{ key: 'mine', label: 'Your studios' } as const] : [])].map(c => (
+                <button
+                  key={c.key}
+                  onClick={() => setCategory(c.key)}
+                  className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+                    category === c.key
+                      ? 'bg-foreground text-background border-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {c.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {error && <p className="text-sm text-destructive">{error}</p>}
@@ -304,7 +407,13 @@ export function CommonsGallery() {
             <Loader2 className="size-3.5 animate-spin" /> Loading the gallery…
           </p>
         ) : entries.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nothing matches that search.</p>
+          <p className="text-sm text-muted-foreground">
+            {query.trim()
+              ? 'Nothing matches that search.'
+              : scope !== 'commons'
+                ? 'This studio’s shelf is empty so far.'
+                : 'Nothing here yet.'}
+          </p>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {entries.map(entry =>
@@ -317,6 +426,15 @@ export function CommonsGallery() {
                   anyBusy={busyKey !== null}
                   onOpen={() => setDetail(entry.tool)}
                   onBuild={() => buildTool(entry.tool)}
+                />
+              ) : entry.type === 'studio' ? (
+                <StudioItemCard
+                  key={entry.key}
+                  item={entry.item}
+                  studioLabel={scopeLabel(entry.item.studio_slug)}
+                  anyBusy={busyKey !== null}
+                  onOpen={() => setStudioDetail(entry.item)}
+                  onPlan={() => planStudioItem(entry.item)}
                 />
               ) : (
                 <RecipeCard
@@ -361,7 +479,134 @@ export function CommonsGallery() {
           onOpenChange={open => { if (!open) setCommonsDetail(null); }}
         />
       )}
+      {studioDetail && (
+        <StudioItemDetailDialog
+          item={studioDetail}
+          studioLabel={scopeLabel(studioDetail.studio_slug)}
+          onPlan={() => planStudioItem(studioDetail)}
+          onOpenChange={open => { if (!open) setStudioDetail(null); }}
+        />
+      )}
     </div>
+  );
+}
+
+/** A studio library card — the studio's own shelf, marked private or shared */
+function StudioItemCard({
+  item, studioLabel, anyBusy, onOpen, onPlan,
+}: {
+  item: StudioLibraryItem; studioLabel: string; anyBusy: boolean;
+  onOpen: () => void; onPlan: () => void;
+}) {
+  return (
+    <div className="group border rounded-xl overflow-hidden flex flex-col bg-background hover:border-foreground/25 transition-colors">
+      <div className="p-3.5 flex-1 flex flex-col gap-1.5">
+        <div className="flex items-center gap-1.5">
+          {item.visibility === 'shared' ? (
+            <Library className="size-3.5 shrink-0 text-muted-foreground" />
+          ) : (
+            <Lock className="size-3.5 shrink-0 text-muted-foreground" />
+          )}
+          <span className="text-[10px] uppercase tracking-wide text-muted-foreground truncate">
+            {studioLabel}
+          </span>
+          <Badge variant="outline" className="ml-auto text-[9px] shrink-0">
+            {studioKindLabel(item.kind)}
+          </Badge>
+        </div>
+        <button onClick={onOpen} className="font-medium text-[15px] hover:underline text-left leading-snug">
+          {item.title}
+        </button>
+        {item.attribution && (
+          <p className="text-xs text-muted-foreground -mt-0.5">{item.attribution}</p>
+        )}
+        <p className="text-sm text-muted-foreground line-clamp-4 flex-1">
+          {item.summary ?? item.body?.slice(0, 200)}
+        </p>
+        {item.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {item.tags.slice(0, 5).map(t => (
+              <span key={t} className="rounded-full border px-2 py-0.5 text-[10px] text-muted-foreground">
+                {t}
+              </span>
+            ))}
+          </div>
+        )}
+        <div className="flex gap-1.5 pt-1">
+          <Button variant="outline" size="sm" className="h-7 text-xs flex-1" onClick={onOpen}>
+            Details
+          </Button>
+          <Button size="sm" className="h-7 text-xs flex-1" disabled={anyBusy} onClick={onPlan}>
+            <MapIcon className="size-3 mr-1" />
+            Build with this
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StudioItemDetailDialog({
+  item, studioLabel, onPlan, onOpenChange,
+}: {
+  item: StudioLibraryItem; studioLabel: string;
+  onPlan: () => void; onOpenChange: (open: boolean) => void;
+}) {
+  return (
+    <Dialog open onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="pr-6 flex items-center gap-2">
+            <span>{item.title}</span>
+            <Badge variant="outline" className="text-[10px] shrink-0">
+              {studioKindLabel(item.kind)}
+            </Badge>
+          </DialogTitle>
+        </DialogHeader>
+
+        {item.summary && <p className="text-sm leading-relaxed">{item.summary}</p>}
+
+        <div className="rounded-lg border border-dashed px-3 py-2.5 text-sm space-y-1">
+          <p className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted-foreground">
+            {item.visibility === 'shared' ? <Library className="size-3" /> : <Lock className="size-3" />}
+            {studioLabel}
+          </p>
+          {item.attribution && <p>{item.attribution}</p>}
+          <p className="text-muted-foreground text-xs">
+            {item.visibility === 'shared'
+              ? `Shared by ${studioLabel} with all builders`
+              : `Part of ${studioLabel}'s library — visible to approved members`}
+          </p>
+          {item.url && (
+            <a
+              href={item.url}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 text-xs underline decoration-dotted hover:text-primary"
+            >
+              <ExternalLink className="size-3" /> Source
+            </a>
+          )}
+        </div>
+
+        {item.body && (
+          <div className="prose prose-sm dark:prose-invert max-w-none text-sm [&_p]:leading-relaxed">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{item.body}</ReactMarkdown>
+          </div>
+        )}
+
+        <div className="flex flex-wrap gap-2 pt-1">
+          <Button size="sm" onClick={onPlan}>
+            <MapIcon className="size-3.5 mr-1.5" />
+            Build with this
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          "Build with this" opens it in Plan mode — the whole {studioLabel} library
+          already travels with your builds as an approved member.
+        </p>
+      </DialogContent>
+    </Dialog>
   );
 }
 

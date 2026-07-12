@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useStudioStore } from '@/store/studio-store';
+import { useStudioStore, approvedMemberships } from '@/store/studio-store';
 import { fetchStudioActivity, type StudioActivityEntry } from '@/cloud/studios';
 import { Button } from '@/components/ui/button';
-import { Users, Sparkles, Share2, UserPlus } from 'lucide-react';
+import { Users, Sparkles, Share2, UserPlus, Hourglass } from 'lucide-react';
 
 /**
  * Network Updates — the network's life on a builder's home: recent shares,
@@ -35,12 +35,19 @@ export function NetworkUpdates() {
   const activeStudio = useStudioStore(s => s.activeStudio);
   const memberships = useStudioStore(s => s.memberships);
   const membershipsLoaded = useStudioStore(s => s.membershipsLoaded);
+  const accessMap = useStudioStore(s => s.accessMap);
   const joinStudio = useStudioStore(s => s.joinStudio);
   const [activity, setActivity] = useState<StudioActivityEntry[]>([]);
   const [joining, setJoining] = useState(false);
 
-  const memberSlugs = memberships.map(m => m.studio_slug);
+  // The feed follows real belonging; a pending request isn't in yet
+  const approved = approvedMemberships(memberships);
+  const memberSlugs = approved.map(m => m.studio_slug);
   const isMemberOfActive = !!activeStudio && memberSlugs.includes(activeStudio.slug);
+  const isPendingActive =
+    !!activeStudio &&
+    memberships.some(m => m.studio_slug === activeStudio.slug && m.status === 'pending');
+  const activeIsGated = !!activeStudio && accessMap.get(activeStudio.slug) === 'gated';
   const labelFor = (slug: string) =>
     memberships.find(m => m.studio_slug === slug)?.studio_label ??
     (activeStudio?.slug === slug ? activeStudio.label : slug);
@@ -53,13 +60,14 @@ export function NetworkUpdates() {
     });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [memberships.map(m => m.studio_slug).join(',')]);
+  }, [memberSlugs.join(',')]);
 
   if (!membershipsLoaded) return null;
 
   // Not part of any studio yet: one warm invitation to join the frame
-  // they're already building in — belonging before feeds.
-  if (memberships.length === 0) {
+  // they're already building in — belonging before feeds. A gated studio's
+  // door asks first: joining files a request for its admins.
+  if (approved.length === 0) {
     if (!activeStudio) return null;
     return (
       <section className="rounded-xl border border-dashed px-4 py-3 flex items-center gap-3">
@@ -70,22 +78,34 @@ export function NetworkUpdates() {
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium">You're building in {activeStudio.label}</p>
           <p className="text-xs text-muted-foreground">
-            Join the studio to see what other members share and build — and so they can see you arrive.
+            {isPendingActive
+              ? 'Your request to join is with the studio admins — you\'ll be in once they approve it.'
+              : activeIsGated
+                ? 'This studio approves its members — ask to join and a Studio Admin will let you in.'
+                : 'Join the studio to see what other members share and build — and so they can see you arrive.'}
           </p>
         </div>
-        <Button
-          size="sm"
-          variant="outline"
-          disabled={joining}
-          onClick={async () => {
-            setJoining(true);
-            await joinStudio(activeStudio);
-            setJoining(false);
-          }}
-        >
-          <Users className="size-3.5 mr-1.5" />
-          {joining ? 'Joining…' : 'Join studio'}
-        </Button>
+        {isPendingActive ? (
+          <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground shrink-0">
+            <Hourglass className="size-3.5" /> Request pending
+          </span>
+        ) : (
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={joining}
+            onClick={async () => {
+              setJoining(true);
+              await joinStudio(activeStudio);
+              setJoining(false);
+            }}
+          >
+            <Users className="size-3.5 mr-1.5" />
+            {joining
+              ? activeIsGated ? 'Asking…' : 'Joining…'
+              : activeIsGated ? 'Ask to join' : 'Join studio'}
+          </Button>
+        )}
       </section>
     );
   }
@@ -95,12 +115,18 @@ export function NetworkUpdates() {
       <div className="flex items-center gap-2">
         <h2 className="text-sm font-medium text-muted-foreground">Network Updates</h2>
         {activeStudio && !isMemberOfActive && (
-          <button
-            className="text-xs text-primary hover:underline"
-            onClick={() => joinStudio(activeStudio)}
-          >
-            + join {activeStudio.label}
-          </button>
+          isPendingActive ? (
+            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+              <Hourglass className="size-3" /> {activeStudio.label} request pending
+            </span>
+          ) : (
+            <button
+              className="text-xs text-primary hover:underline"
+              onClick={() => joinStudio(activeStudio)}
+            >
+              {activeIsGated ? `+ ask to join ${activeStudio.label}` : `+ join ${activeStudio.label}`}
+            </button>
+          )
         )}
       </div>
       {activity.length === 0 ? (

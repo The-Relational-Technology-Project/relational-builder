@@ -18,7 +18,7 @@ import {
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CircleUser, MailCheck, LogOut, MapPin, Palette, HeartHandshake, Sun, Moon, SlidersHorizontal, DoorOpen } from 'lucide-react';
+import { CircleUser, MailCheck, LogOut, MapPin, Palette, HeartHandshake, Sun, Moon, SlidersHorizontal, DoorOpen, KeyRound } from 'lucide-react';
 import { BuilderOnboarding } from '@/components/BuilderOnboarding';
 import { useUIStore } from '@/store/ui-store';
 import { useCloudStore } from '@/store/cloud-store';
@@ -28,6 +28,7 @@ import { useEnvStore } from '@/store/env-store';
 import { saveCurrentLocally, stashAndStartFresh } from '@/project/local-projects';
 import { useConnectionsStore } from '@/store/connections-store';
 import { isSuperAdmin } from '@/cloud/account-requests';
+import { useStudioStore, adminMemberships } from '@/store/studio-store';
 import { DesignSystemDialog } from '@/components/DesignSystemDialog';
 import { ProviderSettings } from '@/components/ProviderSettings';
 import { getThemeMode, setThemeMode, type ThemeMode } from '@/theme';
@@ -47,6 +48,10 @@ export function AccountMenu() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const setView = useUIStore(st => st.setView);
   const [themeMode, setThemeState] = useState<ThemeMode>(getThemeMode);
+
+  // Studio Admins get their console in the menu — a role the steward grants
+  const memberships = useStudioStore(s => s.memberships);
+  const isStudioAdmin = adminMemberships(memberships).length > 0;
 
   // The friendly signal that something's waiting on the Connections page —
   // a warm dot on your name, never a red alarm
@@ -125,6 +130,12 @@ export function AccountMenu() {
             <SlidersHorizontal className="size-3.5 text-muted-foreground" />
             Models & API keys
           </DropdownMenuItem>
+          {isStudioAdmin && (
+            <DropdownMenuItem onClick={() => setView('studio-admin')} className="gap-2 text-xs">
+              <KeyRound className="size-3.5 text-muted-foreground" />
+              Studio admin
+            </DropdownMenuItem>
+          )}
           {isSuperAdmin(user.email) && (
             <DropdownMenuItem onClick={() => setView('steward')} className="gap-2 text-xs">
               <DoorOpen className="size-3.5 text-muted-foreground" />

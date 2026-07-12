@@ -197,6 +197,11 @@ export function ChatPanel() {
     const projectFiles = useProjectStore.getState().getAllFiles()
       .map(f => ({ path: f.path, content: f.content }));
     const activeStudio = useStudioStore.getState().activeStudio;
+    // The active studio's private shelf — RLS already scoped the loaded
+    // library to what this builder may see, so filtering by slug is enough
+    const studioLibraryItems = activeStudio
+      ? useStudioStore.getState().library.filter(i => i.studio_slug === activeStudio.slug)
+      : [];
     const builderProfile = useAuthStore.getState().profile;
 
     // Domain frames: the project's own (stamped at remix or on a prior turn)
@@ -216,6 +221,7 @@ export function ChatPanel() {
       connectedServiceGuidance: serviceGuidance,
       projectFiles,
       studio: activeStudio,
+      studioLibraryItems,
       frames,
       builderProfile,
       references,
