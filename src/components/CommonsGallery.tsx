@@ -78,6 +78,11 @@ function studioKindLabel(kind: StudioLibraryItem['kind']): string {
   return STUDIO_ITEM_KINDS.find(k => k.key === kind)?.label.toLowerCase() ?? kind;
 }
 
+/** "Thread Studio" → "Thread Gallery" — the studio's shelf gets its own name */
+function galleryNameFor(studioLabel: string): string {
+  return `${studioLabel.replace(/\s+Studio$/i, '')} Gallery`;
+}
+
 /** Shelf presentation for a commons card */
 function shelfFor(card: CommonsCard): { label: string; icon: 'newspaper' | 'sprout' } {
   return card.source_studio_slug === 'civic-media'
@@ -223,11 +228,13 @@ export function CommonsGallery() {
         .some(v => v && v.toLowerCase().includes(q));
     };
 
-    // A studio's own library: its private shelf plus the public tools the
-    // studio has claimed — the commons categories don't apply here
+    // A studio's own gallery: its private shelf plus the public tools the
+    // studio has claimed — the commons categories don't apply here.
+    // Principles never render as cards: they're the studio's live frame,
+    // woven into every member build, not items to remix (see the panel).
     if (scope !== 'commons') {
       const shelf: GalleryEntry[] = studioLibrary
-        .filter(i => i.studio_slug === scope)
+        .filter(i => i.studio_slug === scope && i.kind !== 'principle')
         .map(i => ({ key: `studio-${i.id}`, type: 'studio' as const, item: i }));
       const studioTools: GalleryEntry[] = galleryTools
         .filter(t => studioSlugsForTool(t, links).includes(scope))
@@ -254,7 +261,7 @@ export function CommonsGallery() {
     const sharedEntries: GalleryEntry[] =
       category === 'all'
         ? studioLibrary
-            .filter(i => i.visibility === 'shared' && i.status === 'approved')
+            .filter(i => i.visibility === 'shared' && i.status === 'approved' && i.kind !== 'principle')
             .map(i => ({ key: `studio-${i.id}`, type: 'studio' as const, item: i }))
         : [];
 
@@ -330,12 +337,12 @@ export function CommonsGallery() {
       <div className="max-w-5xl mx-auto px-4 md:px-6 py-6 space-y-5">
         <div className="min-w-0">
           <h1 className="text-xl font-semibold tracking-tight">
-            {scope === 'commons' ? 'Commons Gallery' : `${scopeLabel(scope)} Library`}
+            {scope === 'commons' ? 'Commons Gallery' : galleryNameFor(scopeLabel(scope))}
           </h1>
           <p className="text-sm text-muted-foreground">
             {scope === 'commons'
               ? 'Tools, practices, and recipes from the civic commons – ready to be remixed, with attribution and lineage, for your place.'
-              : 'Your studio’s own principles, examples, and materials — visible to approved members, and woven into the AI’s context while you build.'}
+              : 'Your studio’s own examples, prompts, and materials — for approved members to build from and remix, with the studio’s principles live in every build.'}
           </p>
         </div>
 
@@ -350,7 +357,7 @@ export function CommonsGallery() {
           <div className="flex flex-wrap items-center gap-1.5">
             <Library className="size-3.5 text-muted-foreground" />
             {[{ slug: 'commons', label: 'Commons' },
-              ...libraryStudios.map(m => ({ slug: m.studio_slug, label: m.studio_label }))].map(o => (
+              ...libraryStudios.map(m => ({ slug: m.studio_slug, label: galleryNameFor(m.studio_label) }))].map(o => (
               <button
                 key={o.slug}
                 onClick={() => { setScope(o.slug); setCategory('all'); }}
@@ -374,11 +381,23 @@ export function CommonsGallery() {
           </div>
         )}
 
+        {/* The studio's principles aren't cards to remix — they're the live
+            frame every member build carries, layered on the base RTP
+            principles. Shown here so members know what's active. */}
+        {scope !== 'commons' && (
+          <StudioPrinciplesPanel
+            studioLabel={scopeLabel(scope)}
+            principles={studioLibrary.filter(
+              i => i.studio_slug === scope && i.kind === 'principle' && i.status === 'approved',
+            )}
+          />
+        )}
+
         <div className="flex flex-wrap items-center gap-2">
           <Input
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder={scope === 'commons' ? 'Search the commons…' : `Search ${scopeLabel(scope)}…`}
+            placeholder={scope === 'commons' ? 'Search the commons…' : `Search the ${galleryNameFor(scopeLabel(scope))}…`}
             className="h-8 w-56 text-sm"
           />
           {scope === 'commons' && (
@@ -496,6 +515,58 @@ export function CommonsGallery() {
   );
 }
 
+/**
+ * The studio's live frame: its principles, always on for member builds.
+ * A quiet banner with the names; each expands to its full text on tap.
+ */
+function StudioPrinciplesPanel({
+  studioLabel, principles,
+}: {
+  studioLabel: string; principles: StudioLibraryItem[];
+}) {
+  const [openId, setOpenId] = useState<string | null>(null);
+  if (principles.length === 0) return null;
+  return (
+    <section className="rounded-xl border border-dashed px-4 py-3 space-y-2">
+      <p className="text-sm">
+        <span className="font-medium">{studioLabel}'s principles are live in your builds</span>
+        <span className="text-muted-foreground">
+          {' '}— they layer on top of the Relational Tech principles in every chat and build while you work as a member.
+        </span>
+      </p>
+      <div className="flex flex-wrap gap-1">
+        {principles.map(p => (
+          <button
+            key={p.id}
+            onClick={() => setOpenId(openId === p.id ? null : p.id)}
+            className={`rounded-full border px-2.5 py-0.5 text-xs transition-colors ${
+              openId === p.id
+                ? 'bg-foreground text-background border-foreground'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {p.title}
+          </button>
+        ))}
+      </div>
+      {openId && (() => {
+        const p = principles.find(x => x.id === openId);
+        if (!p) return null;
+        return (
+          <div className="rounded-lg bg-muted/50 px-3 py-2.5 text-sm space-y-1">
+            <p className="font-medium">{p.title}</p>
+            <div className="prose prose-sm dark:prose-invert max-w-none text-sm text-muted-foreground [&_p]:leading-relaxed">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {p.body ?? p.summary ?? ''}
+              </ReactMarkdown>
+            </div>
+          </div>
+        );
+      })()}
+    </section>
+  );
+}
+
 /** A studio library card — the studio's own shelf, marked private or shared */
 function StudioItemCard({
   item, studioLabel, anyBusy, onOpen, onPlan,
@@ -503,8 +574,20 @@ function StudioItemCard({
   item: StudioLibraryItem; studioLabel: string; anyBusy: boolean;
   onOpen: () => void; onPlan: () => void;
 }) {
+  const [imgBroken, setImgBroken] = useState(false);
   return (
     <div className="group border rounded-xl overflow-hidden flex flex-col bg-background hover:border-foreground/25 transition-colors">
+      {item.image_url && !imgBroken && (
+        <button onClick={onOpen} className="block w-full aspect-[16/10] bg-muted overflow-hidden">
+          <img
+            src={item.image_url}
+            alt={item.title}
+            loading="lazy"
+            onError={() => setImgBroken(true)}
+            className="w-full h-full object-cover object-top group-hover:scale-[1.02] transition-transform"
+          />
+        </button>
+      )}
       <div className="p-3.5 flex-1 flex flex-col gap-1.5">
         <div className="flex items-center gap-1.5">
           {item.visibility === 'shared' ? (
@@ -574,6 +657,12 @@ function StudioItemDetailDialog({
             </Badge>
           </DialogTitle>
         </DialogHeader>
+
+        {item.image_url && (
+          <div className="rounded-lg overflow-hidden border bg-muted">
+            <img src={item.image_url} alt={item.title} className="w-full object-contain max-h-80" />
+          </div>
+        )}
 
         {item.summary && <p className="text-sm leading-relaxed">{item.summary}</p>}
 

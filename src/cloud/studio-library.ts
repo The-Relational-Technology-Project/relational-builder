@@ -36,6 +36,7 @@ export interface StudioLibraryItem {
   summary: string | null;
   body: string | null;
   url: string | null;
+  image_url: string | null;
   attribution: string | null;
   tags: string[];
   visibility: StudioItemVisibility;
@@ -57,13 +58,14 @@ export interface StudioItemInput {
   summary?: string | null;
   body?: string | null;
   url?: string | null;
+  image_url?: string | null;
   attribution?: string | null;
   tags?: string[];
   sort_order?: number;
 }
 
 const SELECT_COLUMNS =
-  'id, studio_slug, kind, title, summary, body, url, attribution, tags, ' +
+  'id, studio_slug, kind, title, summary, body, url, image_url, attribution, tags, ' +
   'visibility, status, remix_of, created_by, commons_submitted_at, sort_order, ' +
   'created_at, updated_at';
 

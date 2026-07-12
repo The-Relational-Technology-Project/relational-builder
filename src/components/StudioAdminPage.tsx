@@ -252,6 +252,7 @@ const EMPTY_DRAFT = {
   summary: '',
   body: '',
   url: '',
+  image_url: '',
   attribution: '',
   tags: '',
 };
@@ -509,6 +510,7 @@ function ItemEditorDialog({
           summary: item.summary ?? '',
           body: item.body ?? '',
           url: item.url ?? '',
+          image_url: item.image_url ?? '',
           attribution: item.attribution ?? '',
           tags: item.tags.join(', '),
         }
@@ -528,6 +530,7 @@ function ItemEditorDialog({
       summary: draft.summary.trim() || null,
       body: draft.body.trim() || null,
       url: draft.url.trim() || null,
+      image_url: draft.image_url.trim() || null,
       attribution: draft.attribution.trim() || null,
       tags: draft.tags.split(',').map(t => t.trim()).filter(Boolean),
     };
@@ -602,9 +605,19 @@ function ItemEditorDialog({
             </div>
           </div>
           <div className="space-y-1.5">
+            <Label className="text-xs">Screenshot URL (optional) — shown on the gallery card</Label>
+            <Input {...field('image_url')} placeholder="https://…/screenshot.png" />
+          </div>
+          <div className="space-y-1.5">
             <Label className="text-xs">Tags — comma separated (optional)</Label>
             <Input {...field('tags')} placeholder="youth, mentorship, baltimore" />
           </div>
+          {draft.kind === 'principle' && (
+            <p className="text-xs text-muted-foreground">
+              Principles don't appear as gallery cards — they're the studio's
+              live frame, layered on the base principles in every member build.
+            </p>
+          )}
           {error && <p className="text-xs text-destructive">{error}</p>}
           <div className="flex gap-2 pt-1">
             <Button size="sm" disabled={saving || !draft.title.trim()} onClick={save}>
