@@ -22,7 +22,10 @@ import { CircleUser, MailCheck, LogOut, MapPin, Palette, HeartHandshake, Sun, Mo
 import { BuilderOnboarding } from '@/components/BuilderOnboarding';
 import { useUIStore } from '@/store/ui-store';
 import { useCloudStore } from '@/store/cloud-store';
-import { saveCurrentLocally } from '@/project/local-projects';
+import { useChatStore } from '@/store/chat-store';
+import { useProjectStore } from '@/store/project-store';
+import { useEnvStore } from '@/store/env-store';
+import { saveCurrentLocally, stashAndStartFresh } from '@/project/local-projects';
 import { useConnectionsStore } from '@/store/connections-store';
 import { isSuperAdmin } from '@/cloud/account-requests';
 import { DesignSystemDialog } from '@/components/DesignSystemDialog';
@@ -140,6 +143,14 @@ export function AccountMenu() {
                 cloud.closeProject();
                 saveCurrentLocally(name);
               }
+              // Signing out closes the desk: stash the open work (already
+              // saved locally) and clear the screen — projects stay private
+              // until the next sign-in
+              stashAndStartFresh();
+              useChatStore.getState().clearMessages();
+              useProjectStore.getState().clearProject();
+              useEnvStore.getState().clearAll();
+              setView('builder'); // an empty builder greets the welcome hero
               signOut();
             }}
             className="gap-2 text-xs"

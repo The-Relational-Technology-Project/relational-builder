@@ -97,12 +97,15 @@ export function ProjectsPage() {
           <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Projects</h1>
         </div>
 
-        <MergedProjects onOpened={backToBuilder} />
+        {/* The shelf stays private until sign-in: projects (device-saved and
+            cloud alike) are someone's work, not a public list on a shared
+            computer. Nothing is deleted — signing back in shows them again. */}
+        {(user || !cloudEnabled) && <MergedProjects onOpened={backToBuilder} />}
 
         {!user ? (
           <p className="text-sm text-muted-foreground">
             {cloudEnabled
-              ? 'Sign in (top right) to also save projects to the cloud and invite collaborators.'
+              ? 'Sign in (top right) to see your projects — everything you built here is saved and waiting.'
               : 'Projects save on this device automatically as you build.'}
           </p>
         ) : (

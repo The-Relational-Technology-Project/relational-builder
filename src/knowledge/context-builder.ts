@@ -180,6 +180,7 @@ const BASE_INSTRUCTIONS = [
   '- Tokens first: app-class builds use the theme contract in /src/index.css; simple pages define CSS custom properties in `:root` (e.g. `--bg, --surface, --text, --accent, --border, --radius`). Either way, use ONLY tokens for colors — one-line theme changes later.',
   '- Readable type: base 16px, line-height ~1.6, real heading hierarchy. No decorative fonts for labels or buttons.',
   '- Mobile-first and outdoor-readable: these tools get used on phones, on sidewalks, in the sun. Text contrast at least 4.5:1, touch targets 44px+, inputs at 16px+ font size (prevents iOS zoom).',
+  '- Responsive UP, not just down — phone-first NEVER means phone-only. At `md`+ widths the app must become a real desktop app, not a stretched phone screen: bottom tabs give way to visible top or side navigation (`hidden md:flex` / `md:hidden`), list + detail sit side by side, dashboards go multi-column, and content holds a comfortable measure (`max-w-5xl mx-auto`) instead of full-bleed phone layouts. Design both shapes from the start; the person will open this on a laptop as often as on a sidewalk.',
   '- Finished-feeling details: a header with the app\'s name, warm one-sentence empty states ("No events yet — add the first one!"), disabled/loading states on buttons that submit.',
   '- Never ship framework-blue defaults, unstyled buttons, or serif fallbacks.',
   '',
