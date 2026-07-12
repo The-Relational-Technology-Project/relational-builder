@@ -215,6 +215,11 @@ function RequestsTab({ active }: { active: boolean }) {
                 {r.name && (
                   <span className="text-xs text-muted-foreground truncate">{r.email}</span>
                 )}
+                {r.studio_label && (
+                  <Badge variant="outline" className="text-[10px] shrink-0">
+                    via {r.studio_label}
+                  </Badge>
+                )}
                 <span className="ml-auto text-xs text-muted-foreground/70 shrink-0">
                   {new Date(r.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                 </span>

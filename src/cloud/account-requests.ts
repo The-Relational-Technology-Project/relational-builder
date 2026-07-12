@@ -26,6 +26,9 @@ export interface AccountRequest {
   name: string | null;
   neighborhood: string | null;
   reason: string | null;
+  /** The studio doorway they arrived through (?studio=slug), if any */
+  studio_slug: string | null;
+  studio_label: string | null;
   status: 'pending' | 'approved' | 'declined';
   created_at: string;
   decided_at: string | null;
@@ -39,11 +42,18 @@ export async function requestAccount(input: {
   name?: string;
   neighborhood?: string;
   reason?: string;
+  /** Studio doorway (?studio=slug) — files their join request at first sign-in */
+  studioSlug?: string;
+  studioLabel?: string;
 }): Promise<RequestOutcome> {
+  const { studioSlug, studioLabel, ...rest } = input;
   const res = await fetch(`${FUNCTIONS_URL}/request-account`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(input),
+    body: JSON.stringify({
+      ...rest,
+      ...(studioSlug ? { studio_slug: studioSlug, studio_label: studioLabel } : {}),
+    }),
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error ?? 'Could not send your request');

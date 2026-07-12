@@ -54,8 +54,13 @@ Studio identity (label, color) stays in the KB project's `studios` table, as bef
      the real principles/examples, then
      `BUILDER_SUPABASE_URL=… BUILDER_SERVICE_ROLE_KEY=… node scripts/seed-studio-library.mjs <file>`.
 5. Point fellows at `https://<app>/?studio=thread` — the deep link activates
-   the Thread frame; the gallery banner offers **Ask to join**, and approval
-   unlocks the library.
+   the Thread frame. For someone without an account yet, the landing page's
+   request form becomes the studio's doorway: the studio rides the account
+   request (the steward sees "via Thread Studio" in the queue), and at first
+   sign-in a trigger files their request to join the studio automatically —
+   it's already waiting in the Studio Admin's "Waiting at the door" list.
+   For someone signed in, the gallery banner offers **Ask to join**. Either
+   way, Studio Admin approval unlocks the library.
 
 ## The remix loop
 

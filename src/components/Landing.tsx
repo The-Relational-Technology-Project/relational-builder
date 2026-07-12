@@ -2,6 +2,8 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { RBMark } from './RBMark';
 import { requestAccount, type RequestOutcome } from '@/cloud/account-requests';
 import { useAuthStore, cloudEnabled } from '@/store/auth-store';
+import { useStudioStore } from '@/store/studio-store';
+import { DEFAULT_STUDIO_SLUG } from '@/knowledge/studio-context';
 import { MailCheck, Plus, Minus } from 'lucide-react';
 import { PrivacyPage, ContactPage } from './LandingPages';
 
@@ -299,11 +301,27 @@ function RequestAccountForm() {
   const [outcome, setOutcome] = useState<RequestOutcome | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Arriving through a studio link (?studio=thread) makes this that studio's
+  // doorway: the studio rides the request, and at first sign-in the request
+  // to join it is filed automatically for the Studio Admins.
+  const activeStudio = useStudioStore(s => s.activeStudio);
+  const doorwayStudio =
+    activeStudio && activeStudio.slug !== DEFAULT_STUDIO_SLUG ? activeStudio : null;
+
   async function submit() {
     setBusy(true);
     setError(null);
     try {
-      setOutcome(await requestAccount({ email, name, reason }));
+      setOutcome(
+        await requestAccount({
+          email,
+          name,
+          reason,
+          ...(doorwayStudio
+            ? { studioSlug: doorwayStudio.slug, studioLabel: doorwayStudio.label }
+            : {}),
+        }),
+      );
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not send your request');
     } finally {
@@ -316,6 +334,8 @@ function RequestAccountForm() {
       <p className="text-sm leading-relaxed max-w-md mx-auto" style={{ color: C.body }}>
         Request sent — thank you! A real person reviews every request; you'll
         get a welcome email as soon as yours is approved.
+        {doorwayStudio &&
+          ` Your request to join ${doorwayStudio.label} will be waiting for its stewards the first time you sign in.`}
       </p>
     );
   }
@@ -335,6 +355,19 @@ function RequestAccountForm() {
 
   return (
     <div className="max-w-sm mx-auto space-y-2 text-left">
+      {doorwayStudio && (
+        <p
+          className="flex items-center gap-2 rounded-lg border border-dashed px-3 py-2 text-xs"
+          style={{ color: C.body, borderColor: '#E5DCD0' }}
+        >
+          <span
+            className="size-2 rounded-full shrink-0"
+            style={{ background: doorwayStudio.color ?? C.muted }}
+          />
+          You're joining through {doorwayStudio.label} — once you're in, its
+          stewards will wave you into the studio too.
+        </p>
+      )}
       <input
         type="email"
         value={email}

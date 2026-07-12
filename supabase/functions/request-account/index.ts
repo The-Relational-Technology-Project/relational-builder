@@ -6,10 +6,13 @@
  * is notified by email; approval happens in the super admin dashboard
  * (see admin-requests).
  *
- * POST JSON: { email, name?, neighborhood?, reason? }
+ * POST JSON: { email, name?, neighborhood?, reason?, studio_slug?, studio_label? }
  *   - No auth (requesters have no account yet); per-IP rate limited
  *   - Idempotent-ish: a repeat request for a pending email returns ok,
  *     an already-approved email is told to just sign in
+ *   - studio_slug/label carry the studio doorway the person arrived through
+ *     (?studio=thread): at first sign-in a trigger files their request to
+ *     join that studio automatically
  *
  * Deploy: supabase functions deploy request-account --no-verify-jwt
  * Secrets:
@@ -70,6 +73,12 @@ Deno.serve(async (req: Request) => {
     const name = String(body.name ?? '').slice(0, 120).trim() || null;
     const neighborhood = String(body.neighborhood ?? '').slice(0, 160).trim() || null;
     const reason = String(body.reason ?? '').slice(0, 1000).trim() || null;
+    // The studio doorway they arrived through, if any — slugs are simple
+    const rawSlug = String(body.studio_slug ?? '').trim().toLowerCase();
+    const studioSlug = /^[a-z0-9-]{1,40}$/.test(rawSlug) ? rawSlug : null;
+    const studioLabel = studioSlug
+      ? String(body.studio_label ?? '').slice(0, 80).trim() || studioSlug
+      : null;
 
     // Already a community member → just sign in
     const memberRes = await fetch(
@@ -94,7 +103,10 @@ Deno.serve(async (req: Request) => {
     const insertRes = await fetch(rest('/account_requests'), {
       method: 'POST',
       headers: svc(),
-      body: JSON.stringify({ email, name, neighborhood, reason }),
+      body: JSON.stringify({
+        email, name, neighborhood, reason,
+        studio_slug: studioSlug, studio_label: studioLabel,
+      }),
     });
     if (!insertRes.ok) return json({ error: 'Could not save your request' }, 500);
 
@@ -112,6 +124,7 @@ Deno.serve(async (req: Request) => {
           subject: `Account request: ${name ?? email}`,
           html: [
             `<p><strong>${esc(name ?? 'Someone')}</strong> (${esc(email)}) asked for a Relational Builder account.</p>`,
+            studioLabel ? `<p><strong>Arrived through:</strong> ${esc(studioLabel)} — approving the account will also file their request to join the studio.</p>` : '',
             neighborhood ? `<p><strong>Neighborhood:</strong> ${esc(neighborhood)}</p>` : '',
             reason ? `<p><strong>What they want to build:</strong><br>${esc(reason)}</p>` : '',
             `<p>Approve or decline in your <a href="${appUrl}">super admin dashboard</a> (account menu → Account requests).</p>`,

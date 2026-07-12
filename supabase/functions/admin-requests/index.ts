@@ -349,6 +349,9 @@ Deno.serve(async (req: Request) => {
             html: [
               `<p>Hi${request.name ? ' ' + esc(request.name) : ''},</p>`,
               `<p>Your Relational Builder account is ready. Free community building is included — no API key, no credit card.</p>`,
+              ...(request.studio_label
+                ? [`<p>You came in through <strong>${esc(String(request.studio_label))}</strong> — when you sign in, your request to join the studio will already be with its stewards.</p>`]
+                : []),
               ...(studioLine ? [studioLine] : []),
               `<p><a href="${appUrl}">Open Relational Builder</a> and sign in with this email address (we'll send you a sign-in link — no password to remember).</p>`,
               `<p>Build something your neighborhood will love.</p>`,
