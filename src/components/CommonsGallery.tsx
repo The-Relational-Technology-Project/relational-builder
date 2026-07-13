@@ -225,11 +225,16 @@ export function CommonsGallery() {
     [tools, badgesFor],
   );
 
-  // Tech-for-building never renders as a card — it stays AI build context
-  const galleryTools = useMemo(
-    () => tools.filter(t => displayCategory(t) !== 'tech_for_building'),
-    [tools],
-  );
+  // Tech-for-building never renders as a card — it stays AI build context.
+  // The Process Guide (no screenshot) closes the tools shelf instead of
+  // opening it — its KB sort_order is read-only from here.
+  const galleryTools = useMemo(() => {
+    const last = (t: Tool) =>
+      RELATIONAL_TECH_OVERRIDES.has(t.name.trim().toLowerCase()) ? 1 : 0;
+    return tools
+      .filter(t => displayCategory(t) !== 'tech_for_building')
+      .sort((a, b) => last(a) - last(b));
+  }, [tools]);
 
   const entries = useMemo<GalleryEntry[]>(() => {
     const q = query.trim().toLowerCase();
