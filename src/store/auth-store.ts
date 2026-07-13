@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { builderClient, cloudEnabled } from '@/cloud/builder-client';
+import { checkSignInGate, gateMessage } from '@/cloud/signin-gate';
 
 /**
  * Where a magic link should land the builder. In production this is pinned to
@@ -106,10 +107,21 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 
   signIn: async (email: string) => {
     if (!builderClient) return { error: 'Cloud features are not configured' };
+    // Approval opens the door: existing accounts and approved members pass
+    // (the gate creates an approved member's auth user if this is their first
+    // sign-in); everyone else gets a friendly pointer, not a dead-end email.
+    const gate = await checkSignInGate(email);
+    if (!gate.allowed) return { error: gateMessage(gate.status) };
     const { error } = await builderClient.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: siteUrl() },
+      // Never create accounts here — that's approval's job (admin-requests)
+      options: { emailRedirectTo: siteUrl(), shouldCreateUser: false },
     });
+    // Belt and braces: if the gate was unreachable and this email has no
+    // account, Supabase refuses with a signup error — translate it
+    if (error && /signup|not allowed|not found/i.test(error.message)) {
+      return { error: gateMessage('not-approved') };
+    }
     return { error: error?.message ?? null };
   },
 

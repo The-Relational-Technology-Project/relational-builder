@@ -358,7 +358,18 @@ Deno.serve(async (req: Request) => {
     const request = rows[0];
 
     if (action === 'approve') {
-      // Membership is what "approved" means — sign-in then just works
+      // Approval is what creates the account: sign-in sends OTPs with
+      // shouldCreateUser: false, so the auth user must exist by the time the
+      // welcome email says "just sign in". 422 = already registered = fine.
+      const userRes2 = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
+        method: 'POST',
+        headers: svc(),
+        body: JSON.stringify({ email: request.email, email_confirm: true }),
+      });
+      if (!userRes2.ok && userRes2.status !== 422) {
+        return json({ error: 'Could not create the account' }, 500);
+      }
+      // Membership is the free-building allowlist — sign-in then just works
       const insertRes = await fetch(rest('/community_members'), {
         method: 'POST',
         headers: { ...svc(), Prefer: 'resolution=ignore-duplicates' },

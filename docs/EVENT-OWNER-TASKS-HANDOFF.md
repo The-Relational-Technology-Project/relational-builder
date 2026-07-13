@@ -44,8 +44,16 @@ supabase secrets set COMMUNITY_MODELS="claude-opus-4-8,claude-sonnet-5,claude-ha
 ## 3. Auth settings via the Management API (required)
 
 Settings to PATCH: the email templates must include the 6-digit code (the
-new code-entry UI depends on it), the email send rate must survive 56
-sign-ins in ~45 minutes, and signups must be open.
+new code-entry UI depends on it), and the email send rate must survive 56
+sign-ins in ~45 minutes.
+
+> **Changed July 2026 — sign-in is approval-gated now.** `disable_signup`
+> stays **true**: accounts are created by approval (admin-requests) via the
+> admin API, and the app sends OTPs with `shouldCreateUser: false`. Do NOT
+> re-open signups for an event; pre-approve attendees, or batch-approve
+> their requests live in the super admin dashboard (seconds per person).
+> The `disable_signup: false` in the example PATCH below is historical —
+> drop that key if you reuse the command.
 
 **Both** email templates need the code, not just Magic Link. Supabase
 sends the **Confirm signup** template (`mailer_templates_confirmation_content`)

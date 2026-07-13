@@ -123,16 +123,37 @@ supabase secrets set RESEND_API_KEY=re_... APP_URL=https://relationalbuilder.org
 **c) Account requests (the open front door).** Anyone can request an
 account from the passcode screen; the steward gets an email and approves
 in the super admin dashboard (account menu → Account requests, visible to
-`VITE_SUPER_ADMIN_EMAILS`). Approval creates community membership and
-sends the requester a welcome email.
+`VITE_SUPER_ADMIN_EMAILS`). Approval creates the auth account + community
+membership and sends the requester a welcome email — sign-in then just
+works. Unapproved emails can't sign in: the sign-in form checks the
+signin-gate function first and shows a friendly pointer to the request
+form instead of sending a link.
 
 ```bash
 # Run supabase/migrations/20260706010000_account_requests.sql in the SQL editor, then:
 supabase functions deploy request-account --no-verify-jwt
 supabase functions deploy admin-requests --no-verify-jwt
+supabase functions deploy signin-gate --no-verify-jwt
 supabase secrets set STEWARD_EMAIL=josh@relationaltechproject.org \
   SUPER_ADMIN_EMAILS=joshuanesbit@gmail.com
 ```
+
+For the gate to be enforced (not just friendly UX), close public signups
+at the Auth level — the app sends OTPs with `shouldCreateUser: false`, and
+this stops raw API calls from creating accounts either (approval creates
+users via the admin API, which is unaffected):
+
+```bash
+curl -s -X PATCH -H "Authorization: Bearer $SUPABASE_MGMT_TOKEN" \
+  -H 'Content-Type: application/json' \
+  https://api.supabase.com/v1/projects/YOUR_REF/config/auth \
+  -d '{"disable_signup": true}'
+```
+
+Existing accounts are untouched — the gate only guards account creation.
+NB for open events (see docs/EVENT-OWNER-TASKS-HANDOFF.md): walk-ins can
+no longer self-serve sign in; pre-approve attendees or batch-approve
+requests from the dashboard during the session.
 
 ## 4. Deploy the builder itself (Vercel)
 
