@@ -814,6 +814,9 @@ function RecipeCard({
             {card.attribution.neighborhood ? ` — ${card.attribution.neighborhood}` : ''}
           </p>
         )}
+        {card.attribution?.source && (
+          <p className="text-[11px] text-muted-foreground/70 -mt-1">{card.attribution.source}</p>
+        )}
         <p className="text-sm text-muted-foreground line-clamp-4 flex-1">{card.summary}</p>
         {readableTags(card).length > 0 && (
           <div className="flex flex-wrap gap-1">
@@ -886,7 +889,11 @@ function RecipeDetailDialog({
               {card.attribution.neighborhood ? ` — ${card.attribution.neighborhood}` : ''}
             </p>
           )}
-          {sourceNote && <p className="text-muted-foreground text-xs">{sourceNote}</p>}
+          {sourceNote ? (
+            <p className="text-muted-foreground text-xs">{sourceNote}</p>
+          ) : card.attribution?.source ? (
+            <p className="text-muted-foreground text-xs">{card.attribution.source}</p>
+          ) : null}
           <p className="text-muted-foreground text-xs">
             {shelf.label} shelf of the civic commons
             {card.license ? ` · ${card.license}` : ''}
