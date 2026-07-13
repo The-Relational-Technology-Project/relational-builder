@@ -234,7 +234,7 @@ const FAQ_ITEMS: { q: string; a: string }[] = [
   },
   {
     q: 'What can I build?',
-    a: 'Whatever your block actually needs — and not only software. The Commons Gallery holds three shelves to start from: relational tech tools built across the network, civic media recipes from News Futures and the Civic Media Cookbook, and Neighboring Recipes for gathering, care, and connection. A build might be a working tool (a neighborhood digest, a lending library, a block-level hub), a program (a commons-informed plan for your newsletter, care web, or story circle), printable flyers to put up at the corner store — or all of these together. Everything is intentionally small and specific, so you and your neighbors spend more of your time meeting face-to-face.',
+    a: 'Whatever your block actually needs — and not only software. The Commons Gallery holds three shelves to start from: relational tech tools built across the network, civic media recipes and real-project field examples from News Futures and the Civic Media Cookbook, and Neighboring Recipes for gathering, care, and connection. A build might be a working tool (a neighborhood digest, a lending library, a block-level hub), a program (a commons-informed plan for your newsletter, care web, or story circle), printable flyers to put up at the corner store — or all of these together. Everything is intentionally small and specific, so you and your neighbors spend more of your time meeting face-to-face.',
   },
   {
     q: 'Is it really free? How is this sustained?',

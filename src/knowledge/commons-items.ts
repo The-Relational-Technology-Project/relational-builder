@@ -45,19 +45,24 @@ async function rest<T>(path: string): Promise<T> {
 }
 
 /**
- * Civic Media Recipes: the actionable civic-media shelf — the Cookbook's ten
- * recipes, the three starter worksheets, and the build prompts. Patterns,
- * formats, and the 50 field-guide examples stay retrieval-only so the
- * gallery reads as a set of things you can pick up and cook.
+ * Civic Media: the whole Cookbook shelf — the ten recipes, the three starter
+ * worksheets, the build prompts, and the 50 field-guide stories (real
+ * projects, credited to their practitioners, there to remix for your
+ * place). Cookable items lead; the field examples follow as references.
+ * Patterns and formats stay retrieval-only.
  */
+const CIVIC_SHELF_ORDER: Record<string, number> = { recipe: 0, framework: 1, prompt: 2, story: 3 };
+
 export async function fetchCivicMediaCards(): Promise<CommonsCard[]> {
   const rows = await rest<CommonsCard[]>(
     `commons_items?select=${CARD_COLUMNS}` +
       `&source_studio_slug=eq.civic-media&status=eq.canonical` +
-      `&kind=in.(recipe,framework,prompt)&order=kind.desc,title.asc`,
+      `&kind=in.(recipe,framework,prompt,story)&order=title.asc`,
   );
   // frameworks include patterns; only the worksheets are gallery cards
-  return rows.filter(r => r.kind !== 'framework' || (r.tags ?? []).includes('worksheet'));
+  return rows
+    .filter(r => r.kind !== 'framework' || (r.tags ?? []).includes('worksheet'))
+    .sort((a, b) => (CIVIC_SHELF_ORDER[a.kind] ?? 9) - (CIVIC_SHELF_ORDER[b.kind] ?? 9));
 }
 
 /** Neighboring Recipes: the canonical neighboring practices shelf. */

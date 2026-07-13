@@ -34,10 +34,11 @@ import {
 /**
  * The Commons Gallery — the civic commons as a first-class space in the
  * Builder. Three shelves side by side: Relational Tech Tools (the Studio
- * KB's built software), Civic Media Recipes (the News Futures / Civic Media
- * Cookbook practices), and Neighboring Recipes (the canonical neighboring
- * practices) — every card remixable for your place, with attribution and
- * lineage kept front and center.
+ * KB's built software), Civic Media (the News Futures / Civic Media
+ * Cookbook — recipes, worksheets, and the field-guide stories), and
+ * Neighboring Recipes (the canonical neighboring practices) — every card
+ * remixable for your place, with attribution and lineage kept front and
+ * center.
  *
  * Tech-for-building entries stay out of the gallery: they serve as build
  * context in the AI's knowledge, not as things to remix.
@@ -46,7 +47,7 @@ import {
 const CATEGORIES = [
   { key: 'all', label: 'Everything' },
   { key: 'relational_tech', label: 'Relational tech tools' },
-  { key: 'civic_media', label: 'Civic media recipes' },
+  { key: 'civic_media', label: 'Civic media' },
   { key: 'neighboring', label: 'Neighboring recipes' },
 ] as const;
 
@@ -92,6 +93,7 @@ function shelfFor(card: CommonsCard): { label: string; icon: 'newspaper' | 'spro
 function kindLabel(card: CommonsCard): string {
   if ((card.tags ?? []).includes('worksheet')) return 'worksheet';
   if (card.kind === 'prompt') return 'build prompt';
+  if (card.kind === 'story') return 'field example';
   return card.kind;
 }
 
@@ -325,7 +327,7 @@ export function CommonsGallery() {
       setCommonsDetail(null);
       setView('builder');
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not start from that recipe');
+      setError(e instanceof Error ? e.message : 'Could not start from that entry');
     } finally {
       setBusyKey(null);
     }
