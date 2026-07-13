@@ -14,9 +14,15 @@ import {
 } from '@/knowledge/commons-items';
 import { startFromStudioTool } from '@/project/start-from-tool';
 import { startFromCommonsItem } from '@/project/start-from-commons';
-import { loadGalleryReferences } from '@/cloud/gallery-references';
+import { loadGalleryReferences, invalidateGalleryReferences } from '@/cloud/gallery-references';
 import type { GalleryReference, RefSource } from '@/knowledge/gallery-references';
-import { ConnectionsSection } from './GalleryConnections';
+import {
+  ConnectionsSection,
+  type ConnectableEntry,
+  type ConnectionsCuration,
+} from './GalleryConnections';
+import { isSuperAdmin } from '@/cloud/account-requests';
+import { useAuthStore } from '@/store/auth-store';
 import type { Tool, Prompt, Story } from '@/knowledge/types';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -135,6 +141,7 @@ export function CommonsGallery() {
   // Semantic ranking from the commons' hybrid search: slug/title → rank
   const [semanticRank, setSemanticRank] = useState<Map<string, number>>(new Map());
   const searchSeq = useRef(0);
+  const authUser = useAuthStore(s => s.user);
 
   useEffect(() => {
     fetchPrompts().then(setPrompts).catch(() => {});
@@ -348,6 +355,35 @@ export function CommonsGallery() {
     }
   }
 
+  // The steward can correct the record right where a connection is seen:
+  // remove a wrong link, add a missing one, in any entry's detail dialog.
+  // (Client-side convenience — the admin-requests function is the real gate.)
+  const curation = useMemo<ConnectionsCuration | undefined>(() => {
+    if (!isSuperAdmin(authUser?.email)) return undefined;
+    const options: ConnectableEntry[] = [
+      ...galleryTools.map(t => ({
+        source: 'kb_tool' as const, id: t.id, title: t.name, kind: 'tool', group: 'Relational tech tools',
+      })),
+      ...stories.map(s => ({
+        source: 'kb_story' as const, id: s.id, title: s.title ?? 'Community story', kind: 'story', group: 'Community stories',
+      })),
+      ...civicCards.map(c => ({
+        source: 'commons' as const, id: c.slug, title: c.title, kind: c.kind, group: 'Civic media',
+      })),
+      ...neighboringCards.map(c => ({
+        source: 'commons' as const, id: c.slug, title: c.title, kind: c.kind, group: 'Neighboring recipes',
+      })),
+      ...studioLibrary.map(i => ({
+        source: 'studio' as const, id: i.id, title: i.title, kind: i.kind, group: 'Studio libraries',
+      })),
+    ];
+    const onChanged = () => {
+      invalidateGalleryReferences();
+      loadGalleryReferences().then(setReferences).catch(() => {});
+    };
+    return { options, onChanged };
+  }, [authUser, galleryTools, stories, civicCards, neighboringCards, studioLibrary]);
+
   /** Open a connection's other end, whichever shelf it lives on */
   function openRef(source: RefSource, id: string): boolean {
     const open = (fn: () => void) => {
@@ -545,6 +581,7 @@ export function CommonsGallery() {
           childPrompts={promptsFor(detail)}
           busy={busyKey === `tool-${detail.id}`}
           references={references}
+          curation={curation}
           onOpenRef={openRef}
           onBuild={() => buildTool(detail)}
           onOpenChange={open => { if (!open) setDetail(null); }}
@@ -555,6 +592,7 @@ export function CommonsGallery() {
           card={commonsDetail}
           busy={busyKey === `commons-${commonsDetail.slug}`}
           references={references}
+          curation={curation}
           onOpenRef={openRef}
           onPlan={() => planCommons(commonsDetail)}
           onOpenChange={open => { if (!open) setCommonsDetail(null); }}
@@ -570,6 +608,7 @@ export function CommonsGallery() {
               : null
           }
           references={references}
+          curation={curation}
           onOpenRef={openRef}
           onPlan={() => planStudioItem(studioDetail)}
           onOpenChange={open => { if (!open) setStudioDetail(null); }}
@@ -579,6 +618,7 @@ export function CommonsGallery() {
         <KBStoryDetailDialog
           story={storyDetail}
           references={references}
+          curation={curation}
           onOpenRef={openRef}
           onOpenChange={open => { if (!open) setStoryDetail(null); }}
         />
@@ -713,10 +753,11 @@ function StudioItemCard({
 }
 
 function StudioItemDetailDialog({
-  item, studioLabel, remixOfTitle, references, onOpenRef, onPlan, onOpenChange,
+  item, studioLabel, remixOfTitle, references, curation, onOpenRef, onPlan, onOpenChange,
 }: {
   item: StudioLibraryItem; studioLabel: string; remixOfTitle?: string | null;
   references: GalleryReference[];
+  curation?: ConnectionsCuration;
   onOpenRef: (source: RefSource, id: string) => boolean;
   onPlan: () => void; onOpenChange: (open: boolean) => void;
 }) {
@@ -779,7 +820,10 @@ function StudioItemDetailDialog({
         <ConnectionsSection
           source="studio"
           id={item.id}
+          title={item.title}
+          kind={item.kind}
           references={references}
+          curation={curation}
           onOpen={onOpenRef}
         />
 
@@ -824,10 +868,11 @@ function KBStoryCard({ story, onOpen }: { story: Story; onOpen: () => void }) {
 }
 
 function KBStoryDetailDialog({
-  story, references, onOpenRef, onOpenChange,
+  story, references, curation, onOpenRef, onOpenChange,
 }: {
   story: Story;
   references: GalleryReference[];
+  curation?: ConnectionsCuration;
   onOpenRef: (source: RefSource, id: string) => boolean;
   onOpenChange: (open: boolean) => void;
 }) {
@@ -860,7 +905,10 @@ function KBStoryDetailDialog({
         <ConnectionsSection
           source="kb_story"
           id={story.id}
+          title={story.title ?? 'Community story'}
+          kind="story"
           references={references}
+          curation={curation}
           onOpen={onOpenRef}
         />
       </DialogContent>
@@ -998,10 +1046,11 @@ function RecipeCard({
 }
 
 function RecipeDetailDialog({
-  card, busy, references, onOpenRef, onPlan, onOpenChange,
+  card, busy, references, curation, onOpenRef, onPlan, onOpenChange,
 }: {
   card: CommonsCard; busy: boolean;
   references: GalleryReference[];
+  curation?: ConnectionsCuration;
   onOpenRef: (source: RefSource, id: string) => boolean;
   onPlan: () => void; onOpenChange: (open: boolean) => void;
 }) {
@@ -1081,7 +1130,10 @@ function RecipeDetailDialog({
         <ConnectionsSection
           source="commons"
           id={card.slug}
+          title={card.title}
+          kind={card.kind}
           references={references}
+          curation={curation}
           onOpen={onOpenRef}
         />
 
@@ -1112,10 +1164,11 @@ function RecipeDetailDialog({
 }
 
 function ToolDetailDialog({
-  tool, childPrompts, busy, references, onOpenRef, onBuild, onOpenChange,
+  tool, childPrompts, busy, references, curation, onOpenRef, onBuild, onOpenChange,
 }: {
   tool: Tool; childPrompts: Prompt[]; busy: boolean;
   references: GalleryReference[];
+  curation?: ConnectionsCuration;
   onOpenRef: (source: RefSource, id: string) => boolean;
   onBuild: () => void; onOpenChange: (open: boolean) => void;
 }) {
@@ -1187,7 +1240,10 @@ function ToolDetailDialog({
         <ConnectionsSection
           source="kb_tool"
           id={tool.id}
+          title={tool.name}
+          kind="tool"
           references={references}
+          curation={curation}
           onOpen={onOpenRef}
         />
 

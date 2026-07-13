@@ -37,6 +37,14 @@ export function refKey(source: RefSource, id: string): string {
   return `${source}:${id}`;
 }
 
+/** Relation choices as shown to curating humans (steward tab, gallery dialogs) */
+export const RELATION_LABELS: { key: RefRelation; label: string }[] = [
+  { key: 'mentions', label: 'mentions' },
+  { key: 'used_in', label: 'was used in' },
+  { key: 'paired_with', label: 'pairs with' },
+  { key: 'related', label: 'is related to' },
+];
+
 /** A reference seen from one of its two entries' point of view */
 export interface EntryConnection {
   reference: GalleryReference;

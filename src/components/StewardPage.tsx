@@ -23,7 +23,7 @@ import {
   adminConfirmReference,
   adminRemoveReference,
 } from '@/cloud/gallery-references';
-import type { GalleryReference, RefRelation, RefSource } from '@/knowledge/gallery-references';
+import { RELATION_LABELS, type GalleryReference, type RefRelation, type RefSource } from '@/knowledge/gallery-references';
 import {
   fetchCivicMediaCards,
   fetchNeighboringRecipeCards,
@@ -589,13 +589,6 @@ interface RefOption {
   group: string;
 }
 
-const RELATION_OPTIONS: { key: RefRelation; label: string }[] = [
-  { key: 'mentions', label: 'mentions' },
-  { key: 'used_in', label: 'was used in' },
-  { key: 'paired_with', label: 'pairs with' },
-  { key: 'related', label: 'is related to' },
-];
-
 const optionKey = (o: { source: RefSource; id: string }) => `${o.source}:${o.id}`;
 
 function ConnectionsTab() {
@@ -753,7 +746,7 @@ function ConnectionsTab() {
             onChange={e => setRelation(e.target.value as RefRelation)}
             className="h-8 rounded-md border bg-background px-2 text-xs shrink-0"
           >
-            {RELATION_OPTIONS.map(r => (
+            {RELATION_LABELS.map(r => (
               <option key={r.key} value={r.key}>{r.label}</option>
             ))}
           </select>
@@ -804,7 +797,7 @@ function ConnectionsTab() {
                   <span className="font-medium">{r.from_title}</span>
                   {r.from_kind && <span className="text-muted-foreground/60"> ({r.from_kind})</span>}
                   <span className="text-muted-foreground">
-                    {' '}{RELATION_OPTIONS.find(o => o.key === r.relation)?.label ?? r.relation}{' '}
+                    {' '}{RELATION_LABELS.find(o => o.key === r.relation)?.label ?? r.relation}{' '}
                   </span>
                   <span className="font-medium">{r.to_title}</span>
                   {r.to_kind && <span className="text-muted-foreground/60"> ({r.to_kind})</span>}

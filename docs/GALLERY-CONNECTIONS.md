@@ -49,9 +49,11 @@ writes go through the `admin-requests` edge function (`reference_add`,
   (max 3 per item, note capped at 140 chars) so the AI can say "it worked
   really well in X" / "it pairs with Y."
 - `src/components/GalleryConnections.tsx` — the Connections block in every
-  detail dialog, with click-through to the other entry.
-- `src/components/StewardPage.tsx` → Connections tab — confirm/remove
-  suggested links, add manual ones with a relation + note.
+  detail dialog, with click-through to the other entry. For the steward the
+  block is also the curation surface: remove a wrong link or add a missing
+  one (with relation + note) right where the connection is seen in context.
+- `src/components/StewardPage.tsx` → Connections tab — the bulk view: the
+  full list with suggested links sorted first, confirm/remove, manual add.
 - `scripts/suggest-gallery-references.mjs` — scans entry bodies (and the
   civic-media `metadata.building_from` lists) for other entries' titles and
   writes `suggested` rows. Idempotent; `--dry-run` prints without writing.
@@ -65,17 +67,20 @@ their walls. KB stories get their own card + reader dialog in
 
 ## Operating it
 
-1. Apply the migration and redeploy the edge function:
-   `supabase functions deploy admin-requests`.
-2. Seed suggestions:
-   `BUILDER_SUPABASE_URL=… BUILDER_SERVICE_ROLE_KEY=… node scripts/suggest-gallery-references.mjs`
-   (run with `--dry-run` first to eyeball the matches).
-3. Review in **Steward → Connections**: confirm the good ones, remove the
-   false matches, add notes where you know why a pairing mattered — the note
-   is what turns a bare link into "it worked really well in this context" in
-   chat.
+Turned on 2026-07-13: migration applied, `admin-requests` v17 deployed, and
+the first scan's 569 links seeded and bulk-confirmed (a 569-row review queue
+wasn't a realistic ask — the scan is conservative, and corrections happen in
+context instead).
 
-Suggested links do appear in the gallery (marked "suggested") and in AI
-context ahead of review — the scan is conservative (whole-title, whole-word
-matches, titles ≥ 6 chars, same-name families skipped), and a wrong link is
-a one-click removal.
+Ongoing care:
+
+- **Correct in context** — the steward sees remove (×) and "Add" controls in
+  every entry's Connections block in the gallery. Spot a wrong link while
+  browsing, remove it there; know a pairing, add it there with a note — the
+  note is what turns a bare link into "it worked really well in this
+  context" in chat.
+- **Re-scan after new content lands**:
+  `BUILDER_SUPABASE_URL=… BUILDER_SERVICE_ROLE_KEY=… node scripts/suggest-gallery-references.mjs`
+  (`--dry-run` first to eyeball). New matches arrive as `suggested` — they
+  show in the gallery and AI context immediately, marked "suggested", and
+  queue at the top of **Steward → Connections** for confirm/remove.
