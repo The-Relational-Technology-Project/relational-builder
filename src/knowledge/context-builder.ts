@@ -7,6 +7,10 @@ import { THEME_TEMPLATE } from '@/kit/theme';
 import type { Tool, Story } from './types';
 import type { FeedEntry } from './network-feed';
 import type { CommonsSearchResult } from './commons-search';
+import {
+  connectionIndex, refKey,
+  type EntryConnection, type GalleryReference,
+} from './gallery-references';
 
 /**
  * Builds the system prompt by combining the base instructions,
@@ -347,6 +351,8 @@ export interface ContextOptions {
   builderProfile?: BuilderProfileContext | null;
   /** Resolved @ mention context — other apps the builder referenced */
   references?: string[];
+  /** Gallery connections — cross-references between knowledge entries */
+  galleryReferences?: GalleryReference[];
 }
 
 /**
@@ -477,16 +483,21 @@ export function buildSystemPrompt(options: ContextOptions = {}): string {
     );
   }
 
+  // Connections between entries ride along with whichever retrieval path won
+  const connections = options.galleryReferences?.length
+    ? connectionIndex(options.galleryReferences)
+    : undefined;
+
   if (options.commonsResults && options.commonsResults.length > 0) {
     // Hybrid commons search supersedes the local tool/story scoring
-    sections.push('', formatCommonsForPrompt(options.commonsResults));
+    sections.push('', formatCommonsForPrompt(options.commonsResults, connections));
   } else {
     if (options.tools && options.tools.length > 0) {
-      sections.push('', formatToolsForPrompt(options.tools));
+      sections.push('', formatToolsForPrompt(options.tools, connections));
     }
 
     if (options.stories && options.stories.length > 0) {
-      sections.push('', formatStoriesForPrompt(options.stories));
+      sections.push('', formatStoriesForPrompt(options.stories, connections));
     }
   }
 
@@ -570,52 +581,76 @@ function formatStudioLibraryForPrompt(
   return lines.join('\n');
 }
 
-function formatCommonsForPrompt(results: CommonsSearchResult[]): string {
-  const entries = results.slice(0, 8).map(r => {
+// A retrieved item carries at most a few connections; the note is the part
+// that lets the AI say "it worked well in X", so it rides along, bounded.
+const PROMPT_CONNECTION_LIMIT = 3;
+const PROMPT_CONNECTION_NOTE_CHARS = 140;
+
+type ConnectionMap = Map<string, EntryConnection[]>;
+
+function connectionLine(connections: ConnectionMap | undefined, key: string): string[] {
+  const conns = connections?.get(key);
+  if (!conns || conns.length === 0) return [];
+  const parts = conns.slice(0, PROMPT_CONNECTION_LIMIT).map(c => {
+    const kind = c.otherKind ? ` (${c.otherKind})` : '';
+    const note = c.note ? ` — ${c.note.slice(0, PROMPT_CONNECTION_NOTE_CHARS)}` : '';
+    return `${c.phrase} "${c.otherTitle}"${kind}${note}`;
+  });
+  return [`  - Connections: ${parts.join('; ')}`];
+}
+
+function formatCommonsForPrompt(results: CommonsSearchResult[], connections?: ConnectionMap): string {
+  const entries = results.slice(0, 8).flatMap(r => {
     const who = r.attribution?.name
       ? ` — ${r.attribution.name}${r.attribution.neighborhood ? `, ${r.attribution.neighborhood}` : ''}`
       : '';
     const summary = r.summary ? `: ${r.summary.slice(0, 200)}` : '';
-    return `- **${r.title}** (${r.kind}${who})${summary}`;
+    return [
+      `- **${r.title}** (${r.kind}${who})${summary}`,
+      ...connectionLine(connections, refKey('commons', r.slug)),
+    ];
   });
 
   return [
     '## Relevant Knowledge from the RT Commons',
     '',
-    'Tools, stories, recipes, and practice knowledge from the relational tech commons that relate to this build. Let them inform your design — and mention them to the user when one is directly useful:',
+    'Tools, stories, recipes, and practice knowledge from the relational tech commons that relate to this build. Let them inform your design — and mention them to the user when one is directly useful. Where an entry lists connections, draw on them: they say where else the thing showed up and what it paired with ("it worked really well in…", "it pairs with the neighboring practice…"):',
     '',
     ...entries,
   ].join('\n');
 }
 
-function formatToolsForPrompt(tools: Tool[]): string {
-  const entries = tools.slice(0, 5).map(t => {
+function formatToolsForPrompt(tools: Tool[], connections?: ConnectionMap): string {
+  const entries = tools.slice(0, 5).flatMap(t => {
     let entry = `- **${t.name}** (${t.tool_category})`;
     if (t.summary) entry += `: ${t.summary}`;
     else if (t.description) entry += `: ${t.description.slice(0, 150)}`;
-    return entry;
+    return [entry, ...connectionLine(connections, refKey('kb_tool', t.id))];
   });
 
   return [
     '## Relevant Tools from the RTP Library',
     '',
-    'These existing tools may inform your approach:',
+    'These existing tools may inform your approach. Where an entry lists connections, draw on them — they say where else the tool showed up and what it paired with:',
     '',
     ...entries,
   ].join('\n');
 }
 
-function formatStoriesForPrompt(stories: Story[]): string {
-  const entries = stories.slice(0, 3).map(s => {
+function formatStoriesForPrompt(stories: Story[], connections?: ConnectionMap): string {
+  const entries = stories.slice(0, 3).flatMap(s => {
     const title = s.title ?? 'Community Story';
     const text = s.story_text.slice(0, 200);
-    return `- **${title}** (${s.attribution}): ${text}...`;
+    return [
+      `- **${title}** (${s.attribution}): ${text}...`,
+      ...connectionLine(connections, refKey('kb_story', s.id)),
+    ];
   });
 
   return [
     '## Relevant Stories from Community Builders',
     '',
-    'Real experiences from builders doing similar work:',
+    'Real experiences from builders doing similar work. Where a story lists connections, those are the tools and practices it involved — useful when one of them comes up:',
     '',
     ...entries,
   ].join('\n');

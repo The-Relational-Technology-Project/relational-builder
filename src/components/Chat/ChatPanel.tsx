@@ -22,6 +22,7 @@ import { useStudioStore } from '@/store/studio-store';
 import { useAuthStore, cloudEnabled } from '@/store/auth-store';
 import { useCloudStore } from '@/store/cloud-store';
 import { searchCommons } from '@/knowledge/commons-search';
+import { loadGalleryReferences } from '@/cloud/gallery-references';
 import { detectFrames, framesFromSlugs } from '@/knowledge/frames';
 import { buildMentionContext } from '@/knowledge/mentions';
 import { runQualityReview, messageProducedFiles } from '@/knowledge/review-pass';
@@ -185,9 +186,12 @@ export function ChatPanel() {
     // Retrieval: hybrid semantic+text search against the RT Commons (the
     // canonical knowledge base), falling back to local TF-IDF scoring of the
     // Studio KB when the commons is unreachable.
-    const [commonsResults, references] = await Promise.all([
+    const [commonsResults, references, galleryReferences] = await Promise.all([
       searchCommons(content),
       buildMentionContext(content),
+      // Connections between entries — cached for the session; lets the AI
+      // say where else a surfaced tool or practice showed up
+      loadGalleryReferences(),
     ]);
     const relevant = commonsResults.length > 0 ? null : getRelevantContext(content);
     const envVars = useEnvStore.getState().vars;
@@ -228,6 +232,7 @@ export function ChatPanel() {
       frames,
       builderProfile,
       references,
+      galleryReferences,
     });
     setSystemPrompt(updatedPrompt);
 

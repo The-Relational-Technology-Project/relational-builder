@@ -25,6 +25,13 @@
  *   { action: "gallery_add", studio_slug, tool_id, tool_name? }
  *   { action: "gallery_remove", studio_slug, tool_id }
  *
+ * POST JSON — gallery connections (cross-references between gallery
+ * entries; reads are public, writes come only through here):
+ *   { action: "reference_add", from_source, from_id, from_title, from_kind?,
+ *     to_source, to_id, to_title, to_kind?, relation?, note? }
+ *   { action: "reference_set_status", id, status: "suggested" | "confirmed" }
+ *   { action: "reference_remove", id }
+ *
  * POST JSON — studio access control (gated studios + Studio Admin grants;
  * admins approve members and curate the private library client-side under
  * RLS, but gating a studio and granting the admin role are steward acts):
@@ -157,6 +164,67 @@ Deno.serve(async (req: Request) => {
           ),
           { method: 'DELETE', headers: svc() },
         );
+      }
+      return json({ ok: true });
+    }
+
+    // --- Gallery connections: cross-references between entries ---
+    if (action === 'reference_add') {
+      const SOURCES = ['kb_tool', 'kb_story', 'commons', 'studio'];
+      const RELATIONS = ['mentions', 'used_in', 'paired_with', 'related'];
+      const row = {
+        from_source: String(body.from_source ?? ''),
+        from_id: String(body.from_id ?? '').trim(),
+        from_title: String(body.from_title ?? '').trim(),
+        from_kind: body.from_kind ? String(body.from_kind) : null,
+        to_source: String(body.to_source ?? ''),
+        to_id: String(body.to_id ?? '').trim(),
+        to_title: String(body.to_title ?? '').trim(),
+        to_kind: body.to_kind ? String(body.to_kind) : null,
+        relation: RELATIONS.includes(String(body.relation)) ? String(body.relation) : 'mentions',
+        note: body.note ? String(body.note).slice(0, 500) : null,
+        status: 'confirmed',
+        created_by: callerEmail,
+      };
+      if (
+        !SOURCES.includes(row.from_source) || !SOURCES.includes(row.to_source) ||
+        !row.from_id || !row.to_id || !row.from_title || !row.to_title
+      ) {
+        return json({ error: 'from/to source, id, and title are required' }, 400);
+      }
+      if (row.from_source === row.to_source && row.from_id === row.to_id) {
+        return json({ error: 'An entry cannot reference itself' }, 400);
+      }
+      const res = await fetch(rest('/gallery_references'), {
+        method: 'POST',
+        headers: { ...svc(), Prefer: 'resolution=ignore-duplicates' },
+        body: JSON.stringify(row),
+      });
+      if (!res.ok && res.status !== 409) {
+        return json({ error: 'Could not save the connection' }, 500);
+      }
+      return json({ ok: true });
+    }
+
+    if (action === 'reference_set_status' || action === 'reference_remove') {
+      const refId = String(body.id ?? '').trim();
+      if (!refId) return json({ error: 'id is required' }, 400);
+      if (action === 'reference_remove') {
+        await fetch(rest(`/gallery_references?id=eq.${encodeURIComponent(refId)}`), {
+          method: 'DELETE',
+          headers: svc(),
+        });
+      } else {
+        const status = String(body.status ?? '');
+        if (status !== 'suggested' && status !== 'confirmed') {
+          return json({ error: 'status must be suggested or confirmed' }, 400);
+        }
+        const res = await fetch(rest(`/gallery_references?id=eq.${encodeURIComponent(refId)}`), {
+          method: 'PATCH',
+          headers: svc(),
+          body: JSON.stringify({ status }),
+        });
+        if (!res.ok) return json({ error: 'Could not update the connection' }, 500);
       }
       return json({ ok: true });
     }

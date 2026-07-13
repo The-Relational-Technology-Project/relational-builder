@@ -14,7 +14,10 @@ import {
 } from '@/knowledge/commons-items';
 import { startFromStudioTool } from '@/project/start-from-tool';
 import { startFromCommonsItem } from '@/project/start-from-commons';
-import type { Tool, Prompt } from '@/knowledge/types';
+import { loadGalleryReferences } from '@/cloud/gallery-references';
+import type { GalleryReference, RefSource } from '@/knowledge/gallery-references';
+import { ConnectionsSection } from './GalleryConnections';
+import type { Tool, Prompt, Story } from '@/knowledge/types';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -49,6 +52,7 @@ const CATEGORIES = [
   { key: 'relational_tech', label: 'Relational tech tools' },
   { key: 'civic_media', label: 'Civic media' },
   { key: 'neighboring', label: 'Neighboring recipes' },
+  { key: 'stories', label: 'Local stories' },
 ] as const;
 
 /**
@@ -72,7 +76,8 @@ export interface StudioBadge {
 type GalleryEntry =
   | { key: string; type: 'tool'; tool: Tool }
   | { key: string; type: 'commons'; card: CommonsCard }
-  | { key: string; type: 'studio'; item: StudioLibraryItem };
+  | { key: string; type: 'studio'; item: StudioLibraryItem }
+  | { key: string; type: 'kb-story'; story: Story };
 
 function studioKindLabel(kind: StudioLibraryItem['kind']): string {
   return STUDIO_ITEM_KINDS.find(k => k.key === kind)?.label.toLowerCase() ?? kind;
@@ -105,6 +110,7 @@ function readableTags(card: CommonsCard): string[] {
 export function CommonsGallery() {
   const setView = useUIStore(s => s.setView);
   const tools = useKnowledgeStore(s => s.tools);
+  const stories = useKnowledgeStore(s => s.stories);
   const loaded = useKnowledgeStore(s => s.loaded);
   const memberships = useStudioStore(s => s.memberships);
   const activeStudio = useStudioStore(s => s.activeStudio);
@@ -118,8 +124,10 @@ export function CommonsGallery() {
   const [detail, setDetail] = useState<Tool | null>(null);
   const [commonsDetail, setCommonsDetail] = useState<CommonsCard | null>(null);
   const [studioDetail, setStudioDetail] = useState<StudioLibraryItem | null>(null);
+  const [storyDetail, setStoryDetail] = useState<Story | null>(null);
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [links, setLinks] = useState<GalleryLink[]>([]);
+  const [references, setReferences] = useState<GalleryReference[]>([]);
   const [civicCards, setCivicCards] = useState<CommonsCard[]>([]);
   const [neighboringCards, setNeighboringCards] = useState<CommonsCard[]>([]);
   const [busyKey, setBusyKey] = useState<string | null>(null);
@@ -133,6 +141,7 @@ export function CommonsGallery() {
     fetchGalleryLinks().then(setLinks).catch(() => {});
     fetchCivicMediaCards().then(setCivicCards).catch(() => {});
     fetchNeighboringRecipeCards().then(setNeighboringCards).catch(() => {});
+    loadGalleryReferences().then(setReferences).catch(() => {});
   }, []);
 
   // Debounced hybrid search — the same semantic+text retrieval that informs
@@ -224,6 +233,11 @@ export function CommonsGallery() {
         return [i.title, i.summary, i.body, i.attribution, ...i.tags]
           .some(v => v && v.toLowerCase().includes(q));
       }
+      if (e.type === 'kb-story') {
+        const s = e.story;
+        return [s.title, s.story_text, s.attribution]
+          .some(v => v && v.toLowerCase().includes(q));
+      }
       const c = e.card;
       return [c.title, c.summary, c.attribution?.name, ...(c.tags ?? [])]
         .some(v => v && v.toLowerCase().includes(q));
@@ -252,7 +266,13 @@ export function CommonsGallery() {
     const civicEntries: GalleryEntry[] =
       category === 'all' || category === 'civic_media'
         ? civicCards.map(c => ({ key: `commons-${c.slug}`, type: 'commons' as const, card: c }))
-        : [];
+        : category === 'stories'
+          // The field-guide stories live on the Civic Media shelf and are
+          // also first-class Local Stories
+          ? civicCards
+              .filter(c => c.kind === 'story')
+              .map(c => ({ key: `commons-${c.slug}`, type: 'commons' as const, card: c }))
+          : [];
     const neighboringEntries: GalleryEntry[] =
       category === 'all' || category === 'neighboring'
         ? neighboringCards.map(c => ({ key: `commons-${c.slug}`, type: 'commons' as const, card: c }))
@@ -260,10 +280,17 @@ export function CommonsGallery() {
     // Items studios have explicitly shared beyond their walls join the
     // commons view for every signed-in builder
     const sharedEntries: GalleryEntry[] =
-      category === 'all'
+      category === 'all' || category === 'stories'
         ? studioLibrary
             .filter(i => i.visibility === 'shared' && i.status === 'approved' && i.kind !== 'principle')
+            .filter(i => category !== 'stories' || i.kind === 'story')
             .map(i => ({ key: `studio-${i.id}`, type: 'studio' as const, item: i }))
+        : [];
+    // The Studio KB's community stories — narrative accounts from the
+    // relational tech network, first-class in the gallery via Local Stories
+    const kbStoryEntries: GalleryEntry[] =
+      category === 'all' || category === 'stories'
+        ? stories.map(s => ({ key: `kb-story-${s.id}`, type: 'kb-story' as const, story: s }))
         : [];
 
     const rankOf = (e: GalleryEntry): number | undefined =>
@@ -271,9 +298,11 @@ export function CommonsGallery() {
         ? semanticRank.get(e.card.slug) ?? semanticRank.get(e.card.title.trim().toLowerCase())
         : e.type === 'tool'
           ? semanticRank.get(e.tool.name.trim().toLowerCase())
-          : undefined;
+          : e.type === 'kb-story' && e.story.title
+            ? semanticRank.get(e.story.title.trim().toLowerCase())
+            : undefined;
 
-    const all = [...toolEntries, ...civicEntries, ...neighboringEntries, ...sharedEntries];
+    const all = [...toolEntries, ...civicEntries, ...neighboringEntries, ...sharedEntries, ...kbStoryEntries];
 
     if (!q) {
       // Browsing order: your studios' tools lead, then each shelf in turn
@@ -291,7 +320,7 @@ export function CommonsGallery() {
       .filter(x => x.rank !== undefined || x.sub)
       .sort((a, b) => (a.rank ?? 999) - (b.rank ?? 999))
       .map(x => x.e);
-  }, [galleryTools, civicCards, neighboringCards, category, query, badgesFor, semanticRank, scope, studioLibrary, links]);
+  }, [galleryTools, civicCards, neighboringCards, stories, category, query, badgesFor, semanticRank, scope, studioLibrary, links]);
 
   const promptsFor = (tool: Tool) => prompts.filter(p => p.parent_tool_id === tool.id);
 
@@ -317,6 +346,32 @@ export function CommonsGallery() {
     } finally {
       setBusyKey(null);
     }
+  }
+
+  /** Open a connection's other end, whichever shelf it lives on */
+  function openRef(source: RefSource, id: string): boolean {
+    const open = (fn: () => void) => {
+      setDetail(null);
+      setCommonsDetail(null);
+      setStudioDetail(null);
+      setStoryDetail(null);
+      fn();
+      return true;
+    };
+    if (source === 'kb_tool') {
+      const t = tools.find(x => x.id === id);
+      return t ? open(() => setDetail(t)) : false;
+    }
+    if (source === 'kb_story') {
+      const s = stories.find(x => x.id === id);
+      return s ? open(() => setStoryDetail(s)) : false;
+    }
+    if (source === 'commons') {
+      const c = [...civicCards, ...neighboringCards].find(x => x.slug === id);
+      return c ? open(() => setCommonsDetail(c)) : false;
+    }
+    const i = studioLibrary.find(x => x.id === id);
+    return i ? open(() => setStudioDetail(i)) : false;
   }
 
   async function planCommons(card: CommonsCard) {
@@ -452,6 +507,12 @@ export function CommonsGallery() {
                   onOpen={() => setStudioDetail(entry.item)}
                   onPlan={() => planStudioItem(entry.item)}
                 />
+              ) : entry.type === 'kb-story' ? (
+                <KBStoryCard
+                  key={entry.key}
+                  story={entry.story}
+                  onOpen={() => setStoryDetail(entry.story)}
+                />
               ) : (
                 <RecipeCard
                   key={entry.key}
@@ -483,6 +544,8 @@ export function CommonsGallery() {
           tool={detail}
           childPrompts={promptsFor(detail)}
           busy={busyKey === `tool-${detail.id}`}
+          references={references}
+          onOpenRef={openRef}
           onBuild={() => buildTool(detail)}
           onOpenChange={open => { if (!open) setDetail(null); }}
         />
@@ -491,6 +554,8 @@ export function CommonsGallery() {
         <RecipeDetailDialog
           card={commonsDetail}
           busy={busyKey === `commons-${commonsDetail.slug}`}
+          references={references}
+          onOpenRef={openRef}
           onPlan={() => planCommons(commonsDetail)}
           onOpenChange={open => { if (!open) setCommonsDetail(null); }}
         />
@@ -504,8 +569,18 @@ export function CommonsGallery() {
               ? studioLibrary.find(x => x.id === studioDetail.remix_of)?.title ?? null
               : null
           }
+          references={references}
+          onOpenRef={openRef}
           onPlan={() => planStudioItem(studioDetail)}
           onOpenChange={open => { if (!open) setStudioDetail(null); }}
+        />
+      )}
+      {storyDetail && (
+        <KBStoryDetailDialog
+          story={storyDetail}
+          references={references}
+          onOpenRef={openRef}
+          onOpenChange={open => { if (!open) setStoryDetail(null); }}
         />
       )}
     </div>
@@ -638,9 +713,11 @@ function StudioItemCard({
 }
 
 function StudioItemDetailDialog({
-  item, studioLabel, remixOfTitle, onPlan, onOpenChange,
+  item, studioLabel, remixOfTitle, references, onOpenRef, onPlan, onOpenChange,
 }: {
   item: StudioLibraryItem; studioLabel: string; remixOfTitle?: string | null;
+  references: GalleryReference[];
+  onOpenRef: (source: RefSource, id: string) => boolean;
   onPlan: () => void; onOpenChange: (open: boolean) => void;
 }) {
   return (
@@ -699,6 +776,13 @@ function StudioItemDetailDialog({
           </div>
         )}
 
+        <ConnectionsSection
+          source="studio"
+          id={item.id}
+          references={references}
+          onOpen={onOpenRef}
+        />
+
         <div className="flex flex-wrap gap-2 pt-1">
           <Button size="sm" onClick={onPlan}>
             <MapIcon className="size-3.5 mr-1.5" />
@@ -709,6 +793,76 @@ function StudioItemDetailDialog({
           "Build with this" opens it in Plan mode — the whole {studioLabel} library
           already travels with your builds as an approved member.
         </p>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/** A community story from the Studio KB — narrative to learn from, not code to remix */
+function KBStoryCard({ story, onOpen }: { story: Story; onOpen: () => void }) {
+  return (
+    <div className="group border rounded-xl overflow-hidden flex flex-col bg-background hover:border-foreground/25 transition-colors">
+      <div className="p-3.5 flex-1 flex flex-col gap-1.5">
+        <div className="flex items-center gap-1.5">
+          <ScrollText className="size-3.5 shrink-0 text-muted-foreground" />
+          <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Local Stories</span>
+          <Badge variant="outline" className="ml-auto text-[9px] shrink-0">story</Badge>
+        </div>
+        <button onClick={onOpen} className="font-medium text-[15px] hover:underline text-left leading-snug">
+          {story.title ?? 'Community story'}
+        </button>
+        <p className="text-xs text-muted-foreground -mt-0.5">{story.attribution}</p>
+        <p className="text-sm text-muted-foreground line-clamp-4 flex-1">{story.story_text}</p>
+        <div className="flex gap-1.5 pt-1">
+          <Button variant="outline" size="sm" className="h-7 text-xs flex-1" onClick={onOpen}>
+            Read the story
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function KBStoryDetailDialog({
+  story, references, onOpenRef, onOpenChange,
+}: {
+  story: Story;
+  references: GalleryReference[];
+  onOpenRef: (source: RefSource, id: string) => boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  return (
+    <Dialog open onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="pr-6 flex items-center gap-2">
+            <span>{story.title ?? 'Community story'}</span>
+            <Badge variant="outline" className="text-[10px] shrink-0">story</Badge>
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="rounded-lg border border-dashed px-3 py-2.5 text-sm space-y-1">
+          <p className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted-foreground">
+            <GitBranch className="size-3" /> Attribution
+          </p>
+          <p>{story.attribution}</p>
+          <p className="text-muted-foreground text-xs">
+            A story from builders in the relational tech network
+          </p>
+        </div>
+
+        <div className="prose prose-sm dark:prose-invert max-w-none text-sm [&_p]:leading-relaxed">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            {story.full_story_text ?? story.story_text}
+          </ReactMarkdown>
+        </div>
+
+        <ConnectionsSection
+          source="kb_story"
+          id={story.id}
+          references={references}
+          onOpen={onOpenRef}
+        />
       </DialogContent>
     </Dialog>
   );
@@ -844,9 +998,11 @@ function RecipeCard({
 }
 
 function RecipeDetailDialog({
-  card, busy, onPlan, onOpenChange,
+  card, busy, references, onOpenRef, onPlan, onOpenChange,
 }: {
   card: CommonsCard; busy: boolean;
+  references: GalleryReference[];
+  onOpenRef: (source: RefSource, id: string) => boolean;
   onPlan: () => void; onOpenChange: (open: boolean) => void;
 }) {
   const [detail, setDetail] = useState<CommonsItemDetail | null>(null);
@@ -922,6 +1078,13 @@ function RecipeDetailDialog({
           </div>
         ) : null}
 
+        <ConnectionsSection
+          source="commons"
+          id={card.slug}
+          references={references}
+          onOpen={onOpenRef}
+        />
+
         <div className="flex flex-wrap gap-2 pt-1">
           <Button size="sm" disabled={busy} onClick={onPlan}>
             {busy ? <Loader2 className="size-3.5 mr-1.5 animate-spin" /> : <MapIcon className="size-3.5 mr-1.5" />}
@@ -949,9 +1112,11 @@ function RecipeDetailDialog({
 }
 
 function ToolDetailDialog({
-  tool, childPrompts, busy, onBuild, onOpenChange,
+  tool, childPrompts, busy, references, onOpenRef, onBuild, onOpenChange,
 }: {
   tool: Tool; childPrompts: Prompt[]; busy: boolean;
+  references: GalleryReference[];
+  onOpenRef: (source: RefSource, id: string) => boolean;
   onBuild: () => void; onOpenChange: (open: boolean) => void;
 }) {
   const [openPrompt, setOpenPrompt] = useState<string | null>(null);
@@ -1018,6 +1183,13 @@ function ToolDetailDialog({
             )}
           </div>
         )}
+
+        <ConnectionsSection
+          source="kb_tool"
+          id={tool.id}
+          references={references}
+          onOpen={onOpenRef}
+        />
 
         {childPrompts.length > 0 && (
           <div className="space-y-1.5">

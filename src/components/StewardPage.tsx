@@ -16,6 +16,19 @@ import {
   adminRemoveGalleryLink,
   type GalleryLink,
 } from '@/cloud/gallery-links';
+import {
+  fetchGalleryReferences,
+  invalidateGalleryReferences,
+  adminAddReference,
+  adminConfirmReference,
+  adminRemoveReference,
+} from '@/cloud/gallery-references';
+import type { GalleryReference, RefRelation, RefSource } from '@/knowledge/gallery-references';
+import {
+  fetchCivicMediaCards,
+  fetchNeighboringRecipeCards,
+} from '@/knowledge/commons-items';
+import { fetchVisibleStudioItems } from '@/cloud/studio-library';
 import { listAllStudios, type StudioContext } from '@/knowledge/studio-context';
 import {
   fetchStudioAccessMap,
@@ -30,7 +43,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Check, X, Loader2, ChevronDown, ChevronRight, ShieldCheck, KeyRound, Lock, LockOpen } from 'lucide-react';
+import { Check, X, Loader2, ChevronDown, ChevronRight, ShieldCheck, KeyRound, Link2, Lock, LockOpen } from 'lucide-react';
 
 /**
  * The Steward page — every steward task in one full-width space (these
@@ -65,6 +78,7 @@ export function StewardPage() {
               <TabsTrigger value="door" className="text-xs px-3 sm:px-4">Account requests</TabsTrigger>
               <TabsTrigger value="commons" className="text-xs px-3 sm:px-4">Commons review</TabsTrigger>
               <TabsTrigger value="gallery" className="text-xs px-3 sm:px-4">Studio gallery</TabsTrigger>
+              <TabsTrigger value="connections" className="text-xs px-3 sm:px-4">Connections</TabsTrigger>
               <TabsTrigger value="access" className="text-xs px-3 sm:px-4">Studio access</TabsTrigger>
             </TabsList>
           </div>
@@ -79,6 +93,9 @@ export function StewardPage() {
           </TabsContent>
           <TabsContent value="gallery" className="pt-4">
             <GalleryTab />
+          </TabsContent>
+          <TabsContent value="connections" className="pt-4">
+            <ConnectionsTab />
           </TabsContent>
           <TabsContent value="access" className="pt-4">
             <StudioAccessTab />
@@ -558,6 +575,271 @@ function GalleryTab() {
           );
         })}
       </div>
+    </div>
+  );
+}
+
+// --- Gallery connections: cross-references between entries ---
+
+interface RefOption {
+  source: RefSource;
+  id: string;
+  title: string;
+  kind: string | null;
+  group: string;
+}
+
+const RELATION_OPTIONS: { key: RefRelation; label: string }[] = [
+  { key: 'mentions', label: 'mentions' },
+  { key: 'used_in', label: 'was used in' },
+  { key: 'paired_with', label: 'pairs with' },
+  { key: 'related', label: 'is related to' },
+];
+
+const optionKey = (o: { source: RefSource; id: string }) => `${o.source}:${o.id}`;
+
+function ConnectionsTab() {
+  const tools = useKnowledgeStore(s => s.tools);
+  const stories = useKnowledgeStore(s => s.stories);
+  const loadAll = useKnowledgeStore(s => s.loadAll);
+  const [refs, setRefs] = useState<GalleryReference[]>([]);
+  const [remoteOptions, setRemoteOptions] = useState<RefOption[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [fromKey, setFromKey] = useState('');
+  const [toKey, setToKey] = useState('');
+  const [relation, setRelation] = useState<RefRelation>('mentions');
+  const [note, setNote] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    void loadAll();
+    Promise.all([
+      fetchGalleryReferences(),
+      fetchCivicMediaCards().catch(() => []),
+      fetchNeighboringRecipeCards().catch(() => []),
+      fetchVisibleStudioItems().catch(() => []),
+    ])
+      .then(([allRefs, civic, neighboring, studioItems]) => {
+        setRefs(allRefs);
+        setRemoteOptions([
+          ...civic.map(c => ({
+            source: 'commons' as const, id: c.slug, title: c.title, kind: c.kind, group: 'Civic media',
+          })),
+          ...neighboring.map(c => ({
+            source: 'commons' as const, id: c.slug, title: c.title, kind: c.kind, group: 'Neighboring recipes',
+          })),
+          ...studioItems.map(i => ({
+            source: 'studio' as const, id: i.id, title: i.title, kind: i.kind, group: 'Studio libraries',
+          })),
+        ]);
+      })
+      .catch(() => setError('Could not load connections'))
+      .finally(() => setLoading(false));
+  }, [loadAll]);
+
+  const refresh = useCallback(async () => {
+    invalidateGalleryReferences();
+    setRefs(await fetchGalleryReferences());
+  }, []);
+
+  const allOptions = useMemo<RefOption[]>(
+    () => [
+      ...tools.map(t => ({
+        source: 'kb_tool' as const, id: t.id, title: t.name, kind: 'tool', group: 'Relational tech tools',
+      })),
+      ...stories.map(s => ({
+        source: 'kb_story' as const, id: s.id, title: s.title ?? 'Community story', kind: 'story', group: 'Community stories',
+      })),
+      ...remoteOptions,
+    ],
+    [tools, stories, remoteOptions],
+  );
+
+  const groups = useMemo(() => {
+    const map = new Map<string, RefOption[]>();
+    for (const o of allOptions) map.set(o.group, [...(map.get(o.group) ?? []), o]);
+    return [...map.entries()];
+  }, [allOptions]);
+
+  const byKey = useMemo(
+    () => new Map(allOptions.map(o => [optionKey(o), o])),
+    [allOptions],
+  );
+
+  // Suggested links lead — they're the queue; confirmed follow as the record
+  const sorted = useMemo(
+    () => [...refs].sort((a, b) =>
+      (a.status === 'suggested' ? 0 : 1) - (b.status === 'suggested' ? 0 : 1)),
+    [refs],
+  );
+
+  async function add() {
+    const from = byKey.get(fromKey);
+    const to = byKey.get(toKey);
+    if (!from || !to || optionKey(from) === optionKey(to)) return;
+    setSaving(true);
+    setError(null);
+    try {
+      await adminAddReference({
+        from_source: from.source, from_id: from.id, from_title: from.title, from_kind: from.kind,
+        to_source: to.source, to_id: to.id, to_title: to.title, to_kind: to.kind,
+        relation, note: note.trim() || null,
+      });
+      setFromKey(''); setToKey(''); setNote('');
+      await refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not add the connection');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function act(id: string, action: 'confirm' | 'remove') {
+    setBusyId(id);
+    setError(null);
+    try {
+      if (action === 'confirm') await adminConfirmReference(id);
+      else await adminRemoveReference(id);
+      await refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'That change did not save');
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  if (loading) {
+    return (
+      <p className="text-sm text-muted-foreground flex items-center gap-2">
+        <Loader2 className="size-3.5 animate-spin" /> Loading connections…
+      </p>
+    );
+  }
+
+  const selectClass =
+    'h-8 rounded-md border bg-background px-2 text-xs min-w-0 flex-1';
+
+  return (
+    <div className="space-y-4">
+      <p className="text-xs text-muted-foreground">
+        Connections link gallery entries across the shelves — a story that
+        features a tool, a recipe that pairs with a neighboring practice. They
+        show in every entry's detail dialog and travel into the AI's context, so
+        it can say where else something was used. Suggested links come from the
+        scan script (<code>scripts/suggest-gallery-references.mjs</code>) and
+        wait here for your eye.
+      </p>
+      {error && <p className="text-xs text-destructive">{error}</p>}
+
+      <div className="rounded-lg border px-3 py-2.5 space-y-2">
+        <p className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted-foreground">
+          <Link2 className="size-3" /> Add a connection
+        </p>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <select value={fromKey} onChange={e => setFromKey(e.target.value)} className={selectClass}>
+            <option value="">This entry…</option>
+            {groups.map(([group, opts]) => (
+              <optgroup key={group} label={group}>
+                {opts.map(o => (
+                  <option key={optionKey(o)} value={optionKey(o)}>{o.title}</option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+          <select
+            value={relation}
+            onChange={e => setRelation(e.target.value as RefRelation)}
+            className="h-8 rounded-md border bg-background px-2 text-xs shrink-0"
+          >
+            {RELATION_OPTIONS.map(r => (
+              <option key={r.key} value={r.key}>{r.label}</option>
+            ))}
+          </select>
+          <select value={toKey} onChange={e => setToKey(e.target.value)} className={selectClass}>
+            <option value="">…this entry</option>
+            {groups.map(([group, opts]) => (
+              <optgroup key={group} label={group}>
+                {opts.map(o => (
+                  <option key={optionKey(o)} value={optionKey(o)}>{o.title}</option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <Input
+            value={note}
+            onChange={e => setNote(e.target.value)}
+            placeholder="Why the pairing mattered (optional) — “worked well for listening sessions”"
+            className="h-8 text-xs flex-1"
+          />
+          <Button
+            size="sm"
+            className="h-8 text-xs shrink-0"
+            disabled={saving || !byKey.get(fromKey) || !byKey.get(toKey) || fromKey === toKey}
+            onClick={add}
+          >
+            {saving ? <Loader2 className="size-3 animate-spin mr-1" /> : <Link2 className="size-3 mr-1" />}
+            Connect
+          </Button>
+        </div>
+      </div>
+
+      {sorted.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          No connections yet — add one above, or run the scan script to suggest
+          links from what entries already say about each other.
+        </p>
+      ) : (
+        <div className="space-y-1 max-h-96 overflow-y-auto pr-1">
+          {sorted.map(r => (
+            <div
+              key={r.id}
+              className="flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs"
+            >
+              <div className="min-w-0 flex-1">
+                <p className="truncate">
+                  <span className="font-medium">{r.from_title}</span>
+                  {r.from_kind && <span className="text-muted-foreground/60"> ({r.from_kind})</span>}
+                  <span className="text-muted-foreground">
+                    {' '}{RELATION_OPTIONS.find(o => o.key === r.relation)?.label ?? r.relation}{' '}
+                  </span>
+                  <span className="font-medium">{r.to_title}</span>
+                  {r.to_kind && <span className="text-muted-foreground/60"> ({r.to_kind})</span>}
+                </p>
+                {r.note && <p className="text-muted-foreground truncate">{r.note}</p>}
+              </div>
+              {r.status === 'suggested' && (
+                <>
+                  <Badge variant="outline" className="text-[9px] text-amber-600 border-amber-600/40 shrink-0">
+                    suggested
+                  </Badge>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-6 text-[11px] shrink-0"
+                    disabled={busyId !== null}
+                    onClick={() => act(r.id, 'confirm')}
+                  >
+                    {busyId === r.id ? <Loader2 className="size-3 animate-spin" /> : <Check className="size-3" />}
+                    Confirm
+                  </Button>
+                </>
+              )}
+              <button
+                disabled={busyId !== null}
+                onClick={() => act(r.id, 'remove')}
+                className="text-muted-foreground hover:text-destructive shrink-0"
+                title="Remove connection"
+              >
+                <X className="size-3.5" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
