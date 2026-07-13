@@ -137,8 +137,18 @@ for (const target of entries) {
   }
 }
 
-console.log(`Found ${suggestions.length} suggested connections.`);
-for (const s of suggestions) {
+// Same-titled entries (a KB story republished in the commons) can produce
+// the same (from, to) pair twice in one scan — keep the first
+const seen = new Set();
+const deduped = suggestions.filter(s => {
+  const key = `${s.from_source}:${s.from_id}→${s.to_source}:${s.to_id}`;
+  if (seen.has(key)) return false;
+  seen.add(key);
+  return true;
+});
+
+console.log(`Found ${deduped.length} suggested connections.`);
+for (const s of deduped) {
   console.log(`  ${s.from_title} (${s.from_kind}) → ${s.to_title} (${s.to_kind})`);
 }
 
@@ -146,19 +156,22 @@ if (DRY_RUN) {
   console.log('Dry run — nothing written.');
   process.exit(0);
 }
-if (suggestions.length === 0) process.exit(0);
+if (deduped.length === 0) process.exit(0);
 
 // --- Write, ignoring pairs that already exist (suggested OR confirmed) ---
-const res = await fetch(`${BUILDER_URL}/rest/v1/gallery_references`, {
-  method: 'POST',
-  headers: {
-    apikey: BUILDER_KEY,
-    Authorization: `Bearer ${BUILDER_KEY}`,
-    'Content-Type': 'application/json',
-    Prefer: 'resolution=ignore-duplicates',
+const res = await fetch(
+  `${BUILDER_URL}/rest/v1/gallery_references?on_conflict=from_source,from_id,to_source,to_id`,
+  {
+    method: 'POST',
+    headers: {
+      apikey: BUILDER_KEY,
+      Authorization: `Bearer ${BUILDER_KEY}`,
+      'Content-Type': 'application/json',
+      Prefer: 'resolution=ignore-duplicates',
+    },
+    body: JSON.stringify(deduped),
   },
-  body: JSON.stringify(suggestions),
-});
+);
 if (!res.ok) {
   console.error(`Write failed → ${res.status}: ${await res.text()}`);
   process.exit(1);
