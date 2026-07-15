@@ -39,6 +39,17 @@ function endsInsideCodeFence(content: string): boolean {
   return content.split('\n').filter(l => l.startsWith('```')).length % 2 === 1;
 }
 
+/** How many automatic continuations a single build may chain. Long first
+ *  builds (10+ pages) routinely need 2; the cap only exists so a pathological
+ *  reply can't spend money forever. */
+const MAX_CONTINUATIONS = 3;
+
+/** Sent whenever a build reply was cut off — by the output cap or a dropped
+ *  stream. Asks for the files, not a post-mortem: continuation replies used
+ *  to open with paragraphs of diagnosis the person had to watch stream by. */
+const CONTINUE_PROMPT =
+  'Your previous reply was interrupted mid-stream, likely mid-file. Continue the build: first re-output the file that was cut off — complete, from its first line — then every file you had planned but not yet written. Do not repeat files that were already complete. Skip any explanation of the interruption: one short line saying you\'re continuing, then the files.';
+
 /** Shown once per project when free community building steps down to the
  *  edit model — the model picker must never change behind anyone's back */
 const EDIT_MODEL_NOTE =
@@ -82,12 +93,9 @@ function BuildRecovery() {
   const recover = () => {
     useProjectStore.getState().applyMessageFiles(candidate.content, candidate.msgId);
     if (endsInsideCodeFence(candidate.content)) {
-      // The reply was also cut off mid-file — finish it through the fix
-      // channel (fix sends never re-arm anything, so this can't loop)
-      useChatStore.getState().queueFix(
-        'Your previous reply was interrupted, likely mid-file. Re-output the file that was cut off — complete, from its first line — plus any files you had planned but not yet written. Do not repeat files that were already complete.',
-        'Finishing the build',
-      );
+      // The reply was also cut off mid-file — finish it through the
+      // continuation channel (bounded by MAX_CONTINUATIONS, so it can't loop)
+      useChatStore.getState().queueContinuation(CONTINUE_PROMPT, 'Finishing the build');
     }
   };
 
@@ -155,7 +163,16 @@ export function ChatPanel() {
     // not the person's own chat bubble — via the captured label.
     const wasFix = useChatStore.getState().pendingFixSend;
     const fixLabel = useChatStore.getState().pendingFixLabel;
-    useChatStore.setState({ pendingFixSend: false, pendingFixLabel: null });
+    const wasContinuation = useChatStore.getState().pendingContinuationSend;
+    useChatStore.setState({
+      pendingFixSend: false,
+      pendingFixLabel: null,
+      pendingContinuationSend: false,
+    });
+    // A fresh ask from the person starts a fresh chain
+    if (!wasFix) {
+      useChatStore.setState({ continuationCount: 0, chainFirstBuildAsk: null });
+    }
 
     // First build of a project: ask (once) to notify when it's ready — long
     // builds shouldn't require babysitting a spinner
@@ -294,50 +311,64 @@ export function ChatPanel() {
           onComplete: () => {
             useChatStore.getState().endProgress();
             finalizeMessage(msgId);
-            // The reply hit the output cap mid-file — ask for the rest once,
-            // through the fix channel (fix sends never re-arm, so no loop)
-            const truncated = finishReason === 'length';
             // Extract code blocks into the virtual file system (build mode only)
             if (currentMode === 'build') {
               const msg = useChatStore.getState().messages.find(m => m.id === msgId);
               if (msg) {
+                // Cut off — by the output cap (finish_reason "length") or by a
+                // stream that died mid-file (proxy wall-clock limit, network
+                // drop). A killed stream never reports a finish reason at all,
+                // so the unterminated code fence is the tell.
+                const truncated =
+                  finishReason === 'length' || endsInsideCodeFence(msg.content);
                 applyMessageFiles(msg.content, msgId);
-                // The one notification we ever send: first build ready, tab hidden
-                if (isFirstBuild && messageProducedFiles(msg.content)) {
-                  notifyBuildReady(useCloudStore.getState().currentProjectName ?? undefined);
+                // A cut-off first build isn't "ready" — hold its notification
+                // and quality review until the continuation chain lands
+                if (truncated && isFirstBuild && messageProducedFiles(msg.content)) {
+                  useChatStore.setState({ chainFirstBuildAsk: content });
                 }
                 // Surface edits that couldn't be applied cleanly
                 const warnings = useProjectStore.getState().lastApplyWarnings;
                 if (warnings.length > 0) {
                   appendToMessage(msgId, `\n\n> ⚠️ ${warnings.join(' ')}`);
                 }
-                if (truncated && !wasFix) {
-                  appendToMessage(msgId, '\n\n> ⚠️ That reply hit the length limit — asking for the rest automatically.');
-                  useChatStore.getState().queueFix(
-                    'Your previous reply was cut off by the output limit, likely mid-file. Re-output the file that was cut off — complete, from its first line — plus any files you had planned but not yet written. Do not repeat files that were already complete.',
-                    'Finishing the build',
-                  );
+                if (truncated && useChatStore.getState().continuationCount < MAX_CONTINUATIONS) {
+                  // Continue through the fix channel. Truncated continuations
+                  // keep chaining (big builds routinely need more than one
+                  // extra reply); MAX_CONTINUATIONS bounds the spend.
+                  appendToMessage(msgId, '\n\n> ⚠️ That reply was cut off mid-file — asking for the rest automatically.');
+                  useChatStore.getState().queueContinuation(CONTINUE_PROMPT, 'Finishing the build');
+                } else if (truncated) {
+                  appendToMessage(msgId, '\n\n> ⚠️ Cut off again — this build is unusually large. Say "continue" to keep it going.');
                 } else {
-                  // Arm exactly one automatic error→fix pass after normal builds
-                  useChatStore.setState({ autoFixArmed: !wasFix });
-                  // …and one background quality review, but ONLY on the very
-                  // first build of a project. Later builds are incremental: the
-                  // reviewer reads the whole codebase against just the current
-                  // (often small) ask, so it re-surfaces pre-existing issues
-                  // from old files every time — reading as "reviewing stale code
-                  // / re-raising things already addressed." First build is where
-                  // the whole-codebase review actually matches the request.
-                  // (Thrown errors win the race; fix sends are never reviewed,
-                  // so neither can loop.)
-                  if (!wasFix && isFirstBuild && messageProducedFiles(msg.content)) {
-                    runQualityReview(content);
-                  }
-                  // First build landed on the community key: step the default
-                  // down to Sonnet 5 for the edits ahead — visibly, with a
-                  // note, so the model picker never changes behind anyone's
-                  // back. (Truncated builds wait: their continuation must
-                  // finish on the model that started it.)
-                  if (isFirstBuild && messageProducedFiles(msg.content)) {
+                  // This reply finished clean — the build (or its chain) is done.
+                  const chainAsk = useChatStore.getState().chainFirstBuildAsk;
+                  // Arm exactly one automatic error→fix pass after normal
+                  // builds and completed continuation chains — never after an
+                  // error fix itself, so error→fix can't loop
+                  useChatStore.setState({
+                    autoFixArmed: !wasFix || wasContinuation,
+                    continuationCount: 0,
+                    chainFirstBuildAsk: null,
+                  });
+                  // The ask this reply completes, when it's a project's first
+                  // build — directly, or via the chain that started as one
+                  const firstBuildAsk =
+                    !wasFix && isFirstBuild ? content : wasContinuation ? chainAsk : null;
+                  if (firstBuildAsk && messageProducedFiles(msg.content)) {
+                    // The one notification we ever send: first build ready, tab hidden
+                    notifyBuildReady(useCloudStore.getState().currentProjectName ?? undefined);
+                    // One background quality review, ONLY on the first build:
+                    // that's where a whole-codebase review matches the request.
+                    // Later builds are incremental, and reviewing everything
+                    // against a small ask re-surfaces pre-existing issues.
+                    // (Thrown errors win the race; fix sends are never
+                    // reviewed, so neither can loop.)
+                    runQualityReview(firstBuildAsk);
+                    // First build landed on the community key: step the
+                    // default down to Sonnet 5 for the edits ahead — visibly,
+                    // with a note, so the model picker never changes behind
+                    // anyone's back.
                     const autoModel = resolveCommunityModelDefault(
                       useProjectStore.getState().getFileCount(),
                     );

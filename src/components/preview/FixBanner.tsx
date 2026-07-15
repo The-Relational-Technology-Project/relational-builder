@@ -16,10 +16,10 @@ function fixPrompt(errorText: string): string {
 
 /**
  * The error→AI loop, engine-agnostic. Right after an AI build breaks the
- * preview, ONE fix pass fires automatically (armed per normal build; fix
- * attempts never re-arm it, so it cannot loop). If the error survives that
- * pass — or came from anything other than a fresh build — the manual
- * button takes over.
+ * preview, ONE fix pass fires automatically (armed per normal build or
+ * completed continuation chain; error-fix attempts never re-arm it, so it
+ * cannot loop). If the error survives that pass — or came from anything
+ * other than a fresh build — the manual button takes over.
  */
 export function FixBanner({ error }: { error: string | null }) {
   const queueFix = useChatStore(s => s.queueFix);

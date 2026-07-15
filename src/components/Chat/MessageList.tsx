@@ -183,6 +183,7 @@ function WaitActivity() {
     if (!text || useChatStore.getState().sharingPlanSaved) return;
     useChatStore.getState().addSyncMessage(
       `**Sharing plan** (written while your app was building)\n\n${text}`,
+      'Sharing plan · your notes from the build',
     );
     useChatStore.getState().markSharingPlanSaved();
     localStorage.removeItem(SHARING_PLAN_DRAFT_KEY);

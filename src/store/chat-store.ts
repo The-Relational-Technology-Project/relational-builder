@@ -68,6 +68,18 @@ interface ChatState {
    * Builder action rather than one of the person's own messages */
   pendingFixLabel: string | null;
   queueFix: (content: string, label?: string) => void;
+  /** True while the queued/current send continues a cut-off build reply.
+   * Continuations are fix sends (they never re-arm the error pass mid-chain)
+   * but unlike error fixes they may chain — bounded by continuationCount. */
+  pendingContinuationSend: boolean;
+  /** Consecutive automatic continuations in the current build chain. Reset on
+   * a clean completion or a fresh ask; the cap lives in ChatPanel. */
+  continuationCount: number;
+  /** The original ask of a first build whose reply was cut off — held so the
+   * build-ready notification and quality review fire when the continuation
+   * chain finishes, not after the first (incomplete) reply. */
+  chainFirstBuildAsk: string | null;
+  queueContinuation: (content: string, label?: string) => void;
   /** True while the background quality review reads the build */
   reviewing: boolean;
   /** The wait-time sharing plan has been saved into this conversation */
@@ -132,13 +144,29 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
   // A person's queued follow-up replaces any pending auto-fix — their
   // intent wins, and it must not inherit the fix send's special handling
   queueMessage: (content: string) =>
-    set({ queuedMessage: content, pendingFixSend: false, pendingFixLabel: null }),
+    set({
+      queuedMessage: content,
+      pendingFixSend: false,
+      pendingFixLabel: null,
+      pendingContinuationSend: false,
+    }),
   clearQueuedMessage: () => set({ queuedMessage: null }),
   pendingFixSend: false,
   autoFixArmed: false,
   pendingFixLabel: null,
   queueFix: (content: string, label?: string) =>
     set({ queuedMessage: content, pendingFixSend: true, pendingFixLabel: label ?? 'Automatic fix' }),
+  pendingContinuationSend: false,
+  continuationCount: 0,
+  chainFirstBuildAsk: null,
+  queueContinuation: (content: string, label?: string) =>
+    set(state => ({
+      queuedMessage: content,
+      pendingFixSend: true,
+      pendingFixLabel: label ?? 'Finishing the build',
+      pendingContinuationSend: true,
+      continuationCount: state.continuationCount + 1,
+    })),
   reviewing: false,
   sharingPlanSaved: false,
   markSharingPlanSaved: () => set({ sharingPlanSaved: true }),
