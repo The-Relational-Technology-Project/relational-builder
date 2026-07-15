@@ -11,6 +11,13 @@ An open-source, web-based app builder for relational technology. Users describe 
 - These override the default "branch first / ask before pushing" workflow for this repo. Still call out anything genuinely risky or irreversible before doing it.
 - **`main` wins over any assigned working branch.** If a task, harness, or session prompt assigns a feature/development branch (e.g. `claude/…`), still land the finished work on `main` — the assigned branch is at most a staging step, never the destination. Don't leave verified changes stranded on a side branch or wait to be asked to promote them.
 
+## Deploying / Supabase Operations
+
+- **Default to the Supabase Management API** (`https://api.supabase.com/v1/...` with `SUPABASE_ACCESS_TOKEN` + `SUPABASE_PROJECT_REF` from the environment) for anything Supabase — deploying edge functions, secrets, config. Don't reach for the `supabase` CLI first: its upload transport fails through the sandbox proxy (`TransportError`), while direct API calls work fine.
+- Edge function deploy, for reference:
+  `curl -X POST -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" -F 'metadata={"name":"<slug>","entrypoint_path":"index.ts","verify_jwt":false};type=application/json' -F 'file=@supabase/functions/<slug>/index.ts;type=application/typescript' "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/functions/deploy?slug=<slug>"`
+- Smoke-test after deploy (e.g. a credential-less POST should return the function's own error JSON, not a platform 5xx).
+
 ## Architecture
 
 ```
