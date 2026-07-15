@@ -37,6 +37,14 @@ export interface NetworkPrompt {
   updated_at: string;
 }
 
+/** Every readable column EXCEPT owner_id, which is revoked from client roles
+ * (see the security-hardening migration). A no-argument .select means `select *`,
+ * and Postgres refuses star-expansion over an unreadable column with
+ * "permission denied for table prompts" — so every select here, including
+ * the RETURNING clause after insert/update, must name its columns. */
+const PROMPT_COLUMNS =
+  'id, project_id, title, body, is_shared, share_slug, author_name, lineage, created_at, updated_at';
+
 function client() {
   if (!builderClient) throw new Error('Prompts need the cloud backend configured');
   return builderClient;
@@ -45,7 +53,7 @@ function client() {
 export async function listMyPrompts(): Promise<BuildPrompt[]> {
   const { data, error } = await client()
     .from('prompts')
-    .select('id, project_id, title, body, is_shared, share_slug, author_name, lineage, created_at, updated_at')
+    .select(PROMPT_COLUMNS)
     .order('updated_at', { ascending: false });
   if (error) throw new Error(error.message);
   return (data ?? []) as BuildPrompt[];
@@ -54,7 +62,7 @@ export async function listMyPrompts(): Promise<BuildPrompt[]> {
 export async function getPromptById(id: string): Promise<BuildPrompt | null> {
   const { data } = await client()
     .from('prompts')
-    .select('id, project_id, title, body, is_shared, share_slug, author_name, lineage, created_at, updated_at')
+    .select(PROMPT_COLUMNS)
     .eq('id', id)
     .maybeSingle();
   return (data as BuildPrompt | null) ?? null;
@@ -63,7 +71,7 @@ export async function getPromptById(id: string): Promise<BuildPrompt | null> {
 export async function getPromptForProject(projectId: string): Promise<BuildPrompt | null> {
   const { data } = await client()
     .from('prompts')
-    .select('id, project_id, title, body, is_shared, share_slug, author_name, lineage, created_at, updated_at')
+    .select(PROMPT_COLUMNS)
     .eq('project_id', projectId)
     .order('updated_at', { ascending: false })
     .limit(1)
@@ -89,7 +97,7 @@ export async function savePrompt(input: {
       .from('prompts')
       .update({ title: input.title, body: input.body, lineage: input.lineage ?? undefined })
       .eq('id', input.id)
-      .select()
+      .select(PROMPT_COLUMNS)
       .single();
     if (error) throw new Error(error.message);
     saved = data as BuildPrompt;
@@ -103,7 +111,7 @@ export async function savePrompt(input: {
         body: input.body,
         lineage: input.lineage ?? null,
       })
-      .select()
+      .select(PROMPT_COLUMNS)
       .single();
     if (error) throw new Error(error.message);
     saved = data as BuildPrompt;
@@ -256,7 +264,7 @@ export async function fetchSharedPrompt(slug: string): Promise<BuildPrompt | nul
   if (!clean) return null;
   const { data } = await builderClient
     .from('prompts')
-    .select('id, project_id, title, body, is_shared, share_slug, author_name, lineage, created_at, updated_at')
+    .select(PROMPT_COLUMNS)
     .eq('share_slug', clean)
     .eq('is_shared', true)
     .maybeSingle();
