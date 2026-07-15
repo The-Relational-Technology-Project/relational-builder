@@ -5,11 +5,17 @@
  * personality lives (palette, radius, fonts drawn from the place and the
  * person), while the kit's classes (bg-background, text-primary,
  * border-border…) always resolve.
+ *
+ * The example values below are ONE demo look (cream + garden green). Models
+ * anchor hard on example values, so the inline comment tells them these are
+ * placeholders to replace wholesale — shipping this palette verbatim is the
+ * "every build looks the same" failure mode.
  */
 export const THEME_TEMPLATE = `@import "tailwindcss";
 
 :root {
-  /* Vary these values per project — never the names */
+  /* EXAMPLE values from one demo build — replace EVERY value with this
+     project's own palette (never the names). Never ship these as-is. */
   --background: #faf6ef;
   --foreground: #1c1917;
   --card: #ffffff;

@@ -41,9 +41,10 @@ export const CLAUDE_MODELS: ModelInfo[] = [
 ];
 
 // Real multi-file builds need far more than the old 8192 — adaptive thinking
-// spends from the same budget. Haiku 4.5 caps at 64k output tokens total.
+// at xhigh effort spends from the same budget, and Opus/Sonnet stream up to
+// 128k. Haiku 4.5 caps at 64k output tokens total.
 function maxTokensFor(model: string): number {
-  return /haiku/.test(model) ? 32000 : 64000;
+  return /haiku/.test(model) ? 32000 : 128000;
 }
 
 // Models on the adaptive-thinking API surface (explicit config beats Sonnet
@@ -215,6 +216,10 @@ export class ClaudeProvider implements LLMProvider {
     };
     if (ADAPTIVE_THINKING_RE.test(model)) {
       body.thinking = { type: 'adaptive', display: 'summarized' };
+      // xhigh effort: the documented best setting for coding/agentic work —
+      // full design and architecture power on builds (errors on Haiku, so it
+      // stays gated on the adaptive set; the proxy path sets its own)
+      body.output_config = { effort: 'xhigh' };
     }
     if (systemMsg) {
       // Same cache segmentation the proxy applies (see llm-proxy): the

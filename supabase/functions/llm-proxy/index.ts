@@ -358,10 +358,11 @@ async function proxyGeminiImage(
 const ADAPTIVE_THINKING_RE = /opus-4-[78]|sonnet-5|fable/;
 
 // Output ceiling when the client doesn't say: real multi-file builds need far
-// more than the old 8192 (thinking spends from the same budget). Haiku 4.5
-// caps at 64k total output.
+// more than the old 8192, and adaptive thinking at xhigh effort spends from
+// the same budget — Opus/Sonnet/Fable stream up to 128k. Haiku 4.5 caps at
+// 64k total output.
 function defaultMaxTokens(model: string): number {
-  return /haiku/.test(model) ? 32000 : 64000;
+  return /haiku/.test(model) ? 32000 : 128000;
 }
 
 async function proxyAnthropic(
@@ -444,6 +445,10 @@ async function proxyAnthropic(
   };
   if (ADAPTIVE_THINKING_RE.test(model)) {
     anthropicBody.thinking = { type: 'adaptive', display: 'summarized' };
+    // xhigh is the documented sweet spot for coding/agentic work on these
+    // models — it buys real design and architecture thinking on first builds.
+    // Effort errors on Haiku, so it stays gated on the same model set.
+    anthropicBody.output_config = { effort: 'xhigh' };
   }
   if (systemMsg) {
     // The Builder marks stability boundaries in its system prompt; each
