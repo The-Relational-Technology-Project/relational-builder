@@ -3,16 +3,21 @@ import type { FileEntry } from './virtual-fs';
 import { useProjectStore, type ProjectLineage } from '@/store/project-store';
 import { useChatStore, type ChatMode, type DisplayMessage } from '@/store/chat-store';
 import { useEnvStore, type EnvVar } from '@/store/env-store';
-import { useCloudStore } from '@/store/cloud-store';
+import { useCloudStore, cloudProjectOwnsWorkspace } from '@/store/cloud-store';
+import { useAuthStore, cloudEnabled } from '@/store/auth-store';
 import { suggestProjectName } from './suggest-name';
 
 /**
- * The local project shelf: every project is continuously saved ON THIS
- * DEVICE under a name, signed in or not — so "New Project" stashes the
- * current work instead of destroying it, and nothing a builder makes can
- * be lost by a stray click. Cloud projects remain the opt-in layer on
- * top (they autosave to Supabase already; while one is open, the local
- * autosaver stands down).
+ * Where work lives when nobody asked: signed-in builders are cloud-first —
+ * the autosaver's first save CREATES a real cloud project (named, on the
+ * account, like any hosted project) and cloud sync owns it from then on.
+ * There is no local/cloud split to reason about, and no way for the same
+ * work to fork into two differently-named copies.
+ *
+ * The local shelf remains for signed-out building: every project is
+ * continuously saved ON THIS DEVICE under a name — so "New Project"
+ * stashes the current work instead of destroying it, and nothing a
+ * builder makes can be lost by a stray click.
  *
  * Storage: one small index + one localStorage entry per project, so a
  * single oversized project can't take the whole shelf down with it.
@@ -102,7 +107,9 @@ function deriveName(files: FileEntry[]): string {
  * detached), so the copy isn't re-christened from a stray chat phrase.
  */
 export function saveCurrentLocally(fallbackName?: string): void {
-  if (useCloudStore.getState().currentProjectId) return;
+  // Covers both an open cloud project and one waiting to resume after a
+  // reload — the shelf must not adopt (fork) a cloud project's workspace
+  if (cloudProjectOwnsWorkspace()) return;
 
   const project = useProjectStore.getState();
   const chat = useChatStore.getState();
@@ -209,6 +216,53 @@ export function detachLocalTracking(): void {
 
 let autosaveTimer: ReturnType<typeof setTimeout> | null = null;
 let started = false;
+let promoting = false;
+let promotionFailedAt = 0;
+
+/**
+ * Signed-in builders are cloud-first: instead of shelving the workspace on
+ * this device, its first save creates a real cloud project — named like any
+ * hosted project — and cloud autosync owns it from then on. One project,
+ * one name, saved on the account; the device shelf is for signed-out work.
+ */
+async function promoteWorkspaceToCloud(): Promise<void> {
+  if (promoting) return;
+  promoting = true;
+  try {
+    const slotName = useLocalProjects.getState().currentName.trim();
+    const name = slotName || deriveName(useProjectStore.getState().fs.toJSON());
+    const result = await useCloudStore.getState().createProject(name);
+    if (result.error) {
+      // Cloud said no (offline, quota, permissions) — shelve on-device so
+      // nothing is lost, and back off before trying the cloud again
+      promotionFailedAt = Date.now();
+      saveCurrentLocally();
+      return;
+    }
+    // The account owns it now — a shelf copy would only shadow it
+    const id = useLocalProjects.getState().currentId;
+    if (id) deleteLocalProject(id);
+    else detachLocalTracking();
+  } finally {
+    promoting = false;
+  }
+}
+
+/** One autosave beat: cloud project open → cloud sync owns it; signed in →
+ *  promote to a cloud project; otherwise → the on-device shelf. */
+function autosaveTick(): void {
+  if (cloudProjectOwnsWorkspace()) return;
+  const hasWork =
+    useProjectStore.getState().fs.getPaths().length > 0 ||
+    useChatStore.getState().messages.length > 0;
+  if (!hasWork) return;
+  const user = useAuthStore.getState().user;
+  if (user && cloudEnabled && Date.now() - promotionFailedAt > 60_000) {
+    void promoteWorkspaceToCloud();
+    return;
+  }
+  saveCurrentLocally();
+}
 
 /** Start the debounced local autosaver (idempotent; call once at app boot). */
 export function initLocalAutosave(): void {
@@ -224,7 +278,7 @@ export function initLocalAutosave(): void {
 
   const schedule = () => {
     if (autosaveTimer) clearTimeout(autosaveTimer);
-    autosaveTimer = setTimeout(saveCurrentLocally, 1500);
+    autosaveTimer = setTimeout(autosaveTick, 1500);
   };
   useProjectStore.subscribe((state, prev) => {
     if (state.version !== prev.version) schedule();

@@ -119,7 +119,7 @@ const BASE_INSTRUCTIONS = [
   '- Set the physical size with `@page { size: letter; margin: 0.5in; }` (or A4/A5/half-letter as fits) and design in physical units (in, cm, pt) — not pixels.',
   '- Include a `@media print` stylesheet: hide any on-screen controls, `-webkit-print-color-adjust: exact; print-color-adjust: exact;` where color matters, and control page breaks (`break-inside: avoid` on articles/sections, `break-after: page` between newsletter pages).',
   '- Design for ink and paper: strong type hierarchy readable from a few feet away (flyers/posters), generous margins, high contrast; tear-off tabs along the bottom of a flyer are a lovely touch (rotated text in a flex row).',
-  '- Add a small on-screen-only bar with a "Print / Save as PDF" button (`window.print()`) and a one-line hint: printing to "Save as PDF" produces a shareable, print-shop-ready file.',
+  '- Do NOT add any on-screen banner, toolbar, print button, or usage hint to the page itself — the builder\'s preview already provides Print / Save as PDF / Open in tab controls for every material. The file contains only the printed piece, exactly what comes out of the printer.',
   '- The live preview shows the layout; sizes are exact on paper. Say so.',
   '- Multi-page newsletters: one `.page` element per physical page, each `break-after: page`.',
   '- Artwork: the builder\'s own photos first (Add photo in the Files tab). If Gemini or OpenAI is connected in Services, offer AI-generated artwork through those (server-side once deployed).',

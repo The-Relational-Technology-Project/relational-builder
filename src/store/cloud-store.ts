@@ -24,6 +24,57 @@ export interface ProjectMember {
 
 export type SyncStatus = 'idle' | 'saving' | 'saved' | 'error';
 
+/**
+ * The cloud attachment persists across reloads: which project owns the
+ * workspace, and the server timestamp of the last snapshot we synced.
+ * Without this, a refresh silently detached the open cloud project — the
+ * workspace files survived (project-store persists them) but the local
+ * autosaver adopted them as a NEW device-local project under a guessed
+ * name, forking the builder's own work.
+ */
+interface CloudAttachment {
+  id: string;
+  name: string;
+  /** projects.updated_at of the last write we made or update we applied */
+  syncedAt: string | null;
+}
+
+const ATTACHMENT_KEY = 'rb-cloud-attachment';
+
+export function readCloudAttachment(): CloudAttachment | null {
+  try {
+    const raw = localStorage.getItem(ATTACHMENT_KEY);
+    return raw ? (JSON.parse(raw) as CloudAttachment) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeAttachment(att: CloudAttachment | null) {
+  if (att) localStorage.setItem(ATTACHMENT_KEY, JSON.stringify(att));
+  else localStorage.removeItem(ATTACHMENT_KEY);
+}
+
+export function clearCloudAttachment() {
+  writeAttachment(null);
+}
+
+/**
+ * True when the workspace belongs to a cloud project — either one that's
+ * open right now, or one whose attachment survived a reload and is waiting
+ * for auth to settle so it can resume. The local shelf must never adopt
+ * such a workspace (that's how forks are minted).
+ */
+export function cloudProjectOwnsWorkspace(): boolean {
+  if (useCloudStore.getState().currentProjectId) return true;
+  if (!readCloudAttachment()) return false;
+  const auth = useAuthStore.getState();
+  // Auth settled with no user: the session is truly gone and no resume is
+  // coming — the sync layer hands the workspace to the shelf under its real
+  // name. Until then, hold the shelf off.
+  return !(auth.initialized && auth.profileLoaded && !auth.user);
+}
+
 interface CloudProjectRow {
   id: string;
   name: string;
@@ -51,6 +102,9 @@ interface CloudState {
   refreshProjects: () => Promise<void>;
   createProject: (name: string) => Promise<{ error: string | null }>;
   openProject: (id: string) => Promise<{ error: string | null }>;
+  /** Re-open the attached cloud project after a reload — the workspace never
+   *  silently becomes "local" again */
+  resumeProject: () => Promise<void>;
   closeProject: () => void;
   renameProject: (name: string) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
@@ -79,6 +133,7 @@ function applyWorkspace(row: CloudProjectRow) {
 }
 
 let channel: RealtimeChannel | null = null;
+let resumeInFlight = false;
 
 function unsubscribe() {
   if (channel) {
@@ -101,6 +156,7 @@ function subscribeToProject(projectId: string) {
         // Ignore our own writes echoed back
         if (me && row.updated_by === me.id) return;
         useCloudStore.setState({ applyingRemote: true, currentProjectName: row.name });
+        writeAttachment({ id: row.id, name: row.name, syncedAt: row.updated_at });
         try {
           applyWorkspace(row);
         } finally {
@@ -162,6 +218,7 @@ export const useCloudStore = create<CloudState>()((set, get) => ({
       syncStatus: 'saved',
       syncError: null,
     });
+    writeAttachment({ id: data.id, name: data.name, syncedAt: data.updated_at });
     subscribeToProject(data.id);
     await get().refreshProjects();
     await get().refreshMembers();
@@ -193,6 +250,7 @@ export const useCloudStore = create<CloudState>()((set, get) => ({
       syncStatus: 'saved',
       syncError: null,
     });
+    writeAttachment({ id: row.id, name: row.name, syncedAt: row.updated_at });
     // Model pins are per project — opening a different one gets fresh defaults
     useProviderStore.getState().clearModelPin();
     subscribeToProject(row.id);
@@ -200,8 +258,79 @@ export const useCloudStore = create<CloudState>()((set, get) => ({
     return { error: null };
   },
 
+  resumeProject: async () => {
+    const user = useAuthStore.getState().user;
+    const att = readCloudAttachment();
+    if (!builderClient || !user || !att || get().currentProjectId || resumeInFlight) return;
+    resumeInFlight = true;
+    try {
+      const { data, error } = await builderClient
+        .from('projects')
+        .select('*')
+        .eq('id', att.id)
+        .maybeSingle();
+      // Transient failure (offline, cold start): keep the attachment — the
+      // shelf stays hands-off — and retry until the project comes back
+      if (error) {
+        setTimeout(() => get().resumeProject(), 15_000);
+        return;
+      }
+      if (!data) {
+        // Deleted, or access revoked: the cloud copy is gone. Hand the
+        // workspace to the local shelf under its real name — not a guess.
+        writeAttachment(null);
+        const { saveCurrentLocally } = await import('@/project/local-projects');
+        saveCurrentLocally(att.name);
+        return;
+      }
+
+      const row = data as CloudProjectRow;
+      const localSnapshot = captureWorkspace();
+      const localEmpty = localSnapshot.files.length === 0 && localSnapshot.chat.length === 0;
+      const remoteNewer =
+        // An empty workspace must never be pushed over a cloud copy with
+        // real work in it, whatever the timestamps say
+        localEmpty ||
+        (att.syncedAt !== null
+          ? Date.parse(row.updated_at) > Date.parse(att.syncedAt) + 1000
+          : true); // can't date the local copy — the cloud is the source of truth
+
+      set({
+        currentProjectId: row.id,
+        currentProjectName: row.name,
+        isOwner: row.owner_id === user.id,
+        syncStatus: 'saved',
+        syncError: null,
+      });
+      writeAttachment({
+        id: row.id,
+        name: row.name,
+        syncedAt: remoteNewer ? row.updated_at : att.syncedAt,
+      });
+
+      if (remoteNewer) {
+        // Edited elsewhere since this device last synced — pull it in
+        set({ applyingRemote: true });
+        try {
+          applyWorkspace(row);
+        } finally {
+          setTimeout(() => useCloudStore.setState({ applyingRemote: false }), 100);
+        }
+      } else {
+        // The local workspace is the same or newer (last session's edits may
+        // never have flushed) — push it up rather than pulling stale files down
+        void get().saveNow();
+      }
+      subscribeToProject(row.id);
+      await get().refreshMembers();
+    } finally {
+      resumeInFlight = false;
+    }
+  },
+
   closeProject: () => {
     unsubscribe();
+    writeAttachment(null);
     set({
       currentProjectId: null,
       currentProjectName: '',
@@ -217,6 +346,8 @@ export const useCloudStore = create<CloudState>()((set, get) => ({
     if (!builderClient || !currentProjectId) return;
     await builderClient.from('projects').update({ name }).eq('id', currentProjectId);
     set({ currentProjectName: name });
+    const att = readCloudAttachment();
+    if (att?.id === currentProjectId) writeAttachment({ ...att, name });
     await get().refreshProjects();
   },
 
@@ -234,7 +365,7 @@ export const useCloudStore = create<CloudState>()((set, get) => ({
 
     set({ syncStatus: 'saving' });
     const snapshot = captureWorkspace();
-    const { error } = await builderClient
+    const { data, error } = await builderClient
       .from('projects')
       .update({
         files: snapshot.files,
@@ -243,12 +374,19 @@ export const useCloudStore = create<CloudState>()((set, get) => ({
         lineage: snapshot.lineage,
         updated_by: user.id,
       })
-      .eq('id', currentProjectId);
+      .eq('id', currentProjectId)
+      .select('updated_at')
+      .single();
 
     if (error) {
       set({ syncStatus: 'error', syncError: error.message });
     } else {
       set({ syncStatus: 'saved', syncError: null });
+      writeAttachment({
+        id: currentProjectId,
+        name: get().currentProjectName,
+        syncedAt: data?.updated_at ?? null,
+      });
     }
   },
 
