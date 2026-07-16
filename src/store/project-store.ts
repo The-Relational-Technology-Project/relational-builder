@@ -121,6 +121,8 @@ export const useProjectStore = create<ProjectState>()(persist((set, get) => ({
     set({ version: 0, selectedFile: null, fs: new VirtualFS(), lineage: null, checkpoints: [], activeCheckpointId: null });
     // A model choice is pinned per project — a fresh project gets fresh defaults
     import('@/store/provider-store').then(m => m.useProviderStore.getState().clearModelPin());
+    // The build log tells one project's story — a fresh project starts blank
+    import('@/report/build-log').then(m => m.useBuildLogStore.getState().reset());
   },
 
   takeCheckpoint: (label) => {

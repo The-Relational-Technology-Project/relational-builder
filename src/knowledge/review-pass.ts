@@ -3,6 +3,7 @@ import { useProviderStore } from '@/store/provider-store';
 import { useProjectStore } from '@/store/project-store';
 import { useChatStore } from '@/store/chat-store';
 import { useCommunityStore } from '@/store/community-store';
+import { recordBuildEvent } from '@/report/build-log';
 
 /**
  * The quality review pass — the second agent in the build loop.
@@ -121,6 +122,7 @@ export function runQualityReview(userAsk: string): void {
     if (after.isGenerating || after.pendingFixSend || after.queuedMessage) return;
     if (useProjectStore.getState().version !== versionAtStart) return;
 
+    recordBuildEvent('quality_review_fix', verdict);
     after.queueFix(
       [
         'A quick quality review of that build found real issues:',

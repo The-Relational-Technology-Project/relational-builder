@@ -27,6 +27,8 @@ import { detectFrames, framesFromSlugs } from '@/knowledge/frames';
 import { buildMentionContext } from '@/knowledge/mentions';
 import { runQualityReview, messageProducedFiles } from '@/knowledge/review-pass';
 import { requestBuildNotifyPermission, notifyBuildReady } from '@/notify/build-ready';
+import { recordBuildEvent, useBuildLogStore } from '@/report/build-log';
+import { BuildReportCard } from './BuildReportCard';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { Button } from '@/components/ui/button';
@@ -200,6 +202,16 @@ export function ChatPanel() {
       }
     }
 
+    // A project's initial build starts a fresh build log — the timeline that
+    // becomes a shareable report if the builder opts in when it's done
+    if (isFirstBuild && !wasFix) {
+      useBuildLogStore.getState().reset();
+      recordBuildEvent(
+        'build_start',
+        `${useProviderStore.getState().activeProviderId} · ${modelForSend}`,
+      );
+    }
+
     // Retrieval: hybrid semantic+text search against the RT Commons (the
     // canonical knowledge base), falling back to local TF-IDF scoring of the
     // Studio KB when the commons is unreachable.
@@ -321,6 +333,14 @@ export function ChatPanel() {
                 // so the unterminated code fence is the tell.
                 const truncated =
                   finishReason === 'length' || endsInsideCodeFence(msg.content);
+                if (truncated) {
+                  recordBuildEvent(
+                    'reply_cut_off',
+                    finishReason === 'length'
+                      ? 'output length cap'
+                      : 'stream died mid-file (no finish signal)',
+                  );
+                }
                 applyMessageFiles(msg.content, msgId);
                 // A cut-off first build isn't "ready" — hold its notification
                 // and quality review until the continuation chain lands
@@ -331,6 +351,7 @@ export function ChatPanel() {
                 const warnings = useProjectStore.getState().lastApplyWarnings;
                 if (warnings.length > 0) {
                   appendToMessage(msgId, `\n\n> ⚠️ ${warnings.join(' ')}`);
+                  recordBuildEvent('apply_warnings', warnings.join(' '));
                 }
                 if (truncated && useChatStore.getState().continuationCount < MAX_CONTINUATIONS) {
                   // Continue through the fix channel. Truncated continuations
@@ -338,8 +359,13 @@ export function ChatPanel() {
                   // extra reply); MAX_CONTINUATIONS bounds the spend.
                   appendToMessage(msgId, '\n\n> ⚠️ That reply was cut off mid-file — asking for the rest automatically.');
                   useChatStore.getState().queueContinuation(CONTINUE_PROMPT, 'Finishing the build');
+                  recordBuildEvent(
+                    'auto_continuation',
+                    `pass ${useChatStore.getState().continuationCount} of ${MAX_CONTINUATIONS}`,
+                  );
                 } else if (truncated) {
                   appendToMessage(msgId, '\n\n> ⚠️ Cut off again — this build is unusually large. Say "continue" to keep it going.');
+                  recordBuildEvent('continuation_cap');
                 } else {
                   // This reply finished clean — the build (or its chain) is done.
                   const chainAsk = useChatStore.getState().chainFirstBuildAsk;
@@ -356,6 +382,11 @@ export function ChatPanel() {
                   const firstBuildAsk =
                     !wasFix && isFirstBuild ? content : wasContinuation ? chainAsk : null;
                   if (firstBuildAsk && messageProducedFiles(msg.content)) {
+                    recordBuildEvent('build_ready');
+                    // The initial build is done — offer (once, per project) to
+                    // share its story with the stewards. Consent-first: the
+                    // report is only assembled if the builder says yes.
+                    useBuildLogStore.getState().setOffer('pending');
                     // The one notification we ever send: first build ready, tab hidden
                     notifyBuildReady(useCloudStore.getState().currentProjectName ?? undefined);
                     // One background quality review, ONLY on the first build:
@@ -500,6 +531,7 @@ export function ChatPanel() {
       <MessageList messages={messages} onBuildPlan={handleBuildPlan} isGenerating={isGenerating} />
       {!isGenerating && <GitHubChangesBanner />}
       {!isGenerating && <BuildRecovery />}
+      {!isGenerating && <BuildReportCard />}
       {!isGenerating && <CommunityBudgetBanner />}
       {needsKey && (
         <div className="px-4 py-2 text-xs text-center bg-muted/50 border-t">

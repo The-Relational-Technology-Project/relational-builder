@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Wrench, Loader2 } from 'lucide-react';
 import { useChatStore } from '@/store/chat-store';
+import { recordBuildEvent } from '@/report/build-log';
 
 function fixPrompt(errorText: string): string {
   return [
@@ -26,10 +27,17 @@ export function FixBanner({ error }: { error: string | null }) {
   const isGenerating = useChatStore(s => s.isGenerating);
   const autoFixArmed = useChatStore(s => s.autoFixArmed);
 
+  // Each distinct error joins the build log (it never leaves the device
+  // unless the builder shares a build report)
+  useEffect(() => {
+    if (error) recordBuildEvent('preview_error', error);
+  }, [error]);
+
   // The single automatic pass
   useEffect(() => {
     if (!error || !autoFixArmed || isGenerating) return;
     useChatStore.setState({ autoFixArmed: false });
+    recordBuildEvent('auto_error_fix');
     queueFix(fixPrompt(error), 'Fixing a preview error');
   }, [error, autoFixArmed, isGenerating, queueFix]);
 
@@ -50,7 +58,10 @@ export function FixBanner({ error }: { error: string | null }) {
         </span>
       ) : (
         <button
-          onClick={() => queueFix(fixPrompt(error), 'Fixing a preview error')}
+          onClick={() => {
+            recordBuildEvent('manual_error_fix');
+            queueFix(fixPrompt(error), 'Fixing a preview error');
+          }}
           className="inline-flex items-center gap-1 rounded-md bg-destructive text-destructive-foreground px-2.5 py-1 text-xs font-medium hover:opacity-90 shrink-0"
         >
           <Wrench className="size-3" />

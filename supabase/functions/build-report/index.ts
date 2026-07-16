@@ -1,0 +1,295 @@
+/**
+ * Supabase Edge Function: build-report — the opt-in build log loop.
+ *
+ * When a builder finishes a project's initial build and says yes on the
+ * consent card, the client assembles the report (chat log, build timeline,
+ * files summary, optional feedback) and posts it here. The row in
+ * build_reports is the durable record; a readable email copy goes to the
+ * stewards — best-effort, since the row is already safe.
+ *
+ * POST JSON: { projectId?, projectName?, summary?, chat, events, files,
+ *              feedback?, provider?, model?, followUpEmail?, consentAt }
+ *   - No auth (builders may not be signed in); per-IP rate limited
+ *   - consentAt is required: no consent timestamp, no report
+ *
+ * Deploy: supabase functions deploy build-report --no-verify-jwt
+ * Secrets:
+ *   RESEND_API_KEY      — Resend key for the relationalbuilder.org domain
+ *   BUILD_REPORT_EMAIL  — where reports go (default humans@relationaltechproject.org)
+ */
+
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+const RATE_LIMIT_PER_HOUR = 6;
+const ipCounts = new Map<string, { hour: string; count: number }>();
+
+// Generous for real builds, small enough that nobody can use us as storage
+const MAX_BODY_BYTES = 1_500_000;
+const MAX_CHAT_MESSAGES = 200;
+const MAX_MESSAGE_CHARS = 20_000;
+const MAX_EVENTS = 200;
+const MAX_FILES = 500;
+const MAX_FEEDBACK_CHARS = 4_000;
+// Email bodies stay readable — the database row keeps the full log
+const EMAIL_CHAT_BUDGET = 60_000;
+
+function json(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...CORS, 'Content-Type': 'application/json' },
+  });
+}
+
+function svc(): Record<string, string> {
+  const key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+  return { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' };
+}
+
+function rest(path: string): string {
+  return `${Deno.env.get('SUPABASE_URL')}/rest/v1${path}`;
+}
+
+function esc(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+interface ChatEntry { role: string; content: string; label?: string; at?: number; attachmentCount?: number }
+interface LogEvent { at: number; type: string; detail?: string }
+interface FileEntry { path: string; chars: number }
+
+const EVENT_LABELS: Record<string, string> = {
+  build_start: 'Build started',
+  reply_cut_off: 'Reply cut off',
+  auto_continuation: 'Automatic continuation',
+  continuation_cap: 'Continuation limit reached',
+  apply_warnings: "Some edits didn't apply",
+  preview_error: 'Preview error',
+  auto_error_fix: 'Automatic error fix',
+  manual_error_fix: 'Fix requested by hand',
+  quality_review_fix: 'Quality review queued a fix',
+  build_ready: 'Build ready',
+};
+
+function relTime(at: number, base: number): string {
+  const s = Math.max(0, Math.round((at - base) / 1000));
+  return `+${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+
+function minutes(ms: number): string {
+  return `${Math.round(ms / 60_000)} min`;
+}
+
+function renderEmail(r: {
+  projectName: string | null;
+  summary: string | null;
+  chat: ChatEntry[];
+  events: LogEvent[];
+  files: FileEntry[];
+  feedback: Record<string, string> | null;
+  provider: string | null;
+  model: string | null;
+  followUpEmail: string | null;
+  reportId: string | null;
+}): string {
+  const name = r.projectName ?? 'an unnamed project';
+  const base = r.events[0]?.at ?? 0;
+  const start = r.events.find(e => e.type === 'build_start');
+  const ready = r.events.find(e => e.type === 'build_ready');
+  const continuations = r.events.filter(e => e.type === 'auto_continuation').length;
+  const errors = r.events.filter(e => e.type === 'preview_error').length;
+
+  const stats: string[] = [];
+  if (start && ready) stats.push(`<strong>${minutes(ready.at - start.at)}</strong> build → ready`);
+  stats.push(`<strong>${1 + continuations}</strong> generation ${continuations === 0 ? 'pass' : 'passes'}`);
+  stats.push(`<strong>${r.files.length}</strong> files`);
+  stats.push(`<strong>${errors}</strong> preview ${errors === 1 ? 'error' : 'errors'}`);
+  if (r.model) stats.push(esc(`${r.provider ?? ''} · ${r.model}`));
+
+  const parts: string[] = [
+    `<h2 style="margin:0 0 4px">Build report: ${esc(name)}</h2>`,
+    `<p style="color:#666;margin:0 0 12px">Shared by an opted-in builder · ${stats.join(' &nbsp;·&nbsp; ')}</p>`,
+  ];
+
+  if (r.summary) {
+    parts.push(`<h3 style="margin:16px 0 4px">What was built</h3><p>${esc(r.summary)}</p>`);
+  }
+
+  if (r.feedback) {
+    const labels: Record<string, string> = {
+      hopedFor: 'What were you hoping to build?',
+      roughMoments: 'Was there a moment it felt broken, stuck, or confusing?',
+      surprises: 'What surprised you — good or bad?',
+    };
+    parts.push('<h3 style="margin:16px 0 4px">Their feedback</h3>');
+    for (const [key, q] of Object.entries(labels)) {
+      const a = r.feedback[key];
+      if (a) parts.push(`<p style="margin:6px 0"><strong>${esc(q)}</strong><br>${esc(a).replace(/\n/g, '<br>')}</p>`);
+    }
+  }
+  if (r.followUpEmail) {
+    parts.push(`<p><strong>Okay to follow up:</strong> ${esc(r.followUpEmail)}</p>`);
+  }
+
+  if (r.events.length > 0) {
+    parts.push('<h3 style="margin:16px 0 4px">How it went</h3>');
+    parts.push('<table style="border-collapse:collapse;font-size:13px">');
+    for (const e of r.events) {
+      parts.push(
+        `<tr><td style="padding:2px 10px 2px 0;font-family:monospace;vertical-align:top">${relTime(e.at, base)}</td>` +
+        `<td style="padding:2px 0"><strong>${esc(EVENT_LABELS[e.type] ?? e.type)}</strong>${e.detail ? ` — ${esc(e.detail)}` : ''}</td></tr>`,
+      );
+    }
+    parts.push('</table>');
+  }
+
+  parts.push('<h3 style="margin:16px 0 4px">Files</h3>');
+  parts.push(`<p style="font-size:13px;color:#444">${r.files.map(f => esc(f.path)).join(', ') || '(none)'}</p>`);
+
+  parts.push('<h3 style="margin:16px 0 4px">The conversation</h3>');
+  let budget = EMAIL_CHAT_BUDGET;
+  for (const m of r.chat) {
+    if (budget <= 0) {
+      parts.push(`<p style="color:#666"><em>…trimmed for email — the full log is in build_reports${r.reportId ? ` (row ${esc(r.reportId)})` : ''}.</em></p>`);
+      break;
+    }
+    const who = m.label ?? (m.role === 'user' ? 'Builder' : 'AI');
+    const body = m.content.slice(0, 8_000);
+    budget -= body.length;
+    parts.push(
+      `<p style="margin:10px 0"><strong>${esc(who)}:</strong>` +
+      (m.attachmentCount ? ` <em>(${m.attachmentCount} image${m.attachmentCount === 1 ? '' : 's'} not included)</em>` : '') +
+      `<br>${esc(body).replace(/\n/g, '<br>')}${m.content.length > body.length ? ' <em>…</em>' : ''}</p>`,
+    );
+  }
+
+  return parts.join('\n');
+}
+
+Deno.serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
+  if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
+
+  try {
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+    const hour = new Date().toISOString().slice(0, 13);
+    const bucket = ipCounts.get(ip);
+    if (bucket && bucket.hour === hour && bucket.count >= RATE_LIMIT_PER_HOUR) {
+      return json({ error: 'Too many reports — try again in a bit' }, 429);
+    }
+    ipCounts.set(ip, { hour, count: bucket?.hour === hour ? bucket.count + 1 : 1 });
+
+    const raw = await req.text();
+    if (raw.length > MAX_BODY_BYTES) return json({ error: 'Report too large' }, 413);
+    let body: Record<string, unknown>;
+    try {
+      body = JSON.parse(raw);
+    } catch {
+      return json({ error: 'Invalid JSON' }, 400);
+    }
+
+    const consentAt = String(body.consentAt ?? '').trim();
+    if (!consentAt || Number.isNaN(Date.parse(consentAt))) {
+      return json({ error: 'Missing consent timestamp' }, 400);
+    }
+
+    const chat: ChatEntry[] = (Array.isArray(body.chat) ? body.chat : [])
+      .slice(0, MAX_CHAT_MESSAGES)
+      .map((m: Record<string, unknown>) => ({
+        role: m.role === 'assistant' ? 'assistant' : 'user',
+        content: String(m.content ?? '').slice(0, MAX_MESSAGE_CHARS),
+        ...(m.label ? { label: String(m.label).slice(0, 80) } : {}),
+        ...(typeof m.at === 'number' ? { at: m.at } : {}),
+        ...(typeof m.attachmentCount === 'number' && m.attachmentCount > 0
+          ? { attachmentCount: Math.floor(m.attachmentCount) }
+          : {}),
+      }));
+    if (chat.length === 0) return json({ error: 'A report needs its conversation' }, 400);
+
+    const events: LogEvent[] = (Array.isArray(body.events) ? body.events : [])
+      .slice(0, MAX_EVENTS)
+      .filter((e: Record<string, unknown>) => typeof e.at === 'number' && typeof e.type === 'string')
+      .map((e: Record<string, unknown>) => ({
+        at: e.at as number,
+        type: String(e.type).slice(0, 40),
+        ...(e.detail ? { detail: String(e.detail).slice(0, 240) } : {}),
+      }));
+
+    const files: FileEntry[] = (Array.isArray(body.files) ? body.files : [])
+      .slice(0, MAX_FILES)
+      .filter((f: Record<string, unknown>) => typeof f.path === 'string')
+      .map((f: Record<string, unknown>) => ({
+        path: String(f.path).slice(0, 300),
+        chars: typeof f.chars === 'number' ? Math.floor(f.chars) : 0,
+      }));
+
+    let feedback: Record<string, string> | null = null;
+    if (body.feedback && typeof body.feedback === 'object') {
+      feedback = {};
+      for (const key of ['hopedFor', 'roughMoments', 'surprises']) {
+        const v = (body.feedback as Record<string, unknown>)[key];
+        if (typeof v === 'string' && v.trim()) feedback[key] = v.trim().slice(0, MAX_FEEDBACK_CHARS);
+      }
+      if (Object.keys(feedback).length === 0) feedback = null;
+    }
+
+    const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const projectId =
+      typeof body.projectId === 'string' && uuidRe.test(body.projectId) ? body.projectId : null;
+    const projectName = String(body.projectName ?? '').slice(0, 200).trim() || null;
+    const summary = String(body.summary ?? '').slice(0, 2_000).trim() || null;
+    const provider = String(body.provider ?? '').slice(0, 60).trim() || null;
+    const model = String(body.model ?? '').slice(0, 120).trim() || null;
+    const followUpEmail = String(body.followUpEmail ?? '').slice(0, 200).trim() || null;
+
+    // Named columns throughout — including what we ask back — so the
+    // hardened privileges never have a star-select to refuse
+    const insertRes = await fetch(rest('/build_reports?select=id'), {
+      method: 'POST',
+      headers: { ...svc(), Prefer: 'return=representation' },
+      body: JSON.stringify({
+        project_id: projectId,
+        project_name: projectName,
+        summary,
+        chat,
+        events,
+        files,
+        feedback,
+        provider,
+        model,
+        follow_up_email: followUpEmail,
+        consent_at: consentAt,
+      }),
+    });
+    if (!insertRes.ok) return json({ error: 'Could not save the report' }, 500);
+    const inserted = await insertRes.json().catch(() => []);
+    const reportId: string | null = inserted?.[0]?.id ?? null;
+
+    // Email copy to the stewards — best-effort; the row is already safe
+    const resendKey = Deno.env.get('RESEND_API_KEY') ?? '';
+    const to = Deno.env.get('BUILD_REPORT_EMAIL') ?? 'humans@relationaltechproject.org';
+    if (resendKey) {
+      await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          from: 'Relational Builder <hello@relationalbuilder.org>',
+          to: [to],
+          reply_to: followUpEmail ?? undefined,
+          subject: `Build report: ${projectName ?? 'a new build'}`,
+          html: renderEmail({
+            projectName, summary, chat, events, files, feedback,
+            provider, model, followUpEmail, reportId,
+          }),
+        }),
+      }).catch(() => {});
+    }
+
+    return json({ ok: true, id: reportId });
+  } catch (err) {
+    return json({ error: err instanceof Error ? err.message : 'Internal error' }, 500);
+  }
+});
