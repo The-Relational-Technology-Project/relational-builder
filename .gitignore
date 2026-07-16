@@ -28,5 +28,12 @@ dist-ssr
 *.sw?
 lovable screenshots/
 supabase/.temp/
+
+# Bench: per-trial artifacts + the review page are regenerable and reference
+# each other; run.json, report.md, shots/, and review/scores.json are the
+# durable record and stay committed.
+bench/results/**/artifacts/
+bench/results/**/review/index.html
+bench/results/selftest/
 troubleshooting/
 internal reference docs/

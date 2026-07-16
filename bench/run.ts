@@ -1,0 +1,147 @@
+import { parseArgs } from 'node:util';
+import { buildSystemPrompt } from '@/knowledge/context-builder';
+import { KIT_FILES } from '@/kit';
+import { bundleProject, findFrameworkEntry } from '@/preview/bundler/bundle';
+import { BENCH_MODELS, ENV_KEYS, resolveModels } from './models';
+import { PROMPT, TASK_ID, TASK_VERSION } from './task';
+import { charsToTokens, EST_OUTPUT_TOKENS, estimateCostUsd } from './lib/cost';
+import type { BenchModel } from './types';
+
+/**
+ * Bench CLI (executed inside Vite SSR by bench/bootstrap.mjs).
+ *
+ *   npm run bench -- --dry-run                 prompt + matrix + cost, no API calls
+ *   npm run bench -- --models a,b --trials 2   live run
+ *   npm run bench -- report <runDir>           regenerate report.md (merges scores.json)
+ *   npm run bench -- --list-models
+ */
+
+/** The exact system prompt a fresh production build session gets. */
+export function benchSystemPrompt(): string {
+  return buildSystemPrompt({ mode: 'build' });
+}
+
+/** Prove esbuild-wasm bundles under Node before any money is spent. */
+async function bundlerSelfTest(): Promise<void> {
+  const files: Record<string, string> = {
+    ...KIT_FILES,
+    '/index.html':
+      '<!doctype html><html><body><div id="root"></div>' +
+      '<script type="module" src="/src/main.tsx"></script></body></html>',
+    '/src/index.css': '@import "tailwindcss";\n@theme { --color-ink: #222; }',
+    '/src/main.tsx':
+      "import { createRoot } from 'react-dom/client';\n" +
+      "import './index.css';\nimport { App } from './App';\n" +
+      "createRoot(document.getElementById('root')!).render(<App />);",
+    '/src/App.tsx':
+      "import { Button } from '@/components/ui/button';\n" +
+      'export function App() { return <Button>hello</Button>; }',
+  };
+  const entry = findFrameworkEntry(files);
+  if (!entry) throw new Error('bundler self-test: no entry found');
+  const result = await bundleProject({ files, entry });
+  if (!result.ok) {
+    throw new Error(`bundler self-test failed:\n${result.errors.join('\n')}`);
+  }
+  if (!result.js.includes('hello')) {
+    throw new Error('bundler self-test: fixture code missing from output');
+  }
+}
+
+function keyStatus(model: BenchModel): string {
+  return process.env[ENV_KEYS[model.providerId]] ? 'key ✓' : `needs ${ENV_KEYS[model.providerId]}`;
+}
+
+function printMatrix(models: BenchModel[], inputTokens: number, trials: number) {
+  console.log(`\nTask: ${TASK_ID} (${TASK_VERSION}) · trials per model: ${trials}`);
+  console.log(`System prompt + task: ~${inputTokens.toLocaleString()} input tokens\n`);
+  let total = 0;
+  for (const m of models) {
+    const cost = estimateCostUsd(m, inputTokens * trials, EST_OUTPUT_TOKENS * trials);
+    if (cost != null) total += cost;
+    const costStr = cost != null ? `~$${cost.toFixed(2)}` : 'price unknown';
+    console.log(
+      `  ${m.alias.padEnd(20)} ${m.providerId.padEnd(10)} ${costStr.padEnd(14)} ${keyStatus(m)}`,
+    );
+  }
+  console.log(`\nEstimated run total: ~$${total.toFixed(2)} (chars/4 heuristic, list prices)\n`);
+}
+
+export async function main(argv: string[]): Promise<number> {
+  if (argv[0] === 'report') {
+    const { generateReport } = await import('./lib/report');
+    return generateReport(argv[1]);
+  }
+
+  if (argv[0] === 'selftest') {
+    const { runSelftest } = await import('./selftest');
+    return runSelftest();
+  }
+
+  const { values } = parseArgs({
+    args: argv,
+    options: {
+      models: { type: 'string' },
+      trials: { type: 'string', default: '1' },
+      'dry-run': { type: 'boolean', default: false },
+      'skip-screenshots': { type: 'boolean', default: false },
+      'list-models': { type: 'boolean', default: false },
+      out: { type: 'string', default: 'bench/results' },
+      help: { type: 'boolean', default: false },
+    },
+  });
+
+  if (values.help) {
+    console.log(
+      'npm run bench -- [--models a,b,c] [--trials N] [--dry-run] ' +
+        '[--skip-screenshots] [--out dir] [--list-models]\n' +
+        'npm run bench -- report <runDir>',
+    );
+    return 0;
+  }
+
+  if (values['list-models']) {
+    for (const m of BENCH_MODELS) {
+      console.log(
+        `${m.alias.padEnd(20)} ${m.providerId.padEnd(10)} ${m.enabled ? '' : '(disabled — name explicitly to run)'}`,
+      );
+    }
+    return 0;
+  }
+
+  const models = resolveModels(values.models);
+  const trials = Math.max(1, parseInt(values.trials ?? '1', 10) || 1);
+
+  console.log('Assembling production system prompt…');
+  const systemPrompt = benchSystemPrompt();
+  const inputTokens = charsToTokens(systemPrompt.length + PROMPT.length);
+
+  console.log('Bundler self-test (esbuild-wasm under Node)…');
+  await bundlerSelfTest();
+  console.log('Bundler self-test passed.');
+
+  printMatrix(models, inputTokens, trials);
+
+  if (values['dry-run']) {
+    console.log('Dry run — no API calls made.');
+    return 0;
+  }
+
+  const missing = models.filter(m => !process.env[ENV_KEYS[m.providerId]]);
+  if (missing.length > 0) {
+    console.error(
+      `Missing API keys for: ${missing.map(m => m.alias).join(', ')}. ` +
+        'Set the env vars above or narrow --models.',
+    );
+    return 1;
+  }
+
+  const { executeRun } = await import('./lib/execute');
+  return executeRun({
+    models,
+    trials,
+    systemPrompt,
+    outDir: values.out ?? 'bench/results',
+    screenshots: !values['skip-screenshots'],
+  });
+}

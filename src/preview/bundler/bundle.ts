@@ -63,7 +63,13 @@ let initPromise: Promise<void> | null = null;
  */
 export function initBundler(): Promise<void> {
   if (!initPromise) {
-    initPromise = esbuild.initialize({ wasmURL, worker: true }).catch(err => {
+    // Under Node (the bench harness runs this module via Vite SSR),
+    // esbuild-wasm resolves to its Node build, which boots the wasm binary
+    // itself on first use — initialize({ wasmURL }) is browser-only and throws.
+    initPromise = (typeof window === 'undefined'
+      ? Promise.resolve()
+      : esbuild.initialize({ wasmURL, worker: true })
+    ).catch(err => {
       initPromise = null; // allow retry after a failed load
       throw err;
     });
