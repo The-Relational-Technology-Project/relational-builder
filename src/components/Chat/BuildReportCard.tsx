@@ -129,9 +129,9 @@ export function BuildReportCard() {
         <div className="space-y-1.5 flex-1 min-w-0">
           <p className="text-sm font-medium">Thanks for trying Relational Builder!</p>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Would it be okay to share this build's log with the RTP stewards? Josh and Deb —
-            two humans — would see the chat log, any errors, and a summary of what was
-            created, for this project's first build only. Nothing is shared unless you say
+            Would it be okay to share this build's log with the RTP stewards? Josh and Deb
+            would see the chat log, any errors, and a summary of what was created, for this
+            project's first build only. Nothing is shared unless you say
             yes. If you do, it's stored in Builder's database and emailed to them; ask
             anytime and we'll delete it. Sharing these logs is a real help at this early
             phase.
