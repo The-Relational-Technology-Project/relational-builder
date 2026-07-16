@@ -48,13 +48,6 @@ export const BENCH_MODELS: BenchModel[] = [
     pricing: { inputPerMTok: 2.5, outputPerMTok: 10, asOf: '2026-07' },
     enabled: true,
   },
-  {
-    alias: 'gpt-5.6-sol',
-    providerId: 'openai',
-    modelId: 'gpt-5.6-sol',
-    enabled: false,
-  },
-
   // --- Google (env: GEMINI_API_KEY) ---
   {
     alias: 'gemini-3.5-flash',
@@ -92,6 +85,46 @@ export const BENCH_MODELS: BenchModel[] = [
     modelId: 'meta-llama/Llama-3.3-70B-Instruct-Turbo',
     pricing: { inputPerMTok: 0.88, outputPerMTok: 0.88, asOf: '2026-07' },
     enabled: true,
+  },
+
+  // --- OpenRouter mirrors (env: OPENROUTER_API_KEY) --- one key, many
+  //     vendors, identical OpenAI-format requests across all of them.
+  //     Disabled so the default matrix stays direct-API; name explicitly
+  //     via --models to run. Pricing = OpenRouter list prices.
+  {
+    alias: 'fable-5',
+    providerId: 'openrouter',
+    modelId: 'anthropic/claude-fable-5',
+    pricing: { inputPerMTok: 10, outputPerMTok: 50, asOf: '2026-07' },
+    enabled: false,
+  },
+  {
+    alias: 'opus-4.8',
+    providerId: 'openrouter',
+    modelId: 'anthropic/claude-opus-4.8',
+    pricing: { inputPerMTok: 5, outputPerMTok: 25, asOf: '2026-07' },
+    enabled: false,
+  },
+  {
+    alias: 'gemini-3.1-pro',
+    providerId: 'openrouter',
+    modelId: 'google/gemini-3.1-pro-preview',
+    pricing: { inputPerMTok: 2, outputPerMTok: 12, asOf: '2026-07' },
+    enabled: false,
+  },
+  {
+    alias: 'gpt-5.6-sol',
+    providerId: 'openrouter',
+    modelId: 'openai/gpt-5.6-sol',
+    pricing: { inputPerMTok: 5, outputPerMTok: 30, asOf: '2026-07' },
+    enabled: false,
+  },
+  {
+    alias: 'kimi-k3',
+    providerId: 'openrouter',
+    modelId: 'moonshotai/kimi-k3',
+    pricing: { inputPerMTok: 3, outputPerMTok: 15, asOf: '2026-07' },
+    enabled: false,
   },
 ];
 
