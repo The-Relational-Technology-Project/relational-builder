@@ -164,6 +164,16 @@ const COMMUNITY_MODELS = (Deno.env.get('COMMUNITY_MODELS') ?? 'claude-sonnet-5,c
   .map((s) => s.trim())
   .filter(Boolean);
 
+// If a headline model is retired upstream (e.g. Claude Fable 5's API access
+// sunsetting), requests retry once on the mapped fallback so community
+// building never breaks on a model sunset. Format: 'model:fallback,...'.
+const MODEL_FALLBACKS: Record<string, string> = Object.fromEntries(
+  (Deno.env.get('MODEL_FALLBACKS') ?? 'claude-fable-5:claude-opus-4-8')
+    .split(',')
+    .map((pair) => pair.split(':').map((s) => s.trim()))
+    .filter((p) => p.length === 2 && p[0] && p[1]),
+);
+
 type CommunityGate = { email: string } | { error: string; status: number };
 
 async function checkCommunityAccess(
@@ -471,15 +481,28 @@ async function proxyAnthropic(
       : parts[0] ?? '';
   }
 
-  const upstream = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify(anthropicBody),
-  });
+  const callAnthropic = (payload: Record<string, unknown>) =>
+    fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify(payload),
+    });
+
+  let upstream = await callAnthropic(anthropicBody);
+
+  // A 404 for a mapped model means it was retired upstream — retry once with
+  // the fallback. Nothing has streamed yet, so the retry is invisible; the
+  // fallback (Opus-class) sits on the same adaptive-thinking surface, so the
+  // already-built request body stays valid.
+  if (!upstream.ok && upstream.status === 404 && MODEL_FALLBACKS[model]) {
+    await upstream.text(); // drain the error body before refetching
+    anthropicBody.model = MODEL_FALLBACKS[model];
+    upstream = await callAnthropic(anthropicBody);
+  }
 
   if (!upstream.ok) {
     const text = await upstream.text();

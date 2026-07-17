@@ -5,11 +5,11 @@ import { useProviderStore } from '@/store/provider-store';
 
 /**
  * Models covered by the RTP community key (mirror of the proxy's allowlist).
- * Opus 4.8 is the default — early adopters get the best model; Sonnet 5 is
- * the lighter choice. Smart throttling (e.g. after initial builds) can come
- * later.
+ * Fable 5 is the first-build default (won the July 2026 bench on design and
+ * completeness); Opus 4.8 stays covered as its sunset fallback and the
+ * heavier manual pick; Sonnet 5 is the edit-step model.
  */
-export const COMMUNITY_MODELS = ['claude-opus-4-8', 'claude-sonnet-5', 'claude-haiku-4-5'];
+export const COMMUNITY_MODELS = ['claude-fable-5', 'claude-opus-4-8', 'claude-sonnet-5', 'claude-haiku-4-5'];
 
 /**
  * Community access (Tier 3): RTP-subsidized Claude for invited builders.
@@ -122,7 +122,7 @@ export function communityAccessActive(): boolean {
  *
  * Returns the model to switch to, or null when no change is called for.
  */
-export const COMMUNITY_FIRST_BUILD_MODEL = 'claude-opus-4-8';
+export const COMMUNITY_FIRST_BUILD_MODEL = 'claude-fable-5';
 export const COMMUNITY_EDIT_MODEL = 'claude-sonnet-5';
 
 export function resolveCommunityModelDefault(projectFileCount: number): string | null {

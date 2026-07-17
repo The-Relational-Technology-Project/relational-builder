@@ -55,7 +55,7 @@ const CONTINUE_PROMPT =
 /** Shown once per project when free community building steps down to the
  *  edit model — the model picker must never change behind anyone's back */
 const EDIT_MODEL_NOTE =
-  'Quick edits now run on **Claude Sonnet 5** — fast, sharp, and lighter on the shared community budget. Making a bigger change? Pick Claude Opus 4.8 in the model menu and it will stick for this project.';
+  'Quick edits now run on **Claude Sonnet 5** — fast, sharp, and lighter on the shared community budget. Making a bigger change? Pick Claude Fable 5 in the model menu and it will stick for this project.';
 const EDIT_MODEL_NOTE_LABEL = 'Model note · from Relational Builder';
 
 /**
