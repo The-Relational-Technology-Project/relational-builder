@@ -3,17 +3,17 @@
 - **Task:** mutual-aid-board (task v1, harness 1.0.0, commit `c66f6dd`)
 - **Date:** 2026-07-17T00:05:49.115Z
 - **Trials per model:** 1
-- **Human review:** _not scored yet — open review/index.html, score, export, save as review/scores.json, re-run report_
+- **Human review:** scored by Josh (scores on a /10 scale; RTP fit not scored this round)
 
 > Cost and token figures are **estimates** (chars ÷ 4 × list prices) — directional, not billing-grade.
 > Mechanical columns are medians across trials; latency = full generation wall time.
 
 | Model | Bundle | Files | Failed edits | Truncated | Checks | Sec flags | TTFT | Latency | ~$ | Design | RTP fit | Complete | Rank | |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| fable-5 | 1/1 ✓| 11 | 0 | no | 5/5 | 0 | 38s | 145s | 0.47 | — | — | — | — |
-| opus-4.8 | 1/1 ✓| 11 | 0 | no | 5/5 | 0 | 1s | 108s | 0.21 | — | — | — | — |
-| gemini-3.1-pro | 1/1 ✓| 8 | 0 | no | 4/5 | 0 | 13s | 55s | 0.08 | — | — | — | — |
-| gpt-5.6-sol | 1/1 ✓| 12 | 0 | no | 5/5 | 0 | 12s | 97s | 0.34 | — | — | — | — |
+| fable-5 | 1/1 ✓| 11 | 0 | no | 5/5 | 0 | 38s | 145s | 0.47 | 7 | — | 7 | #1 |
+| opus-4.8 | 1/1 ✓| 11 | 0 | no | 5/5 | 0 | 1s | 108s | 0.21 | 5 | — | 6 | #3 |
+| gemini-3.1-pro | 1/1 ✓| 8 | 0 | no | 4/5 | 0 | 13s | 55s | 0.08 | 3 | — | 4 | #4 |
+| gpt-5.6-sol | 1/1 ✓| 12 | 0 | no | 5/5 | 0 | 12s | 97s | 0.34 | 6 | — | 6 | #2 |
 | kimi-k3 | ✗ all errored| — | — | no | —/0 | — | — | — | — | — | — | — | — | 1 errored
 
 ## Which model for what

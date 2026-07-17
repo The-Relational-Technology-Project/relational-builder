@@ -1,0 +1,11 @@
+{
+  "runId": "2026-07-16T23-59-c66f6dd",
+  "reviewer": "Josh (scores on a /10 scale; RTP fit not scored this round)",
+  "scores": {
+    "fable-5": { "designQuality": 7, "completeness": 7 },
+    "gpt-5.6-sol": { "designQuality": 6, "completeness": 6 },
+    "opus-4.8": { "designQuality": 5, "completeness": 6 },
+    "gemini-3.1-pro": { "designQuality": 3, "completeness": 4 }
+  },
+  "ranking": ["fable-5", "gpt-5.6-sol", "opus-4.8", "gemini-3.1-pro"]
+}
