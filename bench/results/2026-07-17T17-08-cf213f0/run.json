@@ -2,7 +2,7 @@
   "harnessVersion": "1.0.0",
   "taskVersion": "exp-v1,exp-v1",
   "gitCommit": "cf213f0",
-  "createdAt": "2026-07-17T17:15:53.747Z",
+  "createdAt": "2026-07-17T17:18:27.907Z",
   "runId": "2026-07-17T17-08-cf213f0",
   "config": {
     "trials": 1,
@@ -188,6 +188,79 @@
         }
       ],
       "artifactDir": "artifacts/pdx-story-porch/fable-5-t1",
+      "error": null
+    },
+    {
+      "alias": "opus-4.8",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-opus-4.8",
+      "taskId": "pdx-block-party",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-07-17T17:15:53.767Z",
+      "plan": {
+        "latencyMs": 29940,
+        "ttftMs": 2556,
+        "chars": 4128
+      },
+      "latencyMs": 153991,
+      "ttftMs": 2066,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 124051,
+          "chars": 29628
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 33756,
+      "estTokens": {
+        "input": 12665,
+        "output": 8439,
+        "estimated": true
+      },
+      "estCostUsd": 0.2743,
+      "extraction": {
+        "writes": 11,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/pdx-block-party/opus-4.8-t1",
       "error": null
     }
   ]
