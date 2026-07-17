@@ -1,0 +1,121 @@
+{
+  "harnessVersion": "1.0.0",
+  "taskVersion": "exp-v1,exp-v1",
+  "gitCommit": "cf213f0",
+  "createdAt": "2026-07-17T17:12:11.496Z",
+  "runId": "2026-07-17T17-08-cf213f0",
+  "config": {
+    "trials": 1,
+    "timeoutMs": 600000,
+    "planFirst": true
+  },
+  "models": [
+    {
+      "alias": "fable-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-fable-5",
+      "pricing": {
+        "inputPerMTok": 10,
+        "outputPerMTok": 50,
+        "asOf": "2026-07"
+      },
+      "enabled": false
+    },
+    {
+      "alias": "opus-4.8",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-opus-4.8",
+      "pricing": {
+        "inputPerMTok": 5,
+        "outputPerMTok": 25,
+        "asOf": "2026-07"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "pdx-block-party",
+      "version": "exp-v1"
+    },
+    {
+      "id": "pdx-story-porch",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "fable-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-fable-5",
+      "taskId": "pdx-block-party",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-07-17T17:08:08.317Z",
+      "plan": {
+        "latencyMs": 38877,
+        "ttftMs": 12021,
+        "chars": 4933
+      },
+      "latencyMs": 242944,
+      "ttftMs": 93057,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 204067,
+          "chars": 32959
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 37892,
+      "estTokens": {
+        "input": 12866,
+        "output": 9473,
+        "estimated": true
+      },
+      "estCostUsd": 0.60231,
+      "extraction": {
+        "writes": 11,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/pdx-block-party/fable-5-t1",
+      "error": null
+    }
+  ]
+}
