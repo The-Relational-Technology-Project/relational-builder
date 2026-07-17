@@ -28,18 +28,23 @@ function toEntries(files: Record<string, string>): FileEntry[] {
 
 export async function writeTrialArtifacts(
   runDir: string,
+  taskId: string,
   alias: string,
   trial: number,
+  planText: string | null,
   session: SessionResult,
   mech: MechanicalResult,
 ): Promise<string> {
-  const rel = path.join('artifacts', `${alias}-t${trial}`);
+  const rel = path.join('artifacts', taskId, `${alias}-t${trial}`);
   const dir = path.join(runDir, rel);
   await mkdir(dir, { recursive: true });
 
-  const transcript = session.segmentTexts
+  const build = session.segmentTexts
     .map((t, i) => (i === 0 ? t : `\n\n---\n*[automatic continuation ${i}]*\n---\n\n${t}`))
     .join('');
+  const transcript = planText
+    ? `# Plan (plan-mode reply)\n\n${planText}\n\n---\n\n# Build\n\n${build}`
+    : build;
   await writeFile(path.join(dir, 'transcript.md'), transcript, 'utf8');
 
   for (const [p, content] of Object.entries(mech.files)) {

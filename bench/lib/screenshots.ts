@@ -65,11 +65,14 @@ async function loadPlaywright(): Promise<any | null> {
 }
 
 interface Target {
-  alias: string;
-  trial: number;
+  label: string;
   previewPath: string;
   outPath: string;
 }
+
+/** Shot filename shared with report.ts — task-qualified since a run can mix tasks */
+export const shotName = (t: Pick<TrialResult, 'taskId' | 'alias' | 'trial'>): string =>
+  `${t.taskId}--${t.alias}-t${t.trial}.png`;
 
 async function collectTargets(runDir: string, trials: TrialResult[]): Promise<Target[]> {
   const shotsDir = path.join(runDir, 'shots');
@@ -84,10 +87,9 @@ async function collectTargets(runDir: string, trials: TrialResult[]): Promise<Ta
       continue; // no preview (build failed)
     }
     targets.push({
-      alias: t.alias,
-      trial: t.trial,
+      label: `${t.taskId} · ${t.alias} t${t.trial}`,
       previewPath,
-      outPath: path.join(shotsDir, `${t.alias}-t${t.trial}.png`),
+      outPath: path.join(shotsDir, shotName(t)),
     });
   }
   return targets;
@@ -132,10 +134,10 @@ async function captureWithPlaywright(pw: any, chromiumPath: string | null, targe
         await page.goto(`file://${t.previewPath}`, { waitUntil: 'networkidle', timeout: 60_000 });
         await page.waitForTimeout(1_500); // let Tailwind's JIT + React settle
         await page.screenshot({ path: t.outPath });
-        console.log(`  📸 ${t.alias} t${t.trial}`);
+        console.log(`  📸 ${t.label}`);
       } catch (err) {
         console.warn(
-          `  screenshot failed for ${t.alias} t${t.trial}: ${err instanceof Error ? err.message : String(err)}`,
+          `  screenshot failed for ${t.label}: ${err instanceof Error ? err.message : String(err)}`,
         );
       } finally {
         await page.close();
@@ -163,10 +165,10 @@ async function captureWithCli(chromium: string, targets: Target[]): Promise<void
         ],
         { timeout: 60_000 },
       );
-      console.log(`  📸 ${t.alias} t${t.trial}`);
+      console.log(`  📸 ${t.label}`);
     } catch (err) {
       console.warn(
-        `  screenshot failed for ${t.alias} t${t.trial}: ${err instanceof Error ? err.message : String(err)}`,
+        `  screenshot failed for ${t.label}: ${err instanceof Error ? err.message : String(err)}`,
       );
     }
   }

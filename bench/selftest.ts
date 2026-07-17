@@ -1,5 +1,6 @@
 import { executeRun } from './lib/execute';
 import type { SessionResult } from './lib/session';
+import { TASKS } from './tasks';
 import type { BenchModel } from './types';
 
 /**
@@ -128,13 +129,17 @@ const mockSession = async (): Promise<SessionResult> => ({
   truncatedFinal: false,
   ttftMs: 321,
   latencyMs: 1234,
+  sentChars: 4321,
 });
 
 export async function runSelftest(): Promise<number> {
   const code = await executeRun({
     models: [MOCK_MODEL],
+    tasks: [TASKS[0]],
     trials: 1,
     systemPrompt: '(selftest — no prompt sent anywhere)',
+    planSystemPrompt: '',
+    planFirst: false,
     outDir: 'bench/results/selftest',
     screenshots: true,
     sessioner: mockSession,

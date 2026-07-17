@@ -30,8 +30,7 @@ export async function writeReviewPage(
   const shuffled = [...aliases].sort(() => Math.random() - 0.5);
   const blindLabel = new Map(shuffled.map((a, i) => [a, `Model ${String.fromCharCode(65 + i)}`]));
 
-  const cards = trials
-    .map(t => {
+  const renderCard = (t: TrialResult): string => {
       const label = blindLabel.get(t.alias) ?? t.alias;
       const chips = t.error
         ? `<span class="chip bad">error</span>`
@@ -66,6 +65,13 @@ export async function writeReviewPage(
           <label class="notes">Notes <input type="text" data-alias="${t.alias}" data-dim="notes"></label>
         </div>
       </section>`;
+  };
+
+  const taskIds = [...new Set(trials.map(t => t.taskId))];
+  const cards = taskIds
+    .map(taskId => {
+      const section = trials.filter(t => t.taskId === taskId).map(renderCard).join('\n');
+      return `<h2 class="taskhead">Task: ${taskId}</h2>\n<div class="cards">${section}</div>`;
     })
     .join('\n');
 
@@ -98,6 +104,7 @@ export async function writeReviewPage(
   #ranking ol { display: flex; gap: .5rem; flex-wrap: wrap; list-style: none; padding: 0; }
   #ranking li { border: 1px solid currentColor; border-radius: 8px; padding: .3rem .6rem; cursor: grab; user-select: none; }
   button { padding: .4rem .8rem; border-radius: 8px; cursor: pointer; }
+  .taskhead { font-size: 1rem; margin: 1.5rem 0 .5rem; opacity: .85; }
 </style>
 </head>
 <body>
@@ -116,7 +123,7 @@ export async function writeReviewPage(
     )
     .join('')}</ol>
 </div>
-<div class="cards">${cards}</div>
+${cards}
 <script>
 const RUN_ID = ${JSON.stringify(runId)};
 const KEY = 'rb-bench-scores-' + RUN_ID;

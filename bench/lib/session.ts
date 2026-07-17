@@ -1,8 +1,12 @@
 import type { ChatMessage, LLMProvider } from '@/providers/types';
+import { contentToText } from '@/providers/types';
 
 /**
  * One generation "session": the initial reply plus the same automatic
  * continuation loop production runs when a reply is cut off mid-file.
+ * Callers build the opening messages (system first) — a plain build ask is
+ * [system, user(task)]; a plan-approved build is [system, user(task),
+ * assistant(plan), user(go)].
  *
  * The three constants below are copied verbatim from
  * src/components/Chat/ChatPanel.tsx (a React component the harness can't
@@ -34,30 +38,31 @@ export interface SessionResult {
   truncatedFinal: boolean;
   ttftMs: number | null;
   latencyMs: number;
+  /** Total request chars actually sent across all rounds (system + history
+   *  resent per continuation) — the input side of the cost estimate */
+  sentChars: number;
 }
 
 export async function runSession(
   provider: LLMProvider,
   modelId: string,
-  systemPrompt: string,
-  userPrompt: string,
+  initialMessages: ChatMessage[],
   timeoutMs: number,
 ): Promise<SessionResult> {
-  const messages: ChatMessage[] = [
-    { role: 'system', content: systemPrompt },
-    { role: 'user', content: userPrompt },
-  ];
+  const messages: ChatMessage[] = [...initialMessages];
 
   const segmentTexts: string[] = [];
   const segments: SessionSegment[] = [];
   let ttftMs: number | null = null;
   let truncatedFinal = false;
+  let sentChars = 0;
   const sessionStart = Date.now();
 
   for (let round = 0; round <= MAX_CONTINUATIONS; round++) {
     const segStart = Date.now();
     let segText = '';
     let finishReason: string | null = null;
+    sentChars += messages.reduce((n, m) => n + contentToText(m.content).length, 0);
 
     const ac = new AbortController();
     const timer = setTimeout(() => ac.abort(), timeoutMs);
@@ -112,5 +117,6 @@ export async function runSession(
     truncatedFinal,
     ttftMs,
     latencyMs: Date.now() - sessionStart,
+    sentChars,
   };
 }

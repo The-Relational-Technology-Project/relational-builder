@@ -3,7 +3,7 @@ import { buildSystemPrompt } from '@/knowledge/context-builder';
 import { KIT_FILES } from '@/kit';
 import { bundleProject, findFrameworkEntry } from '@/preview/bundler/bundle';
 import { BENCH_MODELS, ENV_KEYS, resolveModels } from './models';
-import { PROMPT, TASK_ID, TASK_VERSION } from './task';
+import { resolveTasks, TASKS, type TaskSpec } from './tasks';
 import { charsToTokens, EST_OUTPUT_TOKENS, estimateCostUsd } from './lib/cost';
 import type { BenchModel } from './types';
 
@@ -52,12 +52,25 @@ function keyStatus(model: BenchModel): string {
   return process.env[ENV_KEYS[model.providerId]] ? 'key ✓' : `needs ${ENV_KEYS[model.providerId]}`;
 }
 
-function printMatrix(models: BenchModel[], inputTokens: number, trials: number) {
-  console.log(`\nTask: ${TASK_ID} (${TASK_VERSION}) · trials per model: ${trials}`);
-  console.log(`System prompt + task: ~${inputTokens.toLocaleString()} input tokens\n`);
+function printMatrix(
+  models: BenchModel[],
+  tasks: TaskSpec[],
+  inputTokens: number,
+  trials: number,
+  planFirst: boolean,
+) {
+  const cells = tasks.length * trials;
+  console.log(
+    `\nTasks: ${tasks.map(t => `${t.id} (${t.version})`).join(', ')} · trials per model per task: ${trials}` +
+      (planFirst ? ' · plan-first' : ''),
+  );
+  console.log(`System prompt + task: ~${inputTokens.toLocaleString()} input tokens per generation\n`);
+  // Plan-first roughly doubles input (two generations) and adds a plan reply
+  const inPerCell = planFirst ? inputTokens * 2 : inputTokens;
+  const outPerCell = planFirst ? EST_OUTPUT_TOKENS + 4_000 : EST_OUTPUT_TOKENS;
   let total = 0;
   for (const m of models) {
-    const cost = estimateCostUsd(m, inputTokens * trials, EST_OUTPUT_TOKENS * trials);
+    const cost = estimateCostUsd(m, inPerCell * cells, outPerCell * cells);
     if (cost != null) total += cost;
     const costStr = cost != null ? `~$${cost.toFixed(2)}` : 'price unknown';
     console.log(
@@ -98,10 +111,13 @@ export async function main(argv: string[]): Promise<number> {
     args: argv,
     options: {
       models: { type: 'string' },
+      tasks: { type: 'string' },
       trials: { type: 'string', default: '1' },
+      'plan-first': { type: 'boolean', default: false },
       'dry-run': { type: 'boolean', default: false },
       'skip-screenshots': { type: 'boolean', default: false },
       'list-models': { type: 'boolean', default: false },
+      'list-tasks': { type: 'boolean', default: false },
       out: { type: 'string', default: 'bench/results' },
       help: { type: 'boolean', default: false },
     },
@@ -109,10 +125,17 @@ export async function main(argv: string[]): Promise<number> {
 
   if (values.help) {
     console.log(
-      'npm run bench -- [--models a,b,c] [--trials N] [--dry-run] ' +
-        '[--skip-screenshots] [--out dir] [--list-models]\n' +
-        'npm run bench -- report <runDir>',
+      'npm run bench -- [--models a,b,c] [--tasks x,y] [--trials N] [--plan-first] ' +
+        '[--dry-run] [--skip-screenshots] [--out dir] [--list-models] [--list-tasks]\n' +
+        'npm run bench -- report <runDir> | review <runDir> | selftest',
     );
+    return 0;
+  }
+
+  if (values['list-tasks']) {
+    for (const t of TASKS) {
+      console.log(`${t.id.padEnd(20)} ${t.version.padEnd(8)} ${t.prompt.slice(0, 80)}…`);
+    }
     return 0;
   }
 
@@ -126,17 +149,20 @@ export async function main(argv: string[]): Promise<number> {
   }
 
   const models = resolveModels(values.models);
+  const tasks = resolveTasks(values.tasks);
   const trials = Math.max(1, parseInt(values.trials ?? '1', 10) || 1);
+  const planFirst = values['plan-first'] ?? false;
 
-  console.log('Assembling production system prompt…');
+  console.log('Assembling production system prompts…');
   const systemPrompt = benchSystemPrompt();
-  const inputTokens = charsToTokens(systemPrompt.length + PROMPT.length);
+  const planSystemPrompt = planFirst ? buildSystemPrompt({ mode: 'plan' }) : '';
+  const inputTokens = charsToTokens(systemPrompt.length + tasks[0].prompt.length);
 
   console.log('Bundler self-test (esbuild-wasm under Node)…');
   await bundlerSelfTest();
   console.log('Bundler self-test passed.');
 
-  printMatrix(models, inputTokens, trials);
+  printMatrix(models, tasks, inputTokens, trials, planFirst);
 
   if (values['dry-run']) {
     console.log('Dry run — no API calls made.');
@@ -155,8 +181,11 @@ export async function main(argv: string[]): Promise<number> {
   const { executeRun } = await import('./lib/execute');
   return executeRun({
     models,
+    tasks,
     trials,
     systemPrompt,
+    planSystemPrompt,
+    planFirst,
     outDir: values.out ?? 'bench/results',
     screenshots: !values['skip-screenshots'],
   });

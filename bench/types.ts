@@ -23,8 +23,13 @@ export interface TrialResult {
   alias: string;
   providerId: string;
   modelId: string;
+  taskId: string;
+  taskVersion: string;
   trial: number;
   startedAt: string;
+  /** Present when the run used --plan-first: the plan-mode generation that
+   *  preceded the build (Fable plans + builds in production) */
+  plan: { latencyMs: number; ttftMs: number | null; chars: number } | null;
   /** Wall time across all segments, ms */
   latencyMs: number;
   /** Time to first streamed token of the first segment, ms */
@@ -60,8 +65,9 @@ export interface RunReport {
   gitCommit: string;
   createdAt: string;
   runId: string;
-  config: { trials: number; timeoutMs: number };
+  config: { trials: number; timeoutMs: number; planFirst: boolean };
   models: BenchModel[];
+  tasks: Array<{ id: string; version: string }>;
   trials: TrialResult[];
 }
 

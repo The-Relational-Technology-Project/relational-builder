@@ -1,8 +1,9 @@
 import { execSync } from 'node:child_process';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import type { ChatMessage } from '@/providers/types';
 import type { BenchModel, RunReport, TrialResult } from '../types';
-import { PROMPT, TASK_VERSION } from '../task';
+import { BUILD_GO_PROMPT, type TaskSpec } from '../tasks';
 import { charsToTokens, estimateCostUsd, HARNESS_VERSION } from './cost';
 import { providerFor } from './providers';
 import { runSession, type SessionResult } from './session';
@@ -11,12 +12,18 @@ import { writeTrialArtifacts } from './artifacts';
 
 export interface ExecuteOptions {
   models: BenchModel[];
+  tasks: TaskSpec[];
   trials: number;
+  /** buildSystemPrompt({ mode: 'build' }) — the production build prompt */
   systemPrompt: string;
+  /** buildSystemPrompt({ mode: 'plan' }) — used when planFirst is on */
+  planSystemPrompt: string;
+  /** Plan-mode generation precedes each build (mirrors production flow) */
+  planFirst: boolean;
   outDir: string;
   screenshots: boolean;
   /** Injectable session (selftest) — bypasses providers entirely */
-  sessioner?: () => Promise<SessionResult>;
+  sessioner?: (messages: ChatMessage[]) => Promise<SessionResult>;
 }
 
 /** Generous ceiling — Opus-class first builds stream for minutes, not hours. */
@@ -35,30 +42,22 @@ function newRunId(sha: string): string {
   return `${stamp}-${sha}`;
 }
 
-/** Input chars actually sent across all segments (continuations resend history). */
-function inputChars(systemPrompt: string, session: SessionResult): number {
-  let total = 0;
-  let history = systemPrompt.length + PROMPT.length;
-  for (let i = 0; i < session.segments.length; i++) {
-    total += history;
-    history += session.segments[i].chars + 400; // + continuation prompt
-  }
-  return total;
-}
-
 async function runTrial(
   model: BenchModel,
+  task: TaskSpec,
   trial: number,
-  systemPrompt: string,
+  opts: ExecuteOptions,
   runDir: string,
-  sessioner?: () => Promise<SessionResult>,
 ): Promise<TrialResult> {
   const base: TrialResult = {
     alias: model.alias,
     providerId: model.providerId,
     modelId: model.modelId,
+    taskId: task.id,
+    taskVersion: task.version,
     trial,
     startedAt: new Date().toISOString(),
+    plan: null,
     latencyMs: 0,
     ttftMs: null,
     segments: [],
@@ -77,50 +76,91 @@ async function runTrial(
     error: null,
   };
 
-  let session: SessionResult;
-  try {
-    const runOnce =
-      sessioner ??
-      (() => runSession(providerFor(model), model.modelId, systemPrompt, PROMPT, TRIAL_TIMEOUT_MS));
+  const session = (messages: ChatMessage[]) =>
+    opts.sessioner
+      ? opts.sessioner(messages)
+      : runSession(providerFor(model), model.modelId, messages, TRIAL_TIMEOUT_MS);
+  const withOneRetry = async (messages: ChatMessage[]): Promise<SessionResult> => {
     try {
-      session = await runOnce();
+      return await session(messages);
     } catch (err) {
       // One transport retry — OpenAI-compatible providers have none built in,
       // and a single 5xx blip shouldn't cost a whole matrix cell. (Timeouts
       // are real signal, not blips: they fail the trial.)
       if (err instanceof Error && /timed out/.test(err.message)) throw err;
       console.warn(`  ${model.alias} t${trial}: retrying after error — ${String(err)}`);
-      session = await runOnce();
+      return session(messages);
     }
+  };
+
+  let planSession: SessionResult | null = null;
+  let buildSession: SessionResult;
+  try {
+    let buildMessages: ChatMessage[];
+    if (opts.planFirst) {
+      planSession = await withOneRetry([
+        { role: 'system', content: opts.planSystemPrompt },
+        { role: 'user', content: task.prompt },
+      ]);
+      buildMessages = [
+        { role: 'system', content: opts.systemPrompt },
+        { role: 'user', content: task.prompt },
+        { role: 'assistant', content: planSession.segmentTexts.join('\n') },
+        { role: 'user', content: BUILD_GO_PROMPT },
+      ];
+    } else {
+      buildMessages = [
+        { role: 'system', content: opts.systemPrompt },
+        { role: 'user', content: task.prompt },
+      ];
+    }
+    buildSession = await withOneRetry(buildMessages);
   } catch (err) {
     return { ...base, error: err instanceof Error ? err.message : String(err) };
   }
 
-  const outputChars = session.segmentTexts.reduce((n, t) => n + t.length, 0);
-  const inTokens = charsToTokens(inputChars(systemPrompt, session));
+  const outputChars =
+    buildSession.segmentTexts.reduce((n, t) => n + t.length, 0) +
+    (planSession?.segmentTexts.reduce((n, t) => n + t.length, 0) ?? 0);
+  const inTokens = charsToTokens(buildSession.sentChars + (planSession?.sentChars ?? 0));
   const outTokens = charsToTokens(outputChars);
 
   const result: TrialResult = {
     ...base,
-    latencyMs: session.latencyMs,
-    ttftMs: session.ttftMs,
-    segments: session.segments,
-    continuations: session.continuations,
-    truncatedFinal: session.truncatedFinal,
+    plan: planSession
+      ? {
+          latencyMs: planSession.latencyMs,
+          ttftMs: planSession.ttftMs,
+          chars: planSession.segmentTexts.reduce((n, t) => n + t.length, 0),
+        }
+      : null,
+    latencyMs: buildSession.latencyMs + (planSession?.latencyMs ?? 0),
+    ttftMs: buildSession.ttftMs,
+    segments: buildSession.segments,
+    continuations: buildSession.continuations,
+    truncatedFinal: buildSession.truncatedFinal,
     outputChars,
     estTokens: { input: inTokens, output: outTokens, estimated: true },
     estCostUsd: estimateCostUsd(model, inTokens, outTokens),
   };
 
   try {
-    const mech = await scoreOutput(session.segmentTexts);
+    const mech = await scoreOutput(task, buildSession.segmentTexts);
     result.extraction = mech.extraction;
     result.previewKind = mech.previewKind;
     result.previewKindMatch = mech.previewKindMatch;
     result.bundle = mech.bundle;
     result.securityFindings = mech.securityFindings;
     result.checks = mech.checks;
-    result.artifactDir = await writeTrialArtifacts(runDir, model.alias, trial, session, mech);
+    result.artifactDir = await writeTrialArtifacts(
+      runDir,
+      task.id,
+      model.alias,
+      trial,
+      planSession?.segmentTexts.join('\n') ?? null,
+      buildSession,
+      mech,
+    );
   } catch (err) {
     result.error = `scoring failed: ${err instanceof Error ? err.message : String(err)}`;
   }
@@ -151,17 +191,20 @@ export async function executeRun(opts: ExecuteOptions): Promise<number> {
   await Promise.all(
     [...byProvider.values()].map(async models => {
       for (const model of models) {
-        for (let t = 1; t <= opts.trials; t++) {
-          console.log(`▶ ${model.alias} (trial ${t}/${opts.trials})…`);
-          const result = await runTrial(model, t, opts.systemPrompt, runDir, opts.sessioner);
-          trials.push(result);
-          const status = result.error
-            ? `✗ ${result.error.slice(0, 120)}`
-            : `${result.bundle?.ok ? 'bundle ✓' : 'bundle ✗'} · ${result.extraction.writes} files · ` +
-              `${Math.round(result.latencyMs / 1000)}s · ~$${result.estCostUsd?.toFixed(2) ?? '?'}`;
-          console.log(`  ${model.alias} t${t}: ${status}`);
-          // Partial results survive a crash / Ctrl-C
-          await snapshot();
+        for (const task of opts.tasks) {
+          for (let t = 1; t <= opts.trials; t++) {
+            console.log(`▶ ${model.alias} · ${task.id} (trial ${t}/${opts.trials})…`);
+            const result = await runTrial(model, task, t, opts, runDir);
+            trials.push(result);
+            const planNote = result.plan ? `plan ${Math.round(result.plan.latencyMs / 1000)}s + ` : '';
+            const status = result.error
+              ? `✗ ${result.error.slice(0, 120)}`
+              : `${result.bundle?.ok ? 'bundle ✓' : 'bundle ✗'} · ${result.extraction.writes} files · ` +
+                `${planNote}${Math.round((result.latencyMs - (result.plan?.latencyMs ?? 0)) / 1000)}s · ~$${result.estCostUsd?.toFixed(2) ?? '?'}`;
+            console.log(`  ${model.alias} · ${task.id} t${t}: ${status}`);
+            // Partial results survive a crash / Ctrl-C
+            await snapshot();
+          }
         }
       }
     }),
@@ -201,12 +244,13 @@ async function writeRunJson(
 ): Promise<void> {
   const report: RunReport = {
     harnessVersion: HARNESS_VERSION,
-    taskVersion: TASK_VERSION,
+    taskVersion: opts.tasks.map(t => t.version).join(','),
     gitCommit: sha,
     createdAt: new Date().toISOString(),
     runId,
-    config: { trials: opts.trials, timeoutMs: TRIAL_TIMEOUT_MS },
+    config: { trials: opts.trials, timeoutMs: TRIAL_TIMEOUT_MS, planFirst: opts.planFirst },
     models: opts.models,
+    tasks: opts.tasks.map(t => ({ id: t.id, version: t.version })),
     trials,
   };
   await writeFile(path.join(runDir, 'run.json'), JSON.stringify(report, null, 2), 'utf8');

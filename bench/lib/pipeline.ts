@@ -5,7 +5,7 @@ import { KIT_FILES } from '@/kit';
 import { buildEnvJs, buildEnvTs } from '@/project/env-module';
 import { runSecurityScan } from '@/project/security-scan';
 import type { FileEntry } from '@/project/virtual-fs';
-import { CHECKS, EXPECTED_PREVIEW_KIND } from '../task';
+import type { TaskSpec } from '../tasks';
 import type { TrialResult } from '../types';
 
 /**
@@ -37,7 +37,7 @@ function toEntries(files: Record<string, string>): FileEntry[] {
   }));
 }
 
-export async function scoreOutput(segmentTexts: string[]): Promise<MechanicalResult> {
+export async function scoreOutput(task: TaskSpec, segmentTexts: string[]): Promise<MechanicalResult> {
   const files: Record<string, string> = {};
   let writes = 0;
   let editBlocks = 0;
@@ -87,10 +87,10 @@ export async function scoreOutput(segmentTexts: string[]): Promise<MechanicalRes
     files,
     extraction: { writes, editBlocks, failedEditBlocks },
     previewKind,
-    previewKindMatch: previewKind === EXPECTED_PREVIEW_KIND,
+    previewKindMatch: previewKind === task.expectedPreviewKind,
     bundle,
     securityFindings: runSecurityScan(entries).length,
-    checks: CHECKS.map(c => ({
+    checks: task.checks.map(c => ({
       id: c.id,
       description: c.description,
       pass: c.test(files, transcript),
