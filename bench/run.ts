@@ -78,6 +78,22 @@ export async function main(argv: string[]): Promise<number> {
     return runSelftest();
   }
 
+  // Regenerate review/index.html from run.json (e.g. after merging a
+  // retried trial into a run directory).
+  if (argv[0] === 'review') {
+    if (!argv[1]) {
+      console.error('Usage: npm run bench -- review <runDir>');
+      return 1;
+    }
+    const { readFile } = await import('node:fs/promises');
+    const path = await import('node:path');
+    const { writeReviewPage } = await import('./lib/review-page');
+    const run = JSON.parse(await readFile(path.resolve(argv[1], 'run.json'), 'utf8'));
+    await writeReviewPage(path.resolve(argv[1]), run.runId, run.trials);
+    console.log(`Review page written: ${path.resolve(argv[1], 'review/index.html')}`);
+    return 0;
+  }
+
   const { values } = parseArgs({
     args: argv,
     options: {

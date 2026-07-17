@@ -1,0 +1,365 @@
+{
+  "harnessVersion": "1.0.0",
+  "taskVersion": "v1",
+  "gitCommit": "c66f6dd",
+  "createdAt": "2026-07-17T00:05:49.115Z",
+  "runId": "2026-07-16T23-59-c66f6dd",
+  "config": {
+    "trials": 1,
+    "timeoutMs": 600000
+  },
+  "models": [
+    {
+      "alias": "fable-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-fable-5",
+      "pricing": {
+        "inputPerMTok": 10,
+        "outputPerMTok": 50,
+        "asOf": "2026-07"
+      },
+      "enabled": false
+    },
+    {
+      "alias": "opus-4.8",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-opus-4.8",
+      "pricing": {
+        "inputPerMTok": 5,
+        "outputPerMTok": 25,
+        "asOf": "2026-07"
+      },
+      "enabled": false
+    },
+    {
+      "alias": "gemini-3.1-pro",
+      "providerId": "openrouter",
+      "modelId": "google/gemini-3.1-pro-preview",
+      "pricing": {
+        "inputPerMTok": 2,
+        "outputPerMTok": 12,
+        "asOf": "2026-07"
+      },
+      "enabled": false
+    },
+    {
+      "alias": "gpt-5.6-sol",
+      "providerId": "openrouter",
+      "modelId": "openai/gpt-5.6-sol",
+      "pricing": {
+        "inputPerMTok": 5,
+        "outputPerMTok": 30,
+        "asOf": "2026-07"
+      },
+      "enabled": false
+    },
+    {
+      "alias": "kimi-k3",
+      "providerId": "openrouter",
+      "modelId": "moonshotai/kimi-k3",
+      "pricing": {
+        "inputPerMTok": 3,
+        "outputPerMTok": 15,
+        "asOf": "2026-07"
+      },
+      "enabled": false
+    }
+  ],
+  "trials": [
+    {
+      "alias": "fable-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-fable-5",
+      "trial": 1,
+      "startedAt": "2026-07-16T23:59:01.427Z",
+      "latencyMs": 145161,
+      "ttftMs": 37931,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 145161,
+          "chars": 30920
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 30920,
+      "estTokens": {
+        "input": 8234,
+        "output": 7730,
+        "estimated": true
+      },
+      "estCostUsd": 0.46884000000000003,
+      "extraction": {
+        "writes": 11,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/fable-5-t1",
+      "error": null
+    },
+    {
+      "alias": "opus-4.8",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-opus-4.8",
+      "trial": 1,
+      "startedAt": "2026-07-17T00:01:26.868Z",
+      "latencyMs": 108136,
+      "ttftMs": 1428,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 108135,
+          "chars": 27603
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 27603,
+      "estTokens": {
+        "input": 8234,
+        "output": 6901,
+        "estimated": true
+      },
+      "estCostUsd": 0.21369500000000002,
+      "extraction": {
+        "writes": 11,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/opus-4.8-t1",
+      "error": null
+    },
+    {
+      "alias": "gemini-3.1-pro",
+      "providerId": "openrouter",
+      "modelId": "google/gemini-3.1-pro-preview",
+      "trial": 1,
+      "startedAt": "2026-07-17T00:03:15.311Z",
+      "latencyMs": 54533,
+      "ttftMs": 13492,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 54533,
+          "chars": 21410
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 21410,
+      "estTokens": {
+        "input": 8234,
+        "output": 5353,
+        "estimated": true
+      },
+      "estCostUsd": 0.080704,
+      "extraction": {
+        "writes": 8,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": false
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/gemini-3.1-pro-t1",
+      "error": null
+    },
+    {
+      "alias": "gpt-5.6-sol",
+      "providerId": "openrouter",
+      "modelId": "openai/gpt-5.6-sol",
+      "trial": 1,
+      "startedAt": "2026-07-17T00:04:09.929Z",
+      "latencyMs": 97464,
+      "ttftMs": 12326,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 97464,
+          "chars": 40376
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 40376,
+      "estTokens": {
+        "input": 8234,
+        "output": 10094,
+        "estimated": true
+      },
+      "estCostUsd": 0.34399,
+      "extraction": {
+        "writes": 12,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/gpt-5.6-sol-t1",
+      "error": null
+    },
+    {
+      "alias": "kimi-k3",
+      "providerId": "openrouter",
+      "modelId": "moonshotai/kimi-k3",
+      "trial": 1,
+      "startedAt": "2026-07-17T00:05:47.549Z",
+      "latencyMs": 0,
+      "ttftMs": null,
+      "segments": [],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 0,
+      "estTokens": {
+        "input": 0,
+        "output": 0,
+        "estimated": true
+      },
+      "estCostUsd": null,
+      "extraction": {
+        "writes": 0,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "previewKind": "none",
+      "previewKindMatch": false,
+      "bundle": null,
+      "securityFindings": 0,
+      "checks": [],
+      "artifactDir": null,
+      "error": "OpenRouter API error (429): {\"error\":{\"message\":\"Provider returned error\",\"code\":429,\"metadata\":{\"raw\":\"moonshotai/kimi-k3 is temporarily rate-limited upstream. Please retry shortly, or add your own key to accumulate your rate limits: https://openrouter.ai/settings/integrations\",\"provider_name\":\"Moonshot AI\",\"is_byok\":false,\"retry_after_seconds\":1,\"retry_after_seconds_raw\":1,\"headers\":{\"Retry-After\":\"1\"}}},\"user_id\":\"user_3Gbh2zmbkUZRqGfiXTo62nfbcec\"}"
+    }
+  ]
+}
