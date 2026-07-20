@@ -14,6 +14,7 @@ import { useLocalProjects } from '@/project/local-projects';
 import { createPreviewLink, PREVIEW_DAYS, type ShareResult } from '@/project/share-preview';
 import { needsBuild, buildStaticSite } from '@/project/build-for-publish';
 import { suggestProjectName } from '@/project/suggest-name';
+import QRCode from 'react-qr-code';
 import {
   Share2,
   Loader2,
@@ -21,6 +22,7 @@ import {
   Check,
   ExternalLink,
   Eye,
+  Smartphone,
 } from 'lucide-react';
 
 export function SharePreview({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
@@ -46,7 +48,6 @@ function ShareContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ShareResult | null>(null);
-  const [copied, setCopied] = useState(false);
 
   const canShare = cloudEnabled && !!user;
 
@@ -71,12 +72,6 @@ function ShareContent() {
       setLoading(false);
     }
   }, [getAllFiles, getPublicEnvVars, cloudProjectName, localProjectName]);
-
-  const copyToClipboard = useCallback(async (url: string) => {
-    await navigator.clipboard.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }, []);
 
   if (!result) {
     return (
@@ -117,9 +112,22 @@ function ShareContent() {
     );
   }
 
+  return <PreviewLinkResult result={result} />;
+}
+
+/** Post-create view: link row + QR code. Exported for direct mounting in UI checks. */
+export function PreviewLinkResult({ result }: { result: ShareResult }) {
+  const [copied, setCopied] = useState(false);
+
+  const copyToClipboard = useCallback(async (url: string) => {
+    await navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, []);
+
   return (
-    <div className="space-y-4 pt-2">
-      <div className="space-y-2">
+    <div className="min-w-0 space-y-4 pt-2">
+      <div className="min-w-0 space-y-2">
         <div className="flex items-center gap-1.5">
           <Eye className="size-3.5 text-muted-foreground" />
           <label className="text-xs font-medium">Preview link</label>
@@ -127,8 +135,8 @@ function ShareContent() {
             Share this with neighbors
           </span>
         </div>
-        <div className="flex gap-1.5">
-          <div className="flex-1 bg-muted rounded-md px-3 py-2 text-xs font-mono truncate">
+        <div className="flex min-w-0 gap-1.5">
+          <div className="min-w-0 flex-1 bg-muted rounded-md px-3 py-2 text-xs font-mono truncate">
             {result.previewUrl}
           </div>
           <Button
@@ -149,6 +157,23 @@ function ShareContent() {
             </Button>
           </a>
         </div>
+      </div>
+
+      <div className="flex flex-col items-center gap-2 pt-1">
+        {/* White card behind the code keeps it scannable in dark mode */}
+        <div className="rounded-xl border bg-white p-3 shadow-sm">
+          <QRCode
+            value={result.previewUrl}
+            size={168}
+            bgColor="#ffffff"
+            fgColor="#1c1917"
+            aria-label={`QR code for ${result.previewUrl}`}
+          />
+        </div>
+        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Smartphone className="size-3.5" />
+          Point a phone camera here to open it on your phone
+        </p>
       </div>
 
       <p className="text-xs text-muted-foreground text-center">
