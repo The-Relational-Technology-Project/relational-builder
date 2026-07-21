@@ -6,8 +6,8 @@ import { useProviderStore } from '@/store/provider-store';
 /**
  * Models covered by the RTP community key (mirror of the proxy's allowlist).
  * Fable 5 is the first-build default (won the July 2026 bench on design and
- * completeness); Opus 4.8 stays covered as its sunset fallback and the
- * heavier manual pick; Sonnet 5 is the edit-step model.
+ * completeness); Opus 4.8 is the edit-step model; Sonnet 5 stays covered as
+ * the lighter manual pick.
  */
 export const COMMUNITY_MODELS = ['claude-fable-5', 'claude-opus-4-8', 'claude-sonnet-5', 'claude-haiku-4-5'];
 
@@ -68,8 +68,8 @@ export const useCommunityStore = create<CommunityState>()((set) => ({
     });
 
     // Community default: a member with no personal Claude key gets steered off
-    // a model that would 403 — onto the stage-appropriate default (Opus for a
-    // fresh project, Sonnet 5 once it has files).
+    // a model that would 403 — onto the stage-appropriate default (Fable for a
+    // fresh project, Opus 4.8 once it has files).
     const providers = useProviderStore.getState();
     if (
       providers.activeProviderId === 'claude' &&
@@ -112,9 +112,10 @@ export function communityAccessActive(): boolean {
 }
 
 /**
- * Smart model defaults for free community building: Opus 4.8 does the first
+ * Smart model defaults for free community building: Fable 5 does the first
  * build (vision and architecture are where the best model earns its cost),
- * Sonnet 5 picks up the edits — faster, and ~5× lighter on the shared budget.
+ * Opus 4.8 picks up the edits and fixes — near-Fable depth at half the spend
+ * on the shared budget.
  *
  * Only applies when the person is building on the community key AND hasn't
  * picked a model themselves (the picker pins their choice for the project).
@@ -123,7 +124,7 @@ export function communityAccessActive(): boolean {
  * Returns the model to switch to, or null when no change is called for.
  */
 export const COMMUNITY_FIRST_BUILD_MODEL = 'claude-fable-5';
-export const COMMUNITY_EDIT_MODEL = 'claude-sonnet-5';
+export const COMMUNITY_EDIT_MODEL = 'claude-opus-4-8';
 
 export function resolveCommunityModelDefault(projectFileCount: number): string | null {
   const providers = useProviderStore.getState();

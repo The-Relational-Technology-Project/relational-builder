@@ -18,7 +18,7 @@ import { Separator } from '@/components/ui/separator';
 import { ChevronDown, ChevronRight, BookOpen, Radio, Loader2, AlertTriangle, RefreshCw } from 'lucide-react';
 
 /** Covered models, in the order the community proxy prefers them */
-const COMMUNITY_MODEL_NAMES = 'Opus 4.8 (the best builder), Sonnet 5, and Haiku 4.5';
+const COMMUNITY_MODEL_NAMES = 'Fable 5 (the best builder), Opus 4.8, Sonnet 5, and Haiku 4.5';
 
 interface ProviderSettingsProps {
   /** Controlled open state — when provided, the internal trigger is hidden */

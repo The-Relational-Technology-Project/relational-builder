@@ -13,8 +13,8 @@ import {
 /** Short, human descriptions so choosing a model doesn't require model trivia */
 const MODEL_HINTS: Record<string, string> = {
   'claude-fable-5': 'The best builder — does your first build, great for big changes',
-  'claude-opus-4-8': 'Deep and dependable — strong for big changes',
-  'claude-sonnet-5': 'Fast and sharp — the default for quick edits',
+  'claude-opus-4-8': 'Deep and dependable — the default for edits and fixes',
+  'claude-sonnet-5': 'Fast and sharp — a lighter pick for small tweaks',
   'claude-haiku-4-5': 'Quickest and lightest',
 };
 
@@ -55,7 +55,7 @@ export function ModelSelector({ className }: { className?: string }) {
         {onCommunityKey && (
           <p className="px-2 py-1.5 text-xs leading-snug text-muted-foreground">
             Included with community access — every model draws on the same
-            daily budget. First builds use Opus, edits default to Sonnet;
+            daily budget. First builds use Fable, edits default to Opus;
             picking one here makes it stick for this project.
           </p>
         )}

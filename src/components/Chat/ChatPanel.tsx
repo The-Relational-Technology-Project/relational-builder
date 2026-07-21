@@ -60,7 +60,7 @@ const CONTINUE_PROMPT =
 /** Shown once per project when free community building steps down to the
  *  edit model — the model picker must never change behind anyone's back */
 const EDIT_MODEL_NOTE =
-  'Quick edits now run on **Claude Sonnet 5** — fast, sharp, and lighter on the shared community budget. Making a bigger change? Pick Claude Fable 5 in the model menu and it will stick for this project.';
+  'Edits and fixes now run on **Claude Opus 4.8** — deep and dependable, and lighter on the shared community budget. Making a bigger change? Pick Claude Fable 5 in the model menu and it will stick for this project.';
 const EDIT_MODEL_NOTE_LABEL = 'Model note · from Relational Builder';
 
 /**
@@ -187,7 +187,7 @@ export function ChatPanel() {
       currentMode === 'build' && useProjectStore.getState().getFileCount() === 0;
     if (isFirstBuild) requestBuildNotifyPermission();
 
-    // Free community building: Opus 4.8 does the first build, Sonnet 5 the
+    // Free community building: Fable 5 does the first build, Opus 4.8 the
     // edits — unless the person picked a model themselves. Fix sends stay on
     // whatever model is active (a continuation must finish what it started).
     let modelForSend = activeModelId;
@@ -431,7 +431,7 @@ export function ChatPanel() {
                     // reviewed, so neither can loop.)
                     runQualityReview(firstBuildAsk);
                     // First build landed on the community key: step the
-                    // default down to Sonnet 5 for the edits ahead — visibly,
+                    // default down to Opus 4.8 for the edits ahead — visibly,
                     // with a note, so the model picker never changes behind
                     // anyone's back.
                     const autoModel = resolveCommunityModelDefault(
