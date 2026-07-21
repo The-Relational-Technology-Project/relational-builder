@@ -17,6 +17,7 @@ import {
   Loader2,
   HeartHandshake,
   Landmark,
+  Network,
 } from 'lucide-react';
 
 const textareaClass =
@@ -39,6 +40,7 @@ export function ProfilePage() {
   const [neighborhood, setNeighborhood] = useState('');
   const [neighborhoodDescription, setNeighborhoodDescription] = useState('');
   const [dreams, setDreams] = useState('');
+  const [localTechEcosystem, setLocalTechEcosystem] = useState('');
   const [techFamiliarity, setTechFamiliarity] = useState('');
   const [aiCodingExperience, setAiCodingExperience] = useState('');
   const [emailOptIn, setEmailOptIn] = useState(false);
@@ -57,6 +59,7 @@ export function ProfilePage() {
     setNeighborhood(profile.neighborhood ?? '');
     setNeighborhoodDescription(profile.neighborhood_description ?? '');
     setDreams(profile.dreams ?? '');
+    setLocalTechEcosystem(profile.local_tech_ecosystem ?? '');
     setTechFamiliarity(profile.tech_familiarity ?? '');
     setAiCodingExperience(profile.ai_coding_experience ?? '');
     setEmailOptIn(profile.email_opt_in === true);
@@ -85,6 +88,7 @@ export function ProfilePage() {
       neighborhood: neighborhood.trim() || null,
       neighborhood_description: neighborhoodDescription.trim() || null,
       dreams: dreams.trim() || null,
+      local_tech_ecosystem: localTechEcosystem.trim() || null,
       tech_familiarity: techFamiliarity || null,
       ai_coding_experience: aiCodingExperience || null,
       email_opt_in: emailOptIn,
@@ -159,6 +163,27 @@ export function ProfilePage() {
             onChange={e => setDreams(e.target.value)}
             placeholder="A tool for neighbors to share meals, a website for our community garden, a way to organize block parties..."
             rows={3}
+            className={textareaClass}
+          />
+        </section>
+
+        {/* Local tech ecosystem */}
+        <section className="space-y-3">
+          <h2 className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground uppercase tracking-wide">
+            <Network className="size-3.5" />
+            Your local tech ecosystem
+          </h2>
+          <p className="text-xs text-muted-foreground">
+            Optional — the community tools and software already running in your
+            place. New builds get planned into this ecosystem: recommending
+            links, data sharing, and a design that fills a real gap instead of
+            duplicating what exists.
+          </p>
+          <textarea
+            value={localTechEcosystem}
+            onChange={e => setLocalTechEcosystem(e.target.value)}
+            placeholder="The tools your community already uses — a neighborhood calendar, a directory, a lending library app, group chats — and how they connect..."
+            rows={6}
             className={textareaClass}
           />
         </section>

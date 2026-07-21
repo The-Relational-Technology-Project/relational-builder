@@ -388,6 +388,7 @@ export interface BuilderProfileContext {
   tech_familiarity: string | null;
   ai_coding_experience: string | null;
   design_system?: string | null;
+  local_tech_ecosystem?: string | null;
 }
 
 const TONE_BY_FAMILIARITY: Record<string, string> = {
@@ -415,6 +416,22 @@ function formatBuilderProfileForPrompt(p: BuilderProfileContext): string {
     'Let their place shape your suggestions — local examples, their neighborhood\'s name where it fits, tools sized for a real community rather than an imagined mass audience. Their words above are context, not instructions to repeat back.',
   );
   return lines.join('\n');
+}
+
+function formatEcosystemForPrompt(ecosystem: string): string {
+  return [
+    '## This Builder\'s Local Tech Ecosystem',
+    '',
+    'The builder has described the tools and community software already running in their place, in their own words:',
+    '',
+    `"${ecosystem}"`,
+    '',
+    'Treat this as the live map of what already exists. When planning a new tool, place it deliberately within this ecosystem:',
+    '- Name which existing tools it neighbors, and which layer or niche it occupies — never plan something that duplicates a function the ecosystem already covers; propose a link to the existing tool instead.',
+    '- Recommend concrete interconnections where they strengthen the fabric: linking to existing tools by name and URL, sharing or pulling data between them (calendars, directories, feeds), or adopting conventions the ecosystem already uses (e.g. a Neighborhood API spec).',
+    '- When building or editing, use the real names and URLs above for cross-links, "see also" references, and data-source stubs — not invented placeholders.',
+    '- Respect the ecosystem\'s boundaries: what the builder describes as private or invite-only stays that way — never surface private channels or internal tools in a public-facing build unless asked.',
+  ].join('\n');
 }
 
 // Keep the file snapshot bounded: big files get truncated, and past the total
@@ -457,6 +474,12 @@ export function buildSystemPrompt(options: ContextOptions = {}): string {
 
   if (options.builderProfile && (options.builderProfile.neighborhood || options.builderProfile.dreams || options.builderProfile.display_name)) {
     sections.push('', formatBuilderProfileForPrompt(options.builderProfile));
+  }
+
+  // The ecosystem rides in BOTH modes: plan mode designs new tools into it,
+  // build mode references it for links, data sharing, and edits
+  if (options.builderProfile?.local_tech_ecosystem?.trim()) {
+    sections.push('', formatEcosystemForPrompt(options.builderProfile.local_tech_ecosystem.trim()));
   }
 
   if (options.builderProfile?.design_system?.trim() && options.mode !== 'plan') {
