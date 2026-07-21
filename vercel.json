@@ -3,6 +3,10 @@
     {
       "source": "/s/:path(.*)",
       "destination": "/api/site?path=:path"
+    },
+    {
+      "source": "/connect/respond",
+      "destination": "/api/connect"
     }
   ]
 }
