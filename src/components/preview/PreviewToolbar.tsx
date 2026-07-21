@@ -1,8 +1,10 @@
-import { Monitor, Tablet, Smartphone, RotateCw, ExternalLink, ChevronDown } from 'lucide-react';
+import { Monitor, Tablet, Smartphone, RotateCw, ExternalLink, ChevronDown, MousePointerClick } from 'lucide-react';
 
 /**
  * The strip above the live preview: device widths, page navigation,
- * refresh, and open-in-browser — for both preview engines.
+ * "Point at it", refresh, and open-in-browser — for both preview engines.
+ * Everything here is builder chrome in a fixed place; nothing floats over
+ * the previewed app itself.
  */
 
 export type PreviewDevice = 'desktop' | 'tablet' | 'mobile';
@@ -28,12 +30,16 @@ export function PreviewToolbar({
   routes,
   currentRoute,
   handle,
+  pointing,
+  onPointing,
 }: {
   device: PreviewDevice;
   onDevice: (d: PreviewDevice) => void;
   routes: string[];
   currentRoute: string;
   handle: PreviewHandle | null;
+  pointing: boolean;
+  onPointing: (on: boolean) => void;
 }) {
   return (
     <div className="shrink-0 flex items-center gap-2 border-b bg-background px-2 py-1.5">
@@ -74,6 +80,22 @@ export function PreviewToolbar({
       )}
 
       <div className="flex-1" />
+
+      <button
+        onClick={() => onPointing(!pointing)}
+        aria-pressed={pointing}
+        title={pointing
+          ? 'Click an element in the preview to describe a change — or click here to cancel'
+          : 'Point at what you want to change'}
+        className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors ${
+          pointing
+            ? 'bg-primary text-primary-foreground border-primary'
+            : 'text-muted-foreground hover:text-foreground'
+        }`}
+      >
+        <MousePointerClick className="size-3.5" />
+        <span className="hidden sm:inline">{pointing ? 'Click the thing to change…' : 'Point at it'}</span>
+      </button>
 
       <button
         title="Refresh the preview"

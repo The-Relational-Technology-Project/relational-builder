@@ -56,6 +56,7 @@ export function PreviewPanel() {
   const [handle, setHandle] = useState<PreviewHandle | null>(null);
   const [currentRoute, setCurrentRoute] = useState('/');
   const [reloadKey, setReloadKey] = useState(0);
+  const [pointing, setPointing] = useState(false);
   const routes = useMemo(
     () => (kind === 'framework' ? extractHashRoutes(files) : []),
     [kind, files],
@@ -184,6 +185,8 @@ export function PreviewPanel() {
         routes={routes}
         currentRoute={currentRoute}
         handle={kind === 'framework' ? handle : sandpackHandle}
+        pointing={pointing}
+        onPointing={setPointing}
       />
       <DeviceFrame device={device}>
         {kind === 'framework' ? (
@@ -192,6 +195,8 @@ export function PreviewPanel() {
             version={version}
             publicEnvVars={publicEnvVars}
             onHandle={setHandle}
+            pointing={pointing}
+            onPointingChange={setPointing}
           />
         ) : (
           <SandpackPath
@@ -199,6 +204,8 @@ export function PreviewPanel() {
             files={files}
             version={version}
             publicEnvVars={publicEnvVars}
+            pointing={pointing}
+            onPointingChange={setPointing}
           />
         )}
       </DeviceFrame>
@@ -211,10 +218,14 @@ function SandpackPath({
   files,
   version,
   publicEnvVars,
+  pointing,
+  onPointingChange,
 }: {
   files: ReturnType<ReturnType<typeof useProjectStore.getState>['getAllFiles']>;
   version: number;
   publicEnvVars: { key: string; value: string }[];
+  pointing: boolean;
+  onPointingChange: (on: boolean) => void;
 }) {
   const { sandpackFiles, template, entry, externalResources } = useMemo(() => {
     const spFiles: SandpackFiles = {};
@@ -324,7 +335,7 @@ function SandpackPath({
         theme="dark"
         style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
       >
-        <PointAtIt>
+        <PointAtIt selecting={pointing} onSelectingChange={onPointingChange}>
           <SandpackPreview
             showNavigator={false}
             showRefreshButton={false}

@@ -224,25 +224,35 @@ let promotionFailedAt = 0;
  * this device, its first save creates a real cloud project — named like any
  * hosted project — and cloud autosync owns it from then on. One project,
  * one name, saved on the account; the device shelf is for signed-out work.
+ *
+ * Exported as the ONE way to put the current workspace on the account — the
+ * autosaver, the project pill's Save, and the Collaborate dialog all funnel
+ * through here, so the in-flight guard can prevent two racing creates from
+ * minting the same project twice.
  */
-async function promoteWorkspaceToCloud(): Promise<void> {
-  if (promoting) return;
+export async function promoteWorkspaceToCloud(
+  nameOverride?: string,
+): Promise<{ error: string | null }> {
+  if (promoting) return { error: null };
+  if (cloudProjectOwnsWorkspace()) return { error: null };
   promoting = true;
   try {
     const slotName = useLocalProjects.getState().currentName.trim();
-    const name = slotName || deriveName(useProjectStore.getState().fs.toJSON());
+    const name =
+      nameOverride?.trim() || slotName || deriveName(useProjectStore.getState().fs.toJSON());
     const result = await useCloudStore.getState().createProject(name);
     if (result.error) {
       // Cloud said no (offline, quota, permissions) — shelve on-device so
       // nothing is lost, and back off before trying the cloud again
       promotionFailedAt = Date.now();
       saveCurrentLocally();
-      return;
+      return result;
     }
     // The account owns it now — a shelf copy would only shadow it
     const id = useLocalProjects.getState().currentId;
     if (id) deleteLocalProject(id);
     else detachLocalTracking();
+    return { error: null };
   } finally {
     promoting = false;
   }

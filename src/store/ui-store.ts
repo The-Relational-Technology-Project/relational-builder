@@ -11,7 +11,14 @@ import { create } from 'zustand';
  * the builder happens through the header (project name / wordmark), not
  * per-page close buttons.
  */
-export type AppView = 'builder' | 'gallery' | 'projects' | 'connections' | 'steward' | 'studio-admin';
+export type AppView =
+  | 'builder'
+  | 'gallery'
+  | 'projects'
+  | 'connections'
+  | 'profile'
+  | 'steward'
+  | 'studio-admin';
 
 interface UIState {
   view: AppView;

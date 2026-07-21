@@ -1,27 +1,27 @@
 import { useProjectStore } from '@/store/project-store';
 import { useChatStore } from '@/store/chat-store';
 import { useAuthStore } from '@/store/auth-store';
-import {
-  useCloudStore,
-  readCloudAttachment,
-  clearCloudAttachment,
-} from '@/store/cloud-store';
-import { saveCurrentLocally } from '@/project/local-projects';
+import { useCloudStore, readCloudAttachment } from '@/store/cloud-store';
+import { useLocalProjects } from '@/project/local-projects';
+import { builderClient } from '@/cloud/builder-client';
 
 /**
  * Auto-save: when a cloud project is open, debounce workspace changes
  * (files, chat, mode, lineage) into a cloud save. Remote updates set
  * `applyingRemote` so they don't echo back as saves.
  *
- * Also owns resuming the attached cloud project after a reload — the
- * attachment survives in localStorage, so once auth settles the same
- * project re-opens instead of the workspace silently going "local" and
- * forking under a new name.
+ * Also owns resuming the attached cloud project after a reload. The
+ * attachment survives in localStorage and holds even while signed out —
+ * sync is merely paused, and the SAME project resumes on the next sign-in.
+ * Nothing here ever hands a cloud project's workspace to the device shelf:
+ * shelving and later re-uploading is exactly how duplicate cloud rows used
+ * to be minted.
  */
 
 const DEBOUNCE_MS = 1500;
 let timer: ReturnType<typeof setTimeout> | null = null;
 let started = false;
+let migrated = false;
 
 function scheduleSave() {
   const cloud = useCloudStore.getState();
@@ -35,19 +35,74 @@ function scheduleSave() {
   }, DEBOUNCE_MS);
 }
 
-/** Resume the attached project once a user is present; if auth settles with
- *  no session, the resume will never come — hand the workspace to the local
- *  shelf under the project's real name so nothing forks under a guessed one. */
+/** Resume the attached project once a user is present. While signed out the
+ *  attachment simply waits — edits keep living in the persisted workspace,
+ *  and the resume reconciles them (local-newer pushes up, remote-newer pulls
+ *  down) instead of forking the project under a new id. */
 function onAuthChanged() {
-  if (!readCloudAttachment() || useCloudStore.getState().currentProjectId) return;
   const auth = useAuthStore.getState();
-  if (auth.user) {
+  if (!auth.user) return;
+  if (readCloudAttachment() && !useCloudStore.getState().currentProjectId) {
     void useCloudStore.getState().resumeProject();
-  } else if (auth.initialized && auth.profileLoaded) {
-    const name = readCloudAttachment()?.name;
-    clearCloudAttachment();
-    saveCurrentLocally(name);
   }
+  void migrateShelfToCloud();
+}
+
+/**
+ * One-time move of device-shelf projects onto the account: signed-in
+ * builders shouldn't have a second, device-bound library. Each shelf slot
+ * becomes a real cloud project — except slots whose name already matches a
+ * cloud project: those are almost certainly stale forks of it (the old
+ * detach/sign-out flows minted them), and uploading them would create yet
+ * another duplicate. They stay untouched in localStorage as a quiet backup.
+ */
+export async function migrateShelfToCloud(): Promise<void> {
+  if (migrated || !builderClient) return;
+  const user = useAuthStore.getState().user;
+  if (!user) return;
+  migrated = true;
+
+  const { shelf, currentId } = useLocalProjects.getState();
+  // The open workspace's slot belongs to the live promotion path, not here
+  const slots = shelf.filter(m => m.id !== currentId);
+  if (slots.length === 0) return;
+
+  await useCloudStore.getState().refreshProjects();
+  const cloudNames = new Set(
+    useCloudStore.getState().projects.map(p => p.name.trim().toLowerCase()),
+  );
+
+  for (const meta of slots) {
+    if (cloudNames.has(meta.name.trim().toLowerCase())) continue;
+    let snapshot: {
+      name: string; files: unknown; chat: unknown; mode: unknown; lineage: unknown;
+    } | null = null;
+    try {
+      const raw = localStorage.getItem(`rb-local-project:${meta.id}`);
+      snapshot = raw ? JSON.parse(raw) : null;
+    } catch {
+      continue;
+    }
+    if (!snapshot) continue;
+
+    const { error } = await builderClient.from('projects').insert({
+      owner_id: user.id,
+      name: meta.name,
+      files: snapshot.files ?? [],
+      chat: snapshot.chat ?? [],
+      mode: snapshot.mode ?? 'build',
+      lineage: snapshot.lineage ?? null,
+      updated_by: user.id,
+    });
+    if (error) {
+      // Offline or rejected — leave the slot for a later session
+      migrated = false;
+      continue;
+    }
+    const { deleteLocalProject } = await import('@/project/local-projects');
+    deleteLocalProject(meta.id);
+  }
+  await useCloudStore.getState().refreshProjects();
 }
 
 export function initCloudSync() {

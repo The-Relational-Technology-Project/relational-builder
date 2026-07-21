@@ -61,18 +61,16 @@ export function clearCloudAttachment() {
 
 /**
  * True when the workspace belongs to a cloud project — either one that's
- * open right now, or one whose attachment survived a reload and is waiting
- * for auth to settle so it can resume. The local shelf must never adopt
- * such a workspace (that's how forks are minted).
+ * open right now, or one whose attachment survived a reload. The local
+ * shelf must never adopt such a workspace (that's how forks are minted).
+ *
+ * The attachment holds even while signed out: sync is merely paused, and
+ * the same project resumes on the next sign-in. Anything else — shelving
+ * the workspace and later re-uploading it — mints a duplicate cloud row.
  */
 export function cloudProjectOwnsWorkspace(): boolean {
   if (useCloudStore.getState().currentProjectId) return true;
-  if (!readCloudAttachment()) return false;
-  const auth = useAuthStore.getState();
-  // Auth settled with no user: the session is truly gone and no resume is
-  // coming — the sync layer hands the workspace to the shelf under its real
-  // name. Until then, hold the shelf off.
-  return !(auth.initialized && auth.profileLoaded && !auth.user);
+  return readCloudAttachment() !== null;
 }
 
 interface CloudProjectRow {
@@ -105,7 +103,9 @@ interface CloudState {
   /** Re-open the attached cloud project after a reload — the workspace never
    *  silently becomes "local" again */
   resumeProject: () => Promise<void>;
-  closeProject: () => void;
+  /** Detach the workspace from its cloud project. Flushes a final save by
+   *  default — pass `{flush: false}` when the row is gone (delete). */
+  closeProject: (opts?: { flush?: boolean }) => void;
   renameProject: (name: string) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
   saveNow: () => Promise<void>;
@@ -229,6 +229,9 @@ export const useCloudStore = create<CloudState>()((set, get) => ({
     const user = useAuthStore.getState().user;
     if (!builderClient || !user) return { error: 'Sign in first' };
 
+    // Whatever's open still owes the cloud its last debounced edits
+    if (get().currentProjectId && get().currentProjectId !== id) await get().saveNow();
+
     const { data, error } = await builderClient
       .from('projects')
       .select('*')
@@ -328,7 +331,11 @@ export const useCloudStore = create<CloudState>()((set, get) => ({
     }
   },
 
-  closeProject: () => {
+  closeProject: (opts?: { flush?: boolean }) => {
+    // The debounced autosaver may still owe the row up to 1.5s of edits —
+    // flush before detaching. saveNow snapshots the workspace synchronously,
+    // so clearing state right after is safe.
+    if (opts?.flush !== false && get().currentProjectId) void get().saveNow();
     unsubscribe();
     writeAttachment(null);
     set({
@@ -354,7 +361,8 @@ export const useCloudStore = create<CloudState>()((set, get) => ({
   deleteProject: async (id: string) => {
     if (!builderClient) return;
     await builderClient.from('projects').delete().eq('id', id);
-    if (get().currentProjectId === id) get().closeProject();
+    // No flush — a farewell save would just error against the deleted row
+    if (get().currentProjectId === id) get().closeProject({ flush: false });
     await get().refreshProjects();
   },
 
@@ -377,6 +385,10 @@ export const useCloudStore = create<CloudState>()((set, get) => ({
       .eq('id', currentProjectId)
       .select('updated_at')
       .single();
+
+    // The project may have been closed while the write was in flight (e.g. a
+    // flush-on-close) — don't resurrect its status or attachment afterwards
+    if (get().currentProjectId !== currentProjectId) return;
 
     if (error) {
       set({ syncStatus: 'error', syncError: error.message });

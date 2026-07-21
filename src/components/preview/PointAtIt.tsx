@@ -1,25 +1,39 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { MousePointerClick } from 'lucide-react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { useChatStore } from '@/store/chat-store';
 
 /**
- * "Point at it" around any preview iframe: toggle select mode, click any
- * element in the running app, and the chat input is prefilled with a
- * description of that element — no selectors, no code-speak, just point.
+ * "Point at it" wiring around any preview iframe: while armed, a click on
+ * any element in the running app prefills the chat input with a description
+ * of that element — no selectors, no code-speak, just point.
  *
- * Works with both preview engines: the wrapper finds the iframe among its
- * children and speaks the rb-inspect/rb-selected postMessage protocol that
- * the injected inspector script implements.
+ * The wrapper is pure plumbing — the visible toggle lives in the preview
+ * toolbar (builder chrome), never floating over the previewed app. It finds
+ * the iframe among its children and speaks the rb-inspect/rb-selected
+ * postMessage protocol that the injected inspector script implements.
  */
-export function PointAtIt({ children }: { children: ReactNode }) {
-  const [selecting, setSelecting] = useState(false);
+export function PointAtIt({
+  selecting,
+  onSelectingChange,
+  children,
+}: {
+  selecting: boolean;
+  onSelectingChange: (on: boolean) => void;
+  children: ReactNode;
+}) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const setDraftMessage = useChatStore(s => s.setDraftMessage);
 
-  // Tell the preview iframe to enter/leave select mode
+  // Tell the preview iframe to enter/leave select mode. The injected
+  // script's state dies with every rebuild (fresh document), so re-arm on
+  // iframe load too — mid-selection rebuilds stay in sync.
   useEffect(() => {
     const iframe = wrapperRef.current?.querySelector('iframe');
-    iframe?.contentWindow?.postMessage({ type: 'rb-inspect', on: selecting }, '*');
+    if (!iframe) return;
+    const post = () =>
+      iframe.contentWindow?.postMessage({ type: 'rb-inspect', on: selecting }, '*');
+    post();
+    iframe.addEventListener('load', post);
+    return () => iframe.removeEventListener('load', post);
   }, [selecting]);
 
   // Receive the clicked element and hand it to the chat
@@ -49,29 +63,15 @@ export function PointAtIt({ children }: { children: ReactNode }) {
             'Change it so that ',
           ];
       setDraftMessage(bits.join('\n'));
-      setSelecting(false);
+      onSelectingChange(false);
     }
     window.addEventListener('message', onMessage);
     return () => window.removeEventListener('message', onMessage);
-  }, [setDraftMessage]);
+  }, [setDraftMessage, onSelectingChange]);
 
   return (
     <div ref={wrapperRef} className="relative" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
       {children}
-      <button
-        onClick={() => setSelecting(s => !s)}
-        title={selecting
-          ? 'Click an element in the preview to describe a change — or click here to cancel'
-          : 'Point at what you want to change'}
-        className={`absolute bottom-3 right-3 z-10 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium shadow-md transition-colors ${
-          selecting
-            ? 'bg-primary text-primary-foreground'
-            : 'bg-background/90 border text-muted-foreground hover:text-foreground'
-        }`}
-      >
-        <MousePointerClick className="size-3.5" />
-        {selecting ? 'Click the thing to change…' : 'Point at it'}
-      </button>
     </div>
   );
 }

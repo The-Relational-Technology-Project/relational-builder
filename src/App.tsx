@@ -15,12 +15,12 @@ import { useCloudStore } from '@/store/cloud-store';
 import { useCommunityStore } from '@/store/community-store';
 import { useStudioStore } from '@/store/studio-store';
 import { useUIStore } from '@/store/ui-store';
-import { StudioSwitcher } from '@/components/StudioSwitcher';
 import { BuilderOnboarding } from '@/components/BuilderOnboarding';
 import { initCloudSync } from '@/cloud/sync';
 import { AccountMenu } from '@/components/AccountMenu';
 import { ProjectsButton, ProjectsPage } from '@/components/ProjectsPage';
 import { ConnectionsPage } from '@/components/ConnectionsPage';
+import { ProfilePage } from '@/components/ProfilePage';
 import { ProjectStatus } from '@/components/ProjectStatus';
 import { StewardPage } from '@/components/StewardPage';
 import { StudioAdminPage } from '@/components/StudioAdminPage';
@@ -31,7 +31,7 @@ import { RBMark } from '@/components/RBMark';
 import { CommonsGallery } from '@/components/CommonsGallery';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { Plus, MessageSquare, PanelsTopLeft, Menu, X, Cloud, CloudOff, Loader2, LayoutGrid } from 'lucide-react';
+import { Plus, MessageSquare, PanelsTopLeft, Menu, X, CloudOff, LayoutGrid } from 'lucide-react';
 
 /** True below the md breakpoint — drives the stacked mobile layout */
 /**
@@ -161,7 +161,8 @@ function App() {
             </h1>
           </button>
           <Separator orientation="vertical" className="h-5" />
-          <StudioSwitcher />
+          {/* Studio affiliation lives on the builder profile page now — the
+              nav stays about the work in front of you */}
           <ProjectStatus />
         </div>
         <div className="flex items-center gap-2 shrink-0">
@@ -208,12 +209,9 @@ function App() {
           >
             {currentProjectName ? (
               <>
-                {syncStatus === 'saving' ? (
-                  <Loader2 className="size-3 animate-spin shrink-0 text-muted-foreground" />
-                ) : syncStatus === 'error' ? (
+                {/* Saving is the quiet baseline — only a failure gets an icon */}
+                {syncStatus === 'error' && (
                   <CloudOff className="size-3 shrink-0 text-destructive" />
-                ) : (
-                  <Cloud className="size-3 shrink-0 text-green-600" />
                 )}
                 <span className="truncate font-medium">{currentProjectName}</span>
               </>
@@ -241,9 +239,6 @@ function App() {
           className="absolute left-0 right-0 border-b bg-background shadow-lg px-3 py-3 space-y-3"
           onClick={() => setMobileMenuOpen(false)}
         >
-          <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
-            <StudioSwitcher />
-          </div>
           <div className="flex flex-wrap items-center gap-1.5">
             <Button variant="outline" size="sm" className="h-8 gap-1 text-xs" onClick={handleNewProject}>
               <Plus className="size-3" />
@@ -279,6 +274,8 @@ function App() {
           <StudioAdminPage />
         ) : view === 'connections' ? (
           <ConnectionsPage />
+        ) : view === 'profile' ? (
+          <ProfilePage />
         ) : view === 'projects' ? (
           <ProjectsPage />
         ) : view === 'gallery' ? (

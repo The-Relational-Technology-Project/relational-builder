@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Cloud, CloudOff, Check, Loader2 } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { ArrowLeft, Check, Cloud, CloudOff, Loader2, Pencil } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -18,15 +18,15 @@ import {
   useLocalProjects,
   renameLocalProject,
   saveCurrentLocally,
-  deleteLocalProject,
+  promoteWorkspaceToCloud,
 } from '@/project/local-projects';
 
 /**
- * The project's name + saved state in the header. One quiet model: work
- * saves automatically (no spinners — saving isn't an event, it's the
- * baseline), and clicking opens a small dialog to rename or, when signed
- * in, keep the project on the builder's account so it follows them across
- * devices. The only state that ever shouts is a sync failure.
+ * The project's name in the header — styled as a button, because it is one:
+ * from any other page it's the way back to the work in progress, and on the
+ * builder it opens rename. Saving is the quiet baseline, so there's no
+ * always-on saved indicator; a checkmark appears only briefly after naming,
+ * and the only state that ever shouts is a sync failure.
  */
 export function ProjectStatus() {
   const fileCount = useProjectStore(s => s.getFileCount());
@@ -36,7 +36,6 @@ export function ProjectStatus() {
   const cloudProjectName = useCloudStore(s => s.currentProjectName);
   const syncStatus = useCloudStore(s => s.syncStatus);
   const renameCloudProject = useCloudStore(s => s.renameProject);
-  const createProject = useCloudStore(s => s.createProject);
 
   const localName = useLocalProjects(s => s.currentName);
   const user = useAuthStore(s => s.user);
@@ -47,12 +46,20 @@ export function ProjectStatus() {
   const [name, setName] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [justSaved, setJustSaved] = useState(false);
+  const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   if (fileCount === 0 && messageCount === 0) return null;
 
   const isCloud = cloudProjectId !== null;
   const displayName = isCloud ? cloudProjectName : localName;
   const syncFailed = isCloud && syncStatus === 'error';
+
+  function flashSaved() {
+    if (savedTimer.current) clearTimeout(savedTimer.current);
+    setJustSaved(true);
+    savedTimer.current = setTimeout(() => setJustSaved(false), 2500);
+  }
 
   function handleOpen(v: boolean) {
     setOpen(v);
@@ -73,35 +80,42 @@ export function ProjectStatus() {
       const id = useLocalProjects.getState().currentId;
       if (id) renameLocalProject(id, trimmed);
     }
+    flashSaved();
   }
 
   async function saveToAccount() {
     setSaving(true);
     setError(null);
     const finalName = name.trim() || displayName || 'My project';
-    const result = await createProject(finalName);
+    // The one guarded promotion path — retires the shelf copy itself and
+    // can't race the autosaver into creating the project twice
+    const result = await promoteWorkspaceToCloud(finalName);
     setSaving(false);
     if (result.error) {
       setError(result.error);
       return;
     }
-    // The project lives on the account now — the shelf copy would only shadow it
-    const id = useLocalProjects.getState().currentId;
-    if (id) deleteLocalProject(id);
     setOpen(false);
+    flashSaved();
   }
 
   const pillClass =
-    'flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors';
+    'group flex items-center gap-1.5 rounded-full border border-border/70 bg-background px-2.5 py-1 text-xs font-medium text-foreground/80 shadow-xs transition-colors hover:bg-accent hover:text-foreground';
   const pill = (
     <>
       {syncFailed ? (
         <CloudOff className="size-3 text-destructive" />
-      ) : (
+      ) : justSaved ? (
         <Check className="size-3 text-green-600" />
-      )}
-      <span className="max-w-[160px] truncate">{displayName || 'Saved'}</span>
+      ) : view !== 'builder' ? (
+        <ArrowLeft className="size-3 text-muted-foreground group-hover:text-foreground" />
+      ) : null}
+      <span className="max-w-[160px] truncate">{displayName || 'Untitled project'}</span>
+      {justSaved && !syncFailed && <span className="text-green-700">saved</span>}
       {syncFailed && <span className="text-destructive">sync failed</span>}
+      {view === 'builder' && !justSaved && !syncFailed && (
+        <Pencil className="size-2.5 text-muted-foreground/0 transition-colors group-hover:text-muted-foreground" />
+      )}
     </>
   );
 

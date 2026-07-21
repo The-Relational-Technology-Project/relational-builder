@@ -25,12 +25,16 @@ export function FrameworkPreview({
   version,
   publicEnvVars,
   onHandle,
+  pointing,
+  onPointingChange,
 }: {
   files: FileEntry[];
   version: number;
   publicEnvVars: EnvVar[];
   /** Registers the toolbar's refresh/open/navigate controls for this engine */
   onHandle?: (handle: PreviewHandle | null) => void;
+  pointing: boolean;
+  onPointingChange: (on: boolean) => void;
 }) {
   const [html, setHtml] = useState<string | null>(null);
   const [buildError, setBuildError] = useState<string | null>(null);
@@ -138,7 +142,7 @@ export function FrameworkPreview({
 
   return (
     <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-      <PointAtIt>
+      <PointAtIt selecting={pointing} onSelectingChange={onPointingChange}>
         {src ? (
           <iframe
             ref={iframeRef}

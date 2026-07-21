@@ -19,13 +19,12 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { CircleUser, MailCheck, LogOut, MapPin, Palette, HeartHandshake, Sun, Moon, SlidersHorizontal, DoorOpen, KeyRound } from 'lucide-react';
-import { BuilderOnboarding } from '@/components/BuilderOnboarding';
 import { useUIStore } from '@/store/ui-store';
-import { useCloudStore } from '@/store/cloud-store';
+import { useCloudStore, readCloudAttachment } from '@/store/cloud-store';
 import { useChatStore } from '@/store/chat-store';
 import { useProjectStore } from '@/store/project-store';
 import { useEnvStore } from '@/store/env-store';
-import { saveCurrentLocally, stashAndStartFresh } from '@/project/local-projects';
+import { stashAndStartFresh } from '@/project/local-projects';
 import { useConnectionsStore } from '@/store/connections-store';
 import { isSuperAdmin } from '@/cloud/account-requests';
 import { useStudioStore, adminMemberships } from '@/store/studio-store';
@@ -43,7 +42,6 @@ export function AccountMenu() {
   const profile = useAuthStore(s => s.profile);
   const signOut = useAuthStore(s => s.signOut);
 
-  const [editingProfile, setEditingProfile] = useState(false);
   const [editingStyle, setEditingStyle] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const setView = useUIStore(st => st.setView);
@@ -100,7 +98,8 @@ export function AccountMenu() {
             )}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => setEditingProfile(true)} className="gap-2 text-xs">
+          {/* An editable page, not a re-run of the onboarding wizard */}
+          <DropdownMenuItem onClick={() => setView('profile')} className="gap-2 text-xs">
             <MapPin className="size-3.5 text-muted-foreground" />
             Builder profile
           </DropdownMenuItem>
@@ -145,19 +144,17 @@ export function AccountMenu() {
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={() => {
-              // A cloud project can't sync signed out — hand the open
-              // workspace to the local shelf under its real name first,
-              // so edits keep saving and no guessed-name copy appears
+              // Signing out closes the desk, not the account: a cloud
+              // project stays on the account (final edits flushed, then
+              // detached) — never copied onto the device, which is how
+              // duplicate projects used to be born. Only work that never
+              // reached the account is kept on the device shelf.
               const cloud = useCloudStore.getState();
-              if (cloud.currentProjectId) {
-                const name = cloud.currentProjectName;
+              if (cloud.currentProjectId || readCloudAttachment()) {
                 cloud.closeProject();
-                saveCurrentLocally(name);
+              } else {
+                stashAndStartFresh();
               }
-              // Signing out closes the desk: stash the open work (already
-              // saved locally) and clear the screen — projects stay private
-              // until the next sign-in
-              stashAndStartFresh();
               useChatStore.getState().clearMessages();
               useProjectStore.getState().clearProject();
               useEnvStore.getState().clearAll();
@@ -171,7 +168,6 @@ export function AccountMenu() {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      {editingProfile && <BuilderOnboarding onDone={() => setEditingProfile(false)} />}
       {editingStyle && <DesignSystemDialog open={editingStyle} onOpenChange={setEditingStyle} />}
       {settingsOpen && <ProviderSettings open={settingsOpen} onOpenChange={setSettingsOpen} hideTrigger />}
     </>

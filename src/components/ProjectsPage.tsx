@@ -11,9 +11,9 @@ import {
   useLocalProjects,
   openLocalProject,
   deleteLocalProject,
-  saveCurrentLocally,
-  detachLocalTracking,
+  promoteWorkspaceToCloud,
 } from '@/project/local-projects';
+import { migrateShelfToCloud } from '@/cloud/sync';
 import { YourPrompts } from '@/components/YourPrompts';
 import { YourSites } from '@/components/YourSites';
 import { listMyPrompts, type BuildPrompt } from '@/cloud/prompts';
@@ -59,7 +59,6 @@ export function ProjectsPage() {
   const isOwner = useCloudStore(s => s.isOwner);
   const members = useCloudStore(s => s.members);
   const refreshProjects = useCloudStore(s => s.refreshProjects);
-  const closeProject = useCloudStore(s => s.closeProject);
   const inviteMember = useCloudStore(s => s.inviteMember);
   const removeMember = useCloudStore(s => s.removeMember);
 
@@ -74,6 +73,9 @@ export function ProjectsPage() {
     if (user) {
       refreshProjects();
       refreshPrompts();
+      // Any device-shelf strays move onto the account — one library, no
+      // "on this device" second class
+      void migrateShelfToCloud();
     }
   }, [user, refreshProjects]);
 
@@ -120,21 +122,6 @@ export function ProjectsPage() {
                       {isOwner ? 'Owner' : 'Editor'}
                     </Badge>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 text-xs"
-                    onClick={() => {
-                      // The workspace stays loaded after detaching — adopt a
-                      // local slot under the project's real name right away,
-                      // so the autosaver doesn't mint a copy with a guessed one
-                      const name = currentProjectName;
-                      closeProject();
-                      saveCurrentLocally(name);
-                    }}
-                  >
-                    Detach
-                  </Button>
                 </div>
 
                 <Separator />
@@ -233,9 +220,10 @@ export function ProjectsPage() {
 }
 
 /**
- * Every project in one list — the ones on this device and the ones on the
- * builder's account — newest first, no filing system to think about.
- * Opening any project keeps the one being replaced automatically.
+ * The builder's projects, newest first, no filing system to think about.
+ * Signed in, this is the account's cloud library — one list, one home, no
+ * "on this device" second class. Signed out (or with cloud off), it's the
+ * device shelf. Opening any project keeps the one being replaced.
  */
 function MergedProjects({ onOpened }: { onOpened: () => void }) {
   const user = useAuthStore(s => s.user);
@@ -248,30 +236,28 @@ function MergedProjects({ onOpened }: { onOpened: () => void }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const entries = [
-    ...shelf.map(m => ({
-      key: `local-${m.id}`,
-      id: m.id,
-      kind: 'local' as const,
-      name: m.name,
-      updatedAt: m.updatedAt,
-      current: m.id === localCurrentId,
-      canDelete: true,
-      shared: false,
-    })),
-    ...(user
-      ? cloudProjects.map(p => ({
-          key: `cloud-${p.id}`,
-          id: p.id,
-          kind: 'cloud' as const,
-          name: p.name,
-          updatedAt: Date.parse(p.updated_at),
-          current: p.id === currentProjectId,
-          canDelete: p.owner_id === user.id,
-          shared: p.owner_id !== user.id,
-        }))
-      : []),
-  ].sort((a, b) => b.updatedAt - a.updatedAt);
+  const entries = (user
+    ? cloudProjects.map(p => ({
+        key: `cloud-${p.id}`,
+        id: p.id,
+        kind: 'cloud' as const,
+        name: p.name,
+        updatedAt: Date.parse(p.updated_at),
+        current: p.id === currentProjectId,
+        canDelete: p.owner_id === user.id,
+        shared: p.owner_id !== user.id,
+      }))
+    : shelf.map(m => ({
+        key: `local-${m.id}`,
+        id: m.id,
+        kind: 'local' as const,
+        name: m.name,
+        updatedAt: m.updatedAt,
+        current: m.id === localCurrentId,
+        canDelete: true,
+        shared: false,
+      }))
+  ).sort((a, b) => b.updatedAt - a.updatedAt);
 
   if (entries.length === 0) return null;
 
@@ -282,9 +268,10 @@ function MergedProjects({ onOpened }: { onOpened: () => void }) {
     }
     setBusy(entry.key);
     setError(null);
-    // The work being replaced is kept automatically — opening is never destructive
-    saveCurrentLocally();
-    detachLocalTracking();
+    // The work being replaced is kept automatically — opening is never
+    // destructive. A workspace not yet on the account gets its own cloud
+    // project first (same guarded path the autosaver uses).
+    await promoteWorkspaceToCloud();
     const r = await openProject(entry.id);
     setBusy(null);
     if (r?.error) setError(r.error);
@@ -333,7 +320,6 @@ function MergedProjects({ onOpened }: { onOpened: () => void }) {
                 {new Date(entry.updatedAt).toLocaleString(undefined, {
                   month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
                 })}
-                {entry.kind === 'local' ? ' · on this device' : ' · cloud'}
               </div>
             </div>
             <div className="flex items-center gap-1 shrink-0">

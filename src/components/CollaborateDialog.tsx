@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -10,21 +10,17 @@ import { Input } from '@/components/ui/input';
 import { useAuthStore } from '@/store/auth-store';
 import { useCloudStore } from '@/store/cloud-store';
 import { useProjectStore } from '@/store/project-store';
-import {
-  useLocalProjects,
-  saveCurrentLocally,
-  deleteLocalProject,
-} from '@/project/local-projects';
-import { Users, UserPlus, X, Loader2, Cloud } from 'lucide-react';
+import { promoteWorkspaceToCloud } from '@/project/local-projects';
+import { Users, UserPlus, X, Loader2 } from 'lucide-react';
 
 /**
  * Invite collaborators to the current project, right from the Share menu.
  * The same membership model as the Projects page — invite by email, and when
  * that person signs in the project appears in their list with live-syncing
- * edits. Guides through the prerequisites (sign in, save to cloud) instead
- * of hiding when they aren't met — and a project saved on this device is
- * recognized as such: one click keeps it on the account (collaboration
- * syncs through the cloud) and the invite form appears.
+ * edits. Signed-in projects live on the account as a matter of course, so
+ * there's no save-here-vs-there decision to present: if the workspace
+ * hasn't reached the account yet (a beat behind the autosaver), it's put
+ * there quietly and the invite form is the only thing the builder sees.
  */
 export function CollaborateDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
   const user = useAuthStore(s => s.user);
@@ -34,9 +30,7 @@ export function CollaborateDialog({ open, onOpenChange }: { open: boolean; onOpe
   const members = useCloudStore(s => s.members);
   const inviteMember = useCloudStore(s => s.inviteMember);
   const removeMember = useCloudStore(s => s.removeMember);
-  const createProject = useCloudStore(s => s.createProject);
 
-  const localName = useLocalProjects(s => s.currentName);
   const fileCount = useProjectStore(s => s.getFileCount());
 
   const [inviteEmail, setInviteEmail] = useState('');
@@ -58,20 +52,14 @@ export function CollaborateDialog({ open, onOpenChange }: { open: boolean; onOpe
       return r;
     });
 
-  // Promote the device-saved project to the account, then the invite form
-  // takes over (currentProjectId flips). Mirrors the project pill's Save:
-  // the shelf copy is retired so it can't shadow the cloud project.
-  const saveToAccount = () =>
-    run('save', async () => {
-      saveCurrentLocally();
-      const name = useLocalProjects.getState().currentName || 'My project';
-      const r = await createProject(name);
-      if (!r.error) {
-        const localId = useLocalProjects.getState().currentId;
-        if (localId) deleteLocalProject(localId);
-      }
-      return r;
-    });
+  // A signed-in workspace that isn't on the account yet is just the
+  // autosaver being a beat behind — finish the job here (same guarded path,
+  // so the two can't create the project twice) instead of asking.
+  useEffect(() => {
+    if (!open || !user || currentProjectId || fileCount === 0) return;
+    run('save', () => promoteWorkspaceToCloud());
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fire on open/flip only
+  }, [open, user, currentProjectId, fileCount]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -102,16 +90,27 @@ export function CollaborateDialog({ open, onOpenChange }: { open: boolean; onOpe
         ) : !currentProjectId ? (
           fileCount > 0 ? (
             <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                <strong>{localName || 'This project'}</strong> is saved on this
-                device. Collaboration syncs edits live through your account —
-                keep the project there and the invite form opens right up.
-              </p>
-              <Button size="sm" className="gap-1.5" onClick={saveToAccount} disabled={busy === 'save'}>
-                {busy === 'save' ? <Loader2 className="size-3 animate-spin" /> : <Cloud className="size-3" />}
-                Save to my account &amp; invite
-              </Button>
-              {error && <p className="text-xs text-destructive">{error}</p>}
+              {error ? (
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    Couldn't reach your account to set up sharing: {error}
+                  </p>
+                  <Button
+                    size="sm"
+                    className="gap-1.5"
+                    onClick={() => run('save', () => promoteWorkspaceToCloud())}
+                    disabled={busy === 'save'}
+                  >
+                    {busy === 'save' && <Loader2 className="size-3 animate-spin" />}
+                    Try again
+                  </Button>
+                </>
+              ) : (
+                <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="size-3.5 animate-spin" />
+                  Getting this project ready to share…
+                </p>
+              )}
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">

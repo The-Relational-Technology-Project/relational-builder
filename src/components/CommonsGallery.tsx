@@ -22,6 +22,7 @@ import {
   type ConnectionsCuration,
 } from './GalleryConnections';
 import { isSuperAdmin } from '@/cloud/account-requests';
+import { GalleryToolBuilders } from '@/components/GalleryToolBuilders';
 import { useAuthStore } from '@/store/auth-store';
 import type { Tool, Prompt, Story } from '@/knowledge/types';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -1241,6 +1242,8 @@ function ToolDetailDialog({
             )}
           </div>
         )}
+
+        <GalleryToolBuilders toolId={tool.id} />
 
         <ConnectionsSection
           source="kb_tool"
