@@ -17,6 +17,7 @@ import {
   setAppSecret,
   deleteAppSecret,
   testAppSecret,
+  ensureCapabilitiesUrl,
 } from '@/cloud/community-cloud';
 import {
   patSet,
@@ -146,6 +147,7 @@ function CloudAiCard({ def, isConnected }: { def: IntegrationDef; isConnected: b
         setNote({ tone: 'error', text: test.error ?? `${def.name} rejected this key` });
         return;
       }
+      ensureCapabilitiesUrl();
       setVar(marker, 'on', false);
       setKeyInput('');
       setExpanded(false);
@@ -533,6 +535,7 @@ function ResendCard({ def, isConnected }: { def: IntegrationDef; isConnected: bo
         setNote({ tone: 'error', text: test.error ?? 'Resend rejected this key' });
         return;
       }
+      ensureCapabilitiesUrl();
       setVar('COMMUNITY_EMAIL', 'on', false);
       setKeyInput('');
       setExpanded(false);

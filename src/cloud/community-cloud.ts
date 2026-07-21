@@ -158,6 +158,14 @@ export function setAppSecret(appId: string, service: string, secret: string, con
   return capRequest<{ ok: boolean }>('secret_set', { app_id: appId, service, secret, config });
 }
 
+/** Backfill for projects attached before capabilities existed */
+export function ensureCapabilitiesUrl(): void {
+  const { vars, setVar } = useEnvStore.getState();
+  if (!vars.some(v => v.key === 'COMMUNITY_CAPABILITIES_URL' && v.value.trim())) {
+    setVar('COMMUNITY_CAPABILITIES_URL', capFnUrl(), false);
+  }
+}
+
 export function updateSecretConfig(appId: string, service: string, config: AppSecretStatus['config']) {
   return capRequest<{ ok: boolean }>('secret_config', { app_id: appId, service, config });
 }
