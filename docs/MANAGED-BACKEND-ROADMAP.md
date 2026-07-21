@@ -149,12 +149,14 @@ burden when builders hand-edit their DB (that's what the drift check is for).
 **What it unlocks:** real relational data, real auth, the builder's own edge
 functions and secrets — full parity, builder-owned, exportable.
 
-## Phase 4 — Capability family + hosting maturity
+## Phase 4 — Capability family + hosting maturity (AI shipped ✅)
 
-- Vaulted BYO keys behind `llm-proxy` → in-app AI features that work in
-  preview and community hosting (llm-proxy's identity gating and metering
-  already exist; add app-scoped auth against the vault).
-- Same capability pattern for Firecrawl (scraping) and Twilio (SMS nudges).
+- ✅ Vaulted BYO AI keys (Anthropic / OpenAI / Gemini) behind the `ai_chat`
+  capability on `app-capabilities` — in-app AI that works in preview and
+  community hosting, with free key verification, daily caps, and input
+  limits. Implemented directly on the capability function rather than
+  llm-proxy: the app-identity auth and cap regime already live there.
+- Remaining: the same pattern for Firecrawl (scraping) and Twilio (SMS).
 - Community hosting stays static; custom domains on community-hosted sites
   (CNAME + host-header routing) as a stretch goal.
 

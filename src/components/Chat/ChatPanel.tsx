@@ -13,6 +13,7 @@ import {
   communityCloudConnected,
   COMMUNITY_CLOUD_GUIDANCE,
   RESEND_CLOUD_GUIDANCE,
+  AI_CLOUD_GUIDANCE,
 } from '@/integrations/catalog';
 import { reconcileCloudSchema } from '@/cloud/schema-sync';
 import { applySupabaseChanges, supabaseManaged } from '@/cloud/supabase-admin';
@@ -235,9 +236,13 @@ export function ChatPanel() {
     // Managed Supabase swaps the paste-this-SQL guidance for the
     // migrations-directory convention the auto-apply flow understands
     const sbManaged = supabaseManaged().managed;
+    const aiMarkers: Record<string, string> = {
+      claude: 'COMMUNITY_AI_ANTHROPIC', gemini: 'COMMUNITY_AI_GEMINI', openai: 'COMMUNITY_AI_OPENAI',
+    };
     const serviceGuidance = connectedServices.map(s =>
       s.id === 'resend' && emailViaCloud ? RESEND_CLOUD_GUIDANCE :
       s.id === 'supabase' && sbManaged ? SUPABASE_MANAGED_GUIDANCE :
+      aiMarkers[s.id] && envVars.some(v => v.key === aiMarkers[s.id] && v.value.trim()) ? AI_CLOUD_GUIDANCE :
       s.aiGuidance,
     );
     if (communityCloudConnected(envVars)) serviceGuidance.unshift(COMMUNITY_CLOUD_GUIDANCE);

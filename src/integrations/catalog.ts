@@ -125,7 +125,8 @@ export const INTEGRATIONS: IntegrationDef[] = [
       '  Keep max_tokens modest (500–2000) for app features, pass user content in `messages` (never concatenated into the system prompt), and show a friendly loading state — responses take a few seconds.',
       '  Say clearly: AI features run once the app is deployed (Netlify/Vercel carry the secret); they will not work in the builder preview.',
     ].join('\n'),
-    setupHint: 'Stored as a secret. AI features run in serverless functions once the app is deployed — the key never reaches the browser or the preview.',
+    setupHint: 'With Community Cloud on, your key is vaulted server-side and AI features work everywhere — the preview included. Without it, the key is a secret that works once deployed to Netlify or Vercel.',
+    altConnectedKeys: ['COMMUNITY_AI_ANTHROPIC'],
   },
   {
     id: 'gemini',
@@ -142,7 +143,8 @@ export const INTEGRATIONS: IntegrationDef[] = [
       '  Use a current Gemini Flash model for text features; Gemini also generates and edits images (useful for flyers and artwork) via its image-capable models — return the base64 image data from the function.',
       '  Say clearly: AI features run once the app is deployed (Netlify/Vercel carry the secret); they will not work in the builder preview.',
     ].join('\n'),
-    setupHint: 'Stored as a secret. AI features (including image generation) run in serverless functions once deployed — the key never reaches the browser.',
+    setupHint: 'With Community Cloud on, your key is vaulted server-side and AI features work everywhere — the preview included. Without it, the key is a secret that works once deployed to Netlify or Vercel.',
+    altConnectedKeys: ['COMMUNITY_AI_GEMINI'],
   },
   {
     id: 'openai',
@@ -158,7 +160,8 @@ export const INTEGRATIONS: IntegrationDef[] = [
       '  Generate a serverless function (`netlify/functions/ai.mts` for Netlify or `api/ai.ts` for Vercel) that calls `https://api.openai.com/v1/chat/completions` (text) or `https://api.openai.com/v1/images/generations` (images) with the `Authorization: Bearer` header. The browser calls that function with `fetch` — never OpenAI directly.',
       '  Say clearly: AI features run once the app is deployed (Netlify/Vercel carry the secret); they will not work in the builder preview.',
     ].join('\n'),
-    setupHint: 'Stored as a secret. AI features (including image generation) run in serverless functions once deployed — the key never reaches the browser.',
+    setupHint: 'With Community Cloud on, your key is vaulted server-side and AI features work everywhere — the preview included. Without it, the key is a secret that works once deployed to Netlify or Vercel.',
+    altConnectedKeys: ['COMMUNITY_AI_OPENAI'],
   },
 ];
 
@@ -296,6 +299,30 @@ export const COMMUNITY_CLOUD_GUIDANCE = [
   '  });   // → {documents} — same shape as list',
   '  ```',
   '  Removing a collection or field from cloud-schema.json (or changing a type) asks the builder to confirm before it applies — mention that when you make such a change.',
+].join('\n');
+
+/**
+ * Replaces an AI provider's serverless guidance when its key is vaulted with
+ * Community Cloud (env markers COMMUNITY_AI_*): the app calls the managed
+ * ai_chat capability, so AI features work in the preview and on
+ * community-hosted sites — no serverless functions, no exposed keys.
+ */
+export const AI_CLOUD_GUIDANCE = [
+  '- **AI is connected through Community Cloud** — the builder\'s AI key is vaulted server-side and AI features work EVERYWHERE this app runs, including the live preview. Do NOT generate `netlify/functions` or `api/` serverless code for AI, and never reference provider API keys — the app never sees them. Call it like this:',
+  '  ```javascript',
+  '  async function askAI(messages, system, maxTokens = 1024) {',
+  '    const url = env.COMMUNITY_CAPABILITIES_URL',
+  '      ?? env.COMMUNITY_CLOUD_URL.replace(/app-data$/, "app-capabilities");',
+  '    const res = await fetch(url, {',
+  '      method: "POST",',
+  '      headers: { "Content-Type": "application/json" },',
+  '      body: JSON.stringify({ action: "ai_chat", app_id: env.APP_ID, app_key: env.APP_KEY, messages, system, max_tokens: maxTokens }),',
+  '    });',
+  '    return res.json();   // {text} or {error: "friendly message"}',
+  '  }',
+  '  // messages: [{role: "user"|"assistant", content: "..."}] — put user content in messages, instructions in system',
+  '  ```',
+  '  Responses take a few seconds — always show a friendly loading state. Handle `{error}` gracefully in the UI (there is a daily limit with a clear message). Keep max_tokens modest (500–2000). Good uses: summaries, rewording, gentle Q&A over the app\'s own data; never build unbounded chat loops that burn the builder\'s budget.',
 ].join('\n');
 
 /**

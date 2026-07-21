@@ -21,6 +21,9 @@
  *   send_email {app_id, app_key, to, subject, text?, html?, reply_to?, member_token?}
  *     — sends via the app's vaulted Resend key. Rate-limited, daily-capped,
  *       and optionally restricted to signed-in neighbors (config.members_only_send).
+ *   ai_chat {app_id, app_key, messages, system?, max_tokens?, member_token?}
+ *     — one completion via whichever AI key is vaulted (anthropic | openai |
+ *       gemini). Returns {text, service}. Same rate/daily-cap regime.
  *
  * Deploy: supabase functions deploy app-capabilities --no-verify-jwt
  */
@@ -31,14 +34,23 @@ const CORS = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
-const SERVICES = ['resend'] as const;
+const SERVICES = ['resend', 'anthropic', 'openai', 'gemini'] as const;
 type Service = (typeof SERVICES)[number];
+const AI_SERVICES: Service[] = ['anthropic', 'openai', 'gemini'];
 
 const RATE_LIMIT_PER_MIN = 30;
 const MAX_RECIPIENTS = 5;
 const MAX_SUBJECT_CHARS = 200;
 const MAX_BODY_BYTES = 50 * 1024;
 const MAX_LOG_LIMIT = 100;
+const MAX_AI_MESSAGES = 20;
+const MAX_AI_INPUT_BYTES = 32 * 1024;
+const MAX_AI_TOKENS = 2048;
+const AI_DEFAULT_MODEL: Record<string, string> = {
+  anthropic: 'claude-haiku-4-5',
+  openai: 'gpt-4o-mini',
+  gemini: 'gemini-2.5-flash',
+};
 
 const rateBuckets = new Map<string, { count: number; windowStart: number }>();
 
@@ -83,6 +95,10 @@ Deno.serve(async (req: Request) => {
 
     if (action === 'send_email') {
       return await sendEmail(body);
+    }
+
+    if (action === 'ai_chat') {
+      return await aiChat(body);
     }
 
     return json({ error: `Unknown action: ${action}` }, 400);
@@ -186,11 +202,33 @@ async function handleBuilder(req: Request, body: Record<string, unknown>, action
 
     case 'secret_test': {
       const service = String(body.service ?? '');
-      if (service !== 'resend') return json({ error: `No test available for: ${service}` }, 400);
+      if (!(SERVICES as readonly string[]).includes(service)) {
+        return json({ error: `No test available for: ${service}` }, 400);
+      }
       const secret = await getSecret(appId, service);
       if (!secret) return json({ error: 'No key saved for this service yet' }, 404);
-      // Free, no email sent — and the verified-domain list powers the
-      // from-address picker in the Services tab.
+      // AI providers: a free models-list call proves the key without spend
+      if (service !== 'resend') {
+        const probe =
+          service === 'anthropic'
+            ? await fetch('https://api.anthropic.com/v1/models', {
+                headers: { 'x-api-key': secret.secret, 'anthropic-version': '2023-06-01' },
+              })
+            : service === 'openai'
+              ? await fetch('https://api.openai.com/v1/models', {
+                  headers: { Authorization: `Bearer ${secret.secret}` },
+                })
+              : await fetch('https://generativelanguage.googleapis.com/v1beta/models', {
+                  headers: { 'x-goog-api-key': secret.secret },
+                });
+        if (probe.ok) return json({ ok: true });
+        if ([400, 401, 403].includes(probe.status)) {
+          return json({ ok: false, error: 'The provider rejected this key — check that you copied it fully' });
+        }
+        return json({ ok: false, error: 'Could not reach the provider — try again shortly' });
+      }
+      // Resend: free, no email sent — and the verified-domain list powers
+      // the from-address picker in the Services tab.
       const res = await fetch('https://api.resend.com/domains', {
         headers: { Authorization: `Bearer ${secret.secret}` },
       });
@@ -370,6 +408,141 @@ async function sendEmail(body: Record<string, unknown>): Promise<Response> {
     return json({ error: sendError ?? 'Could not send the email' }, 502);
   }
   return json({ ok: true });
+}
+
+// ── App action: one AI completion with whichever key is vaulted ──
+
+interface AiMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+async function aiChat(body: Record<string, unknown>): Promise<Response> {
+  const appId = String(body.app_id ?? '');
+  const appKey = String(body.app_key ?? '');
+  if (!appId || !appKey) return json({ error: 'app_id and app_key required' }, 401);
+  if (isRateLimited(appId)) {
+    return json({ error: 'Rate limit exceeded — try again in a minute' }, 429);
+  }
+
+  const appRes = await fetch(
+    restUrl(`/cloud_apps?id=eq.${encodeURIComponent(appId)}&select=id,app_key`),
+    { headers: svcHeaders() },
+  );
+  const apps = appRes.ok ? await appRes.json() : [];
+  if (!Array.isArray(apps) || apps.length === 0 || apps[0].app_key !== appKey) {
+    return json({ error: 'Unknown app or wrong key' }, 403);
+  }
+
+  // Whichever AI key the builder vaulted, in preference order
+  let service: Service | null = null;
+  let vault: SecretRow | null = null;
+  for (const s of AI_SERVICES) {
+    vault = await getSecret(appId, s);
+    if (vault) { service = s; break; }
+  }
+  if (!service || !vault) {
+    return json({ error: "AI isn't set up for this app — the builder can connect an AI key in the Services tab" }, 503);
+  }
+
+  const rawMessages = Array.isArray(body.messages) ? body.messages : [];
+  if (rawMessages.length === 0 || rawMessages.length > MAX_AI_MESSAGES) {
+    return json({ error: `messages: 1–${MAX_AI_MESSAGES} required` }, 400);
+  }
+  const messages: AiMessage[] = [];
+  let inputBytes = 0;
+  for (const m of rawMessages) {
+    const role = m?.role === 'assistant' ? 'assistant' : 'user';
+    const content = String(m?.content ?? '');
+    if (!content) return json({ error: 'Every message needs content' }, 400);
+    inputBytes += content.length;
+    messages.push({ role, content });
+  }
+  const system = body.system === undefined ? undefined : String(body.system);
+  inputBytes += system?.length ?? 0;
+  if (inputBytes > MAX_AI_INPUT_BYTES) {
+    return json({ error: `Input too large (max ${MAX_AI_INPUT_BYTES / 1024}KB)` }, 413);
+  }
+  const maxTokens = Math.min(Math.max(Number(body.max_tokens ?? 1024) || 1024, 16), MAX_AI_TOKENS);
+
+  if (vault.config?.members_only_send) {
+    const member = await resolveMember(appId, body.member_token);
+    if (!member) return json({ error: 'Sign in to use AI features in this app' }, 403);
+  }
+
+  const usageRes = await fetch(restUrl('/rpc/increment_capability_usage'), {
+    method: 'POST',
+    headers: svcHeaders(),
+    body: JSON.stringify({ p_app_id: appId, p_service: service }),
+  });
+  const callsToday = usageRes.ok ? Number(await usageRes.json()) : 0;
+  if (callsToday > vault.daily_cap) {
+    return json({ error: "This app reached today's AI limit — try again tomorrow" }, 429);
+  }
+
+  const model = String(vault.config?.model ?? '') || AI_DEFAULT_MODEL[service];
+  try {
+    const text = await callProvider(service, vault.secret, model, messages, system, maxTokens);
+    fetch(restUrl(`/app_secrets?app_id=eq.${encodeURIComponent(appId)}&service=eq.${encodeURIComponent(service)}`), {
+      method: 'PATCH',
+      headers: svcHeaders(),
+      body: JSON.stringify({ last_used_at: new Date().toISOString() }),
+    }).catch(() => {});
+    return json({ text, service });
+  } catch (err) {
+    return json({ error: err instanceof Error ? err.message : 'The AI provider returned an error' }, 502);
+  }
+}
+
+async function callProvider(
+  service: Service, key: string, model: string,
+  messages: AiMessage[], system: string | undefined, maxTokens: number,
+): Promise<string> {
+  if (service === 'anthropic') {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model, max_tokens: maxTokens, ...(system ? { system } : {}), messages }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(String(data?.error?.message ?? `Anthropic error ${res.status}`).slice(0, 300));
+    return (Array.isArray(data?.content) ? data.content : [])
+      .filter((b: { type?: string }) => b.type === 'text')
+      .map((b: { text?: string }) => b.text ?? '')
+      .join('');
+  }
+  if (service === 'openai') {
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model,
+        max_tokens: maxTokens,
+        messages: [...(system ? [{ role: 'system', content: system }] : []), ...messages],
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(String(data?.error?.message ?? `OpenAI error ${res.status}`).slice(0, 300));
+    return String(data?.choices?.[0]?.message?.content ?? '');
+  }
+  // gemini
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
+    {
+      method: 'POST',
+      headers: { 'x-goog-api-key': key, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...(system ? { system_instruction: { parts: [{ text: system }] } } : {}),
+        contents: messages.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })),
+        generationConfig: { maxOutputTokens: maxTokens },
+      }),
+    },
+  );
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(String(data?.error?.message ?? `Gemini error ${res.status}`).slice(0, 300));
+  return (data?.candidates?.[0]?.content?.parts ?? [])
+    .map((p: { text?: string }) => p.text ?? '')
+    .join('');
 }
 
 /** Resolve a neighbor from a session token (null when absent/expired) — same as app-data */

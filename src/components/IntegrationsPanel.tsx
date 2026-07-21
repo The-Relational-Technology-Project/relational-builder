@@ -54,6 +54,8 @@ export function IntegrationsPanel() {
           <ResendCard key={def.id} def={def} isConnected={connected.has(def.id)} />
         ) : def.id === 'supabase' ? (
           <SupabaseCard key={def.id} def={def} isConnected={connected.has(def.id)} />
+        ) : def.id in AI_VAULT_SERVICES ? (
+          <CloudAiCard key={def.id} def={def} isConnected={connected.has(def.id)} />
         ) : (
           <IntegrationCard key={def.id} def={def} isConnected={connected.has(def.id)} />
         ),
@@ -82,6 +84,204 @@ type CheckState =
   | { phase: 'idle' }
   | { phase: 'checking' }
   | { phase: 'done'; result: VerifyResult };
+
+/** Catalog id → vault service + env marker for the AI providers */
+const AI_VAULT_SERVICES: Record<string, { service: string; marker: string }> = {
+  claude: { service: 'anthropic', marker: 'COMMUNITY_AI_ANTHROPIC' },
+  gemini: { service: 'gemini', marker: 'COMMUNITY_AI_GEMINI' },
+  openai: { service: 'openai', marker: 'COMMUNITY_AI_OPENAI' },
+};
+
+/**
+ * AI providers get the same vault treatment as Resend: with Community Cloud
+ * on, the key lives server-side and in-app AI works in the preview and on
+ * hosted sites via the ai_chat capability. Legacy secret-env-var path stays
+ * for Netlify/Vercel-only builders.
+ */
+function CloudAiCard({ def, isConnected }: { def: IntegrationDef; isConnected: boolean }) {
+  const { service, marker } = AI_VAULT_SERVICES[def.id];
+  const vars = useEnvStore(s => s.vars);
+  const setVar = useEnvStore(s => s.setVar);
+  const removeVar = useEnvStore(s => s.removeVar);
+  const user = useAuthStore(s => s.user);
+  const projectName = useCloudStore(s => s.currentProjectName);
+
+  const cloudAvailable = cloudEnabled && !!user;
+  const cloudAttached = communityCloudConnected(vars);
+  const appId = vars.find(v => v.key === 'APP_ID')?.value ?? '';
+  const viaCloud = !!vars.find(v => v.key === marker && v.value.trim());
+  const legacyKeySet = def.fields.some(f => vars.find(v => v.key === f.envKey && v.value.trim()));
+
+  const [expanded, setExpanded] = useState(false);
+  const [keyInput, setKeyInput] = useState('');
+  const [busy, setBusy] = useState<'idle' | 'enabling' | 'connecting' | 'testing'>('idle');
+  const [note, setNote] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null);
+
+  if (!cloudAvailable || (legacyKeySet && !viaCloud)) {
+    return <IntegrationCard def={def} isConnected={isConnected} />;
+  }
+
+  async function handleEnableCloud() {
+    setBusy('enabling');
+    setNote(null);
+    try {
+      await createAppForProject(projectName || 'my-community-app');
+    } catch (err) {
+      setNote({ tone: 'error', text: err instanceof Error ? err.message : 'Could not enable Community Cloud' });
+    } finally {
+      setBusy('idle');
+    }
+  }
+
+  async function handleConnect() {
+    const key = keyInput.trim();
+    if (!key || !appId) return;
+    setBusy('connecting');
+    setNote(null);
+    try {
+      await setAppSecret(appId, service, key);
+      const test = await testAppSecret(appId, service);
+      if (!test.ok) {
+        await deleteAppSecret(appId, service).catch(() => {});
+        setNote({ tone: 'error', text: test.error ?? `${def.name} rejected this key` });
+        return;
+      }
+      setVar(marker, 'on', false);
+      setKeyInput('');
+      setExpanded(false);
+      setNote({ tone: 'ok', text: 'Key verified — AI features now work in the preview and on your hosted site.' });
+    } catch (err) {
+      setNote({ tone: 'error', text: err instanceof Error ? err.message : 'Could not save the key' });
+    } finally {
+      setBusy('idle');
+    }
+  }
+
+  async function handleTest() {
+    if (!appId) return;
+    setBusy('testing');
+    try {
+      const test = await testAppSecret(appId, service);
+      setNote(
+        test.ok
+          ? { tone: 'ok', text: 'Key checks out with the provider.' }
+          : { tone: 'error', text: test.error ?? 'The provider rejected this key' },
+      );
+    } catch (err) {
+      setNote({ tone: 'error', text: err instanceof Error ? err.message : 'Could not test the key' });
+    } finally {
+      setBusy('idle');
+    }
+  }
+
+  async function handleDisconnect() {
+    if (appId) await deleteAppSecret(appId, service).catch(() => {});
+    removeVar(marker);
+    setNote(null);
+  }
+
+  return (
+    <div className="rounded-lg border p-3 space-y-2">
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">{def.name}</span>
+            {viaCloud && (
+              <Badge className="text-xs gap-0.5 bg-green-600 hover:bg-green-600">
+                <Check className="size-2.5" />
+                Connected
+              </Badge>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground">{def.tagline}</p>
+        </div>
+        {viaCloud ? (
+          <div className="flex items-center gap-1 shrink-0">
+            <Button variant="ghost" size="sm" className="h-7 text-xs" disabled={busy !== 'idle'} onClick={handleTest}>
+              {busy === 'testing' ? <Loader2 className="size-3 animate-spin" /> : 'Test'}
+            </Button>
+            <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" onClick={handleDisconnect}>
+              <Unplug className="size-3" />
+              Disconnect
+            </Button>
+          </div>
+        ) : (
+          <Button
+            variant={expanded ? 'ghost' : 'outline'}
+            size="sm"
+            className="h-7 text-xs shrink-0"
+            onClick={() => { setExpanded(!expanded); setNote(null); }}
+          >
+            {expanded ? 'Cancel' : 'Connect'}
+          </Button>
+        )}
+      </div>
+
+      {viaCloud && (
+        <p className="text-xs text-muted-foreground leading-relaxed flex items-start gap-1.5">
+          <Cloud className="size-3 mt-0.5 shrink-0 text-green-600" />
+          <span>Your key is vaulted server-side — AI features work in the preview and on your community-hosted site.</span>
+        </p>
+      )}
+
+      {note && (
+        <p className={`text-xs leading-relaxed flex items-start gap-1.5 ${note.tone === 'ok' ? 'text-green-700 dark:text-green-500' : 'text-destructive'}`}>
+          {note.tone === 'ok' ? <Check className="size-3 mt-0.5 shrink-0" /> : <AlertTriangle className="size-3 mt-0.5 shrink-0" />}
+          <span>{note.text}</span>
+        </p>
+      )}
+
+      {expanded && !viaCloud && (
+        <div className="space-y-2 pt-1">
+          {!cloudAttached ? (
+            <>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Turn on Community Cloud first and your {def.name} key gets vaulted
+                server-side — AI features then work everywhere, including the live
+                preview. No Netlify or Vercel account needed.
+              </p>
+              <Button size="sm" className="h-7 text-xs gap-1.5" disabled={busy !== 'idle'} onClick={handleEnableCloud}>
+                {busy === 'enabling' ? <Loader2 className="size-3 animate-spin" /> : <Cloud className="size-3" />}
+                Turn on Community Cloud
+              </Button>
+            </>
+          ) : (
+            <>
+              <div className="space-y-1">
+                <label className="text-xs font-medium flex items-center gap-1.5">
+                  API key
+                  <Badge variant="outline" className="text-[9px]">vaulted server-side</Badge>
+                </label>
+                <Input
+                  type="password"
+                  value={keyInput}
+                  onChange={e => { setKeyInput(e.target.value); setNote(null); }}
+                  placeholder={def.fields[0]?.placeholder ?? ''}
+                  className="h-7 text-xs font-mono"
+                />
+              </div>
+              <div className="flex items-center justify-between gap-2 pt-0.5">
+                <a
+                  href={def.keysUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-muted-foreground underline hover:text-foreground inline-flex items-center gap-1"
+                >
+                  {def.keysLabel} <ExternalLink className="size-2.5" />
+                </a>
+                <Button size="sm" className="h-7 text-xs gap-1.5" disabled={!keyInput.trim() || busy !== 'idle'} onClick={handleConnect}>
+                  {busy === 'connecting' && <Loader2 className="size-3 animate-spin" />}
+                  {busy === 'connecting' ? 'Checking…' : `Connect ${def.name}`}
+                </Button>
+              </div>
+            </>
+          )}
+          <p className="text-xs text-muted-foreground leading-relaxed">{def.setupHint}</p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 /**
  * Supabase gets the managed treatment: paste a personal access token once
