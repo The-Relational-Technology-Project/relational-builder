@@ -15,6 +15,14 @@
  *   create      {app_id, app_key, collection, data, member_token?, visibility?}
  *   update      {app_id, app_key, collection, id, data, member_token?}
  *   delete      {app_id, app_key, collection, id, member_token?}
+ *   query       {app_id, app_key, collection, where?, order?, limit?, offset?, member_token?}
+ *     — typed filtered reads; where: [{field, op, value}], op ∈ eq|neq|gt|gte|lt|lte|contains
+ *
+ * Typed collections (optional): a collection may declare a schema — fields
+ * with type/required/unique/maxLength — via admin_schema_set (the Builder
+ * syncs these from the project's cloud-schema.json). Writes to a declared
+ * collection are validated server-side; undeclared collections stay
+ * schemaless and work exactly as before.
  *
  * Builder admin (all require the owner's Builder session in Authorization;
  * these power the Cloud tab in Relational Builder):
@@ -25,6 +33,8 @@
  *   admin_members      {app_id}                    — neighbors signed into this app
  *   admin_rename_app   {app_id, name}
  *   admin_delete_app   {app_id}                    — removes app + all its data
+ *   admin_schema_get   {app_id}                    — collection specs + versions
+ *   admin_schema_set   {app_id, collections}       — replace all specs (versioned)
  *
  * Free community tier: 3 backends per builder, 20MB / 5000 documents each.
  *
@@ -159,6 +169,49 @@ Deno.serve(async (req: Request) => {
         return json({ documents: await res.json() });
       }
 
+      case 'query': {
+        const limit = Math.min(Number(body.limit ?? 50) || 50, MAX_LIST_LIMIT);
+        const offset = Math.max(Number(body.offset ?? 0) || 0, 0);
+        const where = Array.isArray(body.where) ? body.where : [];
+        if (where.length > 8) return json({ error: 'Too many filters (max 8)' }, 400);
+        const filters: string[] = [];
+        for (const w of where) {
+          const field = String(w?.field ?? '');
+          const op = String(w?.op ?? 'eq');
+          const value = w?.value;
+          if (!FIELD_NAME_RE.test(field)) return json({ error: `Bad filter field: ${field}` }, 400);
+          if (!QUERY_OPS[op]) return json({ error: `Bad filter op: ${op} (use ${Object.keys(QUERY_OPS).join('|')})` }, 400);
+          if (value === undefined || value === null) return json({ error: `Filter on "${field}" needs a value` }, 400);
+          if (op === 'contains') {
+            filters.push(`data->>${field}=ilike.${encodeURIComponent(`*${String(value)}*`)}`);
+          } else if (typeof value === 'number' || typeof value === 'boolean') {
+            // -> keeps jsonb typing so numbers compare numerically
+            filters.push(`data->${field}=${QUERY_OPS[op]}.${encodeURIComponent(String(value))}`);
+          } else {
+            filters.push(`data->>${field}=${QUERY_OPS[op]}.${encodeURIComponent(String(value))}`);
+          }
+        }
+        let order = 'order=created_at.desc';
+        const ob = body.order as { field?: unknown; dir?: unknown; numeric?: unknown } | undefined;
+        if (ob && typeof ob === 'object' && ob.field !== undefined) {
+          const field = String(ob.field);
+          if (!FIELD_NAME_RE.test(field)) return json({ error: `Bad order field: ${field}` }, 400);
+          const dir = ob.dir === 'asc' ? 'asc' : 'desc';
+          order = ob.numeric ? `order=data->${field}.${dir}` : `order=data->>${field}.${dir}`;
+        }
+        const visFilter = member ? '' : `&visibility=eq.public`;
+        const res = await fetch(
+          restUrl(
+            `/app_documents?app_id=eq.${encodeURIComponent(appId)}&collection=eq.${encodeURIComponent(collection)}` +
+            (filters.length ? `&${filters.join('&')}` : '') +
+            `&select=id,data,member_id,member_name,visibility,created_at,updated_at&${order}&limit=${limit}&offset=${offset}${visFilter}`,
+          ),
+          { headers: svcHeaders() },
+        );
+        if (!res.ok) return json({ error: 'Query failed' }, 500);
+        return json({ documents: await res.json() });
+      }
+
       case 'get': {
         const id = String(body.id ?? '');
         if (!id) return json({ error: 'id required' }, 400);
@@ -198,6 +251,8 @@ Deno.serve(async (req: Request) => {
         if (visibility === 'members' && !member) {
           return json({ error: 'Sign in to post members-only' }, 403);
         }
+        const schemaFail = await schemaCheck(appId, collection, data as Record<string, unknown>, null);
+        if (schemaFail) return schemaFail;
         const res = await fetch(restUrl('/app_documents'), {
           method: 'POST',
           headers: { ...svcHeaders(), Prefer: 'return=representation' },
@@ -230,6 +285,8 @@ Deno.serve(async (req: Request) => {
         }
         const owned = await ownershipCheck(appId, id, member);
         if (owned !== true) return owned;
+        const schemaFail = await schemaCheck(appId, collection, data as Record<string, unknown>, id);
+        if (schemaFail) return schemaFail;
         const res = await fetch(
           restUrl(`/app_documents?id=eq.${encodeURIComponent(id)}&app_id=eq.${encodeURIComponent(appId)}`),
           {
@@ -305,6 +362,110 @@ async function ownershipCheck(appId: string, docId: string, member: Member | nul
     return json({ error: 'Only the neighbor who posted this can change it' }, 403);
   }
   return true;
+}
+
+// ── Typed collections: opt-in schemas, validated writes, typed queries ──
+
+interface FieldSpec {
+  type: 'string' | 'number' | 'boolean' | 'array' | 'object';
+  required?: boolean;
+  unique?: boolean;
+  maxLength?: number;
+}
+
+interface CollectionSpec {
+  fields: Record<string, FieldSpec>;
+}
+
+const FIELD_NAME_RE = /^[a-zA-Z0-9_]{1,64}$/;
+const MAX_COLLECTIONS = 30;
+const MAX_FIELDS = 50;
+const QUERY_OPS: Record<string, string> = {
+  eq: 'eq', neq: 'neq', gt: 'gt', gte: 'gte', lt: 'lt', lte: 'lte', contains: 'ilike',
+};
+
+async function getCollectionSpec(appId: string, collection: string): Promise<CollectionSpec | null> {
+  const res = await fetch(
+    restUrl(`/app_collections?app_id=eq.${encodeURIComponent(appId)}&name=eq.${encodeURIComponent(collection)}&select=spec`),
+    { headers: svcHeaders() },
+  );
+  const rows = res.ok ? await res.json() : [];
+  const spec = rows[0]?.spec;
+  return spec && typeof spec === 'object' && spec.fields ? spec as CollectionSpec : null;
+}
+
+/** Shape-check one collection spec (used by admin_schema_set) */
+function specError(name: string, spec: unknown): string | null {
+  if (!FIELD_NAME_RE.test(name)) return `Collection name "${name}" must be letters/digits/underscores`;
+  const fields = (spec as CollectionSpec)?.fields;
+  if (!fields || typeof fields !== 'object') return `Collection "${name}" needs a fields object`;
+  const entries = Object.entries(fields);
+  if (entries.length > MAX_FIELDS) return `Collection "${name}" has too many fields (max ${MAX_FIELDS})`;
+  for (const [fname, f] of entries) {
+    if (!FIELD_NAME_RE.test(fname)) return `Field "${name}.${fname}" must be letters/digits/underscores`;
+    if (!['string', 'number', 'boolean', 'array', 'object'].includes((f as FieldSpec)?.type)) {
+      return `Field "${name}.${fname}" has unknown type "${(f as FieldSpec)?.type}"`;
+    }
+  }
+  return null;
+}
+
+/** Validate a document against its collection's spec; null when it passes */
+function validateData(spec: CollectionSpec, data: Record<string, unknown>): string | null {
+  for (const [fname, f] of Object.entries(spec.fields)) {
+    const value = data[fname];
+    if (value === undefined || value === null) {
+      if (f.required) return `"${fname}" is required`;
+      continue;
+    }
+    const ok =
+      f.type === 'string' ? typeof value === 'string' :
+      f.type === 'number' ? typeof value === 'number' && Number.isFinite(value) :
+      f.type === 'boolean' ? typeof value === 'boolean' :
+      f.type === 'array' ? Array.isArray(value) :
+      typeof value === 'object' && !Array.isArray(value);
+    if (!ok) return `"${fname}" should be a ${f.type}`;
+    if (f.type === 'string' && f.maxLength && (value as string).length > f.maxLength) {
+      return `"${fname}" is too long (max ${f.maxLength} characters)`;
+    }
+  }
+  return null;
+}
+
+/** Enforce unique fields with a lookup; returns an error message or null */
+async function uniqueViolation(
+  appId: string, collection: string, spec: CollectionSpec,
+  data: Record<string, unknown>, excludeId: string | null,
+): Promise<string | null> {
+  for (const [fname, f] of Object.entries(spec.fields)) {
+    if (!f.unique) continue;
+    const value = data[fname];
+    if (value === undefined || value === null) continue;
+    const exclude = excludeId ? `&id=neq.${encodeURIComponent(excludeId)}` : '';
+    const res = await fetch(
+      restUrl(
+        `/app_documents?app_id=eq.${encodeURIComponent(appId)}&collection=eq.${encodeURIComponent(collection)}` +
+        `&data->>${fname}=eq.${encodeURIComponent(String(value))}${exclude}&select=id&limit=1`,
+      ),
+      { headers: svcHeaders() },
+    );
+    const rows = res.ok ? await res.json() : [];
+    if (rows.length > 0) return `A document with that "${fname}" already exists`;
+  }
+  return null;
+}
+
+/** Validate + uniqueness for create/update; returns an error Response or null */
+async function schemaCheck(
+  appId: string, collection: string, data: Record<string, unknown>, excludeId: string | null,
+): Promise<Response | null> {
+  const spec = await getCollectionSpec(appId, collection);
+  if (!spec) return null; // undeclared collections stay schemaless
+  const invalid = validateData(spec, data);
+  if (invalid) return json({ error: invalid }, 422);
+  const dupe = await uniqueViolation(appId, collection, spec, data, excludeId);
+  if (dupe) return json({ error: dupe }, 409);
+  return null;
 }
 
 /** Email a 6-digit sign-in code for this app */
@@ -600,6 +761,65 @@ async function handleAdmin(req: Request, body: Record<string, unknown>, action: 
         body: JSON.stringify({ name }),
       });
       return json({ ok: true });
+    }
+
+    case 'admin_schema_get': {
+      const res = await fetch(
+        restUrl(`/app_collections?app_id=eq.${encodeURIComponent(appId)}&select=name,spec,version,updated_at&order=name.asc`),
+        { headers: svcHeaders() },
+      );
+      return json({ collections: res.ok ? await res.json() : [] });
+    }
+
+    case 'admin_schema_set': {
+      // Replace-all semantics: the project's cloud-schema.json is the intent;
+      // rows here mirror it. Versions bump only when a spec actually changes.
+      const incoming = body.collections;
+      if (!incoming || typeof incoming !== 'object' || Array.isArray(incoming)) {
+        return json({ error: 'collections object required' }, 400);
+      }
+      const entries = Object.entries(incoming as Record<string, unknown>);
+      if (entries.length > MAX_COLLECTIONS) {
+        return json({ error: `Too many collections (max ${MAX_COLLECTIONS})` }, 400);
+      }
+      for (const [name, spec] of entries) {
+        const bad = specError(name, spec);
+        if (bad) return json({ error: bad }, 422);
+      }
+      const existingRes = await fetch(
+        restUrl(`/app_collections?app_id=eq.${encodeURIComponent(appId)}&select=name,spec,version`),
+        { headers: svcHeaders() },
+      );
+      const existing = existingRes.ok ? await existingRes.json() : [];
+      const existingByName = new Map(
+        existing.map((r: { name: string; spec: unknown; version: number }) => [r.name, r]),
+      );
+      const names = new Set(entries.map(([n]) => n));
+      for (const [name, spec] of entries) {
+        const prev = existingByName.get(name) as { spec: unknown; version: number } | undefined;
+        if (prev && JSON.stringify(prev.spec) === JSON.stringify(spec)) continue;
+        const row = {
+          app_id: appId,
+          name,
+          spec,
+          version: prev ? prev.version + 1 : 1,
+        };
+        const res = await fetch(restUrl('/app_collections?on_conflict=app_id,name'), {
+          method: 'POST',
+          headers: { ...svcHeaders(), Prefer: 'resolution=merge-duplicates' },
+          body: JSON.stringify(row),
+        });
+        if (!res.ok) return json({ error: `Could not save collection "${name}"` }, 500);
+      }
+      // Collections dropped from the spec lose their schema (docs stay put)
+      for (const r of existing as { name: string }[]) {
+        if (names.has(r.name)) continue;
+        await fetch(
+          restUrl(`/app_collections?app_id=eq.${encodeURIComponent(appId)}&name=eq.${encodeURIComponent(r.name)}`),
+          { method: 'DELETE', headers: svcHeaders() },
+        );
+      }
+      return json({ ok: true, count: entries.length });
     }
 
     case 'admin_delete_app': {
