@@ -36,7 +36,7 @@
  *   admin_schema_get   {app_id}                    — collection specs + versions
  *   admin_schema_set   {app_id, collections}       — replace all specs (versioned)
  *
- * Free community tier: 3 backends per builder, 20MB / 5000 documents each.
+ * Free community tier: 3 backends per builder, 100MB / 5000 documents each.
  *
  * Neighbor accounts — email-code sign-in for the app's users, so built
  * apps get "neighbors sign in" with zero builder configuration:
@@ -64,7 +64,7 @@ const MAX_DATA_BYTES = 32 * 1024;
 const MAX_LIST_LIMIT = 100;
 const MAX_DOCS_PER_APP = 5000;
 const MAX_APPS_PER_BUILDER = 3;
-const MAX_BYTES_PER_APP = 20 * 1024 * 1024;
+const MAX_BYTES_PER_APP = 100 * 1024 * 1024;
 const RATE_LIMIT_PER_MIN = 120;
 
 const rateBuckets = new Map<string, { count: number; windowStart: number }>();

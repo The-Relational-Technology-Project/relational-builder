@@ -235,6 +235,16 @@ export async function promoteWorkspaceToCloud(
 ): Promise<{ error: string | null }> {
   if (promoting) return { error: null };
   if (cloudProjectOwnsWorkspace()) return { error: null };
+  // An untouched workspace is not a project: a fresh "New Project" waiting
+  // for its first message must never mint an empty "Untitled" on the account
+  // (callers like the Projects page invoke this unconditionally before
+  // switching projects, precisely so they don't each need this check)
+  if (
+    useProjectStore.getState().fs.getPaths().length === 0 &&
+    useChatStore.getState().messages.length === 0
+  ) {
+    return { error: null };
+  }
   promoting = true;
   try {
     const slotName = useLocalProjects.getState().currentName.trim();

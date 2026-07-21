@@ -37,7 +37,7 @@ import {
  * The Cloud tab: a builder's window into their Community Cloud — the
  * zero-setup backends behind their apps. See the data neighbors have
  * posted, who has signed in, usage against the free community tier
- * (3 backends, 20MB each), and manage everything without SQL.
+ * (3 backends, 100MB each), and manage everything without SQL.
  */
 export function CloudPanel() {
   const user = useAuthStore(s => s.user);
@@ -85,7 +85,7 @@ export function CloudPanel() {
     return (
       <AppDetail
         app={openApp}
-        limits={overview?.limits ?? { max_apps: 3, max_bytes: 20971520, max_docs: 5000 }}
+        limits={overview?.limits ?? { max_apps: 3, max_bytes: 104857600, max_docs: 5000 }}
         onBack={() => { setOpenApp(null); refresh(); }}
         onChanged={refresh}
       />
@@ -119,7 +119,12 @@ export function CloudPanel() {
         {overview && overview.apps.length > 0 && (
           <div className="space-y-2">
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              App backends
+              All your backends
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Backends live on your account, not inside a project — these may
+              belong to other projects. Click one to browse its data, or
+              connect it to this project above.
             </p>
             {overview.apps.map(app => (
               <AppCard
@@ -207,15 +212,16 @@ function ThisProjectCard({
     <div className="rounded-lg border border-dashed p-3 space-y-2">
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-sm font-medium">This project has no backend yet</p>
+          <p className="text-sm font-medium">This project isn't connected to a backend</p>
           <p className="text-xs text-muted-foreground mt-0.5">
-            One click adds shared data — boards, RSVPs, sign-ups just work.
+            Enable creates a new one — shared boards, RSVPs, sign-ups just work.
+            {(overview?.apps.length ?? 0) > 0 && ' Or connect one of your existing backends below.'}
           </p>
         </div>
         <div className="flex items-center gap-1 shrink-0">
           {(overview?.apps.length ?? 0) > 0 && (
             <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setChoosing(!choosing)}>
-              {choosing ? 'Cancel' : 'Reuse'}
+              {choosing ? 'Cancel' : 'Connect existing'}
             </Button>
           )}
           <Button size="sm" className="h-7 text-xs" onClick={handleEnable} disabled={busy || atLimit}>
@@ -225,11 +231,14 @@ function ThisProjectCard({
       </div>
       {atLimit && !choosing && (
         <p className="text-xs text-muted-foreground">
-          You're using all {overview?.limits.max_apps} free backends — reuse one below, or remove one you no longer need.
+          You're using all {overview?.limits.max_apps} free backends — connect one of them to this project, or remove one you no longer need.
         </p>
       )}
       {choosing && overview && (
         <div className="space-y-1 pt-1">
+          <p className="text-xs text-muted-foreground">
+            Pick a backend to connect — this project will read and write its data.
+          </p>
           {overview.apps.map(app => (
             <button
               key={app.app_id}

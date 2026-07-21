@@ -5,14 +5,17 @@ import { FileTree } from './FileTree';
 import { CodeViewer } from './CodeViewer';
 import { addPhotoAsset } from '@/project/assets';
 import { artworkAvailable, generateArtwork, addGeneratedAsset } from '@/project/artwork';
+import { downloadSourceZip } from '@/project/download-source';
 import { isImageFile } from '@/lib/image';
-import { ImagePlus, Loader2, Sparkles } from 'lucide-react';
+import { Download, ImagePlus, Loader2, Sparkles } from 'lucide-react';
 
 export function FilePanel() {
   const selectedFile = useProjectStore(s => s.selectedFile);
+  const hasFiles = useProjectStore(s => s.getFileCount() > 0);
   const setDraftMessage = useChatStore(s => s.setDraftMessage);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [adding, setAdding] = useState(false);
+  const [zipping, setZipping] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [genOpen, setGenOpen] = useState(false);
   const [genPrompt, setGenPrompt] = useState('');
@@ -36,6 +39,19 @@ export function FilePanel() {
       setNotice(e instanceof Error ? e.message : 'Could not generate that image');
     } finally {
       setGenerating(false);
+    }
+  }
+
+  async function handleDownloadZip() {
+    if (zipping) return;
+    setZipping(true);
+    setNotice(null);
+    try {
+      await downloadSourceZip();
+    } catch (e) {
+      setNotice(e instanceof Error ? e.message : 'Could not build the zip');
+    } finally {
+      setZipping(false);
     }
   }
 
@@ -89,6 +105,17 @@ export function FilePanel() {
           >
             {generating ? <Loader2 className="size-3 animate-spin" /> : <Sparkles className="size-3" />}
             Generate image
+          </button>
+        )}
+        {hasFiles && (
+          <button
+            onClick={handleDownloadZip}
+            disabled={zipping}
+            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground disabled:opacity-50"
+            title="Download the whole codebase as a zip — source files plus a ready-to-run scaffold"
+          >
+            {zipping ? <Loader2 className="size-3 animate-spin" /> : <Download className="size-3" />}
+            Download zip
           </button>
         )}
         {notice && <span className="text-xs text-muted-foreground truncate">{notice}</span>}
