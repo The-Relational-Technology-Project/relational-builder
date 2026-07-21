@@ -51,12 +51,16 @@ function fnUrl(): string {
   return `${import.meta.env.VITE_BUILDER_SUPABASE_URL}/functions/v1/app-data`;
 }
 
-async function adminRequest<T>(action: string, payload: Record<string, unknown> = {}): Promise<T> {
+function capFnUrl(): string {
+  return `${import.meta.env.VITE_BUILDER_SUPABASE_URL}/functions/v1/app-capabilities`;
+}
+
+async function sessionRequest<T>(url: string, action: string, payload: Record<string, unknown>): Promise<T> {
   if (!builderClient) throw new Error('Cloud is not configured');
   const { data } = await builderClient.auth.getSession();
   const token = data.session?.access_token;
   if (!token) throw new Error('Sign in to manage your Community Cloud');
-  const res = await fetch(fnUrl(), {
+  const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     body: JSON.stringify({ action, ...payload }),
@@ -64,6 +68,15 @@ async function adminRequest<T>(action: string, payload: Record<string, unknown> 
   const result = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(result.error ?? 'Cloud request failed');
   return result as T;
+}
+
+function adminRequest<T>(action: string, payload: Record<string, unknown> = {}): Promise<T> {
+  return sessionRequest<T>(fnUrl(), action, payload);
+}
+
+/** Vault/capability calls — same session auth, sibling edge function */
+function capRequest<T>(action: string, payload: Record<string, unknown> = {}): Promise<T> {
+  return sessionRequest<T>(capFnUrl(), action, payload);
 }
 
 export function getCloudOverview() {
@@ -94,6 +107,49 @@ export function deleteApp(appId: string) {
   return adminRequest<{ ok: boolean }>('admin_delete_app', { app_id: appId });
 }
 
+// ── Capability vault: builder-pasted service keys, stored server-side only ──
+
+export interface AppSecretStatus {
+  service: string;
+  config: { from_name?: string; from_email?: string; members_only_send?: boolean };
+  daily_cap: number;
+  sends_today: number;
+  created_at: string;
+  last_used_at: string | null;
+}
+
+export interface EmailLogRow {
+  recipient: string;
+  subject: string | null;
+  status: 'sent' | 'failed';
+  error: string | null;
+  created_at: string;
+}
+
+export function setAppSecret(appId: string, service: string, secret: string, config?: AppSecretStatus['config']) {
+  return capRequest<{ ok: boolean }>('secret_set', { app_id: appId, service, secret, config });
+}
+
+export function updateSecretConfig(appId: string, service: string, config: AppSecretStatus['config']) {
+  return capRequest<{ ok: boolean }>('secret_config', { app_id: appId, service, config });
+}
+
+export function deleteAppSecret(appId: string, service: string) {
+  return capRequest<{ ok: boolean }>('secret_delete', { app_id: appId, service });
+}
+
+export function getSecretStatus(appId: string) {
+  return capRequest<{ secrets: AppSecretStatus[] }>('secret_status', { app_id: appId });
+}
+
+export function testAppSecret(appId: string, service: string) {
+  return capRequest<{ ok: boolean; error?: string; verified_domains?: string[] }>('secret_test', { app_id: appId, service });
+}
+
+export function getEmailLog(appId: string, limit = 20) {
+  return capRequest<{ log: EmailLogRow[] }>('secret_log', { app_id: appId, limit });
+}
+
 /** Create a fresh backend and wire it into the current project's env vars */
 export async function createAppForProject(name: string): Promise<void> {
   const result = await adminRequest<{ app_id: string; app_key: string }>('create_app', { name });
@@ -104,13 +160,14 @@ export async function createAppForProject(name: string): Promise<void> {
 export function attachAppToProject(appId: string, appKey: string): void {
   const setVar = useEnvStore.getState().setVar;
   setVar('COMMUNITY_CLOUD_URL', fnUrl(), false);
+  setVar('COMMUNITY_CAPABILITIES_URL', capFnUrl(), false);
   setVar('APP_ID', appId, false);
   setVar('APP_KEY', appKey, false);
 }
 
 export function detachAppFromProject(): void {
   const removeVar = useEnvStore.getState().removeVar;
-  for (const key of ['COMMUNITY_CLOUD_URL', 'APP_ID', 'APP_KEY']) removeVar(key);
+  for (const key of ['COMMUNITY_CLOUD_URL', 'COMMUNITY_CAPABILITIES_URL', 'APP_ID', 'APP_KEY', 'COMMUNITY_EMAIL']) removeVar(key);
 }
 
 export function formatBytes(bytes: number): string {

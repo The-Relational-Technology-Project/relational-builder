@@ -14,11 +14,16 @@ import {
   attachAppToProject,
   detachAppFromProject,
   formatBytes,
+  getSecretStatus,
+  getEmailLog,
+  updateSecretConfig,
   type CloudAppOverview,
   type CloudLimits,
   type CloudCollection,
   type CloudDocument,
   type CloudMember,
+  type AppSecretStatus,
+  type EmailLogRow,
 } from '@/cloud/community-cloud';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -598,6 +603,8 @@ function AppSettings({
         </p>
       </div>
 
+      <EmailSection appId={app.app_id} />
+
       <div className="space-y-1.5">
         <label className="text-xs font-medium">Connection</label>
         <CopyRow label="App ID" value={app.app_id} />
@@ -625,6 +632,134 @@ function AppSettings({
           Delete app backend
         </Button>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Vaulted-email status for this backend: sends today against the daily cap,
+ * the from-address (editable without re-pasting the key), and recent sends.
+ * Connecting the key itself happens in the Services tab.
+ */
+function EmailSection({ appId }: { appId: string }) {
+  const [status, setStatus] = useState<AppSecretStatus | null>(null);
+  const [log, setLog] = useState<EmailLogRow[]>([]);
+  const [loaded, setLoaded] = useState(false);
+  const [fromName, setFromName] = useState('');
+  const [fromEmail, setFromEmail] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const [{ secrets }, { log: rows }] = await Promise.all([
+          getSecretStatus(appId),
+          getEmailLog(appId),
+        ]);
+        if (cancelled) return;
+        const resend = secrets.find(s => s.service === 'resend') ?? null;
+        setStatus(resend);
+        setLog(rows);
+        setFromName(resend?.config.from_name ?? '');
+        setFromEmail(resend?.config.from_email ?? '');
+      } catch {
+        // Leave the section in its "not set up" state on load failure
+      } finally {
+        if (!cancelled) setLoaded(true);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [appId]);
+
+  if (!loaded) return null;
+
+  if (!status) {
+    return (
+      <div className="space-y-1.5">
+        <label className="text-xs font-medium">Email</label>
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          Not set up — connect Resend in the Services tab and apps on this
+          backend can send email from the preview and hosted sites.
+        </p>
+      </div>
+    );
+  }
+
+  const dirty =
+    fromName.trim() !== (status.config.from_name ?? '') ||
+    fromEmail.trim() !== (status.config.from_email ?? '');
+
+  async function handleSaveFrom() {
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const config = {
+        ...status!.config,
+        from_name: fromName.trim() || undefined,
+        from_email: fromEmail.trim() || undefined,
+      };
+      await updateSecretConfig(appId, 'resend', config);
+      setStatus({ ...status!, config });
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Could not save');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="space-y-1.5">
+      <label className="text-xs font-medium">Email</label>
+      <p className="text-xs text-muted-foreground">
+        {status.sends_today} of {status.daily_cap} sends today
+        {status.last_used_at ? ` · last sent ${new Date(status.last_used_at).toLocaleDateString()}` : ' · not used yet'}
+      </p>
+      <div className="flex gap-2">
+        <Input
+          value={fromName}
+          onChange={e => setFromName(e.target.value)}
+          placeholder="From name"
+          className="h-7 text-xs"
+        />
+        <Input
+          value={fromEmail}
+          onChange={e => setFromEmail(e.target.value)}
+          placeholder="from@your-domain.org"
+          className="h-7 text-xs font-mono"
+        />
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-7 text-xs shrink-0"
+          onClick={handleSaveFrom}
+          disabled={saving || !dirty}
+        >
+          {saving ? <Loader2 className="size-3 animate-spin" /> : 'Save'}
+        </Button>
+      </div>
+      {saveError && <p className="text-xs text-destructive">{saveError}</p>}
+      <p className="text-xs text-muted-foreground leading-relaxed">
+        Leave blank to send from onboarding@resend.dev. A custom from-address
+        needs its domain verified in Resend first.
+      </p>
+      {log.length > 0 && (
+        <div className="rounded-md border divide-y max-h-40 overflow-y-auto">
+          {log.map((row, i) => (
+            <div key={i} className="px-2.5 py-1.5 text-xs flex items-center gap-2">
+              <span className={`shrink-0 ${row.status === 'sent' ? 'text-green-600' : 'text-destructive'}`}>
+                {row.status === 'sent' ? '✓' : '✕'}
+              </span>
+              <span className="font-mono truncate">{row.recipient}</span>
+              <span className="text-muted-foreground truncate flex-1">{row.subject}</span>
+              <span className="text-muted-foreground shrink-0">
+                {new Date(row.created_at).toLocaleDateString()}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
