@@ -230,7 +230,7 @@ const BASE_INSTRUCTIONS = [
   '',
   ...GUIDED_SERVICES.map(def => def.aiSetup),
   '',
-  'For guided services: walk through account creation and credentials step by step, tell them exactly which env vars to add in the Env tab (with the secret/public choice spelled out), and wire the code the same turn. Secret keys always mean a serverless function — never in browser code. For any service not listed here at all, the same pattern applies: help them set it up, keep credentials in env vars, be honest about what only works after deploy.',
+  'For guided services: walk through account creation and credentials step by step, tell them exactly which env vars to add in the Env tab (with the secret/public choice spelled out), and wire the code the same turn. Secret keys always mean a serverless function — or a Community Cloud capability proxy when one exists for the service (see Connected Services) — never in browser code. For any service not listed here at all, the same pattern applies: help them set it up, keep credentials in env vars, be honest about what only works after deploy.',
   '',
   '## Environment Variables',
   '',

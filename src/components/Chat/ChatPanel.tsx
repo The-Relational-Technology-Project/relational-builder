@@ -12,6 +12,7 @@ import {
   getConnectedIntegrations,
   communityCloudConnected,
   COMMUNITY_CLOUD_GUIDANCE,
+  RESEND_CLOUD_GUIDANCE,
 } from '@/integrations/catalog';
 import {
   useCommunityStore,
@@ -225,7 +226,12 @@ export function ChatPanel() {
     const relevant = commonsResults.length > 0 ? null : getRelevantContext(content);
     const envVars = useEnvStore.getState().vars;
     const connectedServices = getConnectedIntegrations(envVars);
-    const serviceGuidance = connectedServices.map(s => s.aiGuidance);
+    // Resend via the Community Cloud vault (COMMUNITY_EMAIL marker) swaps the
+    // serverless-function guidance for the capability-endpoint pattern
+    const emailViaCloud = envVars.some(v => v.key === 'COMMUNITY_EMAIL' && v.value.trim());
+    const serviceGuidance = connectedServices.map(s =>
+      s.id === 'resend' && emailViaCloud ? RESEND_CLOUD_GUIDANCE : s.aiGuidance,
+    );
     if (communityCloudConnected(envVars)) serviceGuidance.unshift(COMMUNITY_CLOUD_GUIDANCE);
     const projectFiles = useProjectStore.getState().getAllFiles()
       .map(f => ({ path: f.path, content: f.content }));

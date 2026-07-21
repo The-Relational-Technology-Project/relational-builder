@@ -28,6 +28,13 @@ export interface IntegrationDef {
   aiGuidance: string;
   /** Shown in the panel under the fields */
   setupHint: string;
+  /**
+   * Alternate connected signal: when every one of these env keys is set the
+   * service counts as connected even without its `fields` keys. Used by
+   * capability-proxy connections (e.g. Resend vaulted server-side sets
+   * COMMUNITY_EMAIL instead of RESEND_API_KEY).
+   */
+  altConnectedKeys?: string[];
 }
 
 export const INTEGRATIONS: IntegrationDef[] = [
@@ -83,7 +90,8 @@ export const INTEGRATIONS: IntegrationDef[] = [
       '  Generate a serverless function (`netlify/functions/send-email.mts` for Netlify or `api/send-email.ts` for Vercel) that POSTs to `https://api.resend.com/emails` with the `Authorization: Bearer` header, and have the browser call it with `fetch`.',
       '  Until the user verifies their own domain in Resend, use `onboarding@resend.dev` as the from address and mention that limitation.',
     ].join('\n'),
-    setupHint: 'Stored as a secret. Email sending works once the project is deployed to Netlify or Vercel (serverless functions carry the key). Verify a sending domain in Resend for production.',
+    setupHint: 'With Community Cloud on, your key is vaulted server-side and email works everywhere — the preview, your community-hosted site, any deploy. Without it, the key is stored as a secret and works once deployed to Netlify or Vercel.',
+    altConnectedKeys: ['COMMUNITY_EMAIL'],
   },
   {
     id: 'firecrawl',
@@ -157,7 +165,10 @@ export const INTEGRATIONS: IntegrationDef[] = [
 /** Which integrations are fully connected, given the current env vars */
 export function getConnectedIntegrations(vars: EnvVar[]): IntegrationDef[] {
   const keys = new Set(vars.filter(v => v.value.trim()).map(v => v.key));
-  return INTEGRATIONS.filter(def => def.fields.every(f => keys.has(f.envKey)));
+  return INTEGRATIONS.filter(def =>
+    def.fields.every(f => keys.has(f.envKey)) ||
+    (def.altConnectedKeys?.every(k => keys.has(k)) ?? false),
+  );
 }
 
 // ── Guided services (no Connect button — the Builder walks you through) ──
@@ -262,4 +273,27 @@ export const COMMUNITY_CLOUD_GUIDANCE = [
   '  Build sign-in as a small inline flow (email → "check your email" → 6-digit code input), not a separate page. Keep reading open to everyone unless the person asks for members-only.',
   '',
   '  IMPORTANT: public documents are community-public — anyone using the app can read them, and anonymous writes stay open. Members-only visibility and creator-owned edits are real access control; everything else is openly shared neighborhood info. Add gentle norms in the UI for the open parts, never store secrets, and say this to the user when you first use it.',
+].join('\n');
+
+/**
+ * Replaces the Resend serverless guidance when the key is vaulted with
+ * Community Cloud (env marker COMMUNITY_EMAIL): the app calls the managed
+ * capability endpoint instead of shipping its own serverless function, so
+ * email works in the preview and on community-hosted sites too.
+ */
+export const RESEND_CLOUD_GUIDANCE = [
+  '- **Email is connected through Community Cloud** — the builder\'s Resend key is vaulted server-side and email works EVERYWHERE this app runs: the live preview, the community-hosted site, and any other deploy. Do NOT generate `netlify/functions` or `api/` serverless functions for email, and never reference `RESEND_API_KEY` — the app never sees the key. Send like this:',
+  '  ```javascript',
+  '  async function sendEmail(to, subject, text, html) {',
+  '    const url = env.COMMUNITY_CAPABILITIES_URL',
+  '      ?? env.COMMUNITY_CLOUD_URL.replace(/app-data$/, "app-capabilities");',
+  '    const res = await fetch(url, {',
+  '      method: "POST",',
+  '      headers: { "Content-Type": "application/json" },',
+  '      body: JSON.stringify({ action: "send_email", app_id: env.APP_ID, app_key: env.APP_KEY, to, subject, text, html }),',
+  '    });',
+  '    return res.json();   // {ok: true} or {error: "friendly message"}',
+  '  }',
+  '  ```',
+  '  Rules: `to` is one address or up to 5; `subject` required; `text` and/or `html`; optional `reply_to`. Always check the response and surface `error` to the person in the UI — sends can fail (bad address, or the app hit its daily email limit, which returns a clear message). The from-address is configured in the Services tab, not in code. Only email addresses people typed into THIS app (their own, or an organizer\'s shown in the app) — never invent recipients or build bulk mailers.',
 ].join('\n');
