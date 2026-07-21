@@ -44,28 +44,35 @@ export function splitSpecifier(spec: string): { pkg: string; subpath: string } {
   return { pkg, subpath };
 }
 
-/** CDN URL for one bare specifier. */
-export function cdnUrl(spec: string): string {
+/**
+ * CDN URL for one bare specifier. `dev` swaps React (only) to its development
+ * build: full error messages and component stacks instead of
+ * "Minified React error #185" — which the error→AI-fix loop can't act on.
+ */
+export function cdnUrl(spec: string, dev = false): string {
   const { pkg, subpath } = splitSpecifier(spec);
   const version = PINNED_VERSIONS[pkg];
   const at = version ? `@${version}` : '';
   const isReact = pkg === 'react' || pkg === 'react-dom';
-  const query = isReact ? '' : '?external=react,react-dom';
+  const params = isReact ? (dev ? ['dev'] : []) : ['external=react,react-dom'];
+  const query = params.length > 0 ? `?${params.join('&')}` : '';
   return `${ESM_CDN}/${pkg}${at}${subpath}${query}`;
 }
 
 /**
  * Build the import map for the preview/publish shell from the set of bare
  * specifiers the bundle actually imports. React entries are always present
- * (the synthesized entry and jsx-runtime need them).
+ * (the synthesized entry and jsx-runtime need them). `dev` = development
+ * React for live previews; publish builds stay on production React.
  */
-export function buildImportMap(bareImports: Iterable<string>): string {
+export function buildImportMap(bareImports: Iterable<string>, dev = false): string {
+  const devQuery = dev ? '?dev' : '';
   const imports: Record<string, string> = {
-    'react': cdnUrl('react'),
-    'react/jsx-runtime': `${ESM_CDN}/react@${REACT_VERSION}/jsx-runtime`,
-    'react/jsx-dev-runtime': `${ESM_CDN}/react@${REACT_VERSION}/jsx-dev-runtime`,
-    'react-dom': cdnUrl('react-dom'),
-    'react-dom/client': `${ESM_CDN}/react-dom@${REACT_VERSION}/client?external=react`,
+    'react': cdnUrl('react', dev),
+    'react/jsx-runtime': `${ESM_CDN}/react@${REACT_VERSION}/jsx-runtime${devQuery}`,
+    'react/jsx-dev-runtime': `${ESM_CDN}/react@${REACT_VERSION}/jsx-dev-runtime${devQuery}`,
+    'react-dom': cdnUrl('react-dom', dev),
+    'react-dom/client': `${ESM_CDN}/react-dom@${REACT_VERSION}/client?external=react${dev ? '&dev' : ''}`,
   };
   for (const spec of bareImports) {
     if (!(spec in imports)) imports[spec] = cdnUrl(spec);

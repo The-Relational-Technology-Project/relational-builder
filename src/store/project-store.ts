@@ -139,9 +139,14 @@ export const useProjectStore = create<ProjectState>()(persist((set, get) => ({
   },
 
   applyMessageFiles: (markdown, msgId) => {
-    const { writes, edits } = extractOperations(markdown);
+    const { writes, edits, truncatedPath } = extractOperations(markdown);
     const { fs, checkpoints } = get();
     const warnings: string[] = [];
+    if (truncatedPath) {
+      warnings.push(
+        `${truncatedPath} was cut off mid-stream and wasn't applied — an incomplete file would break the preview.`,
+      );
+    }
 
     // Resolve targeted edits against current file contents
     const editResults: ExtractedFile[] = [];

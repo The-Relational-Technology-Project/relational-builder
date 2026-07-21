@@ -68,6 +68,11 @@ interface ChatState {
    * Builder action rather than one of the person's own messages */
   pendingFixLabel: string | null;
   queueFix: (content: string, label?: string) => void;
+  /** Fingerprint of the last preview error a fix was attempted for, and how
+   * many attempts it's had — repeated attempts at the SAME error escalate the
+   * fix prompt instead of repeating it. Transient (never persisted). */
+  lastFixSignature: string | null;
+  fixAttempts: number;
   /** True while the queued/current send continues a cut-off build reply.
    * Continuations are fix sends (they never re-arm the error pass mid-chain)
    * but unlike error fixes they may chain — bounded by continuationCount. */
@@ -160,6 +165,8 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
   pendingFixLabel: null,
   queueFix: (content: string, label?: string) =>
     set({ queuedMessage: content, pendingFixSend: true, pendingFixLabel: label ?? 'Automatic fix' }),
+  lastFixSignature: null,
+  fixAttempts: 0,
   pendingContinuationSend: false,
   continuationCount: 0,
   chainFirstBuildAsk: null,

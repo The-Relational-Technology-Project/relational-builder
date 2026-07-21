@@ -4,7 +4,8 @@ import type { FileEntry } from '@/project/virtual-fs';
 import type { EnvVar } from '@/store/env-store';
 import { buildEnvJs, buildEnvTs } from '@/project/env-module';
 import { bundleProject, findFrameworkEntry } from '@/preview/bundler/bundle';
-import { buildShellHtml, ERROR_RELAY, NAV_BRIDGE } from '@/preview/bundler/shell';
+import { ASSET_APPLIER, buildShellHtml, ERROR_RELAY, NAV_BRIDGE } from '@/preview/bundler/shell';
+import { isPhotoAssetPath } from '@/project/assets';
 import { KIT_FILES } from '@/kit';
 import { INSPECT_SOURCE } from '@/preview/inspect-source';
 import { PointAtIt } from './PointAtIt';
@@ -70,7 +71,9 @@ export function FrameworkPreview({
         return;
       }
 
-      const result = await bundleProject({ files: vfs, entry });
+      // dev: development React in the preview — real error messages and
+      // component stacks for the error→AI-fix loop. Publish stays production.
+      const result = await bundleProject({ files: vfs, entry, dev: true });
       if (runId.current !== id) return; // a newer bundle superseded this one
 
       setBundling(false);
@@ -79,13 +82,25 @@ export function FrameworkPreview({
         return;
       }
 
+      // Photo assets can't load by relative URL from a blob: document —
+      // inline their modules so `<img data-asset>` works in framework apps.
+      const assetScripts = files
+        .filter(f => isPhotoAssetPath(f.path))
+        .map(f => `<script>\n${f.content.replace(/<\/script>/gi, '<\\/script>')}\n</script>`);
+
       setBuildError(null);
       setRuntimeError(null);
       setHtml(
         buildShellHtml({
           bundle: result,
           indexHtml: vfs['/index.html'],
-          bodyExtra: [`<script>\n${INSPECT_SOURCE}\n</script>`, ERROR_RELAY, NAV_BRIDGE],
+          bodyExtra: [
+            ...assetScripts,
+            ASSET_APPLIER,
+            `<script>\n${INSPECT_SOURCE}\n</script>`,
+            ERROR_RELAY,
+            NAV_BRIDGE,
+          ],
         }),
       );
     }, 250);

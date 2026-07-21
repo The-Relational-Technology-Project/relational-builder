@@ -27,6 +27,9 @@ export interface BundleInput {
   files: Record<string, string>;
   /** Entry module, e.g. /src/main.tsx */
   entry: string;
+  /** Development React in the import map (live preview only) — real error
+   *  messages and component stacks instead of minified error codes */
+  dev?: boolean;
 }
 
 export interface BundleSuccess {
@@ -206,7 +209,7 @@ export async function bundleProject(input: BundleInput): Promise<BundleResult> {
       ok: true,
       js,
       css: cssChunks,
-      importMap: buildImportMap(bareImports),
+      importMap: buildImportMap(bareImports, input.dev ?? false),
     };
   } catch (err) {
     const failure = err as { errors?: esbuild.Message[] };

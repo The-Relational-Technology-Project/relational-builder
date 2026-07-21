@@ -2,7 +2,8 @@ import type { FileEntry } from './virtual-fs';
 import type { PublicEnvVar } from './env-module';
 import { buildEnvJs, buildEnvTs } from './env-module';
 import { bundleProject, findFrameworkEntry } from '@/preview/bundler/bundle';
-import { buildShellHtml } from '@/preview/bundler/shell';
+import { ASSET_APPLIER, buildShellHtml } from '@/preview/bundler/shell';
+import { isPhotoAssetPath } from './assets';
 import { detectPreviewKind } from '@/preview/detect';
 import { KIT_FILES, withKitFiles } from '@/kit';
 import { PINNED_VERSIONS, REACT_VERSION, splitSpecifier } from '@/preview/bundler/versions';
@@ -66,7 +67,21 @@ export async function buildStaticSite(
     throw new Error(`The app failed to build:\n${result.errors.join('\n')}`);
   }
 
-  const html = buildShellHtml({ bundle: result, indexHtml: vfs['/index.html'] });
+  // Photo assets pass through as real files below — reference them from the
+  // shell (plus the applier that wires `img[data-asset]` up after React
+  // renders), so photos work on the published site exactly like in preview.
+  const assetTags = files
+    .filter(f => isPhotoAssetPath(f.path))
+    .map(f => {
+      const rel = f.path.startsWith('/') ? f.path.slice(1) : f.path;
+      return `<script src="./${rel}"></script>`;
+    });
+
+  const html = buildShellHtml({
+    bundle: result,
+    indexHtml: vfs['/index.html'],
+    bodyExtra: assetTags.length > 0 ? [...assetTags, ASSET_APPLIER] : [ASSET_APPLIER],
+  });
 
   const out: FileEntry[] = [entryOf('/index.html', html, 'html')];
   for (const f of files) {

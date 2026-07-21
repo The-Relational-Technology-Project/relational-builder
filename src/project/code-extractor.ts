@@ -38,6 +38,10 @@ export interface ExtractedEdit {
 export interface ExtractionResult {
   writes: ExtractedFile[];
   edits: ExtractedEdit[];
+  /** Path of a final block whose fence never closed (the stream was cut off
+   * mid-file) — excluded from writes/edits: applying half a file breaks the
+   * preview worse than waiting for the continuation to re-send it whole. */
+  truncatedPath?: string;
 }
 
 /** Extract all file blocks from a complete markdown string (writes only) */
@@ -53,6 +57,7 @@ export function extractFiles(markdown: string): ExtractedFile[] {
 export function extractOperations(markdown: string): ExtractionResult {
   const writes: ExtractedFile[] = [];
   const edits: ExtractedEdit[] = [];
+  let truncatedPath: string | undefined;
   const lines = markdown.split('\n');
 
   let i = 0;
@@ -71,6 +76,9 @@ export function extractOperations(markdown: string): ExtractionResult {
         codeLines.push(lines[i]);
         i++;
       }
+      // Reaching end-of-input without a closing fence = the reply was cut off
+      // inside this block
+      const closed = i < lines.length;
       // Skip closing fence
       i++;
 
@@ -85,6 +93,11 @@ export function extractOperations(markdown: string): ExtractionResult {
 
       if (!filename) continue;
 
+      if (!closed) {
+        truncatedPath = filename;
+        continue;
+      }
+
       if (language === 'edit') {
         const pairs = parseEditPairs(content);
         if (pairs.length > 0) edits.push({ path: filename, edits: pairs });
@@ -96,7 +109,7 @@ export function extractOperations(markdown: string): ExtractionResult {
     }
   }
 
-  return { writes, edits };
+  return { writes, edits, truncatedPath };
 }
 
 /** Parse SEARCH/REPLACE pairs out of an edit block's body */

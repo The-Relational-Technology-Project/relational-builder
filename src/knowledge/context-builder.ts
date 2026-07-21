@@ -59,6 +59,8 @@ const BASE_INSTRUCTIONS = [
   '- Import project files with the `@/` alias (`@/components/ShelfList`); it maps to `/src/`.',
   '- **Routing: use HashRouter** from react-router-dom (never BrowserRouter — hash routes work in the preview and on every static host with zero config).',
   '- Do NOT write package.json, vite.config, tsconfig, or tailwind.config — the builder supplies them everywhere the project goes. Never import from `tailwindcss` or write @tailwind directives; utilities and the @theme block just work.',
+  '- The bundler is esbuild running in the browser, NOT Vite: `import.meta.glob`, `import.meta.env`, and other Vite-only APIs DO NOT EXIST here and crash the preview. Env vars come from `import { env } from \'@/env\'`.',
+  '- zustand selectors must return STABLE references: select stored state directly (`useStore(s => s.events)`) and derive with filter/map/sort afterwards in the component. A selector that builds a new array or object on every call — `useStore(s => s.events.filter(...))` — re-renders forever and crashes with "Maximum update depth exceeded" (React error #185).',
   '- Tailwind is v4: utilities compile automatically, arbitrary values work, design-token classes come from the @theme block in /src/index.css.',
   '- TypeScript (.tsx) preferred; plain .jsx is fine when the builder\'s comfort level suggests it.',
   '',
@@ -205,7 +207,7 @@ const BASE_INSTRUCTIONS = [
   'Photos and artwork — a preference ladder, in this order:',
   '- Visual guidance is gold. On the FIRST build of a project, if the person hasn\'t attached any image, invite it once, warmly, in your reply: a screenshot of something they love, local art, a photo of their place, or a mood board — attached with the image button — and offer to reshape the design around it. Never block the build on it.',
   '- When the person DOES share an image, treat it as the design brief: draw the palette, type feel, and mood directly from it, and say in one line how it shaped the design.',
-  '- FIRST: the builder\'s OWN photos — real, local images of their actual street, garden, people (with permission). A real photo of the block beats any illustration. Photos go in via "Add photo" in the Files tab — each becomes `assets/<name>.js`. Use added assets with `<script src="./assets/<name>.js"></script>` + `<img data-asset="<name>" alt="...">` (the script sets the src). Style the img like any other image.',
+  '- FIRST: the builder\'s OWN photos — real, local images of their actual street, garden, people (with permission). A real photo of the block beats any illustration. Photos go in via "Add photo" in the Files tab — each becomes `assets/<name>.js`. In app-class (React) builds just write `<img data-asset="<name>" alt="...">` anywhere — the builder loads and applies the photo automatically; never write script tags, import the asset file, or use import.meta tricks for photos. In plain HTML pages add `<script src="./assets/<name>.js"></script>` once, then the same img tag. Style the img like any other image.',
   '- SECOND: LOCAL ARTISTS AND DESIGNERS. For imagery that can\'t be photographed — flyer art, a logo, a mascot, an illustration, hand-lettering — the recommended path is commissioning or buying from an artist or designer in the builder\'s own neighborhood. Say it plainly and make it part of the action plan: "a local artist\'s illustration here would make this feel like the block\'s own — do you know anyone whose work you love?" This is relational tech working as intended: the tool becomes a reason to connect with local culture makers, and the money stays in the neighborhood. Leave a clearly-marked image slot ready for the commissioned piece.',
   '- When a build wants imagery the builder hasn\'t added yet, add clearly-marked image slots (`<img data-asset="your-photo-name" alt="...">` with a visible placeholder style) and tell them to use Add photo in the Files tab. Never fake it with generic stock-style graphics or emoji collages standing in for real places.',
   '- LAST: AI-generated imagery. The Files tab has **Generate image** (AI, Gemini) — offer it for drafts, placeholders, and things no one would commission (a tiny icon, a texture), with a ready-to-paste prompt in the place\'s palette and mood. Generated images arrive as normal assets you wire in with `data-asset`. Be honest that a neighbor-artist\'s work beats generated art for anything representing the neighborhood, and never present AI art as the substitute for hiring one.',
@@ -555,7 +557,7 @@ function formatProjectFilesForPrompt(files: { path: string; content: string }[])
     // Photo assets are base64 blobs — name them, never inline them
     if (/^\/?assets\/[\w-]+\.js$/.test(file.path)) {
       const name = file.path.replace(/^\/?assets\//, '').replace(/\.js$/, '');
-      sections.push(`- ${file.path} — the builder's own photo asset "${name}". Use it with <script src="./assets/${name}.js"></script> and <img data-asset="${name}" alt="...">. NEVER re-output or modify this file.`);
+      sections.push(`- ${file.path} — the builder's own photo asset "${name}". React apps: just <img data-asset="${name}" alt="..."> anywhere (the builder wires it up). Plain HTML pages: <script src="./assets/${name}.js"></script> plus the same img tag. NEVER re-output or modify this file.`);
       continue;
     }
     if (budget <= 0) {

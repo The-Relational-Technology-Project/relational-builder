@@ -51,6 +51,11 @@ function endsInsideCodeFence(content: string): boolean {
  *  reply can't spend money forever. */
 const MAX_CONTINUATIONS = 3;
 
+/** A stream that goes completely silent for this long is dead — abort it and
+ *  route through the truncation machinery instead of leaving the builder
+ *  staring at a stuck spinner (a real build once sat 12 minutes like that). */
+const STALL_TIMEOUT_MS = 150_000;
+
 /** Sent whenever a build reply was cut off — by the output cap or a dropped
  *  stream. Asks for the files, not a post-mortem: continuation replies used
  *  to open with paragraphs of diagnosis the person had to watch stream by. */
@@ -176,9 +181,15 @@ export function ChatPanel() {
       pendingFixLabel: null,
       pendingContinuationSend: false,
     });
-    // A fresh ask from the person starts a fresh chain
+    // A fresh ask from the person starts a fresh chain — and a fresh
+    // error-fix attempt count (their change resets the diagnosis)
     if (!wasFix) {
-      useChatStore.setState({ continuationCount: 0, chainFirstBuildAsk: null });
+      useChatStore.setState({
+        continuationCount: 0,
+        chainFirstBuildAsk: null,
+        lastFixSignature: null,
+        fixAttempts: 0,
+      });
     }
 
     // First build of a project: ask (once) to notify when it's ready — long
@@ -321,30 +332,63 @@ export function ChatPanel() {
     let finishReason: string | null = null;
     let sawToken = false;
 
+    // Stall watchdog: streams can die silently mid-file with no finish signal
+    // and no error. If nothing arrives for STALL_TIMEOUT_MS, abort — the
+    // post-stream handling below salvages what streamed and continues.
+    let lastActivity = Date.now();
+    let stalledAbort = false;
+    const watchdog = setInterval(() => {
+      if (Date.now() - lastActivity > STALL_TIMEOUT_MS) {
+        stalledAbort = true;
+        controller.abort();
+      }
+    }, 10_000);
+
     try {
       await provider.chat(
         chatMessages,
         modelForSend,
         {
           onToken: (token) => {
+            lastActivity = Date.now();
             if (!sawToken) {
               sawToken = true;
               useChatStore.getState().progressWriting();
             }
             appendToMessage(msgId, token);
           },
-          onReasoning: (text) => useChatStore.getState().progressReasoning(text),
-          onRetry: () =>
+          onReasoning: (text) => {
+            lastActivity = Date.now();
+            useChatStore.getState().progressReasoning(text);
+          },
+          onRetry: () => {
+            lastActivity = Date.now();
             useChatStore.getState().progressNotice(
               'Lots of building happening right now — retrying automatically, hang tight…',
-            ),
+            );
+          },
           onFinishReason: (reason) => { finishReason = reason; },
           onComplete: () => {
             useChatStore.getState().endProgress();
             finalizeMessage(msgId);
+            const done = useChatStore.getState().messages.find(m => m.id === msgId);
+            // A stream that "completes" with nothing (a reply that silently
+            // never came through): say so instead of leaving an empty bubble
+            // the person has to ask about.
+            if (done && !done.content.trim()) {
+              appendToMessage(
+                msgId,
+                "**The reply didn't come through** — the stream ended without content. This is usually a hiccup upstream; please send that message again.",
+              );
+              recordBuildEvent('reply_cut_off', 'empty reply (stream ended without content)');
+              setIsGenerating(false);
+              setAbortController(null);
+              if (useCommunityStore.getState().active) void useCommunityStore.getState().check();
+              return;
+            }
             // Extract code blocks into the virtual file system (build mode only)
             if (currentMode === 'build') {
-              const msg = useChatStore.getState().messages.find(m => m.id === msgId);
+              const msg = done;
               if (msg) {
                 // Cut off — by the output cap (finish_reason "length") or by a
                 // stream that died mid-file (proxy wall-clock limit, network
@@ -470,6 +514,48 @@ export function ChatPanel() {
         setIsGenerating(false);
         setAbortController(null);
       }
+    } finally {
+      clearInterval(watchdog);
+    }
+
+    // A watchdog abort fires no callbacks (aborted streams return silently) —
+    // salvage whatever streamed and route through the truncation machinery.
+    if (stalledAbort) {
+      useChatStore.getState().endProgress();
+      finalizeMessage(msgId);
+      const stalledMsg = useChatStore.getState().messages.find(m => m.id === msgId);
+      const got = stalledMsg?.content.trim() ?? '';
+      recordBuildEvent(
+        'reply_cut_off',
+        `stream stalled (no data for ${Math.round(STALL_TIMEOUT_MS / 60_000)}+ minutes)`,
+      );
+      if (currentMode === 'build' && got && stalledMsg) {
+        applyMessageFiles(stalledMsg.content, msgId);
+        if (isFirstBuild && messageProducedFiles(stalledMsg.content)) {
+          useChatStore.setState({ chainFirstBuildAsk: content });
+        }
+        if (useChatStore.getState().continuationCount < MAX_CONTINUATIONS) {
+          appendToMessage(msgId, '\n\n> ⚠️ The stream went quiet mid-reply — asking for the rest automatically.');
+          useChatStore.getState().queueContinuation(CONTINUE_PROMPT, 'Finishing the build');
+          recordBuildEvent(
+            'auto_continuation',
+            `pass ${useChatStore.getState().continuationCount} of ${MAX_CONTINUATIONS}`,
+          );
+        } else {
+          appendToMessage(msgId, '\n\n> ⚠️ The stream stalled again — say "continue" to keep the build going.');
+          recordBuildEvent('continuation_cap');
+        }
+      } else if (!got) {
+        appendToMessage(
+          msgId,
+          '**Nothing arrived from the model** — the connection stalled before the reply started. This is usually a hiccup upstream; please send that again.',
+        );
+      } else {
+        appendToMessage(msgId, '\n\n> ⚠️ The reply stalled mid-stream and was cut off here.');
+      }
+      setIsGenerating(false);
+      setAbortController(null);
+      if (useCommunityStore.getState().active) void useCommunityStore.getState().check();
     }
   }, [
     provider, activeModelId, addUserMessage, toChatMessages,

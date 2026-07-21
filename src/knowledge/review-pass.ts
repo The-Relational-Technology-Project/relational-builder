@@ -10,10 +10,10 @@ import { recordBuildEvent } from '@/report/build-log';
  *
  * The bounded auto-fix catches builds that THROW. This catches builds that
  * merely don't work: dead buttons, handlers never attached, broken
- * references, unreadable contrast. A fast cheap model (Haiku) reads the files
- * against the person's request; if it finds concrete defects, ONE fix request
- * is queued through the same no-loop machinery as auto-fix (fix sends are
- * never themselves reviewed).
+ * references, unreadable contrast. Sonnet reads the files against the
+ * person's request; if it finds concrete defects, ONE fix request is queued
+ * through the same no-loop machinery as auto-fix (fix sends are never
+ * themselves reviewed).
  *
  * Runs only on the FIRST build of a project (see the trigger in ChatPanel).
  * Later builds are incremental — reviewing the whole codebase against a small
@@ -24,10 +24,10 @@ import { recordBuildEvent } from '@/report/build-log';
  * one bounded correction, silence when the build is solid.
  */
 
-const REVIEW_MODEL = 'claude-haiku-4-5';
+const REVIEW_MODEL = 'claude-sonnet-5';
 const REVIEW_DELAY_MS = 4000; // let a thrown preview error win the race — auto-fix handles those
-const MAX_FILE_CHARS = 6000;
-const MAX_TOTAL_CHARS = 30000;
+const MAX_FILE_CHARS = 8000;
+const MAX_TOTAL_CHARS = 60000;
 
 const REVIEW_SYSTEM_PROMPT = [
   'You are a strict, terse quality reviewer for small community web apps.',
@@ -41,14 +41,39 @@ const REVIEW_SYSTEM_PROMPT = [
   '',
   'Rules:',
   '- Only report defects you are CONFIDENT are real. Style preferences, refactors, and nice-to-haves are never defects.',
+  '- Some files may be marked omitted or truncated for length. NEVER report a defect in — or speculate about — code you cannot see. "Cannot verify" is not a defect.',
   '- If the app looks solid, reply with exactly: NONE',
   '- Otherwise reply with only a short bullet list of the defects, each naming the file and what\'s broken. No preamble, no code.',
 ].join('\n');
 
+/**
+ * Most-imported files first, so the budget never omits the file everything
+ * else references (a review once flagged imaginary bugs in "the omitted
+ * store.ts" — the single most-imported file in the project).
+ */
+function orderByReferenceCount(
+  files: { path: string; content: string }[],
+): { path: string; content: string }[] {
+  const score = new Map<string, number>();
+  for (const f of files) {
+    const stem = f.path.replace(/^\//, '').replace(/\.(tsx|ts|jsx|js)$/, '');
+    const specs = [`@/${stem.replace(/^src\//, '')}`, `./${stem.split('/').pop()}`];
+    let refs = 0;
+    for (const other of files) {
+      if (other === f) continue;
+      if (specs.some(s => other.content.includes(`'${s}'`) || other.content.includes(`"${s}"`))) {
+        refs++;
+      }
+    }
+    score.set(f.path, refs);
+  }
+  return [...files].sort((a, b) => (score.get(b.path) ?? 0) - (score.get(a.path) ?? 0));
+}
+
 function buildReviewUserMessage(ask: string, files: { path: string; content: string }[]): string {
   const parts = [`The person asked for: "${ask.slice(0, 600)}"`, '', 'The generated files:', ''];
   let budget = MAX_TOTAL_CHARS;
-  for (const f of files) {
+  for (const f of orderByReferenceCount(files)) {
     if (/^\/?assets\//.test(f.path)) continue; // photo assets are opaque blobs
     if (budget <= 0) {
       parts.push(`--- ${f.path} (omitted for length) ---`);
@@ -72,8 +97,8 @@ export function messageProducedFiles(content: string): boolean {
  */
 export function runQualityReview(userAsk: string): void {
   const { activeProviderId, apiKeys } = useProviderStore.getState();
-  // Reviews ride the Claude provider (community tier covers Haiku); other
-  // providers skip the pass rather than guess at a cheap model
+  // Reviews ride the Claude provider (community tier covers Sonnet); other
+  // providers skip the pass rather than guess at a model
   if (activeProviderId !== 'claude') return;
   if (!apiKeys['claude'] && !useCommunityStore.getState().active) return;
 
