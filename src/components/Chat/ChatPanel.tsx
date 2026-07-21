@@ -15,6 +15,8 @@ import {
   RESEND_CLOUD_GUIDANCE,
 } from '@/integrations/catalog';
 import { reconcileCloudSchema } from '@/cloud/schema-sync';
+import { applySupabaseChanges, supabaseManaged } from '@/cloud/supabase-admin';
+import { SUPABASE_MANAGED_GUIDANCE } from '@/integrations/supabase-managed-guidance';
 import {
   useCommunityStore,
   resolveCommunityModelDefault,
@@ -230,8 +232,13 @@ export function ChatPanel() {
     // Resend via the Community Cloud vault (COMMUNITY_EMAIL marker) swaps the
     // serverless-function guidance for the capability-endpoint pattern
     const emailViaCloud = envVars.some(v => v.key === 'COMMUNITY_EMAIL' && v.value.trim());
+    // Managed Supabase swaps the paste-this-SQL guidance for the
+    // migrations-directory convention the auto-apply flow understands
+    const sbManaged = supabaseManaged().managed;
     const serviceGuidance = connectedServices.map(s =>
-      s.id === 'resend' && emailViaCloud ? RESEND_CLOUD_GUIDANCE : s.aiGuidance,
+      s.id === 'resend' && emailViaCloud ? RESEND_CLOUD_GUIDANCE :
+      s.id === 'supabase' && sbManaged ? SUPABASE_MANAGED_GUIDANCE :
+      s.aiGuidance,
     );
     if (communityCloudConnected(envVars)) serviceGuidance.unshift(COMMUNITY_CLOUD_GUIDANCE);
     const projectFiles = useProjectStore.getState().getAllFiles()
@@ -364,6 +371,14 @@ export function ChatPanel() {
                 // schemas to Community Cloud (destructive changes confirm first)
                 if (msg.content.includes('cloud-schema.json')) {
                   void reconcileCloudSchema().then(({ note }) => {
+                    if (note) appendToMessage(msgId, `\n\n> ${note}`);
+                  });
+                }
+                // Managed Supabase: builds that touch supabase/ get their
+                // migrations linted + applied and functions deployed (with
+                // the builder's confirmation) via the vaulted PAT
+                if (/supabase\/(migrations|functions)\//.test(msg.content)) {
+                  void applySupabaseChanges(msg.content).then(({ note }) => {
                     if (note) appendToMessage(msgId, `\n\n> ${note}`);
                   });
                 }

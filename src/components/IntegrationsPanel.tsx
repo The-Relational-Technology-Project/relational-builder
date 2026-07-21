@@ -18,6 +18,15 @@ import {
   deleteAppSecret,
   testAppSecret,
 } from '@/cloud/community-cloud';
+import {
+  patSet,
+  patStatus,
+  sbProjects,
+  attachSupabaseProject,
+  detachSupabaseProject,
+  SUPABASE_MANAGED_KEY,
+  type SbProject,
+} from '@/cloud/supabase-admin';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -43,6 +52,8 @@ export function IntegrationsPanel() {
       {INTEGRATIONS.map(def =>
         def.id === 'resend' ? (
           <ResendCard key={def.id} def={def} isConnected={connected.has(def.id)} />
+        ) : def.id === 'supabase' ? (
+          <SupabaseCard key={def.id} def={def} isConnected={connected.has(def.id)} />
         ) : (
           <IntegrationCard key={def.id} def={def} isConnected={connected.has(def.id)} />
         ),
@@ -71,6 +82,200 @@ type CheckState =
   | { phase: 'idle' }
   | { phase: 'checking' }
   | { phase: 'done'; result: VerifyResult };
+
+/**
+ * Supabase gets the managed treatment: paste a personal access token once
+ * (vaulted server-side) and pick a project — the Builder then wires the app's
+ * env vars automatically and applies AI-written migrations / deploys edge
+ * functions after a plain-language confirm. The manual URL+key path stays
+ * for signed-out builders.
+ */
+function SupabaseCard({ def, isConnected }: { def: IntegrationDef; isConnected: boolean }) {
+  const vars = useEnvStore(s => s.vars);
+  const user = useAuthStore(s => s.user);
+  const cloudAvailable = cloudEnabled && !!user;
+
+  const managed = !!vars.find(v => v.key === SUPABASE_MANAGED_KEY && v.value.trim());
+  const projectRef = vars.find(v => v.key === 'SUPABASE_PROJECT_REF')?.value ?? '';
+
+  const [expanded, setExpanded] = useState(false);
+  const [patInput, setPatInput] = useState('');
+  const [patConnected, setPatConnected] = useState<boolean | null>(null);
+  const [projects, setProjects] = useState<SbProject[] | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null);
+
+  if (!cloudAvailable) {
+    return <IntegrationCard def={def} isConnected={isConnected} />;
+  }
+
+  async function handleExpand() {
+    setExpanded(!expanded);
+    setNote(null);
+    if (!expanded && patConnected === null) {
+      try {
+        const status = await patStatus();
+        setPatConnected(status.connected);
+        if (status.connected) await loadProjects();
+      } catch {
+        setPatConnected(false);
+      }
+    }
+  }
+
+  async function loadProjects() {
+    const res = await sbProjects();
+    setProjects(res.projects.filter(p => p.status !== 'INACTIVE'));
+  }
+
+  async function handlePatConnect() {
+    const secret = patInput.trim();
+    if (!secret) return;
+    setBusy(true);
+    setNote(null);
+    try {
+      const res = await patSet(secret);
+      setPatInput('');
+      setPatConnected(true);
+      setNote({ tone: 'ok', text: `Token verified — ${res.projects_count} project${res.projects_count === 1 ? '' : 's'} found.` });
+      await loadProjects();
+    } catch (err) {
+      setNote({ tone: 'error', text: err instanceof Error ? err.message : 'Could not save the token' });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handlePick(project: SbProject) {
+    setBusy(true);
+    setNote(null);
+    try {
+      await attachSupabaseProject(project);
+      setExpanded(false);
+    } catch (err) {
+      setNote({ tone: 'error', text: err instanceof Error ? err.message : 'Could not read that project' });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="rounded-lg border p-3 space-y-2">
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">{def.name}</span>
+            {managed ? (
+              <Badge className="text-xs gap-0.5 bg-green-600 hover:bg-green-600">
+                <Check className="size-2.5" />
+                Managed
+              </Badge>
+            ) : isConnected ? (
+              <Badge className="text-xs gap-0.5 bg-green-600 hover:bg-green-600">
+                <Check className="size-2.5" />
+                Connected
+              </Badge>
+            ) : null}
+          </div>
+          <p className="text-xs text-muted-foreground">{def.tagline}</p>
+        </div>
+        {managed ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 gap-1 text-xs shrink-0"
+            onClick={() => { detachSupabaseProject(); setNote(null); }}
+          >
+            <Unplug className="size-3" />
+            Detach
+          </Button>
+        ) : (
+          <Button
+            variant={expanded ? 'ghost' : 'outline'}
+            size="sm"
+            className="h-7 text-xs shrink-0"
+            onClick={handleExpand}
+          >
+            {expanded ? 'Cancel' : 'Connect'}
+          </Button>
+        )}
+      </div>
+
+      {managed && (
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          Your own database (<code className="font-mono">{projectRef}</code>), operated by the
+          Builder — migrations apply and edge functions deploy automatically after your OK.
+        </p>
+      )}
+
+      {note && (
+        <p className={`text-xs leading-relaxed flex items-start gap-1.5 ${note.tone === 'ok' ? 'text-green-700 dark:text-green-500' : 'text-destructive'}`}>
+          {note.tone === 'ok' ? <Check className="size-3 mt-0.5 shrink-0" /> : <AlertTriangle className="size-3 mt-0.5 shrink-0" />}
+          <span>{note.text}</span>
+        </p>
+      )}
+
+      {expanded && !managed && (
+        <div className="space-y-2 pt-1">
+          {patConnected === false && (
+            <>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Paste a Supabase personal access token and the Builder runs your
+                database for you: migrations applied after your OK, edge functions
+                deployed, keys wired automatically. The token is vaulted server-side.
+              </p>
+              <div className="flex gap-2">
+                <Input
+                  type="password"
+                  value={patInput}
+                  onChange={e => { setPatInput(e.target.value); setNote(null); }}
+                  placeholder="sbp_..."
+                  className="h-7 text-xs font-mono"
+                />
+                <Button size="sm" className="h-7 text-xs shrink-0" disabled={!patInput.trim() || busy} onClick={handlePatConnect}>
+                  {busy ? <Loader2 className="size-3 animate-spin" /> : 'Verify'}
+                </Button>
+              </div>
+              <a
+                href="https://supabase.com/dashboard/account/tokens"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-muted-foreground underline hover:text-foreground inline-flex items-center gap-1"
+              >
+                supabase.com → Account → Access Tokens <ExternalLink className="size-2.5" />
+              </a>
+            </>
+          )}
+          {patConnected && (
+            <div className="space-y-1.5">
+              <p className="text-xs font-medium">Pick the project this app should use:</p>
+              {projects === null ? (
+                <Loader2 className="size-3.5 animate-spin text-muted-foreground" />
+              ) : projects.length === 0 ? (
+                <p className="text-xs text-muted-foreground">
+                  No active projects — create one (free) at supabase.com, then reopen this card.
+                </p>
+              ) : (
+                projects.map(p => (
+                  <button
+                    key={p.ref}
+                    className="w-full text-left rounded-md border px-2.5 py-1.5 text-xs hover:bg-accent disabled:opacity-50"
+                    disabled={busy}
+                    onClick={() => handlePick(p)}
+                  >
+                    <span className="font-medium">{p.name}</span>
+                    <span className="text-muted-foreground ml-2 font-mono">{p.ref}</span>
+                  </button>
+                ))
+              )}
+            </div>
+          )}
+          {patConnected === null && <Loader2 className="size-3.5 animate-spin text-muted-foreground" />}
+        </div>
+      )}
+    </div>
+  );
+}
 
 /**
  * Resend gets the managed-capability treatment: with Community Cloud on,
