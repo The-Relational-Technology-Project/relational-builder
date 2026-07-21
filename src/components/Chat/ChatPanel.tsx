@@ -14,6 +14,7 @@ import {
   COMMUNITY_CLOUD_GUIDANCE,
   RESEND_CLOUD_GUIDANCE,
 } from '@/integrations/catalog';
+import { reconcileCloudSchema } from '@/cloud/schema-sync';
 import {
   useCommunityStore,
   resolveCommunityModelDefault,
@@ -358,6 +359,13 @@ export function ChatPanel() {
                 if (warnings.length > 0) {
                   appendToMessage(msgId, `\n\n> ⚠️ ${warnings.join(' ')}`);
                   recordBuildEvent('apply_warnings', warnings.join(' '));
+                }
+                // A build that touched cloud-schema.json syncs the collection
+                // schemas to Community Cloud (destructive changes confirm first)
+                if (msg.content.includes('cloud-schema.json')) {
+                  void reconcileCloudSchema().then(({ note }) => {
+                    if (note) appendToMessage(msgId, `\n\n> ${note}`);
+                  });
                 }
                 if (truncated && useChatStore.getState().continuationCount < MAX_CONTINUATIONS) {
                   // Continue through the fix channel. Truncated continuations

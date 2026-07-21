@@ -107,6 +107,34 @@ export function deleteApp(appId: string) {
   return adminRequest<{ ok: boolean }>('admin_delete_app', { app_id: appId });
 }
 
+// ── Typed collections: the project's cloud-schema.json mirrored server-side ──
+
+export interface CloudFieldSpec {
+  type: 'string' | 'number' | 'boolean' | 'array' | 'object';
+  required?: boolean;
+  unique?: boolean;
+  maxLength?: number;
+}
+
+export interface CloudCollectionSpec {
+  fields: Record<string, CloudFieldSpec>;
+}
+
+export interface CloudSchemaRow {
+  name: string;
+  spec: CloudCollectionSpec;
+  version: number;
+  updated_at: string;
+}
+
+export function getCloudSchema(appId: string) {
+  return adminRequest<{ collections: CloudSchemaRow[] }>('admin_schema_get', { app_id: appId });
+}
+
+export function setCloudSchema(appId: string, collections: Record<string, CloudCollectionSpec>) {
+  return adminRequest<{ ok: boolean; count: number }>('admin_schema_set', { app_id: appId, collections });
+}
+
 // ── Capability vault: builder-pasted service keys, stored server-side only ──
 
 export interface AppSecretStatus {
