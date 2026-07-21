@@ -1321,7 +1321,9 @@ function ToolDetailDialog({
         {tool.github_url && (
           <p className="text-xs text-muted-foreground">
             "Build your version" distills this tool into a place-adaptable prompt and opens it
-            in Plan mode — you shape it for your neighborhood, and the lineage travels with it.
+            in Plan mode, with the original's screenshots attached as visual reference — answer
+            the bracketed questions to shape it for your neighborhood, and the lineage travels
+            with it.
           </p>
         )}
       </DialogContent>

@@ -17,12 +17,25 @@ export async function startFromStudioTool(tool: Tool): Promise<void> {
   const key = tool.github_url;
   if (!key) throw new Error('This tool has no source to start from yet');
 
-  let starter = await getCachedStarter(key);
+  // v2 = question-list starters (a clean core prompt ending in bracketed
+  // questions, instead of inline [placeholders]). Versioning the cache key
+  // retires pre-v2 cached starters without touching the shared table.
+  const cacheKey = `v2:${key}`;
+  let starter = await getCachedStarter(cacheKey);
   if (!starter) {
     const distilled = await distillStarterPrompt(tool);
-    starter = { tool_key: key, title: distilled.title, body: distilled.body };
+    starter = { tool_key: cacheKey, title: distilled.title, body: distilled.body };
     cacheStarter(starter).catch(() => {}); // warm the shared cache, best-effort
   }
+
+  // The original's screenshots ride along as visible attachments: the model
+  // sees what the reference tool actually looks like (fidelity for the parts
+  // that transfer), and the person sees exactly what context travels — and
+  // can add their own images beside them.
+  const screenshots = [
+    ...(tool.image_url ? [tool.image_url] : []),
+    ...((tool.screenshot_urls ?? []).filter(u => u && u !== tool.image_url)),
+  ].slice(0, 2);
 
   // Fresh workspace, Plan mode, the starter seeded as the opening draft.
   // Never destructive: the gallery is reachable mid-build, so any open work
@@ -39,5 +52,10 @@ export async function startFromStudioTool(tool: Tool): Promise<void> {
     sourceUrl: key,
     importedAt: new Date().toISOString(),
   });
-  useChatStore.getState().setDraftMessage(starter.body);
+  useChatStore.getState().setDraftMessage(
+    screenshots.length > 0
+      ? `${starter.body}\n\nThe attached screenshot${screenshots.length > 1 ? 's show' : ' shows'} the original tool. Use it as the visual reference: keep the parts that transfer close to the original, and adapt the look and details to my answers.`
+      : starter.body,
+  );
+  useChatStore.getState().setDraftAttachments(screenshots.length > 0 ? screenshots : null);
 }

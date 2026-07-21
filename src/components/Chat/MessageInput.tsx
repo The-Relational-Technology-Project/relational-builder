@@ -6,7 +6,9 @@ import { fileToDataUrl, isImageFile } from '@/lib/image';
 import { listMentionables, type Mentionable } from '@/knowledge/mentions';
 import { ModelSelector } from '@/components/ModelSelector';
 
-const MAX_ATTACHMENTS = 3;
+// Room for two seeded reference screenshots (gallery remixes) plus the
+// person's own images
+const MAX_ATTACHMENTS = 4;
 
 interface MessageInputProps {
   onSend: (message: string, attachments?: string[]) => void;
@@ -87,6 +89,16 @@ export function MessageInput({
       el.setSelectionRange(el.value.length, el.value.length);
     }, 0);
   }, [draftMessage, maxHeight]);
+
+  // Prefilled attachments (e.g. a gallery tool's screenshots riding along
+  // as visual reference) — shown as normal attachments, removable, with
+  // space left to add your own
+  const draftAttachments = useChatStore(s => s.draftAttachments);
+  useEffect(() => {
+    if (draftAttachments === null) return;
+    setAttachments(draftAttachments.slice(0, MAX_ATTACHMENTS));
+    useChatStore.getState().setDraftAttachments(null);
+  }, [draftAttachments]);
 
   // A follow-up typed mid-generation queues instead of being lost — it
   // sends the moment the current reply finishes (Lovable's best trick)

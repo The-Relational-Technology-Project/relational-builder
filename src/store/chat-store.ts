@@ -99,6 +99,10 @@ interface ChatState {
   /** Prefill the input without sending (e.g. answering a plan question) */
   draftMessage: string | null;
   setDraftMessage: (content: string | null) => void;
+  /** Prefill image attachments alongside the draft (e.g. a gallery tool's
+   *  screenshots riding along as visual reference for a remix) */
+  draftAttachments: string[] | null;
+  setDraftAttachments: (urls: string[] | null) => void;
   addUserMessage: (
     content: string,
     attachments?: string[],
@@ -194,6 +198,9 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
 
   draftMessage: null,
   setDraftMessage: (content: string | null) => set({ draftMessage: content }),
+
+  draftAttachments: null,
+  setDraftAttachments: (urls: string[] | null) => set({ draftAttachments: urls }),
 
   hydrateChat: (messages: DisplayMessage[], mode: ChatMode) =>
     set({
