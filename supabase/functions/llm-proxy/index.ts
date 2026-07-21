@@ -367,6 +367,17 @@ async function proxyGeminiImage(
 // progress signal instead of a silent stall.
 const ADAPTIVE_THINKING_RE = /opus-4-[78]|sonnet-5|fable/;
 
+// Anthropic server-side web tools — attached when the client sends
+// `web_tools: true` (chat turns only; the Builder's internal calls never set
+// it). Lets the model read pages the builder links and search for current
+// info without any scraping service. The _20260209 variants require the
+// adaptive-thinking model set; max_uses bounds per-turn spend since web
+// search bills per search.
+const WEB_TOOLS = [
+  { type: 'web_search_20260209', name: 'web_search', max_uses: 5 },
+  { type: 'web_fetch_20260209', name: 'web_fetch', max_uses: 6 },
+];
+
 // Output ceiling when the client doesn't say: real multi-file builds need far
 // more than the old 8192, and adaptive thinking at xhigh effort spends from
 // the same budget — Opus/Sonnet/Fable stream up to 128k. Haiku 4.5 caps at
@@ -459,6 +470,9 @@ async function proxyAnthropic(
     // models — it buys real design and architecture thinking on first builds.
     // Effort errors on Haiku, so it stays gated on the same model set.
     anthropicBody.output_config = { effort: 'xhigh' };
+    if (body.web_tools === true) {
+      anthropicBody.tools = WEB_TOOLS;
+    }
   }
   if (systemMsg) {
     // The Builder marks stability boundaries in its system prompt; each
@@ -548,6 +562,10 @@ async function proxyAnthropic(
       let buffer = '';
       let inputTokens = 0;
       let outputTokens = 0;
+      // Streamed server_tool_use blocks (web search / fetch): accumulate the
+      // tool input as it arrives so a human progress line ("Searching the
+      // web: …") can ride the reasoning channel when the call fires.
+      const toolBlocks = new Map<number, { name: string; json: string }>();
 
       try {
         while (true) {
@@ -596,6 +614,36 @@ async function proxyAnthropic(
                 // (reasoning_content is the de-facto OpenAI-format field)
                 const chunk = {
                   choices: [{ index: 0, delta: { reasoning_content: parsed.delta.thinking } }],
+                };
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+              } else if (
+                parsed.type === 'content_block_start' &&
+                parsed.content_block?.type === 'server_tool_use'
+              ) {
+                toolBlocks.set(Number(parsed.index), {
+                  name: String(parsed.content_block.name ?? ''),
+                  json: '',
+                });
+              } else if (
+                parsed.type === 'content_block_delta' &&
+                parsed.delta?.type === 'input_json_delta' &&
+                toolBlocks.has(Number(parsed.index))
+              ) {
+                toolBlocks.get(Number(parsed.index))!.json += String(parsed.delta.partial_json ?? '');
+              } else if (
+                parsed.type === 'content_block_stop' &&
+                toolBlocks.has(Number(parsed.index))
+              ) {
+                const block = toolBlocks.get(Number(parsed.index))!;
+                toolBlocks.delete(Number(parsed.index));
+                let note = block.name === 'web_fetch' ? '\n[Reading a web page]\n' : '\n[Searching the web]\n';
+                try {
+                  const input = JSON.parse(block.json || '{}') as { query?: string; url?: string };
+                  if (block.name === 'web_search' && input.query) note = `\n[Searching the web: "${input.query}"]\n`;
+                  if (block.name === 'web_fetch' && input.url) note = `\n[Reading ${input.url}]\n`;
+                } catch { /* keep the generic note */ }
+                const chunk = {
+                  choices: [{ index: 0, delta: { reasoning_content: note } }],
                 };
                 controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
               }

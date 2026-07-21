@@ -314,7 +314,7 @@ const PLAN_INSTRUCTIONS = [
   '3. **Features** — a short prioritized list; mark a minimal first version vs. later additions. Match the tool\'s size to the vision — some visions genuinely need a rich, multi-view app, and that is fine to plan for.',
   '4. **Look & feel** — the aesthetic direction in concrete terms: the mood in one line, palette drawn from their place or image, type feel, one real-world reference ("like a hand-lettered board outside the corner store"). Name what shaped it (their image, their words, their place). If the person gave no visual direction yet, propose one anyway and mark it as your suggestion — an attached image or a line from them can reshape it. When artwork or imagery is part of the vision, this section recommends the builder\'s own neighborhood photos and a local artist or designer commission by default.',
   '5. **Pages & files** — the files you expect to create when building',
-  '6. **Data & services** — what needs a backend (Community Cloud/Supabase/Neon), email (Resend), scraping (Firecrawl), or nothing at all; name the env vars that will be needed',
+  '6. **Data & services** — what needs a backend (Community Cloud/Supabase/Neon), email (Resend), runtime scraping the app itself will do (Firecrawl), or nothing at all; name the env vars that will be needed. Reading a site the person linked is NOT a service need — you can fetch it yourself when web access is available.',
   '7. **Questions for you** — end with ONE to THREE questions: the decisions that most shape the build right now. Use EXACTLY the heading "## Question for you" followed by a numbered list. Under each question, give 2–4 answer options as dash bullets — the person sees them as one-tap answer cards, so concrete contrasting options make answering nearly effortless. Format exactly like this:',
   '',
   '## Question for you',
@@ -366,6 +366,9 @@ export interface ContextOptions {
   references?: string[];
   /** Gallery connections — cross-references between knowledge entries */
   galleryReferences?: GalleryReference[];
+  /** Anthropic server-side web tools are attached to this chat (Claude
+   *  provider) — tell the model it can read linked pages and search */
+  webTools?: boolean;
 }
 
 /**
@@ -457,6 +460,19 @@ export const CACHE_BREAK = '<<<RB_CACHE_BREAK>>>';
 export function buildSystemPrompt(options: ContextOptions = {}): string {
   const base = options.mode === 'plan' ? PLAN_INSTRUCTIONS : BASE_INSTRUCTIONS;
   const sections = [base, '', formatPrinciplesForPrompt()];
+
+  if (options.webTools) {
+    sections.push(
+      '',
+      '## Live Web Access',
+      '',
+      'You can read web pages and search the web directly — no scraping service or API key involved. This works in plan mode AND build mode.',
+      '- When the person shares a URL — their existing website, an inspiration, a doc — READ IT with web fetch before planning or building around it. Pull their real content, voice, structure, and imagery descriptions instead of guessing or asking them to retype anything.',
+      '- Search the web when current or factual details would change the answer: a real organization\'s name and links, a venue, a library\'s current API shape, something the person flags as recent. Don\'t search for things you already know.',
+      '- Each search and fetch costs a little from the same budget as the conversation — a few per reply is plenty; never loop through many pages when one or two answer the question.',
+      '- Firecrawl remains the tool for scraping the APPS THEMSELVES do at runtime (a generated app that fetches other sites needs its serverless Firecrawl function) — never for your own reading, which needs no service.',
+    );
+  }
 
   if (options.studio) {
     sections.push('', formatStudioForPrompt(options.studio));

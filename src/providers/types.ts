@@ -32,6 +32,14 @@ export interface StreamCallbacks {
   onError: (error: Error) => void;
 }
 
+export interface ChatOptions {
+  /** Attach Anthropic's server-side web tools (web search + web fetch) so the
+   *  model can read linked pages and search for current info. Claude-only —
+   *  other providers ignore it. Off by default so internal calls (quality
+   *  review, summaries) can never spend money searching the web. */
+  webTools?: boolean;
+}
+
 export interface ModelInfo {
   id: string;
   name: string;
@@ -62,5 +70,6 @@ export interface LLMProvider {
     model: string,
     callbacks: StreamCallbacks,
     signal?: AbortSignal,
+    opts?: ChatOptions,
   ): Promise<void>;
 }

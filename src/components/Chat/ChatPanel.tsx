@@ -278,6 +278,10 @@ export function ChatPanel() {
     const frameSlugs = [...new Set([...lineageFrameSlugs, ...sensedFrames.map(f => f.slug)])];
     const frames = framesFromSlugs(frameSlugs);
 
+    // Anthropic server-side web tools ride Claude chats only — the model can
+    // read pages the person links and search for current info
+    const webTools = useProviderStore.getState().activeProviderId === 'claude';
+
     const updatedPrompt = buildSystemPrompt({
       commonsResults,
       tools: relevant?.tools,
@@ -292,6 +296,7 @@ export function ChatPanel() {
       builderProfile,
       references,
       galleryReferences,
+      webTools,
     });
     setSystemPrompt(updatedPrompt);
 
@@ -504,6 +509,7 @@ export function ChatPanel() {
           },
         },
         controller.signal,
+        { webTools },
       );
     } catch (err) {
       useChatStore.getState().endProgress();

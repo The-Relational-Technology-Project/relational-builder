@@ -1,6 +1,7 @@
-import type { LLMProvider, ChatMessage, StreamCallbacks, ModelInfo, ContentPart } from './types';
+import type { LLMProvider, ChatMessage, ChatOptions, StreamCallbacks, ModelInfo, ContentPart } from './types';
 import { contentToText } from './types';
 import { communityAccessActive, getCommunitySessionToken } from '@/store/community-store';
+import { ServerToolProgress, webToolsFor } from './web-tools';
 
 /** Translate OpenAI-style content parts to Anthropic content blocks (dev-direct path) */
 function toAnthropicContent(content: string | ContentPart[]): unknown {
@@ -97,16 +98,17 @@ export class ClaudeProvider implements LLMProvider {
     model: string,
     callbacks: StreamCallbacks,
     signal?: AbortSignal,
+    opts?: ChatOptions,
   ): Promise<void> {
     if (PROXY_URL) {
-      return this.chatViaProxy(messages, model, callbacks, signal);
+      return this.chatViaProxy(messages, model, callbacks, signal, opts);
     }
     if (!this.apiKey) {
       throw new Error(
         'Community access needs the LLM proxy (VITE_LLM_PROXY_URL). Add your own API key in Settings, or ask RTP to check the proxy config.',
       );
     }
-    return this.chatDirect(messages, model, callbacks, signal);
+    return this.chatDirect(messages, model, callbacks, signal, opts);
   }
 
   /**
@@ -119,6 +121,7 @@ export class ClaudeProvider implements LLMProvider {
     model: string,
     callbacks: StreamCallbacks,
     signal?: AbortSignal,
+    opts?: ChatOptions,
   ): Promise<void> {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -141,6 +144,9 @@ export class ClaudeProvider implements LLMProvider {
       max_tokens: maxTokensFor(model),
       stream: true,
       messages: messages.map(m => ({ role: m.role, content: m.content })),
+      // Non-standard flag; the proxy attaches Anthropic's server-side web
+      // search + web fetch tools when the model supports them
+      ...(opts?.webTools ? { web_tools: true } : {}),
     });
 
     // Transient failures (rate limits, overload, network blips) retry with
@@ -204,6 +210,7 @@ export class ClaudeProvider implements LLMProvider {
     model: string,
     callbacks: StreamCallbacks,
     signal?: AbortSignal,
+    opts?: ChatOptions,
   ): Promise<void> {
     const systemMsg = messages.find(m => m.role === 'system');
     const conversationMsgs = messages
@@ -222,6 +229,10 @@ export class ClaudeProvider implements LLMProvider {
       // full design and architecture power on builds (errors on Haiku, so it
       // stays gated on the adaptive set; the proxy path sets its own)
       body.output_config = { effort: 'xhigh' };
+    }
+    if (opts?.webTools) {
+      const tools = webToolsFor(model);
+      if (tools) body.tools = tools;
     }
     if (systemMsg) {
       // Same cache segmentation the proxy applies (see llm-proxy): the
@@ -326,6 +337,7 @@ export class ClaudeProvider implements LLMProvider {
     const decoder = new TextDecoder();
     let fullText = '';
     let buffer = '';
+    const toolProgress = new ServerToolProgress();
 
     try {
       while (true) {
@@ -356,6 +368,11 @@ export class ClaudeProvider implements LLMProvider {
               callbacks.onFinishReason?.(
                 parsed.delta.stop_reason === 'max_tokens' ? 'length' : 'stop',
               );
+            } else {
+              // Web search / fetch progress rides the reasoning channel —
+              // it's a status signal, never part of the reply
+              const progress = toolProgress.handle(parsed);
+              if (progress) callbacks.onReasoning?.(progress);
             }
           } catch {
             // skip non-JSON lines
