@@ -69,10 +69,12 @@ honored by both edge functions.
 
 ---
 
-## Phase 2 — Managed structured data (typed collections)
+## Phase 2 — Managed structured data (typed collections) ✅
 
 Real data modeling on RTP's Supabase — without running AI-generated SQL on a
-shared database.
+shared database. Shipped: `app_collections` specs, server-side validation
+(422/409), the typed `query` action, and the cloud-schema.json reconciler
+with destructive-change confirmation.
 
 **Recommendation: extend the jsonb document store into typed collections,
 not schema-per-app SQL.** A privileged DDL-runner on shared Postgres is the
@@ -108,11 +110,16 @@ data layer — still zero-signup.
 instance. Schema-per-app is documented here as considered and deferred;
 builders who genuinely need SQL graduate via Phase 3.)*
 
-## Phase 3 — Builder-owned Supabase, automated
+## Phase 3 — Builder-owned Supabase, automated ✅ (PAT v1)
 
 The graduation path: the builder's own Supabase project, with Relational
 Builder as its operator. This is Lovable-managed-Supabase parity with better
-ownership.
+ownership. Shipped: the `supabase-admin` function (PAT vault, project
+picker, ledger-idempotent `sb_apply_migrations`, function deploy, secrets),
+the deterministic pre-apply SQL linter, the post-build auto-apply flow with
+plain-language confirmation, the managed Supabase card, and the
+migrations-directory AI guidance. Remaining from the original scope: OAuth
+narrowing of the PAT, and a SQL-preview dialog richer than confirm().
 
 - **One-time connect:** paste a Supabase personal access token (OAuth app
   later) → stored in a `builder_secrets` vault keyed by builder identity
