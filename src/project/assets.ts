@@ -13,8 +13,20 @@ import { useProjectStore } from '@/store/project-store';
  *   <img data-asset="<name>" alt="...">
  */
 
-/** Keep each asset well under Community Hosting's 512KB/file cap */
-const MAX_ASSET_BYTES = 380 * 1024;
+/** Keep each asset under Community Hosting's 512KB/file cap, with headroom
+ * for the module wrapper around the data URL */
+const MAX_ASSET_BYTES = 480 * 1024;
+
+/** Size/quality ladder, walked until the encoded image fits the cap. The top
+ * rung keeps real photos crisp on phones; the lower rungs trade fidelity for
+ * getting large screenshots and posters in at all. */
+const COMPRESSION_LADDER: ReadonlyArray<readonly [number, number]> = [
+  [1600, 0.8],
+  [1400, 0.72],
+  [1200, 0.65],
+  [1000, 0.6],
+  [800, 0.55],
+];
 
 export interface AddedAsset {
   name: string;
@@ -48,13 +60,16 @@ function assetModule(name: string, dataUrl: string): string {
 
 /** Compress and add a photo to the project as assets/<name>.js */
 export async function addPhotoAsset(file: File): Promise<AddedAsset> {
-  // 1600px long edge keeps real photos crisp on phones while fitting caps
-  let dataUrl = await fileToDataUrl(file, 1600);
-  if (dataUrl.length > MAX_ASSET_BYTES) {
-    dataUrl = await fileToDataUrl(file, 1000);
+  let dataUrl: string | null = null;
+  for (const [maxEdge, quality] of COMPRESSION_LADDER) {
+    const candidate = await fileToDataUrl(file, maxEdge, quality);
+    if (candidate.length <= MAX_ASSET_BYTES) {
+      dataUrl = candidate;
+      break;
+    }
   }
-  if (dataUrl.length > MAX_ASSET_BYTES) {
-    throw new Error('That photo is too large even after compression — try a smaller crop');
+  if (!dataUrl) {
+    throw new Error('That image is too large even after compression — try a smaller crop');
   }
 
   const store = useProjectStore.getState();
