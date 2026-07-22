@@ -110,6 +110,14 @@ export async function runSession(
     messages.push({ role: 'user', content: CONTINUE_PROMPT });
   }
 
+  // A completion that streamed no content at all is a failed generation, not
+  // a valid empty build — some providers occasionally close a stream with zero
+  // tokens and no error. Throw so the caller's one-shot retry re-rolls it,
+  // rather than scoring an empty reply as "0 files, bundle ✗".
+  if (segmentTexts.reduce((n, t) => n + t.length, 0) === 0) {
+    throw new Error('empty completion — provider streamed no content');
+  }
+
   return {
     segmentTexts,
     segments,

@@ -22,12 +22,36 @@ export interface ExecuteOptions {
   planFirst: boolean;
   outDir: string;
   screenshots: boolean;
+  /** Studio slug when the run is studio-framed (--studio) — recorded in run.json */
+  studio?: string | null;
   /** Injectable session (selftest) — bypasses providers entirely */
   sessioner?: (messages: ChatMessage[]) => Promise<SessionResult>;
 }
 
 /** Generous ceiling — Opus-class first builds stream for minutes, not hours. */
 const TRIAL_TIMEOUT_MS = 10 * 60 * 1000;
+
+/**
+ * The fix prompt production fires when a build breaks the preview — copied in
+ * shape from src/components/preview/FixBanner.tsx (a React component the
+ * harness can't import, same as session.ts's continuation constant). The
+ * bench models a bundle failure as the trigger (a build that won't compile is
+ * the deterministic, headless-measurable version of "the preview threw"), and
+ * runs the single automatic pass production arms per build — so "how solves
+ * go" is measured, not guessed.
+ */
+function bundleFixPrompt(errors: string[]): string {
+  const errorText = errors.join('\n').slice(0, 2000);
+  return [
+    'The live preview is showing this error:',
+    '',
+    '```',
+    errorText,
+    '```',
+    '',
+    'Please fix it. Re-output the complete corrected file(s) with filename annotations, changing as little else as possible.',
+  ].join('\n');
+}
 
 function gitCommit(): string {
   try {
@@ -73,6 +97,7 @@ async function runTrial(
     securityFindings: 0,
     checks: [],
     artifactDir: null,
+    fixRound: null,
     error: null,
   };
 
@@ -95,8 +120,8 @@ async function runTrial(
 
   let planSession: SessionResult | null = null;
   let buildSession: SessionResult;
+  let buildMessages: ChatMessage[];
   try {
-    let buildMessages: ChatMessage[];
     if (opts.planFirst) {
       planSession = await withOneRetry([
         { role: 'system', content: opts.planSystemPrompt },
@@ -145,7 +170,51 @@ async function runTrial(
   };
 
   try {
-    const mech = await scoreOutput(task, buildSession.segmentTexts);
+    let mech = await scoreOutput(task, buildSession.segmentTexts);
+    let allSegments = [...buildSession.segmentTexts];
+
+    // One automatic fix pass when the first build won't bundle — the same
+    // single shot production arms. Re-score over build + fix segments (writes
+    // and edits accumulate exactly as the app re-extracts each message).
+    if (mech.bundle && !mech.bundle.ok && buildSession.segmentTexts.length > 0) {
+      const triggerErrors = mech.bundle.errors;
+      const fixMessages: ChatMessage[] = [
+        ...buildMessages,
+        { role: 'assistant', content: buildSession.segmentTexts.join('\n') },
+        { role: 'user', content: bundleFixPrompt(triggerErrors) },
+      ];
+      try {
+        const fixSession = await withOneRetry(fixMessages);
+        allSegments = [...allSegments, ...fixSession.segmentTexts];
+        const fixedMech = await scoreOutput(task, allSegments);
+        const fixOutChars = fixSession.segmentTexts.reduce((n, t) => n + t.length, 0);
+        result.fixRound = {
+          attempted: true,
+          triggerErrors,
+          solved: !!fixedMech.bundle?.ok,
+          latencyMs: fixSession.latencyMs,
+          remainingErrors: fixedMech.bundle?.ok ? [] : (fixedMech.bundle?.errors ?? []),
+          estCostUsd: estimateCostUsd(
+            model,
+            charsToTokens(fixSession.sentChars),
+            charsToTokens(fixOutChars),
+          ),
+        };
+        // The fixed build is the one worth keeping — artifacts + screenshot
+        // should show the state after the auto-fix, as a builder would see it.
+        mech = fixedMech;
+      } catch (err) {
+        result.fixRound = {
+          attempted: true,
+          triggerErrors,
+          solved: false,
+          latencyMs: 0,
+          remainingErrors: [`fix pass failed: ${err instanceof Error ? err.message : String(err)}`],
+          estCostUsd: null,
+        };
+      }
+    }
+
     result.extraction = mech.extraction;
     result.previewKind = mech.previewKind;
     result.previewKindMatch = mech.previewKindMatch;
@@ -248,7 +317,7 @@ async function writeRunJson(
     gitCommit: sha,
     createdAt: new Date().toISOString(),
     runId,
-    config: { trials: opts.trials, timeoutMs: TRIAL_TIMEOUT_MS, planFirst: opts.planFirst },
+    config: { trials: opts.trials, timeoutMs: TRIAL_TIMEOUT_MS, planFirst: opts.planFirst, studio: opts.studio ?? null },
     models: opts.models,
     tasks: opts.tasks.map(t => ({ id: t.id, version: t.version })),
     trials,

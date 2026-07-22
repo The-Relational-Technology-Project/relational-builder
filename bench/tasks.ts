@@ -66,6 +66,50 @@ export const TASKS: TaskSpec[] = [
     expectedPreviewKind: 'framework',
     checks: CHECKS,
   },
+
+  // --- Thread Studio workshop dry-run (run these with --studio thread so the
+  //     build sees Thread's frame + private library, like an approved member).
+  //     A brand-new-prompt build and a gallery remix — the two shapes the
+  //     in-person Thread × RTP workshop will actually produce. ---
+  {
+    // Fresh idea a workshop pair might bring: a clubs platform for the Thread
+    // extended family. New prompt (no seed item) — first-build from scratch.
+    id: 'thread-clubs',
+    version: 'exp-v1',
+    prompt:
+      "I want to build a platform for clubs within the Thread extended family " +
+      "here in Baltimore. Anyone in the Thread community can propose a club, " +
+      "check out clubs that other members have started, and join the ones they " +
+      "like — book clubs, run clubs, a cooking circle, a coding club, whatever " +
+      "people dream up. Each club has someone who proposes and runs it, a short " +
+      "description, and members who've joined. And it should have a calendar of " +
+      "upcoming club events you can browse and join, too. Make it warm and easy " +
+      "on a phone, and seed it with a handful of real-feeling Thread clubs and " +
+      "upcoming events so it doesn't look empty.",
+    expectedPreviewKind: 'framework',
+    checks: CHECKS,
+  },
+  {
+    // Gallery remix: start from Thread Gatherings (the "roles to play" events
+    // app — it rides in the studio library context) and add a rides layer, a
+    // twist grounded in a real Thread access barrier. Mirrors what the remix
+    // path seeds: a build ON an existing studio item.
+    id: 'thread-gatherings-remix',
+    version: 'exp-v1',
+    prompt:
+      "I want to remix Thread Gatherings — our events app with \"roles to " +
+      "play\" — for my corner of the Thread family. Keep everything that makes " +
+      "it warm (the roles to claim, the gentle propose-a-gathering flow, the " +
+      "persona switcher, the Thread voice and amber/teal look), but add a ride " +
+      "circle. Getting there is the number one thing that keeps our young " +
+      "people from showing up, so make rides a first-class part of every " +
+      "gathering: a driver can offer seats with a pickup spot and time, anyone " +
+      "can claim a seat, and each event clearly shows who still needs a ride so " +
+      "nobody gets left behind. Seed it so the rides feel real alongside the " +
+      "existing gatherings and roles.",
+    expectedPreviewKind: 'framework',
+    checks: CHECKS,
+  },
 ];
 
 export function resolveTasks(csv: string | undefined): TaskSpec[] {

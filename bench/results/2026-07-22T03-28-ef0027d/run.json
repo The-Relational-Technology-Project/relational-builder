@@ -1,0 +1,186 @@
+{
+  "harnessVersion": "1.0.0",
+  "taskVersion": "exp-v1,exp-v1",
+  "gitCommit": "ef0027d",
+  "createdAt": "2026-07-22T03:37:18.443Z",
+  "runId": "2026-07-22T03-28-ef0027d",
+  "config": {
+    "trials": 1,
+    "timeoutMs": 600000,
+    "planFirst": true,
+    "studio": "thread"
+  },
+  "models": [
+    {
+      "alias": "fable-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-fable-5",
+      "pricing": {
+        "inputPerMTok": 10,
+        "outputPerMTok": 50,
+        "asOf": "2026-07"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "thread-clubs",
+      "version": "exp-v1"
+    },
+    {
+      "id": "thread-gatherings-remix",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "fable-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-fable-5",
+      "taskId": "thread-clubs",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-07-22T03:28:15.475Z",
+      "plan": {
+        "latencyMs": 36502,
+        "ttftMs": 12778,
+        "chars": 4756
+      },
+      "latencyMs": 259792,
+      "ttftMs": 85706,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 223290,
+          "chars": 39647
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 44403,
+      "estTokens": {
+        "input": 15307,
+        "output": 11101,
+        "estimated": true
+      },
+      "estCostUsd": 0.7081200000000001,
+      "extraction": {
+        "writes": 14,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/thread-clubs/fable-5-t1",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "fable-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-fable-5",
+      "taskId": "thread-gatherings-remix",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-07-22T03:32:35.606Z",
+      "plan": {
+        "latencyMs": 43894,
+        "ttftMs": 18715,
+        "chars": 5284
+      },
+      "latencyMs": 282645,
+      "ttftMs": 84713,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 238751,
+          "chars": 48249
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 53533,
+      "estTokens": {
+        "input": 15459,
+        "output": 13384,
+        "estimated": true
+      },
+      "estCostUsd": 0.82379,
+      "extraction": {
+        "writes": 12,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/thread-gatherings-remix/fable-5-t1",
+      "fixRound": null,
+      "error": null
+    }
+  ]
+}

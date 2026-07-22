@@ -1,5 +1,6 @@
 import { parseArgs } from 'node:util';
-import { buildSystemPrompt } from '@/knowledge/context-builder';
+import { buildSystemPrompt, type StudioLibraryPromptItem } from '@/knowledge/context-builder';
+import type { StudioContext } from '@/knowledge/studio-context';
 import { KIT_FILES } from '@/kit';
 import { bundleProject, findFrameworkEntry } from '@/preview/bundler/bundle';
 import { BENCH_MODELS, ENV_KEYS, resolveModels } from './models';
@@ -15,11 +16,6 @@ import type { BenchModel } from './types';
  *   npm run bench -- report <runDir>           regenerate report.md (merges scores.json)
  *   npm run bench -- --list-models
  */
-
-/** The exact system prompt a fresh production build session gets. */
-export function benchSystemPrompt(): string {
-  return buildSystemPrompt({ mode: 'build' });
-}
 
 /** Prove esbuild-wasm bundles under Node before any money is spent. */
 async function bundlerSelfTest(): Promise<void> {
@@ -114,6 +110,7 @@ export async function main(argv: string[]): Promise<number> {
       tasks: { type: 'string' },
       trials: { type: 'string', default: '1' },
       'plan-first': { type: 'boolean', default: false },
+      studio: { type: 'string' },
       'dry-run': { type: 'boolean', default: false },
       'skip-screenshots': { type: 'boolean', default: false },
       'list-models': { type: 'boolean', default: false },
@@ -126,7 +123,7 @@ export async function main(argv: string[]): Promise<number> {
   if (values.help) {
     console.log(
       'npm run bench -- [--models a,b,c] [--tasks x,y] [--trials N] [--plan-first] ' +
-        '[--dry-run] [--skip-screenshots] [--out dir] [--list-models] [--list-tasks]\n' +
+        '[--studio slug] [--dry-run] [--skip-screenshots] [--out dir] [--list-models] [--list-tasks]\n' +
         'npm run bench -- report <runDir> | review <runDir> | selftest',
     );
     return 0;
@@ -154,8 +151,25 @@ export async function main(argv: string[]): Promise<number> {
   const planFirst = values['plan-first'] ?? false;
 
   console.log('Assembling production system prompts…');
-  const systemPrompt = benchSystemPrompt();
-  const planSystemPrompt = planFirst ? buildSystemPrompt({ mode: 'plan' }) : '';
+  // Studio-framed runs (--studio thread) build the prompt an approved member
+  // sees: the studio frame + its private library woven in. Same buildSystemPrompt
+  // production calls, just with the studio inputs populated.
+  let studioOpts: { studio: StudioContext; studioLibraryItems: StudioLibraryPromptItem[] } | undefined;
+  if (values.studio) {
+    const { loadStudioFrame } = await import('./lib/studio');
+    const frame = await loadStudioFrame(values.studio);
+    studioOpts = { studio: frame.studio, studioLibraryItems: frame.libraryItems };
+    const kinds = frame.libraryItems.reduce<Record<string, number>>((acc, i) => {
+      acc[i.kind] = (acc[i.kind] ?? 0) + 1;
+      return acc;
+    }, {});
+    console.log(
+      `Studio frame: ${frame.studio.label} (${values.studio}) — library ` +
+        Object.entries(kinds).map(([k, n]) => `${n} ${k}`).join(', '),
+    );
+  }
+  const systemPrompt = buildSystemPrompt({ mode: 'build', ...studioOpts });
+  const planSystemPrompt = planFirst ? buildSystemPrompt({ mode: 'plan', ...studioOpts }) : '';
   const inputTokens = charsToTokens(systemPrompt.length + tasks[0].prompt.length);
 
   console.log('Bundler self-test (esbuild-wasm under Node)…');
@@ -188,5 +202,6 @@ export async function main(argv: string[]): Promise<number> {
     planFirst,
     outDir: values.out ?? 'bench/results',
     screenshots: !values['skip-screenshots'],
+    studio: values.studio ?? null,
   });
 }

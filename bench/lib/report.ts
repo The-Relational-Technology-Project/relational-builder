@@ -78,9 +78,22 @@ export async function generateReport(runDirArg: string | undefined): Promise<num
         ? ` ${fmtSecs(median(ok.map(t => t.plan?.latencyMs ?? NaN)))} |`
         : '';
       const buildLatency = median(ok.map(t => t.latencyMs - (t.plan?.latencyMs ?? 0)));
+      // "First try" = bundled without needing the auto-fix pass. The Bundle
+      // column counts final (post-fix) success; Fix shows how the solves went.
+      const firstTryOk = ok.filter(t => t.bundle?.ok && !t.fixRound).length;
+      const fixed = ok.filter(t => t.fixRound?.solved).length;
+      const fixFailed = ok.filter(t => t.fixRound && !t.fixRound.solved).length;
+      const fixCell =
+        fixed + fixFailed === 0 ? '—' : `${fixed}/${fixed + fixFailed} solved`;
+      // Estimated $ including the fix pass when one ran
+      const totalCost = median(
+        ok.map(t => (t.estCostUsd ?? 0) + (t.fixRound?.estCostUsd ?? 0)),
+      );
       return (
         `| ${a.alias} ` +
         `| ${ok.length === 0 ? '✗ all errored' : `${bundleOk}/${ok.length} ✓`} ` +
+        `| ${firstTryOk}/${ok.length} ` +
+        `| ${fixCell} ` +
         `| ${median(ok.map(t => t.extraction.writes)) ?? '—'} ` +
         `| ${median(ok.map(t => t.extraction.failedEditBlocks)) ?? '—'} ` +
         `| ${ok.some(t => t.truncatedFinal) ? 'yes' : 'no'} ` +
@@ -89,14 +102,14 @@ export async function generateReport(runDirArg: string | undefined): Promise<num
         `| ${fmtSecs(median(ok.map(t => t.ttftMs ?? NaN)))} ` +
         `|${planCell} ${fmtSecs(buildLatency)} ` +
         `| ${fmtSecs(median(ok.map(t => t.latencyMs)))} ` +
-        `| ${median(ok.map(t => t.estCostUsd ?? NaN))?.toFixed(2) ?? '—'} ` +
+        `| ${totalCost?.toFixed(2) ?? '—'} ` +
         `|${errored > 0 ? ` ${errored} errored` : ''}`
       );
     });
     return `### Task: ${taskId} (${version})
 
-| Model | Bundle | Files | Failed edits | Truncated | Checks | Sec flags | TTFT |${planCols} Build time | Total | ~$ | |
-|---|---|---|---|---|---|---|---|${planFirst ? '---|' : ''}---|---|---|---|
+| Model | Bundle | First try | Fix | Files | Failed edits | Truncated | Checks | Sec flags | TTFT |${planCols} Build time | Total | ~$ | |
+|---|---|---|---|---|---|---|---|---|---|${planFirst ? '---|' : ''}---|---|---|---|
 ${rows.join('\n')}`;
   });
 
@@ -129,15 +142,29 @@ ${aliases
     .filter(t => t.error)
     .map(t => `- **${t.alias}** · ${t.taskId} t${t.trial}: ${t.error}`);
 
+  const fixLines = run.trials
+    .filter(t => t.fixRound)
+    .map(t => {
+      const f = t.fixRound!;
+      const trigger = (f.triggerErrors[0] ?? 'bundle failed').split('\n')[0].slice(0, 160);
+      const outcome = f.solved
+        ? `solved in one pass (${fmtSecs(f.latencyMs)}, ~$${f.estCostUsd?.toFixed(2) ?? '?'})`
+        : `not solved — still: ${(f.remainingErrors[0] ?? '').split('\n')[0].slice(0, 160)}`;
+      return `- **${t.alias}** · ${t.taskId} t${t.trial}: build failed to bundle → auto-fix ${outcome}\n  - triggered by: \`${trigger}\``;
+    });
+
+  const studio = run.config.studio;
+
   const md = `# Model bench — ${run.runId}
 
 - **Tasks:** ${taskIds.join(', ')} (harness ${run.harnessVersion}, commit \`${run.gitCommit}\`)
 - **Date:** ${run.createdAt}
-- **Trials per model per task:** ${run.config.trials}${planFirst ? ' · **plan-first flow** (plan-mode reply precedes each build, same model)' : ''}
+- **Trials per model per task:** ${run.config.trials}${planFirst ? ' · **plan-first flow** (plan-mode reply precedes each build, same model)' : ''}${studio ? `\n- **Studio frame:** \`${studio}\` — built with the studio's frame + private library in context, as an approved member sees it` : ''}
 - **Human review:** ${human ? `scored by ${human.reviewer}` : '_pending_'}
 
 > Cost and token figures are **estimates** (chars ÷ 4 × list prices) — directional, not billing-grade.
 > Mechanical columns are medians across trials. Total = plan + build wall time.
+> **Bundle** = final compile success; **First try** = compiled without the auto-fix; **Fix** = of the builds that first failed, how many the single auto-fix pass solved. **~$** includes the fix pass when one ran.
 
 ${taskSections.join('\n\n')}
 
@@ -146,7 +173,7 @@ ${humanTable}
 ## Which model for what
 
 _Maintainer's call, informed by the tables above — the report feeds the decision, it doesn't make it._
-${errors.length ? `\n## Errors\n\n${errors.join('\n')}\n` : ''}
+${fixLines.length ? `\n## Fix passes (how solves went)\n\n${fixLines.join('\n')}\n` : ''}${errors.length ? `\n## Errors\n\n${errors.join('\n')}\n` : ''}
 ${shotLines.length ? `\n## Previews\n\n${shotLines.join('\n\n')}\n` : ''}`;
 
   await writeFile(path.join(runDir, 'report.md'), md, 'utf8');

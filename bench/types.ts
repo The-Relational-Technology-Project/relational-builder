@@ -56,6 +56,19 @@ export interface TrialResult {
   checks: Array<{ id: string; description: string; pass: boolean }>;
   /** Relative to the run directory */
   artifactDir: string | null;
+  /** When the first build's bundle failed, the single auto-fix pass production
+   *  would fire (same fix prompt), and whether it solved the build. Null when
+   *  the first build already bundled (or wasn't a framework build). */
+  fixRound: {
+    attempted: true;
+    /** Bundle errors that triggered the fix (what the model was shown) */
+    triggerErrors: string[];
+    solved: boolean;
+    latencyMs: number;
+    /** Bundle errors still present after the fix (empty when solved) */
+    remainingErrors: string[];
+    estCostUsd: number | null;
+  } | null;
   error: string | null;
 }
 
@@ -65,7 +78,7 @@ export interface RunReport {
   gitCommit: string;
   createdAt: string;
   runId: string;
-  config: { trials: number; timeoutMs: number; planFirst: boolean };
+  config: { trials: number; timeoutMs: number; planFirst: boolean; studio?: string | null };
   models: BenchModel[];
   tasks: Array<{ id: string; version: string }>;
   trials: TrialResult[];
