@@ -58,9 +58,17 @@ const STALL_TIMEOUT_MS = 150_000;
 
 /** Sent whenever a build reply was cut off — by the output cap or a dropped
  *  stream. Asks for the files, not a post-mortem: continuation replies used
- *  to open with paragraphs of diagnosis the person had to watch stream by. */
-const CONTINUE_PROMPT =
-  'Your previous reply was interrupted mid-stream, likely mid-file. Continue the build: first re-output the file that was cut off — complete, from its first line — then every file you had planned but not yet written. Do not repeat files that were already complete. Skip any explanation of the interruption: one short line saying you\'re continuing, then the files.';
+ *  to open with paragraphs of diagnosis the person had to watch stream by.
+ *  Grounded in the project's actual state: "which files are done" can't ride
+ *  on the model's memory of its own truncated reply — a real build once
+ *  skipped App.tsx that way and spent an extra fix pass recovering it. */
+function continuePrompt(): string {
+  const base =
+    'Your previous reply was interrupted mid-stream, likely mid-file. Continue the build: first re-output the file that was cut off — complete, from its first line — then every file you had planned but not yet written. Do not repeat files that were already complete. Skip any explanation of the interruption: one short line saying you\'re continuing, then the files.';
+  const applied = useProjectStore.getState().getAllFiles().map(f => f.path);
+  if (applied.length === 0) return base;
+  return `${base}\n\nThese files are already complete in the project (do not re-output them): ${applied.join(', ')}. Every other file your plan calls for — including the one that was cut off — is NOT in the project yet and must be written now.`;
+}
 
 /** Shown once per project when free community building steps down to the
  *  edit model — the model picker must never change behind anyone's back */
@@ -107,7 +115,7 @@ function BuildRecovery() {
     if (endsInsideCodeFence(candidate.content)) {
       // The reply was also cut off mid-file — finish it through the
       // continuation channel (bounded by MAX_CONTINUATIONS, so it can't loop)
-      useChatStore.getState().queueContinuation(CONTINUE_PROMPT, 'Finishing the build');
+      useChatStore.getState().queueContinuation(continuePrompt(), 'Finishing the build');
     }
   };
 
@@ -127,6 +135,64 @@ function BuildRecovery() {
       </Button>
       <button
         onClick={dismiss}
+        className="text-muted-foreground hover:text-foreground shrink-0"
+        title="Dismiss"
+      >
+        <X className="size-3.5" />
+      </button>
+    </div>
+  );
+}
+
+/**
+ * A reply that ended in an error — a network drop, a provider hiccup — used
+ * to just sit there as "**Error:** …" and quietly eat the person's ask (a
+ * real build lost "add an app icon" that way). The errored reply never had
+ * its files applied, so retrying loses nothing: remove the failed attempt
+ * and resend the same ask. When the reply DID stream recoverable files,
+ * BuildRecovery is the better offer, so this banner stands down.
+ */
+function RetryBanner({ onRetry }: { onRetry: (content: string, attachments?: string[]) => void }) {
+  const messages = useChatStore(s => s.messages);
+  const [dismissedId, setDismissedId] = useState<string | null>(null);
+
+  const last = messages[messages.length - 1];
+  const ask = messages[messages.length - 2];
+  const candidate = useMemo(() => {
+    if (!last || last.role !== 'assistant' || !last.errored || last.isStreaming) return null;
+    if (dismissedId === last.id) return null;
+    // Only retry a person's own ask — auto sends (fixes, continuations) have
+    // their own machinery and shouldn't re-run as a plain chat bubble
+    if (!ask || ask.role !== 'user' || ask.isAuto) return null;
+    // Recoverable files streamed before the error → BuildRecovery's territory
+    if (extractOperations(last.content).writes.length > 0) return null;
+    return { failedId: last.id, askId: ask.id, content: ask.content, attachments: ask.attachments };
+  }, [last, ask, dismissedId]);
+
+  if (!candidate) return null;
+
+  const retry = () => {
+    // Drop the failed attempt AND its ask — resending restores the ask, so
+    // history doesn't carry a duplicate user turn
+    useChatStore.setState(state => ({
+      messages: state.messages.filter(
+        m => m.id !== candidate.failedId && m.id !== candidate.askId,
+      ),
+    }));
+    onRetry(candidate.content, candidate.attachments);
+  };
+
+  return (
+    <div className="mx-4 mb-2 flex items-center gap-3 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2.5">
+      <p className="text-sm flex-1">
+        That reply didn't make it through — usually just a network hiccup.
+      </p>
+      <Button size="sm" variant="outline" onClick={retry} className="shrink-0">
+        <RotateCcw className="size-3.5 mr-1.5" />
+        Try again
+      </Button>
+      <button
+        onClick={() => setDismissedId(candidate.failedId)}
         className="text-muted-foreground hover:text-foreground shrink-0"
         title="Dismiss"
       >
@@ -441,7 +507,7 @@ export function ChatPanel() {
                   // keep chaining (big builds routinely need more than one
                   // extra reply); MAX_CONTINUATIONS bounds the spend.
                   appendToMessage(msgId, '\n\n> ⚠️ That reply was cut off mid-file — asking for the rest automatically.');
-                  useChatStore.getState().queueContinuation(CONTINUE_PROMPT, 'Finishing the build');
+                  useChatStore.getState().queueContinuation(continuePrompt(), 'Finishing the build');
                   recordBuildEvent(
                     'auto_continuation',
                     `pass ${useChatStore.getState().continuationCount} of ${MAX_CONTINUATIONS}`,
@@ -503,6 +569,7 @@ export function ChatPanel() {
             useChatStore.getState().endProgress();
             appendToMessage(msgId, `\n\n**Error:** ${error.message}`);
             finalizeMessage(msgId);
+            useChatStore.getState().markErrored(msgId);
             setIsGenerating(false);
             setAbortController(null);
             if (useCommunityStore.getState().active) void useCommunityStore.getState().check();
@@ -517,6 +584,7 @@ export function ChatPanel() {
         const msg = err instanceof Error ? err.message : String(err);
         appendToMessage(msgId, `\n\n**Error:** ${msg}`);
         finalizeMessage(msgId);
+        useChatStore.getState().markErrored(msgId);
         setIsGenerating(false);
         setAbortController(null);
       }
@@ -542,7 +610,7 @@ export function ChatPanel() {
         }
         if (useChatStore.getState().continuationCount < MAX_CONTINUATIONS) {
           appendToMessage(msgId, '\n\n> ⚠️ The stream went quiet mid-reply — asking for the rest automatically.');
-          useChatStore.getState().queueContinuation(CONTINUE_PROMPT, 'Finishing the build');
+          useChatStore.getState().queueContinuation(continuePrompt(), 'Finishing the build');
           recordBuildEvent(
             'auto_continuation',
             `pass ${useChatStore.getState().continuationCount} of ${MAX_CONTINUATIONS}`,
@@ -657,6 +725,7 @@ export function ChatPanel() {
       <MessageList messages={messages} onBuildPlan={handleBuildPlan} isGenerating={isGenerating} />
       {!isGenerating && <GitHubChangesBanner />}
       {!isGenerating && <BuildRecovery />}
+      {!isGenerating && <RetryBanner onRetry={handleSend} />}
       {!isGenerating && <BuildReportCard />}
       {!isGenerating && <CommunityBudgetBanner />}
       {needsKey && (

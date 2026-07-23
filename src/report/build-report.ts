@@ -76,6 +76,28 @@ export function assembleReportFiles(): { path: string; chars: number }[] {
     .map(f => ({ path: f.path, chars: f.content.length }));
 }
 
+/**
+ * The provider·model the BUILD actually ran on. The active model at consent
+ * time is the wrong answer: free community builds step down to the edit model
+ * the moment the first build lands — before the consent card ever renders —
+ * so reading the picker here would attribute every report to the edit model.
+ * The build_start event recorded the truth; when later work ran on a
+ * different model (fixes, edits), the report carries both.
+ */
+function buildModelAttribution(): { provider: string; model: string } {
+  const { activeProviderId, activeModelId } = useProviderStore.getState();
+  const started = useBuildLogStore.getState().events.find(e => e.type === 'build_start');
+  const [startProvider, startModel] = started?.detail?.split(' · ') ?? [];
+  if (!startModel) return { provider: activeProviderId, model: activeModelId };
+  return {
+    provider: startProvider || activeProviderId,
+    model:
+      startModel === activeModelId
+        ? startModel
+        : `${startModel} (fixes & edits: ${activeModelId})`,
+  };
+}
+
 export function assembleReport(input: {
   excludedIds: ReadonlySet<string>;
   feedback: ReportFeedback | null;
@@ -83,7 +105,7 @@ export function assembleReport(input: {
   summary: string | null;
 }): BuildReportPayload {
   const cloud = useCloudStore.getState();
-  const { activeProviderId, activeModelId } = useProviderStore.getState();
+  const { provider, model } = buildModelAttribution();
   return {
     projectId: cloud.currentProjectId ?? null,
     projectName: cloud.currentProjectName ?? null,
@@ -92,8 +114,8 @@ export function assembleReport(input: {
     events: useBuildLogStore.getState().events,
     files: assembleReportFiles(),
     feedback: input.feedback,
-    provider: activeProviderId,
-    model: activeModelId,
+    provider,
+    model,
     followUpEmail: input.followUpEmail,
     consentAt: new Date().toISOString(),
   };

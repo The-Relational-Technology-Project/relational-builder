@@ -3,11 +3,50 @@ import { useProjectStore } from '@/store/project-store';
 import { useChatStore } from '@/store/chat-store';
 import { FileTree } from './FileTree';
 import { CodeViewer } from './CodeViewer';
-import { addPhotoAsset } from '@/project/assets';
+import { addPhotoAsset, isPhotoAssetPath, type AddedAsset } from '@/project/assets';
 import { artworkAvailable, generateArtwork, addGeneratedAsset } from '@/project/artwork';
 import { downloadSourceZip } from '@/project/download-source';
+import { detectPreviewKind } from '@/preview/detect';
 import { isImageFile } from '@/lib/image';
 import { Download, ImagePlus, Loader2, Sparkles } from 'lucide-react';
+
+/**
+ * The wiring instructions handed to the AI when an asset lands. Two things a
+ * static template got wrong in a real build: it told the AI to add a
+ * `<script src>` tag (only right for plain HTML pages — framework apps inline
+ * asset modules automatically, and the AI had to spend its reply correcting
+ * us), and it said nothing about placeholder slots the build had already left
+ * waiting, so a photo named "mural-art" sat beside an empty slot named
+ * "mural" until the person reconciled them by hand.
+ */
+function assetDraftMessage(intro: string, asset: AddedAsset): string {
+  const files = useProjectStore.getState().getAllFiles();
+  const kind = detectPreviewKind(files);
+
+  // Placeholder slots already in the app with no matching asset behind them
+  const assetNames = new Set(
+    files
+      .filter(f => isPhotoAssetPath(f.path))
+      .map(f => f.path.replace(/^\/?assets\//, '').replace(/\.js$/, '')),
+  );
+  const emptySlots = new Set<string>();
+  for (const f of files) {
+    if (isPhotoAssetPath(f.path)) continue;
+    for (const m of f.content.matchAll(/data-asset=["']([\w-]+)["']/g)) {
+      if (!assetNames.has(m[1])) emptySlots.add(m[1]);
+    }
+  }
+
+  const wiring =
+    kind === 'framework'
+      ? `add <img data-asset="${asset.name}" alt="..."> where it belongs (no script tag — the builder loads photo assets automatically in this app)`
+      : `include <script src="./${asset.path}"></script> and <img data-asset="${asset.name}" alt="...">`;
+  const slotNote =
+    emptySlots.size > 0
+      ? ` The app already has empty photo slots waiting (${[...emptySlots].join(', ')}) — if this photo belongs in one of them, change that slot's data-asset to "${asset.name}" instead of adding a new img.`
+      : '';
+  return `${intro} Use it where it fits: ${wiring}.${slotNote} — `;
+}
 
 export function FilePanel() {
   const selectedFile = useProjectStore(s => s.selectedFile);
@@ -33,7 +72,10 @@ export function FilePanel() {
       setGenPrompt('');
       setGenOpen(false);
       setDraftMessage(
-        `I generated an image ("${prompt}") as the asset "${asset.name}" (file ${asset.path}). Use it where it fits: include <script src="./${asset.path}"></script> and <img data-asset="${asset.name}" alt="..."> — `,
+        assetDraftMessage(
+          `I generated an image ("${prompt}") as the asset "${asset.name}" (file ${asset.path}).`,
+          asset,
+        ),
       );
     } catch (e) {
       setNotice(e instanceof Error ? e.message : 'Could not generate that image');
@@ -65,7 +107,10 @@ export function FilePanel() {
       setNotice(`Added ${asset.path}`);
       // Hand the AI the wiring instructions with one tap
       setDraftMessage(
-        `I added my own photo as the asset "${asset.name}" (file ${asset.path}). Use it where it fits: include <script src="./${asset.path}"></script> and <img data-asset="${asset.name}" alt="..."> — `,
+        assetDraftMessage(
+          `I added my own photo as the asset "${asset.name}" (file ${asset.path}).`,
+          asset,
+        ),
       );
     } catch (e) {
       setNotice(e instanceof Error ? e.message : 'Could not add that photo');

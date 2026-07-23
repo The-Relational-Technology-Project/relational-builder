@@ -48,6 +48,17 @@ function fixPrompt(errorText: string, attempt: number): string {
     '```',
   ];
   if (decoded) parts.push('', decoded);
+  // The bundler's missing-module error means exactly what it says: the file
+  // is absent from the project — planned but never generated (a cut-off reply
+  // is the usual cause). Say so, or the model reasons "it should exist",
+  // re-outputs on faith, and tells the person to hard-refresh.
+  const missing = errorText.match(/Could not find "([^"]+)" in the project/);
+  if (missing) {
+    parts.push(
+      '',
+      `"${missing[1]}" is genuinely absent from the project files — it was never generated (this happens when a reply gets cut off). Do not suggest refreshing or speculate that it should exist: write the missing file now, complete, matching how the rest of the project imports and uses it.`,
+    );
+  }
   if (attempt >= 2) {
     parts.push(
       '',

@@ -43,6 +43,9 @@ export interface DisplayMessage {
   autoLabel?: string;
   /** Attached images as data URLs (downscaled client-side) */
   attachments?: string[];
+  /** True for assistant replies that ended in a provider/network error —
+   * the reply's files were never applied, so a retry loses nothing */
+  errored?: boolean;
 }
 
 interface ChatState {
@@ -120,6 +123,8 @@ interface ChatState {
   importBuildPlan: (planMarkdown: string) => void;
   appendToMessage: (id: string, token: string) => void;
   finalizeMessage: (id: string) => void;
+  /** Mark an assistant reply as ended-in-error (renders a retry offer) */
+  markErrored: (id: string) => void;
   setIsGenerating: (generating: boolean) => void;
   setAbortController: (controller: AbortController | null) => void;
   setSystemPrompt: (prompt: string) => void;
@@ -290,6 +295,14 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
     set(state => ({
       messages: state.messages.map(m =>
         m.id === id ? { ...m, isStreaming: false } : m,
+      ),
+    }));
+  },
+
+  markErrored: (id: string) => {
+    set(state => ({
+      messages: state.messages.map(m =>
+        m.id === id ? { ...m, errored: true } : m,
       ),
     }));
   },
