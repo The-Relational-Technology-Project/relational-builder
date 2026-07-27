@@ -5,12 +5,12 @@ import { useProviderStore } from '@/store/provider-store';
 
 /**
  * Models covered by the RTP community key (mirror of the proxy's allowlist).
- * Fable 5 is the first-build default (won the July 2026 bench on design and
- * completeness); Opus 4.8 is the edit-step model; Opus 5 is covered as a
- * manual pick (same price as 4.8 — strong July 27 launch check, default
- * decision pending); Sonnet 5 stays covered as the lighter manual pick.
+ * Opus 5 is the default for first builds AND edits (July 27 launch check:
+ * completest mutual-aid-board build the bench has produced, at Opus 4.8's
+ * price — half Fable's). Fable 5 and Opus 4.8 stay covered as manual picks;
+ * Sonnet 5 as the lighter pick.
  */
-export const COMMUNITY_MODELS = ['claude-fable-5', 'claude-opus-5', 'claude-opus-4-8', 'claude-sonnet-5', 'claude-haiku-4-5'];
+export const COMMUNITY_MODELS = ['claude-opus-5', 'claude-fable-5', 'claude-opus-4-8', 'claude-sonnet-5', 'claude-haiku-4-5'];
 
 /**
  * Community access (Tier 3): RTP-subsidized Claude for invited builders.
@@ -69,8 +69,8 @@ export const useCommunityStore = create<CommunityState>()((set) => ({
     });
 
     // Community default: a member with no personal Claude key gets steered off
-    // a model that would 403 — onto the stage-appropriate default (Fable for a
-    // fresh project, Opus 4.8 once it has files).
+    // a model that would 403 — onto the stage-appropriate default (Opus 5 for
+    // both stages today; the constants can diverge again on a future bench).
     const providers = useProviderStore.getState();
     if (
       providers.activeProviderId === 'claude' &&
@@ -113,10 +113,11 @@ export function communityAccessActive(): boolean {
 }
 
 /**
- * Smart model defaults for free community building: Fable 5 does the first
- * build (vision and architecture are where the best model earns its cost),
- * Opus 4.8 picks up the edits and fixes — near-Fable depth at half the spend
- * on the shared budget.
+ * Smart model defaults for free community building: Opus 5 does both the
+ * first build and the edits (July 2026: it matched-or-beat Fable 5 on
+ * completeness at half the cost, and clearly beat Opus 4.8 at the same
+ * cost — see bench/results/2026-07-27T17-23-28db9a8). The two constants
+ * stay separate so the slots can diverge again on a future bench.
  *
  * Only applies when the person is building on the community key AND hasn't
  * picked a model themselves (the picker pins their choice for the project).
@@ -124,8 +125,8 @@ export function communityAccessActive(): boolean {
  *
  * Returns the model to switch to, or null when no change is called for.
  */
-export const COMMUNITY_FIRST_BUILD_MODEL = 'claude-fable-5';
-export const COMMUNITY_EDIT_MODEL = 'claude-opus-4-8';
+export const COMMUNITY_FIRST_BUILD_MODEL = 'claude-opus-5';
+export const COMMUNITY_EDIT_MODEL = 'claude-opus-5';
 
 export function resolveCommunityModelDefault(projectFileCount: number): string | null {
   const providers = useProviderStore.getState();

@@ -264,9 +264,9 @@ export function ChatPanel() {
       currentMode === 'build' && useProjectStore.getState().getFileCount() === 0;
     if (isFirstBuild) requestBuildNotifyPermission();
 
-    // Free community building: Fable 5 does the first build, Opus 4.8 the
-    // edits — unless the person picked a model themselves. Fix sends stay on
-    // whatever model is active (a continuation must finish what it started).
+    // Free community building: Opus 5 does builds and edits — unless the
+    // person picked a model themselves. Fix sends stay on whatever model is
+    // active (a continuation must finish what it started).
     let modelForSend = activeModelId;
     if (!wasFix) {
       const autoModel = resolveCommunityModelDefault(

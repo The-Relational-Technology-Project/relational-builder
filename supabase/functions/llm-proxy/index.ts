@@ -159,7 +159,13 @@ Deno.serve(async (req: Request) => {
 // the request using the ANTHROPIC_COMMUNITY_KEY secret. The shared key never
 // leaves the server. Usage is metered per email per day.
 
-const COMMUNITY_MODELS = (Deno.env.get('COMMUNITY_MODELS') ?? 'claude-sonnet-5,claude-haiku-4-5')
+const COMMUNITY_MODELS = (
+  Deno.env.get('COMMUNITY_MODELS') ??
+  // Canonical covered set (mirrored in the client's community-store). The
+  // env secret exists to narrow or extend this in an emergency without a
+  // deploy; when it's unset, this list is the source of truth.
+  'claude-opus-5,claude-fable-5,claude-opus-4-8,claude-sonnet-5,claude-haiku-4-5'
+)
   .split(',')
   .map((s) => s.trim())
   .filter(Boolean);
@@ -168,7 +174,7 @@ const COMMUNITY_MODELS = (Deno.env.get('COMMUNITY_MODELS') ?? 'claude-sonnet-5,c
 // sunsetting), requests retry once on the mapped fallback so community
 // building never breaks on a model sunset. Format: 'model:fallback,...'.
 const MODEL_FALLBACKS: Record<string, string> = Object.fromEntries(
-  (Deno.env.get('MODEL_FALLBACKS') ?? 'claude-fable-5:claude-opus-4-8')
+  (Deno.env.get('MODEL_FALLBACKS') ?? 'claude-fable-5:claude-opus-4-8,claude-opus-5:claude-opus-4-8')
     .split(',')
     .map((pair) => pair.split(':').map((s) => s.trim()))
     .filter((p) => p.length === 2 && p[0] && p[1]),
@@ -367,6 +373,10 @@ async function proxyGeminiImage(
 // progress signal instead of a silent stall.
 const ADAPTIVE_THINKING_RE = /opus-(4-[78]|5)|sonnet-5|fable/;
 
+// Models whose classifier declines should re-run server-side on Anthropic's
+// recommended fallback (beta: server-side-fallback-2026-07-01).
+const REFUSAL_FALLBACK_RE = /opus-5|fable/;
+
 // Anthropic server-side web tools — attached when the client sends
 // `web_tools: true` (chat turns only; the Builder's internal calls never set
 // it). Lets the model read pages the builder links and search for current
@@ -474,6 +484,15 @@ async function proxyAnthropic(
       anthropicBody.tools = WEB_TOOLS;
     }
   }
+  // Opus 5 and Fable 5 run safety classifiers that can decline a request
+  // (stop_reason "refusal") — rare false positives happen on benign builds.
+  // The server-side fallback re-runs a declined request on Anthropic's
+  // recommended substitute (Opus 4.8 for cyber-category declines) inside the
+  // same call, so a community builder sees a working build instead of a
+  // silent dead stream. Anthropic's stated default for these models.
+  if (REFUSAL_FALLBACK_RE.test(model)) {
+    anthropicBody.fallbacks = 'default';
+  }
   if (systemMsg) {
     // The Builder marks stability boundaries in its system prompt; each
     // boundary becomes a prompt-cache breakpoint (stable instructions and
@@ -502,6 +521,9 @@ async function proxyAnthropic(
         'Content-Type': 'application/json',
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
+        ...(payload.fallbacks
+          ? { 'anthropic-beta': 'server-side-fallback-2026-07-01' }
+          : {}),
       },
       body: JSON.stringify(payload),
     });
@@ -515,6 +537,10 @@ async function proxyAnthropic(
   if (!upstream.ok && upstream.status === 404 && MODEL_FALLBACKS[model]) {
     await upstream.text(); // drain the error body before refetching
     anthropicBody.model = MODEL_FALLBACKS[model];
+    // The refusal-fallback param rides only on models in the refusal set
+    if (!REFUSAL_FALLBACK_RE.test(MODEL_FALLBACKS[model])) {
+      delete anthropicBody.fallbacks;
+    }
     upstream = await callAnthropic(anthropicBody);
   }
 

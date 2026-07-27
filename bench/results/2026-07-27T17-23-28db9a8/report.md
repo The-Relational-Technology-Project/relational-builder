@@ -23,6 +23,12 @@ _Not scored yet — open review/index.html, score, export, save as review/scores
 
 _Maintainer's call, informed by the tables above — the report feeds the decision, it doesn't make it._
 
+- **Community first-build default:** `claude-opus-5` (was `claude-fable-5`)
+- **Community edit model:** `claude-opus-5` (was `claude-opus-4-8`)
+- Decided 2026-07-27 by Josh after reviewing this run's shots against the
+  July 16 baselines. Fable 5, Opus 4.8, and Sonnet 5 remain covered manual
+  picks on the community key.
+
 ### Run notes (Opus 5 launch check)
 
 - **One live trial, not three.** OpenRouter credit ran out mid-run (t2's 402 below);

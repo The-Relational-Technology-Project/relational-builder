@@ -33,12 +33,14 @@ function toAnthropicContent(content: string | ContentPart[]): unknown {
 const PROXY_URL = import.meta.env.VITE_LLM_PROXY_URL ?? '';
 
 // Claude 5 family + current 4.x. Aliases only — no date suffixes.
-// Fable first: it's the default for free community first builds (won the
-// July 2026 bench on design + completeness). If its API access sunsets,
-// the llm-proxy's MODEL_FALLBACKS transparently reverts to Opus 4.8.
+// Opus 5 first: it's the default for community builds AND edits (July 27
+// launch bench: completest build on record at Opus 4.8's price). Order
+// matters — switching to this provider selects models[0]. If a headline
+// model's API access sunsets, the llm-proxy's MODEL_FALLBACKS transparently
+// reverts to Opus 4.8.
 export const CLAUDE_MODELS: ModelInfo[] = [
-  { id: 'claude-fable-5', name: 'Claude Fable 5', provider: 'claude' },
   { id: 'claude-opus-5', name: 'Claude Opus 5', provider: 'claude' },
+  { id: 'claude-fable-5', name: 'Claude Fable 5', provider: 'claude' },
   { id: 'claude-opus-4-8', name: 'Claude Opus 4.8', provider: 'claude' },
   { id: 'claude-sonnet-5', name: 'Claude Sonnet 5', provider: 'claude' },
   { id: 'claude-haiku-4-5', name: 'Claude Haiku 4.5', provider: 'claude' },

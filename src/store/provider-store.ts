@@ -31,7 +31,7 @@ export const useProviderStore = create<ProviderState>()(
   persist(
     (set, get) => ({
       activeProviderId: 'claude',
-      activeModelId: 'claude-opus-4-8',
+      activeModelId: 'claude-opus-5',
       apiKeys: {},
       availableModels: [],
       modelPinned: false,
@@ -90,7 +90,7 @@ export const useProviderStore = create<ProviderState>()(
     }),
     {
       name: 'rb-provider-config',
-      version: 4,
+      version: 5,
       migrate: (persisted, version) => {
         const state = persisted as Partial<ProviderState>;
 
@@ -124,6 +124,21 @@ export const useProviderStore = create<ProviderState>()(
           !state.apiKeys?.['claude']
         ) {
           state.activeModelId = 'claude-opus-4-8';
+        }
+
+        // v5: Opus 5 replaces both community defaults (Fable first-build,
+        // Opus 4.8 edits) after the July 27 launch bench. Move only people
+        // still on a default they never chose: keyless, un-pinned, on one
+        // of the two old default models. A pinned pick — or any model they
+        // switched to deliberately — sticks.
+        if (
+          version <= 4 &&
+          state.activeProviderId === 'claude' &&
+          (state.activeModelId === 'claude-opus-4-8' || state.activeModelId === 'claude-fable-5') &&
+          !state.apiKeys?.['claude'] &&
+          !state.modelPinned
+        ) {
+          state.activeModelId = 'claude-opus-5';
         }
 
         return state as ProviderState;
