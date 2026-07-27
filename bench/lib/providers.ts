@@ -46,6 +46,12 @@ export function providerFor(model: BenchModel): LLMProvider {
     case 'openrouter': {
       const p = createOpenRouterProvider();
       p.setApiKey(key);
+      // OpenRouter pre-authorizes the request's max_tokens (default: the
+      // model's full output ceiling) against remaining credit — a low
+      // balance 402s before a single token streams. BENCH_MAX_TOKENS caps
+      // the request; builds on the frozen tasks run well under 30k output.
+      const cap = parseInt(process.env.BENCH_MAX_TOKENS ?? '', 10);
+      if (Number.isFinite(cap) && cap > 0) p.setMaxTokens(cap);
       return p;
     }
   }

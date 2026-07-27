@@ -6,10 +6,11 @@ import { useProviderStore } from '@/store/provider-store';
 /**
  * Models covered by the RTP community key (mirror of the proxy's allowlist).
  * Fable 5 is the first-build default (won the July 2026 bench on design and
- * completeness); Opus 4.8 is the edit-step model; Sonnet 5 stays covered as
- * the lighter manual pick.
+ * completeness); Opus 4.8 is the edit-step model; Opus 5 is covered as a
+ * manual pick (same price as 4.8 — strong July 27 launch check, default
+ * decision pending); Sonnet 5 stays covered as the lighter manual pick.
  */
-export const COMMUNITY_MODELS = ['claude-fable-5', 'claude-opus-4-8', 'claude-sonnet-5', 'claude-haiku-4-5'];
+export const COMMUNITY_MODELS = ['claude-fable-5', 'claude-opus-5', 'claude-opus-4-8', 'claude-sonnet-5', 'claude-haiku-4-5'];
 
 /**
  * Community access (Tier 3): RTP-subsidized Claude for invited builders.

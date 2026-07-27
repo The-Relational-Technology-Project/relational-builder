@@ -17,6 +17,11 @@ export class OpenAICompatibleProvider implements LLMProvider {
   // BYOK providers aren't configured until a key exists — prevents pointless
   // 401-spamming model fetches on load
   private requiresKey: boolean;
+  // Optional output cap. When unset, requests omit max_tokens and the
+  // endpoint applies its own default — some (OpenRouter) pre-authorize that
+  // default against remaining credit, so a cap also keeps low-balance
+  // accounts usable.
+  private maxTokens?: number;
 
   constructor(config: {
     id: string;
@@ -26,6 +31,7 @@ export class OpenAICompatibleProvider implements LLMProvider {
     defaultModels?: ModelInfo[];
     apiPath?: string;
     requiresKey?: boolean;
+    maxTokens?: number;
   }) {
     this.id = config.id;
     this.name = config.name;
@@ -34,6 +40,11 @@ export class OpenAICompatibleProvider implements LLMProvider {
     this.defaultModels = config.defaultModels ?? [];
     this.apiPath = config.apiPath ?? '/v1';
     this.requiresKey = config.requiresKey ?? true;
+    this.maxTokens = config.maxTokens;
+  }
+
+  setMaxTokens(n: number | undefined) {
+    this.maxTokens = n;
   }
 
   isConfigured(): boolean {
@@ -94,7 +105,12 @@ export class OpenAICompatibleProvider implements LLMProvider {
     const res = await fetch(`${this.baseUrl}${this.apiPath}/chat/completions`, {
       method: 'POST',
       headers,
-      body: JSON.stringify({ model, messages: cleaned, stream: true }),
+      body: JSON.stringify({
+        model,
+        messages: cleaned,
+        stream: true,
+        ...(this.maxTokens ? { max_tokens: this.maxTokens } : {}),
+      }),
       signal,
     });
 

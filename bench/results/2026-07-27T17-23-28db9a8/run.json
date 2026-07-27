@@ -1,0 +1,144 @@
+{
+  "harnessVersion": "1.0.0",
+  "taskVersion": "v1",
+  "gitCommit": "28db9a8",
+  "createdAt": "2026-07-27T17:28:55.452Z",
+  "runId": "2026-07-27T17-23-28db9a8",
+  "config": {
+    "trials": 2,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null
+  },
+  "models": [
+    {
+      "alias": "opus-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-opus-5",
+      "pricing": {
+        "inputPerMTok": 5,
+        "outputPerMTok": 25,
+        "asOf": "2026-07"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "mutual-aid-board",
+      "version": "v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "opus-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-opus-5",
+      "taskId": "mutual-aid-board",
+      "taskVersion": "v1",
+      "trial": 1,
+      "startedAt": "2026-07-27T17:23:28.475Z",
+      "plan": null,
+      "latencyMs": 325603,
+      "ttftMs": 86716,
+      "segments": [
+        {
+          "finishReason": "length",
+          "latencyMs": 217489,
+          "chars": 32353
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 108113,
+          "chars": 29776
+        }
+      ],
+      "continuations": 1,
+      "truncatedFinal": false,
+      "outputChars": 62129,
+      "estTokens": {
+        "input": 25078,
+        "output": 15533,
+        "estimated": true
+      },
+      "estCostUsd": 0.5137149999999999,
+      "extraction": {
+        "writes": 17,
+        "editBlocks": 1,
+        "failedEditBlocks": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/mutual-aid-board/opus-5-t1",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "opus-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-opus-5",
+      "taskId": "mutual-aid-board",
+      "taskVersion": "v1",
+      "trial": 2,
+      "startedAt": "2026-07-27T17:28:54.501Z",
+      "plan": null,
+      "latencyMs": 0,
+      "ttftMs": null,
+      "segments": [],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 0,
+      "estTokens": {
+        "input": 0,
+        "output": 0,
+        "estimated": true
+      },
+      "estCostUsd": null,
+      "extraction": {
+        "writes": 0,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "previewKind": "none",
+      "previewKindMatch": false,
+      "bundle": null,
+      "securityFindings": 0,
+      "checks": [],
+      "artifactDir": null,
+      "fixRound": null,
+      "error": "OpenRouter API error (402): {\"error\":{\"message\":\"This request requires more credits, or fewer max_tokens. You requested up to 20000 tokens, but can only afford 18269. To increase, visit https://openrouter.ai/settings/credits and add more credits\",\"code\":402,\"metadata\":{\"provider_name\":null,\"previous_errors\":[{\"code\":402,\"message\":\"This request requires more credits, or fewer max_tokens. You requested up to 20000 tokens, but can only afford 18269. To increase, visit https://openrouter.ai/settings/credits and add more credits\"},{\"code\":402,\"message\":\"This request requires more credits, or fewer max_tokens. You requested up to 20000 tokens, but can only afford 18269. To increase, visit https://openrouter.ai/settings/credits and add more credits\"},{\"code\":402,\"message\":\"This request requires more credits, or fewer max_tokens. You requested up to 20000 tokens, but can only afford 18269. To increase, visit https://openrouter.ai/settings/credits and add more credits\"},{\"code\":402,\"message\":\"This request requires more credits, or fewer max_tokens. You requested up to 20000 tokens, but can only afford 18269. To increase, visit https://openrouter.ai/settings/credits and add more credits\"},{\"code\":402,\"message\":\"This request requires more credits, or fewer max_tokens. You requested up to 20000 tokens, but can only afford 18269. To increase, visit https://openrouter.ai/settings/credits and add more credits\"}]}},\"user_id\":\"user_3Gbh2zmbkUZRqGfiXTo62nfbcec\"}"
+    }
+  ]
+}
