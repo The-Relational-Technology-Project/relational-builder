@@ -67,9 +67,25 @@ export const PRACTICE_FIRST_FRAME: DomainFrame = {
   ].join('\n'),
 };
 
+export const RELATIONAL_FRAME: DomainFrame = {
+  slug: 'relational',
+  label: 'Relational',
+  principles: [
+    '## Relational Frame',
+    '',
+    'This project is, at heart, about people connecting — the ask itself is about neighbors knowing, helping, meeting, or gathering with each other. Working in this frame:',
+    '',
+    '- **Name the connection type and design for it.** Bonding deepens ties that already exist (a crew, a block, a family, a fellowship); bridging creates first contact across difference (newcomers and old-timers, strangers, generations). Say which one(s) this tool serves, and let that choice drive the mechanics: bonding wants recurring rhythms, inside language, and shared memory; bridging wants low-stakes first moves, warm introductions, and a host who makes strangers feel expected.',
+    '- **Success is interactions, not traffic.** The tool works when two people who wouldn\'t otherwise have talked, did — a claimed seat, an answered ask, a first hello. Every feature earns its place by creating or deepening a human tie; features that only display information are supporting cast.',
+    '- **The Relational Mechanics section is the spec here, not a checklist.** Persons on every item, reply paths, asks paired with offers, two-sided commitments, a visible steward, reasons to meet off-screen — in this frame these are the product.',
+    '- **Pair the tool with practice.** Name the human practice each mechanic depends on (who welcomes the first-timer, which gathering the tool rides on, how the first ten people get invited personally) — the tech makes the practice easier, never replaces it.',
+  ].join('\n'),
+};
+
 export const FRAMES: Record<string, DomainFrame> = {
   [CIVIC_MEDIA_FRAME.slug]: CIVIC_MEDIA_FRAME,
   [PRACTICE_FIRST_FRAME.slug]: PRACTICE_FIRST_FRAME,
+  [RELATIONAL_FRAME.slug]: RELATIONAL_FRAME,
 };
 
 export function framesFromSlugs(slugs: string[] | undefined | null): DomainFrame[] {
@@ -85,27 +101,74 @@ export function frameSlugsForCommonsItem(item: { source_studio_slug?: string | n
 }
 
 /**
- * Implicit sensing: infer frames from what retrieval surfaced for this
- * message. No mode switch — when the commons answers a question with civic
- * media entries, the civic media principles ride along; when a practice
- * recipe clearly leads, the practice-first stance does. Thresholds are
- * deliberately conservative: frames nudge the plan, so a passing mention
- * shouldn't stamp one.
+ * The ask itself is the strongest signal for the relational frame: language
+ * about people connecting, meeting, helping, or gathering with EACH OTHER.
+ * Phrase-level patterns on purpose — single words like "ask" or "club" alone
+ * are too generic to stamp a frame that persists in lineage.
  */
-export function detectFrames(results: CommonsSearchResult[]): DomainFrame[] {
-  const top = results.slice(0, 8);
-  if (top.length === 0) return [];
+const CONNECTION_ASK = new RegExp(
+  [
+    'connect(ing)? (people|neighbors|members|families|us)',
+    'know (each other|one another|their neighbors)',
+    'meet (each other|new people|neighbors|one another)',
+    'each other|one another',
+    'lonel(y|iness)|isolat(ed|ion)',
+    'mutual aid',
+    'ask(s)? (and|&) offer(s)?',
+    'look(ing)? out for',
+    'check(ing)? (in )?on',
+    'welcom(e|ing) (new|neighbors|newcomers)',
+    'buddy|buddies|mentor|mentee',
+    'get(ting)? together|gather(ing)?s?\\b',
+    'belong(ing)?',
+    // people doing things WITH or FOR people — the mechanics of connection
+    '(propose|start|join|run|host|lead)\\w* (a |the |new |their |ones? )?(club|circle|group|crew|team|meetup)',
+    'offer\\w* (a |their )?(seats?|rides?|help|meals?|a hand|to help)',
+    'claim\\w* (a |an )?(seats?|roles?|spots?|shifts?|tasks?)',
+    'what (you|they|people) (need|can (give|offer|bring))',
+    'neighbors? (respond|help|show up|bring)',
+    'ride (circle|share)s?|carpool',
+    'rsvp',
+    'volunteer(s|ing)?\\b',
+    'potluck|block part(y|ies)|game night',
+  ].join('|'),
+  'i',
+);
 
+/**
+ * Implicit sensing: infer frames from the person's ask and what retrieval
+ * surfaced for it. No mode switch — when the ask is about people connecting,
+ * the relational principles ride along; when a practice recipe clearly
+ * leads, the practice-first stance does. Thresholds are deliberately
+ * conservative: frames nudge the plan and persist in lineage, so a passing
+ * mention shouldn't stamp one.
+ */
+export function detectFrames(results: CommonsSearchResult[], query?: string): DomainFrame[] {
+  const frames: DomainFrame[] = [];
+  const top = results.slice(0, 8);
+
+  // Sensed from the ask itself — retrieval can't see intent this directly
+  if (query && CONNECTION_ASK.test(query)) {
+    frames.push(RELATIONAL_FRAME);
+  }
+
+  if (top.length === 0) return frames;
+
+  // Civic media requires retrieval to be clearly DOMINATED by civic-media
+  // entries — leading hit plus real depth. (The old any-2-hits threshold
+  // stamped nearly every community build as civic media and pulled builds
+  // toward read-only information hubs.)
   const civicHits = top.filter(r => r.source_studio_slug === 'civic-media').length;
-  if (civicHits >= 2 || top[0]?.source_studio_slug === 'civic-media') {
-    return [CIVIC_MEDIA_FRAME]; // includes the practice-first stance
+  if (top[0]?.source_studio_slug === 'civic-media' && civicHits >= 3) {
+    frames.push(CIVIC_MEDIA_FRAME); // includes the practice-first stance
+    return frames;
   }
 
   const recipeHits = top.filter(r => r.kind === 'recipe').length;
   const recipesLeading = top.slice(0, 3).filter(r => r.kind === 'recipe').length;
   if (recipesLeading >= 2 || (top[0]?.kind === 'recipe' && recipeHits >= 3)) {
-    return [PRACTICE_FIRST_FRAME];
+    frames.push(PRACTICE_FIRST_FRAME);
   }
 
-  return [];
+  return frames;
 }

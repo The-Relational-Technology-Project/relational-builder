@@ -30,6 +30,13 @@ import { useAuthStore } from '@/store/auth-store';
 
 interface StudioState {
   activeStudio: StudioContext | null;
+  /**
+   * True once the builder explicitly picked a studio (switcher or deep
+   * link). Until then the active studio is only a fallback, and an approved
+   * membership in a non-default studio wins over it — signing in is enough
+   * to put a Thread fellow inside the Thread frame.
+   */
+  studioChosen: boolean;
   studios: StudioContext[];
   loaded: boolean;
   /** Studios this builder belongs to — including pending gated requests */
@@ -63,6 +70,7 @@ export const useStudioStore = create<StudioState>()(
   persist(
     (set, get) => ({
       activeStudio: null,
+      studioChosen: false,
       studios: [],
       loaded: false,
       memberships: [],
@@ -78,7 +86,7 @@ export const useStudioStore = create<StudioState>()(
         if (param) {
           const studio = await fetchStudio(param);
           if (studio) {
-            set({ activeStudio: studio });
+            set({ activeStudio: studio, studioChosen: true });
             // Tidy the URL so refreshes don't re-trigger
             const url = new URL(window.location.href);
             url.searchParams.delete('studio');
@@ -141,6 +149,24 @@ export const useStudioStore = create<StudioState>()(
             }));
           }
         }
+        // Membership decides the frame until the builder chooses one
+        // themselves: an approved member of a non-default studio who signed
+        // in via the plain URL should land inside THEIR studio, not the
+        // default fallback. (The July workshop cohort built outside the
+        // Thread frame because only the deep link ever activated it.)
+        if (!get().studioChosen) {
+          const memberSlugs = approvedMemberships(memberships)
+            .map(m => m.studio_slug)
+            .filter(slug => slug !== DEFAULT_STUDIO_SLUG);
+          const current = get().activeStudio?.slug;
+          if (memberSlugs.length > 0 && !memberSlugs.includes(current ?? '')) {
+            const home =
+              get().studios.find(s => s.slug === memberSlugs[0]) ??
+              (await fetchStudio(memberSlugs[0]));
+            // Re-check: the builder may have picked a studio while we fetched
+            if (home && !get().studioChosen) set({ activeStudio: home });
+          }
+        }
         void get().loadLibrary();
       },
 
@@ -160,11 +186,11 @@ export const useStudioStore = create<StudioState>()(
         await get().loadMemberships();
       },
 
-      setStudio: (studio) => set({ activeStudio: studio }),
+      setStudio: (studio) => set({ activeStudio: studio, studioChosen: true }),
     }),
     {
       name: 'rb-studio',
-      partialize: (s) => ({ activeStudio: s.activeStudio }),
+      partialize: (s) => ({ activeStudio: s.activeStudio, studioChosen: s.studioChosen }),
     },
   ),
 );

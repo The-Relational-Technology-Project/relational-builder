@@ -38,6 +38,7 @@ const REVIEW_SYSTEM_PROMPT = [
   '- data written but never read back (or vice versa) so the feature can\'t work',
   '- text that fails basic contrast against its background',
   '- a core piece of the person\'s request that is simply missing',
+  '- the request is about people interacting (posting, responding, joining, offering, gathering) but the app is read-only: no working way for a person to respond to, join, claim, or reach another person. A deliberately one-way piece (a flyer, a printed guide, a crisis info page) is NOT this defect.',
   '',
   'Rules:',
   '- Only report defects you are CONFIDENT are real. Style preferences, refactors, and nice-to-haves are never defects.',

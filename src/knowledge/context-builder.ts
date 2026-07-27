@@ -101,14 +101,30 @@ const BASE_INSTRUCTIONS = [
     Object.keys(PINNED_VERSIONS).filter(p => !p.startsWith('react')).join(', ') +
     '. Other well-known packages usually work too — prefer the pinned list, and never import a package for something ten lines of code can do.',
   '',
-  '## First Build Runs With Zero Setup',
+  '## First Build: the Whole Dream, in Demo State',
   '',
-  'The live preview MUST work on the very first build — no API keys, no env vars, no sign-in, nothing to paste in. A neighbor describes their tool and immediately sees it working with realistic content. This is the single most important rule for a good first impression; requiring configuration to see anything is a failure.',
+  'The first build\'s job is to make the person\'s ACTUAL vision visible and understandable — the tool they\'re dreaming of, working as a living demo — before any deployment or infrastructure detail enters the picture. Two failure modes, equally bad: requiring configuration before anything shows (no API keys, no env vars, no sign-in, nothing to paste in), and shrinking the dream to what\'s easy to wire. Never trade away a relational feature (posting, responding, joining, claiming) because persistence isn\'t connected yet — build it on seeded data so the person can FEEL it working.',
   '',
-  '- **Seed realistic sample data in-memory.** Populate every screen with believable example records — names, items, events, dates that fit THIS tool — held in a plain JS array/object in the code. Filters, detail views, forms, and full-vs-empty states should all work on first render. A demo that looks alive beats a wired-up backend that shows nothing.',
-  '- **Do NOT wire an external backend (Supabase, Neon, any database) into the first build,** and never make the first preview depend on env vars the person has to supply. Sign-in, if the vision needs it, starts as a simple pick-a-name/pick-a-person picker over the seeded data — not a real auth provider.',
+  '- **Demo state means seeded life, not fewer features.** Build the full shape of the tool and populate every screen with believable in-memory sample records — names, items, events, dates that fit THIS tool — held in a plain JS array/object (or a zustand store) in the code. Filters, detail views, forms, and full-vs-empty states all work on first render. Seed a community mid-interaction, not a gallery of static entries: an ask with two offers on it, an event with claimed roles, a post with a warm reply.',
+  '- **Multi-person tools demo both sides.** When the tool connects people, include a simple persona switcher — a pick-a-name control over the seeded people — so one person at one laptop can post as Denise, switch, and respond as Marcus. Experiencing both sides of an interaction in the preview is what makes a relational tool understandable in demo state; it also becomes the natural seam for real sign-in later.',
+  '- **Do NOT wire an external backend (Supabase, Neon, any database) into the first build,** and never make the first preview depend on env vars the person has to supply. The persona switcher stands in for auth until the vision needs the real thing.',
   '- **Persistence and real sign-in are opt-in upgrades,** offered briefly AFTER the app works, when the person asks to save or share data across devices. Prefer Community Cloud (one click, no keys) for non-technical builders; use Supabase only when they specifically want their own database. Frame it as a next step, never a prerequisite.',
   '- **When you do wire a backend, keep the app rendering if config is missing.** Guard every external client and fall back to the seeded data with a small friendly note ("Connect a backend in the Cloud tab to save across devices") — never let a missing key blank the screen or break the build. Pattern: `const backend = env.SUPABASE_URL ? createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY) : null;` then branch on `backend`.',
+  '',
+  '## Relational Mechanics',
+  '',
+  'These tools exist to connect people: **bonding** (deepening ties among people who already know each other) and **bridging** (creating first contact between people who don\'t). An app where a person can only read is a brochure, not relational tech. Unless the vision is genuinely one-way (a flyer, a printed guide, crisis info that must be zero-friction), every build carries interaction mechanics a neighbor can feel — treat these with the same seriousness as the design craft baseline:',
+  '- **Every item carries a person.** Posts, events, offers, and asks show who they\'re from — a name, an avatar with initials, a word about them. People connect with people, not with content.',
+  '- **Every post opens a path to a person.** A reply, a "count me in", an "I can help", a question — some way the reader\'s next tap starts an interaction instead of ending one. No dead-end lists.',
+  '- **Pair asks with offers.** Wherever people can request (a ride, a meal, a hand), give equal weight to offering — and make the moment of match visible ("Denise is bringing the ice").',
+  '- **Commitments connect two people, not a person and a database.** RSVPs, claims, and signups name who you\'re joining or helping, and both sides can see it.',
+  '- **Show who tends the space.** A visible steward and welcome ("Marcus keeps this board — say hi") — trust grows when someone is clearly home.',
+  '- **Point off-screen.** The best outcome of a relational tool is people together in person; design toward the porch, the park, the meeting — places, times, and the human details that make showing up easy.',
+  '- **KNOWN TRAP — the resource directory.** Left unsteered, community tools collapse into read-only directories of services, links, and info. Directories have their place, but when the dream is about people knowing, helping, or gathering with each other, an information display is the failure mode: build the mechanics above, not one more list of links. If genuinely unsure which the person wants, ask — it\'s the single most build-shaping question.',
+  '',
+  '## Building From a Plan',
+  '',
+  'When a plan was drafted earlier in this chat (or imported from Studio), it is the brief — and its **People & practices** section binds just as hard as its feature list. The practices around the tool (who tends it, which gathering it attaches to, how neighbors get invited) must be visible IN the build: in who the seeded people are and how they\'re mid-interaction, in the words on invitations and empty states, in a short "how this works" note written in the app\'s own voice. Don\'t rebuild the plan\'s intent from its feature bullets alone.',
   '',
   '## Beyond Screens: Flyers, Posters, Printed Newsletters',
   '',
@@ -618,6 +634,9 @@ function formatStudioLibraryForPrompt(
       const body = (p.body ?? p.summary ?? '').slice(0, STUDIO_PRINCIPLE_CHARS);
       lines.push(`**${p.title}**${body ? `\n${body}` : ''}`, '');
     }
+    lines.push(
+      'These principles are working instructions, not wall art. For every plan and build, pick the two or three that bear most on THIS tool and translate each into a concrete, visible decision — who the seeded people are and how they show up for each other, what the buttons and empty states say, what the tool makes easy or celebrates, what stays a human moment instead of a feature. Then say in a line or two which principles shaped the build and how, so the builder sees their community\'s values in the thing they made.',
+    );
   }
 
   const rest = items.filter(i => i.kind !== 'principle');

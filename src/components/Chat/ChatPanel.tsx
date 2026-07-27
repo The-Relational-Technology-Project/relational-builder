@@ -340,7 +340,7 @@ export function ChatPanel() {
     // plus any sensed from what retrieval just surfaced — no mode switch,
     // the commons answering with civic media entries is the signal itself
     const lineageFrameSlugs = useProjectStore.getState().lineage?.frames ?? [];
-    const sensedFrames = detectFrames(commonsResults);
+    const sensedFrames = detectFrames(commonsResults, content);
     const frameSlugs = [...new Set([...lineageFrameSlugs, ...sensedFrames.map(f => f.slug)])];
     const frames = framesFromSlugs(frameSlugs);
 

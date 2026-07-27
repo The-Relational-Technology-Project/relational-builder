@@ -93,7 +93,10 @@ export function formatStudioForPrompt(studio: StudioContext): string {
     '',
     `This build is happening within **${studio.label}**, a studio in the relational tech network${studio.description ? ` — ${studio.description}` : ''}.${studio.tagline ? ` ("${studio.tagline}")` : ''}`,
     '',
-    'The base Relational Technology Principles above always apply in full — a studio adds to them, never replaces them.',
+    'The base Relational Technology Principles above always apply in full — a studio adds to them, never replaces them. Inhabit the studio; don\'t just mention it:',
+    `- **The studio's community is the world of the build.** Seeded people, roles, places, and example content come from ${studio.label}'s actual community and city where you know them — never from a generic imagined neighborhood. If the studio has named roles for its people, the app's language and seeded personas use them.`,
+    `- **Speak in the studio's voice.** What things are called, how invitations and empty states read, what gets celebrated — all of it should sound like ${studio.label}, not like default app copy.`,
+    `- **Principles are build directives.** When ${studio.label}'s principles appear (below or in its library), let the two or three that bear most on this tool make visible decisions in the design — and say briefly which ones shaped what when you present a plan or finish a build.`,
   ];
   if (studio.appendedPrinciples) {
     lines.push(
@@ -101,11 +104,6 @@ export function formatStudioForPrompt(studio: StudioContext): string {
       `### ${studio.label}'s added principles (from its stewards)`,
       '',
       studio.appendedPrinciples,
-    );
-  } else {
-    lines.push(
-      '',
-      `Keep ${studio.label}'s community at the center: name it naturally when relevant, and let its context shape examples and language.`,
     );
   }
   return lines.join('\n');
