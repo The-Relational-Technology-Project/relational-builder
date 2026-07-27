@@ -38,6 +38,7 @@ const PROXY_URL = import.meta.env.VITE_LLM_PROXY_URL ?? '';
 // the llm-proxy's MODEL_FALLBACKS transparently reverts to Opus 4.8.
 export const CLAUDE_MODELS: ModelInfo[] = [
   { id: 'claude-fable-5', name: 'Claude Fable 5', provider: 'claude' },
+  { id: 'claude-opus-5', name: 'Claude Opus 5', provider: 'claude' },
   { id: 'claude-opus-4-8', name: 'Claude Opus 4.8', provider: 'claude' },
   { id: 'claude-sonnet-5', name: 'Claude Sonnet 5', provider: 'claude' },
   { id: 'claude-haiku-4-5', name: 'Claude Haiku 4.5', provider: 'claude' },
@@ -51,8 +52,10 @@ function maxTokensFor(model: string): number {
 }
 
 // Models on the adaptive-thinking API surface (explicit config beats Sonnet
-// 5's silent default; summarized display streams reasoning back as progress)
-const ADAPTIVE_THINKING_RE = /opus-4-[78]|sonnet-5|fable/;
+// 5's silent default; summarized display streams reasoning back as progress).
+// Opus 5 thinks by default, but still needs the explicit config for the
+// summarized display and xhigh effort.
+const ADAPTIVE_THINKING_RE = /opus-(4-[78]|5)|sonnet-5|fable/;
 
 // Transient upstream failures worth retrying before the stream starts:
 // 429 rate limit, 5xx hiccups, 529 Anthropic overloaded. NOT the community

@@ -8,7 +8,7 @@
 // Models on the adaptive-thinking API surface — the _20260209 tool variants
 // require this set, which is exactly where chats run; Haiku (internal calls
 // only) never gets web tools.
-const WEB_TOOL_MODELS_RE = /opus-4-[78]|sonnet-5|fable/;
+const WEB_TOOL_MODELS_RE = /opus-(4-[78]|5)|sonnet-5|fable/;
 
 /** Tool definitions for one request, or null when the model doesn't support
  *  them. max_uses bounds per-turn spend — web search bills per search. */

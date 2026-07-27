@@ -12,10 +12,18 @@ import type { BenchModel } from './types';
 export const BENCH_MODELS: BenchModel[] = [
   // --- Anthropic (env: ANTHROPIC_API_KEY) ---
   {
+    alias: 'claude-opus-5',
+    providerId: 'claude',
+    modelId: 'claude-opus-5',
+    pricing: { inputPerMTok: 5, outputPerMTok: 25, asOf: '2026-07' },
+    enabled: true,
+  },
+  {
     alias: 'claude-opus-4-8',
     providerId: 'claude',
     modelId: 'claude-opus-4-8',
-    pricing: { inputPerMTok: 15, outputPerMTok: 75, asOf: '2026-07' },
+    // Was mistakenly listed at 15/75 (Opus 4.1 pricing); 4.8 is 5/25.
+    pricing: { inputPerMTok: 5, outputPerMTok: 25, asOf: '2026-07' },
     enabled: true,
   },
   {
@@ -33,11 +41,11 @@ export const BENCH_MODELS: BenchModel[] = [
     enabled: true,
   },
   {
-    // Announced; flip enabled (and add pricing) once the API id is live.
     alias: 'claude-fable-5',
     providerId: 'claude',
     modelId: 'claude-fable-5',
-    enabled: false,
+    pricing: { inputPerMTok: 10, outputPerMTok: 50, asOf: '2026-07' },
+    enabled: true,
   },
 
   // --- OpenAI (env: OPENAI_API_KEY) ---
@@ -96,6 +104,13 @@ export const BENCH_MODELS: BenchModel[] = [
     providerId: 'openrouter',
     modelId: 'anthropic/claude-fable-5',
     pricing: { inputPerMTok: 10, outputPerMTok: 50, asOf: '2026-07' },
+    enabled: false,
+  },
+  {
+    alias: 'opus-5',
+    providerId: 'openrouter',
+    modelId: 'anthropic/claude-opus-5',
+    pricing: { inputPerMTok: 5, outputPerMTok: 25, asOf: '2026-07' },
     enabled: false,
   },
   {

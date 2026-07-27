@@ -365,7 +365,7 @@ async function proxyGeminiImage(
 // On Sonnet 5 adaptive thinking runs even when the field is omitted — set it
 // explicitly with display: "summarized" so the reasoning streams back as a
 // progress signal instead of a silent stall.
-const ADAPTIVE_THINKING_RE = /opus-4-[78]|sonnet-5|fable/;
+const ADAPTIVE_THINKING_RE = /opus-(4-[78]|5)|sonnet-5|fable/;
 
 // Anthropic server-side web tools — attached when the client sends
 // `web_tools: true` (chat turns only; the Builder's internal calls never set

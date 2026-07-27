@@ -13,6 +13,7 @@ import {
 /** Short, human descriptions so choosing a model doesn't require model trivia */
 const MODEL_HINTS: Record<string, string> = {
   'claude-fable-5': 'The best builder — does your first build, great for big changes',
+  'claude-opus-5': 'The new Opus — strong builds and edits at half Fable\'s cost',
   'claude-opus-4-8': 'Deep and dependable — the default for edits and fixes',
   'claude-sonnet-5': 'Fast and sharp — a lighter pick for small tweaks',
   'claude-haiku-4-5': 'Quickest and lightest',
