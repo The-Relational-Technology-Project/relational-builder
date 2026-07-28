@@ -19,6 +19,14 @@ import { persist } from 'zustand/middleware';
 export type BuildEventType =
   /** First build of the project started */
   | 'build_start'
+  /** A generation began — detail carries kind · provider · model, so every
+   *  later event (cut-off, error, fix) is attributable to a specific reply */
+  | 'gen_start'
+  /** That generation ended — detail carries kind · duration · outcome.
+   *  Two builds once died mid-stream at exactly +6:42 (the llm-proxy edge
+   *  function's 400s wall clock); without per-reply start/end events that
+   *  pattern took forensics to see. Now it's one line in the timeline. */
+  | 'gen_end'
   /** A build reply was cut off — by the output cap or a silently dropped stream */
   | 'reply_cut_off'
   /** An automatic continuation was queued to finish the cut-off reply */
@@ -29,6 +37,10 @@ export type BuildEventType =
   | 'apply_warnings'
   /** The live preview threw an error */
   | 'preview_error'
+  /** The preview error cleared — the app renders again. Without this event a
+   *  report can end on an open error with no way to tell whether the builder
+   *  actually got a working app. */
+  | 'preview_recovered'
   /** The one automatic error→fix pass fired */
   | 'auto_error_fix'
   /** The builder clicked "Ask AI to fix it" themselves */

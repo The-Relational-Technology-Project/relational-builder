@@ -33,11 +33,14 @@ const SETTLE_MS = 60_000;
 
 const EVENT_LABELS: Record<BuildEventType, string> = {
   build_start: 'Build started',
+  gen_start: 'Generation started',
+  gen_end: 'Generation ended',
   reply_cut_off: 'Reply cut off',
   auto_continuation: 'Automatic continuation',
   continuation_cap: 'Continuation limit reached',
   apply_warnings: "Some edits didn't apply",
   preview_error: 'Preview error',
+  preview_recovered: 'Preview recovered',
   auto_error_fix: 'Automatic error fix',
   manual_error_fix: 'Fix requested by hand',
   quality_review_fix: 'Quality review queued a fix',

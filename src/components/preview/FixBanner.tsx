@@ -1,7 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Wrench, Loader2 } from 'lucide-react';
 import { useChatStore } from '@/store/chat-store';
+import { useProjectStore } from '@/store/project-store';
 import { recordBuildEvent } from '@/report/build-log';
+import { suggestLucideIcons } from '@/preview/lucide-icons';
 
 /**
  * Production React ships error CODES, not messages. The live preview now uses
@@ -59,10 +61,34 @@ function fixPrompt(errorText: string, attempt: number): string {
       `"${missing[1]}" is genuinely absent from the project files — it was never generated (this happens when a reply gets cut off). Do not suggest refreshing or speculate that it should exist: write the missing file now, complete, matching how the rest of the project imports and uses it.`,
     );
   }
+  // A hallucinated lucide icon (a real build imported HomePlus, which has
+  // never existed) — name the real icons so the fix is one word, not a guess
+  const badIcon = errorText.match(
+    /does not provide an export named '(\w+)'/,
+  );
+  if (badIcon && /lucide-react/.test(errorText)) {
+    const suggestions = suggestLucideIcons(badIcon[1]);
+    parts.push(
+      '',
+      `\`${badIcon[1]}\` does not exist in lucide-react — it must be replaced with a real icon${
+        suggestions.length ? ` (closest real names: ${suggestions.join(', ')})` : ''
+      }. Change only the import and its uses.`,
+    );
+  }
   if (attempt >= 2) {
     parts.push(
       '',
       `This is attempt ${attempt} at fixing this SAME error — the previous fix did not resolve it. Stop and re-diagnose from scratch: question the earlier theory of the cause, re-read the files changed most recently, and look for a different root cause (a state update during render, an unstable selector or hook dependency, an effect loop). State the actual cause in one line before fixing it.`,
+    );
+  }
+  // Ground the fix in the project's actual state, like continuations do — a
+  // real build's fix pass once re-output a healthy 200-line dialog alongside
+  // the one missing file, and the oversized reply died mid-stream for it
+  const applied = useProjectStore.getState().getAllFiles().map(f => f.path);
+  if (applied.length > 0) {
+    parts.push(
+      '',
+      `These files are already complete in the project — do NOT re-output any of them unless the fix genuinely requires changing that file: ${applied.join(', ')}.`,
     );
   }
   parts.push(
@@ -94,17 +120,40 @@ export function FixBanner({ error }: { error: string | null }) {
   const autoFixArmed = useChatStore(s => s.autoFixArmed);
 
   // Each distinct error joins the build log (it never leaves the device
-  // unless the builder shares a build report)
+  // unless the builder shares a build report) — and so does the moment the
+  // preview recovers, so a report never ends on an error nobody can tell
+  // was fixed. Best-effort on the recovery side: it needs this banner
+  // mounted through the transition.
+  const prevError = useRef<string | null>(null);
   useEffect(() => {
     if (error) recordBuildEvent('preview_error', error);
+    else if (prevError.current) {
+      recordBuildEvent('preview_recovered', `after: ${prevError.current.slice(0, 120)}`);
+    }
+    prevError.current = error;
   }, [error]);
 
-  // The single automatic pass
+  // The single automatic pass — deferred, not instant. Two races taught us
+  // the delay: an error surfaced in the gap between a cut-off reply and its
+  // queued continuation actually starting (the chain was about to write the
+  // "missing" file), and a stale error can outlive the re-bundle that fixes
+  // it by a couple of seconds. Waiting out a short quiet period, then
+  // re-checking the chain state fresh, keeps the one fix pass for errors
+  // that are both real and still standing.
   useEffect(() => {
     if (!error || !autoFixArmed || isGenerating) return;
-    useChatStore.setState({ autoFixArmed: false });
-    recordBuildEvent('auto_error_fix');
-    queueFixForError(error);
+    const timer = setTimeout(() => {
+      const chat = useChatStore.getState();
+      // A continuation or any queued send is in flight — its reply (or the
+      // re-bundle after it) may resolve this error; the effect re-runs when
+      // generation ends and re-arms the timer if the error survived
+      if (chat.isGenerating || chat.queuedMessage || chat.pendingContinuationSend) return;
+      if (!chat.autoFixArmed) return;
+      useChatStore.setState({ autoFixArmed: false });
+      recordBuildEvent('auto_error_fix');
+      queueFixForError(error);
+    }, 2_500);
+    return () => clearTimeout(timer);
   }, [error, autoFixArmed, isGenerating]);
 
   if (!error) return null;

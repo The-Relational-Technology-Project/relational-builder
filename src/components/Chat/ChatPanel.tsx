@@ -47,9 +47,10 @@ function endsInsideCodeFence(content: string): boolean {
 }
 
 /** How many automatic continuations a single build may chain. Long first
- *  builds (10+ pages) routinely need 2; the cap only exists so a pathological
- *  reply can't spend money forever. */
-const MAX_CONTINUATIONS = 3;
+ *  builds (10+ pages) routinely need 2, and deliberately chunked builds
+ *  (NEXT-FILES) trade longer chains for never dying mid-file; the cap only
+ *  exists so a pathological reply can't spend money forever. */
+const MAX_CONTINUATIONS = 4;
 
 /** A stream that goes completely silent for this long is dead — abort it and
  *  route through the truncation machinery instead of leaving the builder
@@ -62,13 +63,21 @@ const STALL_TIMEOUT_MS = 150_000;
  *  Grounded in the project's actual state: "which files are done" can't ride
  *  on the model's memory of its own truncated reply — a real build once
  *  skipped App.tsx that way and spent an extra fix pass recovering it. */
-function continuePrompt(): string {
-  const base =
-    'Your previous reply was interrupted mid-stream, likely mid-file. Continue the build: first re-output the file that was cut off — complete, from its first line — then every file you had planned but not yet written. Do not repeat files that were already complete. Skip any explanation of the interruption: one short line saying you\'re continuing, then the files.';
+function continuePrompt(planned = false): string {
+  const base = planned
+    ? 'Continue the build with the remaining files you listed. Do not repeat files that are already complete. Skip any preamble: one short line saying you\'re continuing, then the files.'
+    : 'Your previous reply was interrupted mid-stream, likely mid-file. Continue the build: first re-output the file that was cut off — complete, from its first line — then every file you had planned but not yet written. Do not repeat files that were already complete. Skip any explanation of the interruption: one short line saying you\'re continuing, then the files.';
   const applied = useProjectStore.getState().getAllFiles().map(f => f.path);
   if (applied.length === 0) return base;
-  return `${base}\n\nThese files are already complete in the project (do not re-output them): ${applied.join(', ')}. Every other file your plan calls for — including the one that was cut off — is NOT in the project yet and must be written now.`;
+  return `${base}\n\nThese files are already complete in the project (do not re-output them): ${applied.join(', ')}. Every other file your plan calls for${planned ? '' : ' — including the one that was cut off —'} is NOT in the project yet and must be written now.`;
 }
+
+/** A deliberately chunked build reply ends with this marker line (the system
+ *  prompt teaches it). Streams through the community proxy get killed by a
+ *  ~400s wall clock — two real builds died mid-file at exactly +6:42 — so
+ *  large builds now stop cleanly between files and continue on purpose,
+ *  instead of streaming into the wall and paying a mid-file recovery. */
+const CHUNK_MARKER = /^NEXT-FILES:\s*(\S.*)$/m;
 
 /** Shown once per project when free community building steps down to the
  *  edit model — the model picker must never change behind anyone's back */
@@ -403,6 +412,29 @@ export function ChatPanel() {
     let finishReason: string | null = null;
     let sawToken = false;
 
+    // Bracket every generation in the build log — kind · provider · model on
+    // the way in, kind · duration · outcome on the way out — so cut-offs,
+    // errors, and fixes in the timeline are attributable to a specific reply
+    const genKind = wasContinuation
+      ? 'continuation'
+      : wasFix
+        ? (fixLabel === 'Quality review' ? 'quality fix' : 'error fix')
+        : currentMode === 'plan' ? 'plan' : 'build';
+    const genStartAt = Date.now();
+    let genEnded = false;
+    const endGen = (outcome: string) => {
+      if (genEnded) return;
+      genEnded = true;
+      recordBuildEvent(
+        'gen_end',
+        `${genKind} · ${Math.round((Date.now() - genStartAt) / 1000)}s · ${outcome}`,
+      );
+    };
+    recordBuildEvent(
+      'gen_start',
+      `${genKind} · ${useProviderStore.getState().activeProviderId} · ${modelForSend}`,
+    );
+
     // Stall watchdog: streams can die silently mid-file with no finish signal
     // and no error. If nothing arrives for STALL_TIMEOUT_MS, abort — the
     // post-stream handling below salvages what streamed and continues.
@@ -451,6 +483,7 @@ export function ChatPanel() {
                 msgId,
                 "**The reply didn't come through** — the stream ended without content. This is usually a hiccup upstream; please send that message again.",
               );
+              endGen('empty — stream ended without content');
               recordBuildEvent('reply_cut_off', 'empty reply (stream ended without content)');
               setIsGenerating(false);
               setAbortController(null);
@@ -467,6 +500,10 @@ export function ChatPanel() {
                 // so the unterminated code fence is the tell.
                 const truncated =
                   finishReason === 'length' || endsInsideCodeFence(msg.content);
+                // A deliberate chunk boundary: the reply ended cleanly but
+                // declared remaining files (NEXT-FILES: …) — continue the
+                // chain on purpose instead of treating the build as done
+                const chunked = !truncated && CHUNK_MARKER.test(msg.content);
                 if (truncated) {
                   recordBuildEvent(
                     'reply_cut_off',
@@ -475,10 +512,19 @@ export function ChatPanel() {
                       : 'stream died mid-file (no finish signal)',
                   );
                 }
+                endGen(
+                  truncated
+                    ? finishReason === 'length'
+                      ? 'cut off — output length cap'
+                      : 'cut off mid-file — stream died with no finish signal'
+                    : chunked
+                      ? 'clean chunk boundary — more files declared'
+                      : 'clean',
+                );
                 applyMessageFiles(msg.content, msgId);
-                // A cut-off first build isn't "ready" — hold its notification
-                // and quality review until the continuation chain lands
-                if (truncated && isFirstBuild && messageProducedFiles(msg.content)) {
+                // An unfinished first build isn't "ready" — hold its
+                // notification and quality review until the chain lands
+                if ((truncated || chunked) && isFirstBuild && messageProducedFiles(msg.content)) {
                   useChatStore.setState({ chainFirstBuildAsk: content });
                 }
                 // Surface edits that couldn't be applied cleanly
@@ -502,18 +548,25 @@ export function ChatPanel() {
                     if (note) appendToMessage(msgId, `\n\n> ${note}`);
                   });
                 }
-                if (truncated && useChatStore.getState().continuationCount < MAX_CONTINUATIONS) {
+                if ((truncated || chunked) && useChatStore.getState().continuationCount < MAX_CONTINUATIONS) {
                   // Continue through the fix channel. Truncated continuations
                   // keep chaining (big builds routinely need more than one
                   // extra reply); MAX_CONTINUATIONS bounds the spend.
-                  appendToMessage(msgId, '\n\n> ⚠️ That reply was cut off mid-file — asking for the rest automatically.');
-                  useChatStore.getState().queueContinuation(continuePrompt(), 'Finishing the build');
+                  if (truncated) {
+                    appendToMessage(msgId, '\n\n> ⚠️ That reply was cut off mid-file — asking for the rest automatically.');
+                  }
+                  useChatStore.getState().queueContinuation(continuePrompt(chunked), 'Finishing the build');
                   recordBuildEvent(
                     'auto_continuation',
-                    `pass ${useChatStore.getState().continuationCount} of ${MAX_CONTINUATIONS}`,
+                    `${chunked ? 'planned chunk — ' : ''}pass ${useChatStore.getState().continuationCount} of ${MAX_CONTINUATIONS}`,
                   );
-                } else if (truncated) {
-                  appendToMessage(msgId, '\n\n> ⚠️ Cut off again — this build is unusually large. Say "continue" to keep it going.');
+                } else if (truncated || chunked) {
+                  appendToMessage(
+                    msgId,
+                    chunked
+                      ? '\n\n> ⚠️ This build is unusually large — say "continue" for the remaining files.'
+                      : '\n\n> ⚠️ Cut off again — this build is unusually large. Say "continue" to keep it going.',
+                  );
                   recordBuildEvent('continuation_cap');
                 } else {
                   // This reply finished clean — the build (or its chain) is done.
@@ -569,6 +622,7 @@ export function ChatPanel() {
           },
           onError: (error) => {
             useChatStore.getState().endProgress();
+            endGen(`error — ${error.message.slice(0, 120)}`);
             appendToMessage(msgId, `\n\n**Error:** ${error.message}`);
             finalizeMessage(msgId);
             useChatStore.getState().markErrored(msgId);
@@ -584,6 +638,7 @@ export function ChatPanel() {
       useChatStore.getState().endProgress();
       if (!controller.signal.aborted) {
         const msg = err instanceof Error ? err.message : String(err);
+        endGen(`error — ${msg.slice(0, 120)}`);
         appendToMessage(msgId, `\n\n**Error:** ${msg}`);
         finalizeMessage(msgId);
         useChatStore.getState().markErrored(msgId);
@@ -601,6 +656,7 @@ export function ChatPanel() {
       finalizeMessage(msgId);
       const stalledMsg = useChatStore.getState().messages.find(m => m.id === msgId);
       const got = stalledMsg?.content.trim() ?? '';
+      endGen(`stalled — no data for ${Math.round(STALL_TIMEOUT_MS / 60_000)}+ minutes`);
       recordBuildEvent(
         'reply_cut_off',
         `stream stalled (no data for ${Math.round(STALL_TIMEOUT_MS / 60_000)}+ minutes)`,
@@ -633,6 +689,10 @@ export function ChatPanel() {
       setAbortController(null);
       if (useCommunityStore.getState().active) void useCommunityStore.getState().check();
     }
+
+    // A manual stop aborts with no callbacks at all — close the bracket so
+    // every gen_start has its gen_end
+    if (!genEnded && controller.signal.aborted) endGen('stopped by the builder');
   }, [
     provider, activeModelId, addUserMessage, toChatMessages,
     startAssistantMessage, appendToMessage, finalizeMessage,

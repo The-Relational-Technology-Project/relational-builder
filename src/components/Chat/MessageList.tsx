@@ -615,6 +615,14 @@ function PlanQuestionCards({ message }: { message: DisplayMessage }) {
   );
 }
 
+/** An option whose wording promises content the tap alone can't carry —
+ *  "Here's the title, you search" sent bare cost a real build a round trip
+ *  (the model had to reply "the title didn't come through — just the
+ *  option"). These open the text field so the promised thing rides along. */
+function optionPromisesContent(option: string): boolean {
+  return /\b(here'?s|here is|i'?ll (paste|attach|send|share|type|write|describe|summarize)|i will (paste|attach|send|share|type|write|describe|summarize))\b/i.test(option);
+}
+
 function PlanQuestionCard({
   question, staged, disabled, onAnswer,
 }: {
@@ -626,14 +634,32 @@ function PlanQuestionCard({
   // Questions without options open straight into the text field
   const [typing, setTyping] = useState(question.options.length === 0);
   const [text, setText] = useState('');
+  // A tapped option waiting for its promised content ("Here's the title…")
+  const [pendingOption, setPendingOption] = useState<string | null>(null);
   const stagedIsCustom = !!staged && !question.options.includes(staged);
 
   const submitText = () => {
     const value = text.trim();
-    if (!value) return;
+    // With a content-promising option staged, empty text still sends the
+    // option alone — the person can decline to elaborate
+    if (!value && !pendingOption) return;
     setTyping(question.options.length === 0);
     setText('');
-    onAnswer(value);
+    const composed = pendingOption
+      ? value ? `${pendingOption} — ${value}` : pendingOption
+      : value;
+    setPendingOption(null);
+    onAnswer(composed);
+  };
+
+  const tapOption = (option: string) => {
+    if (optionPromisesContent(option)) {
+      setPendingOption(option);
+      setTyping(true);
+    } else {
+      setPendingOption(null);
+      onAnswer(option);
+    }
   };
 
   const pill = (selected: boolean) =>
@@ -652,10 +678,10 @@ function PlanQuestionCard({
             <button
               key={option}
               disabled={disabled}
-              onClick={() => onAnswer(option)}
-              className={pill(staged === option)}
+              onClick={() => tapOption(option)}
+              className={pill(staged === option || pendingOption === option)}
             >
-              {staged === option && <Check className="size-3 shrink-0" />}
+              {(staged === option || pendingOption === option) && <Check className="size-3 shrink-0" />}
               {option}
             </button>
           ))}
@@ -685,12 +711,15 @@ function PlanQuestionCard({
             onChange={e => setText(e.target.value)}
             onKeyDown={e => {
               if (e.key === 'Enter') submitText();
-              if (e.key === 'Escape' && question.options.length > 0) setTyping(false);
+              if (e.key === 'Escape' && question.options.length > 0) {
+                setTyping(false);
+                setPendingOption(null);
+              }
             }}
-            placeholder="Your answer…"
+            placeholder={pendingOption ? 'Add it here (or send as is)…' : 'Your answer…'}
             className="flex-1 min-w-0 rounded-md border bg-background px-2.5 py-1.5 text-xs placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
           />
-          <Button size="sm" className="h-7 text-xs shrink-0" disabled={disabled || !text.trim()} onClick={submitText}>
+          <Button size="sm" className="h-7 text-xs shrink-0" disabled={disabled || (!text.trim() && !pendingOption)} onClick={submitText}>
             <ArrowRight className="size-3" />
           </Button>
         </div>

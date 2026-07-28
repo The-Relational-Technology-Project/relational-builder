@@ -81,21 +81,32 @@ export function assembleReportFiles(): { path: string; chars: number }[] {
  * time is the wrong answer: free community builds step down to the edit model
  * the moment the first build lands — before the consent card ever renders —
  * so reading the picker here would attribute every report to the edit model.
- * The build_start event recorded the truth; when later work ran on a
- * different model (fixes, edits), the report carries both.
+ * gen_start events record the model each generation ACTUALLY used — exact
+ * attribution (a real report once credited fixes to a model the in-chat note
+ * contradicted, because both were inferred instead of recorded). Older logs
+ * without gen events fall back to build_start + the picker.
  */
 function buildModelAttribution(): { provider: string; model: string } {
   const { activeProviderId, activeModelId } = useProviderStore.getState();
-  const started = useBuildLogStore.getState().events.find(e => e.type === 'build_start');
+  const events = useBuildLogStore.getState().events;
+  const started = events.find(e => e.type === 'build_start');
   const [startProvider, startModel] = started?.detail?.split(' · ') ?? [];
-  if (!startModel) return { provider: activeProviderId, model: activeModelId };
-  return {
-    provider: startProvider || activeProviderId,
-    model:
-      startModel === activeModelId
-        ? startModel
-        : `${startModel} (fixes & edits: ${activeModelId})`,
-  };
+  const provider = startProvider || activeProviderId;
+  const buildModel = startModel || activeModelId;
+  const genModels = [...new Set(
+    events
+      .filter(e => e.type === 'gen_start')
+      .map(e => e.detail?.split(' · ')[2])
+      .filter((m): m is string => !!m),
+  )];
+  const others = genModels.filter(m => m !== buildModel);
+  if (others.length > 0) {
+    return { provider, model: `${buildModel} (fixes & edits: ${others.join(', ')})` };
+  }
+  if (genModels.length === 0 && startModel && startModel !== activeModelId) {
+    return { provider, model: `${buildModel} (fixes & edits: ${activeModelId})` };
+  }
+  return { provider, model: buildModel };
 }
 
 export function assembleReport(input: {

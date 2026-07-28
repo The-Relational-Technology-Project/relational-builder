@@ -63,16 +63,49 @@ interface FileEntry { path: string; chars: number }
 
 const EVENT_LABELS: Record<string, string> = {
   build_start: 'Build started',
+  gen_start: 'Generation started',
+  gen_end: 'Generation ended',
   reply_cut_off: 'Reply cut off',
   auto_continuation: 'Automatic continuation',
   continuation_cap: 'Continuation limit reached',
   apply_warnings: "Some edits didn't apply",
   preview_error: 'Preview error',
+  preview_recovered: 'Preview recovered',
   auto_error_fix: 'Automatic error fix',
   manual_error_fix: 'Fix requested by hand',
   quality_review_fix: 'Quality review queued a fix',
   build_ready: 'Build ready',
 };
+
+/**
+ * Collapse fenced code blocks to one-line placeholders. The chat's story is
+ * its prose — a real report spent nearly its whole email budget on verbatim
+ * generated code and trimmed away the diagnostic tail (the fix replies, the
+ * final state). The full code always lives in the build_reports row.
+ */
+function collapseCodeBlocks(content: string): string {
+  let out = content.replace(
+    /```([^\n]*)\n([\s\S]*?)\n?```/g,
+    (_m, meta: string, body: string) => {
+      const lines = body.length === 0 ? 0 : body.split('\n').length;
+      const file = meta.match(/filename="([^"]+)"/)?.[1];
+      const isEdit = /^\s*edit\b/.test(meta);
+      const lang = meta.trim().split(/\s+/)[0] || 'code';
+      return file
+        ? `⟨${isEdit ? 'edit to' : 'file'} ${file} — ${lines} lines⟩`
+        : `⟨${lang} — ${lines} lines⟩`;
+    },
+  );
+  // An unterminated fence is a cut-off reply — show exactly that
+  const open = out.indexOf('```');
+  if (open >= 0) {
+    const meta = out.slice(open + 3, out.indexOf('\n', open) > 0 ? out.indexOf('\n', open) : undefined);
+    const file = meta.match(/filename="([^"]+)"/)?.[1];
+    const lines = out.slice(open).split('\n').length;
+    out = `${out.slice(0, open)}⟨${file ?? 'file'} — cut off mid-stream after ${lines} lines⟩`;
+  }
+  return out;
+}
 
 function relTime(at: number, base: number): string {
   const s = Math.max(0, Math.round((at - base) / 1000));
@@ -101,18 +134,40 @@ function renderEmail(r: {
   const ready = r.events.find(e => e.type === 'build_ready');
   const continuations = r.events.filter(e => e.type === 'auto_continuation').length;
   const errors = r.events.filter(e => e.type === 'preview_error').length;
+  const fixes = r.events.filter(e =>
+    e.type === 'auto_error_fix' || e.type === 'manual_error_fix' || e.type === 'quality_review_fix',
+  ).length;
 
   const stats: string[] = [];
   if (start && ready) stats.push(`<strong>${minutes(ready.at - start.at)}</strong> build → ready`);
-  stats.push(`<strong>${1 + continuations}</strong> generation ${continuations === 0 ? 'pass' : 'passes'}`);
+  stats.push(`<strong>${1 + continuations}</strong> build ${continuations === 0 ? 'pass' : 'passes'}`);
+  if (fixes > 0) stats.push(`<strong>${fixes}</strong> fix ${fixes === 1 ? 'pass' : 'passes'}`);
   stats.push(`<strong>${r.files.length}</strong> files`);
   stats.push(`<strong>${errors}</strong> preview ${errors === 1 ? 'error' : 'errors'}`);
+  // "Ready" can't be the last word when the log ends on an open error — a
+  // real report's headline said ready while the final event was an
+  // unresolved lucide crash. Only new-format logs (with gen events) record
+  // recoveries, so only they can honestly claim either way.
+  if (r.events.some(e => e.type === 'gen_start') && errors > 0) {
+    const lastErr = r.events.map(e => e.type).lastIndexOf('preview_error');
+    const lastRecovery = r.events.map(e => e.type).lastIndexOf('preview_recovered');
+    stats.push(
+      lastRecovery > lastErr
+        ? 'ended with the preview working'
+        : '<strong style="color:#b00">ended with an unresolved preview error</strong>',
+    );
+  }
   if (r.model) stats.push(esc(`${r.provider ?? ''} · ${r.model}`));
 
   const parts: string[] = [
     `<h2 style="margin:0 0 4px">Build report: ${esc(name)}</h2>`,
     `<p style="color:#666;margin:0 0 12px">Shared by an opted-in builder · ${stats.join(' &nbsp;·&nbsp; ')}</p>`,
   ];
+  if (r.reportId) {
+    parts.push(
+      `<p style="color:#999;font-size:12px;margin:0 0 12px">Full log (untrimmed chat and code): build_reports row ${esc(r.reportId)}</p>`,
+    );
+  }
 
   if (r.summary) {
     parts.push(`<h3 style="margin:16px 0 4px">What was built</h3><p>${esc(r.summary)}</p>`);
@@ -150,6 +205,7 @@ function renderEmail(r: {
   parts.push(`<p style="font-size:13px;color:#444">${r.files.map(f => esc(f.path)).join(', ') || '(none)'}</p>`);
 
   parts.push('<h3 style="margin:16px 0 4px">The conversation</h3>');
+  parts.push('<p style="color:#999;font-size:12px;margin:0 0 8px">Code blocks are collapsed to ⟨file — N lines⟩ placeholders; the full files are in the build_reports row.</p>');
   let budget = EMAIL_CHAT_BUDGET;
   for (const m of r.chat) {
     if (budget <= 0) {
@@ -157,14 +213,19 @@ function renderEmail(r: {
       break;
     }
     const who = m.label ?? (m.role === 'user' ? 'Builder' : 'AI');
-    const body = m.content.slice(0, 8_000);
+    const collapsed = collapseCodeBlocks(m.content);
+    const body = collapsed.slice(0, 8_000);
     budget -= body.length;
     parts.push(
       `<p style="margin:10px 0"><strong>${esc(who)}:</strong>` +
       (m.attachmentCount ? ` <em>(${m.attachmentCount} image${m.attachmentCount === 1 ? '' : 's'} not included)</em>` : '') +
-      `<br>${esc(body).replace(/\n/g, '<br>')}${m.content.length > body.length ? ' <em>…</em>' : ''}</p>`,
+      `<br>${esc(body).replace(/\n/g, '<br>')}${collapsed.length > body.length ? ' <em>…</em>' : ''}</p>`,
     );
   }
+
+  parts.push(
+    '<p style="color:#999;font-size:12px;margin:16px 0 0">Shared with the builder\'s consent. Reports can mention other people — names, places, contacts — so treat the contents as confidential to the stewards.</p>',
+  );
 
   return parts.join('\n');
 }

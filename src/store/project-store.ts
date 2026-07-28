@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { VirtualFS, type FileEntry, type TreeNode } from '@/project/virtual-fs';
 import { extractOperations, applyEdits, type ExtractedFile } from '@/project/code-extractor';
+import { invalidLucideImports, suggestLucideIcons } from '@/preview/lucide-icons';
 
 /** A restorable snapshot of the file system, taken after an AI change */
 export interface Checkpoint {
@@ -168,6 +169,21 @@ export const useProjectStore = create<ProjectState>()(persist((set, get) => ({
     }
 
     const files: ExtractedFile[] = [...writes, ...editResults];
+
+    // Hallucinated lucide icons die at module link time with a blob-URL
+    // stack; the import list is checkable right now, with a "did you mean"
+    for (const file of files) {
+      if (!/lucide-react/.test(file.content)) continue;
+      for (const name of invalidLucideImports(file.content)) {
+        const close = suggestLucideIcons(name);
+        warnings.push(
+          `${file.path} imports \`${name}\`, which doesn't exist in lucide-react${
+            close.length ? ` — closest real icons: ${close.join(', ')}` : ''
+          }.`,
+        );
+      }
+    }
+
     if (files.length === 0) {
       set({ lastApplyWarnings: warnings });
       return files;
