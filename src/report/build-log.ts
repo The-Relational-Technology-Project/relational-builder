@@ -47,11 +47,15 @@ export interface BuildEvent {
 }
 
 /**
- * Where the per-project sharing offer stands. 'pending' renders the consent
- * card; 'declined' and 'sent' both retire it for good — the ask is once per
- * project, for the initial build only.
+ * Where the per-project sharing offer stands. 'armed' means the initial
+ * build landed but the ask waits for a calm moment — it becomes 'pending'
+ * (the visible consent card) only once the build has settled: nothing
+ * generating, no fix queued, no review running, and a quiet stretch after
+ * the last build event. 'declined' and 'sent' both retire it for good —
+ * the ask is once per project, for the initial build only, and ignoring
+ * the card (building on past it) counts as declining.
  */
-export type ReportOfferState = 'pending' | 'declined' | 'sent' | null;
+export type ReportOfferState = 'armed' | 'pending' | 'declined' | 'sent' | null;
 
 /** Enough for any real build's story; a pathological error loop stops adding */
 const MAX_EVENTS = 200;

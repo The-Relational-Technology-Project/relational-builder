@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ChevronDown, ChevronRight, HeartHandshake, Loader2, Undo2, X } from 'lucide-react';
 import { useChatStore } from '@/store/chat-store';
 import { useProjectStore } from '@/store/project-store';
@@ -15,13 +15,21 @@ import { Button } from '@/components/ui/button';
  * The opt-in ask, shown once per project when its initial build lands.
  *
  * Consent design, deliberately:
- * - Asked AFTER the build, so the person can see exactly what exists to share.
+ * - Asked AFTER the build, at a CALM moment: the offer arms when the build
+ *   lands but the card only appears once things have settled — nothing
+ *   generating, no fix queued or review running, and a quiet stretch since
+ *   the last activity. Never in the middle of error churn.
+ * - Asked ONCE. Declining, dismissing (X), or simply building on past the
+ *   card all retire it for good — it never re-surfaces after the next
+ *   answer. (Feedback someone started typing keeps it alive.)
  * - "See exactly what we'd send" shows the real payload — the same object
  *   that ships — and any chat message can be struck before sending.
- * - Decline is a first-class button, visually equal to accept, and the card
- *   never comes back for this project either way.
+ * - Decline is a first-class button, visually equal to accept.
  * - Nothing is assembled, generated, or transmitted until the yes.
  */
+
+/** Quiet time after the last build/fix/review activity before the ask appears */
+const SETTLE_MS = 60_000;
 
 const EVENT_LABELS: Record<BuildEventType, string> = {
   build_start: 'Build started',
@@ -48,6 +56,10 @@ export function BuildReportCard() {
   const offer = useBuildLogStore(s => s.offer);
   const events = useBuildLogStore(s => s.events);
   const messages = useChatStore(s => s.messages);
+  const isGenerating = useChatStore(s => s.isGenerating);
+  const reviewing = useChatStore(s => s.reviewing);
+  const pendingFixSend = useChatStore(s => s.pendingFixSend);
+  const queuedMessage = useChatStore(s => s.queuedMessage);
   const fileCount = useProjectStore(s => s.getFileCount());
 
   const [showPayload, setShowPayload] = useState(false);
@@ -65,8 +77,40 @@ export function BuildReportCard() {
     [fileCount, offer],
   );
 
+  const busy = isGenerating || reviewing || pendingFixSend || Boolean(queuedMessage);
+  // Started feedback, struck a message, or is mid-send — the ask stays alive
+  const engaged =
+    phase !== 'ask' ||
+    excluded.size > 0 ||
+    Boolean(hopedFor.trim() || roughMoments.trim() || surprises.trim() || followUpEmail.trim());
+
+  // armed → pending: only after a quiet stretch. Any new activity re-runs
+  // this effect and restarts the clock, so the ask lands when the build has
+  // genuinely settled — never between error fixes or mid-review.
+  useEffect(() => {
+    if (offer !== 'armed' || busy) return;
+    const t = setTimeout(() => {
+      const chat = useChatStore.getState();
+      const quiet = !chat.isGenerating && !chat.reviewing && !chat.pendingFixSend && !chat.queuedMessage;
+      if (quiet && useBuildLogStore.getState().offer === 'armed') {
+        useBuildLogStore.getState().setOffer('pending');
+      }
+    }, SETTLE_MS);
+    return () => clearTimeout(t);
+  }, [offer, busy]);
+
+  // Ask once: building on past the visible card (a new send while it shows,
+  // untouched) is an answer — retire it instead of re-surfacing later.
+  useEffect(() => {
+    if (offer === 'pending' && isGenerating && !engaged) {
+      useBuildLogStore.getState().setOffer('declined');
+    }
+  }, [offer, isGenerating, engaged]);
+
   if (offer !== 'pending' && phase !== 'sent') return null;
   if (messages.length === 0) return null;
+  // Never sit on screen while a reply streams (engaged cards come back after)
+  if (busy && phase !== 'sent') return null;
 
   const decline = () => useBuildLogStore.getState().setOffer('declined');
 
@@ -137,6 +181,14 @@ export function BuildReportCard() {
             phase.
           </p>
         </div>
+        <button
+          onClick={decline}
+          disabled={phase === 'sending'}
+          className="text-muted-foreground hover:text-foreground shrink-0"
+          title="No thanks — don't ask again for this project"
+        >
+          <X className="size-3.5" />
+        </button>
       </div>
 
       <button

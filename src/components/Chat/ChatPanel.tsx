@@ -532,10 +532,12 @@ export function ChatPanel() {
                     !wasFix && isFirstBuild ? content : wasContinuation ? chainAsk : null;
                   if (firstBuildAsk && messageProducedFiles(msg.content)) {
                     recordBuildEvent('build_ready');
-                    // The initial build is done — offer (once, per project) to
-                    // share its story with the stewards. Consent-first: the
-                    // report is only assembled if the builder says yes.
-                    useBuildLogStore.getState().setOffer('pending');
+                    // The initial build is done — arm the once-per-project
+                    // offer to share its story with the stewards. The card
+                    // itself waits for a calm moment (build settled, nothing
+                    // fixing or reviewing) before it appears; consent-first
+                    // either way — the report is only assembled on yes.
+                    useBuildLogStore.getState().setOffer('armed');
                     // The one notification we ever send: first build ready, tab hidden
                     notifyBuildReady(useCloudStore.getState().currentProjectName ?? undefined);
                     // One background quality review, ONLY on the first build:
@@ -726,7 +728,9 @@ export function ChatPanel() {
       {!isGenerating && <GitHubChangesBanner />}
       {!isGenerating && <BuildRecovery />}
       {!isGenerating && <RetryBanner onRetry={handleSend} />}
-      {!isGenerating && <BuildReportCard />}
+      {/* Always mounted: the card itself picks its calm moment to appear
+          (and retires the ask if the person builds on past it) */}
+      <BuildReportCard />
       {!isGenerating && <CommunityBudgetBanner />}
       {needsKey && (
         <div className="px-4 py-2 text-xs text-center bg-muted/50 border-t">
