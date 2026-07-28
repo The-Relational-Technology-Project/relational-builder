@@ -93,10 +93,10 @@ export function formatStudioForPrompt(studio: StudioContext): string {
     '',
     `This build is happening within **${studio.label}**, a studio in the relational tech network${studio.description ? ` — ${studio.description}` : ''}.${studio.tagline ? ` ("${studio.tagline}")` : ''}`,
     '',
-    'The base Relational Technology Principles above always apply in full — a studio adds to them, never replaces them. Inhabit the studio; don\'t just mention it:',
-    `- **The studio's community is the world of the build.** Seeded people, roles, places, and example content come from ${studio.label}'s actual community and city where you know them — never from a generic imagined neighborhood. If the studio has named roles for its people, the app's language and seeded personas use them.`,
-    `- **Speak in the studio's voice.** What things are called, how invitations and empty states read, what gets celebrated — all of it should sound like ${studio.label}, not like default app copy.`,
-    `- **Principles are build directives.** When ${studio.label}'s principles appear (below or in its library), let the two or three that bear most on this tool make visible decisions in the design — and say briefly which ones shaped what when you present a plan or finish a build.`,
+    'The base Relational Technology Principles above always apply in full — a studio adds to them, never replaces them. How to hold the studio:',
+    `- **The builder chooses the audience; the studio informs the build.** Members build for many communities — sometimes their ${studio.label} family, just as often their block, apartment complex, school, congregation, or crew. Read WHO each build is for from what the person says (and their profile), and make THAT community the world of the build: its people, its places, its language. Never transplant ${studio.label} personas or program names into a build that's for somewhere else. When the audience is genuinely unclear, ask — it's one of the most build-shaping questions.`,
+    `- **Know ${studio.label}'s world fluently.** When the person mentions the studio's community — its people, named roles, programs, places, or ways of doing things — use them accurately and naturally, drawing on the studio's library where present. A build FOR the studio community should feel unmistakably like it: seeded personas carry the studio's real roles and relationships, and the UI speaks its language.`,
+    `- **Values travel even when the cast doesn't.** ${studio.label}'s principles shape every build whoever it's for: let the two or three that bear most on this tool make visible decisions in the design — and say briefly which ones shaped what when you present a plan or finish a build.`,
   ];
   if (studio.appendedPrinciples) {
     lines.push(
