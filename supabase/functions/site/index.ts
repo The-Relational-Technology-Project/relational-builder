@@ -209,7 +209,19 @@ Deno.serve(async (req: Request) => {
       contentType = 'text/x-rb-html; charset=utf-8';
     }
 
-    return new Response(req.method === 'HEAD' ? null : content, {
+    // Binary images (home-screen icons, photos) are stored as base64 text —
+    // decode to real bytes here. SVG stays text; undecodable content is
+    // served as-is rather than erroring.
+    let body: BodyInit = content;
+    if (/^image\//.test(contentType) && contentType !== 'image/svg+xml') {
+      try {
+        body = Uint8Array.from(atob(content.replace(/\s+/g, '')), c => c.charCodeAt(0));
+      } catch {
+        body = content;
+      }
+    }
+
+    return new Response(req.method === 'HEAD' ? null : body, {
       headers: {
         'Content-Type': contentType,
         'Cache-Control': `public, max-age=${CACHE_TTL_SECONDS}`,

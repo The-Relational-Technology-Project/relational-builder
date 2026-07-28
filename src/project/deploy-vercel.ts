@@ -7,6 +7,7 @@
  */
 
 import type { FileEntry } from './virtual-fs';
+import { isBinaryFilePath } from './app-icon';
 
 export interface VercelDeployResult {
   url: string;
@@ -29,11 +30,14 @@ export async function deployToVercel(
   envVars?: Record<string, string>,
   customDomain?: string,
 ): Promise<VercelDeployResult> {
-  // Vercel's API accepts files inline as an array
-  const vercelFiles = files.map(f => ({
-    file: f.path.startsWith('/') ? f.path.slice(1) : f.path,
-    data: f.content,
-  }));
+  // Vercel's API accepts files inline as an array; binary files (e.g. the
+  // generated home-screen icons) ride the VFS as base64 and are flagged so
+  const vercelFiles = files.map(f => {
+    const path = f.path.startsWith('/') ? f.path.slice(1) : f.path;
+    return isBinaryFilePath(path)
+      ? { file: path, data: f.content, encoding: 'base64' as const }
+      : { file: path, data: f.content };
+  });
 
   const res = await fetch('https://api.vercel.com/v13/deployments', {
     method: 'POST',

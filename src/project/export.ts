@@ -2,6 +2,7 @@ import JSZip from 'jszip';
 import type { FileEntry } from './virtual-fs';
 import type { ProjectLineage } from '@/store/project-store';
 import { buildEnvJs, type PublicEnvVar } from './env-module';
+import { isBinaryFilePath } from './app-icon';
 
 const yamlEscape = (s: string) => s.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 
@@ -104,7 +105,13 @@ export async function exportProjectZip(
   for (const file of files) {
     // Remove leading slash for zip paths
     const zipPath = file.path.startsWith('/') ? file.path.slice(1) : file.path;
-    zip.file(zipPath, file.content);
+    // Binary files (e.g. generated home-screen icons) live in the text-only
+    // VFS as base64 — decode them into real bytes in the zip
+    if (isBinaryFilePath(zipPath)) {
+      zip.file(zipPath, file.content, { base64: true });
+    } else {
+      zip.file(zipPath, file.content);
+    }
   }
 
   // Public env vars ship as env.js so apps work outside the builder

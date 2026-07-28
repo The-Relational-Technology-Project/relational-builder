@@ -13,6 +13,7 @@ import { useEnvStore } from '@/store/env-store';
 import { exportProjectZip, downloadBlob } from '@/project/export';
 import { buildEnvJs } from '@/project/env-module';
 import { needsBuild, buildStaticSite, materializeSource } from '@/project/build-for-publish';
+import { withAppIcons } from '@/project/app-icon';
 import { publishToCommunityHosting } from '@/project/deploy-community';
 import { useAuthStore, cloudEnabled } from '@/store/auth-store';
 import { useCloudStore } from '@/store/cloud-store';
@@ -119,7 +120,10 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
       // the RUNNING site (same output the preview shows); Download gets the
       // SOURCE plus a working Vite scaffold for npm install && npm run dev.
       const isFramework = needsBuild(files);
-      const siteFiles = isFramework ? await buildStaticSite(files, publicEnvVars) : files;
+      const builtFiles = isFramework ? await buildStaticSite(files, publicEnvVars) : files;
+      // Every hosted site ships home-screen icons (manifest + apple-touch-icon)
+      // unless the project brings its own
+      const siteFiles = withAppIcons(builtFiles, projectName);
 
       if (activeTarget === 'community') {
         const res = await publishToCommunityHosting(siteFiles, projectName, publicEnvVars);

@@ -46,6 +46,13 @@ const CONTENT_TYPES: Record<string, string> = {
   webmanifest: 'application/manifest+json',
   svg: 'image/svg+xml',
   ico: 'image/x-icon',
+  // Binary images arrive as base64 text (the whole pipeline is text-only);
+  // the `site` function decodes them to real bytes when serving
+  png: 'image/png',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  gif: 'image/gif',
+  webp: 'image/webp',
   md: 'text/markdown; charset=utf-8',
   txt: 'text/plain; charset=utf-8',
   xml: 'application/xml',
