@@ -1,7 +1,9 @@
 # The Relational Builder brief
 
 `RB-brief.html` is the source for the three-page overview brief (`RB-brief.pdf`)
-we hand to partners, funders, and curious neighbors. Everything it needs lives
+we hand to partners, funders, and curious neighbors. Audience-specific
+variants (extra pages, tailored copy) are kept out of the repo — build them
+from this source and share the PDF directly. Everything it needs lives
 in this directory: fonts are the app's own (Fraunces + Inter, copied from
 `@fontsource-variable`), and the screenshots in `images/` are real captures of
 the running app — no mockups.
@@ -30,9 +32,10 @@ chromium --headless --no-sandbox --print-to-pdf=RB-brief.pdf \
 
 ## Keeping it current
 
-Facts baked into the copy that drift over time:
+Facts baked into the copy that drift over time (in both briefs):
 
-- the commons item count (365 as of July 2026) — count `commons_items` in the
-  commons Supabase
-- the free-tier model pairing (Opus 4.8 first build / Sonnet 5 edits)
+- the commons item count (451 as of July 28, 2026) — count `commons_items` in
+  the commons Supabase
+- the free-tier model (Claude Opus 5 for planning, first builds, and edits,
+  since July 27, 2026)
 - the studios named in "Studios as first-class homes"
