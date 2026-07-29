@@ -14,12 +14,17 @@
  *     (?studio=thread): at first sign-in a trigger files their request to
  *     join that studio automatically
  *
+ * The alert email carries one-click approve/decline links (tokenized, settle
+ * on POST only — see steward-respond). Only a hash of the token is stored;
+ * the token itself lives nowhere but the steward's inbox.
+ *
  * Deploy: supabase functions deploy request-account --no-verify-jwt
  * Secrets:
  *   RESEND_API_KEY  — Resend key for the relationalbuilder.org domain
  *   STEWARD_EMAIL   — where request notifications go
  *                     (default josh@relationaltechproject.org)
  *   APP_URL         — link target (default https://relational-builder.vercel.app)
+ *   SITE_URL        — respond-link domain (default https://relationalbuilder.org)
  */
 
 const CORS = {
@@ -50,6 +55,20 @@ function rest(path: string): string {
 function esc(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
+
+async function sha256Hex(s: string): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+const RESPOND_TOKEN_DAYS = 7;
+
+const emailBtn = (href: string, label: string, primary: boolean) =>
+  `<a href="${href}" style="display:inline-block;margin:4px 10px 4px 0;padding:12px 22px;border-radius:10px;text-decoration:none;font-weight:600;font-size:15px;${
+    primary
+      ? 'background:#C0532F;color:#FFF7EF;'
+      : 'border:1.5px solid #C9B29B;color:#49362B;'
+  }">${label}</a>`;
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
@@ -100,12 +119,23 @@ Deno.serve(async (req: Request) => {
       return json({ ok: true, status: existing[0].status === 'approved' ? 'already-member' : 'pending' });
     }
 
+    // Mint the one-click respond token for the steward email; only its hash
+    // touches the database
+    const respondToken =
+      crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '');
+    const respondTokenHash = await sha256Hex(respondToken);
+    const respondTokenExpires = new Date(
+      Date.now() + RESPOND_TOKEN_DAYS * 86400_000,
+    ).toISOString();
+
     const insertRes = await fetch(rest('/account_requests'), {
       method: 'POST',
       headers: svc(),
       body: JSON.stringify({
         email, name, neighborhood, reason,
         studio_slug: studioSlug, studio_label: studioLabel,
+        respond_token_hash: respondTokenHash,
+        respond_token_expires_at: respondTokenExpires,
       }),
     });
     if (!insertRes.ok) return json({ error: 'Could not save your request' }, 500);
@@ -114,7 +144,10 @@ Deno.serve(async (req: Request) => {
     const resendKey = Deno.env.get('RESEND_API_KEY') ?? '';
     const steward = Deno.env.get('STEWARD_EMAIL') ?? 'josh@relationaltechproject.org';
     const appUrl = Deno.env.get('APP_URL') ?? 'https://relational-builder.vercel.app';
+    const siteUrl = (Deno.env.get('SITE_URL') ?? 'https://relationalbuilder.org').replace(/\/$/, '');
     if (resendKey) {
+      const approveUrl = `${siteUrl}/steward/respond?token=${respondToken}&do=approve`;
+      const declineUrl = `${siteUrl}/steward/respond?token=${respondToken}&do=decline`;
       await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
@@ -127,7 +160,8 @@ Deno.serve(async (req: Request) => {
             studioLabel ? `<p><strong>Arrived through:</strong> ${esc(studioLabel)} — approving the account will also file their request to join the studio.</p>` : '',
             neighborhood ? `<p><strong>Neighborhood:</strong> ${esc(neighborhood)}</p>` : '',
             reason ? `<p><strong>What they want to build:</strong><br>${esc(reason)}</p>` : '',
-            `<p>Approve or decline in your <a href="${appUrl}">super admin dashboard</a> (account menu → Account requests).</p>`,
+            `<div>${emailBtn(approveUrl, 'Approve', true)}${emailBtn(declineUrl, 'Decline', false)}</div>`,
+            `<p style="font-size:13px;color:#93806F;">These links work without signing in and ask you to confirm before anything happens. They expire in ${RESPOND_TOKEN_DAYS} days — after that (or any time), decide in your <a href="${appUrl}">steward dashboard</a> (account menu → Account requests).</p>`,
           ].join('\n'),
         }),
       }).catch(() => {});

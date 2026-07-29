@@ -7,6 +7,10 @@
     {
       "source": "/connect/respond",
       "destination": "/api/connect"
+    },
+    {
+      "source": "/steward/respond",
+      "destination": "/api/steward-respond"
     }
   ]
 }
