@@ -8,9 +8,14 @@
  * stewards — best-effort, since the row is already safe.
  *
  * POST JSON: { projectId?, projectName?, summary?, chat, events, files,
- *              feedback?, provider?, model?, followUpEmail?, consentAt }
+ *              feedback?, provider?, model?, builderName?, builderEmail?,
+ *              screenshot?, followUpEmail?, consentAt }
  *   - No auth (builders may not be signed in); per-IP rate limited
  *   - consentAt is required: no consent timestamp, no report
+ *   - screenshot is a JPEG/PNG data URL the builder separately okayed;
+ *     it's stored with the row and attached to the steward email
+ *   - followUpEmail is the pre-identity field older clients still send;
+ *     builderEmail supersedes it
  *
  * Deploy: supabase functions deploy build-report --no-verify-jwt
  * Secrets:
@@ -27,8 +32,11 @@ const CORS = {
 const RATE_LIMIT_PER_HOUR = 6;
 const ipCounts = new Map<string, { hour: string; count: number }>();
 
-// Generous for real builds, small enough that nobody can use us as storage
-const MAX_BODY_BYTES = 1_500_000;
+// Generous for real builds (incl. a snapshot image), small enough that
+// nobody can use us as storage
+const MAX_BODY_BYTES = 3_000_000;
+// Client normalizes snapshots to ≤1M chars; the ceiling just adds slack
+const MAX_SCREENSHOT_CHARS = 1_600_000;
 const MAX_CHAT_MESSAGES = 200;
 const MAX_MESSAGE_CHARS = 20_000;
 const MAX_EVENTS = 200;
@@ -125,6 +133,9 @@ function renderEmail(r: {
   feedback: Record<string, string> | null;
   provider: string | null;
   model: string | null;
+  builderName: string | null;
+  builderEmail: string | null;
+  hasScreenshot: boolean;
   followUpEmail: string | null;
   reportId: string | null;
 }): string {
@@ -159,10 +170,21 @@ function renderEmail(r: {
   }
   if (r.model) stats.push(esc(`${r.provider ?? ''} · ${r.model}`));
 
+  const builder = [r.builderName, r.builderEmail].filter(Boolean) as string[];
   const parts: string[] = [
     `<h2 style="margin:0 0 4px">Build report: ${esc(name)}</h2>`,
     `<p style="color:#666;margin:0 0 12px">Shared by an opted-in builder · ${stats.join(' &nbsp;·&nbsp; ')}</p>`,
   ];
+  if (builder.length > 0) {
+    parts.push(
+      `<p style="margin:0 0 12px"><strong>Built by:</strong> ${builder.map(esc).join(' · ')}</p>`,
+    );
+  }
+  if (r.hasScreenshot) {
+    parts.push(
+      `<p style="color:#666;font-size:13px;margin:0 0 12px">📎 The builder okayed a snapshot of the app — attached as <strong>app-snapshot</strong>.</p>`,
+    );
+  }
   if (r.reportId) {
     parts.push(
       `<p style="color:#999;font-size:12px;margin:0 0 12px">Full log (untrimmed chat and code): build_reports row ${esc(r.reportId)}</p>`,
@@ -304,7 +326,16 @@ Deno.serve(async (req: Request) => {
     const summary = String(body.summary ?? '').slice(0, 2_000).trim() || null;
     const provider = String(body.provider ?? '').slice(0, 60).trim() || null;
     const model = String(body.model ?? '').slice(0, 120).trim() || null;
+    const builderName = String(body.builderName ?? '').slice(0, 120).trim() || null;
+    const builderEmail = String(body.builderEmail ?? '').slice(0, 200).trim() || null;
+    // Older clients sent the contact address as followUpEmail
     const followUpEmail = String(body.followUpEmail ?? '').slice(0, 200).trim() || null;
+
+    // The snapshot the builder separately okayed — a JPEG/PNG data URL only
+    const rawShot = typeof body.screenshot === 'string' ? body.screenshot : '';
+    const shotMatch = rawShot.match(/^data:image\/(jpeg|png);base64,([A-Za-z0-9+/=]+)$/);
+    const screenshot =
+      shotMatch && rawShot.length <= MAX_SCREENSHOT_CHARS ? rawShot : null;
 
     // Named columns throughout — including what we ask back — so the
     // hardened privileges never have a star-select to refuse
@@ -321,6 +352,9 @@ Deno.serve(async (req: Request) => {
         feedback,
         provider,
         model,
+        builder_name: builderName,
+        builder_email: builderEmail,
+        screenshot,
         follow_up_email: followUpEmail,
         consent_at: consentAt,
       }),
@@ -333,18 +367,28 @@ Deno.serve(async (req: Request) => {
     const resendKey = Deno.env.get('RESEND_API_KEY') ?? '';
     const to = Deno.env.get('BUILD_REPORT_EMAIL') ?? 'humans@relationaltechproject.org';
     if (resendKey) {
+      const attachments = screenshot && shotMatch
+        ? [{
+            filename: `app-snapshot.${shotMatch[1] === 'png' ? 'png' : 'jpg'}`,
+            content: shotMatch[2],
+          }]
+        : undefined;
       await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           from: 'Relational Builder <hello@relationalbuilder.org>',
           to: [to],
-          reply_to: followUpEmail ?? undefined,
-          subject: `Build report: ${projectName ?? 'a new build'}`,
+          reply_to: builderEmail ?? followUpEmail ?? undefined,
+          subject:
+            `Build report: ${projectName ?? 'a new build'}` +
+            (builderName ? ` — from ${builderName}` : ''),
           html: renderEmail({
             projectName, summary, chat, events, files, feedback,
-            provider, model, followUpEmail, reportId,
+            provider, model, builderName, builderEmail,
+            hasScreenshot: Boolean(attachments), followUpEmail, reportId,
           }),
+          attachments,
         }),
       }).catch(() => {});
     }

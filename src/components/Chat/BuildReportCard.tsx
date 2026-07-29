@@ -9,6 +9,7 @@ import {
   sendBuildReport,
   type ReportFeedback,
 } from '@/report/build-report';
+import { capturePreviewScreenshot } from '@/preview/screenshot';
 import { Button } from '@/components/ui/button';
 
 /**
@@ -71,7 +72,14 @@ export function BuildReportCard() {
   const [hopedFor, setHopedFor] = useState('');
   const [roughMoments, setRoughMoments] = useState('');
   const [surprises, setSurprises] = useState('');
-  const [followUpEmail, setFollowUpEmail] = useState('');
+  const [builderName, setBuilderName] = useState('');
+  const [builderEmail, setBuilderEmail] = useState('');
+  // The snapshot is captured on-device the moment the card appears, so the
+  // checkbox and the payload preview show the REAL image — it never travels
+  // unless the box stays ticked and the builder shares.
+  const [screenshot, setScreenshot] = useState<string | null>(null);
+  const [screenshotTries, setScreenshotTries] = useState(0);
+  const [includeScreenshot, setIncludeScreenshot] = useState(true);
   const [phase, setPhase] = useState<'ask' | 'sending' | 'sent' | 'error'>('ask');
 
   const files = useMemo(
@@ -85,7 +93,10 @@ export function BuildReportCard() {
   const engaged =
     phase !== 'ask' ||
     excluded.size > 0 ||
-    Boolean(hopedFor.trim() || roughMoments.trim() || surprises.trim() || followUpEmail.trim());
+    Boolean(
+      hopedFor.trim() || roughMoments.trim() || surprises.trim() ||
+      builderName.trim() || builderEmail.trim(),
+    );
 
   // armed → pending: only after a quiet stretch. Any new activity re-runs
   // this effect and restarts the clock, so the ask lands when the build has
@@ -109,6 +120,26 @@ export function BuildReportCard() {
       useBuildLogStore.getState().setOffer('declined');
     }
   }, [offer, isGenerating, engaged]);
+
+  // Snapshot of the running app, captured locally once the card is up. The
+  // preview may still be bundling when the card mounts (a reload with the
+  // ask already pending), so a null capture retries a few times before the
+  // card settles for offering no snapshot — the report ships without a
+  // picture either way.
+  useEffect(() => {
+    if (offer !== 'pending' || busy || screenshot || screenshotTries >= 5) return;
+    let cancelled = false;
+    const t = setTimeout(async () => {
+      const shot = await capturePreviewScreenshot();
+      if (cancelled) return;
+      setScreenshotTries(n => n + 1);
+      if (shot) setScreenshot(shot);
+    }, screenshotTries === 0 ? 0 : 3000);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [offer, busy, screenshot, screenshotTries]);
 
   if (offer !== 'pending' && phase !== 'sent') return null;
   if (messages.length === 0) return null;
@@ -138,7 +169,9 @@ export function BuildReportCard() {
       const payload = assembleReport({
         excludedIds: excluded,
         feedback: Object.keys(feedback).length > 0 ? feedback : null,
-        followUpEmail: followUpEmail.trim() || null,
+        builderName: builderName.trim() || null,
+        builderEmail: builderEmail.trim() || null,
+        screenshot: includeScreenshot ? screenshot : null,
         summary,
       });
       await sendBuildReport(payload);
@@ -177,7 +210,8 @@ export function BuildReportCard() {
           <p className="text-sm font-medium">Thanks for trying Relational Builder!</p>
           <p className="text-xs text-muted-foreground leading-relaxed">
             Would it be okay to share this build's log with the RTP stewards? Josh and Deb
-            would see the chat log, any errors, and a summary of what was created, for this
+            would see the chat log, any errors, a summary of what was created, and — if
+            you leave the box ticked — a snapshot image of your app, for this
             project's first build only. Nothing is shared unless you say
             yes. If you do, it's stored in Builder's database and emailed to them; ask
             anytime and we'll delete it. Sharing these logs is a real help at this early
@@ -193,6 +227,44 @@ export function BuildReportCard() {
           <X className="size-3.5" />
         </button>
       </div>
+
+      <div className="space-y-1">
+        <label className="text-xs font-medium">
+          Who's building? Your name and email travel with the report so the stewards
+          know who to thank — and can follow up (optional)
+        </label>
+        <div className="grid gap-2 sm:grid-cols-2">
+          <input
+            type="text"
+            value={builderName}
+            onChange={e => setBuilderName(e.target.value)}
+            placeholder="Your name"
+            className={inputClass}
+          />
+          <input
+            type="email"
+            value={builderEmail}
+            onChange={e => setBuilderEmail(e.target.value)}
+            placeholder="you@example.org"
+            className={inputClass}
+          />
+        </div>
+      </div>
+
+      {screenshot && (
+        <label className="flex items-start gap-2 text-xs cursor-pointer">
+          <input
+            type="checkbox"
+            checked={includeScreenshot}
+            onChange={e => setIncludeScreenshot(e.target.checked)}
+            className="mt-0.5 accent-primary"
+          />
+          <span className="text-muted-foreground leading-relaxed">
+            Attach a snapshot image of the app as it looks right now — it's under
+            "see exactly what we'd send" below
+          </span>
+        </label>
+      )}
 
       <button
         onClick={() => setShowPayload(v => !v)}
@@ -265,6 +337,31 @@ export function BuildReportCard() {
               File names and sizes travel — file contents don't.
             </p>
           </div>
+
+          {screenshot && (
+            <div className="space-y-1">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                App snapshot
+              </p>
+              {includeScreenshot ? (
+                <>
+                  <img
+                    src={screenshot}
+                    alt="Snapshot of your app that would travel with the report"
+                    className="max-h-44 w-auto rounded border"
+                  />
+                  <p className="text-xs text-muted-foreground italic">
+                    This image travels with the report — untick the snapshot box above to
+                    leave it out.
+                  </p>
+                </>
+              ) : (
+                <p className="text-xs text-muted-foreground italic">
+                  Not included — the snapshot box above is unticked.
+                </p>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -304,18 +401,6 @@ export function BuildReportCard() {
               value={surprises}
               onChange={e => setSurprises(e.target.value)}
               rows={2}
-              className={inputClass}
-            />
-          </div>
-          <div className="space-y-1">
-            <label className="text-xs font-medium">
-              Okay for the stewards to follow up? Leave an email (optional)
-            </label>
-            <input
-              type="email"
-              value={followUpEmail}
-              onChange={e => setFollowUpEmail(e.target.value)}
-              placeholder="you@example.org"
               className={inputClass}
             />
           </div>

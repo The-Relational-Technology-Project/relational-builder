@@ -8,6 +8,11 @@ import { ASSET_APPLIER, buildShellHtml, ERROR_RELAY, NAV_BRIDGE } from '@/previe
 import { isPhotoAssetPath } from '@/project/assets';
 import { KIT_FILES } from '@/kit';
 import { INSPECT_SOURCE } from '@/preview/inspect-source';
+import {
+  captureFromIframe,
+  registerPreviewScreenshotter,
+  SCREENSHOT_SOURCE,
+} from '@/preview/screenshot';
 import { PointAtIt } from './PointAtIt';
 import { FixBanner } from './FixBanner';
 import type { PreviewHandle } from './PreviewToolbar';
@@ -98,6 +103,7 @@ export function FrameworkPreview({
             ...assetScripts,
             ASSET_APPLIER,
             `<script>\n${INSPECT_SOURCE}\n</script>`,
+            `<script>\n${SCREENSHOT_SOURCE}\n</script>`,
             ERROR_RELAY,
             NAV_BRIDGE,
           ],
@@ -135,6 +141,17 @@ export function FrameworkPreview({
 
   // Offer the toolbar its controls for this engine
   const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  // The build report's optional snapshot asks the iframe to capture itself
+  useEffect(() => {
+    if (html === null) return;
+    registerPreviewScreenshotter(() => {
+      const win = iframeRef.current?.contentWindow;
+      return win ? captureFromIframe(win) : Promise.resolve(null);
+    });
+    return () => registerPreviewScreenshotter(null);
+  }, [html]);
+
   useEffect(() => {
     if (!onHandle || html === null) return;
     onHandle({

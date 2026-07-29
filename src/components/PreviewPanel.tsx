@@ -14,6 +14,11 @@ import { useEnvStore } from '@/store/env-store';
 import { useChatStore } from '@/store/chat-store';
 import { buildEnvJs, buildEnvTs } from '@/project/env-module';
 import { INSPECT_SOURCE } from '@/preview/inspect-source';
+import {
+  captureFromIframe,
+  registerPreviewScreenshotter,
+  SCREENSHOT_SOURCE,
+} from '@/preview/screenshot';
 import { resolveReactEntry } from '@/preview/react-entry';
 import { detectPreviewKind } from '@/preview/detect';
 import { extractHashRoutes } from '@/preview/routes';
@@ -270,9 +275,10 @@ function SandpackPath({
     // it via externalResources below.
     if (hasHtml) {
       spFiles['/rb-inspect.js'] = { code: INSPECT_SOURCE };
+      spFiles['/rb-screenshot.js'] = { code: SCREENSHOT_SOURCE };
       const html = spFiles['/index.html'];
       const code = typeof html === 'string' ? html : html.code;
-      const tag = '<script src="./rb-inspect.js"></script>';
+      const tag = '<script src="./rb-inspect.js"></script>\n<script src="./rb-screenshot.js"></script>';
       spFiles['/index.html'] = {
         code: /<\/body>/i.test(code) ? code.replace(/<\/body>/i, `${tag}\n</body>`) : code + `\n${tag}`,
       };
@@ -316,8 +322,20 @@ function SandpackPath({
     return { sandpackFiles: spFiles, template: tmpl, entry, externalResources: externalFromHtml };
   }, [files, publicEnvVars]);
 
+  // The build report's optional snapshot: find this engine's iframe and ask
+  // it to capture itself (the Sandpack document is cross-origin, so the
+  // conversation happens over postMessage)
+  const rootRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    registerPreviewScreenshotter(() => {
+      const win = rootRef.current?.querySelector('iframe')?.contentWindow;
+      return win ? captureFromIframe(win) : Promise.resolve(null);
+    });
+    return () => registerPreviewScreenshotter(null);
+  }, []);
+
   return (
-    <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+    <div ref={rootRef} style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
       <SandpackProvider
         // Remount on file-system changes: SandpackProvider holds stale error
         // state when the files prop changes underneath it (e.g. on restore)
@@ -330,7 +348,11 @@ function SandpackPath({
           autorun: true,
           externalResources: template === 'static'
             ? []
-            : [`${window.location.origin}/inspect.js`, ...externalResources],
+            : [
+                `${window.location.origin}/inspect.js`,
+                `${window.location.origin}/screenshot.js`,
+                ...externalResources,
+              ],
         }}
         theme="dark"
         style={{ flex: 1, display: 'flex', flexDirection: 'column' }}

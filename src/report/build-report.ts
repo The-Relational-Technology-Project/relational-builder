@@ -44,7 +44,11 @@ export interface BuildReportPayload {
   feedback: ReportFeedback | null;
   provider: string;
   model: string;
-  followUpEmail: string | null;
+  /** Who's building — typed on the card; the email doubles as the follow-up contact */
+  builderName: string | null;
+  builderEmail: string | null;
+  /** JPEG data URL of the running app — present only when the builder ticked the snapshot box */
+  screenshot: string | null;
   consentAt: string;
 }
 
@@ -112,7 +116,9 @@ function buildModelAttribution(): { provider: string; model: string } {
 export function assembleReport(input: {
   excludedIds: ReadonlySet<string>;
   feedback: ReportFeedback | null;
-  followUpEmail: string | null;
+  builderName: string | null;
+  builderEmail: string | null;
+  screenshot: string | null;
   summary: string | null;
 }): BuildReportPayload {
   const cloud = useCloudStore.getState();
@@ -127,7 +133,9 @@ export function assembleReport(input: {
     feedback: input.feedback,
     provider,
     model,
-    followUpEmail: input.followUpEmail,
+    builderName: input.builderName,
+    builderEmail: input.builderEmail,
+    screenshot: input.screenshot,
     consentAt: new Date().toISOString(),
   };
 }
