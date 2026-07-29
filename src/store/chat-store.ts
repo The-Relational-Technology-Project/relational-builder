@@ -9,15 +9,14 @@ export interface GenerationProgress {
   startedAt: number;
   /** waiting → thinking (reasoning streams) → writing (reply streams) */
   phase: 'waiting' | 'thinking' | 'writing';
-  /** Rolling tail of the model's summarized reasoning */
-  thinking: string;
+  /** When the thinking phase began — lets the status show how long it took */
+  thinkingAt?: number;
+  /** When the first reply token arrived */
+  writingAt?: number;
   /** A deliberate wait (e.g. busy upstream, retrying) — shown instead of the
    *  phase label until the stream actually starts */
   notice?: string | null;
 }
-
-/** Keep only the readable tail of the reasoning feed */
-const THINKING_TAIL_CHARS = 600;
 
 export interface DisplayMessage {
   id: string;
@@ -97,8 +96,9 @@ interface ChatState {
    *  (transient: never persisted, cleared when generation ends) */
   progress: GenerationProgress | null;
   beginProgress: () => void;
-  /** Streamed reasoning summary — flips the phase to "thinking" */
-  progressReasoning: (text: string) => void;
+  /** Reasoning is streaming — flips the phase to "thinking" (the text itself
+   *  isn't kept: the status shows calm phases, not a feed) */
+  progressReasoning: () => void;
   /** First reply token — flips the phase to "writing" */
   progressWriting: () => void;
   /** Explain a deliberate wait (busy upstream, automatic retry) */
@@ -189,17 +189,33 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
 
   progress: null,
   beginProgress: () =>
-    set({ progress: { startedAt: Date.now(), phase: 'waiting', thinking: '' } }),
-  progressReasoning: (text: string) =>
+    set({ progress: { startedAt: Date.now(), phase: 'waiting' } }),
+  progressReasoning: () =>
     set(state => {
       if (!state.progress) return state;
-      const thinking = (state.progress.thinking + text).slice(-THINKING_TAIL_CHARS);
-      return { progress: { ...state.progress, phase: 'thinking' as const, thinking, notice: null } };
+      // Already showing "thinking" with no notice → nothing to change; bail
+      // without an update so per-token reasoning doesn't churn re-renders
+      if (state.progress.phase === 'thinking' && !state.progress.notice) return state;
+      return {
+        progress: {
+          ...state.progress,
+          phase: 'thinking' as const,
+          thinkingAt: state.progress.thinkingAt ?? Date.now(),
+          notice: null,
+        },
+      };
     }),
   progressWriting: () =>
     set(state =>
       state.progress && state.progress.phase !== 'writing'
-        ? { progress: { ...state.progress, phase: 'writing' as const, notice: null } }
+        ? {
+            progress: {
+              ...state.progress,
+              phase: 'writing' as const,
+              writingAt: Date.now(),
+              notice: null,
+            },
+          }
         : state,
     ),
   progressNotice: (text: string) =>

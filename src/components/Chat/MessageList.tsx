@@ -92,45 +92,74 @@ function CollapsedCode({
   );
 }
 
+/** Three quiet dots taking turns — says "still working" without a spinner */
+function WorkingDots() {
+  return (
+    <span className="inline-flex items-center gap-[3px]" aria-hidden="true">
+      {[0, 1, 2].map(i => (
+        <span
+          key={i}
+          className="size-1 rounded-full bg-current rb-working-dot"
+          style={{ animationDelay: `${i * 220}ms` }}
+        />
+      ))}
+    </span>
+  );
+}
+
+function formatSecs(secs: number): string {
+  return secs >= 60 ? `${Math.floor(secs / 60)}m ${secs % 60}s` : `${secs}s`;
+}
+
 /**
- * What's happening during the wait — the phase, elapsed time, and the model's
- * own summarized thinking streaming past. Long waits should never look dead.
+ * What's happening during the wait — calm phases, not a feed. The current
+ * phase sits with softly pulsing dots; a finished thinking phase settles into
+ * a quiet checked line. No text streams past.
  */
 function GenerationStatus() {
-  const progress = useChatStore(s => s.progress);
-  const startedAt = progress?.startedAt;
+  const phase = useChatStore(s => s.progress?.phase);
+  const startedAt = useChatStore(s => s.progress?.startedAt);
+  const thinkingAt = useChatStore(s => s.progress?.thinkingAt);
+  const writingAt = useChatStore(s => s.progress?.writingAt);
+  const notice = useChatStore(s => s.progress?.notice);
+  const mode = useChatStore(s => s.mode);
   const [, tick] = useState(0);
   useEffect(() => {
     if (!startedAt) return;
     const t = setInterval(() => tick(n => n + 1), 1000);
     return () => clearInterval(t);
   }, [startedAt]);
-  if (!progress) return null;
+  if (!phase || !startedAt) return null;
 
-  const secs = Math.max(0, Math.floor((Date.now() - progress.startedAt) / 1000));
-  const elapsed = secs >= 60 ? `${Math.floor(secs / 60)}m ${secs % 60}s` : `${secs}s`;
+  const secs = Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
   const label =
-    progress.notice ??
-    (progress.phase === 'waiting'
-      ? 'Reaching Claude…'
-      : progress.phase === 'thinking'
-        ? 'Thinking it through…'
-        : 'Writing — files land in the chat and Files tab as they finish…');
-  const snippet =
-    progress.phase === 'thinking'
-      ? progress.thinking.replace(/\s+/g, ' ').trim().slice(-140)
-      : '';
+    notice ??
+    (phase === 'waiting'
+      ? 'Reaching Claude'
+      : phase === 'thinking'
+        ? 'Thinking it through'
+        : mode === 'plan'
+          ? 'Writing your plan — it appears here once it’s finished'
+          : 'Writing — files land in the chat and Files tab as they finish');
+  // Thinking wrapped up → it settles into a quiet done line above the writing
+  const thoughtSecs =
+    phase === 'writing' && thinkingAt && writingAt
+      ? Math.max(1, Math.round((writingAt - thinkingAt) / 1000))
+      : null;
 
   return (
-    <div className="pl-1 space-y-1">
-      <p className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Loader2 className="size-3.5 animate-spin shrink-0" />
-        <span>{label}</span>
-        {secs >= 3 && <span className="text-muted-foreground/60 tabular-nums">{elapsed}</span>}
-      </p>
-      {snippet && (
-        <p className="text-sm text-muted-foreground/70 italic truncate">…{snippet}</p>
+    <div className="pl-1 space-y-1.5">
+      {thoughtSecs !== null && (
+        <p className="flex items-center gap-2 text-sm text-muted-foreground/60">
+          <Check className="size-3 shrink-0" />
+          <span>Thought it through · {formatSecs(thoughtSecs)}</span>
+        </p>
       )}
+      <p className="flex items-center gap-2 text-sm text-muted-foreground">
+        <span>{label}</span>
+        <WorkingDots />
+        {secs >= 3 && <span className="text-muted-foreground/60 tabular-nums">{formatSecs(secs)}</span>}
+      </p>
     </div>
   );
 }
@@ -251,11 +280,31 @@ export function MessageList({ messages, onBuildPlan, isGenerating }: MessageList
     if (nearBottom) bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, messages[messages.length - 1]?.content, nearBottom]);
 
+  // A plan stays hidden while it's written and lands in one piece — when it
+  // does, start the reader at its top instead of letting the bottom-follow
+  // drop them at the end of a document they haven't read yet.
+  const lastMessage = messages[messages.length - 1];
+  const streamingPlanId = useRef<string | null>(null);
+  useEffect(() => {
+    if (lastMessage?.isPlan && lastMessage.isStreaming) {
+      streamingPlanId.current = lastMessage.id;
+      return;
+    }
+    if (lastMessage && streamingPlanId.current === lastMessage.id && !lastMessage.isStreaming) {
+      streamingPlanId.current = null;
+      const el = scrollRef.current?.querySelector(`[data-msg-id="${lastMessage.id}"]`);
+      // After the bottom-follow above has had its say — this jump wins
+      requestAnimationFrame(() => {
+        setNearBottom(false); // hand the scroll back to the reader
+        el?.scrollIntoView({ block: 'start' });
+      });
+    }
+  }, [lastMessage]);
+
   if (messages.length === 0) {
     return null;
   }
 
-  const lastMessage = messages[messages.length - 1];
   const showBuildAction =
     !isGenerating &&
     !!onBuildPlan &&
@@ -271,7 +320,7 @@ export function MessageList({ messages, onBuildPlan, isGenerating }: MessageList
           const prev = messages[i - 1];
           const newSitting = !prev || msg.timestamp - prev.timestamp > SITTING_GAP_MS;
           return (
-            <div key={msg.id}>
+            <div key={msg.id} data-msg-id={msg.id}>
               {newSitting && (
                 <p className="text-center text-xs text-muted-foreground/70 pt-2 pb-3">
                   {formatSitting(msg.timestamp)}
@@ -370,6 +419,11 @@ function MessageBubble({ message }: { message: DisplayMessage }) {
   // Auto sends (quality review, error fix, length continue) render as a
   // distinct Builder note — after the hooks above, to keep hook order stable.
   if (message.isAuto) return <AutoMessage message={message} />;
+
+  // A plan being written stays out of view until it's done — watching a
+  // document assemble line by line is disorienting. The status line says
+  // it's coming; it lands whole, and MessageList starts the reader at its top.
+  if (message.isPlan && message.isStreaming) return null;
 
   const checkpoint = !isUser ? checkpoints.find(c => c.msgId === message.id) : undefined;
   const isLatest = checkpoint &&

@@ -157,3 +157,13 @@
     font-family: var(--font-heading);
     }
 }
+
+/* Calm "working" indicator — three dots take turns brightening, motion enough
+   to say "still going" without a spinner or a scrolling feed */
+@keyframes rb-working-dot {
+    0%, 55%, 100% { opacity: 0.25; }
+    22% { opacity: 1; }
+}
+.rb-working-dot {
+    animation: rb-working-dot 1.3s ease-in-out infinite;
+}

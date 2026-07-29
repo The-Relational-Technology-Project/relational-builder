@@ -460,9 +460,9 @@ export function ChatPanel() {
             }
             appendToMessage(msgId, token);
           },
-          onReasoning: (text) => {
+          onReasoning: () => {
             lastActivity = Date.now();
-            useChatStore.getState().progressReasoning(text);
+            useChatStore.getState().progressReasoning();
           },
           onRetry: () => {
             lastActivity = Date.now();
