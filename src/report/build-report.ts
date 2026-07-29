@@ -1,4 +1,5 @@
 import { registry } from '@/providers/registry';
+import { extractOperations } from '@/project/code-extractor';
 import { useProviderStore } from '@/store/provider-store';
 import { useProjectStore } from '@/store/project-store';
 import { useChatStore } from '@/store/chat-store';
@@ -56,15 +57,49 @@ export interface BuildReportPayload {
  *  doesn't need to travel verbatim to tell the story */
 const MAX_MESSAGE_CHARS = 20000;
 
+/**
+ * Trim an overlong message at a code-fence boundary, never mid-file. A raw
+ * slice lands inside whatever file straddles the limit, and the report email
+ * then reads the unterminated fence as a stream cutoff — a real report showed
+ * five files "cut off mid-stream" (wrong filenames included) for a build whose
+ * only genuine cutoff was one. The marker instead names what the trimmed tail
+ * held, including the file that truly was cut off, if any.
+ */
+export function trimForReport(content: string): string {
+  if (content.length <= MAX_MESSAGE_CHARS) return content;
+  const marker = (rest: string): string => {
+    const ops = extractOperations(rest);
+    const paths = [...ops.writes.map(w => w.path), ...ops.edits.map(e => e.path)];
+    const cut = ops.truncatedPath ? `, then was cut off mid-${ops.truncatedPath}` : '';
+    if (paths.length === 0) return `\n…(trimmed for length${cut})`;
+    const listed = paths.slice(0, 12).join(', ') + (paths.length > 12 ? ` +${paths.length - 12} more` : '');
+    return `\n…(trimmed for the report — the reply continued with ${listed}${cut})`.slice(0, 600);
+  };
+  // Walk lines tracking fence state; keep the longest prefix that ends
+  // outside any code block and leaves room for the marker
+  const budget = MAX_MESSAGE_CHARS - 600;
+  const lines = content.split('\n');
+  let inFence = false;
+  let offset = 0;
+  let safeEnd = 0;
+  for (const line of lines) {
+    const end = offset + line.length;
+    if (end > budget) break;
+    if (line.startsWith('```')) inFence = !inFence;
+    if (!inFence) safeEnd = end;
+    offset = end + 1;
+  }
+  // Degenerate content (no safe boundary in budget): fall back to a raw slice
+  if (safeEnd === 0) return `${content.slice(0, budget)}\n…(trimmed for length)`;
+  return content.slice(0, safeEnd) + marker(content.slice(safeEnd));
+}
+
 export function assembleReportChat(excludedIds: ReadonlySet<string>): ReportChatMessage[] {
   return useChatStore.getState().messages
     .filter(m => !excludedIds.has(m.id))
     .map(m => ({
       role: m.role,
-      content:
-        m.content.length > MAX_MESSAGE_CHARS
-          ? `${m.content.slice(0, MAX_MESSAGE_CHARS)}\n…(trimmed for length)`
-          : m.content,
+      content: trimForReport(m.content),
       ...(m.autoLabel || m.syncLabel
         ? { label: m.autoLabel ?? m.syncLabel }
         : m.isPlan

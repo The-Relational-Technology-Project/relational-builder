@@ -104,12 +104,16 @@ function collapseCodeBlocks(content: string): string {
         : `⟨${lang} — ${lines} lines⟩`;
     },
   );
-  // An unterminated fence is a cut-off reply — show exactly that
+  // An unterminated fence is a cut-off reply — show exactly that. (Current
+  // clients trim overlong messages at fence boundaries, so a fence left open
+  // here really is a stream cutoff, not a report trim.)
   const open = out.indexOf('```');
   if (open >= 0) {
-    const meta = out.slice(open + 3, out.indexOf('\n', open) > 0 ? out.indexOf('\n', open) : undefined);
+    const nl = out.indexOf('\n', open);
+    const meta = nl > 0 ? out.slice(open + 3, nl) : out.slice(open + 3);
     const file = meta.match(/filename="([^"]+)"/)?.[1];
-    const lines = out.slice(open).split('\n').length;
+    const body = nl > 0 ? out.slice(nl + 1) : '';
+    const lines = body ? body.split('\n').length : 0;
     out = `${out.slice(0, open)}⟨${file ?? 'file'} — cut off mid-stream after ${lines} lines⟩`;
   }
   return out;
@@ -187,7 +191,7 @@ function renderEmail(r: {
   }
   if (r.reportId) {
     parts.push(
-      `<p style="color:#999;font-size:12px;margin:0 0 12px">Full log (untrimmed chat and code): build_reports row ${esc(r.reportId)}</p>`,
+      `<p style="color:#999;font-size:12px;margin:0 0 12px">Full conversation log: build_reports row ${esc(r.reportId)} (very long replies are trimmed at a file boundary)</p>`,
     );
   }
 
@@ -227,7 +231,7 @@ function renderEmail(r: {
   parts.push(`<p style="font-size:13px;color:#444">${r.files.map(f => esc(f.path)).join(', ') || '(none)'}</p>`);
 
   parts.push('<h3 style="margin:16px 0 4px">The conversation</h3>');
-  parts.push('<p style="color:#999;font-size:12px;margin:0 0 8px">Code blocks are collapsed to ⟨file — N lines⟩ placeholders; the full files are in the build_reports row.</p>');
+  parts.push('<p style="color:#999;font-size:12px;margin:0 0 8px">Code blocks are collapsed to ⟨file — N lines⟩ placeholders; the report carries the conversation, not file contents — finished files live in the builder\'s project.</p>');
   let budget = EMAIL_CHAT_BUDGET;
   for (const m of r.chat) {
     if (budget <= 0) {

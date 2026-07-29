@@ -46,11 +46,11 @@ function endsInsideCodeFence(content: string): boolean {
   return content.split('\n').filter(l => l.startsWith('```')).length % 2 === 1;
 }
 
-/** How many automatic continuations a single build may chain. Long first
- *  builds (10+ pages) routinely need 2, and deliberately chunked builds
- *  (NEXT-FILES) trade longer chains for never dying mid-file; the cap only
- *  exists so a pathological reply can't spend money forever. */
-const MAX_CONTINUATIONS = 4;
+/** How many automatic continuations a single build may chain. Deliberately
+ *  chunked builds (NEXT-FILES) trade longer chains for never dying mid-file —
+ *  at ~350–400 lines per chunk a 24-file build legitimately needs 5+ passes;
+ *  the cap only exists so a pathological reply can't spend money forever. */
+const MAX_CONTINUATIONS = 6;
 
 /** A stream that goes completely silent for this long is dead — abort it and
  *  route through the truncation machinery instead of leaving the builder
