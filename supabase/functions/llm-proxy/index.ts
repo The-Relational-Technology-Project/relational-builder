@@ -180,6 +180,204 @@ const MODEL_FALLBACKS: Record<string, string> = Object.fromEntries(
     .filter((p) => p.length === 2 && p[0] && p[1]),
 );
 
+// ── Cross-provider outage failover (community chat) ──────────────────
+//
+// July 29, 2026: Anthropic went down mid-workshop and every community build
+// died with it — community access only spoke Anthropic. When Claude is
+// unreachable (network error, or 5xx even after one quick retry), community
+// requests re-run on the first configured non-Anthropic fallback whose
+// community key secret exists. BYOK requests never fail over — a personal
+// Claude key must not silently spend the community's Gemini/OpenAI budget.
+//
+// COMMUNITY_OUTAGE_FALLBACKS reorders/replaces the chain without a deploy
+// ('provider:model,…' in priority order); OUTAGE_PROVIDER pins one provider
+// to the front and skips the failed-Anthropic-call wait entirely — the
+// confirmed-outage lever. Set it while Claude is down, delete it after.
+
+const FALLBACK_KEY_ENVS: Record<string, string> = {
+  openai: 'OPENAI_COMMUNITY_KEY',
+  gemini: 'GEMINI_COMMUNITY_KEY',
+  openrouter: 'OPENROUTER_COMMUNITY_KEY',
+  together: 'TOGETHER_COMMUNITY_KEY',
+};
+
+// Friendlier names for the in-chat notice; unknown ids show as-is
+const FALLBACK_MODEL_NAMES: Record<string, string> = {
+  'gpt-5.6-sol': 'GPT-5.6 Sol',
+  'gemini-3.5-flash': 'Gemini 3.5 Flash',
+};
+
+interface OutageFallback {
+  provider: string;
+  model: string;
+  apiKey: string;
+}
+
+function outageFallbackChain(): OutageFallback[] {
+  const chain = (
+    Deno.env.get('COMMUNITY_OUTAGE_FALLBACKS') ??
+    // Default order: OpenAI's top model, then Gemini's. Entries without a
+    // provisioned community key drop out, so the chain is exactly the
+    // providers RTP has actually funded.
+    'openai:gpt-5.6-sol,gemini:gemini-3.5-flash'
+  )
+    .split(',')
+    .map((pair) => pair.split(':').map((s) => s.trim()))
+    .filter((p) => p.length === 2 && p[0] && p[1])
+    .map(([provider, model]) => ({
+      provider,
+      model,
+      apiKey: Deno.env.get(FALLBACK_KEY_ENVS[provider] ?? '') ?? '',
+    }))
+    .filter((f) => !!f.apiKey);
+
+  const forced = Deno.env.get('OUTAGE_PROVIDER');
+  if (forced) {
+    chain.sort((a, b) => Number(b.provider === forced) - Number(a.provider === forced));
+  }
+  return chain;
+}
+
+/** The original request minus everything Claude-specific: cache markers mean
+ *  nothing elsewhere, web_tools is an Anthropic server-side feature, and
+ *  Claude's 128k max_tokens can exceed other providers' caps — their own
+ *  defaults apply instead. */
+function fallbackChatBody(
+  body: Record<string, unknown>,
+  model: string,
+  provider: string,
+): Record<string, unknown> {
+  type Msg = { role: string; content: unknown };
+  const messages = ((body.messages as Msg[]) ?? []).map((m) =>
+    m.role === 'system' && typeof m.content === 'string'
+      ? { ...m, content: m.content.replaceAll('<<<RB_CACHE_BREAK>>>', '\n') }
+      : m,
+  );
+  const stream = body.stream ?? true;
+  return {
+    model,
+    messages,
+    stream,
+    // Usage on the final chunk, for community metering. Gemini's
+    // compatibility layer reports usage without being asked, so it skips
+    // the flag rather than risk an unknown-parameter rejection.
+    ...(stream && provider !== 'gemini' ? { stream_options: { include_usage: true } } : {}),
+  };
+}
+
+/** Try each configured fallback in order; null means none worked and the
+ *  caller should surface the original Anthropic failure. */
+async function communityOutageFallback(
+  body: Record<string, unknown>,
+  communityEmail: string,
+  CORS_HEADERS: Record<string, string>,
+): Promise<Response | null> {
+  for (const fb of outageFallbackChain()) {
+    let upstream: Response;
+    try {
+      upstream = await fetch(getChatCompletionsUrl(fb.provider), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${fb.apiKey}`,
+        },
+        body: JSON.stringify(fallbackChatBody(body, fb.model, fb.provider)),
+      });
+    } catch {
+      continue; // provider unreachable — try the next one
+    }
+    if (!upstream.ok || !upstream.body) {
+      await upstream.text().catch(() => {});
+      continue;
+    }
+    return fallbackResponse(upstream, fb, communityEmail, CORS_HEADERS, body.stream !== false);
+  }
+  return null;
+}
+
+async function fallbackResponse(
+  upstream: Response,
+  fb: OutageFallback,
+  communityEmail: string,
+  CORS_HEADERS: Record<string, string>,
+  streaming: boolean,
+): Promise<Response> {
+  if (!streaming) {
+    // Already OpenAI format — meter and pass through
+    const data = await upstream.json();
+    recordCommunityUsage(
+      communityEmail,
+      Number(data.usage?.prompt_tokens ?? 0),
+      Number(data.usage?.completion_tokens ?? 0),
+    );
+    return new Response(JSON.stringify(data), {
+      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+    });
+  }
+
+  // Streaming: the upstream is already OpenAI-format SSE, so bytes pass
+  // through untouched. A notice rides the reasoning channel first (it's a
+  // progress signal in the client, never part of the reply), and a scan of
+  // the passing chunks picks up usage for metering.
+  const reader = upstream.body!.getReader();
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
+  const modelName = FALLBACK_MODEL_NAMES[fb.model] ?? fb.model;
+  const notice = `\n[Claude is unreachable right now — this build is running on ${modelName} instead]\n`;
+
+  const stream = new ReadableStream({
+    async start(controller) {
+      controller.enqueue(
+        encoder.encode(
+          `data: ${JSON.stringify({ choices: [{ index: 0, delta: { reasoning_content: notice } }] })}\n\n`,
+        ),
+      );
+      let scan = '';
+      let promptTokens = 0;
+      let completionTokens = 0;
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          controller.enqueue(value);
+          scan += decoder.decode(value, { stream: true });
+          const lines = scan.split('\n');
+          scan = lines.pop() ?? '';
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed.startsWith('data: ')) continue;
+            try {
+              const parsed = JSON.parse(trimmed.slice(6));
+              if (parsed.usage) {
+                promptTokens = Number(parsed.usage.prompt_tokens ?? promptTokens);
+                completionTokens = Number(parsed.usage.completion_tokens ?? completionTokens);
+              }
+            } catch {
+              // not JSON ([DONE], keep-alives) — passed through above anyway
+            }
+          }
+        }
+        controller.close();
+      } catch (err) {
+        controller.error(err);
+      } finally {
+        if (promptTokens > 0 || completionTokens > 0) {
+          recordCommunityUsage(communityEmail, promptTokens, completionTokens);
+        }
+      }
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      ...CORS_HEADERS,
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
+    },
+  });
+}
+
 type CommunityGate = { email: string } | { error: string; status: number };
 
 async function checkCommunityAccess(
@@ -424,6 +622,16 @@ async function proxyAnthropic(
     });
   }
 
+  // The confirmed-outage lever: when OUTAGE_PROVIDER is set, community chat
+  // (still gated and budgeted above) skips Anthropic entirely — an operator
+  // set it because Claude is down, so don't make every build wait out a
+  // doomed call first. If no fallback key is usable, fall through and try
+  // Claude anyway.
+  if (communityEmail && Deno.env.get('OUTAGE_PROVIDER')) {
+    const fallback = await communityOutageFallback(body, communityEmail, CORS_HEADERS);
+    if (fallback) return fallback;
+  }
+
   // Translate OpenAI messages format to Anthropic format.
   // Content may be a string or OpenAI-style parts (text / image_url) —
   // image data URLs become Anthropic base64 image blocks.
@@ -528,13 +736,21 @@ async function proxyAnthropic(
       body: JSON.stringify(payload),
     });
 
-  let upstream = await callAnthropic(anthropicBody);
+  let upstream: Response | null = null;
+  try {
+    upstream = await callAnthropic(anthropicBody);
+  } catch (err) {
+    // Network-level failure reaching Anthropic. BYOK: surface it — the
+    // person owns the key and picked the provider. Community: treat it as
+    // an outage and let the failover below take a shot.
+    if (!communityEmail) throw err;
+  }
 
   // A 404 for a mapped model means it was retired upstream — retry once with
   // the fallback. Nothing has streamed yet, so the retry is invisible; the
   // fallback (Opus-class) sits on the same adaptive-thinking surface, so the
   // already-built request body stays valid.
-  if (!upstream.ok && upstream.status === 404 && MODEL_FALLBACKS[model]) {
+  if (upstream && !upstream.ok && upstream.status === 404 && MODEL_FALLBACKS[model]) {
     await upstream.text(); // drain the error body before refetching
     anthropicBody.model = MODEL_FALLBACKS[model];
     // The refusal-fallback param rides only on models in the refusal set
@@ -542,6 +758,37 @@ async function proxyAnthropic(
       delete anthropicBody.fallbacks;
     }
     upstream = await callAnthropic(anthropicBody);
+  }
+
+  // Outage failover — community chat only. One quick same-provider retry
+  // first: a lone 529 on a busy evening shouldn't switch providers, but a
+  // dead API shouldn't strand a workshop either (July 29). Nothing has
+  // streamed yet on any of these paths, so the switch is invisible except
+  // for the notice the fallback stream carries.
+  if (communityEmail && (!upstream || upstream.status >= 500)) {
+    if (upstream) await upstream.text().catch(() => {});
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      upstream = await callAnthropic(anthropicBody);
+    } catch {
+      upstream = null;
+    }
+    if (!upstream || upstream.status >= 500) {
+      const fallback = await communityOutageFallback(body, communityEmail, CORS_HEADERS);
+      if (fallback) {
+        if (upstream) await upstream.text().catch(() => {});
+        return fallback;
+      }
+    }
+  }
+
+  if (!upstream) {
+    return new Response(
+      JSON.stringify({
+        error: 'Claude is unreachable right now and no fallback provider answered — try again in a few minutes.',
+      }),
+      { status: 503, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } },
+    );
   }
 
   if (!upstream.ok) {

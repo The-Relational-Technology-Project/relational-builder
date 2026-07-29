@@ -53,36 +53,84 @@ survives a correlated outage. The plan needs both kinds of redundancy.
 Phased by value-per-effort. Phase 1 covers the common case (one provider
 down); Phase 3 covers the rare-but-real case we just hit (everything down).
 
-### Phase 1 — Cross-provider community fallback (highest priority)
+### Phase 1 — Cross-provider community fallback — **SHIPPED July 29, 2026**
+
+*(Update: the Workshop 2 outage turned out to be Anthropic-only, so this
+phase alone would have saved the session. Built the same week.)*
 
 The community tier needs a second provider it can reach without anyone typing
-a key. Half the plumbing already exists: `GEMINI_COMMUNITY_KEY` is provisioned
-and community-gated in the proxy — but only for image generation.
+a key. What shipped in `llm-proxy`:
 
-- **Community-gated chat on a second provider.** Extend the proxy so
-  `x-community-token` works on the Gemini (and optionally Together) chat
-  paths, using server-side community keys under the same allowlist + daily
-  budget as Anthropic. Gemini first: key already provisioned, pass-through
-  path already written, metering helper already shared.
-- **Automatic failover in the proxy.** When Anthropic returns 5xx/529 or times
-  out after the existing retries — and nothing has streamed yet — re-run the
-  request against a mapped cross-provider model (e.g. `claude-opus-5` →
-  `gemini-3.1-pro-preview`). Emit a note on the reasoning channel so the
-  builder sees "Claude is having trouble — building with Gemini instead"
-  rather than silence. This is the cross-provider sibling of the existing
-  404 `MODEL_FALLBACKS`, keyed on outage-shaped statuses instead.
-- **A no-deploy, no-AI outage lever.** An `OUTAGE_PROVIDER` secret on the
-  proxy: when set (e.g. to `gemini`), all community chat routes there
-  immediately. Edge-function secrets update via one Management API curl — no
-  deploy, no Claude, works from a phone. Document the exact command in the
-  event runbook.
-- **Outage-aware client messaging.** When the proxy fails over (or the outage
-  lever is set), the retry banner should say what's happening at room scale —
-  "Claude is down for everyone right now; your builds are running on Gemini" —
-  instead of a per-person error.
+- **Automatic failover on outage.** When a community chat request can't reach
+  Anthropic (network error) or gets a 5xx — even after one quick same-provider
+  retry, so a lone busy-evening 529 doesn't switch providers — the proxy
+  re-runs the request on a fallback chain of non-Anthropic providers, under
+  the same allowlist, daily budget, and metering. Nothing has streamed yet at
+  that point, so the switch is seamless; a notice rides the reasoning channel
+  ("Claude is unreachable right now — this build is running on Gemini 3.5
+  Flash instead") so nobody wonders. BYOK requests never fail over — a
+  personal Claude key must not silently spend community Gemini/OpenAI money.
+- **Config-driven chain.** Default order `openai:gpt-5.6-sol,
+  gemini:gemini-3.5-flash`; entries whose community key secret
+  (`OPENAI_COMMUNITY_KEY`, `GEMINI_COMMUNITY_KEY`, `OPENROUTER_COMMUNITY_KEY`,
+  `TOGETHER_COMMUNITY_KEY`) isn't provisioned drop out automatically. Override
+  order/models without a deploy via the `COMMUNITY_OUTAGE_FALLBACKS` secret.
+- **The no-deploy, no-AI outage lever.** Set the `OUTAGE_PROVIDER` secret
+  (e.g. `gemini`) and all community chat skips Anthropic immediately — no
+  waiting out doomed calls. One Management API curl, works from a phone (see
+  "Operating during an outage" below). Delete the secret to restore.
 
-*Would this have saved Workshop 2?* Only if Gemini was up. For an
-Anthropic-only outage (the far more common case), yes, transparently.
+Still open from this phase:
+
+- **Valid fallback keys.** As of July 29: `OPENAI_COMMUNITY_KEY` isn't
+  provisioned yet, and the existing `GEMINI_COMMUNITY_KEY` secret is
+  **invalid** — Google answers `API_KEY_INVALID` on the native endpoint too,
+  so community image generation has likely been broken as well. Until at
+  least one valid key is set, the failover chain is empty and outages behave
+  as before (the chain degrades gracefully — bad keys are skipped, the
+  original error surfaces). Mint a fresh Gemini key and an OpenAI key and
+  set them with the curl below.
+- **Outage-aware client messaging.** The reasoning-channel notice ships; a
+  room-scale banner ("Claude is down for everyone; builds are running on
+  Gemini") is a nicer future layer on top.
+
+### Operating during an outage (the runbook bit)
+
+All of these are Supabase Management API calls — no deploy, no Claude, no
+local checkout needed. `$SUPABASE_ACCESS_TOKEN` and `$SUPABASE_PROJECT_REF`
+are in the usual place.
+
+**Confirmed Anthropic outage — route community builds elsewhere now:**
+
+```bash
+curl -X POST "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/secrets" \
+  -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" -H "Content-Type: application/json" \
+  -d '[{"name":"OUTAGE_PROVIDER","value":"gemini"}]'
+```
+
+(Value is any provider in the chain with a key: `openai`, `gemini`,
+`openrouter`, `together`. Takes effect as function instances refresh —
+within a couple of minutes.)
+
+**Anthropic is back — restore normal service:**
+
+```bash
+curl -X DELETE "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/secrets" \
+  -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" -H "Content-Type: application/json" \
+  -d '["OUTAGE_PROVIDER"]'
+```
+
+**Provision a new fallback key (e.g. OpenAI):**
+
+```bash
+curl -X POST "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/secrets" \
+  -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" -H "Content-Type: application/json" \
+  -d '[{"name":"OPENAI_COMMUNITY_KEY","value":"sk-…"}]'
+```
+
+Note that even without the lever, failover is automatic — the lever just
+skips the failed-call-plus-retry wait (~20s per message) once you *know*
+it's an outage.
 
 ### Phase 2 — Health visibility
 
@@ -139,15 +187,16 @@ improvised one:
 
 ## Sequencing recommendation
 
-| Order | Item | Effort | What it buys |
-|---|---|---|---|
-| 1 | Community Gemini chat + proxy failover | ~1 day | Room survives any single-provider outage, hands-free |
-| 2 | `OUTAGE_PROVIDER` lever + runbook curl | ~1 hour | Operator control with no deploy and no AI |
-| 3 | Outage-aware banner + health probe | ~half day | Calm rooms; facilitator sees it coming |
-| 4 | Ollama preset + facilitator kit | ~half day + doc | Survives the everything-down outage we just had |
-| 5 | Build replay demo | ~1 day | Demo always works, even fully offline |
-| 6 | Recovery notifier | ~half day | Automates the "tell me when it's back" loop |
-| 7 | Tier 1 vLLM go-live | weeks + $ | Community-owned inference at scale |
+| Order | Item | Effort | Status | What it buys |
+|---|---|---|---|---|
+| 1 | Community fallback chain + proxy failover | ~1 day | ✅ shipped 7/29 | Room survives any Anthropic outage, hands-free |
+| 2 | `OUTAGE_PROVIDER` lever + runbook curl | ~1 hour | ✅ shipped 7/29 | Operator control with no deploy and no AI |
+| 3 | Outage-aware banner + health probe | ~half day | open | Calm rooms; facilitator sees it coming |
+| 4 | Ollama preset + facilitator kit | ~half day + doc | open | Survives a correlated everything-down outage |
+| 5 | Build replay demo | ~1 day | open | Demo always works, even fully offline |
+| 6 | Recovery notifier | ~half day | open | Automates the "tell me when it's back" loop |
+| 7 | Tier 1 vLLM go-live | weeks + $ | open | Community-owned inference at scale |
 
-Items 1–4 together mean the next Workshop 2-style outage costs the room a
-one-line banner and a model swap, not the demo.
+With 1–2 shipped, a Workshop 2-style (Anthropic-only) outage now costs each
+build a ~20-second pause and a model swap note — or nothing at all once the
+lever is set. Items 3–5 cover the rarer correlated-outage case.
