@@ -207,6 +207,18 @@ export function createTogetherProvider(): OpenAICompatibleProvider {
   });
 }
 
+/** Pre-configured: Moonshot AI direct (Kimi models, international platform) */
+export function createMoonshotProvider(): OpenAICompatibleProvider {
+  return new OpenAICompatibleProvider({
+    id: 'moonshot',
+    name: 'Moonshot AI',
+    baseUrl: 'https://api.moonshot.ai',
+    defaultModels: [
+      { id: 'kimi-k3', name: 'Kimi K3', provider: 'moonshot' },
+    ],
+  });
+}
+
 /** Pre-configured: Google Gemini (Tier 2 -- BYOK, via Google's OpenAI-compatibility layer) */
 export function createGeminiProvider(): OpenAICompatibleProvider {
   return new OpenAICompatibleProvider({

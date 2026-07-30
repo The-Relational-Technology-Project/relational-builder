@@ -141,6 +141,18 @@ export const BENCH_MODELS: BenchModel[] = [
     pricing: { inputPerMTok: 3, outputPerMTok: 15, asOf: '2026-07' },
     enabled: false,
   },
+
+  // --- Moonshot direct (env: MOONSHOT_API_KEY) --- the OpenRouter kimi-k3
+  //     mirror above runs on whichever host OpenRouter routes to; this one
+  //     hits Moonshot's own API, so latency and quality are the model's own.
+  //     Pricing unset until confirmed on platform.moonshot.ai — cost column
+  //     shows "price unknown" rather than a guess.
+  {
+    alias: 'kimi-k3-direct',
+    providerId: 'moonshot',
+    modelId: 'kimi-k3',
+    enabled: false,
+  },
 ];
 
 export function resolveModels(csv: string | undefined): BenchModel[] {
@@ -162,4 +174,5 @@ export const ENV_KEYS: Record<BenchModel['providerId'], string> = {
   gemini: 'GEMINI_API_KEY',
   together: 'TOGETHER_API_KEY',
   openrouter: 'OPENROUTER_API_KEY',
+  moonshot: 'MOONSHOT_API_KEY',
 };

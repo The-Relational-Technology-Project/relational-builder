@@ -5,6 +5,7 @@ import '@/providers/registry';
 import { ClaudeProvider } from '@/providers/claude';
 import {
   createGeminiProvider,
+  createMoonshotProvider,
   createOpenAIProvider,
   createOpenRouterProvider,
   createTogetherProvider,
@@ -40,6 +41,11 @@ export function providerFor(model: BenchModel): LLMProvider {
     }
     case 'together': {
       const p = createTogetherProvider();
+      p.setApiKey(key);
+      return p;
+    }
+    case 'moonshot': {
+      const p = createMoonshotProvider();
       p.setApiKey(key);
       return p;
     }

@@ -9,7 +9,7 @@
 export interface BenchModel {
   /** Short name used in flags, results, and reports (e.g. 'claude-sonnet-5') */
   alias: string;
-  providerId: 'claude' | 'openai' | 'gemini' | 'together' | 'openrouter';
+  providerId: 'claude' | 'openai' | 'gemini' | 'together' | 'openrouter' | 'moonshot';
   /** Provider-native model id (e.g. 'Qwen/Qwen3-Coder-Next-FP8') */
   modelId: string;
   /** Published list price, for the estimated-cost column */
