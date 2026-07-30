@@ -105,16 +105,37 @@ async function runTrial(
     opts.sessioner
       ? opts.sessioner(messages)
       : runSession(providerFor(model), model.modelId, messages, TRIAL_TIMEOUT_MS);
-  const withOneRetry = async (messages: ChatMessage[]): Promise<SessionResult> => {
-    try {
-      return await session(messages);
-    } catch (err) {
-      // One transport retry — OpenAI-compatible providers have none built in,
-      // and a single 5xx blip shouldn't cost a whole matrix cell. (Timeouts
-      // are real signal, not blips: they fail the trial.)
-      if (err instanceof Error && /timed out/.test(err.message)) throw err;
-      console.warn(`  ${model.alias} t${trial}: retrying after error — ${String(err)}`);
-      return session(messages);
+  // Overload/rate-limit rejections are provider capacity weather, not model
+  // signal — waiting them out keeps the matrix cell. Production's Claude path
+  // retries 429s with backoff in the provider itself; OpenAI-compatible
+  // providers have none built in, so the harness compensates here. (Moonshot
+  // in particular sheds build-sized requests in minutes-long overload windows
+  // while accepting tiny ones.)
+  const OVERLOAD_RE = /429|rate.?limit|overload/i;
+  const OVERLOAD_BACKOFFS_MS = [30_000, 60_000, 120_000, 180_000, 300_000];
+  const withRetries = async (messages: ChatMessage[]): Promise<SessionResult> => {
+    let overloadRound = 0;
+    let blipRetried = false;
+    for (;;) {
+      try {
+        return await session(messages);
+      } catch (err) {
+        // Timeouts are real signal, not blips: they fail the trial.
+        if (err instanceof Error && /timed out/.test(err.message)) throw err;
+        if (OVERLOAD_RE.test(String(err)) && overloadRound < OVERLOAD_BACKOFFS_MS.length) {
+          const wait = OVERLOAD_BACKOFFS_MS[overloadRound++];
+          console.warn(
+            `  ${model.alias} t${trial}: provider overloaded — waiting ${Math.round(wait / 1000)}s (attempt ${overloadRound}/${OVERLOAD_BACKOFFS_MS.length}) — ${String(err).slice(0, 140)}`,
+          );
+          await new Promise(r => setTimeout(r, wait));
+          continue;
+        }
+        // One transport retry for anything else — a single 5xx blip
+        // shouldn't cost a whole matrix cell.
+        if (blipRetried) throw err;
+        blipRetried = true;
+        console.warn(`  ${model.alias} t${trial}: retrying after error — ${String(err)}`);
+      }
     }
   };
 
@@ -123,7 +144,7 @@ async function runTrial(
   let buildMessages: ChatMessage[];
   try {
     if (opts.planFirst) {
-      planSession = await withOneRetry([
+      planSession = await withRetries([
         { role: 'system', content: opts.planSystemPrompt },
         { role: 'user', content: task.prompt },
       ]);
@@ -139,7 +160,7 @@ async function runTrial(
         { role: 'user', content: task.prompt },
       ];
     }
-    buildSession = await withOneRetry(buildMessages);
+    buildSession = await withRetries(buildMessages);
   } catch (err) {
     return { ...base, error: err instanceof Error ? err.message : String(err) };
   }
@@ -184,7 +205,7 @@ async function runTrial(
         { role: 'user', content: bundleFixPrompt(triggerErrors) },
       ];
       try {
-        const fixSession = await withOneRetry(fixMessages);
+        const fixSession = await withRetries(fixMessages);
         allSegments = [...allSegments, ...fixSession.segmentTexts];
         const fixedMech = await scoreOutput(task, allSegments);
         const fixOutChars = fixSession.segmentTexts.reduce((n, t) => n + t.length, 0);
