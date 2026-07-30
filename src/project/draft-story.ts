@@ -1,4 +1,5 @@
 import { registry } from '@/providers/registry';
+import type { ContentPart } from '@/providers/types';
 import { useProviderStore } from '@/store/provider-store';
 import { useProjectStore } from '@/store/project-store';
 import { useChatStore } from '@/store/chat-store';
@@ -27,6 +28,8 @@ const STORY_SYSTEM = [
   '',
   'Stay grounded: use ONLY what the record contains. Never invent quotes, names, events, or outcomes. If the record is thin, write a shorter story rather than padding it.',
   '',
+  'Photos: the record may list numbered photos (photo-1, photo-2, …) with captions, and the images themselves may be attached. Where a photo belongs in the story, place it on its own line as: ![its caption or a short description](photo:N) — e.g. ![Neighbors on the stoop at dusk](photo:2). Use only photo numbers that exist in the record; placing them is optional and 1-3 well-placed photos beat all of them.',
+  '',
   'Shape (as flowing markdown prose, headings optional and sparing):',
   '1. Open with the place and the itch — what was missing or hoped-for, and who it was for.',
   '2. How it got made — told humanly, not technically: what the first version was, what changed and why, moments from the notes woven in as they happened.',
@@ -42,6 +45,7 @@ const STORY_SYSTEM = [
 ].join('\n');
 
 const MAX_ASKS = 15;
+const MAX_STORY_PHOTOS = 6;
 const MAX_ASK_CHARS = 400;
 const MAX_NOTE_CHARS = 1000;
 const MAX_DOC_CHARS = 1200;
@@ -68,6 +72,25 @@ export interface StoryDraft {
   title: string;
   body: string;
   draftedWith: string;
+}
+
+/** Photo notes in record order (oldest first) — the same order the record
+ *  numbers them (photo-1, photo-2, …), so `photo:N` markers resolve here. */
+export function storyPhotos(): { image: string; caption: string }[] {
+  return [...useNotepadStore.getState().notes]
+    .sort((a, b) => a.createdAt - b.createdAt)
+    .filter(n => n.image)
+    .map(n => ({ image: n.image!, caption: n.text.trim() }));
+}
+
+/** Strip `![…](photo:N)` embeds for destinations that can't carry images
+ *  (e.g. the commons submission body), leaving the caption as a quiet line. */
+export function stripPhotoEmbeds(markdown: string): string {
+  return markdown
+    .replace(/^!\[([^\]]*)\]\(photo:\d+\)$/gm, (_, cap) => (cap ? `*(photo: ${cap})*` : ''))
+    .replace(/!\[([^\]]*)\]\(photo:\d+\)/g, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
 }
 
 /** Assemble the full record the story is drafted from. Exported for preview/debugging. */
@@ -109,15 +132,20 @@ export function composeStoryRecord(): string {
     parts.push('');
   }
 
-  // The builder's notepad — the heart
+  // The builder's notepad — the heart. Photos get stable oldest-first
+  // numbers (photo-1, photo-2, …) so the story can embed them by id.
   const notes = useNotepadStore.getState().notes;
   if (notes.length > 0) {
     parts.push('The builder\'s own notes, oldest first (quote the vivid ones):', '');
+    let photoNo = 0;
     [...notes]
       .sort((a, b) => a.createdAt - b.createdAt)
       .forEach(n => {
         const text = n.text.trim();
-        if (text) parts.push(`[${fmtWhen(n.createdAt)}] ${text.slice(0, MAX_NOTE_CHARS)}`);
+        const label = n.image ? ` (photo-${++photoNo} attached${text ? ', captioned' : ''})` : '';
+        if (text || n.image) {
+          parts.push(`[${fmtWhen(n.createdAt)}]${label} ${text.slice(0, MAX_NOTE_CHARS)}`.trimEnd());
+        }
       });
     parts.push('');
   }
@@ -192,12 +220,22 @@ export async function draftProjectStory(): Promise<StoryDraft> {
 
   const input = record + (await commitHistorySection());
 
+  // Vision-capable models see the photos themselves (oldest first, matching
+  // the record's photo-N numbering); others still get the captions
+  const photos = storyPhotos().slice(0, MAX_STORY_PHOTOS);
+  const userContent: string | ContentPart[] = photos.length
+    ? [
+        { type: 'text', text: input },
+        ...photos.map(p => ({ type: 'image_url' as const, image_url: { url: p.image } })),
+      ]
+    : input;
+
   let reply = '';
   await new Promise<void>((resolve, reject) => {
     provider.chat(
       [
         { role: 'system', content: STORY_SYSTEM },
-        { role: 'user', content: input },
+        { role: 'user', content: userContent },
       ],
       activeModelId,
       {

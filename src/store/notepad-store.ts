@@ -17,8 +17,11 @@ import { persist } from 'zustand/middleware';
 
 export interface ProjectNote {
   id: string;
-  /** Plain text, edited in place */
+  /** Plain text, edited in place. May be empty when the note is a photo. */
   text: string;
+  /** A photo (downscaled data URL) — neighbor reactions, text threads,
+   *  event pictures. The text becomes its caption. */
+  image?: string;
   /** Epoch ms — shown on the note */
   createdAt: number;
   /** Epoch ms of the last edit */
@@ -41,8 +44,8 @@ interface NotepadState {
   notes: ProjectNote[];
   story: ProjectStory | null;
 
-  /** Add a note; returns its id so the UI can focus it */
-  addNote: (text: string) => string;
+  /** Add a note (text, photo, or both); returns its id so the UI can focus it */
+  addNote: (text: string, image?: string) => string;
   updateNote: (id: string, text: string) => void;
   deleteNote: (id: string) => void;
 
@@ -60,10 +63,12 @@ export const useNotepadStore = create<NotepadState>()(persist((set) => ({
   notes: [],
   story: null,
 
-  addNote: (text) => {
+  addNote: (text, image) => {
     const id = crypto.randomUUID();
     const now = Date.now();
-    set(s => ({ notes: [{ id, text, createdAt: now, updatedAt: now }, ...s.notes] }));
+    set(s => ({
+      notes: [{ id, text, ...(image ? { image } : {}), createdAt: now, updatedAt: now }, ...s.notes],
+    }));
     return id;
   },
 

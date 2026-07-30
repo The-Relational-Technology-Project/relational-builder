@@ -1,16 +1,17 @@
 import { useRef, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown, { defaultUrlTransform } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useNotepadStore, type ProjectNote } from '@/store/notepad-store';
 import { useProjectStore } from '@/store/project-store';
 import { useAuthStore } from '@/store/auth-store';
-import { draftProjectStory } from '@/project/draft-story';
+import { draftProjectStory, storyPhotos, stripPhotoEmbeds } from '@/project/draft-story';
 import { submitToCommons } from '@/project/commons-submit';
 import { connectedRepoForCurrentProject } from '@/project/github-sync';
+import { fileToDataUrl, isImageFile } from '@/lib/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
-  BookOpenText, Check, Loader2, NotebookPen, Sparkles, Sprout, X,
+  BookOpenText, Check, ImagePlus, Loader2, NotebookPen, Sparkles, Sprout, X,
 } from 'lucide-react';
 
 /**
@@ -131,19 +132,44 @@ export function NotepadPanel() {
 
 function NotesView({ notes }: { notes: ProjectNote[] }) {
   const [draft, setDraft] = useState('');
+  const [draftImage, setDraftImage] = useState<string | null>(null);
   const composerRef = useRef<HTMLTextAreaElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   function addDraft() {
     const text = draft.trim();
-    if (!text) return;
-    useNotepadStore.getState().addNote(text);
+    if (!text && !draftImage) return;
+    useNotepadStore.getState().addNote(text, draftImage ?? undefined);
     setDraft('');
+    setDraftImage(null);
     autoGrow(composerRef.current);
+  }
+
+  async function attachFiles(files: FileList | File[] | null) {
+    const file = files && Array.from(files).find(isImageFile);
+    if (!file) return;
+    try {
+      setDraftImage(await fileToDataUrl(file));
+    } catch {
+      // Unreadable image — the composer just stays as it was
+    }
   }
 
   return (
     <div className="space-y-2">
       <div className="rounded-md border bg-muted/30 focus-within:border-ring">
+        {draftImage && (
+          <div className="relative inline-block m-2 mb-0">
+            <img src={draftImage} alt="" className="max-h-28 rounded-md border" />
+            <button
+              onClick={() => setDraftImage(null)}
+              className="absolute -top-1.5 -right-1.5 rounded-full bg-foreground text-background p-0.5"
+              title="Remove photo"
+            >
+              <X className="size-3" />
+            </button>
+          </div>
+        )}
         <textarea
           ref={composerRef}
           value={draft}
@@ -154,21 +180,39 @@ function NotesView({ notes }: { notes: ProjectNote[] }) {
               addDraft();
             }
           }}
-          placeholder="Jot a note… (Enter to keep it)"
+          onPaste={e => {
+            const imgs = Array.from(e.clipboardData.files).filter(isImageFile);
+            if (imgs.length) { e.preventDefault(); void attachFiles(imgs); }
+          }}
+          placeholder={draftImage ? 'Caption the photo… (Enter to keep it)' : 'Jot a note… (Enter to keep it)'}
           rows={2}
           className="w-full resize-none bg-transparent px-2.5 py-2 text-xs outline-none placeholder:text-muted-foreground"
         />
-        {draft.trim() && (
-          <div className="px-2 pb-1.5 flex justify-end">
+        <div className="px-2 pb-1.5 flex items-center justify-between">
+          <button
+            onClick={() => fileRef.current?.click()}
+            className="text-muted-foreground hover:text-foreground transition-colors"
+            title="Add a photo — a neighbor's reaction, a text thread, the event itself"
+          >
+            <ImagePlus className="size-3.5" />
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={e => { void attachFiles(e.target.files); e.target.value = ''; }}
+          />
+          {(draft.trim() || draftImage) && (
             <Button size="sm" className="h-6 text-xs" onClick={addDraft}>Keep it</Button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {notes.length === 0 ? (
         <p className="text-xs text-muted-foreground py-4 text-center">
-          No notes yet. A quote from a neighbor, an idea at 2am, what happened
-          at the block party — it all belongs here.
+          No notes yet. A quote from a neighbor, a photo from the block party,
+          an idea at 2am — it all belongs here.
         </p>
       ) : (
         notes.map(n => <NoteCard key={n.id} note={n} />)
@@ -193,15 +237,20 @@ function NoteCard({ note }: { note: ProjectNote }) {
           <X className="size-3" />
         </button>
       </div>
+      {note.image && (
+        <img src={note.image} alt={note.text || 'Notepad photo'} className="max-h-52 rounded-md border" />
+      )}
       <textarea
         value={note.text}
         onChange={e => { useNotepadStore.getState().updateNote(note.id, e.target.value); autoGrow(e.target); }}
         onBlur={e => {
-          // An emptied note is a deleted note — same "just type" ethic
-          if (!e.target.value.trim()) useNotepadStore.getState().deleteNote(note.id);
+          // An emptied text note is a deleted note — same "just type" ethic.
+          // A photo note keeps living captionless; its ✕ is the way out.
+          if (!e.target.value.trim() && !note.image) useNotepadStore.getState().deleteNote(note.id);
         }}
         ref={autoGrow}
         rows={1}
+        placeholder={note.image ? 'Add a caption…' : undefined}
         className="w-full resize-none bg-transparent text-xs outline-none leading-relaxed overflow-hidden"
       />
     </div>
@@ -258,7 +307,27 @@ function StoryView() {
         <div className="rounded-md border p-3">
           <h3 className="text-base font-semibold mb-2">{story.title}</h3>
           <div className="prose prose-sm dark:prose-invert max-w-none text-xs leading-relaxed [&_p]:my-2">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{story.body}</ReactMarkdown>
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              // `photo:N` markers point at notepad photos — let them through
+              // the sanitizer and resolve them at render time
+              urlTransform={(url) => (url.startsWith('photo:') ? url : defaultUrlTransform(url))}
+              components={{
+                img: ({ src, alt }) => {
+                  const m = /^photo:(\d+)$/.exec(typeof src === 'string' ? src : '');
+                  const resolved = m ? storyPhotos()[Number(m[1]) - 1]?.image : src;
+                  if (!resolved) return null;
+                  return (
+                    <span className="block my-3">
+                      <img src={resolved} alt={alt ?? ''} className="rounded-md border max-h-72 mx-auto" />
+                      {alt && <span className="block text-center text-[10px] text-muted-foreground mt-1">{alt}</span>}
+                    </span>
+                  );
+                },
+              }}
+            >
+              {story.body}
+            </ReactMarkdown>
           </div>
         </div>
       )}
@@ -320,7 +389,9 @@ function ShareStoryCard() {
     const result = await submitToCommons({
       title: story.title,
       summary: summary.trim(),
-      body: story.body.slice(0, 19000),
+      // The submission pipeline is text-only — photo embeds stay local,
+      // leaving their captions as quiet markers
+      body: stripPhotoEmbeds(story.body).slice(0, 19000),
       builderName: builderName.trim(),
       neighborhood: neighborhood.trim() || undefined,
       contactEmail: user?.email,
@@ -388,6 +459,7 @@ function ShareStoryCard() {
             <span>
               I've reviewed the story as it reads above (plus my name,
               neighborhood, and link) and I want it offered to the commons.
+              Photos stay on this device — only the text travels for now.
             </span>
           </label>
           {error && <p className="text-xs text-destructive">{error}</p>}
