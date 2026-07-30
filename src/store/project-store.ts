@@ -124,6 +124,8 @@ export const useProjectStore = create<ProjectState>()(persist((set, get) => ({
     import('@/store/provider-store').then(m => m.useProviderStore.getState().clearModelPin());
     // The build log tells one project's story — a fresh project starts blank
     import('@/report/build-log').then(m => m.useBuildLogStore.getState().reset());
+    // So does the notepad — its notes and story belong to the project they were written in
+    import('@/store/notepad-store').then(m => m.useNotepadStore.getState().clearNotepad());
   },
 
   takeCheckpoint: (label) => {

@@ -3,6 +3,7 @@ import type { FileEntry } from './virtual-fs';
 import { useProjectStore, type ProjectLineage } from '@/store/project-store';
 import { useChatStore, type ChatMode, type DisplayMessage } from '@/store/chat-store';
 import { useEnvStore, type EnvVar } from '@/store/env-store';
+import { useNotepadStore, captureNotepad, type NotepadSnapshot } from '@/store/notepad-store';
 import { useCloudStore, cloudProjectOwnsWorkspace } from '@/store/cloud-store';
 import { useAuthStore, cloudEnabled } from '@/store/auth-store';
 import { suggestProjectName } from './suggest-name';
@@ -36,6 +37,8 @@ interface LocalProjectSnapshot extends LocalProjectMeta {
   mode: ChatMode;
   lineage: ProjectLineage | null;
   envVars: EnvVar[];
+  /** Notes + story travel with the project (absent on pre-notepad snapshots) */
+  notepad?: NotepadSnapshot;
 }
 
 const INDEX_KEY = 'rb-local-projects-index';
@@ -135,6 +138,7 @@ export function saveCurrentLocally(fallbackName?: string): void {
     mode: chat.mode,
     lineage: project.lineage,
     envVars: useEnvStore.getState().vars,
+    notepad: captureNotepad(),
   };
 
   try {
@@ -180,6 +184,10 @@ export function openLocalProject(id: string): boolean {
   useProjectStore.getState().hydrateFiles(snapshot.files, snapshot.lineage ?? null);
   useChatStore.getState().hydrateChat(snapshot.chat ?? [], snapshot.mode ?? 'build');
   useEnvStore.setState({ vars: snapshot.envVars ?? [] });
+  useNotepadStore.getState().hydrateNotepad(
+    snapshot.notepad?.notes ?? [],
+    snapshot.notepad?.story ?? null,
+  );
   setCurrent(id, snapshot.name);
   useLocalProjects.setState({ savedAt: snapshot.updatedAt });
   return true;
@@ -305,5 +313,8 @@ export function initLocalAutosave(): void {
   });
   useChatStore.subscribe((state, prev) => {
     if (state.messages !== prev.messages && !state.isGenerating) schedule();
+  });
+  useNotepadStore.subscribe((state, prev) => {
+    if (state.notes !== prev.notes || state.story !== prev.story) schedule();
   });
 }

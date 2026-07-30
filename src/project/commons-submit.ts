@@ -22,8 +22,9 @@ export interface CommonsSubmission {
   contactEmail?: string;
   sourceUrl?: string;
   tags?: string[];
-  /** What kind of contribution this is — a working tool or a program (plan + materials) */
-  contributionType?: 'tool' | 'program';
+  /** What kind of contribution this is — a working tool, a program (plan +
+   *  materials), or the story of how a project came to be */
+  contributionType?: 'tool' | 'program' | 'story';
 }
 
 export interface SubmitResult {

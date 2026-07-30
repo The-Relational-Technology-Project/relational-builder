@@ -5,6 +5,7 @@ import { useAuthStore } from '@/store/auth-store';
 import { useProjectStore, type ProjectLineage } from '@/store/project-store';
 import { useProviderStore } from '@/store/provider-store';
 import { useChatStore, type ChatMode, type DisplayMessage } from '@/store/chat-store';
+import { useNotepadStore, captureNotepad, type NotepadSnapshot } from '@/store/notepad-store';
 import { useGitHubStore } from '@/store/github-store';
 import type { FileEntry } from '@/project/virtual-fs';
 
@@ -81,6 +82,8 @@ interface CloudProjectRow {
   chat: DisplayMessage[];
   mode: ChatMode;
   lineage: ProjectLineage | null;
+  /** Notes + story (null on rows saved before the notepad existed) */
+  notepad: NotepadSnapshot | null;
   updated_by: string | null;
   updated_at: string;
 }
@@ -114,6 +117,27 @@ interface CloudState {
   removeMember: (email: string) => Promise<void>;
 }
 
+/**
+ * The `notepad` column ships with the Notepad feature — a production
+ * database may not have run the migration yet
+ * (`alter table public.projects add column if not exists notepad jsonb`).
+ * The first save that fails over its absence flips this flag and retries
+ * without it: cloud sync must never break over a note.
+ */
+let notepadColumnMissing = false;
+
+export function notepadColumnKnownMissing(): boolean {
+  return notepadColumnMissing;
+}
+
+export function markNotepadColumnMissing(): void {
+  notepadColumnMissing = true;
+}
+
+function isMissingNotepadColumnError(message: string): boolean {
+  return /notepad/i.test(message) && /column|schema/i.test(message);
+}
+
 /** Snapshot the current local workspace for cloud storage */
 function captureWorkspace() {
   const project = useProjectStore.getState();
@@ -123,6 +147,7 @@ function captureWorkspace() {
     chat: chat.messages.map(m => ({ ...m, isStreaming: false })),
     mode: chat.mode,
     lineage: project.lineage,
+    notepad: captureNotepad(),
   };
 }
 
@@ -130,6 +155,10 @@ function captureWorkspace() {
 function applyWorkspace(row: CloudProjectRow) {
   useProjectStore.getState().hydrateFiles(row.files ?? [], row.lineage ?? null);
   useChatStore.getState().hydrateChat(row.chat ?? [], row.mode ?? 'build');
+  useNotepadStore.getState().hydrateNotepad(
+    row.notepad?.notes ?? [],
+    row.notepad?.story ?? null,
+  );
 }
 
 let channel: RealtimeChannel | null = null;
@@ -192,21 +221,30 @@ export const useCloudStore = create<CloudState>()((set, get) => ({
     if (!builderClient || !user) return { error: 'Sign in first' };
 
     const snapshot = captureWorkspace();
-    const { data, error } = await builderClient
-      .from('projects')
-      .insert({
-        owner_id: user.id,
-        name,
-        files: snapshot.files,
-        chat: snapshot.chat,
-        mode: snapshot.mode,
-        lineage: snapshot.lineage,
-        updated_by: user.id,
-      })
-      .select('id, name, owner_id, updated_at')
-      .single();
+    const insertRow = (withNotepad: boolean) =>
+      builderClient!
+        .from('projects')
+        .insert({
+          owner_id: user.id,
+          name,
+          files: snapshot.files,
+          chat: snapshot.chat,
+          mode: snapshot.mode,
+          lineage: snapshot.lineage,
+          ...(withNotepad ? { notepad: snapshot.notepad } : {}),
+          updated_by: user.id,
+        })
+        .select('id, name, owner_id, updated_at')
+        .single();
+
+    let { data, error } = await insertRow(!notepadColumnMissing);
+    if (error && isMissingNotepadColumnError(error.message)) {
+      markNotepadColumnMissing();
+      ({ data, error } = await insertRow(false));
+    }
 
     if (error) return { error: error.message };
+    if (!data) return { error: 'Save failed' };
 
     // A repo connected while this was a local project follows it into the cloud
     useGitHubStore.getState().moveRepo('local', data.id);
@@ -373,18 +411,26 @@ export const useCloudStore = create<CloudState>()((set, get) => ({
 
     set({ syncStatus: 'saving' });
     const snapshot = captureWorkspace();
-    const { data, error } = await builderClient
-      .from('projects')
-      .update({
-        files: snapshot.files,
-        chat: snapshot.chat,
-        mode: snapshot.mode,
-        lineage: snapshot.lineage,
-        updated_by: user.id,
-      })
-      .eq('id', currentProjectId)
-      .select('updated_at')
-      .single();
+    const updateRow = (withNotepad: boolean) =>
+      builderClient!
+        .from('projects')
+        .update({
+          files: snapshot.files,
+          chat: snapshot.chat,
+          mode: snapshot.mode,
+          lineage: snapshot.lineage,
+          ...(withNotepad ? { notepad: snapshot.notepad } : {}),
+          updated_by: user.id,
+        })
+        .eq('id', currentProjectId)
+        .select('updated_at')
+        .single();
+
+    let { data, error } = await updateRow(!notepadColumnMissing);
+    if (error && isMissingNotepadColumnError(error.message)) {
+      markNotepadColumnMissing();
+      ({ data, error } = await updateRow(false));
+    }
 
     // The project may have been closed while the write was in flight (e.g. a
     // flush-on-close) — don't resurrect its status or attachment afterwards
