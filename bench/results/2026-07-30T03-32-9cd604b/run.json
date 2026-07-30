@@ -1,0 +1,104 @@
+{
+  "harnessVersion": "1.0.0",
+  "taskVersion": "v1",
+  "gitCommit": "9cd604b",
+  "createdAt": "2026-07-30T03:32:05.402Z",
+  "runId": "2026-07-30T03-32-9cd604b",
+  "config": {
+    "trials": 2,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null
+  },
+  "models": [
+    {
+      "alias": "kimi-k3",
+      "providerId": "openrouter",
+      "modelId": "moonshotai/kimi-k3",
+      "pricing": {
+        "inputPerMTok": 3,
+        "outputPerMTok": 15,
+        "asOf": "2026-07"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "mutual-aid-board",
+      "version": "v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "kimi-k3",
+      "providerId": "openrouter",
+      "modelId": "moonshotai/kimi-k3",
+      "taskId": "mutual-aid-board",
+      "taskVersion": "v1",
+      "trial": 1,
+      "startedAt": "2026-07-30T03:32:03.816Z",
+      "plan": null,
+      "latencyMs": 0,
+      "ttftMs": null,
+      "segments": [],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 0,
+      "estTokens": {
+        "input": 0,
+        "output": 0,
+        "estimated": true
+      },
+      "estCostUsd": null,
+      "extraction": {
+        "writes": 0,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "previewKind": "none",
+      "previewKindMatch": false,
+      "bundle": null,
+      "securityFindings": 0,
+      "checks": [],
+      "artifactDir": null,
+      "fixRound": null,
+      "error": "OpenRouter API error (402): {\"error\":{\"message\":\"This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 570. To increase, visit https://openrouter.ai/settings/credits and add more credits\",\"code\":402,\"metadata\":{\"limit_source\":\"openrouter_credits\",\"remedy_hint\":\"Add credits at https://openrouter.ai/settings/credits, or lower max_tokens / prompt size to fit your remaining balance.\",\"provider_name\":null,\"previous_errors\":[{\"code\":402,\"message\":\"This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 570. To increase, visit https://openrouter.ai/settings/credits and add more credits\"},{\"code\":402,\"message\":\"This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 380. To increase, visit https://openrouter.ai/settings/credits and add more credits\"},{\"code\":402,\"message\":\"This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 570. To increase, visit https://openrouter.ai/settings/credits and add more credits\"},{\"code\":402,\"message\":\"This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 570. To increase, visit https://openrouter.ai/settings/credits and add more credits\"},{\"code\":402,\"message\":\"This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 570. To increase, visit https://openrouter.ai/settings/credits and add more credits\"},{\"code\":402,\"message\":\"This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 570. To increase, visit https://openrouter.ai/settings/credits and add more credits\"},{\"code\":402,\"message\":\"This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 570. To increase, visit https://openrouter.ai/settings/credits and add more credits\"},{\"code\":402,\"message\":\"This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 570. To increase, visit https://openrouter.ai/settings/credits and add more credits\"}]}},\"user_id\":\"user_3Gbh2zmbkUZRqGfiXTo62nfbcec\"}"
+    },
+    {
+      "alias": "kimi-k3",
+      "providerId": "openrouter",
+      "modelId": "moonshotai/kimi-k3",
+      "taskId": "mutual-aid-board",
+      "taskVersion": "v1",
+      "trial": 2,
+      "startedAt": "2026-07-30T03:32:05.084Z",
+      "plan": null,
+      "latencyMs": 0,
+      "ttftMs": null,
+      "segments": [],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 0,
+      "estTokens": {
+        "input": 0,
+        "output": 0,
+        "estimated": true
+      },
+      "estCostUsd": null,
+      "extraction": {
+        "writes": 0,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "previewKind": "none",
+      "previewKindMatch": false,
+      "bundle": null,
+      "securityFindings": 0,
+      "checks": [],
+      "artifactDir": null,
+      "fixRound": null,
+      "error": "OpenRouter API error (402): {\"error\":{\"message\":\"This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 570. To increase, visit https://openrouter.ai/settings/credits and add more credits\",\"code\":402,\"metadata\":{\"limit_source\":\"openrouter_credits\",\"remedy_hint\":\"Add credits at https://openrouter.ai/settings/credits, or lower max_tokens / prompt size to fit your remaining balance.\",\"provider_name\":null,\"previous_errors\":[{\"code\":402,\"message\":\"This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 570. To increase, visit https://openrouter.ai/settings/credits and add more credits\"},{\"code\":402,\"message\":\"This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 380. To increase, visit https://openrouter.ai/settings/credits and add more credits\"},{\"code\":402,\"message\":\"This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 570. To increase, visit https://openrouter.ai/settings/credits and add more credits\"},{\"code\":402,\"message\":\"This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 570. To increase, visit https://openrouter.ai/settings/credits and add more credits\"},{\"code\":402,\"message\":\"This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 570. To increase, visit https://openrouter.ai/settings/credits and add more credits\"},{\"code\":402,\"message\":\"This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 570. To increase, visit https://openrouter.ai/settings/credits and add more credits\"},{\"code\":402,\"message\":\"This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 570. To increase, visit https://openrouter.ai/settings/credits and add more credits\"},{\"code\":402,\"message\":\"This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 570. To increase, visit https://openrouter.ai/settings/credits and add more credits\"}]}},\"user_id\":\"user_3Gbh2zmbkUZRqGfiXTo62nfbcec\"}"
+    }
+  ]
+}
