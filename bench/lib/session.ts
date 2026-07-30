@@ -81,8 +81,20 @@ export async function runSession(
 
     const ac = new AbortController();
     const timer = setTimeout(() => ac.abort(), timeoutMs);
+    // Abort alone isn't enough: a stream whose socket died silently (e.g. a
+    // container suspend reset it) can leave the body read pending forever —
+    // abort doesn't always propagate through proxy dispatchers. The hard
+    // deadline rejects the race and fails the segment; the leaked request is
+    // abandoned, which beats a run wedged until someone kills it.
+    let hardTimer: ReturnType<typeof setTimeout>;
+    const hardDeadline = new Promise<never>((_, reject) => {
+      hardTimer = setTimeout(
+        () => reject(new Error(`timed out after ${Math.round(timeoutMs / 1000)}s (hard deadline — stream never settled)`)),
+        timeoutMs + 60_000,
+      );
+    });
     try {
-      await new Promise<void>((resolve, reject) => {
+      const streamed = new Promise<void>((resolve, reject) => {
         provider
           .chat(
             messages,
@@ -103,6 +115,7 @@ export async function runSession(
           )
           .catch(reject); // pre-stream failures (HTTP errors) reject the call itself
       });
+      await Promise.race([streamed, hardDeadline]);
     } catch (err) {
       if (ac.signal.aborted) {
         throw new Error(`timed out after ${Math.round(timeoutMs / 1000)}s (partial reply: ${segText.length} chars)`);
@@ -110,6 +123,7 @@ export async function runSession(
       throw err;
     } finally {
       clearTimeout(timer);
+      clearTimeout(hardTimer!);
     }
 
     segments.push({ finishReason, latencyMs: Date.now() - segStart, chars: segText.length });
