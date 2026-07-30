@@ -20,6 +20,15 @@ import { ChevronDown, ChevronRight, BookOpen, Radio, Loader2, AlertTriangle, Ref
 /** Covered models, in the order the community proxy prefers them */
 const COMMUNITY_MODEL_NAMES = 'Claude Opus 5 (the default builder), Fable 5, Opus 4.8, Sonnet 5, and Haiku 4.5';
 
+/** 161_000 → "161k", 5_000_000 → "5M" */
+function formatTokens(n: number): string {
+  if (n >= 1_000_000) {
+    const m = n / 1_000_000;
+    return `${Number.isInteger(m) ? m : m.toFixed(1)}M`;
+  }
+  return `${Math.round(n / 1000)}k`;
+}
+
 interface ProviderSettingsProps {
   /** Controlled open state — when provided, the internal trigger is hidden */
   open?: boolean;
@@ -120,7 +129,7 @@ export function ProviderSettings({ open: controlledOpen, onOpenChange, hideTrigg
               </p>
               {dailyBudget > 0 && (
                 <p className="text-xs text-muted-foreground">
-                  Today: {Math.round(usedToday / 1000)}k of {Math.round(dailyBudget / 1000)}k tokens used.
+                  Today: {formatTokens(usedToday)} of {formatTokens(dailyBudget)} tokens used.
                 </p>
               )}
               {claudeKeySet && (
