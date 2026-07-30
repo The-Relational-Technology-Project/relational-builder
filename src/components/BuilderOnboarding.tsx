@@ -10,10 +10,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RBMark } from '@/components/RBMark';
-import { Loader2, ArrowRight, ArrowLeft, MapPin, User, Cpu, Sparkles, Shield, Package } from 'lucide-react';
+import { Loader2, ArrowRight, ArrowLeft, MapPin, User, Cpu, Sparkles, Shield, Package, Users } from 'lucide-react';
 
-type Step = 'welcome' | 'studio' | 'about' | 'dreams' | 'tech' | 'consent';
-const STEPS: Step[] = ['welcome', 'about', 'dreams', 'tech', 'consent'];
+type Step = 'welcome' | 'studio' | 'about' | 'dreams' | 'tech' | 'connect' | 'consent';
+const STEPS: Step[] = ['welcome', 'about', 'dreams', 'tech', 'connect', 'consent'];
 
 const textareaClass =
   'w-full rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs outline-none placeholder:text-muted-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:border-ring';
@@ -41,6 +41,10 @@ export function BuilderOnboarding({ onDone }: { onDone?: () => void }) {
   const [emailOptIn, setEmailOptIn] = useState<'yes' | 'no' | ''>(
     profile?.email_opt_in === true ? 'yes' : profile?.email_opt_in === false ? 'no' : '',
   );
+  const [openToConnecting, setOpenToConnecting] = useState(profile?.open_to_connecting ?? false);
+  const [connectNote, setConnectNote] = useState(profile?.connect_note ?? '');
+  const [allowRequests, setAllowRequests] = useState(profile?.allow_requests ?? false);
+  const [agreedToTerms, setAgreedToTerms] = useState(!!profile?.terms_accepted_at);
 
   // Known Studio member? Their staged history waits for a yes — the check is
   // server-side, keyed on the verified session email, and quiet on failure.
@@ -54,7 +58,7 @@ export function BuilderOnboarding({ onDone }: { onDone?: () => void }) {
   }, []);
 
   const steps: Step[] = studio
-    ? ['welcome', 'studio', 'about', 'dreams', 'tech', 'consent']
+    ? ['welcome', 'studio', 'about', 'dreams', 'tech', 'connect', 'consent']
     : STEPS;
   const index = steps.indexOf(step);
   const goNext = () => setStep(steps[Math.min(index + 1, steps.length - 1)]);
@@ -101,6 +105,11 @@ export function BuilderOnboarding({ onDone }: { onDone?: () => void }) {
       tech_familiarity: techFamiliarity || null,
       ai_coding_experience: aiCodingExperience || null,
       email_opt_in: emailOptIn === 'yes',
+      open_to_connecting: openToConnecting,
+      connect_note: connectNote.trim() || null,
+      allow_requests: openToConnecting ? allowRequests : false,
+      // Keep the original agreement timestamp when re-editing a profile
+      terms_accepted_at: profile?.terms_accepted_at ?? new Date().toISOString(),
       profile_completed: true,
     };
     const r = await saveProfile(fields);
@@ -355,6 +364,71 @@ export function BuilderOnboarding({ onDone }: { onDone?: () => void }) {
             </div>
           )}
 
+          {step === 'connect' && (
+            <div className="space-y-6">
+              <div className="text-center space-y-2">
+                <div className="mx-auto rounded-full bg-primary/10 p-3 w-fit">
+                  <Users className="size-6 text-primary" />
+                </div>
+                <h2 className="text-xl font-semibold">Connect with other builders</h2>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  Builders who opt in appear in a directory that only signed-in
+                  builders can see. Totally optional — your email is never shown,
+                  and you can change this any time on the Connections page.
+                </p>
+              </div>
+              <div className="space-y-4">
+                <label className="flex items-start gap-2.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={openToConnecting}
+                    onChange={e => setOpenToConnecting(e.target.checked)}
+                    className="mt-0.5 accent-[var(--primary)]"
+                  />
+                  <span>
+                    <span className="text-sm font-medium block">Show me to other builders</span>
+                    <span className="text-xs text-muted-foreground">
+                      Your name, neighborhood, and the note below appear in the
+                      builders directory.
+                    </span>
+                  </span>
+                </label>
+                {openToConnecting && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="ob-connectNote">What you're up for (shown in the directory)</Label>
+                      <Input
+                        id="ob-connectNote"
+                        value={connectNote}
+                        onChange={e => setConnectNote(e.target.value)}
+                        maxLength={140}
+                        placeholder="Happy to talk tool libraries, phone trees, and first builds"
+                      />
+                    </div>
+                    <label className="flex items-start gap-2.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={allowRequests}
+                        onChange={e => setAllowRequests(e.target.checked)}
+                        className="mt-0.5 accent-[var(--primary)]"
+                      />
+                      <span>
+                        <span className="text-sm font-medium block">Allow intro requests</span>
+                        <span className="text-xs text-muted-foreground">
+                          Builders can send you a short note by email. You get
+                          accept/decline links; only if you accept do you both
+                          receive an intro email with each other's addresses.
+                          Declining is silent.
+                        </span>
+                      </span>
+                    </label>
+                  </>
+                )}
+              </div>
+              <StepNav onBack={goBack} onNext={goNext} />
+            </div>
+          )}
+
           {step === 'consent' && (
             <div className="space-y-6">
               <div className="text-center space-y-2">
@@ -394,13 +468,37 @@ export function BuilderOnboarding({ onDone }: { onDone?: () => void }) {
                   </Button>
                 </div>
               </div>
+              <label className="flex items-start gap-2.5 cursor-pointer rounded-lg border bg-muted/30 p-3">
+                <input
+                  type="checkbox"
+                  checked={agreedToTerms}
+                  onChange={e => setAgreedToTerms(e.target.checked)}
+                  className="mt-0.5 accent-[var(--primary)]"
+                />
+                <span className="text-sm">
+                  I agree to the{' '}
+                  <a
+                    href="#privacy"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline underline-offset-2 hover:text-primary"
+                  >
+                    Privacy &amp; Terms
+                  </a>
+                  <span className="block text-xs text-muted-foreground mt-0.5">
+                    The short version: we only collect what you share, we never
+                    sell it, and you own what you build. The link opens in a new
+                    tab so you don't lose your answers.
+                  </span>
+                </span>
+              </label>
               {error && <p className="text-xs text-destructive text-center">{error}</p>}
               <div className="flex gap-3">
                 <Button variant="outline" onClick={goBack} className="flex-1">
                   <ArrowLeft className="mr-2 size-4" />
                   Back
                 </Button>
-                <Button onClick={handleComplete} disabled={saving || emailOptIn === ''} className="flex-1">
+                <Button onClick={handleComplete} disabled={saving || emailOptIn === '' || !agreedToTerms} className="flex-1">
                   {saving ? (
                     <>
                       <Loader2 className="mr-2 size-4 animate-spin" />
