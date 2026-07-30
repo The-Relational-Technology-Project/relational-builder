@@ -1,0 +1,122 @@
+{
+  "harnessVersion": "1.0.0",
+  "taskVersion": "v1",
+  "gitCommit": "4a50f23",
+  "createdAt": "2026-07-30T05:43:36.426Z",
+  "runId": "2026-07-30T05-32-4a50f23",
+  "config": {
+    "trials": 2,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null
+  },
+  "models": [
+    {
+      "alias": "kimi-k3-direct",
+      "providerId": "moonshot",
+      "modelId": "kimi-k3",
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "mutual-aid-board",
+      "version": "v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "kimi-k3-direct",
+      "providerId": "moonshot",
+      "modelId": "kimi-k3",
+      "taskId": "mutual-aid-board",
+      "taskVersion": "v1",
+      "trial": 1,
+      "startedAt": "2026-07-30T05:32:01.085Z",
+      "plan": null,
+      "latencyMs": 509079,
+      "ttftMs": 460637,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 509061,
+          "chars": 7389
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 7389,
+      "estTokens": {
+        "input": 9702,
+        "output": 1848,
+        "estimated": true
+      },
+      "estCostUsd": null,
+      "extraction": {
+        "writes": 8,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": false,
+        "errors": [
+          "vfs:/src/App.tsx:14: Could not find \"@/pages/Board\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx:15: Could not find \"@/pages/PostDetail\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx:16: Could not find \"@/pages/NewPost\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx:17: Could not find \"@/pages/Wins\" in the project (imported from /src/App.tsx)"
+        ]
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/mutual-aid-board/kimi-k3-direct-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/App.tsx:13: Could not find \"@/components/PersonaSwitcher\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx:14: Could not find \"@/pages/Board\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx:15: Could not find \"@/pages/PostDetail\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx:16: Could not find \"@/pages/NewPost\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx:17: Could not find \"@/pages/Wins\" in the project (imported from /src/App.tsx)"
+        ],
+        "solved": false,
+        "latencyMs": 185866,
+        "remainingErrors": [
+          "vfs:/src/App.tsx:14: Could not find \"@/pages/Board\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx:15: Could not find \"@/pages/PostDetail\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx:16: Could not find \"@/pages/NewPost\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx:17: Could not find \"@/pages/Wins\" in the project (imported from /src/App.tsx)"
+        ],
+        "estCostUsd": null
+      },
+      "error": null
+    }
+  ]
+}
