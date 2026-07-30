@@ -1,6 +1,9 @@
 import type { BenchModel } from '../types';
 
-export const HARNESS_VERSION = '1.0.0';
+// 1.1.0: session loop honors NEXT-FILES chunk boundaries (production parity —
+// ChatPanel auto-continues planned chunks; the bench previously only
+// continued on truncation, so chunking models scored bundle ✗ unfairly).
+export const HARNESS_VERSION = '1.1.0';
 
 /** Rough enough for a cost *estimate* column — exact usage needs provider changes. */
 export const charsToTokens = (chars: number): number => Math.ceil(chars / 4);

@@ -1,14 +1,17 @@
+import { extractOperations } from '@/project/code-extractor';
 import type { ChatMessage, LLMProvider } from '@/providers/types';
 import { contentToText } from '@/providers/types';
 
 /**
  * One generation "session": the initial reply plus the same automatic
- * continuation loop production runs when a reply is cut off mid-file.
- * Callers build the opening messages (system first) — a plain build ask is
- * [system, user(task)]; a plan-approved build is [system, user(task),
+ * continuation loop production runs — both kinds: a reply cut off mid-file
+ * (output cap or dead stream) and a deliberate chunk boundary (a clean reply
+ * ending in `NEXT-FILES: …`, which the system prompt teaches for large
+ * builds). Callers build the opening messages (system first) — a plain build
+ * ask is [system, user(task)]; a plan-approved build is [system, user(task),
  * assistant(plan), user(go)].
  *
- * The three constants below are copied verbatim from
+ * The constants below are copied verbatim from
  * src/components/Chat/ChatPanel.tsx (a React component the harness can't
  * import) — keep them in sync with production.
  */
@@ -20,8 +23,20 @@ function endsInsideCodeFence(content: string): boolean {
 
 const MAX_CONTINUATIONS = 3;
 
-const CONTINUE_PROMPT =
-  'Your previous reply was interrupted mid-stream, likely mid-file. Continue the build: first re-output the file that was cut off — complete, from its first line — then every file you had planned but not yet written. Do not repeat files that were already complete. Skip any explanation of the interruption: one short line saying you\'re continuing, then the files.';
+/** A deliberately chunked build reply ends with this marker line */
+const CHUNK_MARKER = /^NEXT-FILES:\s*(\S.*)$/m;
+
+/** Same shape as production's continuePrompt(planned): grounded in the files
+ *  already extracted from prior segments, since "which files are done" can't
+ *  ride on the model's memory of its own reply. */
+function continuePrompt(planned: boolean, segmentTexts: string[]): string {
+  const base = planned
+    ? 'Continue the build with the remaining files you listed. Do not repeat files that are already complete. Skip any preamble: one short line saying you\'re continuing, then the files.'
+    : 'Your previous reply was interrupted mid-stream, likely mid-file. Continue the build: first re-output the file that was cut off — complete, from its first line — then every file you had planned but not yet written. Do not repeat files that were already complete. Skip any explanation of the interruption: one short line saying you\'re continuing, then the files.';
+  const applied = segmentTexts.flatMap(t => extractOperations(t).writes.map(w => w.path));
+  if (applied.length === 0) return base;
+  return `${base}\n\nThese files are already complete in the project (do not re-output them): ${applied.join(', ')}. Every other file your plan calls for${planned ? '' : ' — including the one that was cut off —'} is NOT in the project yet and must be written now.`;
+}
 
 export interface SessionSegment {
   finishReason: string | null;
@@ -101,13 +116,18 @@ export async function runSession(
     segmentTexts.push(segText);
 
     const cutOff = finishReason === 'length' || endsInsideCodeFence(segText);
-    if (!cutOff) break;
+    // A clean reply that declares remaining files is a planned chunk
+    // boundary — continue the chain on purpose, like production does
+    const chunked = !cutOff && CHUNK_MARKER.test(segText);
+    if (!cutOff && !chunked) break;
     if (round === MAX_CONTINUATIONS) {
+      // Chain capped with work still declared/cut off — the build is
+      // incomplete either way
       truncatedFinal = true;
       break;
     }
     messages.push({ role: 'assistant', content: segText });
-    messages.push({ role: 'user', content: CONTINUE_PROMPT });
+    messages.push({ role: 'user', content: continuePrompt(chunked, segmentTexts) });
   }
 
   // A completion that streamed no content at all is a failed generation, not
