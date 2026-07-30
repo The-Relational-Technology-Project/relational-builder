@@ -18,7 +18,7 @@ import { Separator } from '@/components/ui/separator';
 import { ChevronDown, ChevronRight, BookOpen, Radio, Loader2, AlertTriangle, RefreshCw } from 'lucide-react';
 
 /** Covered models, in the order the community proxy prefers them */
-const COMMUNITY_MODEL_NAMES = 'Fable 5 (the best builder), Opus 4.8, Sonnet 5, and Haiku 4.5';
+const COMMUNITY_MODEL_NAMES = 'Claude Opus 5 (the default builder), Fable 5, Opus 4.8, Sonnet 5, and Haiku 4.5';
 
 interface ProviderSettingsProps {
   /** Controlled open state — when provided, the internal trigger is hidden */
@@ -102,7 +102,7 @@ export function ProviderSettings({ open: controlledOpen, onOpenChange, hideTrigg
               <div className="rounded-md bg-green-600/10 border border-green-600/30 px-3 py-2.5 space-y-1.5">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="font-medium text-sm truncate">RTP Community</span>
+                  <span className="font-medium text-sm truncate">Community</span>
                   <Badge className="text-xs shrink-0">Free</Badge>
                 </div>
                 <Button
@@ -115,8 +115,8 @@ export function ProviderSettings({ open: controlledOpen, onOpenChange, hideTrigg
                 </Button>
               </div>
               <p className="text-xs text-foreground">
-                Free building courtesy of the Relational Tech Project.{' '}
-                {COMMUNITY_MODEL_NAMES} are all covered by your daily budget.
+                Free building, covered by the Relational Tech Project. Your daily
+                token budget works across {COMMUNITY_MODEL_NAMES}.
               </p>
               {dailyBudget > 0 && (
                 <p className="text-xs text-muted-foreground">
