@@ -75,4 +75,6 @@ closer to **$800–1,500/month**.
 3. **Next:** prompt caching in the proxy, then a Sonnet-for-edits default.
 4. **Watch the data:** `community_usage` already records per-member
    daily tokens — a monthly look at the distribution will show whether
-   5M/day is right long before anyone complains.
+   5M/day is right long before anyone complains. Since 2026-07-31 the
+   `community-monitor` function watches spend automatically and emails
+   the steward at $5/day and $10/day — see [MONITORING.md](./MONITORING.md).

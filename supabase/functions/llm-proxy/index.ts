@@ -445,7 +445,13 @@ async function checkCommunityAccess(
   return { email };
 }
 
-function recordCommunityUsage(email: string, inputTokens: number, outputTokens: number): void {
+function recordCommunityUsage(
+  email: string,
+  inputTokens: number,
+  outputTokens: number,
+  cacheWriteTokens = 0,
+  cacheReadTokens = 0,
+): void {
   const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
   if (!supabaseUrl || !serviceKey) return;
@@ -457,7 +463,13 @@ function recordCommunityUsage(email: string, inputTokens: number, outputTokens: 
       Authorization: `Bearer ${serviceKey}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ p_email: email, p_input: inputTokens, p_output: outputTokens }),
+    body: JSON.stringify({
+      p_email: email,
+      p_input: inputTokens,
+      p_output: outputTokens,
+      p_cache_write: cacheWriteTokens,
+      p_cache_read: cacheReadTokens,
+    }),
   }).catch(() => {});
 }
 
@@ -810,6 +822,8 @@ async function proxyAnthropic(
         communityEmail,
         Number(data.usage?.input_tokens ?? 0),
         Number(data.usage?.output_tokens ?? 0),
+        Number(data.usage?.cache_creation_input_tokens ?? 0),
+        Number(data.usage?.cache_read_input_tokens ?? 0),
       );
     }
     const openaiResponse = {
@@ -835,6 +849,8 @@ async function proxyAnthropic(
       let buffer = '';
       let inputTokens = 0;
       let outputTokens = 0;
+      let cacheWriteTokens = 0;
+      let cacheReadTokens = 0;
       // Streamed server_tool_use blocks (web search / fetch): accumulate the
       // tool input as it arrives so a human progress line ("Searching the
       // web: …") can ride the reasoning channel when the call fires.
@@ -858,6 +874,8 @@ async function proxyAnthropic(
               const parsed = JSON.parse(data);
               if (parsed.type === 'message_start' && parsed.message?.usage) {
                 inputTokens = Number(parsed.message.usage.input_tokens ?? 0);
+                cacheWriteTokens = Number(parsed.message.usage.cache_creation_input_tokens ?? 0);
+                cacheReadTokens = Number(parsed.message.usage.cache_read_input_tokens ?? 0);
               } else if (parsed.type === 'message_delta') {
                 if (parsed.usage) {
                   outputTokens = Number(parsed.usage.output_tokens ?? outputTokens);
@@ -931,7 +949,13 @@ async function proxyAnthropic(
         controller.error(err);
       } finally {
         if (communityEmail && (inputTokens > 0 || outputTokens > 0)) {
-          recordCommunityUsage(communityEmail, inputTokens, outputTokens);
+          recordCommunityUsage(
+            communityEmail,
+            inputTokens,
+            outputTokens,
+            cacheWriteTokens,
+            cacheReadTokens,
+          );
         }
       }
     },
