@@ -1,10 +1,11 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import ReactMarkdown, { defaultUrlTransform } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useNotepadStore, type ProjectNote } from '@/store/notepad-store';
 import { useProjectStore } from '@/store/project-store';
 import { useAuthStore } from '@/store/auth-store';
 import { draftProjectStory, storyPhotos, stripPhotoEmbeds } from '@/project/draft-story';
+import { embeddedPhotoNumbers, canSharePhotos, bodyWithHostedPhotos } from '@/project/story-photos';
 import { submitToCommons } from '@/project/commons-submit';
 import { connectedRepoForCurrentProject } from '@/project/github-sync';
 import { fileToDataUrl, isImageFile } from '@/lib/image';
@@ -364,6 +365,15 @@ function ShareStoryCard() {
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Whether the embedded photos will travel: how many the story embeds, and
+  // whether this session can host them (signed-in builders only)
+  const embeddedCount = story ? embeddedPhotoNumbers(story.body).length : 0;
+  const [photosCanTravel, setPhotosCanTravel] = useState(false);
+  useEffect(() => {
+    if (embeddedCount > 0) void canSharePhotos().then(setPhotosCanTravel);
+  }, [embeddedCount]);
+  const photosWillTravel = embeddedCount > 0 && photosCanTravel;
+
   if (!story) return null;
 
   if (done) {
@@ -385,13 +395,23 @@ function ShareStoryCard() {
     if (!story) return;
     setSubmitting(true);
     setError(null);
+    // Photos the story embeds travel with it (hosted on Builder storage)
+    // when the session can host them; otherwise the text goes alone. If
+    // hosting fails, stop — consent promised photos, so we never silently
+    // submit without them.
+    let body: string;
+    try {
+      body = photosWillTravel ? await bodyWithHostedPhotos(story.body) : stripPhotoEmbeds(story.body);
+    } catch (err) {
+      setSubmitting(false);
+      setError(err instanceof Error ? err.message : 'Could not host the story photos — try again');
+      return;
+    }
     const frameTags = (lineage?.frames ?? []).filter(f => f !== 'practice-first');
     const result = await submitToCommons({
       title: story.title,
       summary: summary.trim(),
-      // The submission pipeline is text-only — photo embeds stay local,
-      // leaving their captions as quiet markers
-      body: stripPhotoEmbeds(story.body).slice(0, 19000),
+      body: body.slice(0, 19000),
       builderName: builderName.trim(),
       neighborhood: neighborhood.trim() || undefined,
       contactEmail: user?.email,
@@ -458,8 +478,12 @@ function ShareStoryCard() {
             />
             <span>
               I've reviewed the story as it reads above (plus my name,
-              neighborhood, and link) and I want it offered to the commons.
-              Photos stay on this device — only the text travels for now.
+              neighborhood, and link) and I want it offered to the commons.{' '}
+              {photosWillTravel
+                ? `The ${embeddedCount === 1 ? 'photo' : `${embeddedCount} photos`} embedded in the story will be shared publicly with it; other notepad photos stay on this device.`
+                : embeddedCount > 0
+                  ? 'Photos need a signed-in session to travel — this submission carries the text only.'
+                  : 'Notepad photos stay on this device.'}
             </span>
           </label>
           {error && <p className="text-xs text-destructive">{error}</p>}
