@@ -17,28 +17,32 @@ Relational Builder combines three things that don't yet exist together:
 - **Chat-driven building** -- describe what you want in plain language, get working code
 - **Plan & Build modes** -- Plan mode is the default for new builds: a real visioning phase that meets the idea where it is: bring a seed of an idea and it explores with you first — reflecting your place back, offering 2–3 distinct directions drawn from the commons by name, gathering the context that actually shapes the build — while a fully-baked ask goes straight to a plan. It grounds the tool in your place and people, names the neighboring practices around the tech, and asks one vision-level question at a time. Press "Build this plan" when it feels right — or build directly
 - **Live progress while you wait** -- long generations show what's actually happening: reaching the model, the AI's own summarized thinking streaming past, files landing as they're written, elapsed time throughout
-- **Builds that finish** -- an output budget sized for real multi-file apps (64k tokens), automatic continuation if a reply is ever cut off mid-file, and a one-tap recovery banner if a reload or dropped connection interrupts a build before its files are saved
+- **Builds that finish** -- an output budget sized for real multi-file apps (128k tokens), large builds that deliberately pause between files and continue on purpose instead of dying mid-file to a timeout, automatic continuation if a reply is ever cut off, and a one-tap recovery banner if a reload or dropped connection interrupts a build before its files are saved
 - **Studio build plans** -- paste a Studio share link (or ID) and the plan is fetched as your starting draft, with lineage recorded automatically
 - **Start from the Studio** -- the dashboard gallery turns live Studio library tools and shared build plans into starting points: tool cards distill into a place-adaptable build prompt that lands in Plan mode, so you shape it for your neighborhood before building fresh (full-code forking stays available for advanced use)
 - **Prompts as first-class** -- every build can distill into a self-contained, travel-ready prompt ("Git for prompts"): save it with the project, version it, share it by link, and browse other builders' shared prompts in the gallery. The prompt travels in `.reltech.yml`, so the recipe spreads even when the code doesn't
 - **RT Commons retrieval** -- every message runs a hybrid semantic + full-text search across the whole commons (tools, stories, recipes, the Neighboring Commons library, frameworks) and weaves the most relevant knowledge into the AI's context
 - **Studio-aware building** -- pick a Studio from the network (or arrive via a `?studio=` link) and build inside its frame: the studio's principles layer onto the base RTP principles in the AI's context (append-only, never replacing), and the studio travels in your project's lineage
 - **Offer builds back to the commons** -- after publishing, share your build to the commons contribution queue (consent-first, steward-reviewed, credited by name)
-- **Community access** -- invited pilot builders get free Claude building via RTP's subsidized key, gated server-side with generous daily budgets — no API key, no credit card. Claude Opus 4.8 (the best builder) handles planning and the first build; edits then default to the faster Sonnet 5 (announced in the chat, never switched silently), and picking a model in the picker pins it for that project. Haiku 4.5 is also covered
+- **Community access** -- invited pilot builders get free Claude building via RTP's subsidized key, gated server-side with generous daily budgets — no API key, no credit card. Claude Opus 5 (the strongest builder on our bench) is the default for builds and edits; the daily budget also covers Fable 5, Opus 4.8, Sonnet 5, and Haiku 4.5, and picking a model in the picker pins it for that project. If Anthropic has an outage, community builds automatically fail over to a covered non-Anthropic model so a workshop never stalls
 - **Community Cloud** -- one click gives any project a free shared data store hosted by RTP (3 backends per builder, 100MB each) with built-in neighbor email-code sign-in — no database accounts, no SQL
 - **Cloud dashboard** -- the Cloud tab shows everything behind your apps: collections and documents (with moderation), the neighbors who've signed in, storage against the free tier, and backend settings — a friendly database console
-- **Quality review pass** -- after every build, a fast second model quietly checks the result against what you asked for; real defects (dead buttons, broken references) trigger one automatic fix, solid builds pass in silence
+- **Quality review pass** -- after your first build, a fast second model quietly checks the result against what you asked for; real defects (dead buttons, broken references) trigger one automatic fix, solid builds pass in silence
 - **Any web stack that fits** -- simple tools ship as plain HTML, richer ones as React, and "an app neighbors can install on their phones" becomes a real PWA (manifest + service worker) that installs from your published site
 - **Home-screen ready by default** -- every published site (community hosting, preview links, Netlify, Vercel) automatically gets an app icon drawn from its name, a web manifest, and an apple-touch-icon, so "Add to Home Screen" on any phone shows a real icon — projects that bring their own icons keep them
 - **Cloud projects & collaboration** -- sign in with a magic link, save projects to the cloud, and add collaborators by email; edits sync live via Supabase Realtime
 - **Place-grounded builder profiles** -- a short onboarding captures your neighborhood, dreams, and tech comfort; every chat is shaped by who you are and where you build, and an optional personal design system makes your apps look like they come from you and your place
 - **Build with others** -- an opt-in builders directory with consent-first, double-opt-in introductions; the chat can quietly suggest one relevant builder when your work overlaps with theirs (dismissible, never pushy)
-- **Live preview** -- see your app running in real time as the AI generates it (powered by Sandpack)
+- **Live preview** -- see your app running in real time as the AI generates it: simple tools render instantly via Sandpack, and full framework apps (`@/` aliases, npm packages, Tailwind v4 tokens, routing) run in an in-browser esbuild bundler — the same bundle that powers publishing, so preview output matches deployed output
+- **AI artwork** -- when a build needs imagery no photo exists for yet (flyer art, custom icons), generate it in place through the proxy's image lane; real local photos still come first, and community members are covered by the same daily budget as chat
+- **Shareable build reports** -- opt-in and consent-first: after a build settles, you can send stewards a report of how it actually went (timeline, chat, your feedback, an optional screenshot of the running app) — with a preview of exactly what's sent, and nothing assembled until you say yes
+- **Notepad & Project Story** -- a Notepad tab for timestamped notes as the tool meets the street (ideas, neighbors' words, what happened); "Draft Story" synthesizes a first-person Project Story from everything the project remembers — notes, chat, build timeline, lineage — that you can edit and offer to the commons as a story contribution, whether or not the tool itself is shared
+- **Build-ready notification** -- one browser notification, ever: your first build finishing while you're in another tab
 - **Image input** -- attach or paste a sketch, screenshot, or mockup and the AI builds from it (works with Claude and Gemini vision)
 - **Targeted edits** -- the AI sees your current files and makes surgical SEARCH/REPLACE changes instead of rewriting whole files (faster, cheaper, safer on big projects)
 - **Auto-fix** -- when a fresh build throws an error in the preview, the exact error goes back to the AI for one automatic repair pass (bounded — it can never loop); if anything's left, "Ask AI to fix it" is one click, no copy-pasting stack traces
 - **Security scan on publish** -- publishing runs a deterministic scan for leaked API keys and secret values in your files; findings block with file and line, plus a "let me fix it first" path
-- **Remix** -- pull any public GitHub repo into the builder as a starting point, with lineage recorded (and a friendly explanation — not an error — when a full framework app can't run in the instant preview)
+- **Remix** -- pull any public GitHub repo into the builder as a starting point, with lineage recorded (and a friendly explanation — not an error — for server-rendered apps the browser can't preview)
 - **Point at it** -- toggle select mode in the preview, click any element in your running app, and the chat is prefilled with what you pointed at — describe the change in plain words, no selectors or code-speak
 - **Version history** -- every AI change is a restorable checkpoint; walk back a bad stretch (or forward again) from the chat
 - **RTP Knowledge Base** -- browse 20+ community tools and 45+ stories from the relational tech network, all injected into the AI's context
@@ -56,7 +60,7 @@ Relational Builder combines three things that don't yet exist together:
 - **Custom domains** -- attach your own domain (e.g. myapp.ourneighborhood.org) when deploying to Netlify or Vercel, with DNS setup instructions
 - **Resizable panels** -- drag dividers to resize the chat, preview, and knowledge panels
 - **Session persistence** -- your chat and project files survive page refreshes via localStorage (and the cloud when signed in)
-- **Model-agnostic** -- latest models from Anthropic (Claude Opus 4.8 by default, Sonnet 5, Haiku 4.5), Google (Gemini 3.5), OpenAI (GPT-5.5), Together AI, OpenRouter, or any OpenAI-compatible endpoint
+- **Model-agnostic** -- latest models from Anthropic (Claude Opus 5 by default, plus Fable 5, Opus 4.8, Sonnet 5, Haiku 4.5), Google (Gemini 3.5), OpenAI (GPT-5.5), Together AI, OpenRouter, or any OpenAI-compatible endpoint
 
 ## Guiding Principles
 
@@ -71,13 +75,15 @@ This project is guided by the core principles of the [Relational Technology Proj
 
 ## Open and Accessible
 
-A neighborhood builder should be able to visit a URL and start building without signing up for anything or entering a credit card. Today that's real: invited builders sign in with a magic link and build free on Claude Opus 4.8 through RTP's community access — no API key, no billing, generous daily budgets, because early adopters deserve great experiences. Anyone can also bring their own API keys for Claude, Gemini, OpenAI, or other providers, and an RTP-hosted open-source model tier remains on the roadmap.
+A neighborhood builder should be able to visit a URL and start building without signing up for anything or entering a credit card. Today that's real: invited builders sign in with a magic link and build free on Claude Opus 5 through RTP's community access — no API key, no billing, generous daily budgets, because early adopters deserve great experiences. Anyone can also bring their own API keys for Claude, Gemini, OpenAI, or other providers, and an RTP-hosted open-source model tier remains on the roadmap.
 
 ## Architecture
 
 ```
-Chat Panel          |  Preview Sandbox   |  Knowledge / Files / Network
-                    |  (Sandpack)        |
+Chat Panel          |  Preview Sandbox        |  Knowledge / Files / Network
+                    |  (esbuild bundler for   |
+                    |  framework apps,        |
+                    |  Sandpack for tools)    |
                Orchestration Layer
      (model router, RAG context injection, project state)
                     |
@@ -95,7 +101,7 @@ Chat Panel          |  Preview Sandbox   |  Knowledge / Files / Network
 - **Framework:** Vite + React + TypeScript
 - **UI:** Tailwind CSS v4 + shadcn/ui
 - **State:** Zustand (persisted to localStorage)
-- **Preview:** Sandpack (CodeSandbox runtime, Apache 2.0)
+- **Preview:** two engines, routed by project shape — an in-browser esbuild-wasm bundler for framework apps (bare imports pinned to esm.sh, Tailwind v4 browser JIT; the same bundle powers publishing) and Sandpack (CodeSandbox runtime, Apache 2.0) for simple tools
 - **Database:** Supabase (shared with RTS Studio)
 - **Network feed:** [Relational Tech Watcher](https://github.com/The-Relational-Technology-Project/watcher)
 
@@ -122,7 +128,7 @@ Open [http://localhost:5173](http://localhost:5173) and start building.
 
 ### LLM Proxy (Production)
 
-In production, LLM API calls route through a Supabase Edge Function (`supabase/functions/llm-proxy`) to avoid CORS issues and keep API keys server-side. The proxy accepts OpenAI-compatible requests and translates them for each provider (Anthropic, OpenAI, RTP-hosted vLLM).
+In production, LLM API calls route through a Supabase Edge Function (`supabase/functions/llm-proxy`) to avoid CORS issues and keep API keys server-side. The proxy accepts OpenAI-compatible requests and routes them per provider (Anthropic gets a format translation; Gemini, OpenAI, OpenRouter, and other OpenAI-compatible endpoints pass through). It also gates community access (allowlist + daily budgets), serves the image-generation lane, and fails community builds over to a non-Anthropic model during outages.
 
 ```bash
 # Deploy the proxy (requires Supabase CLI)
@@ -138,7 +144,7 @@ Without a proxy URL, Claude falls back to direct browser-to-Anthropic calls (fin
 
 To use cloud models, click **Settings** in the toolbar and enter your API key:
 
-- **Claude** -- get a key at [console.anthropic.com](https://console.anthropic.com) (Opus 4.8, Sonnet 5, Haiku 4.5)
+- **Claude** -- get a key at [console.anthropic.com](https://console.anthropic.com) (Opus 5, Fable 5, Opus 4.8, Sonnet 5, Haiku 4.5)
 - **Google Gemini** -- get a key at [aistudio.google.com](https://aistudio.google.com/apikey) (Gemini 3.5 Flash, 3.1 Pro)
 - **OpenAI** -- get a key at [platform.openai.com](https://platform.openai.com)
 - **Together AI** -- get a key at [api.together.ai](https://api.together.ai)
@@ -153,14 +159,21 @@ src/
     KnowledgeBase/    KB panel, tool/story cards, network feed
     ui/               shadcn/ui primitives
   providers/          LLM provider abstraction (Claude, Gemini, OpenAI, Together, OpenRouter, RTP)
-  store/              Zustand stores (provider, chat, project, github, deploy, env, knowledge, auth, cloud)
-  project/            Virtual file system, code extractor, export, deploy, GitHub API, share preview
-  knowledge/          Supabase client (RTS Studio KB, read-only), RTP principles, context builder
+  store/              Zustand stores (provider, chat, project, github, deploy, env, knowledge, auth, cloud, community)
+  project/            Virtual file system, code extractor, publish builds, deploys, GitHub API, security scan
+  preview/            Preview engines: kind detection, esbuild-wasm bundler, element inspector
+  kit/                RB component kit: shadcn-aligned sources merged into projects at bundle/export time
+  knowledge/          Supabase client (RTS Studio KB, read-only), RTP principles, context builder, quality review
   cloud/              Builder backend client, auto-save + realtime sync
+  report/             Build event log + opt-in build reports
   integrations/       Service catalog (Supabase, Neon, Resend, Firecrawl)
 supabase/
-  functions/llm-proxy Edge function routing model calls server-side
-  migrations/         Builder backend schema (accounts, projects, collaboration)
+  functions/          Edge functions: llm-proxy (model routing, community gating), community
+                      hosting + cloud data, build reports, account request/steward flows
+  migrations/         Builder backend schema (accounts, projects, collaboration, community cloud)
+bench/                Model bench: one frozen build task run through the real production
+                      pipeline, behind every model-choice decision (see bench/README.md)
+docs/                 Roadmap, runbooks, strategy notes, and working plans
 ```
 
 ## Cloud Projects & Collaboration
