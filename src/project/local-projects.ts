@@ -5,6 +5,7 @@ import { useChatStore, type ChatMode, type DisplayMessage } from '@/store/chat-s
 import { useEnvStore, type EnvVar } from '@/store/env-store';
 import { useNotepadStore, captureNotepad, type NotepadSnapshot } from '@/store/notepad-store';
 import { useCloudStore, cloudProjectOwnsWorkspace } from '@/store/cloud-store';
+import { useDeployStore } from '@/store/deploy-store';
 import { useAuthStore, cloudEnabled } from '@/store/auth-store';
 import { suggestProjectName } from './suggest-name';
 
@@ -122,6 +123,9 @@ export function saveCurrentLocally(fallbackName?: string): void {
   let id = useLocalProjects.getState().currentId;
   if (!id) {
     id = crypto.randomUUID();
+    // A publish that happened before this slot existed was keyed 'local' —
+    // the remembered name belongs to this project now
+    useDeployStore.getState().movePublishName('local', id);
   }
   const existing = readSnapshot(id);
   const name = existing?.name ?? (fallbackName?.trim() || deriveName(files));
@@ -268,6 +272,9 @@ export async function promoteWorkspaceToCloud(
     }
     // The account owns it now — a shelf copy would only shadow it
     const id = useLocalProjects.getState().currentId;
+    // The name this work was published under follows it onto the account
+    const cloudId = useCloudStore.getState().currentProjectId;
+    if (cloudId) useDeployStore.getState().movePublishName(id ?? 'local', cloudId);
     if (id) deleteLocalProject(id);
     else detachLocalTracking();
     return { error: null };

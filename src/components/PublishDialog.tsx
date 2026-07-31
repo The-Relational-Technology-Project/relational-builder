@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -17,6 +17,7 @@ import { withAppIcons } from '@/project/app-icon';
 import { publishToCommunityHosting } from '@/project/deploy-community';
 import { useAuthStore, cloudEnabled } from '@/store/auth-store';
 import { useCloudStore } from '@/store/cloud-store';
+import { useLocalProjects } from '@/project/local-projects';
 import { getPromptForProject } from '@/cloud/prompts';
 import { deployToNetlify } from '@/project/deploy-netlify';
 import { deployToVercel } from '@/project/deploy-vercel';
@@ -44,7 +45,19 @@ interface DeployResult {
 }
 
 export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
-  const [projectName, setProjectName] = useState('my-community-app');
+  // Which project this publish belongs to — keyed like github-store repos
+  const cloudProjectId = useCloudStore(s => s.currentProjectId);
+  const localProjectId = useLocalProjects(s => s.currentId);
+  const publishNameKey = cloudProjectId ?? localProjectId ?? 'local';
+  const savedPublishName = useDeployStore(s => s.publishNames[publishNameKey]);
+  const setPublishName = useDeployStore(s => s.setPublishName);
+
+  // The name this project already published under wins — re-publishing is a
+  // "save", not a "save as". Otherwise offer one drawn from the conversation.
+  // (Lazy init is enough: the dialog mounts fresh on each open.)
+  const [projectName, setProjectName] = useState(
+    () => savedPublishName ?? suggestProjectName() ?? 'my-community-app',
+  );
   const [activeTarget, setActiveTarget] = useState<DeployTarget>('community');
   const [deploying, setDeploying] = useState(false);
   const [result, setResult] = useState<DeployResult | null>(null);
@@ -79,16 +92,6 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
     if (!v) resetState();
   };
 
-  // First open with the stock name → offer one drawn from the conversation.
-  // (An effect, not a trigger handler: the dialog is opened from the Share
-  // menu, so open transitions arrive as props.)
-  useEffect(() => {
-    if (open && projectName === 'my-community-app') {
-      const suggested = suggestProjectName();
-      if (suggested) setProjectName(suggested);
-    }
-  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
-
   const handleDeploy = async (skipScan = false) => {
     const files = getAllFiles();
     if (files.length === 0) return;
@@ -111,7 +114,6 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
     try {
       // The build prompt ships in .reltech.yml when this project has one —
       // the code and the seed travel together
-      const cloudProjectId = useCloudStore.getState().currentProjectId;
       const buildPrompt = cloudProjectId
         ? await getPromptForProject(cloudProjectId).catch(() => null)
         : null;
@@ -156,6 +158,9 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
         const res = await deployToVercel(filesWithEnv, projectName, vercelToken, envRecord, domain);
         setResult({ url: res.url, adminUrl: res.deploymentUrl, dnsInstructions: res.dnsInstructions });
       }
+
+      // Published under this name — remember it for the next publish
+      setPublishName(publishNameKey, projectName);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Deploy failed');
     } finally {
