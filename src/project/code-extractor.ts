@@ -105,6 +105,17 @@ export function extractOperations(markdown: string): ExtractionResult {
         writes.push({ path: filename, content, language });
       }
     } else {
+      // A fence opener glued to the end of a prose line ("…the shell.```html
+      // filename=\"index.html\"") hides the block from this line-anchored scan
+      // AND inverts fence parity for the rest of the reply — every file in the
+      // segment is silently lost (Kimi K3 writes fences this way). Split it
+      // back onto its own line; only a fence carrying an explicit file
+      // annotation is unambiguous enough to treat as an opener.
+      const glued = line.match(/^(.*\S)\s*(```\w*\s+(?:filename|title|file)=.*)$/);
+      if (glued) {
+        lines.splice(i, 1, glued[1], glued[2]);
+        continue;
+      }
       i++;
     }
   }

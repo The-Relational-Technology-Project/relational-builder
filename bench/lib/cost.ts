@@ -5,7 +5,11 @@ import type { BenchModel } from '../types';
 // continued on truncation, so chunking models scored bundle ✗ unfairly).
 // 1.1.1: overload/429 rejections retry with backoff instead of failing the
 // trial after one immediate re-roll (capacity weather, not model signal).
-export const HARNESS_VERSION = '1.1.1';
+// 1.2.0: extractor recognizes fence openers glued to the end of a prose line
+// (Kimi K3 writes these; they previously inverted fence parity and silently
+// dropped every file in the segment). Extraction semantics changed —
+// don't compare bundle/checks columns against pre-1.2.0 runs.
+export const HARNESS_VERSION = '1.2.0';
 
 /** Rough enough for a cost *estimate* column — exact usage needs provider changes. */
 export const charsToTokens = (chars: number): number => Math.ceil(chars / 4);
