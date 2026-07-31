@@ -425,7 +425,7 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
             <div className="rounded-lg border bg-muted/50 p-3 space-y-2">
               <p className="text-xs font-medium">Next steps to join the network:</p>
               <ol className="text-xs text-muted-foreground space-y-1.5 list-decimal list-inside">
-                <li>Unzip and push to a new GitHub repository</li>
+                <li>Unzip and push to a new repository (GitHub, GitLab, or your community's forge)</li>
                 <li>
                   Add the{' '}
                   <code className="bg-muted px-1 rounded text-xs">relational-tech</code>{' '}

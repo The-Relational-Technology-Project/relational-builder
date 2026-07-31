@@ -127,13 +127,6 @@ export async function listCommits(
   }));
 }
 
-/** Extensions the virtual file system can't hold — skip when pulling */
-const BINARY_EXT = /\.(png|jpe?g|gif|webp|avif|ico|woff2?|ttf|otf|eot|mp[34]|webm|wav|zip|gz|pdf)$/i;
-
-export function isBinaryPath(path: string): boolean {
-  return BINARY_EXT.test(path);
-}
-
 /** Fetch one file's content at a specific ref (branch or commit SHA) */
 export async function getFileAtRef(
   token: string,

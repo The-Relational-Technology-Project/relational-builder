@@ -6,7 +6,7 @@ import { useProjectStore, type ProjectLineage } from '@/store/project-store';
 import { useProviderStore } from '@/store/provider-store';
 import { useChatStore, type ChatMode, type DisplayMessage } from '@/store/chat-store';
 import { useNotepadStore, captureNotepad, type NotepadSnapshot } from '@/store/notepad-store';
-import { useGitHubStore } from '@/store/github-store';
+import { useSyncStore } from '@/store/sync-store';
 import type { FileEntry } from '@/project/virtual-fs';
 
 export interface CloudProjectSummary {
@@ -247,7 +247,7 @@ export const useCloudStore = create<CloudState>()((set, get) => ({
     if (!data) return { error: 'Save failed' };
 
     // A repo connected while this was a local project follows it into the cloud
-    useGitHubStore.getState().moveRepo('local', data.id);
+    useSyncStore.getState().moveRepo('local', data.id);
 
     set({
       currentProjectId: data.id,

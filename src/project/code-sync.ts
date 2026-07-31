@@ -1,5 +1,6 @@
 /**
- * Two-way GitHub awareness.
+ * Two-way code sync with the project's connected repo — on GitHub, GitLab,
+ * or a community's own Forgejo/Gitea instance.
  *
  * Changes made outside the Builder — in Claude Code, an editor, anywhere —
  * are a normal, supported part of building. This module notices them,
@@ -8,14 +9,8 @@
  * and what — if anything — the builder still needs to do by hand.
  */
 
-import {
-  getBranchHead,
-  compareCommits,
-  getFileAtRef,
-  pullFiles,
-  isBinaryPath,
-} from './github-api';
-import { useGitHubStore, type ConnectedRepo, type RemoteChanges } from '@/store/github-store';
+import { forgeClient, isBinaryPath, FORGES, type ForgeClient } from './forge';
+import { useSyncStore, type ConnectedRepo, type RemoteChanges } from '@/store/sync-store';
 import { useProjectStore } from '@/store/project-store';
 import { useChatStore } from '@/store/chat-store';
 import { useCloudStore } from '@/store/cloud-store';
@@ -27,23 +22,39 @@ export function projectRepoKey(): string {
 }
 
 export function connectedRepoForCurrentProject(): ConnectedRepo | null {
-  return useGitHubStore.getState().repos[projectRepoKey()] ?? null;
+  return useSyncStore.getState().repos[projectRepoKey()] ?? null;
+}
+
+export function clientForRepo(repo: ConnectedRepo): ForgeClient {
+  return forgeClient(repo.forge, repo.baseUrl);
+}
+
+export function tokenForRepo(repo: ConnectedRepo): string {
+  return useSyncStore.getState().tokens[repo.forge] ?? '';
+}
+
+/** Display name of the forge a repo lives on ("GitHub", "GitLab", …) */
+export function forgeNameForRepo(repo: ConnectedRepo): string {
+  return FORGES[repo.forge].name;
 }
 
 // ── Remote check ──────────────────────────────────────────────────────
 
 /**
- * What's on GitHub that we haven't seen? Null means up to date.
+ * What's on the repo that we haven't seen? Null means up to date.
  * Never throws — a failed check is treated as "nothing new".
  */
 export async function checkRemoteChanges(): Promise<RemoteChanges | null> {
-  const { token, setRemote, setCheckingRemote } = useGitHubStore.getState();
+  const { setRemote, setCheckingRemote } = useSyncStore.getState();
   const repo = connectedRepoForCurrentProject();
-  if (!token || !repo) return null;
+  if (!repo) return null;
+  const token = tokenForRepo(repo);
+  if (!token) return null;
+  const client = clientForRepo(repo);
 
   setCheckingRemote(true);
   try {
-    const head = await getBranchHead(token, repo.fullName, repo.branch);
+    const head = await client.getBranchHead(token, repo.fullName, repo.branch);
     if (repo.lastSyncSha === head) {
       setRemote(null);
       return null;
@@ -53,7 +64,7 @@ export async function checkRemoteChanges(): Promise<RemoteChanges | null> {
       setRemote(null);
       return null;
     }
-    const diff = await compareCommits(token, repo.fullName, repo.lastSyncSha, head);
+    const diff = await client.compareCommits(token, repo.fullName, repo.lastSyncSha, head);
     const remote: RemoteChanges = diff
       ? {
           headSha: head,
@@ -81,7 +92,7 @@ export async function checkRemoteChanges(): Promise<RemoteChanges | null> {
   } catch {
     return null;
   } finally {
-    useGitHubStore.getState().setCheckingRemote(false);
+    useSyncStore.getState().setCheckingRemote(false);
   }
 }
 
@@ -101,28 +112,31 @@ export interface PullSummary {
 const OVERLAP_CHECK_CAP = 30;
 
 /**
- * Pull what changed on GitHub into the workspace. Takes a checkpoint first,
- * applies only the files the diff names (or overlays everything on a full
- * resync), removes deleted files, then posts a summary to chat with any
- * follow-up steps the builder needs to take by hand.
+ * Pull what changed on the repo into the workspace. Takes a checkpoint
+ * first, applies only the files the diff names (or overlays everything on
+ * a full resync), removes deleted files, then posts a summary to chat with
+ * any follow-up steps the builder needs to take by hand.
  */
 export async function pullRemoteChanges(): Promise<PullSummary> {
-  const gh = useGitHubStore.getState();
+  const sync = useSyncStore.getState();
   const repo = connectedRepoForCurrentProject();
-  if (!gh.token || !repo) throw new Error('No repository connected');
+  if (!repo) throw new Error('No repository connected');
+  const token = tokenForRepo(repo);
+  if (!token) throw new Error('No repository connected');
+  const client = clientForRepo(repo);
   const key = projectRepoKey();
   const project = useProjectStore.getState();
 
-  gh.setPulling(true);
+  sync.setPulling(true);
   try {
     // Safety net: everything before the pull is one tap away
     if (project.getFileCount() > 0) {
-      project.takeCheckpoint('Before GitHub pull');
+      project.takeCheckpoint('Before repo pull');
     }
 
-    const head = await getBranchHead(gh.token, repo.fullName, repo.branch);
+    const head = await client.getBranchHead(token, repo.fullName, repo.branch);
     const diff = repo.lastSyncSha
-      ? await compareCommits(gh.token, repo.fullName, repo.lastSyncSha, head)
+      ? await client.compareCommits(token, repo.fullName, repo.lastSyncSha, head)
       : null;
 
     const applied: string[] = [];
@@ -137,13 +151,13 @@ export async function pullRemoteChanges(): Promise<PullSummary> {
       );
 
       // Spot overlapping edits: the Builder copy differs from the version
-      // both sides started from — the GitHub version will win, but say so.
+      // both sides started from — the repo version will win, but say so.
       const overlapCandidates = toFetch
         .filter(f => project.getFile(f.path))
         .slice(0, OVERLAP_CHECK_CAP);
       await Promise.all(
         overlapCandidates.map(async f => {
-          const base = await getFileAtRef(gh.token, repo.fullName, f.path, repo.lastSyncSha!);
+          const base = await client.getFileAtRef(token, repo.fullName, f.path, repo.lastSyncSha!);
           const local = useProjectStore.getState().getFile(f.path)?.content;
           if (base !== null && local !== undefined && local !== base) {
             overlaps.push(f.path);
@@ -154,7 +168,7 @@ export async function pullRemoteChanges(): Promise<PullSummary> {
       const contents = await Promise.all(
         toFetch.map(async f => ({
           file: f,
-          content: await getFileAtRef(gh.token, repo.fullName, f.path, head),
+          content: await client.getFileAtRef(token, repo.fullName, f.path, head),
         })),
       );
       const store = useProjectStore.getState();
@@ -178,7 +192,7 @@ export async function pullRemoteChanges(): Promise<PullSummary> {
     } else {
       // First sync or rewritten history: overlay the whole repo. Local files
       // the repo doesn't have are kept — pulling never silently deletes work.
-      const result = await pullFiles(gh.token, repo.fullName, repo.branch);
+      const result = await client.pullFiles(token, repo.fullName, repo.branch);
       const store = useProjectStore.getState();
       for (const file of result.files) {
         if (isBinaryPath(file.path)) continue;
@@ -190,7 +204,7 @@ export async function pullRemoteChanges(): Promise<PullSummary> {
       }
     }
 
-    const remote = gh.remote;
+    const remote = sync.remote;
     const actions = analyzeActionsNeeded(changedContents);
     const summary: PullSummary = {
       applied,
@@ -201,8 +215,8 @@ export async function pullRemoteChanges(): Promise<PullSummary> {
       fullResync: !diff,
     };
 
-    useGitHubStore.getState().updateLastSync(key, head);
-    useGitHubStore.getState().setRemote(null);
+    useSyncStore.getState().updateLastSync(key, head);
+    useSyncStore.getState().setRemote(null);
 
     // Tell the story in chat — the summary lives in history, so the AI
     // knows the project changed outside the Builder too.
@@ -212,22 +226,24 @@ export async function pullRemoteChanges(): Promise<PullSummary> {
 
     return summary;
   } finally {
-    useGitHubStore.getState().setPulling(false);
+    useSyncStore.getState().setPulling(false);
   }
 }
 
 // ── Push safety ───────────────────────────────────────────────────────
 
 /**
- * Before pushing: is GitHub ahead of what we last synced? Returns the remote
- * changes if so — the person should pull first (or consciously push anyway).
+ * Before pushing: is the repo ahead of what we last synced? Returns the
+ * remote changes if so — the person should pull first (or consciously
+ * push anyway).
  */
 export async function checkPushSafety(): Promise<RemoteChanges | null> {
   const repo = connectedRepoForCurrentProject();
-  const { token } = useGitHubStore.getState();
-  if (!token || !repo || !repo.lastSyncSha) return null;
+  if (!repo || !repo.lastSyncSha) return null;
+  const token = tokenForRepo(repo);
+  if (!token) return null;
   try {
-    const head = await getBranchHead(token, repo.fullName, repo.branch);
+    const head = await clientForRepo(repo).getBranchHead(token, repo.fullName, repo.branch);
     if (head === repo.lastSyncSha) return null;
     return await checkRemoteChanges();
   } catch {
@@ -245,8 +261,8 @@ const ENV_REF_PATTERNS = [
 ];
 
 /**
- * The tricky part of building in two places: after code arrives from GitHub,
- * is there anything the Builder can't do automatically? These are
+ * The tricky part of building in two places: after code arrives from the
+ * repo, is there anything the Builder can't do automatically? These are
  * deterministic checks — no AI, no guessing — for the known seams.
  */
 export function analyzeActionsNeeded(
@@ -328,6 +344,7 @@ const MAX_LISTED_FILES = 14;
 function buildSyncChatMessage(repo: ConnectedRepo, summary: PullSummary): string {
   const lines: string[] = [];
   const repoName = repo.fullName.split('/')[1] ?? repo.fullName;
+  const forgeName = forgeNameForRepo(repo);
 
   if (summary.fullResync) {
     lines.push(
@@ -365,7 +382,7 @@ function buildSyncChatMessage(repo: ConnectedRepo, summary: PullSummary): string
     lines.push('');
     lines.push(
       `> ⚠️ ${summary.overlaps.length === 1 ? 'One file' : `${summary.overlaps.length} files`} had Builder ` +
-        `changes that hadn't been pushed — the GitHub version won: ` +
+        `changes that hadn't been pushed — the ${forgeName} version won: ` +
         summary.overlaps.map(p => `\`${p.replace(/^\//, '')}\``).join(', ') +
         `. Everything from before the pull is saved as a checkpoint if you need it back.`,
     );

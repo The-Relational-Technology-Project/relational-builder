@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { GitBranch, Loader2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useGitHubStore } from '@/store/github-store';
+import { useSyncStore } from '@/store/sync-store';
 import { useCloudStore } from '@/store/cloud-store';
-import { checkRemoteChanges, pullRemoteChanges } from '@/project/github-sync';
+import { checkRemoteChanges, pullRemoteChanges, forgeNameForRepo } from '@/project/code-sync';
 
 /** Re-check when the tab regains focus, at most this often */
 const FOCUS_THROTTLE_MS = 30_000;
@@ -15,14 +15,15 @@ const POLL_INTERVAL_MS = 4 * 60_000;
  * Claude Code, an editor, a collaborator — and offers to pull them in.
  * Working on your project in both places is normal here, not a workaround.
  */
-export function GitHubChangesBanner() {
-  const token = useGitHubStore(s => s.token);
-  const repos = useGitHubStore(s => s.repos);
-  const remote = useGitHubStore(s => s.remote);
-  const dismissedHead = useGitHubStore(s => s.dismissedHead);
+export function RemoteChangesBanner() {
+  const tokens = useSyncStore(s => s.tokens);
+  const repos = useSyncStore(s => s.repos);
+  const remote = useSyncStore(s => s.remote);
+  const dismissedHead = useSyncStore(s => s.dismissedHead);
   const currentProjectId = useCloudStore(s => s.currentProjectId);
   const repoKey = currentProjectId ?? 'local';
   const repo = repos[repoKey] ?? null;
+  const token = repo ? tokens[repo.forge] : undefined;
 
   const [pulling, setPulling] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,6 +55,8 @@ export function GitHubChangesBanner() {
   if (remote.headSha === dismissedHead) return null;
   if (!remote.fullResync && remote.aheadBy === 0) return null;
 
+  const forgeName = forgeNameForRepo(repo);
+
   const handlePull = async () => {
     setPulling(true);
     setError(null);
@@ -75,13 +78,13 @@ export function GitHubChangesBanner() {
         <GitBranch className="size-4 shrink-0 text-primary" />
         <p className="text-sm flex-1 min-w-0">
           {remote.fullResync ? (
-            <>The repo's history changed on GitHub — pull to refresh your copy.</>
+            <>The repo's history changed on {forgeName} — pull to refresh your copy.</>
           ) : (
             <>
               <span className="font-medium">
                 {remote.aheadBy} new {commitWord}
               </span>{' '}
-              on GitHub{authors.length > 0 && <> from {authors.join(', ')}</>} — pull them in to
+              on {forgeName}{authors.length > 0 && <> from {authors.join(', ')}</>} — pull them in to
               keep building from the latest.
             </>
           )}
@@ -95,7 +98,7 @@ export function GitHubChangesBanner() {
           Pull changes
         </Button>
         <button
-          onClick={() => useGitHubStore.getState().dismissRemote(remote.headSha)}
+          onClick={() => useSyncStore.getState().dismissRemote(remote.headSha)}
           className="text-muted-foreground hover:text-foreground shrink-0"
           title="Later"
         >

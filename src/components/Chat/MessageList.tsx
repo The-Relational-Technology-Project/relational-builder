@@ -451,7 +451,7 @@ function MessageBubble({ message }: { message: DisplayMessage }) {
         {message.isSync && (
           <div className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-primary/80 mb-1.5">
             {message.syncLabel ? <Sparkles className="size-3" /> : <GitBranch className="size-3" />}
-            {message.syncLabel ?? 'Synced from GitHub'}
+            {message.syncLabel ?? 'Synced from your repo'}
           </div>
         )}
         {isUser ? (

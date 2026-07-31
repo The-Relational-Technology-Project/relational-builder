@@ -8,24 +8,25 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useGitHubStore } from '@/store/github-store';
+import { useSyncStore } from '@/store/sync-store';
 import { useProjectStore } from '@/store/project-store';
 import { useCloudStore } from '@/store/cloud-store';
+import { FORGES, forgeClient, type ForgeId, type ForgeRepo } from '@/project/forge';
 import {
-  getUser,
-  listRepos,
-  createRepo,
-  pushFiles,
-  addReltechTopic,
-  type GitHubRepo,
-} from '@/project/github-api';
-import { projectRepoKey, checkPushSafety, pullRemoteChanges } from '@/project/github-sync';
+  projectRepoKey,
+  checkPushSafety,
+  pullRemoteChanges,
+  clientForRepo,
+  tokenForRepo,
+  forgeNameForRepo,
+} from '@/project/code-sync';
 import { generateManifest } from '@/project/export';
 import { needsBuild, materializeSource } from '@/project/build-for-publish';
 import {
   GitBranch,
   ArrowUpFromLine,
   ArrowDownToLine,
+  ArrowLeft,
   Plus,
   Check,
   Loader2,
@@ -34,121 +35,218 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 
-type View = 'connect' | 'repos' | 'connected';
+/** The instance URL a forge connection should use */
+function instanceUrlFor(forge: ForgeId): string {
+  return useSyncStore.getState().instanceUrls[forge] ?? FORGES[forge].defaultBaseUrl ?? '';
+}
 
-export function GitHubSync() {
+export function CodeSync() {
   const [open, setOpen] = useState(false);
-  const token = useGitHubStore(s => s.token);
-  const username = useGitHubStore(s => s.username);
-  const repos = useGitHubStore(s => s.repos);
+  const [forge, setForge] = useState<ForgeId | null>(null);
+  const tokens = useSyncStore(s => s.tokens);
+  const instanceUrls = useSyncStore(s => s.instanceUrls);
+  const repos = useSyncStore(s => s.repos);
   const currentProjectId = useCloudStore(s => s.currentProjectId);
   const connectedRepo = repos[currentProjectId ?? 'local'] ?? null;
 
-  // The token is stored ONCE, globally, and persisted. A saved token alone
-  // means "connected to GitHub" — the username is cosmetic and gets backfilled
-  // in the repo list. Each project still picks its own repo, but the token is
-  // never asked for again. (Previously this also required `username`, so any
-  // persisted state that lost it re-prompted for the token on every project.)
-  void username;
-  const view: View = connectedRepo ? 'connected' : token ? 'repos' : 'connect';
+  // A saved token alone means "connected" to that forge — the username is
+  // cosmetic and gets backfilled in the repo list. Each project still picks
+  // its own repo, but tokens are never asked for again.
+  const view = connectedRepo
+    ? 'connected'
+    : !forge
+      ? 'pick'
+      : !tokens[forge] || (FORGES[forge].needsInstanceUrl && !instanceUrls[forge])
+        ? 'connect'
+        : 'repos';
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={v => {
+        setOpen(v);
+        if (!v) setForge(null);
+      }}
+    >
       <DialogTrigger
         className="inline-flex items-center justify-center gap-1 rounded-md px-3 h-7 text-xs font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
       >
         <GitBranch className="size-3" />
-        {connectedRepo ? connectedRepo.fullName.split('/')[1] : 'GitHub'}
+        {connectedRepo ? connectedRepo.fullName.split('/')[1] : 'Sync'}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {view === 'connect' && 'Connect to GitHub'}
-            {view === 'repos' && 'Select Repository'}
-            {view === 'connected' && 'GitHub Sync'}
+            {view === 'pick' && 'Sync your code'}
+            {view === 'connect' && forge && `Connect to ${FORGES[forge].name}`}
+            {view === 'repos' && 'Select repository'}
+            {view === 'connected' && 'Sync your code'}
           </DialogTitle>
         </DialogHeader>
-        {view === 'connect' && <ConnectView onConnected={() => {}} />}
-        {view === 'repos' && <RepoListView />}
+        {view === 'pick' && <ForgePickerView onPick={setForge} />}
+        {view === 'connect' && forge && (
+          <ConnectView forge={forge} onBack={() => setForge(null)} />
+        )}
+        {view === 'repos' && forge && (
+          <RepoListView forge={forge} onBack={() => setForge(null)} />
+        )}
         {view === 'connected' && <ConnectedView />}
       </DialogContent>
     </Dialog>
   );
 }
 
-// ── Connect View ──────────────────────────────────────────────────────
+// ── Forge Picker ──────────────────────────────────────────────────────
 
-function ConnectView({ onConnected }: { onConnected: () => void }) {
-  const [tokenInput, setTokenInput] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const setToken = useGitHubStore(s => s.setToken);
-  const setUsername = useGitHubStore(s => s.setUsername);
+const FORGE_BLURBS: Record<ForgeId, string> = {
+  github: 'The most common home for code — easiest if collaborators are already there.',
+  gitlab: 'gitlab.com or your own self-managed instance.',
+  forgejo: "A community-run instance on your own infrastructure — you set the rules.",
+};
 
-  const handleConnect = async () => {
-    if (!tokenInput.trim()) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const login = await getUser(tokenInput);
-      setToken(tokenInput);
-      setUsername(login);
-      onConnected();
-    } catch {
-      setError('Invalid token — check that it has repo access');
-    } finally {
-      setLoading(false);
-    }
-  };
+function ForgePickerView({ onPick }: { onPick: (forge: ForgeId) => void }) {
+  const usernames = useSyncStore(s => s.usernames);
+  const tokens = useSyncStore(s => s.tokens);
 
   return (
-    <div className="space-y-4 pt-2">
+    <div className="space-y-3 pt-2">
       <p className="text-sm text-muted-foreground">
         Connect a repo and your project syncs both ways. Edit in Claude Code or any
         editor, push, and the Builder notices — pulling the changes back in and telling
         you if anything (like a migration) needs a hand.
       </p>
+      <p className="text-xs font-medium">Where does your code live?</p>
+      <div className="space-y-1.5">
+        {(Object.keys(FORGES) as ForgeId[]).map(id => (
+          <button
+            key={id}
+            onClick={() => onPick(id)}
+            className="w-full text-left rounded-lg border px-3 py-2.5 hover:bg-muted transition-colors"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">{FORGES[id].name}</span>
+              {tokens[id] && (
+                <span className="text-xs text-muted-foreground">
+                  {usernames[id] ? `Connected as ${usernames[id]}` : 'Connected'}
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5">{FORGE_BLURBS[id]}</p>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Connect View ──────────────────────────────────────────────────────
+
+function ConnectView({ forge, onBack }: { forge: ForgeId; onBack: () => void }) {
+  const meta = FORGES[forge];
+  const [tokenInput, setTokenInput] = useState('');
+  const [urlInput, setUrlInput] = useState(instanceUrlFor(forge));
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const setToken = useSyncStore(s => s.setToken);
+  const setUsername = useSyncStore(s => s.setUsername);
+  const setInstanceUrl = useSyncStore(s => s.setInstanceUrl);
+
+  // Self-hosted forges need an instance URL; GitLab accepts a custom one too
+  const showUrlInput = meta.needsInstanceUrl || forge === 'gitlab';
+  const baseUrl = showUrlInput ? urlInput.trim().replace(/\/$/, '') : '';
+  const canConnect = !!tokenInput.trim() && (!meta.needsInstanceUrl || !!baseUrl);
+
+  const handleConnect = async () => {
+    if (!canConnect) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const client = forgeClient(forge, baseUrl || undefined);
+      const login = await client.getUser(tokenInput.trim());
+      if (showUrlInput && baseUrl) setInstanceUrl(forge, baseUrl);
+      setToken(forge, tokenInput.trim());
+      setUsername(forge, login);
+    } catch (err) {
+      setError(
+        err instanceof Error && meta.needsInstanceUrl
+          ? `${err.message} — self-hosted instances must also allow browser (CORS) access`
+          : 'Invalid token — check that it has repo access',
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const tokenCreateUrl = meta.needsInstanceUrl
+    ? baseUrl && meta.tokenUrl(baseUrl)
+    : meta.tokenUrl(baseUrl || meta.defaultBaseUrl!);
+
+  return (
+    <div className="space-y-4 pt-2">
+      {showUrlInput && (
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium">Instance URL</label>
+          <Input
+            value={urlInput}
+            onChange={e => setUrlInput(e.target.value)}
+            placeholder={forge === 'gitlab' ? 'https://gitlab.com' : 'https://git.example.org'}
+            className="h-8 text-sm"
+          />
+        </div>
+      )}
       <div className="space-y-1.5">
         <label className="text-xs font-medium">Personal access token</label>
         <Input
           type="password"
           value={tokenInput}
           onChange={e => setTokenInput(e.target.value)}
-          placeholder="ghp_..."
+          placeholder={meta.tokenPlaceholder}
           className="h-8 text-sm font-mono"
           onKeyDown={e => e.key === 'Enter' && handleConnect()}
         />
         <p className="text-xs text-muted-foreground">
-          Needs <code className="bg-muted px-1 rounded">repo</code> scope.{' '}
-          <a
-            href="https://github.com/settings/tokens/new?scopes=repo&description=Relational+Builder"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline hover:text-foreground"
-          >
-            Create one
-          </a>
+          {meta.tokenHelp}{' '}
+          {tokenCreateUrl && (
+            <a
+              href={tokenCreateUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-foreground"
+            >
+              Create one
+            </a>
+          )}
         </p>
       </div>
       {error && <p className="text-xs text-destructive">{error}</p>}
-      <Button onClick={handleConnect} disabled={loading || !tokenInput.trim()} className="w-full gap-2">
+      <Button onClick={handleConnect} disabled={loading || !canConnect} className="w-full gap-2">
         {loading ? <Loader2 className="size-4 animate-spin" /> : <GitBranch className="size-4" />}
         Connect
       </Button>
+      <button
+        onClick={onBack}
+        className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="size-3" /> Different service
+      </button>
     </div>
   );
 }
 
 // ── Repo List View ────────────────────────────────────────────────────
 
-function RepoListView() {
-  const token = useGitHubStore(s => s.token);
-  const username = useGitHubStore(s => s.username);
-  const connectRepo = useGitHubStore(s => s.connectRepo);
-  const setUsername = useGitHubStore(s => s.setUsername);
-  const clearAll = useGitHubStore(s => s.clearAll);
+function RepoListView({ forge, onBack }: { forge: ForgeId; onBack: () => void }) {
+  const token = useSyncStore(s => s.tokens[forge]) ?? '';
+  const username = useSyncStore(s => s.usernames[forge]) ?? null;
+  const connectRepo = useSyncStore(s => s.connectRepo);
+  const setUsername = useSyncStore(s => s.setUsername);
+  const signOut = useSyncStore(s => s.signOut);
 
-  const [repos, setRepos] = useState<GitHubRepo[]>([]);
+  const baseUrl = instanceUrlFor(forge);
+  const client = forgeClient(forge, baseUrl || undefined);
+  const meta = FORGES[forge];
+
+  const [repos, setRepos] = useState<ForgeRepo[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState('');
@@ -158,25 +256,28 @@ function RepoListView() {
   const [filter, setFilter] = useState('');
 
   useEffect(() => {
-    listRepos(token)
+    client
+      .listRepos(token)
       .then(setRepos)
       // A saved token that no longer works (expired/revoked) is the one case
       // where we DO need a new token — offer that explicitly.
       .catch(() => { setError('That saved token didn\'t work — it may have expired.'); setBadToken(true); })
       .finally(() => setLoading(false));
-  }, [token]);
+  }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Backfill the display name from the saved token (older sessions persisted a
   // token without it). Cosmetic — never blocks the repo list.
   useEffect(() => {
-    if (!username && token) getUser(token).then(setUsername).catch(() => {});
-  }, [username, token, setUsername]);
+    if (!username && token) client.getUser(token).then(u => setUsername(forge, u)).catch(() => {});
+  }, [username, token, forge, setUsername]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleSelectRepo = (repo: GitHubRepo) => {
+  const connect = (repo: ForgeRepo) => {
     connectRepo(projectRepoKey(), {
-      fullName: repo.full_name,
-      branch: repo.default_branch,
-      htmlUrl: repo.html_url,
+      forge,
+      baseUrl: baseUrl || undefined,
+      fullName: repo.fullName,
+      branch: repo.defaultBranch,
+      htmlUrl: repo.htmlUrl,
       lastSyncSha: null,
     });
   };
@@ -186,15 +287,9 @@ function RepoListView() {
     setCreating(true);
     setError(null);
     try {
-      const repo = await createRepo(token, newName, 'Built with Relational Builder');
-      // Add relational-tech topic
-      await addReltechTopic(token, repo.full_name).catch(() => {});
-      connectRepo(projectRepoKey(), {
-        fullName: repo.full_name,
-        branch: repo.default_branch,
-        htmlUrl: repo.html_url,
-        lastSyncSha: null,
-      });
+      const repo = await client.createRepo(token, newName, 'Built with Relational Builder');
+      await client.addReltechTopic(token, repo.fullName).catch(() => {});
+      connect(repo);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create repo');
     } finally {
@@ -203,25 +298,34 @@ function RepoListView() {
   };
 
   const filtered = filter
-    ? repos.filter(r => r.full_name.toLowerCase().includes(filter.toLowerCase()))
+    ? repos.filter(r => r.fullName.toLowerCase().includes(filter.toLowerCase()))
     : repos;
 
   return (
     <div className="space-y-3 pt-2">
       <div className="flex items-center justify-between">
         <p className="text-xs text-muted-foreground">
-          {username ? <>Signed in as <span className="font-medium text-foreground">{username}</span></> : 'Connected to GitHub'}
+          {username ? (
+            <>Signed in to {meta.name} as <span className="font-medium text-foreground">{username}</span></>
+          ) : (
+            <>Connected to {meta.name}</>
+          )}
         </p>
-        <button onClick={clearAll} className="text-xs text-muted-foreground hover:text-foreground underline">
-          {badToken ? 'Use a different token' : 'Sign out'}
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={onBack} className="text-xs text-muted-foreground hover:text-foreground underline">
+            Different service
+          </button>
+          <button onClick={() => signOut(forge)} className="text-xs text-muted-foreground hover:text-foreground underline">
+            {badToken ? 'Use a different token' : 'Sign out'}
+          </button>
+        </div>
       </div>
 
       {badToken && (
         <div className="rounded-lg border border-amber-500/50 bg-amber-500/10 p-2.5">
           <p className="text-xs">
             Your saved token didn't work — it may have expired or been revoked.{' '}
-            <button onClick={clearAll} className="underline font-medium">Enter a new token</button>.
+            <button onClick={() => signOut(forge)} className="underline font-medium">Enter a new token</button>.
           </p>
         </div>
       )}
@@ -268,13 +372,13 @@ function RepoListView() {
         ) : (
           filtered.map(repo => (
             <button
-              key={repo.full_name}
-              onClick={() => handleSelectRepo(repo)}
+              key={repo.fullName}
+              onClick={() => connect(repo)}
               className="w-full text-left px-2 py-1.5 rounded hover:bg-muted transition-colors"
             >
-              <div className="text-xs font-medium truncate">{repo.full_name}</div>
+              <div className="text-xs font-medium truncate">{repo.fullName}</div>
               <div className="text-xs text-muted-foreground">
-                {repo.private ? 'Private' : 'Public'} · {repo.default_branch}
+                {repo.private ? 'Private' : 'Public'} · {repo.defaultBranch}
               </div>
             </button>
           ))
@@ -287,12 +391,12 @@ function RepoListView() {
 // ── Connected View (Push / Pull) ──────────────────────────────────────
 
 function ConnectedView() {
-  const token = useGitHubStore(s => s.token);
   const currentProjectId = useCloudStore(s => s.currentProjectId);
   const repoKey = currentProjectId ?? 'local';
-  const connectedRepo = useGitHubStore(s => s.repos[repoKey])!;
-  const updateLastSync = useGitHubStore(s => s.updateLastSync);
-  const disconnectRepo = useGitHubStore(s => s.disconnectRepo);
+  const connectedRepo = useSyncStore(s => s.repos[repoKey])!;
+  const updateLastSync = useSyncStore(s => s.updateLastSync);
+  const disconnectRepo = useSyncStore(s => s.disconnectRepo);
+  const forgeName = forgeNameForRepo(connectedRepo);
 
   const getAllFiles = useProjectStore(s => s.getAllFiles);
   const fileCount = useProjectStore(s => s.getFileCount());
@@ -302,7 +406,7 @@ function ConnectedView() {
   const [message, setMessage] = useState('');
   const [commitMsg, setCommitMsg] = useState('Update from Relational Builder');
   const [error, setError] = useState<string | null>(null);
-  // When GitHub is ahead of us, confirm before overwriting
+  // When the repo is ahead of us, confirm before overwriting
   const [pushWarning, setPushWarning] = useState<{ aheadBy: number } | null>(null);
 
   const doPush = useCallback(async () => {
@@ -332,8 +436,8 @@ function ConnectedView() {
           updatedAt: Date.now(),
         });
       }
-      const result = await pushFiles(
-        token,
+      const result = await clientForRepo(connectedRepo).pushFiles(
+        tokenForRepo(connectedRepo),
         connectedRepo.fullName,
         connectedRepo.branch,
         filesToPush,
@@ -346,10 +450,10 @@ function ConnectedView() {
     } finally {
       setPushing(false);
     }
-  }, [token, connectedRepo, commitMsg, getAllFiles, updateLastSync, repoKey]);
+  }, [connectedRepo, commitMsg, getAllFiles, updateLastSync, repoKey]);
 
   const handlePush = useCallback(async () => {
-    // Don't clobber work that landed on GitHub since we last synced
+    // Don't clobber work that landed on the repo since we last synced
     setPushing(true);
     setError(null);
     const remote = await checkPushSafety();
@@ -394,7 +498,7 @@ function ConnectedView() {
             {connectedRepo.fullName} <ExternalLink className="size-2.5" />
           </a>
           <p className="text-xs text-muted-foreground">
-            Branch: {connectedRepo.branch}
+            {forgeName} · Branch: {connectedRepo.branch}
             {connectedRepo.lastSyncSha && (
               <> · Last sync: {connectedRepo.lastSyncSha.slice(0, 7)}</>
             )}
@@ -463,7 +567,7 @@ function ConnectedView() {
           <div className="flex items-start gap-2">
             <AlertTriangle className="size-4 text-amber-600 shrink-0 mt-0.5" />
             <p className="text-xs">
-              GitHub has{' '}
+              {forgeName} has{' '}
               <span className="font-medium">
                 {pushWarning.aheadBy > 0
                   ? `${pushWarning.aheadBy} commit${pushWarning.aheadBy > 1 ? 's' : ''}`

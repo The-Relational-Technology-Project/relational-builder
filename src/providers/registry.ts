@@ -1,5 +1,16 @@
 import type { LLMProvider, ModelInfo } from './types';
-import { createRTPProvider, createTogetherProvider, createOpenAIProvider, createOpenRouterProvider, createGeminiProvider, OpenAICompatibleProvider } from './openai-compatible';
+import {
+  createRTPProvider,
+  createTogetherProvider,
+  createOpenAIProvider,
+  createOpenRouterProvider,
+  createGeminiProvider,
+  createDeepSeekProvider,
+  createZaiProvider,
+  createMoonshotProvider,
+  createMistralProvider,
+  OpenAICompatibleProvider,
+} from './openai-compatible';
 import { ClaudeProvider, CLAUDE_MODELS } from './claude';
 
 export interface ProviderEntry {
@@ -20,10 +31,16 @@ class ProviderRegistry {
     const rtpProvider = createRTPProvider();
     if (rtpProvider) this.register(rtpProvider, 1, false);
 
-    // Tier 2: Other BYOK providers
-    this.register(createGeminiProvider(), 2, true);
-    this.register(createTogetherProvider(), 2, true);
+    // Tier 2: Other BYOK providers. Open-weight-first ordering: the strong
+    // MIT/Apache-licensed labs sit right beside the proprietary ones, and
+    // OpenRouter closes the list as the universal catch-all.
+    this.register(createDeepSeekProvider(), 2, true);
+    this.register(createZaiProvider(), 2, true);
     this.register(createOpenAIProvider(), 2, true);
+    this.register(createGeminiProvider(), 2, true);
+    this.register(createMoonshotProvider(), 2, true);
+    this.register(createMistralProvider(), 2, true);
+    this.register(createTogetherProvider(), 2, true);
     this.register(createOpenRouterProvider(), 2, true);
   }
 

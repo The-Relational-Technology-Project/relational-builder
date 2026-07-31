@@ -219,6 +219,49 @@ export function createMoonshotProvider(): OpenAICompatibleProvider {
   });
 }
 
+/** Pre-configured: DeepSeek direct (open-weight MIT models, lowest frontier prices) */
+export function createDeepSeekProvider(): OpenAICompatibleProvider {
+  return new OpenAICompatibleProvider({
+    id: 'deepseek',
+    name: 'DeepSeek',
+    baseUrl: 'https://api.deepseek.com',
+    defaultModels: [
+      // Stable aliases that track the current release (V4 line)
+      { id: 'deepseek-chat', name: 'DeepSeek Chat', provider: 'deepseek' },
+      { id: 'deepseek-reasoner', name: 'DeepSeek Reasoner', provider: 'deepseek' },
+    ],
+  });
+}
+
+/** Pre-configured: Z.ai (GLM open-weight models via the OpenAI-compatible endpoint) */
+export function createZaiProvider(): OpenAICompatibleProvider {
+  return new OpenAICompatibleProvider({
+    id: 'zai',
+    name: 'Z.ai (GLM)',
+    baseUrl: 'https://api.z.ai/api/paas',
+    apiPath: '/v4',
+    defaultModels: [
+      { id: 'glm-5.2', name: 'GLM-5.2', provider: 'zai' },
+      { id: 'glm-4.7', name: 'GLM-4.7', provider: 'zai' },
+      { id: 'glm-4.7-flash', name: 'GLM-4.7 Flash', provider: 'zai' },
+    ],
+  });
+}
+
+/** Pre-configured: Mistral (Devstral open-weight coding line, European provider) */
+export function createMistralProvider(): OpenAICompatibleProvider {
+  return new OpenAICompatibleProvider({
+    id: 'mistral',
+    name: 'Mistral',
+    baseUrl: 'https://api.mistral.ai',
+    defaultModels: [
+      { id: 'devstral-medium-latest', name: 'Devstral 2', provider: 'mistral' },
+      { id: 'devstral-small-latest', name: 'Devstral Small 2', provider: 'mistral' },
+      { id: 'mistral-large-latest', name: 'Mistral Large', provider: 'mistral' },
+    ],
+  });
+}
+
 /** Pre-configured: Google Gemini (Tier 2 -- BYOK, via Google's OpenAI-compatibility layer) */
 export function createGeminiProvider(): OpenAICompatibleProvider {
   return new OpenAICompatibleProvider({

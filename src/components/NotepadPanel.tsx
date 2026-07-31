@@ -7,7 +7,7 @@ import { useAuthStore } from '@/store/auth-store';
 import { draftProjectStory, storyPhotos, stripPhotoEmbeds } from '@/project/draft-story';
 import { embeddedPhotoNumbers, canSharePhotos, bodyWithHostedPhotos } from '@/project/story-photos';
 import { submitToCommons } from '@/project/commons-submit';
-import { connectedRepoForCurrentProject } from '@/project/github-sync';
+import { connectedRepoForCurrentProject } from '@/project/code-sync';
 import { fileToDataUrl, isImageFile } from '@/lib/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

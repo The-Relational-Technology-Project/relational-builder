@@ -7,9 +7,7 @@ import { useCloudStore } from '@/store/cloud-store';
 import { useLocalProjects } from '@/project/local-projects';
 import { useNotepadStore } from '@/store/notepad-store';
 import { useBuildLogStore, type BuildEvent } from '@/report/build-log';
-import { useGitHubStore } from '@/store/github-store';
-import { connectedRepoForCurrentProject } from '@/project/github-sync';
-import { listCommits } from '@/project/github-api';
+import { connectedRepoForCurrentProject, clientForRepo, tokenForRepo } from '@/project/code-sync';
 import { detectProjectOutputs } from '@/project/commons-submit';
 
 /**
@@ -186,13 +184,13 @@ export function composeStoryRecord(): string {
   return parts.join('\n');
 }
 
-/** Best-effort commit history — GitHub is optional, and a failed fetch is just an absent section */
+/** Best-effort commit history — a repo is optional, and a failed fetch is just an absent section */
 async function commitHistorySection(): Promise<string> {
   const repo = connectedRepoForCurrentProject();
-  const token = useGitHubStore.getState().token;
+  const token = repo ? tokenForRepo(repo) : '';
   if (!repo || !token) return '';
   try {
-    const commits = await listCommits(token, repo.fullName, repo.branch, 30);
+    const commits = await clientForRepo(repo).listCommits(token, repo.fullName, repo.branch, 30);
     if (commits.length === 0) return '';
     return [
       '',

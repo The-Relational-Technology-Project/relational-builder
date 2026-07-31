@@ -242,7 +242,7 @@ const FAQ_ITEMS: { q: string; a: string }[] = [
   },
   {
     q: 'Who owns what I build?',
-    a: "You own what you build. Every project can be exported as code, synced to your own GitHub, published to your own hosting, or distilled into a prompt you can take anywhere. The Builder itself is open-source under MIT (find the repo on GitHub). We also have a roadmap toward community stewardship of the Builder and other tools we're building.",
+    a: "You own what you build. Every project can be exported as code, synced to your own repository — GitHub, GitLab, or a community-run forge — published to your own hosting, or distilled into a prompt you can take anywhere. The Builder itself is open-source under MIT (find the repo on GitHub). We also have a roadmap toward community stewardship of the Builder and other tools we're building.",
   },
   {
     q: 'Is it a good idea to use AI to advance human flourishing?',

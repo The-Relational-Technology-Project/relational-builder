@@ -1,15 +1,18 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { RemoteCommit, RemoteFileChange } from '@/project/github-api';
+import type { ForgeId, RemoteCommit, RemoteFileChange } from '@/project/forge/types';
 
 export interface ConnectedRepo {
+  forge: ForgeId;
+  /** Instance base URL for self-hosted forges; unset for the hosted default */
+  baseUrl?: string;
   fullName: string;
   branch: string;
   htmlUrl: string;
   lastSyncSha: string | null;
 }
 
-/** What's sitting on GitHub that the Builder hasn't seen yet */
+/** What's sitting on the repo that the Builder hasn't seen yet */
 export interface RemoteChanges {
   headSha: string;
   aheadBy: number;
@@ -19,9 +22,12 @@ export interface RemoteChanges {
   fullResync: boolean;
 }
 
-interface GitHubState {
-  token: string;
-  username: string | null;
+interface SyncState {
+  /** One saved token per forge (Forgejo's belongs to its instanceUrl) */
+  tokens: Partial<Record<ForgeId, string>>;
+  usernames: Partial<Record<ForgeId, string>>;
+  /** Instance URLs for self-hosted forges, remembered per forge */
+  instanceUrls: Partial<Record<ForgeId, string>>;
   /** Repo connection per project — keyed by cloud project id, or 'local' */
   repos: Record<string, ConnectedRepo>;
 
@@ -34,8 +40,11 @@ interface GitHubState {
   /** True while a pull is applying files (suppresses cloud auto-save echo churn) */
   pulling: boolean;
 
-  setToken: (token: string) => void;
-  setUsername: (username: string) => void;
+  setToken: (forge: ForgeId, token: string) => void;
+  setUsername: (forge: ForgeId, username: string) => void;
+  setInstanceUrl: (forge: ForgeId, url: string) => void;
+  /** Forget one forge's token and its projects' repo connections */
+  signOut: (forge: ForgeId) => void;
   connectRepo: (key: string, repo: ConnectedRepo) => void;
   disconnectRepo: (key: string) => void;
   updateLastSync: (key: string, sha: string) => void;
@@ -45,14 +54,14 @@ interface GitHubState {
   setCheckingRemote: (checking: boolean) => void;
   dismissRemote: (headSha: string) => void;
   setPulling: (pulling: boolean) => void;
-  clearAll: () => void;
 }
 
-export const useGitHubStore = create<GitHubState>()(
+export const useSyncStore = create<SyncState>()(
   persist(
     (set) => ({
-      token: '',
-      username: null,
+      tokens: {},
+      usernames: {},
+      instanceUrls: {},
       repos: {},
 
       remote: null,
@@ -61,8 +70,24 @@ export const useGitHubStore = create<GitHubState>()(
       dismissedHead: null,
       pulling: false,
 
-      setToken: (token) => set({ token }),
-      setUsername: (username) => set({ username }),
+      setToken: (forge, token) =>
+        set((s) => ({ tokens: { ...s.tokens, [forge]: token } })),
+      setUsername: (forge, username) =>
+        set((s) => ({ usernames: { ...s.usernames, [forge]: username } })),
+      setInstanceUrl: (forge, url) =>
+        set((s) => ({ instanceUrls: { ...s.instanceUrls, [forge]: url } })),
+
+      signOut: (forge) =>
+        set((s) => {
+          const tokens = { ...s.tokens };
+          const usernames = { ...s.usernames };
+          delete tokens[forge];
+          delete usernames[forge];
+          const repos = Object.fromEntries(
+            Object.entries(s.repos).filter(([, r]) => r.forge !== forge),
+          );
+          return { tokens, usernames, repos, remote: null, dismissedHead: null };
+        }),
 
       connectRepo: (key, repo) =>
         set((s) => ({ repos: { ...s.repos, [key]: repo }, remote: null, dismissedHead: null })),
@@ -94,13 +119,12 @@ export const useGitHubStore = create<GitHubState>()(
       setCheckingRemote: (checkingRemote) => set({ checkingRemote }),
       dismissRemote: (headSha) => set({ dismissedHead: headSha }),
       setPulling: (pulling) => set({ pulling }),
-
-      clearAll: () =>
-        set({ token: '', username: null, repos: {}, remote: null, dismissedHead: null }),
     }),
     {
+      // Historical key — this store began GitHub-only, and renaming it
+      // would orphan everyone's saved tokens and repo connections.
       name: 'relational-builder-github',
-      version: 1,
+      version: 2,
       migrate: (persisted: unknown, version: number) => {
         const state = persisted as Record<string, unknown>;
         if (version === 0 && state?.connectedRepo) {
@@ -108,13 +132,26 @@ export const useGitHubStore = create<GitHubState>()(
           state.repos = { local: state.connectedRepo };
           delete state.connectedRepo;
         }
-        return state as unknown as GitHubState;
+        if (version <= 1) {
+          // GitHub-only era: one token/username, repos without a forge
+          state.tokens = state.token ? { github: state.token } : {};
+          state.usernames = state.username ? { github: state.username } : {};
+          state.instanceUrls = {};
+          delete state.token;
+          delete state.username;
+          const repos = (state.repos ?? {}) as Record<string, ConnectedRepo>;
+          for (const key of Object.keys(repos)) {
+            repos[key] = { ...repos[key], forge: repos[key].forge ?? 'github' };
+          }
+        }
+        return state as unknown as SyncState;
       },
       partialize: (state) => ({
-        token: state.token,
-        username: state.username,
+        tokens: state.tokens,
+        usernames: state.usernames,
+        instanceUrls: state.instanceUrls,
         repos: state.repos,
-      } as unknown as GitHubState),
+      } as unknown as SyncState),
     },
   ),
 );

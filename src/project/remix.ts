@@ -2,7 +2,7 @@ import { getRepoInfo, pullFiles } from './github-api';
 import { useProjectStore } from '@/store/project-store';
 import { useChatStore } from '@/store/chat-store';
 import { useCloudStore } from '@/store/cloud-store';
-import { useGitHubStore } from '@/store/github-store';
+import { useSyncStore } from '@/store/sync-store';
 import { stashAndStartFresh } from '@/project/local-projects';
 
 /**
@@ -47,7 +47,7 @@ export async function remixRepo(repoRef: string): Promise<RemixResult> {
   if (!fullName) throw new Error('Paste a GitHub repo URL or owner/name');
 
   // The user's GitHub token (if connected) lifts the unauthenticated rate limit
-  const token = useGitHubStore.getState().token ?? '';
+  const token = useSyncStore.getState().tokens.github ?? '';
 
   const repo = await getRepoInfo(fullName, token);
   const { files } = await pullFiles(token, fullName, repo.default_branch);

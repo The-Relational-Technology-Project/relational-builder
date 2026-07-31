@@ -4,7 +4,7 @@ import { ChatPanel } from '@/components/Chat/ChatPanel';
 import { RightPanel } from '@/components/RightPanel';
 import { ResizableLayout } from '@/components/ResizableLayout';
 import { ShareMenu } from '@/components/ShareMenu';
-import { GitHubSync } from '@/components/GitHubSync';
+import { CodeSync } from '@/components/CodeSync';
 import { useProviderStore } from '@/store/provider-store';
 import { useProjectStore } from '@/store/project-store';
 import { useChatStore } from '@/store/chat-store';
@@ -180,9 +180,9 @@ function App() {
             Gallery
           </Button>
           <ProjectsButton />
-          {/* GitHub belongs with the code — surface it once there's a project
+          {/* Code sync belongs with the code — surface it once there is a project
               to sync, not on the home/network screens. */}
-          {hasProject && <GitHubSync />}
+          {hasProject && <CodeSync />}
           {/* Publish, Prompt, preview links, and collaborators live behind
               one Share door — the header's single primary action.
               (Connections moved to the account menu.) */}
@@ -255,7 +255,7 @@ function App() {
             </Button>
             <ProjectsButton mobile />
             {hasProject && <ShareMenu mobile />}
-            {hasProject && <GitHubSync />}
+            {hasProject && <CodeSync />}
           </div>
           <div className="flex items-center gap-1.5 pt-1 border-t">
             {showStandaloneSettings && <ThemeToggle />}

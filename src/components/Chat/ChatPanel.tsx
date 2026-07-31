@@ -38,7 +38,7 @@ import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { Button } from '@/components/ui/button';
 import { HomeDashboard } from '@/components/HomeDashboard';
-import { GitHubChangesBanner } from '@/components/GitHubChangesBanner';
+import { RemoteChangesBanner } from '@/components/RemoteChangesBanner';
 import { CommunityBudgetBanner } from '@/components/CommunityBudgetBanner';
 
 /** An unterminated fence means the reply was cut off mid-file */
@@ -785,7 +785,7 @@ export function ChatPanel() {
   return (
     <div className="flex flex-col h-full">
       <MessageList messages={messages} onBuildPlan={handleBuildPlan} isGenerating={isGenerating} />
-      {!isGenerating && <GitHubChangesBanner />}
+      {!isGenerating && <RemoteChangesBanner />}
       {!isGenerating && <BuildRecovery />}
       {!isGenerating && <RetryBanner onRetry={handleSend} />}
       {/* Always mounted: the card itself picks its calm moment to appear
