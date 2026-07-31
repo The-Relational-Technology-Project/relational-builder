@@ -106,6 +106,27 @@ export async function compareCommits(
   return { commits, files };
 }
 
+/** Recent commits on a branch, newest first (for the Project Story timeline) */
+export async function listCommits(
+  token: string,
+  repoFullName: string,
+  branch: string,
+  limit = 30,
+): Promise<RemoteCommit[]> {
+  const res = await fetch(
+    `${API}/repos/${repoFullName}/commits?sha=${encodeURIComponent(branch)}&per_page=${limit}`,
+    { headers: headers(token) },
+  );
+  if (!res.ok) throw new Error(`Failed to list commits (${res.status})`);
+  const data = await res.json();
+  return (data as { sha: string; commit: { message: string; author?: { name?: string; date?: string } } }[]).map(c => ({
+    sha: c.sha,
+    message: c.commit.message.split('\n')[0],
+    author: c.commit.author?.name ?? 'unknown',
+    date: c.commit.author?.date ?? '',
+  }));
+}
+
 /** Extensions the virtual file system can't hold — skip when pulling */
 const BINARY_EXT = /\.(png|jpe?g|gif|webp|avif|ico|woff2?|ttf|otf|eot|mp[34]|webm|wav|zip|gz|pdf)$/i;
 

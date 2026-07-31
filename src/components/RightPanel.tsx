@@ -4,16 +4,19 @@ import { PreviewPanel } from './PreviewPanel';
 import { EnvPanel } from './EnvPanel';
 import { IntegrationsPanel } from './IntegrationsPanel';
 import { CloudPanel } from './CloudPanel';
+import { NotepadPanel } from './NotepadPanel';
 import { useProjectStore } from '@/store/project-store';
 import { useEnvStore } from '@/store/env-store';
+import { useNotepadStore } from '@/store/notepad-store';
 import { getConnectedIntegrations, communityCloudConnected } from '@/integrations/catalog';
-import { Eye, Code, KeyRound, Plug, Cloud } from 'lucide-react';
+import { Eye, Code, KeyRound, NotebookPen, Plug, Cloud } from 'lucide-react';
 
-type Tab = 'preview' | 'files' | 'cloud' | 'services' | 'env';
+type Tab = 'preview' | 'files' | 'cloud' | 'services' | 'notepad' | 'env';
 
 export function RightPanel() {
   const version = useProjectStore(s => s.version);
   const fileCount = useProjectStore(s => s.getFileCount());
+  const noteCount = useNotepadStore(s => s.notes.length);
   const envVars = useEnvStore(s => s.vars);
   const envCount = envVars.length;
   const connectedCount = getConnectedIntegrations(envVars).length;
@@ -62,6 +65,13 @@ export function RightPanel() {
           label="Services"
           badge={connectedCount > 0 ? connectedCount : undefined}
         />
+        <TabButton
+          active={activeTab === 'notepad'}
+          onClick={() => setActiveTab('notepad')}
+          icon={<NotebookPen className="size-3" />}
+          label="Notepad"
+          badge={noteCount > 0 ? noteCount : undefined}
+        />
         {showEnvTab && (
           <TabButton
             active={activeTab === 'env'}
@@ -79,6 +89,7 @@ export function RightPanel() {
         {activeTab === 'files' && <FilePanel />}
         {activeTab === 'cloud' && <CloudPanel />}
         {activeTab === 'services' && <IntegrationsPanel />}
+        {activeTab === 'notepad' && <NotepadPanel />}
         {activeTab === 'env' && <EnvPanel />}
       </div>
     </div>

@@ -1,7 +1,11 @@
 import { useProjectStore } from '@/store/project-store';
 import { useChatStore } from '@/store/chat-store';
 import { useAuthStore } from '@/store/auth-store';
-import { useCloudStore, readCloudAttachment } from '@/store/cloud-store';
+import {
+  useCloudStore, readCloudAttachment,
+  notepadColumnKnownMissing, markNotepadColumnMissing,
+} from '@/store/cloud-store';
+import { useNotepadStore } from '@/store/notepad-store';
 import { useLocalProjects } from '@/project/local-projects';
 import { builderClient } from '@/cloud/builder-client';
 
@@ -76,6 +80,7 @@ export async function migrateShelfToCloud(): Promise<void> {
     if (cloudNames.has(meta.name.trim().toLowerCase())) continue;
     let snapshot: {
       name: string; files: unknown; chat: unknown; mode: unknown; lineage: unknown;
+      notepad?: unknown;
     } | null = null;
     try {
       const raw = localStorage.getItem(`rb-local-project:${meta.id}`);
@@ -85,15 +90,22 @@ export async function migrateShelfToCloud(): Promise<void> {
     }
     if (!snapshot) continue;
 
-    const { error } = await builderClient.from('projects').insert({
-      owner_id: user.id,
-      name: meta.name,
-      files: snapshot.files ?? [],
-      chat: snapshot.chat ?? [],
-      mode: snapshot.mode ?? 'build',
-      lineage: snapshot.lineage ?? null,
-      updated_by: user.id,
-    });
+    const insertRow = (withNotepad: boolean) =>
+      builderClient!.from('projects').insert({
+        owner_id: user.id,
+        name: meta!.name,
+        files: snapshot!.files ?? [],
+        chat: snapshot!.chat ?? [],
+        mode: snapshot!.mode ?? 'build',
+        lineage: snapshot!.lineage ?? null,
+        ...(withNotepad ? { notepad: snapshot!.notepad ?? null } : {}),
+        updated_by: user.id,
+      });
+    let { error } = await insertRow(!notepadColumnKnownMissing());
+    if (error && /notepad/i.test(error.message) && /column|schema/i.test(error.message)) {
+      markNotepadColumnMissing();
+      ({ error } = await insertRow(false));
+    }
     if (error) {
       // Offline or rejected — leave the slot for a later session
       migrated = false;
@@ -122,6 +134,12 @@ export function initCloudSync() {
     if (state.messages !== prev.messages || state.mode !== prev.mode) {
       // Skip token-by-token streaming updates; save once generation finishes
       if (state.isGenerating) return;
+      scheduleSave();
+    }
+  });
+
+  useNotepadStore.subscribe((state, prev) => {
+    if (state.notes !== prev.notes || state.story !== prev.story) {
       scheduleSave();
     }
   });
