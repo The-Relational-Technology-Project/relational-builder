@@ -1,0 +1,189 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "v1",
+  "gitCommit": "87f3b11",
+  "createdAt": "2026-07-31T01:01:38.272Z",
+  "runId": "2026-07-31T00-27-87f3b11",
+  "config": {
+    "trials": 2,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null
+  },
+  "models": [
+    {
+      "alias": "kimi-k3-direct",
+      "providerId": "moonshot",
+      "modelId": "kimi-k3",
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "mutual-aid-board",
+      "version": "v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "kimi-k3-direct",
+      "providerId": "moonshot",
+      "modelId": "kimi-k3",
+      "taskId": "mutual-aid-board",
+      "taskVersion": "v1",
+      "trial": 1,
+      "startedAt": "2026-07-31T00:27:14.866Z",
+      "plan": null,
+      "latencyMs": 1019609,
+      "ttftMs": 505679,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 595832,
+          "chars": 12291
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 249964,
+          "chars": 12528
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 173809,
+          "chars": 22737
+        }
+      ],
+      "continuations": 2,
+      "truncatedFinal": false,
+      "outputChars": 47556,
+      "estTokens": {
+        "input": 38720,
+        "output": 11889,
+        "estimated": true
+      },
+      "estCostUsd": null,
+      "extraction": {
+        "writes": 14,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/mutual-aid-board/kimi-k3-direct-t1",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "kimi-k3-direct",
+      "providerId": "moonshot",
+      "modelId": "kimi-k3",
+      "taskId": "mutual-aid-board",
+      "taskVersion": "v1",
+      "trial": 2,
+      "startedAt": "2026-07-31T00:44:14.753Z",
+      "plan": null,
+      "latencyMs": 1043007,
+      "ttftMs": 469792,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 576923,
+          "chars": 14653
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 84637,
+          "chars": 9436
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 381443,
+          "chars": 35390
+        }
+      ],
+      "continuations": 2,
+      "truncatedFinal": false,
+      "outputChars": 59479,
+      "estTokens": {
+        "input": 39137,
+        "output": 14870,
+        "estimated": true
+      },
+      "estCostUsd": null,
+      "extraction": {
+        "writes": 14,
+        "editBlocks": 4,
+        "failedEditBlocks": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/mutual-aid-board/kimi-k3-direct-t2",
+      "fixRound": null,
+      "error": null
+    }
+  ]
+}
