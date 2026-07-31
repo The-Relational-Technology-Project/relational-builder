@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useProviderStore } from '@/store/provider-store';
-import { useKnowledgeStore } from '@/store/knowledge-store';
 import { useCommunityStore } from '@/store/community-store';
 import { registry } from '@/providers/registry';
 import {
@@ -15,7 +14,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ChevronDown, ChevronRight, BookOpen, Radio, Loader2, AlertTriangle, RefreshCw } from 'lucide-react';
 
 /** Covered models, in the order the community proxy prefers them */
 const COMMUNITY_MODEL_NAMES = 'Claude Opus 5 (the default builder), Fable 5, Opus 4.8, Sonnet 5, and Haiku 4.5';
@@ -43,7 +41,6 @@ export function ProviderSettings({ open: controlledOpen, onOpenChange, hideTrigg
   const open = controlledOpen ?? internalOpen;
   const setOpen = onOpenChange ?? setInternalOpen;
   const [keyInputs, setKeyInputs] = useState<Record<string, string>>({});
-  const [showKB, setShowKB] = useState(false);
 
   const entries = registry.getAllEntries();
   const freeEntries = entries.filter(e => e.tier === 1);
@@ -59,13 +56,6 @@ export function ProviderSettings({ open: controlledOpen, onOpenChange, hideTrigg
   const communityInUse = communityActive && activeProviderId === 'claude' && !claudeKeySet;
   const rowActive = (id: string) =>
     activeProviderId === id && !(id === 'claude' && communityInUse);
-
-  const tools = useKnowledgeStore(s => s.tools);
-  const stories = useKnowledgeStore(s => s.stories);
-  const networkEntries = useKnowledgeStore(s => s.networkEntries);
-  const kbLoading = useKnowledgeStore(s => s.loading);
-  const kbError = useKnowledgeStore(s => s.error);
-  const loadAll = useKnowledgeStore(s => s.loadAll);
 
   useEffect(() => {
     const inputs: Record<string, string> = {};
@@ -222,66 +212,6 @@ export function ProviderSettings({ open: controlledOpen, onOpenChange, hideTrigg
             </div>
             ))}
           </div>
-        </div>
-
-        <Separator className="my-2" />
-
-        {/* Knowledge Base */}
-        <div className="space-y-3">
-          <button
-            onClick={() => setShowKB(!showKB)}
-            className="flex items-center gap-2 text-sm font-semibold hover:text-foreground transition-colors w-full text-left"
-          >
-            {showKB ? <ChevronDown className="size-3.5" /> : <ChevronRight className="size-3.5" />}
-            <BookOpen className="size-3.5" />
-            RTP Knowledge Base
-            {!kbLoading && !kbError && (
-              <span className="text-xs font-normal text-muted-foreground">
-                ({tools.length} tools, {stories.length} stories)
-              </span>
-            )}
-          </button>
-
-          {showKB && (
-            <div className="pl-6 space-y-2">
-              {kbLoading && (
-                <div className="flex items-center gap-2 text-xs text-muted-foreground py-2">
-                  <Loader2 className="size-3 animate-spin" />
-                  Loading knowledge base...
-                </div>
-              )}
-              {kbError && (
-                <div className="flex items-center gap-2 text-xs py-2">
-                  <AlertTriangle className="size-3 text-amber-500" />
-                  <span className="text-muted-foreground">{kbError}</span>
-                  <button
-                    onClick={() => {
-                      useKnowledgeStore.setState({ loaded: false, error: null });
-                      loadAll();
-                    }}
-                    className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground underline"
-                  >
-                    <RefreshCw className="size-3" />
-                    Retry
-                  </button>
-                </div>
-              )}
-              {!kbLoading && !kbError && (
-                <>
-                  <div className="text-xs text-muted-foreground">
-                    {tools.length} tools and {stories.length} stories loaded from the RTP library.
-                    Relevant context is automatically injected into AI prompts.
-                  </div>
-                  {networkEntries.length > 0 && (
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <Radio className="size-3" />
-                      {networkEntries.length} recent network updates
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          )}
         </div>
       </DialogContent>
     </Dialog>
