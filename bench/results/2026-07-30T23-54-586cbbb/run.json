@@ -1,0 +1,209 @@
+{
+  "harnessVersion": "1.1.1",
+  "taskVersion": "v1",
+  "gitCommit": "586cbbb",
+  "createdAt": "2026-07-31T00:25:07.653Z",
+  "runId": "2026-07-30T23-54-586cbbb",
+  "config": {
+    "trials": 2,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null
+  },
+  "models": [
+    {
+      "alias": "kimi-k3-direct",
+      "providerId": "moonshot",
+      "modelId": "kimi-k3",
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "mutual-aid-board",
+      "version": "v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "kimi-k3-direct",
+      "providerId": "moonshot",
+      "modelId": "kimi-k3",
+      "taskId": "mutual-aid-board",
+      "taskVersion": "v1",
+      "trial": 1,
+      "startedAt": "2026-07-30T23:54:29.244Z",
+      "plan": null,
+      "latencyMs": 989412,
+      "ttftMs": 532217,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 583592,
+          "chars": 8325
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 232643,
+          "chars": 15280
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 72238,
+          "chars": 9736
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 100927,
+          "chars": 16125
+        }
+      ],
+      "continuations": 3,
+      "truncatedFinal": false,
+      "outputChars": 49466,
+      "estTokens": {
+        "input": 55745,
+        "output": 12367,
+        "estimated": true
+      },
+      "estCostUsd": null,
+      "extraction": {
+        "writes": 11,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": false,
+        "errors": [
+          "vfs:/src/main.tsx:2: Could not find \"@/App\" in the project (imported from /src/main.tsx)",
+          "vfs:/src/main.tsx:3: Could not find \"@/index.css\" in the project (imported from /src/main.tsx)"
+        ]
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": false
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": false
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/mutual-aid-board/kimi-k3-direct-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "No entry module found (no index.html module script or /src/main.tsx)"
+        ],
+        "solved": false,
+        "latencyMs": 19075,
+        "remainingErrors": [
+          "vfs:/src/main.tsx:2: Could not find \"@/App\" in the project (imported from /src/main.tsx)",
+          "vfs:/src/main.tsx:3: Could not find \"@/index.css\" in the project (imported from /src/main.tsx)"
+        ],
+        "estCostUsd": null
+      },
+      "error": null
+    },
+    {
+      "alias": "kimi-k3-direct",
+      "providerId": "moonshot",
+      "modelId": "kimi-k3",
+      "taskId": "mutual-aid-board",
+      "taskVersion": "v1",
+      "trial": 2,
+      "startedAt": "2026-07-31T00:11:17.788Z",
+      "plan": null,
+      "latencyMs": 829555,
+      "ttftMs": 291419,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 384765,
+          "chars": 12583
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 243785,
+          "chars": 12529
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 201002,
+          "chars": 18073
+        }
+      ],
+      "continuations": 2,
+      "truncatedFinal": false,
+      "outputChars": 43185,
+      "estTokens": {
+        "input": 38865,
+        "output": 10797,
+        "estimated": true
+      },
+      "estCostUsd": null,
+      "extraction": {
+        "writes": 13,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/mutual-aid-board/kimi-k3-direct-t2",
+      "fixRound": null,
+      "error": null
+    }
+  ]
+}
