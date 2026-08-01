@@ -70,6 +70,7 @@ export function extractOperations(markdown: string): ExtractionResult {
       const fenceArgs = fenceMatch[2] || '';
 
       // Collect code block content
+      const openIndex = i;
       const codeLines: string[] = [];
       i++;
       while (i < lines.length && !lines[i].startsWith('```')) {
@@ -86,10 +87,13 @@ export function extractOperations(markdown: string): ExtractionResult {
       // Skip empty code blocks
       if (!content.trim()) continue;
 
-      // Try to find filename
+      // Try to find filename. Anchor on THIS fence: lines.indexOf(line) finds
+      // the first line with the same text, so a second plain ```ts fence read
+      // the wrong preceding lines and its file was silently dropped — a lost
+      // file costs a whole recovery pass.
       const filename =
         parseFilenameFromFenceArgs(fenceArgs) ??
-        parseFilenameFromPrecedingLines(lines, lines.indexOf(line));
+        parseFilenameFromPrecedingLines(lines, openIndex);
 
       if (!filename) continue;
 
@@ -240,6 +244,71 @@ export class IncrementalExtractor {
     this.lastProcessedLength = 0;
     this.extractedPaths.clear();
   }
+}
+
+/**
+ * Replace filename-annotated code blocks with one-line placeholders, for
+ * re-sending chat history to the model.
+ *
+ * Every send carries the recent conversation verbatim AND a Current Project
+ * Files snapshot the instructions call authoritative — so a build reply's
+ * code goes up twice, and a chunked build re-sends all of it on every pass.
+ * A real 19-file build ran seven passes: by the end each request carried
+ * ~3,500 lines of generated code in duplicate, and the duplicate half was
+ * the largest line item on the bill. Collapsing history keeps what the
+ * conversation is actually for — what was asked, what got built, what
+ * changed — and drops the bytes the snapshot already carries.
+ *
+ * Only annotated blocks collapse. An illustrative snippet with no filename
+ * never reached the project, so it isn't in the snapshot and it stays.
+ */
+export function collapseFileBlocks(markdown: string): string {
+  if (!markdown.includes('```')) return markdown;
+
+  const lines = markdown.split('\n');
+  const out: string[] = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const fenceMatch = lines[i].match(/^```(\w*)\s*(.*)?$/);
+    if (!fenceMatch) {
+      out.push(lines[i]);
+      i++;
+      continue;
+    }
+
+    const language = fenceMatch[1] || 'text';
+    const fenceArgs = fenceMatch[2] || '';
+    const openIndex = i;
+    const codeLines: string[] = [];
+    i++;
+    while (i < lines.length && !lines[i].startsWith('```')) {
+      codeLines.push(lines[i]);
+      i++;
+    }
+    const closed = i < lines.length;
+    i++; // skip the closing fence
+
+    const filename =
+      parseFilenameFromFenceArgs(fenceArgs) ??
+      parseFilenameFromPrecedingLines(lines, openIndex);
+
+    if (!filename) {
+      out.push(lines[openIndex], ...codeLines);
+      if (closed) out.push('```');
+      continue;
+    }
+
+    // An unterminated block is a reply that was cut off mid-file — the
+    // continuation re-outputs it whole, so the partial text is dead weight
+    out.push(
+      closed
+        ? `⟨${language === 'edit' ? 'edit to' : 'file'} ${filename} — ${codeLines.length} lines, already applied to the project⟩`
+        : `⟨file ${filename} — cut off mid-file after ${codeLines.length} lines⟩`,
+    );
+  }
+
+  return out.join('\n');
 }
 
 // --- Internal helpers ---

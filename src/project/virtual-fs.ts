@@ -58,6 +58,26 @@ export class VirtualFS {
     );
   }
 
+  /**
+   * Files oldest-first, for the prompt's project snapshot.
+   *
+   * The snapshot is its own prompt-cache segment, and caching matches on
+   * byte PREFIX. Alphabetical order scatters each pass's new files through
+   * the middle of the list, so a chunked build re-pays a cache write for
+   * everything after the first new path — on every pass. Write order makes
+   * new files append instead, leaving the prefix byte-identical and cheap
+   * to re-read. Path is the tie-break so files written in the same
+   * millisecond keep a stable order between sends.
+   */
+  getFilesInWriteOrder(): FileEntry[] {
+    return Array.from(this.files.values()).sort(
+      (a, b) =>
+        // Projects restored from before createdAt existed fall back to
+        // alphabetical rather than sorting on NaN
+        (a.createdAt ?? 0) - (b.createdAt ?? 0) || a.path.localeCompare(b.path),
+    );
+  }
+
   /** Clear all files */
   clear(): void {
     this.files.clear();

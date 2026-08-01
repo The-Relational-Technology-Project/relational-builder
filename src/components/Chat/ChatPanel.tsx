@@ -332,7 +332,11 @@ export function ChatPanel() {
       s.aiGuidance,
     );
     if (communityCloudConnected(envVars)) serviceGuidance.unshift(COMMUNITY_CLOUD_GUIDANCE);
-    const projectFiles = useProjectStore.getState().getAllFiles()
+    // Write order, not alphabetical: the snapshot is a prompt-cache segment
+    // and caching matches on prefix, so new files must append (see
+    // getFilesInWriteOrder). Alphabetical made every chunked-build pass
+    // re-pay for the whole snapshot.
+    const projectFiles = useProjectStore.getState().getFilesInWriteOrder()
       .map(f => ({ path: f.path, content: f.content }));
     const activeStudio = useStudioStore.getState().activeStudio;
     // The active studio's approved shelf — RLS already scoped the loaded
@@ -714,7 +718,7 @@ export function ChatPanel() {
   const handleBuildPlan = useCallback(() => {
     setMode('build');
     handleSend(
-      'Build the app described in the plan above. Generate complete, working files with filename annotations, following the plan\'s features, look & feel, pages, and data decisions.',
+      'Build the first version of the app described in the plan above — the plan\'s First-build features, not its Later ones. Generate complete, working files with filename annotations, following the plan\'s look & feel and data decisions. End by naming, in one line, what you left for the next pass.',
     );
   }, [setMode, handleSend]);
 

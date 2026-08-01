@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { ChatMessage } from '@/providers/types';
 import { buildSystemPrompt } from '@/knowledge/context-builder';
+import { collapseFileBlocks } from '@/project/code-extractor';
 
 export type ChatMode = 'plan' | 'build';
 
@@ -363,11 +364,15 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
 
     let injectedNote = false;
     for (const msg of window) {
+      // A reply's own code is already in the project snapshot — send the
+      // conversation, not a second copy of every file (see collapseFileBlocks)
+      const body =
+        msg.role === 'assistant' ? collapseFileBlocks(msg.content) : msg.content;
       // Prefix the omission note onto the first user message in the window
       const text =
         !injectedNote && omittedNote && msg.role === 'user'
-          ? ((injectedNote = true), `${omittedNote}\n\n${msg.content}`)
-          : msg.content;
+          ? ((injectedNote = true), `${omittedNote}\n\n${body}`)
+          : body;
 
       if (msg.attachments?.length) {
         chatMsgs.push({
