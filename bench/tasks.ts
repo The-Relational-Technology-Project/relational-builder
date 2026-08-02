@@ -6,6 +6,7 @@ import {
   TASK_VERSION,
   type TaskCheck,
 } from './task';
+import { EDIT_SEED_FILES, EDIT_SEED_VERSION, EDIT_TASKS } from './edit-task';
 
 /**
  * Task registry. The frozen headline task (bench/task.ts) is entry one and
@@ -22,6 +23,12 @@ export interface TaskSpec {
   prompt: string;
   expectedPreviewKind: string;
   checks: TaskCheck[];
+  /** Edit tasks start from a frozen project instead of an empty one. When
+   *  set, the run sends the production build prompt WITH this snapshot in
+   *  its Current Project Files section, exactly as an edit turn does. */
+  seedFiles?: Record<string, string>;
+  /** Paths this edit may legitimately touch; anything else is collateral. */
+  editTargets?: string[];
 }
 
 /** Sent after the plan reply when a run uses --plan-first (mirrors a
@@ -110,9 +117,27 @@ export const TASKS: TaskSpec[] = [
     expectedPreviewKind: 'framework',
     checks: CHECKS,
   },
+  // --- Edit tasks (bench/edit-task.ts): the same frozen seed project, three
+  //     kinds of change. These measure restraint, not ambition — see the
+  //     editDiscipline columns in the report. ---
+  ...EDIT_TASKS.map(
+    (e): TaskSpec => ({
+      id: e.id,
+      version: EDIT_SEED_VERSION,
+      prompt: e.prompt,
+      expectedPreviewKind: 'framework',
+      checks: e.checks,
+      seedFiles: EDIT_SEED_FILES,
+      editTargets: e.targets,
+    }),
+  ),
 ];
 
+/** Every edit task, for `--tasks edit` shorthand. */
+export const EDIT_TASK_IDS = EDIT_TASKS.map(e => e.id);
+
 export function resolveTasks(csv: string | undefined): TaskSpec[] {
+  if (csv === 'edit') return TASKS.filter(t => EDIT_TASK_IDS.includes(t.id));
   if (!csv) return [TASKS[0]];
   const wanted = csv.split(',').map(s => s.trim()).filter(Boolean);
   const unknown = wanted.filter(w => !TASKS.some(t => t.id === w));

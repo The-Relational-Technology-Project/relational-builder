@@ -18,7 +18,13 @@ import type { TrialResult } from '../types';
 
 export type MechanicalResult = Pick<
   TrialResult,
-  'extraction' | 'previewKind' | 'previewKindMatch' | 'bundle' | 'securityFindings' | 'checks'
+  | 'extraction'
+  | 'previewKind'
+  | 'previewKindMatch'
+  | 'bundle'
+  | 'securityFindings'
+  | 'checks'
+  | 'editDiscipline'
 > & {
   /** Final project VFS (path → content), for artifacts + preview build */
   files: Record<string, string>;
@@ -38,7 +44,12 @@ function toEntries(files: Record<string, string>): FileEntry[] {
 }
 
 export async function scoreOutput(task: TaskSpec, segmentTexts: string[]): Promise<MechanicalResult> {
-  const files: Record<string, string> = {};
+  // Edit tasks open on a frozen project, exactly as a real edit turn does —
+  // so a SEARCH/REPLACE against a seed file can actually apply, and "what did
+  // this edit disturb" is measurable against a known starting state.
+  const seed = task.seedFiles ?? null;
+  const files: Record<string, string> = seed ? { ...seed } : {};
+  const rewrittenSeedPaths = new Set<string>();
   let writes = 0;
   let editBlocks = 0;
   let failedEditBlocks = 0;
@@ -48,7 +59,12 @@ export async function scoreOutput(task: TaskSpec, segmentTexts: string[]): Promi
   for (const text of segmentTexts) {
     const ops = extractOperations(text);
     for (const w of ops.writes) {
-      files[normalize(w.path)] = w.content;
+      const p = normalize(w.path);
+      // A whole-file re-emit of a file that was already in the project is the
+      // expensive habit an edit model should not have — count it separately
+      // from a legitimately new file.
+      if (seed && p in seed) rewrittenSeedPaths.add(p);
+      files[p] = w.content;
       writes++;
     }
     for (const e of ops.edits) {
@@ -83,8 +99,27 @@ export async function scoreOutput(task: TaskSpec, segmentTexts: string[]): Promi
   }
 
   const transcript = segmentTexts.join('\n');
+
+  let editDiscipline: MechanicalResult['editDiscipline'] = null;
+  if (seed) {
+    const targets = new Set(task.editTargets ?? []);
+    const changed = Object.keys(seed).filter(p => files[p] !== seed[p]);
+    // Bytes rewritten: how much of the original the model displaced. A
+    // surgical SEARCH/REPLACE moves a few hundred; a full re-emit moves the
+    // file. Measured on the seed side so adding content doesn't inflate it.
+    const bytesRewritten = changed.reduce((n, p) => n + seed[p].length, 0);
+    editDiscipline = {
+      filesChanged: changed.length,
+      collateralFiles: changed.filter(p => !targets.has(p)),
+      bytesRewritten,
+      seedFilesRewritten: rewrittenSeedPaths.size,
+      filesAdded: Object.keys(files).filter(p => !(p in seed)).length,
+    };
+  }
+
   return {
     files,
+    editDiscipline,
     extraction: { writes, editBlocks, failedEditBlocks },
     previewKind,
     previewKindMatch: previewKind === task.expectedPreviewKind,

@@ -16,6 +16,10 @@ export interface ExecuteOptions {
   trials: number;
   /** buildSystemPrompt({ mode: 'build' }) — the production build prompt */
   systemPrompt: string;
+  /** Per-task override. Edit tasks need the seed project rendered into the
+   *  prompt's Current Project Files section, which is what makes a
+   *  SEARCH/REPLACE against an existing file possible at all. */
+  systemPromptFor?: (task: TaskSpec) => string;
   /** buildSystemPrompt({ mode: 'plan' }) — used when planFirst is on */
   planSystemPrompt: string;
   /** Plan-mode generation precedes each build (mirrors production flow) */
@@ -91,6 +95,7 @@ async function runTrial(
     estTokens: { input: 0, output: 0, estimated: true },
     estCostUsd: null,
     extraction: { writes: 0, editBlocks: 0, failedEditBlocks: 0 },
+    editDiscipline: null,
     previewKind: 'none',
     previewKindMatch: false,
     bundle: null,
@@ -139,24 +144,28 @@ async function runTrial(
     }
   };
 
+  const taskSystemPrompt = opts.systemPromptFor?.(task) ?? opts.systemPrompt;
+
   let planSession: SessionResult | null = null;
   let buildSession: SessionResult;
   let buildMessages: ChatMessage[];
   try {
-    if (opts.planFirst) {
+    // An edit is a single turn against an existing project — there is no plan
+    // phase to mirror, so plan-first never applies to a seeded task.
+    if (opts.planFirst && !task.seedFiles) {
       planSession = await withRetries([
         { role: 'system', content: opts.planSystemPrompt },
         { role: 'user', content: task.prompt },
       ]);
       buildMessages = [
-        { role: 'system', content: opts.systemPrompt },
+        { role: 'system', content: taskSystemPrompt },
         { role: 'user', content: task.prompt },
         { role: 'assistant', content: planSession.segmentTexts.join('\n') },
         { role: 'user', content: BUILD_GO_PROMPT },
       ];
     } else {
       buildMessages = [
-        { role: 'system', content: opts.systemPrompt },
+        { role: 'system', content: taskSystemPrompt },
         { role: 'user', content: task.prompt },
       ];
     }
@@ -237,6 +246,7 @@ async function runTrial(
     }
 
     result.extraction = mech.extraction;
+    result.editDiscipline = mech.editDiscipline;
     result.previewKind = mech.previewKind;
     result.previewKindMatch = mech.previewKindMatch;
     result.bundle = mech.bundle;

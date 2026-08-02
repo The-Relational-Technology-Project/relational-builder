@@ -49,6 +49,22 @@ export interface TrialResult {
     editBlocks: number;
     failedEditBlocks: number;
   };
+  /** Edit-task only: restraint, which is the whole point of an edit model.
+   *  A model that re-emits every file still bundles ✓ and still passes the
+   *  checks — the cost and the churn only show up here. */
+  editDiscipline: {
+    /** Seed files whose bytes changed at all */
+    filesChanged: number;
+    /** Files changed outside the task's legitimate targets */
+    collateralFiles: string[];
+    /** Seed bytes replaced — a surgical edit is a few hundred, a full
+     *  re-emit is the whole file */
+    bytesRewritten: number;
+    /** Whole-file re-emits of files that already existed in the seed */
+    seedFilesRewritten: number;
+    /** Brand-new files the edit introduced */
+    filesAdded: number;
+  } | null;
   previewKind: string;
   previewKindMatch: boolean;
   bundle: { ok: boolean; errors: string[] } | null;

@@ -121,6 +121,16 @@ export const BENCH_MODELS: BenchModel[] = [
     enabled: false,
   },
   {
+    // The edit-slot candidate. List prices here, not the $2/$10 intro rate
+    // running to 2026-08-31 — an estimate that quietly assumes a promotion
+    // would flatter the comparison the month it expires.
+    alias: 'sonnet-5',
+    providerId: 'openrouter',
+    modelId: 'anthropic/claude-sonnet-5',
+    pricing: { inputPerMTok: 3, outputPerMTok: 15, asOf: '2026-07' },
+    enabled: false,
+  },
+  {
     alias: 'gemini-3.1-pro',
     providerId: 'openrouter',
     modelId: 'google/gemini-3.1-pro-preview',

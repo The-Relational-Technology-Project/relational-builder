@@ -170,6 +170,26 @@ export async function main(argv: string[]): Promise<number> {
   }
   const systemPrompt = buildSystemPrompt({ mode: 'build', ...studioOpts });
   const planSystemPrompt = planFirst ? buildSystemPrompt({ mode: 'plan', ...studioOpts }) : '';
+  // Edit tasks get the same production build prompt with their frozen seed
+  // rendered into Current Project Files — the snapshot is what lets the model
+  // write a SEARCH/REPLACE that actually matches. Cached per task id so a
+  // multi-trial run builds each one once.
+  const editPromptCache = new Map<string, string>();
+  const systemPromptFor = (task: TaskSpec): string => {
+    if (!task.seedFiles) return systemPrompt;
+    const hit = editPromptCache.get(task.id);
+    if (hit) return hit;
+    const built = buildSystemPrompt({
+      mode: 'build',
+      ...studioOpts,
+      projectFiles: Object.entries(task.seedFiles).map(([path, content]) => ({
+        path,
+        content,
+      })),
+    });
+    editPromptCache.set(task.id, built);
+    return built;
+  };
   const inputTokens = charsToTokens(systemPrompt.length + tasks[0].prompt.length);
 
   console.log('Bundler self-test (esbuild-wasm under Node)…');
@@ -198,6 +218,7 @@ export async function main(argv: string[]): Promise<number> {
     tasks,
     trials,
     systemPrompt,
+    systemPromptFor,
     planSystemPrompt,
     planFirst,
     outDir: values.out ?? 'bench/results',
