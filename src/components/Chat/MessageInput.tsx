@@ -1,10 +1,11 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { SendHorizontal, Square, Map, Hammer, ImagePlus, X, FolderOpen, Globe } from 'lucide-react';
+import { SendHorizontal, Square, Map, Hammer, ImagePlus, X, FolderOpen, Globe, Clock } from 'lucide-react';
 import { useChatStore, type ChatMode } from '@/store/chat-store';
 import { fileToDataUrl, isImageFile } from '@/lib/image';
 import { listMentionables, type Mentionable } from '@/knowledge/mentions';
 import { ModelSelector } from '@/components/ModelSelector';
+import { noteSubmit, recordFriction } from '@/report/friction';
 
 // Room for two seeded reference screenshots (gallery remixes) plus the
 // person's own images
@@ -108,11 +109,19 @@ export function MessageInput({
   const handleSubmit = useCallback(() => {
     const trimmed = input.trim();
     if ((!trimmed && attachments.length === 0) || disabled) return;
+    noteSubmit(trimmed);
     if (isGenerating) {
-      // Queue text-only follow-ups; images wait for the next turn
-      if (!trimmed || attachments.length > 0) return;
-      useChatStore.getState().queueMessage(trimmed);
+      // Everything queues, images included. This branch used to return
+      // silently for an attachment or an empty-after-trim send: the person
+      // pressed send, the app did nothing, and nothing explained why. One
+      // builder read that as a broken button and sent the same request three
+      // times. Silence is the one response a composer may never give.
+      recordFriction('submit_while_busy', { hasAttachments: attachments.length > 0 });
+      useChatStore
+        .getState()
+        .queueMessage(trimmed || 'Here’s an image for reference.', attachments);
       setInput('');
+      setAttachments([]);
       if (textareaRef.current) textareaRef.current.style.height = 'auto';
       return;
     }
@@ -221,13 +230,23 @@ export function MessageInput({
         </div>
       )}
 
+      {/* The acknowledgement. A builder who gets nothing back assumes the
+          button is broken and sends again — so this says plainly that the
+          message was received, that the app is still working, and when it
+          will go. Emphasised rather than muted for the same reason: it is
+          the answer to "did it hear me?", and it only helps if it's seen. */}
       {queuedFollowUp && (
-        <div className="mb-2 flex items-center gap-2 rounded-lg border border-dashed px-2.5 py-1.5 text-xs text-muted-foreground">
-          <span className="shrink-0 font-medium">Sends next:</span>
-          <span className="truncate">{queuedFollowUp}</span>
+        <div className="mb-2 flex items-start gap-2 rounded-lg border border-primary/40 bg-primary/5 px-2.5 py-2 text-xs">
+          <Clock className="size-3.5 shrink-0 mt-0.5 text-primary" />
+          <div className="min-w-0 flex-1">
+            <p className="font-medium text-foreground">
+              Got it — still finishing the last one. This sends next.
+            </p>
+            <p className="mt-0.5 line-clamp-2 text-muted-foreground">{queuedFollowUp}</p>
+          </div>
           <button
             onClick={() => useChatStore.getState().clearQueuedMessage()}
-            className="ml-auto shrink-0 hover:text-foreground"
+            className="shrink-0 text-muted-foreground hover:text-foreground"
             title="Cancel the queued follow-up"
           >
             <X className="size-3" />

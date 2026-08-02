@@ -60,7 +60,11 @@ interface ChatState {
   hydrateChat: (messages: DisplayMessage[], mode: ChatMode) => void;
   /** A message queued from outside the chat (e.g. "fix this preview error") */
   queuedMessage: string | null;
-  queueMessage: (content: string) => void;
+  /** Images that rode along with a queued follow-up. Attachments used to be
+   *  the one input the composer silently refused mid-generation — the person
+   *  pressed send, nothing happened, and nothing said why. */
+  queuedAttachments: string[];
+  queueMessage: (content: string, attachments?: string[]) => void;
   clearQueuedMessage: () => void;
   /** True while the queued/current send is an error-fix request — fix
    * attempts never re-arm the automatic pass, so it can't loop */
@@ -156,21 +160,39 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
   setMode: (mode: ChatMode) => set({ mode }),
 
   queuedMessage: null,
-  // A person's queued follow-up replaces any pending auto-fix — their
-  // intent wins, and it must not inherit the fix send's special handling
-  queueMessage: (content: string) =>
-    set({
-      queuedMessage: content,
+  queuedAttachments: [],
+  // A person's queued follow-up supersedes any pending auto-fix — their
+  // intent wins, and it must not inherit the fix send's special handling.
+  // Appends rather than replaces. A person who gets no clear acknowledgement
+  // types it again — and the old single-slot queue silently overwrote the
+  // earlier attempt, so a builder who rephrased between tries lost the first
+  // wording outright. Joining them keeps every word they wrote; the queued
+  // chip shows the combined text, so nothing is lost invisibly. Auto sends
+  // (fixes, continuations) still replace: those are the Builder's own and
+  // must not accumulate.
+  queueMessage: (content: string, attachments?: string[]) =>
+    set(state => ({
+      queuedMessage:
+        state.queuedMessage && !state.pendingFixSend && !state.pendingContinuationSend
+          ? `${state.queuedMessage}\n\n${content}`
+          : content,
+      queuedAttachments:
+        [...(state.queuedAttachments ?? []), ...(attachments ?? [])].slice(0, 4),
       pendingFixSend: false,
       pendingFixLabel: null,
       pendingContinuationSend: false,
-    }),
-  clearQueuedMessage: () => set({ queuedMessage: null }),
+    })),
+  clearQueuedMessage: () => set({ queuedMessage: null, queuedAttachments: [] }),
   pendingFixSend: false,
   autoFixArmed: false,
   pendingFixLabel: null,
   queueFix: (content: string, label?: string) =>
-    set({ queuedMessage: content, pendingFixSend: true, pendingFixLabel: label ?? 'Automatic fix' }),
+    set({
+      queuedMessage: content,
+      queuedAttachments: [],
+      pendingFixSend: true,
+      pendingFixLabel: label ?? 'Automatic fix',
+    }),
   lastFixSignature: null,
   fixAttempts: 0,
   pendingContinuationSend: false,
@@ -179,6 +201,7 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
   queueContinuation: (content: string, label?: string) =>
     set(state => ({
       queuedMessage: content,
+      queuedAttachments: [],
       pendingFixSend: true,
       pendingFixLabel: label ?? 'Finishing the build',
       pendingContinuationSend: true,

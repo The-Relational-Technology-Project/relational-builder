@@ -721,9 +721,10 @@ export function ChatPanel() {
   useEffect(() => {
     if (!queuedMessage || isGenerating) return;
     const wasFix = useChatStore.getState().pendingFixSend;
+    const attachments = useChatStore.getState().queuedAttachments;
     useChatStore.getState().clearQueuedMessage();
     if (wasFix) setMode('build');
-    handleSend(queuedMessage);
+    handleSend(queuedMessage, attachments.length > 0 ? attachments : undefined);
   }, [queuedMessage, isGenerating, setMode, handleSend]);
 
   const handleBuildPlan = useCallback(() => {
