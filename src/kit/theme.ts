@@ -6,34 +6,39 @@
  * person), while the kit's classes (bg-background, text-primary,
  * border-border…) always resolve.
  *
- * The example values below are ONE demo look (cream + garden green). Models
- * anchor hard on example values, so the inline comment tells them these are
- * placeholders to replace wholesale — shipping this palette verbatim is the
- * "every build looks the same" failure mode.
+ * The values below are deliberately BLANK — flat neutral gray, no character
+ * at all. Models anchor hard on example values, and the previous example
+ * (cream + garden green) was itself the "every build looks the same" failure
+ * mode: it looked finished, so it shipped. Unfinished-looking placeholders
+ * fail loudly instead, and the plan's Look & feel section is where the real
+ * values come from.
  */
 export const THEME_TEMPLATE = `@import "tailwindcss";
 
 :root {
-  /* EXAMPLE values from one demo build — replace EVERY value with this
-     project's own palette (never the names). Never ship these as-is. */
-  --background: #faf6ef;
-  --foreground: #1c1917;
-  --card: #ffffff;
-  --card-foreground: #1c1917;
-  --primary: #166534;
-  --primary-foreground: #f0fdf4;
-  --secondary: #ece5d8;
-  --secondary-foreground: #44403c;
-  --muted: #f1ece2;
-  --muted-foreground: #78716c;
-  --accent: #ece5d8;
-  --accent-foreground: #1c1917;
+  /* PLACEHOLDERS — not a palette. Replace EVERY value below with this
+     project's own (keep the names). A build that ships these grays has no
+     design; the colors come from the plan's Look & feel, the person's
+     image, or the place. --radius is a choice too: square (0), soft
+     (0.5rem), or round (1rem) is half the app's character. */
+  --background: #ffffff;
+  --foreground: #171717;
+  --card: #fafafa;
+  --card-foreground: #171717;
+  --primary: #404040;
+  --primary-foreground: #ffffff;
+  --secondary: #f5f5f5;
+  --secondary-foreground: #404040;
+  --muted: #f5f5f5;
+  --muted-foreground: #737373;
+  --accent: #f5f5f5;
+  --accent-foreground: #171717;
   --destructive: #b91c1c;
   --destructive-foreground: #fef2f2;
-  --border: #e7e0d3;
-  --input: #d6cdbc;
-  --ring: #166534;
-  --radius: 0.625rem;
+  --border: #e5e5e5;
+  --input: #d4d4d4;
+  --ring: #404040;
+  --radius: 0.5rem;
 }
 
 @theme inline {
