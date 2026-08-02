@@ -33,13 +33,21 @@ const CORS = {
 };
 
 // Estimate basis: Claude Opus 4.8, the community default model
-// ($5 in / $25 out per MTok; cache writes 1.25x, cache reads 0.1x).
+// ($5 in / $25 out per MTok; cache reads 0.1x).
 // Usage isn't recorded per-model, so cheaper models (Sonnet/Haiku) make the
 // real bill lower than this estimate — the estimate errs on the safe side.
+//
+// Cache writes are priced at the 1-HOUR rate (2x base), not the 5-minute one
+// (1.25x): the llm-proxy sets ttl '1h' on every breakpoint, because builders
+// think for longer than five minutes between turns and the short TTL had us
+// re-writing the whole prompt every turn and never reading it back. The rows
+// only carry a cache_creation_tokens total with no TTL attached, so pricing
+// it at 1.25x here would quietly understate the bill on the one number these
+// alerts exist to watch.
 const DEFAULT_RATES = {
   input: 5,
   output: 25,
-  cacheWrite: 6.25,
+  cacheWrite: 10,
   cacheRead: 0.5,
 };
 
