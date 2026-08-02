@@ -20,7 +20,16 @@ import type { TaskCheck } from './task';
  * file did it touch" is only measurable if there is more than one.
  */
 
-export const EDIT_SEED_VERSION = 'edit-seed-v1';
+/**
+ * v2: the restyle task's legitimate targets were wrong in v1. The production
+ * system prompt explicitly tells a restyling model to "load a real display+body
+ * pairing via a Google Fonts <link> in index.html" — so every Opus trial that
+ * did exactly that was scored as collateral damage for following instructions.
+ * Target lists have to encode what the prompt ASKS for, or the metric measures
+ * the harness rather than the model. v1 collateral figures for edit-restyle are
+ * not comparable to v2; its check results are unaffected.
+ */
+export const EDIT_SEED_VERSION = 'edit-seed-v2';
 
 const INDEX_HTML = `<!doctype html>
 <html lang="en">
@@ -236,7 +245,9 @@ export const EDIT_TASKS: EditSpec[] = [
       'Make it feel cooler and more coastal — foggy blues and sea glass instead ' +
       'of the warm browns — and square off the corners. Keep the layout and the ' +
       'content exactly as they are.',
-    targets: ['/src/index.css'],
+    // index.html because the build prompt prescribes a Google Fonts <link>
+    // there as part of a look change — see the version note above.
+    targets: ['/src/index.css', '/index.html'],
     checks: [
       {
         id: 'palette-changed',

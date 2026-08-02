@@ -1,0 +1,1264 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "edit-seed-v1,edit-seed-v1,edit-seed-v1",
+  "gitCommit": "48aa455",
+  "createdAt": "2026-08-02T15:37:50.121Z",
+  "runId": "2026-08-02T15-33-48aa455",
+  "config": {
+    "trials": 3,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null
+  },
+  "models": [
+    {
+      "alias": "opus-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-opus-5",
+      "pricing": {
+        "inputPerMTok": 5,
+        "outputPerMTok": 25,
+        "asOf": "2026-07"
+      },
+      "enabled": false
+    },
+    {
+      "alias": "sonnet-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-sonnet-5",
+      "pricing": {
+        "inputPerMTok": 3,
+        "outputPerMTok": 15,
+        "asOf": "2026-07"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "edit-copy",
+      "version": "edit-seed-v1"
+    },
+    {
+      "id": "edit-feature",
+      "version": "edit-seed-v1"
+    },
+    {
+      "id": "edit-restyle",
+      "version": "edit-seed-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "opus-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-opus-5",
+      "taskId": "edit-copy",
+      "taskVersion": "edit-seed-v1",
+      "trial": 1,
+      "startedAt": "2026-08-02T15:33:27.083Z",
+      "plan": null,
+      "latencyMs": 7275,
+      "ttftMs": 6018,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 7275,
+          "chars": 706
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 706,
+      "estTokens": {
+        "input": 12137,
+        "output": 177,
+        "estimated": true
+      },
+      "estCostUsd": 0.06511,
+      "extraction": {
+        "writes": 0,
+        "editBlocks": 1,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": {
+        "filesChanged": 1,
+        "collateralFiles": [],
+        "bytesRewritten": 1341,
+        "seedFilesRewritten": 0,
+        "filesAdded": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "copy-landed",
+          "description": "Both new strings present",
+          "pass": true
+        },
+        {
+          "id": "old-copy-gone",
+          "description": "Old heading text removed",
+          "pass": true
+        },
+        {
+          "id": "seed-intact",
+          "description": "Seed data still present (edit did not wipe the project)",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/edit-copy/opus-5-t1",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "opus-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-opus-5",
+      "taskId": "edit-copy",
+      "taskVersion": "edit-seed-v1",
+      "trial": 2,
+      "startedAt": "2026-08-02T15:33:34.515Z",
+      "plan": null,
+      "latencyMs": 7445,
+      "ttftMs": 6639,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 7445,
+          "chars": 762
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 762,
+      "estTokens": {
+        "input": 12137,
+        "output": 191,
+        "estimated": true
+      },
+      "estCostUsd": 0.06546,
+      "extraction": {
+        "writes": 0,
+        "editBlocks": 1,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": {
+        "filesChanged": 1,
+        "collateralFiles": [],
+        "bytesRewritten": 1341,
+        "seedFilesRewritten": 0,
+        "filesAdded": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "copy-landed",
+          "description": "Both new strings present",
+          "pass": true
+        },
+        {
+          "id": "old-copy-gone",
+          "description": "Old heading text removed",
+          "pass": true
+        },
+        {
+          "id": "seed-intact",
+          "description": "Seed data still present (edit did not wipe the project)",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/edit-copy/opus-5-t2",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "opus-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-opus-5",
+      "taskId": "edit-copy",
+      "taskVersion": "edit-seed-v1",
+      "trial": 3,
+      "startedAt": "2026-08-02T15:33:42.108Z",
+      "plan": null,
+      "latencyMs": 8184,
+      "ttftMs": 8060,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 8184,
+          "chars": 722
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 722,
+      "estTokens": {
+        "input": 12137,
+        "output": 181,
+        "estimated": true
+      },
+      "estCostUsd": 0.06521,
+      "extraction": {
+        "writes": 0,
+        "editBlocks": 1,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": {
+        "filesChanged": 1,
+        "collateralFiles": [],
+        "bytesRewritten": 1341,
+        "seedFilesRewritten": 0,
+        "filesAdded": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "copy-landed",
+          "description": "Both new strings present",
+          "pass": true
+        },
+        {
+          "id": "old-copy-gone",
+          "description": "Old heading text removed",
+          "pass": true
+        },
+        {
+          "id": "seed-intact",
+          "description": "Seed data still present (edit did not wipe the project)",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/edit-copy/opus-5-t3",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "opus-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-opus-5",
+      "taskId": "edit-feature",
+      "taskVersion": "edit-seed-v1",
+      "trial": 1,
+      "startedAt": "2026-08-02T15:33:50.453Z",
+      "plan": null,
+      "latencyMs": 19857,
+      "ttftMs": 12713,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 19857,
+          "chars": 2104
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 2104,
+      "estTokens": {
+        "input": 12142,
+        "output": 526,
+        "estimated": true
+      },
+      "estCostUsd": 0.07386,
+      "extraction": {
+        "writes": 0,
+        "editBlocks": 4,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": {
+        "filesChanged": 2,
+        "collateralFiles": [],
+        "bytesRewritten": 1593,
+        "seedFilesRewritten": 0,
+        "filesAdded": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "urgent-in-data",
+          "description": "urgent field added to the Post data",
+          "pass": true
+        },
+        {
+          "id": "urgent-in-ui",
+          "description": "Card renders something for urgent",
+          "pass": true
+        },
+        {
+          "id": "seed-intact",
+          "description": "Seed data still present (edit did not wipe the project)",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/edit-feature/opus-5-t1",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "opus-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-opus-5",
+      "taskId": "edit-feature",
+      "taskVersion": "edit-seed-v1",
+      "trial": 2,
+      "startedAt": "2026-08-02T15:34:10.398Z",
+      "plan": null,
+      "latencyMs": 16202,
+      "ttftMs": 11238,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 16202,
+          "chars": 1794
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 1794,
+      "estTokens": {
+        "input": 12142,
+        "output": 449,
+        "estimated": true
+      },
+      "estCostUsd": 0.071935,
+      "extraction": {
+        "writes": 0,
+        "editBlocks": 3,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": {
+        "filesChanged": 2,
+        "collateralFiles": [],
+        "bytesRewritten": 1593,
+        "seedFilesRewritten": 0,
+        "filesAdded": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "urgent-in-data",
+          "description": "urgent field added to the Post data",
+          "pass": true
+        },
+        {
+          "id": "urgent-in-ui",
+          "description": "Card renders something for urgent",
+          "pass": true
+        },
+        {
+          "id": "seed-intact",
+          "description": "Seed data still present (edit did not wipe the project)",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/edit-feature/opus-5-t2",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "opus-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-opus-5",
+      "taskId": "edit-feature",
+      "taskVersion": "edit-seed-v1",
+      "trial": 3,
+      "startedAt": "2026-08-02T15:34:26.706Z",
+      "plan": null,
+      "latencyMs": 14191,
+      "ttftMs": 7973,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 14191,
+          "chars": 1736
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 1736,
+      "estTokens": {
+        "input": 12142,
+        "output": 434,
+        "estimated": true
+      },
+      "estCostUsd": 0.07156,
+      "extraction": {
+        "writes": 0,
+        "editBlocks": 4,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": {
+        "filesChanged": 2,
+        "collateralFiles": [],
+        "bytesRewritten": 1593,
+        "seedFilesRewritten": 0,
+        "filesAdded": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "urgent-in-data",
+          "description": "urgent field added to the Post data",
+          "pass": true
+        },
+        {
+          "id": "urgent-in-ui",
+          "description": "Card renders something for urgent",
+          "pass": true
+        },
+        {
+          "id": "seed-intact",
+          "description": "Seed data still present (edit did not wipe the project)",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/edit-feature/opus-5-t3",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "opus-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-opus-5",
+      "taskId": "edit-restyle",
+      "taskVersion": "edit-seed-v1",
+      "trial": 1,
+      "startedAt": "2026-08-02T15:34:40.998Z",
+      "plan": null,
+      "latencyMs": 31010,
+      "ttftMs": 20672,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 31010,
+          "chars": 2606
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 2606,
+      "estTokens": {
+        "input": 12132,
+        "output": 652,
+        "estimated": true
+      },
+      "estCostUsd": 0.07696,
+      "extraction": {
+        "writes": 1,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": {
+        "filesChanged": 1,
+        "collateralFiles": [],
+        "bytesRewritten": 475,
+        "seedFilesRewritten": 1,
+        "filesAdded": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "palette-changed",
+          "description": "Theme values differ from the seed",
+          "pass": true
+        },
+        {
+          "id": "layout-untouched",
+          "description": "App.tsx structure preserved (max-w-xl container still there)",
+          "pass": true
+        },
+        {
+          "id": "seed-intact",
+          "description": "Seed data still present (edit did not wipe the project)",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/edit-restyle/opus-5-t1",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "opus-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-opus-5",
+      "taskId": "edit-restyle",
+      "taskVersion": "edit-seed-v1",
+      "trial": 2,
+      "startedAt": "2026-08-02T15:35:12.085Z",
+      "plan": null,
+      "latencyMs": 36929,
+      "ttftMs": 24616,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 36929,
+          "chars": 3326
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 3326,
+      "estTokens": {
+        "input": 12132,
+        "output": 832,
+        "estimated": true
+      },
+      "estCostUsd": 0.08146,
+      "extraction": {
+        "writes": 1,
+        "editBlocks": 1,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": {
+        "filesChanged": 2,
+        "collateralFiles": [
+          "/index.html"
+        ],
+        "bytesRewritten": 774,
+        "seedFilesRewritten": 1,
+        "filesAdded": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "palette-changed",
+          "description": "Theme values differ from the seed",
+          "pass": true
+        },
+        {
+          "id": "layout-untouched",
+          "description": "App.tsx structure preserved (max-w-xl container still there)",
+          "pass": true
+        },
+        {
+          "id": "seed-intact",
+          "description": "Seed data still present (edit did not wipe the project)",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/edit-restyle/opus-5-t2",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "opus-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-opus-5",
+      "taskId": "edit-restyle",
+      "taskVersion": "edit-seed-v1",
+      "trial": 3,
+      "startedAt": "2026-08-02T15:35:49.102Z",
+      "plan": null,
+      "latencyMs": 28117,
+      "ttftMs": 17759,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 28117,
+          "chars": 3004
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 3004,
+      "estTokens": {
+        "input": 12132,
+        "output": 751,
+        "estimated": true
+      },
+      "estCostUsd": 0.079435,
+      "extraction": {
+        "writes": 1,
+        "editBlocks": 2,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": {
+        "filesChanged": 3,
+        "collateralFiles": [
+          "/index.html",
+          "/src/components/PostCard.tsx"
+        ],
+        "bytesRewritten": 1518,
+        "seedFilesRewritten": 1,
+        "filesAdded": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "palette-changed",
+          "description": "Theme values differ from the seed",
+          "pass": true
+        },
+        {
+          "id": "layout-untouched",
+          "description": "App.tsx structure preserved (max-w-xl container still there)",
+          "pass": true
+        },
+        {
+          "id": "seed-intact",
+          "description": "Seed data still present (edit did not wipe the project)",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/edit-restyle/opus-5-t3",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "sonnet-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-sonnet-5",
+      "taskId": "edit-copy",
+      "taskVersion": "edit-seed-v1",
+      "trial": 1,
+      "startedAt": "2026-08-02T15:36:17.355Z",
+      "plan": null,
+      "latencyMs": 4252,
+      "ttftMs": 3401,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 4252,
+          "chars": 485
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 485,
+      "estTokens": {
+        "input": 12137,
+        "output": 122,
+        "estimated": true
+      },
+      "estCostUsd": 0.038241,
+      "extraction": {
+        "writes": 0,
+        "editBlocks": 1,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": {
+        "filesChanged": 1,
+        "collateralFiles": [],
+        "bytesRewritten": 1341,
+        "seedFilesRewritten": 0,
+        "filesAdded": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "copy-landed",
+          "description": "Both new strings present",
+          "pass": true
+        },
+        {
+          "id": "old-copy-gone",
+          "description": "Old heading text removed",
+          "pass": true
+        },
+        {
+          "id": "seed-intact",
+          "description": "Seed data still present (edit did not wipe the project)",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/edit-copy/sonnet-5-t1",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "sonnet-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-sonnet-5",
+      "taskId": "edit-copy",
+      "taskVersion": "edit-seed-v1",
+      "trial": 2,
+      "startedAt": "2026-08-02T15:36:21.709Z",
+      "plan": null,
+      "latencyMs": 4787,
+      "ttftMs": 4117,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 4787,
+          "chars": 504
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 504,
+      "estTokens": {
+        "input": 12137,
+        "output": 126,
+        "estimated": true
+      },
+      "estCostUsd": 0.038301,
+      "extraction": {
+        "writes": 0,
+        "editBlocks": 1,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": {
+        "filesChanged": 1,
+        "collateralFiles": [],
+        "bytesRewritten": 1341,
+        "seedFilesRewritten": 0,
+        "filesAdded": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "copy-landed",
+          "description": "Both new strings present",
+          "pass": true
+        },
+        {
+          "id": "old-copy-gone",
+          "description": "Old heading text removed",
+          "pass": true
+        },
+        {
+          "id": "seed-intact",
+          "description": "Seed data still present (edit did not wipe the project)",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/edit-copy/sonnet-5-t2",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "sonnet-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-sonnet-5",
+      "taskId": "edit-copy",
+      "taskVersion": "edit-seed-v1",
+      "trial": 3,
+      "startedAt": "2026-08-02T15:36:26.606Z",
+      "plan": null,
+      "latencyMs": 5233,
+      "ttftMs": 4357,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 5233,
+          "chars": 493
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 493,
+      "estTokens": {
+        "input": 12137,
+        "output": 124,
+        "estimated": true
+      },
+      "estCostUsd": 0.038271,
+      "extraction": {
+        "writes": 0,
+        "editBlocks": 1,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": {
+        "filesChanged": 1,
+        "collateralFiles": [],
+        "bytesRewritten": 1341,
+        "seedFilesRewritten": 0,
+        "filesAdded": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "copy-landed",
+          "description": "Both new strings present",
+          "pass": true
+        },
+        {
+          "id": "old-copy-gone",
+          "description": "Old heading text removed",
+          "pass": true
+        },
+        {
+          "id": "seed-intact",
+          "description": "Seed data still present (edit did not wipe the project)",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/edit-copy/sonnet-5-t3",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "sonnet-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-sonnet-5",
+      "taskId": "edit-feature",
+      "taskVersion": "edit-seed-v1",
+      "trial": 1,
+      "startedAt": "2026-08-02T15:36:31.917Z",
+      "plan": null,
+      "latencyMs": 12781,
+      "ttftMs": 4465,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 12781,
+          "chars": 3317
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 3317,
+      "estTokens": {
+        "input": 12142,
+        "output": 830,
+        "estimated": true
+      },
+      "estCostUsd": 0.048876,
+      "extraction": {
+        "writes": 0,
+        "editBlocks": 2,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": {
+        "filesChanged": 2,
+        "collateralFiles": [],
+        "bytesRewritten": 1593,
+        "seedFilesRewritten": 0,
+        "filesAdded": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "urgent-in-data",
+          "description": "urgent field added to the Post data",
+          "pass": true
+        },
+        {
+          "id": "urgent-in-ui",
+          "description": "Card renders something for urgent",
+          "pass": true
+        },
+        {
+          "id": "seed-intact",
+          "description": "Seed data still present (edit did not wipe the project)",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/edit-feature/sonnet-5-t1",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "sonnet-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-sonnet-5",
+      "taskId": "edit-feature",
+      "taskVersion": "edit-seed-v1",
+      "trial": 2,
+      "startedAt": "2026-08-02T15:36:44.774Z",
+      "plan": null,
+      "latencyMs": 15611,
+      "ttftMs": 9120,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 15611,
+          "chars": 2870
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 2870,
+      "estTokens": {
+        "input": 12142,
+        "output": 718,
+        "estimated": true
+      },
+      "estCostUsd": 0.047196,
+      "extraction": {
+        "writes": 0,
+        "editBlocks": 1,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": {
+        "filesChanged": 1,
+        "collateralFiles": [],
+        "bytesRewritten": 744,
+        "seedFilesRewritten": 0,
+        "filesAdded": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "urgent-in-data",
+          "description": "urgent field added to the Post data",
+          "pass": false
+        },
+        {
+          "id": "urgent-in-ui",
+          "description": "Card renders something for urgent",
+          "pass": true
+        },
+        {
+          "id": "seed-intact",
+          "description": "Seed data still present (edit did not wipe the project)",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/edit-feature/sonnet-5-t2",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "sonnet-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-sonnet-5",
+      "taskId": "edit-feature",
+      "taskVersion": "edit-seed-v1",
+      "trial": 3,
+      "startedAt": "2026-08-02T15:37:00.453Z",
+      "plan": null,
+      "latencyMs": 14900,
+      "ttftMs": 6744,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 14899,
+          "chars": 3183
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 3183,
+      "estTokens": {
+        "input": 12142,
+        "output": 796,
+        "estimated": true
+      },
+      "estCostUsd": 0.048366,
+      "extraction": {
+        "writes": 0,
+        "editBlocks": 2,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": {
+        "filesChanged": 2,
+        "collateralFiles": [],
+        "bytesRewritten": 1593,
+        "seedFilesRewritten": 0,
+        "filesAdded": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "urgent-in-data",
+          "description": "urgent field added to the Post data",
+          "pass": true
+        },
+        {
+          "id": "urgent-in-ui",
+          "description": "Card renders something for urgent",
+          "pass": true
+        },
+        {
+          "id": "seed-intact",
+          "description": "Seed data still present (edit did not wipe the project)",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/edit-feature/sonnet-5-t3",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "sonnet-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-sonnet-5",
+      "taskId": "edit-restyle",
+      "taskVersion": "edit-seed-v1",
+      "trial": 1,
+      "startedAt": "2026-08-02T15:37:15.432Z",
+      "plan": null,
+      "latencyMs": 10976,
+      "ttftMs": 6862,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 10976,
+          "chars": 1066
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 1066,
+      "estTokens": {
+        "input": 12132,
+        "output": 267,
+        "estimated": true
+      },
+      "estCostUsd": 0.040401,
+      "extraction": {
+        "writes": 0,
+        "editBlocks": 1,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": {
+        "filesChanged": 1,
+        "collateralFiles": [],
+        "bytesRewritten": 475,
+        "seedFilesRewritten": 0,
+        "filesAdded": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "palette-changed",
+          "description": "Theme values differ from the seed",
+          "pass": true
+        },
+        {
+          "id": "layout-untouched",
+          "description": "App.tsx structure preserved (max-w-xl container still there)",
+          "pass": true
+        },
+        {
+          "id": "seed-intact",
+          "description": "Seed data still present (edit did not wipe the project)",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/edit-restyle/sonnet-5-t1",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "sonnet-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-sonnet-5",
+      "taskId": "edit-restyle",
+      "taskVersion": "edit-seed-v1",
+      "trial": 2,
+      "startedAt": "2026-08-02T15:37:26.470Z",
+      "plan": null,
+      "latencyMs": 11209,
+      "ttftMs": 5087,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 11209,
+          "chars": 1987
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 1987,
+      "estTokens": {
+        "input": 12132,
+        "output": 497,
+        "estimated": true
+      },
+      "estCostUsd": 0.043851,
+      "extraction": {
+        "writes": 0,
+        "editBlocks": 2,
+        "failedEditBlocks": 1
+      },
+      "editDiscipline": {
+        "filesChanged": 1,
+        "collateralFiles": [],
+        "bytesRewritten": 475,
+        "seedFilesRewritten": 0,
+        "filesAdded": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "palette-changed",
+          "description": "Theme values differ from the seed",
+          "pass": true
+        },
+        {
+          "id": "layout-untouched",
+          "description": "App.tsx structure preserved (max-w-xl container still there)",
+          "pass": true
+        },
+        {
+          "id": "seed-intact",
+          "description": "Seed data still present (edit did not wipe the project)",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/edit-restyle/sonnet-5-t2",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "sonnet-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-sonnet-5",
+      "taskId": "edit-restyle",
+      "taskVersion": "edit-seed-v1",
+      "trial": 3,
+      "startedAt": "2026-08-02T15:37:37.749Z",
+      "plan": null,
+      "latencyMs": 12308,
+      "ttftMs": 7216,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 12308,
+          "chars": 1373
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 1373,
+      "estTokens": {
+        "input": 12132,
+        "output": 344,
+        "estimated": true
+      },
+      "estCostUsd": 0.041555999999999996,
+      "extraction": {
+        "writes": 0,
+        "editBlocks": 1,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": {
+        "filesChanged": 1,
+        "collateralFiles": [],
+        "bytesRewritten": 475,
+        "seedFilesRewritten": 0,
+        "filesAdded": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "palette-changed",
+          "description": "Theme values differ from the seed",
+          "pass": true
+        },
+        {
+          "id": "layout-untouched",
+          "description": "App.tsx structure preserved (max-w-xl container still there)",
+          "pass": true
+        },
+        {
+          "id": "seed-intact",
+          "description": "Seed data still present (edit did not wipe the project)",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/edit-restyle/sonnet-5-t3",
+      "fixRound": null,
+      "error": null
+    }
+  ]
+}
