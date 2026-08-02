@@ -64,11 +64,15 @@ Deno.serve(async (req: Request) => {
       count: bucket?.day === today ? bucket.count + 1 : 1,
     });
 
-    const { invitee_email, project_name } = await req.json();
+    const { invitee_email, project_name, note: rawNote } = await req.json();
     if (!invitee_email || typeof invitee_email !== 'string' || !invitee_email.includes('@')) {
       return json({ error: 'invitee_email required' }, 400);
     }
     const projectName = String(project_name ?? 'a project').slice(0, 120);
+    // The sender's own words about why they're inviting. Escaped into the
+    // template like any other untrusted string — it is typed by a person and
+    // lands in someone else's inbox.
+    const note = typeof rawNote === 'string' ? rawNote.trim().slice(0, 400) : '';
 
     const appUrl = Deno.env.get('APP_URL') ?? 'https://relational-builder.vercel.app';
     const accessCode = Deno.env.get('ACCESS_CODE') ?? '';
@@ -78,6 +82,7 @@ Deno.serve(async (req: Request) => {
       projectName,
       appUrl,
       accessCode,
+      note,
     });
 
     const sendRes = await fetch('https://api.resend.com/emails', {
@@ -111,8 +116,9 @@ function renderInviteEmail(opts: {
   projectName: string;
   appUrl: string;
   accessCode: string;
+  note: string;
 }): string {
-  const { inviterEmail, projectName, appUrl, accessCode } = opts;
+  const { inviterEmail, projectName, appUrl, accessCode, note } = opts;
   return `<!doctype html>
 <html>
   <body style="margin:0;padding:0;background:#F5F5F4;font-family:Georgia,'Times New Roman',serif;color:#292524;">
@@ -127,9 +133,10 @@ function renderInviteEmail(opts: {
           <strong>&ldquo;${escapeHtml(projectName)}&rdquo;</strong> in Relational Builder &mdash;
           an open-source tool for building neighborhood technology together.
         </p>
+        ${note ? `<blockquote style="margin:0 0 20px;padding:12px 16px;border-left:3px solid #E86F4E;background:#FDF6F3;font-size:15px;line-height:1.6;font-style:italic;">${escapeHtml(note)}</blockquote>` : ''}
         <p style="font-size:15px;line-height:1.6;margin:0 0 24px;">
           Sign in with this email address and the project will be waiting for you.
-          Your edits sync live with everyone on it.
+          You'll be able to make changes and chat with the builder, the same as they can.
         </p>
         <a href="${appUrl}" style="display:inline-block;background:#292524;color:#FAFAF9;text-decoration:none;font-size:15px;padding:12px 22px;border-radius:8px;">
           Open Relational Builder

@@ -65,7 +65,13 @@ interface ProjectState {
   /** Snapshot the current files as a restorable checkpoint (e.g. before a GitHub pull) */
   takeCheckpoint: (label: string) => void;
   /** Extract files from a completed AI message and write them to the FS */
-  applyMessageFiles: (markdown: string, msgId?: string) => ExtractedFile[];
+  applyMessageFiles: (markdown: string, msgId?: string, askLabel?: string) => ExtractedFile[];
+  /** Walk back the most recent change. The single most-requested reassurance:
+   *  a builder said being able to return to an earlier version "would make me
+   *  feel more comfortable experimenting" — which is the real prize, since the
+   *  ceiling on what people build is set by how safe they feel trying things.
+   *  Returns the label of what was undone, or null when there's nothing. */
+  undoLastChange: () => string | null;
   /** Human-readable warnings from the last applyMessageFiles (e.g. edits that didn't match) */
   lastApplyWarnings: string[];
   /** Restore the file system to a checkpoint */
@@ -143,7 +149,7 @@ export const useProjectStore = create<ProjectState>()(persist((set, get) => ({
     set({ checkpoints: [...checkpoints, checkpoint].slice(-MAX_CHECKPOINTS) });
   },
 
-  applyMessageFiles: (markdown, msgId) => {
+  applyMessageFiles: (markdown, msgId, askLabel) => {
     const { writes, edits, truncatedPath } = extractOperations(markdown);
     const { fs, checkpoints } = get();
     const warnings: string[] = [];
@@ -215,7 +221,12 @@ export const useProjectStore = create<ProjectState>()(persist((set, get) => ({
     nextCheckpoints.push({
       id: newCheckpointId,
       msgId: msgId ?? null,
-      label: `Version ${nextCheckpoints.filter(c => c.msgId !== null).length + 1}`,
+      // Named after what the PERSON asked for, not a version number. They
+      // remember "the coastal colours", never "Version 4" — and a restore
+      // list you can't read is a restore list nobody uses.
+      label: askLabel?.trim()
+        ? `“${askLabel.trim().replace(/\s+/g, ' ').slice(0, 48)}${askLabel.trim().length > 48 ? '…' : ''}”`
+        : `Version ${nextCheckpoints.filter(c => c.msgId !== null).length + 1}`,
       timestamp: Date.now(),
       files: fs.toJSON(),
     });
@@ -231,6 +242,18 @@ export const useProjectStore = create<ProjectState>()(persist((set, get) => ({
       set({ selectedFile: files[0].path });
     }
     return files;
+  },
+
+  undoLastChange: () => {
+    const { checkpoints, activeCheckpointId } = get();
+    const currentIdx = activeCheckpointId
+      ? checkpoints.findIndex(c => c.id === activeCheckpointId)
+      : checkpoints.length - 1;
+    if (currentIdx <= 0) return null;
+    const target = checkpoints[currentIdx - 1];
+    const undone = checkpoints[currentIdx];
+    get().restoreCheckpoint(target.id);
+    return undone.label;
   },
 
   restoreCheckpoint: (checkpointId) => {

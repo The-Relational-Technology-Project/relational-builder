@@ -35,6 +35,7 @@ import { buildMentionContext } from '@/knowledge/mentions';
 import { runQualityReview, messageProducedFiles } from '@/knowledge/review-pass';
 import { requestBuildNotifyPermission, notifyBuildReady } from '@/notify/build-ready';
 import { recordBuildEvent, useBuildLogStore } from '@/report/build-log';
+import { resetSubmitTracking } from '@/report/friction';
 import { BuildReportCard } from './BuildReportCard';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
@@ -307,6 +308,9 @@ export function ChatPanel() {
     // A project's initial build starts a fresh build log — the timeline that
     // becomes a shareable report if the builder opts in when it's done
     if (isFirstBuild && !wasFix) {
+      // Fresh project: the previous one's last submit must not read as a
+      // duplicate here.
+      resetSubmitTracking();
       useBuildLogStore.getState().reset();
       recordBuildEvent(
         'build_start',
@@ -536,7 +540,11 @@ export function ChatPanel() {
                       ? 'clean chunk boundary — more files declared'
                       : 'clean',
                 );
-                applyMessageFiles(msg.content, msgId);
+                // The person's own ask names the restore point. Auto sends
+                // (fixes, continuations) carry Builder text, not theirs — pass
+                // nothing and let it fall back to a version number rather than
+                // labelling their history with our machinery.
+                applyMessageFiles(msg.content, msgId, wasFix ? undefined : content);
                 // An unfinished first build isn't "ready" — hold its
                 // notification and quality review until the chain lands
                 if ((truncated || chunked) && isFirstBuild && messageProducedFiles(msg.content)) {

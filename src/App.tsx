@@ -22,6 +22,7 @@ import { ProjectsButton, ProjectsPage } from '@/components/ProjectsPage';
 import { ConnectionsPage } from '@/components/ConnectionsPage';
 import { ProfilePage } from '@/components/ProfilePage';
 import { ProjectStatus } from '@/components/ProjectStatus';
+import { ProjectStageStrip } from '@/components/ProjectStageStrip';
 import { StewardPage } from '@/components/StewardPage';
 import { StudioAdminPage } from '@/components/StudioAdminPage';
 import { initLocalAutosave, stashAndStartFresh } from '@/project/local-projects';
@@ -164,6 +165,7 @@ function App() {
           {/* Studio affiliation lives on the builder profile page now — the
               nav stays about the work in front of you */}
           <ProjectStatus />
+          <ProjectStageStrip />
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" onClick={handleNewProject}>

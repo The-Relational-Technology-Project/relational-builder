@@ -34,6 +34,7 @@ export function CollaborateDialog({ open, onOpenChange }: { open: boolean; onOpe
   const fileCount = useProjectStore(s => s.getFileCount());
 
   const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteNote, setInviteNote] = useState('');
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,8 +48,11 @@ export function CollaborateDialog({ open, onOpenChange }: { open: boolean; onOpe
 
   const invite = () =>
     run('invite', async () => {
-      const r = await inviteMember(inviteEmail);
-      if (!r.error) setInviteEmail('');
+      const r = await inviteMember(inviteEmail, inviteNote);
+      if (!r.error) {
+        setInviteEmail('');
+        setInviteNote('');
+      }
       return r;
     });
 
@@ -145,26 +149,50 @@ export function CollaborateDialog({ open, onOpenChange }: { open: boolean; onOpe
               </div>
             ))}
             {isOwner ? (
-              <div className="flex gap-2">
-                <Input
-                  value={inviteEmail}
-                  onChange={e => setInviteEmail(e.target.value)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' && inviteEmail.trim()) invite();
-                  }}
-                  placeholder="neighbor@example.org"
-                  className="h-8 text-sm"
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <Input
+                    value={inviteEmail}
+                    onChange={e => setInviteEmail(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && inviteEmail.trim()) invite();
+                    }}
+                    placeholder="neighbor@example.org"
+                    className="h-8 text-sm"
+                  />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 gap-1 text-xs shrink-0"
+                    disabled={!inviteEmail.trim() || busy === 'invite'}
+                    onClick={invite}
+                  >
+                    {busy === 'invite' ? <Loader2 className="size-3 animate-spin" /> : <UserPlus className="size-3" />}
+                    Invite
+                  </Button>
+                </div>
+                {/* An invitation is a relationship, not a permission grant.
+                    Arriving at someone's half-built project with no idea why
+                    you're there or what they want from you is a cold DM —
+                    which is the exact pattern the build guidance tells
+                    generated apps to avoid. Optional, because sometimes you
+                    really are just adding your co-organiser. */}
+                <textarea
+                  value={inviteNote}
+                  onChange={e => setInviteNote(e.target.value)}
+                  rows={2}
+                  maxLength={400}
+                  placeholder="Optional: why you're inviting them, and what kind of help you'd like — “have a look at the events page and tell me if the wording sounds right?”"
+                  className="w-full resize-none rounded-md border bg-background px-2.5 py-1.5 text-sm placeholder:text-muted-foreground/70"
                 />
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-8 gap-1 text-xs shrink-0"
-                  disabled={!inviteEmail.trim() || busy === 'invite'}
-                  onClick={invite}
-                >
-                  {busy === 'invite' ? <Loader2 className="size-3 animate-spin" /> : <UserPlus className="size-3" />}
-                  Invite
-                </Button>
+                {/* Said before sending, so the sender knows what they're
+                    handing over — and can say it accurately when they follow
+                    up in person, which is where these conversations land. */}
+                <p className="text-xs text-muted-foreground">
+                  Whoever you invite can open this project, chat with the
+                  builder, and make changes — the same as you. Only you can
+                  invite other people.
+                </p>
               </div>
             ) : (
               <p className="text-xs text-muted-foreground">

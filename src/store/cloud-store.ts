@@ -113,7 +113,10 @@ interface CloudState {
   deleteProject: (id: string) => Promise<void>;
   saveNow: () => Promise<void>;
   refreshMembers: () => Promise<void>;
-  inviteMember: (email: string) => Promise<{ error: string | null }>;
+  /** `note` is the sender's own words about why. An invitation with no
+   *  context is a cold DM — the same thing the build guidance warns against
+   *  in generated apps, and it applies to our own tool first. */
+  inviteMember: (email: string, note?: string) => Promise<{ error: string | null }>;
   removeMember: (email: string) => Promise<void>;
 }
 
@@ -458,7 +461,7 @@ export const useCloudStore = create<CloudState>()((set, get) => ({
     if (!error && data) set({ members: data as ProjectMember[] });
   },
 
-  inviteMember: async (email: string) => {
+  inviteMember: async (email: string, note?: string) => {
     const { currentProjectId } = get();
     const user = useAuthStore.getState().user;
     if (!builderClient || !currentProjectId || !user) return { error: 'No cloud project open' };
@@ -482,6 +485,8 @@ export const useCloudStore = create<CloudState>()((set, get) => ({
         body: JSON.stringify({
           invitee_email: email.trim().toLowerCase(),
           project_name: get().currentProjectName,
+          note: note?.trim() || undefined,
+          inviter_name: useAuthStore.getState().profile?.display_name ?? undefined,
         }),
       }).catch(() => {});
     });
