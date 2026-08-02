@@ -38,7 +38,7 @@ function siteUrl(): string {
 }
 
 function appUrl(): string {
-  return Deno.env.get('APP_URL') ?? 'https://relational-builder.vercel.app';
+  return Deno.env.get('APP_URL') ?? 'https://relationalbuilder.org';
 }
 
 const esc = (s: string) =>

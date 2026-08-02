@@ -117,8 +117,21 @@ It no-ops until the key is set:
 
 ```bash
 supabase functions deploy notify-invite --no-verify-jwt
+supabase functions deploy request-project-access --no-verify-jwt
 supabase secrets set RESEND_API_KEY=re_... APP_URL=https://relationalbuilder.org ACCESS_CODE=6767
 ```
+
+**`APP_URL` is load-bearing, not cosmetic.** Every emailed link is built from
+it, and the invite button carries `?invite=<project id>&to=<invited email>` so
+the app can open the right project — or say which address the invitation was
+for when you're signed in as a different one. Leave `APP_URL` unset and all of
+that still works, but on whatever the fallback domain is, which is a *second
+live copy of the app with its own session storage*: people click, land signed
+in as someone else, and see nothing wrong. Set it.
+
+`request-project-access` is what the "wrong account" screen uses to ask a
+project's owner to invite the address you actually use. It grants nothing —
+the owner still adds you from Share → Collaborate.
 
 **c) Account requests (the open front door).** Anyone can request an
 account from the passcode screen; the steward gets an email and approves

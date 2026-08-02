@@ -64,7 +64,9 @@ interface AuthState {
   initialized: boolean;
   /** Bumping this opens the sign-in dialog from anywhere in the app */
   signInPromptCount: number;
-  promptSignIn: () => void;
+  /** Address to prefill when the prompt opens — an invite knows which one */
+  signInPromptEmail: string | null;
+  promptSignIn: (email?: string) => void;
 
   /** Wire up the Supabase auth listener — call once on app mount */
   init: () => void;
@@ -84,7 +86,12 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   profileLoaded: false,
   initialized: false,
   signInPromptCount: 0,
-  promptSignIn: () => set(s => ({ signInPromptCount: s.signInPromptCount + 1 })),
+  signInPromptEmail: null,
+  promptSignIn: (email?: string) =>
+    set(s => ({
+      signInPromptCount: s.signInPromptCount + 1,
+      signInPromptEmail: email ?? null,
+    })),
 
   init: () => {
     if (get().initialized || !builderClient) {
@@ -115,7 +122,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     // (the gate creates an approved member's auth user if this is their first
     // sign-in); everyone else gets a friendly pointer, not a dead-end email.
     const gate = await checkSignInGate(email);
-    if (!gate.allowed) return { error: gateMessage(gate.status) };
+    if (!gate.allowed) return { error: gateMessage(gate.status, gate.invitedBy) };
     const { error } = await builderClient.auth.signInWithOtp({
       email,
       // Never create accounts here — that's approval's job (admin-requests)

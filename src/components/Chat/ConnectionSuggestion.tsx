@@ -10,20 +10,80 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { HeartHandshake, CalendarClock, MailPlus, MapPin, X, Loader2, Check } from 'lucide-react';
 
-const DISMISSED_KEY = 'rb-connection-suggestions-dismissed';
+const MEMORY_KEY = 'rb-connection-suggestions';
 
-function getDismissed(): Set<string> {
+/**
+ * How many times we'll ever raise the same person, unprompted.
+ *
+ * An introduction you didn't ask for is worth making once, maybe twice — a
+ * conversation about mutual aid will keep matching the same builder's note
+ * forever, and a suggestion that returns on every reload stops reading as an
+ * offer and starts reading as a nag. Two is the whole budget, for good.
+ */
+const MAX_OFFERS_PER_BUILDER = 2;
+
+interface BuilderMemory {
+  /** Times this builder's card has actually been put in front of this person */
+  offers: number;
+  /** They waved it off by hand — a stronger signal than simply not acting */
+  dismissed?: boolean;
+}
+
+type Memory = Record<string, BuilderMemory>;
+
+/**
+ * localStorage, not sessionStorage: dismissal used to die with the tab, so
+ * every reload resurrected someone the person had already declined — which is
+ * exactly the "I've x'ed this out a few times" complaint. Saying no once has
+ * to still mean no tomorrow.
+ */
+function readMemory(): Memory {
   try {
-    return new Set(JSON.parse(sessionStorage.getItem(DISMISSED_KEY) ?? '[]'));
+    const raw = JSON.parse(localStorage.getItem(MEMORY_KEY) ?? '{}');
+    return raw && typeof raw === 'object' && !Array.isArray(raw) ? (raw as Memory) : {};
   } catch {
-    return new Set();
+    return {};
   }
 }
 
-function addDismissed(id: string) {
-  const next = getDismissed();
-  next.add(id);
-  sessionStorage.setItem(DISMISSED_KEY, JSON.stringify([...next]));
+function writeMemory(memory: Memory): void {
+  try {
+    localStorage.setItem(MEMORY_KEY, JSON.stringify(memory));
+  } catch {
+    // A full or blocked localStorage shouldn't take the chat down with it
+  }
+}
+
+/** Builders we've said our piece about: waved off, or already offered twice */
+function retiredIds(memory: Memory): Set<string> {
+  return new Set(
+    Object.entries(memory)
+      .filter(([, m]) => m.dismissed || m.offers >= MAX_OFFERS_PER_BUILDER)
+      .map(([id]) => id),
+  );
+}
+
+/** An explicit "not this person" — permanent, and it means it */
+function retire(id: string): void {
+  const memory = readMemory();
+  memory[id] = { offers: memory[id]?.offers ?? 0, dismissed: true };
+  writeMemory(memory);
+}
+
+/**
+ * Spending one of a builder's two offers. Module-level rather than per-mount
+ * so that re-renders, a re-run effect as the conversation grows, and React's
+ * double-invoked effects in development all count as the one showing they
+ * really are.
+ */
+const countedThisSession = new Set<string>();
+
+function countOffer(id: string): void {
+  if (countedThisSession.has(id)) return;
+  countedThisSession.add(id);
+  const memory = readMemory();
+  memory[id] = { ...memory[id], offers: (memory[id]?.offers ?? 0) + 1 };
+  writeMemory(memory);
 }
 
 /**
@@ -31,7 +91,8 @@ function addDismissed(id: string) {
  * for, offer the connection right in the chat — their directory card
  * inline, with the same consent-first actions (book via their shared cal
  * link, or a double-opt-in intro request). Appears only on a genuine
- * topical match, one builder at a time, dismissible for the session.
+ * topical match, one builder at a time, and at most twice per builder ever —
+ * dismissing or acting on one retires them for good.
  */
 export function ConnectionSuggestion({ conversationText }: { conversationText: string }) {
   const user = useAuthStore(s => s.user);
@@ -50,7 +111,11 @@ export function ConnectionSuggestion({ conversationText }: { conversationText: s
     let cancelled = false;
     fetchDirectoryCached().then(builders => {
       if (cancelled) return;
-      setSuggestion(suggestConnection(conversationText, builders, getDismissed()));
+      const next = suggestConnection(conversationText, builders, retiredIds(readMemory()));
+      // Showing it is what spends an offer — a match we never render (because
+      // this builder is already retired) costs nothing.
+      if (next) countOffer(next.builder.id);
+      setSuggestion(next);
     });
     return () => { cancelled = true; };
   }, [user, conversationText]);
@@ -63,6 +128,8 @@ export function ConnectionSuggestion({ conversationText }: { conversationText: s
     setError(null);
     try {
       await requestConnection(builder.id, message);
+      // The introduction has been made — there is nothing left to suggest
+      retire(builder.id);
       setSent(true);
       setRequesting(false);
     } catch (e) {
@@ -86,9 +153,9 @@ export function ConnectionSuggestion({ conversationText }: { conversationText: s
           </span>
         )}
         <button
-          onClick={() => { addDismissed(builder.id); setSuggestion(null); }}
+          onClick={() => { retire(builder.id); setSuggestion(null); }}
           className="ml-auto text-muted-foreground hover:text-foreground shrink-0"
-          title="Not now"
+          title={`Don't suggest ${builder.name} again`}
         >
           <X className="size-3" />
         </button>

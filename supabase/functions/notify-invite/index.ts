@@ -9,11 +9,17 @@
  * Auth: requires a valid Builder session token (any signed-in user), which
  * keeps this from being an open relay. Per-user daily send cap as backstop.
  *
+ * The button carries ?invite=<project_id>&to=<invited email>, which is what
+ * lets the app say something useful on arrival — open the project when the
+ * addresses match, and name both of them when they don't. Without it the link
+ * was a bare origin and a mismatched account had no way to even learn an
+ * invitation existed.
+ *
  * Deploy:
  *   supabase functions deploy notify-invite --no-verify-jwt
  * Secrets:
  *   RESEND_API_KEY   — Resend key for the relationalbuilder.org domain
- *   APP_URL          — link target (default https://relational-builder.vercel.app)
+ *   APP_URL          — link target (default https://relationalbuilder.org)
  *   ACCESS_CODE      — pilot passcode to include in the email (optional)
  */
 
@@ -64,23 +70,39 @@ Deno.serve(async (req: Request) => {
       count: bucket?.day === today ? bucket.count + 1 : 1,
     });
 
-    const { invitee_email, project_name, note: rawNote } = await req.json();
+    const { invitee_email, project_name, project_id: rawProjectId, note: rawNote } = await req.json();
     if (!invitee_email || typeof invitee_email !== 'string' || !invitee_email.includes('@')) {
       return json({ error: 'invitee_email required' }, 400);
     }
     const projectName = String(project_name ?? 'a project').slice(0, 120);
+    // The project this invite is for. Only a real uuid rides along — this
+    // ends up in a URL, so it gets the same treatment as any other input.
+    const projectId =
+      typeof rawProjectId === 'string' &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawProjectId)
+        ? rawProjectId
+        : null;
     // The sender's own words about why they're inviting. Escaped into the
     // template like any other untrusted string — it is typed by a person and
     // lands in someone else's inbox.
     const note = typeof rawNote === 'string' ? rawNote.trim().slice(0, 400) : '';
 
-    const appUrl = Deno.env.get('APP_URL') ?? 'https://relational-builder.vercel.app';
+    const appUrl = (Deno.env.get('APP_URL') ?? 'https://relationalbuilder.org').replace(/\/$/, '');
     const accessCode = Deno.env.get('ACCESS_CODE') ?? '';
+
+    // The link says which project, and which address the invite was sent to.
+    // Without both, the button was a bare origin: whoever clicked it landed in
+    // whatever account their browser was already signed into, with nothing to
+    // see and no way to tell that an invite existed at all.
+    const inviteUrl = projectId
+      ? `${appUrl}/?invite=${projectId}&to=${encodeURIComponent(invitee_email)}`
+      : appUrl;
 
     const html = renderInviteEmail({
       inviterEmail,
       projectName,
-      appUrl,
+      inviteUrl,
+      inviteeEmail: invitee_email,
       accessCode,
       note,
     });
@@ -114,11 +136,12 @@ Deno.serve(async (req: Request) => {
 function renderInviteEmail(opts: {
   inviterEmail: string;
   projectName: string;
-  appUrl: string;
+  inviteUrl: string;
+  inviteeEmail: string;
   accessCode: string;
   note: string;
 }): string {
-  const { inviterEmail, projectName, appUrl, accessCode, note } = opts;
+  const { inviterEmail, projectName, inviteUrl, inviteeEmail, accessCode, note } = opts;
   return `<!doctype html>
 <html>
   <body style="margin:0;padding:0;background:#F5F5F4;font-family:Georgia,'Times New Roman',serif;color:#292524;">
@@ -135,11 +158,13 @@ function renderInviteEmail(opts: {
         </p>
         ${note ? `<blockquote style="margin:0 0 20px;padding:12px 16px;border-left:3px solid #E86F4E;background:#FDF6F3;font-size:15px;line-height:1.6;font-style:italic;">${escapeHtml(note)}</blockquote>` : ''}
         <p style="font-size:15px;line-height:1.6;margin:0 0 24px;">
-          Sign in with this email address and the project will be waiting for you.
-          You'll be able to make changes and chat with the builder, the same as they can.
+          The invitation is for <strong>${escapeHtml(inviteeEmail)}</strong> &mdash; sign in
+          with that address and the project will be waiting for you. You'll be able to make
+          changes and chat with the builder, the same as they can. If you'd rather use a
+          different address, open the link and you can ask for it there.
         </p>
-        <a href="${appUrl}" style="display:inline-block;background:#292524;color:#FAFAF9;text-decoration:none;font-size:15px;padding:12px 22px;border-radius:8px;">
-          Open Relational Builder
+        <a href="${inviteUrl}" style="display:inline-block;background:#292524;color:#FAFAF9;text-decoration:none;font-size:15px;padding:12px 22px;border-radius:8px;">
+          Open the project
         </a>
         ${accessCode ? `<p style="font-size:13px;color:#78716C;margin:20px 0 0;">Pilot passcode: <strong style="letter-spacing:0.15em;">${escapeHtml(accessCode)}</strong></p>` : ''}
       </div>

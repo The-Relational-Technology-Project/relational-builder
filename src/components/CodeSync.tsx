@@ -70,9 +70,14 @@ export function CodeSync() {
     >
       <DialogTrigger
         className="inline-flex items-center justify-center gap-1 rounded-md px-3 h-7 text-xs font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
+        title={connectedRepo ? connectedRepo.fullName : 'Sync this project with a repo'}
       >
-        <GitBranch className="size-3" />
-        {connectedRepo ? connectedRepo.fullName.split('/')[1] : 'Sync'}
+        <GitBranch className="size-3 shrink-0" />
+        {/* Bounded: a repo name is someone else's string, and an unbounded one
+            grows the header group until Share loses its edge. */}
+        <span className="max-w-[9rem] truncate">
+          {connectedRepo ? connectedRepo.fullName.split('/')[1] : 'Sync'}
+        </span>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>

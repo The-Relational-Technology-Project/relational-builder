@@ -17,7 +17,7 @@ import { useStudioStore } from '@/store/studio-store';
 import { useUIStore } from '@/store/ui-store';
 import { BuilderOnboarding } from '@/components/BuilderOnboarding';
 import { initCloudSync } from '@/cloud/sync';
-import { AccountMenu } from '@/components/AccountMenu';
+import { AccountMenu, SignInDialogHost } from '@/components/AccountMenu';
 import { ProjectsButton, ProjectsPage } from '@/components/ProjectsPage';
 import { ConnectionsPage } from '@/components/ConnectionsPage';
 import { ProfilePage } from '@/components/ProfilePage';
@@ -28,6 +28,8 @@ import { StudioAdminPage } from '@/components/StudioAdminPage';
 import { initLocalAutosave, stashAndStartFresh } from '@/project/local-projects';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { RBMark } from '@/components/RBMark';
+import { AppNavMenu } from '@/components/AppNavMenu';
+import { InviteBanner } from '@/components/InviteBanner';
 
 import { CommonsGallery } from '@/components/CommonsGallery';
 import { Separator } from '@/components/ui/separator';
@@ -146,42 +148,33 @@ function App() {
   return (
     <div className="h-dvh flex flex-col overflow-x-hidden bg-background text-foreground">
       {needsOnboarding && <BuilderOnboarding />}
+      {/* One sign-in dialog for the whole app. Both headers are always
+          mounted (one is CSS-hidden), and a portalled dialog inside each
+          opened two stacked copies — so the close button appeared to do
+          nothing. Every "Sign in" now just calls promptSignIn(). */}
+      <SignInDialogHost />
+      {/* An invite link that landed in the wrong account says so here — it
+          used to be indistinguishable from a link that did nothing at all */}
+      <InviteBanner />
       {/* Desktop toolbar */}
-      <header className="hidden md:flex items-center justify-between gap-2 px-4 py-2 border-b shrink-0">
-        <div className="flex items-center gap-3 shrink-0">
-          {/* The wordmark is the way home — back to the builder (or the home
-              composer when nothing's open) from any page */}
-          <button
-            className="flex items-center gap-1.5 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            onClick={() => setView('builder')}
-            title="Back to building"
-          >
-            <RBMark className="size-5 shrink-0" />
-            <h1 className="text-sm font-semibold tracking-tight whitespace-nowrap">
-              Relational Builder
-            </h1>
-          </button>
-          <Separator orientation="vertical" className="h-5" />
+      <header className="hidden md:flex items-center justify-between gap-3 px-4 py-2 border-b shrink-0">
+        {/* min-w-0 so a long project name compresses the left group instead of
+            shoving the right one off the edge — the header used to be two
+            shrink-0 groups inside an overflow-hidden parent, which clips
+            rather than reflows. */}
+        <div className="flex items-center gap-2 min-w-0">
+          {/* One door for "go somewhere else": the wordmark. Keeping New
+              Project / Gallery / Projects as three peers of Share made four
+              things compete for the same glance — Share is the only action
+              here that changes the world, so it's the only one left standing. */}
+          <AppNavMenu onNewProject={handleNewProject} />
+          <Separator orientation="vertical" className="h-5 shrink-0" />
           {/* Studio affiliation lives on the builder profile page now — the
               nav stays about the work in front of you */}
           <ProjectStatus />
           <ProjectStageStrip />
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <Button variant="ghost" size="sm" className="h-7 gap-1 text-xs" onClick={handleNewProject}>
-            <Plus className="size-3" />
-            New Project
-          </Button>
-          <Button
-            variant={view === 'gallery' ? 'secondary' : 'ghost'}
-            size="sm"
-            className="h-7 gap-1 text-xs"
-            onClick={() => setView('gallery')}
-          >
-            <LayoutGrid className="size-3" />
-            Gallery
-          </Button>
-          <ProjectsButton />
           {/* Code sync belongs with the code — surface it once there is a project
               to sync, not on the home/network screens. */}
           {hasProject && <CodeSync />}

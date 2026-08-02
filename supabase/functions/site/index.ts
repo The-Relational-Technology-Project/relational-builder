@@ -14,7 +14,7 @@
  *   <meta name="rb-feedback" content="off">
  *
  * Fronted by a rewrite on the builder domain so sites get clean URLs:
- *   https://relational-builder.vercel.app/s/{slug}/
+ *   https://relationalbuilder.org/s/{slug}/
  *
  * Deploy: supabase functions deploy site --no-verify-jwt
  */

@@ -5,7 +5,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
   DropdownMenu,
@@ -67,7 +66,7 @@ export function AccountMenu() {
 
   if (!cloudEnabled) return null;
 
-  if (!user) return <SignInDialog />;
+  if (!user) return <SignInButton />;
 
   return (
     <>
@@ -76,8 +75,12 @@ export function AccountMenu() {
           className={buttonVariants({ variant: 'ghost', size: 'sm' }) + ' h-7 gap-1 text-xs relative'}
           title={inboxCount > 0 ? `${user.email} — connection requests waiting` : user.email}
         >
-          <CircleUser className="size-3.5" />
-          {profile?.display_name?.trim() || user.email.split('@')[0]}
+          <CircleUser className="size-3.5 shrink-0" />
+          {/* A display name someone chose for themselves can be any length —
+              bounded so it can't push the rest of the header off the edge */}
+          <span className="max-w-[8rem] truncate">
+            {profile?.display_name?.trim() || user.email.split('@')[0]}
+          </span>
           {inboxCount > 0 && (
             <>
               <span className="absolute top-0.5 right-0.5 size-1.5 rounded-full bg-primary" aria-hidden />
@@ -174,9 +177,41 @@ export function AccountMenu() {
   );
 }
 
-function SignInDialog() {
+/**
+ * The header's "Sign in" — a trigger, not the dialog.
+ *
+ * AccountMenu is mounted twice (the desktop header and the mobile sheet, one
+ * of them CSS-hidden), and a Radix dialog portals to the body regardless of
+ * whether its parent is hidden. So a self-contained dialog here opened twice,
+ * stacked, and the close button only dismissed the copy on top — the second
+ * one sat there looking like the X had done nothing. The dialog itself is a
+ * singleton now (SignInDialogHost, mounted once in App); every trigger just
+ * asks the store to open it.
+ */
+function SignInButton() {
+  return (
+    <button
+      className={buttonVariants({ variant: 'ghost', size: 'sm' }) + ' h-7 gap-1 text-xs'}
+      title="Sign in"
+      onClick={() => useAuthStore.getState().promptSignIn()}
+    >
+      <CircleUser className="size-3.5" />
+      Sign in
+    </button>
+  );
+}
+
+/**
+ * The one sign-in dialog. Mounted once, opened from anywhere by
+ * `promptSignIn()` — which can carry the address to prefill (an invite link
+ * knows exactly which one, and asking someone to retype it is a step they can
+ * only get wrong).
+ */
+export function SignInDialogHost() {
   const signIn = useAuthStore(s => s.signIn);
+  const user = useAuthStore(s => s.user);
   const signInPromptCount = useAuthStore(s => s.signInPromptCount);
+  const signInPromptEmail = useAuthStore(s => s.signInPromptEmail);
 
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState('');
@@ -189,7 +224,12 @@ function SignInDialog() {
   // Anywhere in the app can ask for the sign-in dialog (e.g. the home
   // hero's "sign in to start building" hint)
   useEffect(() => {
-    if (signInPromptCount > 0) setOpen(true);
+    if (signInPromptCount === 0) return;
+    // An invite knows exactly which address it was sent to — asking the person
+    // to retype it (correctly) is a step they can only get wrong
+    if (signInPromptEmail) setEmail(signInPromptEmail);
+    setOpen(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fire on prompt, not on email edits
   }, [signInPromptCount]);
 
   async function handleSignIn() {
@@ -226,15 +266,15 @@ function SignInDialog() {
     }
   }
 
+  // Signing in is the end of this dialog's job
+  useEffect(() => {
+    if (user) setOpen(false);
+  }, [user]);
+
+  if (!cloudEnabled) return null;
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger
-        className={buttonVariants({ variant: 'ghost', size: 'sm' }) + ' h-7 gap-1 text-xs'}
-        title="Sign in"
-      >
-        <CircleUser className="size-3.5" />
-        Sign in
-      </DialogTrigger>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>Sign in</DialogTitle>

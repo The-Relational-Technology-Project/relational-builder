@@ -23,7 +23,7 @@
  *   RESEND_API_KEY  — Resend key for the relationalbuilder.org domain
  *   STEWARD_EMAIL   — where request notifications go
  *                     (default josh@relationaltechproject.org)
- *   APP_URL         — link target (default https://relational-builder.vercel.app)
+ *   APP_URL         — link target (default https://relationalbuilder.org)
  *   SITE_URL        — respond-link domain (default https://relationalbuilder.org)
  */
 
@@ -62,6 +62,50 @@ async function sha256Hex(s: string): Promise<string> {
 }
 
 const RESPOND_TOKEN_DAYS = 7;
+
+/**
+ * An unclaimed project invitation for this address, and who sent it.
+ *
+ * Looked up here rather than accepted from the request body: a referral is the
+ * most load-bearing thing on the steward's screen, so it has to be something
+ * the server established, not something the form claimed. Informational only —
+ * an invitation never approves anyone, it just means the steward is looking at
+ * someone an existing builder already vouched for.
+ */
+async function inviteContext(
+  email: string,
+): Promise<{ invited_by_email: string | null; invited_project_name: string | null } | null> {
+  const res = await fetch(
+    rest(
+      `/project_members?email=eq.${encodeURIComponent(email)}&user_id=is.null&select=invited_by,project_id&limit=1`,
+    ),
+    { headers: svc() },
+  );
+  const rows = res.ok ? await res.json() : [];
+  if (rows.length === 0) return null;
+
+  let invitedByEmail: string | null = null;
+  if (rows[0].invited_by) {
+    const who = await fetch(
+      rest(`/profiles?id=eq.${encodeURIComponent(rows[0].invited_by)}&select=email&limit=1`),
+      { headers: svc() },
+    );
+    const whoRows = who.ok ? await who.json() : [];
+    invitedByEmail = whoRows[0]?.email ?? null;
+  }
+
+  let projectName: string | null = null;
+  if (rows[0].project_id) {
+    const proj = await fetch(
+      rest(`/projects?id=eq.${encodeURIComponent(rows[0].project_id)}&select=name&limit=1`),
+      { headers: svc() },
+    );
+    const projRows = proj.ok ? await proj.json() : [];
+    projectName = projRows[0]?.name ?? null;
+  }
+
+  return { invited_by_email: invitedByEmail, invited_project_name: projectName };
+}
 
 const emailBtn = (href: string, label: string, primary: boolean) =>
   `<a href="${href}" style="display:inline-block;margin:4px 10px 4px 0;padding:12px 22px;border-radius:10px;text-decoration:none;font-weight:600;font-size:15px;${
@@ -128,12 +172,15 @@ Deno.serve(async (req: Request) => {
       Date.now() + RESPOND_TOKEN_DAYS * 86400_000,
     ).toISOString();
 
+    const invite = await inviteContext(email);
+
     const insertRes = await fetch(rest('/account_requests'), {
       method: 'POST',
       headers: svc(),
       body: JSON.stringify({
         email, name, neighborhood, reason,
         studio_slug: studioSlug, studio_label: studioLabel,
+        ...(invite ?? {}),
         respond_token_hash: respondTokenHash,
         respond_token_expires_at: respondTokenExpires,
       }),
@@ -143,7 +190,7 @@ Deno.serve(async (req: Request) => {
     // Notify the steward — best-effort; the request is already saved
     const resendKey = Deno.env.get('RESEND_API_KEY') ?? '';
     const steward = Deno.env.get('STEWARD_EMAIL') ?? 'josh@relationaltechproject.org';
-    const appUrl = Deno.env.get('APP_URL') ?? 'https://relational-builder.vercel.app';
+    const appUrl = Deno.env.get('APP_URL') ?? 'https://relationalbuilder.org';
     const siteUrl = (Deno.env.get('SITE_URL') ?? 'https://relationalbuilder.org').replace(/\/$/, '');
     if (resendKey) {
       const approveUrl = `${siteUrl}/steward/respond?token=${respondToken}&do=approve`;
@@ -158,6 +205,9 @@ Deno.serve(async (req: Request) => {
           html: [
             `<p><strong>${esc(name ?? 'Someone')}</strong> (${esc(email)}) asked for a Relational Builder account.</p>`,
             studioLabel ? `<p><strong>Arrived through:</strong> ${esc(studioLabel)} — approving the account will also file their request to join the studio.</p>` : '',
+            invite?.invited_by_email
+              ? `<p><strong>Invited by:</strong> ${esc(invite.invited_by_email)}${invite.invited_project_name ? ` — to collaborate on “${esc(invite.invited_project_name)}”` : ''}. An existing builder already vouched for them; approving lets them take that invitation up.</p>`
+              : '',
             neighborhood ? `<p><strong>Neighborhood:</strong> ${esc(neighborhood)}</p>` : '',
             reason ? `<p><strong>What they want to build:</strong><br>${esc(reason)}</p>` : '',
             `<div>${emailBtn(approveUrl, 'Approve', true)}${emailBtn(declineUrl, 'Decline', false)}</div>`,

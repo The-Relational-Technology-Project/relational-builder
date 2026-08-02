@@ -9,7 +9,10 @@
  *     then allowed. This also backfills anyone approved before approval
  *     started creating auth users.
  *   - Neither → not allowed; the client shows a friendly pointer to the
- *     request-account form ('pending' if their request is still waiting).
+ *     request-account form ('pending' if their request is still waiting,
+ *     'invited' if an existing builder has invited them to a project — still
+ *     not allowed, but the copy can say so instead of implying a dead end,
+ *     and the referral rides along on the account request for the steward).
  *
  * The real enforcement is Supabase Auth itself: the client sends OTPs with
  * shouldCreateUser: false and the project has disable_signup: true, so a
@@ -50,6 +53,46 @@ function svc(): Record<string, string> {
 
 function rest(path: string): string {
   return `${Deno.env.get('SUPABASE_URL')}/rest/v1${path}`;
+}
+
+/**
+ * An unclaimed project invitation for this address, with who sent it.
+ * Informational: it never grants entry, it only lets the door explain itself
+ * (and rides along on the account request so the steward sees the referral).
+ */
+async function pendingInvite(
+  email: string,
+): Promise<{ inviterEmail: string | null; projectName: string | null } | null> {
+  const res = await fetch(
+    rest(
+      `/project_members?email=eq.${encodeURIComponent(email)}&user_id=is.null&select=invited_by,project_id&limit=1`,
+    ),
+    { headers: svc() },
+  );
+  const rows = res.ok ? await res.json() : [];
+  if (rows.length === 0) return null;
+
+  let inviterEmail: string | null = null;
+  if (rows[0].invited_by) {
+    const who = await fetch(
+      rest(`/profiles?id=eq.${encodeURIComponent(rows[0].invited_by)}&select=email&limit=1`),
+      { headers: svc() },
+    );
+    const whoRows = who.ok ? await who.json() : [];
+    inviterEmail = whoRows[0]?.email ?? null;
+  }
+
+  let projectName: string | null = null;
+  if (rows[0].project_id) {
+    const proj = await fetch(
+      rest(`/projects?id=eq.${encodeURIComponent(rows[0].project_id)}&select=name&limit=1`),
+      { headers: svc() },
+    );
+    const projRows = proj.ok ? await proj.json() : [];
+    projectName = projRows[0]?.name ?? null;
+  }
+
+  return { inviterEmail, projectName };
 }
 
 /** Create the auth user for an approved email; an already-existing user is success too */
@@ -114,7 +157,23 @@ Deno.serve(async (req: Request) => {
     );
     const requests = reqRes.ok ? await reqRes.json() : [];
     const pending = requests.length > 0 && requests[0].status === 'pending';
-    return json({ allowed: false, status: pending ? 'pending' : 'not-approved' });
+    if (pending) return json({ allowed: false, status: 'pending' });
+
+    // An outstanding project invitation doesn't open the door — every new
+    // builder still goes past a steward — but it changes what we can honestly
+    // say at it. Being told "this email doesn't have an account" right after
+    // an email promised the project would be waiting reads as a broken tool.
+    const invite = await pendingInvite(email);
+    if (invite) {
+      return json({
+        allowed: false,
+        status: 'invited',
+        invited_by: invite.inviterEmail,
+        project_name: invite.projectName,
+      });
+    }
+
+    return json({ allowed: false, status: 'not-approved' });
   } catch (err) {
     return json({ error: err instanceof Error ? err.message : 'Internal error' }, 500);
   }

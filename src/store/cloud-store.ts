@@ -485,6 +485,9 @@ export const useCloudStore = create<CloudState>()((set, get) => ({
         body: JSON.stringify({
           invitee_email: email.trim().toLowerCase(),
           project_name: get().currentProjectName,
+          // Without the id the email's button was a bare origin — it opened
+          // whatever account the browser was already in and showed nothing
+          project_id: currentProjectId,
           note: note?.trim() || undefined,
           inviter_name: useAuthStore.getState().profile?.display_name ?? undefined,
         }),

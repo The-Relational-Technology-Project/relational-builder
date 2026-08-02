@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { RBMark } from './RBMark';
 import { requestAccount, type RequestOutcome } from '@/cloud/account-requests';
+import { getPendingInvite } from '@/cloud/invite-link';
 import { useAuthStore, cloudEnabled } from '@/store/auth-store';
 import { useStudioStore } from '@/store/studio-store';
 import { DEFAULT_STUDIO_SLUG } from '@/knowledge/studio-context';
@@ -55,6 +56,10 @@ export function Landing({ children }: { children: ReactNode }) {
   const user = useAuthStore(s => s.user);
   const [granted, setGranted] = useState(() => {
     scrubCodeParam();
+    // Someone arriving on an invite link was sent here by a person, not by
+    // the marketing page — walk them through to the app shell, where the
+    // invite banner and a prefilled sign-in are waiting.
+    if (getPendingInvite()) return true;
     return localStorage.getItem(ENTERED_KEY) === '1';
   });
   const [hashPage, setHashPage] = useState(getHashPage);

@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Undo2, Check, Loader2, CloudOff, Info } from 'lucide-react';
+import { useState } from 'react';
+import { Loader2, CloudOff, Info } from 'lucide-react';
 import { useProjectStore } from '@/store/project-store';
 import { useCloudStore } from '@/store/cloud-store';
 import { useAuthStore } from '@/store/auth-store';
@@ -27,7 +27,6 @@ export function ProjectStageStrip({ compact = false }: { compact?: boolean } = {
   const fileCount = useProjectStore(s => s.getFileCount());
   const checkpoints = useProjectStore(s => s.checkpoints);
   const activeCheckpointId = useProjectStore(s => s.activeCheckpointId);
-  const undoLastChange = useProjectStore(s => s.undoLastChange);
 
   const cloudProjectId = useCloudStore(s => s.currentProjectId);
   const syncStatus = useCloudStore(s => s.syncStatus);
@@ -36,12 +35,6 @@ export function ProjectStageStrip({ compact = false }: { compact?: boolean } = {
   const publishNames = useDeployStore(s => s.publishNames);
 
   const [open, setOpen] = useState(false);
-  const [undone, setUndone] = useState<string | null>(null);
-  useEffect(() => {
-    if (!undone) return;
-    const t = setTimeout(() => setUndone(null), 4000);
-    return () => clearTimeout(t);
-  }, [undone]);
 
   const publishKey = cloudProjectId ?? 'local';
   // A stale activeCheckpointId (checkpoints are trimmed past MAX_CHECKPOINTS,
@@ -68,8 +61,8 @@ export function ProjectStageStrip({ compact = false }: { compact?: boolean } = {
   if (info.stage === 'sketching') return null;
 
   return (
-    <div className="flex items-center gap-1.5 text-xs">
-      <div className="relative">
+    <div className="flex items-center gap-1.5 text-xs min-w-0">
+      <div className="relative shrink-0">
         <button
           onClick={() => setOpen(o => !o)}
           className="inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-muted-foreground hover:text-foreground hover:bg-muted/60"
@@ -100,7 +93,12 @@ export function ProjectStageStrip({ compact = false }: { compact?: boolean } = {
       </div>
 
       {/* On a phone the stage answer is what matters and the rest does not
-          fit — the save state and undo stay on the roomier layout. */}
+          fit — the save state stays on the roomier layout.
+          Only the states worth interrupting for live here. A standing
+          "✓ Saved" next to a chip already reading "Saved · Only you" said the
+          same thing twice, and the momentary confirmation is the project
+          pill's job (it flashes a green check on each save). Undo moved to the
+          chat, next to the change it undoes. */}
       {!compact && (
         <>
         {/* Save state. Only ever says saved when it is — a save indicator that
@@ -115,37 +113,6 @@ export function ProjectStageStrip({ compact = false }: { compact?: boolean } = {
           <span className="inline-flex items-center gap-1 text-destructive">
             <CloudOff className="size-3" /> Not saved
           </span>
-        )}
-        {cloudProjectId && syncStatus === 'saved' && (
-          <span className="hidden md:inline-flex items-center gap-1 text-muted-foreground/70">
-            <Check className="size-3" /> Saved
-          </span>
-        )}
-
-        {undone ? (
-          // Bounded width on purpose: the checkpoint label is the person's own
-          // sentence, and dropping it raw into a justify-between header grew the
-          // left group until it pushed Share off the right edge. Truncated here,
-          // full text on hover.
-          <span
-            className="max-w-[10rem] truncate text-muted-foreground"
-            title={`Put back ${undone}`}
-          >
-            Put back {undone}
-          </span>
-        ) : (
-          canUndo && (
-            <button
-              onClick={() => {
-                const label = undoLastChange();
-                if (label) setUndone(label);
-              }}
-              className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground underline decoration-dotted"
-              title="Put the files back the way they were before the last change"
-            >
-              <Undo2 className="size-3" /> Undo last change
-            </button>
-          )
         )}
         </>
       )}

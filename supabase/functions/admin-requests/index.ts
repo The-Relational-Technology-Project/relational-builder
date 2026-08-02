@@ -396,7 +396,7 @@ Deno.serve(async (req: Request) => {
     // Welcome email with the sign-in link — best-effort
     if (action === 'approve') {
       const resendKey = Deno.env.get('RESEND_API_KEY') ?? '';
-      const appUrl = Deno.env.get('APP_URL') ?? 'https://relational-builder.vercel.app';
+      const appUrl = Deno.env.get('APP_URL') ?? 'https://relationalbuilder.org';
       if (resendKey) {
         // Known Studio member? Let them know their history is waiting —
         // the studio_imports row is claimed (opt-in) during onboarding.

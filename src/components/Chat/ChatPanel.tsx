@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { extractOperations } from '@/project/code-extractor';
-import { RotateCcw, X } from 'lucide-react';
+import { RotateCcw, X, Undo2, Check } from 'lucide-react';
 import { useChatStore } from '@/store/chat-store';
 import { useProviderStore } from '@/store/provider-store';
 import { useProjectStore } from '@/store/project-store';
@@ -218,6 +218,70 @@ function RetryBanner({ onRetry }: { onRetry: (content: string, attachments?: str
         title="Dismiss"
       >
         <X className="size-3.5" />
+      </button>
+    </div>
+  );
+}
+
+/**
+ * Undo, where the thing being undone is still on screen.
+ *
+ * This lived in the header strip, which made it ambient and context-free —
+ * "undo last change" in the far corner, with no sight of what the last change
+ * was. Sitting under the conversation it reads as what it actually does: put
+ * the files back the way they were before that reply. The confirmation lands
+ * where the eye already is, too, instead of in the opposite corner.
+ *
+ * Quiet by construction: one muted line, and only when there's something to
+ * go back to.
+ */
+function UndoLastChange() {
+  const checkpoints = useProjectStore(s => s.checkpoints);
+  const activeCheckpointId = useProjectStore(s => s.activeCheckpointId);
+  const undoLastChange = useProjectStore(s => s.undoLastChange);
+  const [undone, setUndone] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!undone) return;
+    const t = setTimeout(() => setUndone(null), 4000);
+    return () => clearTimeout(t);
+  }, [undone]);
+
+  // A stale activeCheckpointId (checkpoints are trimmed past MAX_CHECKPOINTS,
+  // and it also survives a reload) resolves to findIndex === -1, which would
+  // silently remove the undo affordance — the reassurance vanishing exactly
+  // when someone has made enough changes to want it. Fall back to the newest.
+  const foundIdx = activeCheckpointId
+    ? checkpoints.findIndex(c => c.id === activeCheckpointId)
+    : -1;
+  const currentIdx = foundIdx >= 0 ? foundIdx : checkpoints.length - 1;
+  const canUndo = currentIdx > 0;
+
+  if (undone) {
+    return (
+      <div className="px-4 pb-1.5 text-xs text-muted-foreground">
+        <span className="inline-flex items-center gap-1">
+          <Check className="size-3 text-green-600 shrink-0" />
+          <span className="truncate">Put back {undone}</span>
+        </span>
+      </div>
+    );
+  }
+
+  if (!canUndo) return null;
+
+  return (
+    <div className="px-4 pb-1.5">
+      <button
+        onClick={() => {
+          const label = undoLastChange();
+          if (label) setUndone(label);
+        }}
+        className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground underline decoration-dotted"
+        title="Put the files back the way they were before the last change"
+      >
+        <Undo2 className="size-3" />
+        Undo last change
       </button>
     </div>
   );
@@ -816,6 +880,7 @@ export function ChatPanel() {
           (and retires the ask if the person builds on past it) */}
       <BuildReportCard />
       {!isGenerating && <CommunityBudgetBanner />}
+      {!isGenerating && <UndoLastChange />}
       {needsKey && (
         <div className="px-4 py-2 text-xs text-center bg-muted/50 border-t">
           {needsKeyHint}

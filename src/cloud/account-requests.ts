@@ -29,6 +29,10 @@ export interface AccountRequest {
   /** The studio doorway they arrived through (?studio=slug), if any */
   studio_slug: string | null;
   studio_label: string | null;
+  /** An existing builder's project invitation waiting on this address. Never
+   *  grants anything — it's the referral, so approving is an informed call. */
+  invited_by_email: string | null;
+  invited_project_name: string | null;
   status: 'pending' | 'approved' | 'declined';
   created_at: string;
   decided_at: string | null;

@@ -111,7 +111,7 @@ Deno.serve(async (req: Request) => {
         { headers: svc() },
       );
       const sites = sitesRes.ok ? await sitesRes.json() : [];
-      const appUrl = Deno.env.get('APP_URL') ?? 'https://relational-builder.vercel.app';
+      const appUrl = Deno.env.get('APP_URL') ?? 'https://relationalbuilder.org';
 
       const enriched = await Promise.all(sites.map(async (s: { id: string; slug: string; name: string; created_at: string; updated_at: string }) => {
         const [statsRes, feedbackRes] = await Promise.all([
@@ -273,7 +273,7 @@ Deno.serve(async (req: Request) => {
     });
     if (!insertRes.ok) return json({ error: 'Could not upload site files' }, 500);
 
-    const appUrl = Deno.env.get('APP_URL') ?? 'https://relational-builder.vercel.app';
+    const appUrl = Deno.env.get('APP_URL') ?? 'https://relationalbuilder.org';
 
     if (isPreview) {
       return json({ ok: true, slug, url: `${appUrl}/s/${slug}/`, expires_at: expiresAt });

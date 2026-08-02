@@ -237,10 +237,22 @@ function RequestsTab({ active }: { active: boolean }) {
                     via {r.studio_label}
                   </Badge>
                 )}
+                {/* An existing builder already vouched for this person by
+                    inviting them to something they own — the most useful
+                    single fact on this screen, so it gets the loud badge */}
+                {r.invited_by_email && (
+                  <Badge className="text-[10px] shrink-0">invited</Badge>
+                )}
                 <span className="ml-auto text-xs text-muted-foreground/70 shrink-0">
                   {new Date(r.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                 </span>
               </div>
+              {r.invited_by_email && (
+                <p className="text-xs text-muted-foreground">
+                  Invited by <strong className="font-medium">{r.invited_by_email}</strong>
+                  {r.invited_project_name && <> to collaborate on “{r.invited_project_name}”</>}
+                </p>
+              )}
               {r.neighborhood && (
                 <p className="text-xs text-muted-foreground">From {r.neighborhood}</p>
               )}
