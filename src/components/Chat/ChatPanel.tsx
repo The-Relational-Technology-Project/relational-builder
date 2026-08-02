@@ -332,12 +332,12 @@ export function ChatPanel() {
       s.aiGuidance,
     );
     if (communityCloudConnected(envVars)) serviceGuidance.unshift(COMMUNITY_CLOUD_GUIDANCE);
-    // Write order, not alphabetical: the snapshot is a prompt-cache segment
-    // and caching matches on prefix, so new files must append (see
-    // getFilesInWriteOrder). Alphabetical made every chunked-build pass
-    // re-pay for the whole snapshot.
-    const projectFiles = useProjectStore.getState().getFilesInWriteOrder()
-      .map(f => ({ path: f.path, content: f.content }));
+    // Least-recently-touched first, not alphabetical: the snapshot is a
+    // prompt-cache segment and caching matches on prefix, so whatever changed
+    // this turn must sort last (see getFilesForPrompt). updatedAt rides along
+    // so the content budget can keep the file they're working on.
+    const projectFiles = useProjectStore.getState().getFilesForPrompt()
+      .map(f => ({ path: f.path, content: f.content, updatedAt: f.updatedAt }));
     const activeStudio = useStudioStore.getState().activeStudio;
     // The active studio's approved shelf — RLS already scoped the loaded
     // library to what this builder may see; pending offers stay out of the

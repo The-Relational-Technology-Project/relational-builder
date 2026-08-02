@@ -719,6 +719,16 @@ async function proxyAnthropic(
     // the project-files snapshot cache at ~0.1× on repeat sends, which is
     // most of a build conversation's input). Max 4 breakpoints per request;
     // the client sends at most 2.
+    //
+    // 1-hour TTL, not the 5-minute default. A builder reads the reply, looks
+    // at the preview, thinks, and types — the gap between turns is routinely
+    // longer than five minutes, so every turn was expiring and re-writing the
+    // whole prompt at 1.25× and never reading it back. One real editing day
+    // ran 15 requests for 1.8M tokens at a $6.06/MTok blended rate, which is
+    // above the plain input rate and just under the cache-WRITE rate: the
+    // signature of a cache that is written every turn and read never. A 1h
+    // write costs 2× instead of 1.25×, so this is a loss on a one-shot
+    // conversation and a large win from the third turn on.
     const CACHE_BREAK = '<<<RB_CACHE_BREAK>>>';
     const systemText = contentText(systemMsg.content);
     const parts = systemText
@@ -728,7 +738,7 @@ async function proxyAnthropic(
     anthropicBody.system = parts.length > 1
       ? parts.map((p, i) =>
           i < parts.length - 1
-            ? { type: 'text', text: p, cache_control: { type: 'ephemeral' } }
+            ? { type: 'text', text: p, cache_control: { type: 'ephemeral', ttl: '1h' } }
             : { type: 'text', text: p },
         )
       : parts[0] ?? '';

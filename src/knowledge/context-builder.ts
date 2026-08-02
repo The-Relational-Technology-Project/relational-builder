@@ -399,8 +399,10 @@ export interface ContextOptions {
   mode?: 'plan' | 'build';
   /** AI guidance blocks for services the user has connected in the Services tab */
   connectedServiceGuidance?: string[];
-  /** Current project files (build mode) so edits match reality */
-  projectFiles?: { path: string; content: string }[];
+  /** Current project files (build mode) so edits match reality. Ordered
+   *  least-recently-touched first for prompt-cache prefix stability;
+   *  `updatedAt` lets the content budget prioritize by recency. */
+  projectFiles?: { path: string; content: string; updatedAt?: number }[];
   /** Active studio frame — its principles layer onto the base */
   studio?: StudioContext | null;
   /** The active studio's private library, for approved members only */
@@ -612,7 +614,9 @@ export function buildSystemPrompt(options: ContextOptions = {}): string {
   return sections.join('\n');
 }
 
-function formatProjectFilesForPrompt(files: { path: string; content: string }[]): string {
+function formatProjectFilesForPrompt(
+  files: { path: string; content: string; updatedAt?: number }[],
+): string {
   const sections: string[] = [
     '## Current Project Files',
     '',
@@ -622,7 +626,26 @@ function formatProjectFilesForPrompt(files: { path: string; content: string }[])
     '',
   ];
 
-  let budget = MAX_TOTAL_FILE_CHARS;
+  // Files arrive least-recently-touched first, so the cached prefix survives
+  // (see getFilesForPrompt). That is the wrong order to spend the content
+  // budget in — it would drop the file they are working on right now. Pick
+  // what gets full content by recency FIRST, then emit in the cache order.
+  const withBody = new Set(
+    [...files]
+      .sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0))
+      .reduce<{ keep: string[]; left: number }>(
+        (acc, f) => {
+          const cost = Math.min(f.content.length, MAX_FILE_CHARS);
+          if (acc.left > 0) {
+            acc.keep.push(f.path);
+            acc.left -= cost;
+          }
+          return acc;
+        },
+        { keep: [], left: MAX_TOTAL_FILE_CHARS },
+      ).keep,
+  );
+
   for (const file of files) {
     // Photo assets are base64 blobs — name them, never inline them
     if (/^\/?assets\/[\w-]+\.js$/.test(file.path)) {
@@ -630,7 +653,7 @@ function formatProjectFilesForPrompt(files: { path: string; content: string }[])
       sections.push(`- ${file.path} — the builder's own photo asset "${name}". React apps: just <img data-asset="${name}" alt="..."> anywhere (the builder wires it up). Plain HTML pages: <script src="./assets/${name}.js"></script> plus the same img tag. NEVER re-output or modify this file.`);
       continue;
     }
-    if (budget <= 0) {
+    if (!withBody.has(file.path)) {
       sections.push(`- ${file.path} (contents omitted — re-output this file in full if you need to change it)`);
       continue;
     }
@@ -640,7 +663,6 @@ function formatProjectFilesForPrompt(files: { path: string; content: string }[])
       body = body.slice(0, MAX_FILE_CHARS);
       note = '\n... (truncated — re-output this file in full if you need to change the truncated part)';
     }
-    budget -= body.length;
     sections.push(`### ${file.path}`, '```', body + note, '```', '');
   }
 

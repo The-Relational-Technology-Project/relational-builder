@@ -241,7 +241,8 @@ export class ClaudeProvider implements LLMProvider {
     }
     if (systemMsg) {
       // Same cache segmentation the proxy applies (see llm-proxy): the
-      // CACHE_BREAK markers become cache_control breakpoints
+      // CACHE_BREAK markers become cache_control breakpoints, at the 1-hour
+      // TTL because builders think between turns (see CACHE_TTL)
       const parts = contentToText(systemMsg.content)
         .split('<<<RB_CACHE_BREAK>>>')
         .map(p => p.trim())
@@ -249,7 +250,7 @@ export class ClaudeProvider implements LLMProvider {
       body.system = parts.length > 1
         ? parts.map((p, i) =>
             i < parts.length - 1
-              ? { type: 'text', text: p, cache_control: { type: 'ephemeral' } }
+              ? { type: 'text', text: p, cache_control: { type: 'ephemeral', ttl: '1h' } }
               : { type: 'text', text: p },
           )
         : parts[0] ?? '';

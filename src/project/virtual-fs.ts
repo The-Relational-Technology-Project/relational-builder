@@ -59,22 +59,25 @@ export class VirtualFS {
   }
 
   /**
-   * Files oldest-first, for the prompt's project snapshot.
+   * Files least-recently-touched first, for the prompt's project snapshot.
    *
    * The snapshot is its own prompt-cache segment, and caching matches on
-   * byte PREFIX. Alphabetical order scatters each pass's new files through
-   * the middle of the list, so a chunked build re-pays a cache write for
-   * everything after the first new path — on every pass. Write order makes
-   * new files append instead, leaving the prefix byte-identical and cheap
-   * to re-read. Path is the tie-break so files written in the same
+   * byte PREFIX — so whatever changed this turn should sort LAST, leaving
+   * everything before it byte-identical and billable at the cache-read rate.
+   *
+   * Alphabetical order did the opposite on both workloads: a chunked build's
+   * new files landed mid-list, and an edit to `components/Header.tsx`
+   * invalidated every file sorting after it. Ordering by `updatedAt` covers
+   * both, because a new file and a just-edited file are the same case — each
+   * moves to the end. Path is the tie-break so files written in the same
    * millisecond keep a stable order between sends.
    */
-  getFilesInWriteOrder(): FileEntry[] {
+  getFilesForPrompt(): FileEntry[] {
     return Array.from(this.files.values()).sort(
       (a, b) =>
-        // Projects restored from before createdAt existed fall back to
-        // alphabetical rather than sorting on NaN
-        (a.createdAt ?? 0) - (b.createdAt ?? 0) || a.path.localeCompare(b.path),
+        // Projects restored from before these timestamps existed fall back
+        // to alphabetical rather than sorting on NaN
+        (a.updatedAt ?? 0) - (b.updatedAt ?? 0) || a.path.localeCompare(b.path),
     );
   }
 

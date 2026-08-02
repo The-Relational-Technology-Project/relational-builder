@@ -75,8 +75,8 @@ interface ProjectState {
   getTree: () => TreeNode;
   getFile: (path: string) => FileEntry | undefined;
   getAllFiles: () => FileEntry[];
-  /** Oldest-first — for the prompt snapshot, which caches on byte prefix */
-  getFilesInWriteOrder: () => FileEntry[];
+  /** Least-recently-touched first — the prompt snapshot caches on byte prefix */
+  getFilesForPrompt: () => FileEntry[];
   getFileCount: () => number;
 }
 
@@ -252,7 +252,7 @@ export const useProjectStore = create<ProjectState>()(persist((set, get) => ({
   getFile: (path) => get().fs.getFile(path),
   getAllFiles: () => get().fs.getAllFiles(),
 
-  getFilesInWriteOrder: () => get().fs.getFilesInWriteOrder(),
+  getFilesForPrompt: () => get().fs.getFilesForPrompt(),
   getFileCount: () => get().fs.getPaths().length,
 }), {
   name: 'relational-builder-project',
