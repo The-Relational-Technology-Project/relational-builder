@@ -203,6 +203,7 @@ function App() {
         <button onClick={() => setView('builder')} aria-label="Back to building" className="shrink-0">
           <RBMark className="size-5" />
         </button>
+        <ProjectStageStrip compact />
         <div className="flex-1 flex justify-center min-w-0">
           {/* Tapping the project pill returns to the builder from any page */}
           <button

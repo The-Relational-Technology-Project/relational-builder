@@ -246,9 +246,12 @@ export const useProjectStore = create<ProjectState>()(persist((set, get) => ({
 
   undoLastChange: () => {
     const { checkpoints, activeCheckpointId } = get();
-    const currentIdx = activeCheckpointId
+    // Same stale-id guard as ProjectStageStrip: an activeCheckpointId that no
+    // longer matches a kept checkpoint must not silently disable undo.
+    const foundIdx = activeCheckpointId
       ? checkpoints.findIndex(c => c.id === activeCheckpointId)
-      : checkpoints.length - 1;
+      : -1;
+    const currentIdx = foundIdx >= 0 ? foundIdx : checkpoints.length - 1;
     if (currentIdx <= 0) return null;
     const target = checkpoints[currentIdx - 1];
     const undone = checkpoints[currentIdx];

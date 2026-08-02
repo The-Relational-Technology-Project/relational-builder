@@ -23,7 +23,7 @@ import { resolveStage } from '@/project/stage';
  * been clicked through and forgotten. So the answer has to be standing in the
  * room, referenceable at the moment of doubt.
  */
-export function ProjectStageStrip() {
+export function ProjectStageStrip({ compact = false }: { compact?: boolean } = {}) {
   const fileCount = useProjectStore(s => s.getFileCount());
   const checkpoints = useProjectStore(s => s.checkpoints);
   const activeCheckpointId = useProjectStore(s => s.activeCheckpointId);
@@ -44,9 +44,14 @@ export function ProjectStageStrip() {
   }, [undone]);
 
   const publishKey = cloudProjectId ?? 'local';
-  const currentIdx = activeCheckpointId
+  // A stale activeCheckpointId (checkpoints are trimmed past MAX_CHECKPOINTS,
+  // and it also survives a reload) used to resolve to findIndex === -1, which
+  // silently removed the undo affordance — the reassurance vanishing exactly
+  // when someone has made enough changes to want it. Fall back to the newest.
+  const foundIdx = activeCheckpointId
     ? checkpoints.findIndex(c => c.id === activeCheckpointId)
-    : checkpoints.length - 1;
+    : -1;
+  const currentIdx = foundIdx >= 0 ? foundIdx : checkpoints.length - 1;
   const canUndo = currentIdx > 0;
 
   const info = resolveStage({
@@ -71,7 +76,7 @@ export function ProjectStageStrip() {
           title="Where this project lives and who can see it"
         >
           <span className="font-medium text-foreground">{info.label}</span>
-          <span className="hidden sm:inline">· {info.visibility}</span>
+          {!compact && <span className="hidden sm:inline">· {info.visibility}</span>}
           <Info className="size-3 shrink-0" />
         </button>
         {open && (
@@ -94,40 +99,55 @@ export function ProjectStageStrip() {
         )}
       </div>
 
-      {/* Save state. Only ever says saved when it is — a save indicator that
-          can lie is worse than none, because it is trusted at exactly the
-          moment it matters. */}
-      {cloudProjectId && syncStatus === 'saving' && (
-        <span className="inline-flex items-center gap-1 text-muted-foreground">
-          <Loader2 className="size-3 animate-spin" /> Saving…
-        </span>
-      )}
-      {cloudProjectId && syncStatus === 'error' && (
-        <span className="inline-flex items-center gap-1 text-destructive">
-          <CloudOff className="size-3" /> Not saved
-        </span>
-      )}
-      {cloudProjectId && syncStatus === 'saved' && (
-        <span className="hidden md:inline-flex items-center gap-1 text-muted-foreground/70">
-          <Check className="size-3" /> Saved
-        </span>
-      )}
+      {/* On a phone the stage answer is what matters and the rest does not
+          fit — the save state and undo stay on the roomier layout. */}
+      {!compact && (
+        <>
+        {/* Save state. Only ever says saved when it is — a save indicator that
+            can lie is worse than none, because it is trusted at exactly the
+            moment it matters. */}
+        {cloudProjectId && syncStatus === 'saving' && (
+          <span className="inline-flex items-center gap-1 text-muted-foreground">
+            <Loader2 className="size-3 animate-spin" /> Saving…
+          </span>
+        )}
+        {cloudProjectId && syncStatus === 'error' && (
+          <span className="inline-flex items-center gap-1 text-destructive">
+            <CloudOff className="size-3" /> Not saved
+          </span>
+        )}
+        {cloudProjectId && syncStatus === 'saved' && (
+          <span className="hidden md:inline-flex items-center gap-1 text-muted-foreground/70">
+            <Check className="size-3" /> Saved
+          </span>
+        )}
 
-      {undone ? (
-        <span className="text-muted-foreground">Put back {undone}</span>
-      ) : (
-        canUndo && (
-          <button
-            onClick={() => {
-              const label = undoLastChange();
-              if (label) setUndone(label);
-            }}
-            className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground underline decoration-dotted"
-            title="Put the files back the way they were before the last change"
+        {undone ? (
+          // Bounded width on purpose: the checkpoint label is the person's own
+          // sentence, and dropping it raw into a justify-between header grew the
+          // left group until it pushed Share off the right edge. Truncated here,
+          // full text on hover.
+          <span
+            className="max-w-[10rem] truncate text-muted-foreground"
+            title={`Put back ${undone}`}
           >
-            <Undo2 className="size-3" /> Undo last change
-          </button>
-        )
+            Put back {undone}
+          </span>
+        ) : (
+          canUndo && (
+            <button
+              onClick={() => {
+                const label = undoLastChange();
+                if (label) setUndone(label);
+              }}
+              className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground underline decoration-dotted"
+              title="Put the files back the way they were before the last change"
+            >
+              <Undo2 className="size-3" /> Undo last change
+            </button>
+          )
+        )}
+        </>
       )}
     </div>
   );
