@@ -80,9 +80,13 @@ function continuePrompt(planned = false): string {
 const CHUNK_MARKER = /^NEXT-FILES:\s*(\S.*)$/m;
 
 /** Shown once per project when free community building steps down to the
- *  edit model — the model picker must never change behind anyone's back */
+ *  edit model — the model picker must never change behind anyone's back.
+ *  Live again now that the two model slots actually differ: while both were
+ *  Opus 5 the step-down never fired, so this note sat unseen naming a model
+ *  the code didn't use and a saving that didn't exist (Opus 4.8 lists at the
+ *  same price as Opus 5). Keep the claim here true — someone reads it. */
 const EDIT_MODEL_NOTE =
-  'Edits and fixes now run on **Claude Opus 4.8** — deep and dependable, and lighter on the shared community budget. Making a bigger change? Pick Claude Fable 5 in the model menu and it will stick for this project.';
+  'Edits and fixes now run on **Claude Sonnet 5** — quick, strong at code, and genuinely lighter on the shared community budget, so the free tier stretches further for everyone. Making a bigger change? Pick Claude Opus 5 in the model menu and it will stick for this project.';
 const EDIT_MODEL_NOTE_LABEL = 'Model note · from Relational Builder';
 
 /**

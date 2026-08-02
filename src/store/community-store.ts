@@ -113,11 +113,22 @@ export function communityAccessActive(): boolean {
 }
 
 /**
- * Smart model defaults for free community building: Opus 5 does both the
- * first build and the edits (July 2026: it matched-or-beat Fable 5 on
- * completeness at half the cost, and clearly beat Opus 4.8 at the same
- * cost — see bench/results/2026-07-27T17-23-28db9a8). The two constants
- * stay separate so the slots can diverge again on a future bench.
+ * Smart model defaults for free community building. The two slots now
+ * diverge, which is what they were kept separate for:
+ *
+ * - **First build — Opus 5.** The moment the tool has to feel like magic.
+ *   July 2026: matched-or-beat Fable 5 on completeness at half the cost, and
+ *   clearly beat Opus 4.8 at the same cost (bench/results/2026-07-27T17-23-28db9a8).
+ * - **Edits — Sonnet 5.** Opus 4.8 was never the saving it was labelled as:
+ *   it is the SAME list price as Opus 5 ($5/$25 per MTok), so the old
+ *   step-down moved cost not at all. Sonnet 5 is $3/$15 (intro $2/$10 through
+ *   2026-08-31) and strong on coding, and edits are where the volume is —
+ *   a real editing day reprices from ~$4.76 to ~$2.86.
+ *
+ * NOT YET BENCHED in the edit slot: Sonnet 5 has never run this harness, and
+ * the 2026-07-27 run notes ask for `--trials 3` before a routing change. This
+ * is a cost decision taken ahead of that evidence; the quality read is still
+ * owed. Reverting is one constant, and the model picker overrides per project.
  *
  * Only applies when the person is building on the community key AND hasn't
  * picked a model themselves (the picker pins their choice for the project).
@@ -126,7 +137,7 @@ export function communityAccessActive(): boolean {
  * Returns the model to switch to, or null when no change is called for.
  */
 export const COMMUNITY_FIRST_BUILD_MODEL = 'claude-opus-5';
-export const COMMUNITY_EDIT_MODEL = 'claude-opus-5';
+export const COMMUNITY_EDIT_MODEL = 'claude-sonnet-5';
 
 export function resolveCommunityModelDefault(projectFileCount: number): string | null {
   const providers = useProviderStore.getState();
