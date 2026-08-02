@@ -38,6 +38,41 @@ _Not scored yet — open review/index.html, score, export, save as review/scores
 
 _Maintainer's call, informed by the tables above — the report feeds the decision, it doesn't make it._
 
+- **Community first-build default:** `claude-opus-5` (unchanged)
+- **Community edit model:** `claude-opus-5` — Sonnet 5 was routed here earlier
+  the same day on the cost case and reverted after this run.
+- Decided 2026-08-02 by Josh: the earliest real builders are arriving now, and
+  reliability beats the saving until there is more than n=3 behind it.
+
+### What this run actually showed
+
+Sonnet 5 is the better edit model on the common cases and it is not close:
+identical surgical output on a copy change (the dominant edit shape), *more*
+surgical than Opus on the restyle (1 file / 475 bytes vs 2 / 774), 41% cheaper,
+30% faster, zero collateral, and a coastal restyle that reads correctly.
+
+It lost on one thing. `edit-feature` t2 rendered `post.urgent` in the card and
+never added the field to the data — the build bundles, the app renders, and the
+badge simply never appears. 2/3 where Opus went 3/3. Every mechanical gate
+except the both-halves-landed check passes that trial, which is precisely why a
+non-technical builder could not diagnose it: nothing looks broken.
+
+Two things make that single miss decisive rather than noise-to-be-averaged:
+edits currently have **no automated safety net at all** (the quality review
+pass runs on first builds only, by design), and the people hitting this are the
+first cohort, for whom a silently half-built feature is the worst failure shape
+available.
+
+### Owed before revisiting
+
+- `--trials 9 --tasks edit-feature` to establish whether 1-in-3 is real (~$0.30).
+- Human review: nobody has scored `review/index.html`. The design/completeness
+  column that the harness treats as the deciding score is still empty here.
+- A narrow "did both halves of a multi-file edit land" check would target this
+  exact failure at a fraction of the full review pass's cost.
+
+_Maintainer's call, informed by the tables above — the report feeds the decision, it doesn't make it._
+
 
 ## Previews
 

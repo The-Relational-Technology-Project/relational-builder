@@ -7,6 +7,7 @@ import { useProjectStore } from '@/store/project-store';
 import { useKnowledgeStore } from '@/store/knowledge-store';
 import { buildSystemPrompt } from '@/knowledge/context-builder';
 import { registry } from '@/providers/registry';
+import { CLAUDE_MODELS } from '@/providers/claude';
 import { useEnvStore } from '@/store/env-store';
 import {
   getConnectedIntegrations,
@@ -22,6 +23,7 @@ import {
   useCommunityStore,
   resolveCommunityModelDefault,
   COMMUNITY_EDIT_MODEL,
+  COMMUNITY_FIRST_BUILD_MODEL,
 } from '@/store/community-store';
 import { useStudioStore } from '@/store/studio-store';
 import { useAuthStore, cloudEnabled } from '@/store/auth-store';
@@ -81,12 +83,17 @@ const CHUNK_MARKER = /^NEXT-FILES:\s*(\S.*)$/m;
 
 /** Shown once per project when free community building steps down to the
  *  edit model — the model picker must never change behind anyone's back.
- *  Live again now that the two model slots actually differ: while both were
- *  Opus 5 the step-down never fired, so this note sat unseen naming a model
- *  the code didn't use and a saving that didn't exist (Opus 4.8 lists at the
- *  same price as Opus 5). Keep the claim here true — someone reads it. */
-const EDIT_MODEL_NOTE =
-  'Edits and fixes now run on **Claude Sonnet 5** — quick, strong at code, and genuinely lighter on the shared community budget, so the free tier stretches further for everyone. Making a bigger change? Pick Claude Opus 5 in the model menu and it will stick for this project.';
+ *
+ *  Both model names are DERIVED, never written out here. This note previously
+ *  hardcoded "Claude Opus 4.8" and went on claiming it long after the code had
+ *  moved to Opus 5 — nobody caught it because the two slots were identical, so
+ *  the step-down never fired and the note was never displayed. A sentence that
+ *  only appears when a constant changes is exactly the sentence that will be
+ *  stale when it finally shows up. */
+function editModelNote(): string {
+  const name = (id: string) => CLAUDE_MODELS.find(m => m.id === id)?.name ?? id;
+  return `Edits and fixes now run on **${name(COMMUNITY_EDIT_MODEL)}** — quick, dependable for day-to-day changes, and it keeps the shared community budget stretching further for everyone. Making a bigger change? Pick ${name(COMMUNITY_FIRST_BUILD_MODEL)} in the model menu and it will stick for this project.`;
+}
 const EDIT_MODEL_NOTE_LABEL = 'Model note · from Relational Builder';
 
 /**
@@ -292,7 +299,7 @@ export function ChatPanel() {
         // couldn't (e.g. a truncated first build finished via continuation) —
         // same transparency either way
         if (autoModel === COMMUNITY_EDIT_MODEL) {
-          useChatStore.getState().addSyncMessage(EDIT_MODEL_NOTE, EDIT_MODEL_NOTE_LABEL);
+          useChatStore.getState().addSyncMessage(editModelNote(), EDIT_MODEL_NOTE_LABEL);
         }
       }
     }
@@ -617,7 +624,7 @@ export function ChatPanel() {
                     );
                     if (autoModel === COMMUNITY_EDIT_MODEL) {
                       useProviderStore.getState().setActiveModel(autoModel);
-                      useChatStore.getState().addSyncMessage(EDIT_MODEL_NOTE, EDIT_MODEL_NOTE_LABEL);
+                      useChatStore.getState().addSyncMessage(editModelNote(), EDIT_MODEL_NOTE_LABEL);
                     }
                   }
                 }
