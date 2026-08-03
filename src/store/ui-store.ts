@@ -21,6 +21,7 @@ import { startNewProject } from '@/project/new-project';
  */
 export type AppView =
   | 'builder'
+  | 'home'
   | 'gallery'
   | 'projects'
   | 'connections'

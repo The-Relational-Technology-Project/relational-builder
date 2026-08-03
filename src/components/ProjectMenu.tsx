@@ -4,12 +4,9 @@ import {
   ChevronDown,
   Cloud,
   CloudOff,
-  FolderOpen,
   Info,
-  LayoutGrid,
   Loader2,
   Pencil,
-  Plus,
 } from 'lucide-react';
 import {
   Dialog,
@@ -33,7 +30,6 @@ import { useChatStore } from '@/store/chat-store';
 import { useDeployStore } from '@/store/deploy-store';
 import { useUIStore } from '@/store/ui-store';
 import { resolveStage } from '@/project/stage';
-import { startNewProject } from '@/project/new-project';
 import {
   useLocalProjects,
   renameLocalProject,
@@ -208,25 +204,9 @@ export function ProjectMenu() {
               Save to your account
             </DropdownMenuItem>
           )}
-
-          <DropdownMenuSeparator />
-          {/* The rest of the app, from inside a project. The nav bar itself
-              stays about this project; these are the ways out of it. */}
-          <DropdownMenuItem
-            onClick={() => { startNewProject(); setView('builder'); }}
-            className="gap-2 text-xs"
-          >
-            <Plus className="size-3.5 text-muted-foreground" />
-            New project
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setView('projects')} className="gap-2 text-xs">
-            <FolderOpen className="size-3.5 text-muted-foreground" />
-            Your projects
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setView('gallery')} className="gap-2 text-xs">
-            <LayoutGrid className="size-3.5 text-muted-foreground" />
-            Gallery
-          </DropdownMenuItem>
+          {/* Nothing else: this menu is only ever about *this project*. The
+              ways out of it — Home, Projects, Gallery, a fresh start — live
+              behind the wordmark, where the rest of the app always is. */}
         </DropdownMenuContent>
       </DropdownMenu>
 

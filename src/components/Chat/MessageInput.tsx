@@ -21,6 +21,10 @@ interface MessageInputProps {
   onModeChange?: (mode: ChatMode) => void;
   /** hero = the big centered composer on the home screen */
   variant?: 'chat' | 'hero';
+  /** This composer starts a *new* project (the Home lobby). No collaborators
+   *  exist there yet, so the human-to-human Message mode never applies —
+   *  even while a shared project sits open behind the back pill. */
+  startsNewProject?: boolean;
 }
 
 export function MessageInput({
@@ -31,6 +35,7 @@ export function MessageInput({
   mode = 'build',
   onModeChange,
   variant = 'chat',
+  startsNewProject = false,
 }: MessageInputProps) {
   const [input, setInput] = useState('');
   const [attachments, setAttachments] = useState<string[]>([]);
@@ -43,7 +48,7 @@ export function MessageInput({
   // Message mode exists only on shared projects — it's a note to the other
   // humans, so it needs other humans. A persisted or synced 'message' mode
   // with nobody to read it falls back to build.
-  const hasCollaborators = useCloudStore(s => s.members.length > 0);
+  const hasCollaborators = useCloudStore(s => s.members.length > 0) && !startsNewProject;
   useEffect(() => {
     if (mode === 'message' && !hasCollaborators) onModeChange?.('build');
   }, [mode, hasCollaborators, onModeChange]);

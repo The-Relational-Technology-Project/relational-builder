@@ -21,6 +21,10 @@ import type { AppView } from '@/store/ui-store';
 /** Every view that has an address. The builder is the app's root. */
 const VIEW_PATHS: Record<AppView, string> = {
   builder: '/',
+  // The lobby: reachable any time (the wordmark points here) while an open
+  // project stays warm at '/'. An empty workspace shows the same dashboard
+  // at '/' — two addresses, one screen, no project lost either way.
+  home: '/home',
   gallery: '/gallery',
   projects: '/projects',
   connections: '/connections',

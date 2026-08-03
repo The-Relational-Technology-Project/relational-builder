@@ -26,7 +26,7 @@ import {
   COMMUNITY_FIRST_BUILD_MODEL,
 } from '@/store/community-store';
 import { useStudioStore } from '@/store/studio-store';
-import { useAuthStore, cloudEnabled } from '@/store/auth-store';
+import { useAuthStore } from '@/store/auth-store';
 import { useCloudStore } from '@/store/cloud-store';
 import { searchCommons } from '@/knowledge/commons-search';
 import { loadGalleryReferences } from '@/cloud/gallery-references';
@@ -39,6 +39,7 @@ import { resetSubmitTracking } from '@/report/friction';
 import { BuildReportCard } from './BuildReportCard';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
+import { useNeedsKey, NeedsKeyHint } from './composer-gate';
 import { Button } from '@/components/ui/button';
 import { HomeDashboard } from '@/components/HomeDashboard';
 import { RemoteChangesBanner } from '@/components/RemoteChangesBanner';
@@ -300,7 +301,6 @@ export function ChatPanel() {
 
   const activeProviderId = useProviderStore(s => s.activeProviderId);
   const activeModelId = useProviderStore(s => s.activeModelId);
-  const apiKeys = useProviderStore(s => s.apiKeys);
 
   const applyMessageFiles = useProjectStore(s => s.applyMessageFiles);
   const getRelevantContext = useKnowledgeStore(s => s.getRelevantContext);
@@ -308,13 +308,10 @@ export function ChatPanel() {
   const mode = useChatStore(s => s.mode);
   const setMode = useChatStore(s => s.setMode);
 
-  const communityActive = useCommunityStore(s => s.active);
-
   const provider = registry.getProvider(activeProviderId);
-  const needsKey =
-    registry.getEntry(activeProviderId)?.requiresApiKey &&
-    !apiKeys[activeProviderId] &&
-    !(activeProviderId === 'claude' && communityActive);
+  // One shared answer to "can this composer reach a model" — the home hero
+  // asks the same question through the same hook (composer-gate.tsx)
+  const needsKey = useNeedsKey();
 
   const handleSend = useCallback(async (content: string, attachments?: string[]) => {
     // Mode is read fresh from the store: "Build this plan" flips it right before sending
@@ -801,6 +798,11 @@ export function ChatPanel() {
   const queuedMessage = useChatStore(s => s.queuedMessage);
   useEffect(() => {
     if (!queuedMessage || isGenerating) return;
+    // Claim the queue from the store, not the render closure: a mount-time
+    // queue (home composer, prompt deep link) runs this effect twice under
+    // StrictMode with the same stale `queuedMessage`, and the second run
+    // must see that the first already took it — or the message sends twice.
+    if (!useChatStore.getState().queuedMessage) return;
     const wasFix = useChatStore.getState().pendingFixSend;
     const attachments = useChatStore.getState().queuedAttachments;
     useChatStore.getState().clearQueuedMessage();
@@ -847,28 +849,6 @@ export function ChatPanel() {
   // Building: it's the chat input, pinned below the conversation.
   // A project opened with files but no chat yet is still "building".
   const fileCount = useProjectStore(s => s.getFileCount());
-  const authUser = useAuthStore(s => s.user);
-  // Someone who just passed the invitation gate needs sign-in, not an API
-  // key — signing in enrolls them in free community building automatically
-  const signInIsTheDoor = !!needsKey && cloudEnabled && !authUser;
-
-  const needsKeyHint = signInIsTheDoor ? (
-    <div className="flex flex-col items-center gap-2">
-      <Button
-        onClick={() => useAuthStore.getState().promptSignIn()}
-        className="h-11 rounded-full px-8 text-sm font-semibold w-full sm:w-auto"
-      >
-        Sign in to start building
-      </Button>
-      <p className="text-xs text-center text-muted-foreground">
-        Free building is part of your invitation
-      </p>
-    </div>
-  ) : needsKey ? (
-    <p className="text-xs text-center text-muted-foreground">
-      Add your API key in Settings to start building
-    </p>
-  ) : null;
 
   if (messages.length === 0 && fileCount === 0) {
     return (
@@ -878,7 +858,7 @@ export function ChatPanel() {
             <div className="space-y-2">
               <CommunityBudgetBanner />
               <MessageInput {...composerProps} variant="hero" />
-              {needsKeyHint}
+              <NeedsKeyHint needsKey={needsKey} />
             </div>
           }
         />
@@ -899,7 +879,7 @@ export function ChatPanel() {
       {!isGenerating && <UndoLastChange />}
       {needsKey && (
         <div className="px-4 py-2 text-xs text-center bg-muted/50 border-t">
-          {needsKeyHint}
+          <NeedsKeyHint needsKey={needsKey} />
         </div>
       )}
       <MessageInput {...composerProps} />

@@ -1,11 +1,10 @@
-import { ArrowLeft, FolderOpen, LayoutGrid, Plus } from 'lucide-react';
+import { ArrowLeft, FolderOpen, LayoutGrid } from 'lucide-react';
 import { RBMark } from '@/components/RBMark';
 import { Separator } from '@/components/ui/separator';
 import { buttonVariants } from '@/components/ui/button';
 import { ProjectMenu } from '@/components/ProjectMenu';
 import { useUIStore, type AppView } from '@/store/ui-store';
 import { useCurrentProjectName } from '@/lib/use-project-name';
-import { startNewProject } from '@/project/new-project';
 
 /**
  * The header's left side, which says two different things depending on where
@@ -14,24 +13,31 @@ import { startNewProject } from '@/project/new-project';
  * **In a project** it is about the project: the mark, then the project's name
  * carrying everything true about it. Nothing competes with the work.
  *
- * **On a page** (Gallery, Projects, your profile…) it is a way around: the
- * way back to the project you left, then the three destinations. Sync and
+ * **On a page** (Home, Gallery, Projects, your profile…) it is a way around:
+ * the way back to the project you left, then the destinations. Sync and
  * Share disappear on these pages — there is no project in front of you to
  * sync or share.
  *
- * The mark itself doesn't go anywhere. A wordmark that navigates competes
- * with the named ways back, and a menu hidden behind a logo is a menu people
- * don't find.
+ * The mark goes Home — the web's oldest convention, and the one door that's
+ * always in the same place. It points *away* from the project while the
+ * named pill points back, so the two never compete. (It used to go nowhere:
+ * that made sense when Home wasn't a place you could stand while a project
+ * stayed open — now it is, and starting something new lives there.)
  */
 
 function Wordmark() {
+  const setView = useUIStore(s => s.setView);
   return (
-    <div className="flex items-center gap-1.5 shrink-0 select-none" title="Relational Builder">
+    <button
+      onClick={() => setView('home')}
+      title="Home"
+      className="flex items-center gap-1.5 shrink-0 select-none rounded-md -mx-1 px-1 py-0.5 transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
       <RBMark className="size-5 shrink-0" />
       <h1 className="text-sm font-semibold tracking-tight whitespace-nowrap">
         Relational Builder
       </h1>
-    </div>
+    </button>
   );
 }
 
@@ -41,7 +47,7 @@ function NavButton({
   active,
   onClick,
 }: {
-  icon: typeof Plus;
+  icon: typeof FolderOpen;
   label: string;
   active?: boolean;
   onClick: () => void;
@@ -66,10 +72,6 @@ export function MainNav() {
   const projectName = useCurrentProjectName();
 
   const go = (next: AppView) => () => setView(next);
-  const newProject = () => {
-    startNewProject();
-    setView('builder');
-  };
 
   return (
     <div className="flex items-center gap-2 min-w-0">
@@ -99,7 +101,8 @@ export function MainNav() {
               <span className="max-w-[180px] truncate">{projectName}</span>
             </button>
           )}
-          <NavButton icon={Plus} label="New project" onClick={newProject} />
+          {/* No "New project" button: starting something new is what Home's
+              composer is — one door, not two labels for it */}
           <NavButton
             icon={FolderOpen}
             label="Your projects"

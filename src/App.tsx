@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ProviderSettings } from '@/components/ProviderSettings';
 import { ChatPanel } from '@/components/Chat/ChatPanel';
 import { RightPanel } from '@/components/RightPanel';
@@ -16,13 +16,13 @@ import { useUIStore, initRouting } from '@/store/ui-store';
 import { BuilderOnboarding } from '@/components/BuilderOnboarding';
 import { initCloudSync } from '@/cloud/sync';
 import { AccountMenu, SignInDialogHost } from '@/components/AccountMenu';
+import { HomePage } from '@/components/HomePage';
 import { ProjectsPage } from '@/components/ProjectsPage';
 import { ConnectionsPage } from '@/components/ConnectionsPage';
 import { ProfilePage } from '@/components/ProfilePage';
 import { StewardPage } from '@/components/StewardPage';
 import { StudioAdminPage } from '@/components/StudioAdminPage';
 import { initLocalAutosave } from '@/project/local-projects';
-import { startNewProject } from '@/project/new-project';
 import { initAutoSync } from '@/project/auto-sync';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { RBMark } from '@/components/RBMark';
@@ -34,7 +34,7 @@ import { InviteBanner } from '@/components/InviteBanner';
 import { CommonsGallery } from '@/components/CommonsGallery';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { Plus, MessageSquare, PanelsTopLeft, Menu, X, ArrowLeft, FolderOpen, LayoutGrid } from 'lucide-react';
+import { Home, MessageSquare, PanelsTopLeft, Menu, X, ArrowLeft, FolderOpen, LayoutGrid } from 'lucide-react';
 
 /** True below the md breakpoint — drives the stacked mobile layout */
 /**
@@ -93,10 +93,6 @@ function App() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const setView = useUIStore(s => s.setView);
-  const handleNewProject = useCallback(() => {
-    startNewProject();
-    setView('builder');
-  }, [setView]);
 
   // Focused building mode: start-from actions live on the home state,
   // ship actions appear once there's a project to ship
@@ -179,7 +175,10 @@ function App() {
           The action sheet stays mounted (hidden by class) so any dialog a
           row opens survives the sheet closing. */}
       <header className="flex md:hidden items-center gap-2 px-3 py-2 border-b shrink-0">
-        <RBMark className="size-5 shrink-0" />
+        {/* Same door as the desktop wordmark: the mark goes Home */}
+        <button onClick={() => setView('home')} title="Home" className="shrink-0">
+          <RBMark className="size-5" />
+        </button>
         <div className="flex-1 flex justify-center min-w-0">
           {/* In the project, the pill is the project's own menu; from a page
               it's the way back to it. */}
@@ -215,9 +214,10 @@ function App() {
           onClick={() => setMobileMenuOpen(false)}
         >
           <div className="flex flex-wrap items-center gap-1.5">
-            <Button variant="outline" size="sm" className="h-8 gap-1 text-xs" onClick={handleNewProject}>
-              <Plus className="size-3" />
-              New Project
+            {/* Home is where new projects start now — its composer is the door */}
+            <Button variant="outline" size="sm" className="h-8 gap-1 text-xs" onClick={() => setView('home')}>
+              <Home className="size-3" />
+              Home
             </Button>
             <Button
               variant="outline"
@@ -251,7 +251,14 @@ function App() {
       {/* Main content — home gets the full width (nothing to preview yet);
           building gets split panels on desktop, a tab-switched stack on mobile */}
       <main className="flex-1 min-h-0">
-        {view === 'steward' ? (
+        {view === 'home' ? (
+          <div className="h-full flex flex-col">
+            <div className="flex-1 min-h-0">
+              <HomePage />
+            </div>
+            <AppFooter />
+          </div>
+        ) : view === 'steward' ? (
           <StewardPage />
         ) : view === 'studio-admin' ? (
           <StudioAdminPage />
