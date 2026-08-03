@@ -22,6 +22,9 @@ export interface RemoteChanges {
   fullResync: boolean;
 }
 
+/** How a push ended, for the sync panel to narrate */
+export type PushStatus = 'idle' | 'pushing' | 'pushed' | 'held' | 'error';
+
 interface SyncState {
   /** One saved token per forge (Forgejo's belongs to its instanceUrl) */
   tokens: Partial<Record<ForgeId, string>>;
@@ -30,6 +33,15 @@ interface SyncState {
   instanceUrls: Partial<Record<ForgeId, string>>;
   /** Repo connection per project — keyed by cloud project id, or 'local' */
   repos: Record<string, ConnectedRepo>;
+  /**
+   * Whether a project's changes push themselves. Absent means on: connecting
+   * a repo is the decision, and everything after it is the tool's job.
+   */
+  autoPush: Record<string, boolean>;
+  /** Fingerprint of the files at the last successful push, per project */
+  pushedFingerprint: Record<string, string>;
+  /** When the last successful push landed, per project */
+  lastPushedAt: Record<string, number>;
 
   // Transient remote awareness (never persisted)
   remote: RemoteChanges | null;
@@ -39,6 +51,9 @@ interface SyncState {
   dismissedHead: string | null;
   /** True while a pull is applying files (suppresses cloud auto-save echo churn) */
   pulling: boolean;
+  /** Where the current (or last) push got to */
+  pushStatus: PushStatus;
+  pushError: string | null;
 
   setToken: (forge: ForgeId, token: string) => void;
   setUsername: (forge: ForgeId, username: string) => void;
@@ -48,6 +63,10 @@ interface SyncState {
   connectRepo: (key: string, repo: ConnectedRepo) => void;
   disconnectRepo: (key: string) => void;
   updateLastSync: (key: string, sha: string) => void;
+  setAutoPush: (key: string, on: boolean) => void;
+  /** Remember what a successful push sent, so an unchanged project stays quiet */
+  recordPush: (key: string, sha: string, fingerprint: string) => void;
+  setPushStatus: (status: PushStatus, error?: string | null) => void;
   /** Move a repo connection when a local project becomes a cloud project */
   moveRepo: (fromKey: string, toKey: string) => void;
   setRemote: (remote: RemoteChanges | null) => void;
@@ -63,12 +82,17 @@ export const useSyncStore = create<SyncState>()(
       usernames: {},
       instanceUrls: {},
       repos: {},
+      autoPush: {},
+      pushedFingerprint: {},
+      lastPushedAt: {},
 
       remote: null,
       checkingRemote: false,
       lastCheckedAt: 0,
       dismissedHead: null,
       pulling: false,
+      pushStatus: 'idle',
+      pushError: null,
 
       setToken: (forge, token) =>
         set((s) => ({ tokens: { ...s.tokens, [forge]: token } })),
@@ -95,8 +119,17 @@ export const useSyncStore = create<SyncState>()(
       disconnectRepo: (key) =>
         set((s) => {
           const repos = { ...s.repos };
+          const pushedFingerprint = { ...s.pushedFingerprint };
           delete repos[key];
-          return { repos, remote: null, dismissedHead: null };
+          delete pushedFingerprint[key];
+          return {
+            repos,
+            pushedFingerprint,
+            remote: null,
+            dismissedHead: null,
+            pushStatus: 'idle' as PushStatus,
+            pushError: null,
+          };
         }),
 
       updateLastSync: (key, sha) =>
@@ -106,13 +139,45 @@ export const useSyncStore = create<SyncState>()(
             : s,
         ),
 
+      setAutoPush: (key, on) =>
+        set((s) => ({ autoPush: { ...s.autoPush, [key]: on } })),
+
+      recordPush: (key, sha, fingerprint) =>
+        set((s) => ({
+          repos: s.repos[key]
+            ? { ...s.repos, [key]: { ...s.repos[key], lastSyncSha: sha } }
+            : s.repos,
+          pushedFingerprint: { ...s.pushedFingerprint, [key]: fingerprint },
+          lastPushedAt: { ...s.lastPushedAt, [key]: Date.now() },
+        })),
+
+      setPushStatus: (pushStatus, pushError = null) => set({ pushStatus, pushError }),
+
       moveRepo: (fromKey, toKey) =>
         set((s) => {
           const repo = s.repos[fromKey];
           if (!repo || fromKey === toKey) return s;
           const repos = { ...s.repos, [toKey]: repo };
           delete repos[fromKey];
-          return { repos };
+          // The connection's settings and push history travel with it —
+          // otherwise saving a project to the account silently re-enables
+          // auto-push and re-pushes an unchanged tree
+          const autoPush = { ...s.autoPush };
+          const pushedFingerprint = { ...s.pushedFingerprint };
+          const lastPushedAt = { ...s.lastPushedAt };
+          if (fromKey in autoPush) {
+            autoPush[toKey] = autoPush[fromKey];
+            delete autoPush[fromKey];
+          }
+          if (fromKey in pushedFingerprint) {
+            pushedFingerprint[toKey] = pushedFingerprint[fromKey];
+            delete pushedFingerprint[fromKey];
+          }
+          if (fromKey in lastPushedAt) {
+            lastPushedAt[toKey] = lastPushedAt[fromKey];
+            delete lastPushedAt[fromKey];
+          }
+          return { repos, autoPush, pushedFingerprint, lastPushedAt };
         }),
 
       setRemote: (remote) => set({ remote, lastCheckedAt: Date.now() }),
@@ -151,6 +216,9 @@ export const useSyncStore = create<SyncState>()(
         usernames: state.usernames,
         instanceUrls: state.instanceUrls,
         repos: state.repos,
+        autoPush: state.autoPush,
+        pushedFingerprint: state.pushedFingerprint,
+        lastPushedAt: state.lastPushedAt,
       } as unknown as SyncState),
     },
   ),

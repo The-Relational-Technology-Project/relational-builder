@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuthStore, cloudEnabled } from '@/store/auth-store';
 import { useCloudStore } from '@/store/cloud-store';
 import { useUIStore } from '@/store/ui-store';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
@@ -20,29 +20,6 @@ import { listMyPrompts, type BuildPrompt } from '@/cloud/prompts';
 import { useChatStore } from '@/store/chat-store';
 import { useProjectStore } from '@/store/project-store';
 import { useEnvStore } from '@/store/env-store';
-
-/**
- * The nav affordance that opens the Projects page. Kept next to the page so
- * the cloud-enabled gate lives in one place.
- */
-export function ProjectsButton({ mobile }: { mobile?: boolean }) {
-  const active = useUIStore(s => s.view === 'projects');
-  const setView = useUIStore(s => s.setView);
-  // Not cloud-gated: the local shelf means everyone has projects to come
-  // back to, signed in or not
-  return (
-    <button
-      onClick={() => setView('projects')}
-      className={
-        buttonVariants({ variant: active && !mobile ? 'secondary' : mobile ? 'outline' : 'ghost', size: 'sm' }) +
-        (mobile ? ' h-8 gap-1 text-xs' : ' h-7 gap-1 text-xs')
-      }
-    >
-      <FolderOpen className="size-3.5" />
-      Projects
-    </button>
-  );
-}
 
 /**
  * The Projects page — a full-width space (not a cramped dialog): the current

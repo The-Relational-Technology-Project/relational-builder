@@ -46,6 +46,10 @@ Chat/Builder Panel  |  Preview Sandbox (iframe)  |  RTP Knowledge Base Panel
     token blocks compile), blob-URL iframe. The same bundle+shell powers publish
     builds (`src/project/build-for-publish.ts`), so preview output ≡ deployed output.
   - *Simple tools* (single-file HTML/JS, plain React) — Sandpack, instant.
+- **Code sync:** connecting a repo is the whole decision — after it,
+  `src/project/auto-sync.ts` pushes changes on its own (settles ~6s, never
+  mid-generation, never an unchanged tree, never over commits the Builder
+  hasn't pulled). All pushes go through `pushToRepo` in `src/project/code-sync.ts`.
 - **Models:** Three-tier provider system
   - Tier 1: RTP-hosted open-source model (free default, no API key)
   - Tier 2: BYOK cloud models (Claude, OpenAI, OpenRouter)
@@ -62,6 +66,10 @@ Chat/Builder Panel  |  Preview Sandbox (iframe)  |  RTP Knowledge Base Panel
   materialized into exports/repos via `withKitFiles()`. The theme contract lives
   in `src/kit/theme.ts` and is embedded into the system prompt — change either
   and prompt, preview, and exported scaffolds all follow
+- `src/router.ts` — the app's addresses (`/`, `/gallery`, `/projects`, `/new`,
+  …). `useUIStore.setView` writes the URL; `initRouting()` adopts it on boot
+  and follows back/forward. Deep links need the SPA fallback rewrite in
+  `vercel.json`. `#privacy` / `#contact` stay hash pages, above the app shell
 - `src/knowledge/` — Supabase client, RTP principles, context builder, queries
 - `src/components/` — React components (UI lives here)
 - `src/components/Chat/` — Chat interface (panel, messages, input, code blocks)

@@ -15,6 +15,9 @@ import { useProjectStore } from '@/store/project-store';
 import { useChatStore } from '@/store/chat-store';
 import { useCloudStore } from '@/store/cloud-store';
 import { useEnvStore } from '@/store/env-store';
+import { generateManifest } from './export';
+import { needsBuild, materializeSource } from './build-for-publish';
+import type { FileEntry } from './virtual-fs';
 
 /** The key this workspace's repo connection lives under */
 export function projectRepoKey(): string {
@@ -215,7 +218,10 @@ export async function pullRemoteChanges(): Promise<PullSummary> {
       fullResync: !diff,
     };
 
-    useSyncStore.getState().updateLastSync(key, head);
+    // Level with the repo again: record what the workspace now holds as the
+    // synced state, so automatic push stays quiet until something actually
+    // changes here. Without this, every pull bounced straight back as a push.
+    useSyncStore.getState().recordPush(key, head, fingerprintFiles(filesForPush(repo)));
     useSyncStore.getState().setRemote(null);
 
     // Tell the story in chat — the summary lives in history, so the AI
@@ -228,6 +234,132 @@ export async function pullRemoteChanges(): Promise<PullSummary> {
   } finally {
     useSyncStore.getState().setPulling(false);
   }
+}
+
+// ── Push ──────────────────────────────────────────────────────────────
+
+/**
+ * Everything a push sends: the project's runnable source (framework projects
+ * carry the kit files they import plus a Vite scaffold, so a clone runs with
+ * `npm install`) plus the `.reltech.yml` manifest the network watcher reads.
+ */
+export function filesForPush(repo: ConnectedRepo): FileEntry[] {
+  const files = useProjectStore.getState().getAllFiles();
+  if (files.length === 0) return [];
+
+  const sourceFiles = needsBuild(files) ? materializeSource(files) : files;
+  const out = [...sourceFiles];
+  const hasManifest = files.some(f => f.path.replace(/^\//, '') === '.reltech.yml');
+  if (!hasManifest) {
+    const { lineage } = useProjectStore.getState();
+    const repoName = repo.fullName.split('/')[1] ?? 'my-community-app';
+    out.push({
+      path: '.reltech.yml',
+      content: generateManifest(repoName, lineage),
+      language: 'yaml',
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+  }
+  return out;
+}
+
+/**
+ * A stable stand-in for "what this push would contain". Pushing an identical
+ * tree still writes a commit on every forge, so a project that hasn't changed
+ * must never reach the network — otherwise a reload, a tab switch, or an
+ * autosave tick would each land an empty commit on someone's repo.
+ */
+export function fingerprintFiles(files: FileEntry[]): string {
+  // djb2 over path + content, order-independent by sorting first
+  let hash = 5381;
+  const material = [...files]
+    .sort((a, b) => a.path.localeCompare(b.path))
+    .map(f => `${f.path} ${f.content}`)
+    .join('');
+  for (let i = 0; i < material.length; i++) {
+    hash = ((hash << 5) + hash + material.charCodeAt(i)) | 0;
+  }
+  return `${material.length.toString(36)}.${(hash >>> 0).toString(36)}`;
+}
+
+const DEFAULT_COMMIT_MESSAGE = 'Update from Relational Builder';
+
+/**
+ * What to call this commit, without asking. The last thing the builder asked
+ * for is the truest one-line description of what changed — it's the sentence
+ * that produced the code.
+ */
+export function autoCommitMessage(): string {
+  const messages = useChatStore.getState().messages;
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const m = messages[i];
+    if (m.role !== 'user') continue;
+    const line = m.content.trim().split('\n').find(l => l.trim().length > 0);
+    if (!line) break;
+    const trimmed = line.trim().replace(/\s+/g, ' ');
+    const summary = trimmed.length > 72 ? `${trimmed.slice(0, 69)}…` : trimmed;
+    return `${summary} — via Relational Builder`;
+  }
+  return DEFAULT_COMMIT_MESSAGE;
+}
+
+export interface PushOutcome {
+  /** pushed: a commit landed · unchanged: nothing to send · held: the repo moved ahead */
+  status: 'pushed' | 'unchanged' | 'held';
+  filesChanged?: number;
+  commitSha?: string;
+  /** How far ahead the repo is, when held */
+  aheadBy?: number;
+}
+
+/**
+ * Send the project to its repo. The one push path — the sync panel's "push
+ * now" and the automatic sync behind it both come through here, so they can't
+ * disagree about what gets sent or when it's safe to send it.
+ *
+ * Refuses by default when the repo has moved ahead of us: overwriting work
+ * that landed from Claude Code or a collaborator is exactly the thing nobody
+ * should be able to do by accident. `force` is the deliberate override.
+ */
+export async function pushToRepo(
+  options: { message?: string; force?: boolean } = {},
+): Promise<PushOutcome> {
+  const repo = connectedRepoForCurrentProject();
+  if (!repo) throw new Error('No repository connected');
+  const token = tokenForRepo(repo);
+  if (!token) throw new Error('No repository connected');
+  const key = projectRepoKey();
+  const store = useSyncStore.getState();
+
+  const files = filesForPush(repo);
+  if (files.length === 0) return { status: 'unchanged' };
+
+  const fingerprint = fingerprintFiles(files);
+  if (!options.force && store.pushedFingerprint[key] === fingerprint) {
+    return { status: 'unchanged' };
+  }
+
+  if (!options.force) {
+    const remote = await checkPushSafety();
+    if (remote && (remote.aheadBy > 0 || remote.fullResync)) {
+      return { status: 'held', aheadBy: remote.aheadBy };
+    }
+  }
+
+  const result = await clientForRepo(repo).pushFiles(
+    token,
+    repo.fullName,
+    repo.branch,
+    files,
+    options.message?.trim() || autoCommitMessage(),
+  );
+  useSyncStore.getState().recordPush(key, result.commitSha, fingerprint);
+  return {
+    status: 'pushed',
+    filesChanged: result.filesChanged,
+    commitSha: result.commitSha,
+  };
 }
 
 // ── Push safety ───────────────────────────────────────────────────────

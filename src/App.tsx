@@ -9,32 +9,32 @@ import { useProviderStore } from '@/store/provider-store';
 import { useProjectStore } from '@/store/project-store';
 import { useChatStore } from '@/store/chat-store';
 import { useKnowledgeStore } from '@/store/knowledge-store';
-import { useEnvStore } from '@/store/env-store';
 import { useAuthStore, cloudEnabled } from '@/store/auth-store';
-import { useCloudStore } from '@/store/cloud-store';
 import { useCommunityStore } from '@/store/community-store';
 import { useStudioStore } from '@/store/studio-store';
-import { useUIStore } from '@/store/ui-store';
+import { useUIStore, initRouting } from '@/store/ui-store';
 import { BuilderOnboarding } from '@/components/BuilderOnboarding';
 import { initCloudSync } from '@/cloud/sync';
 import { AccountMenu, SignInDialogHost } from '@/components/AccountMenu';
-import { ProjectsButton, ProjectsPage } from '@/components/ProjectsPage';
+import { ProjectsPage } from '@/components/ProjectsPage';
 import { ConnectionsPage } from '@/components/ConnectionsPage';
 import { ProfilePage } from '@/components/ProfilePage';
-import { ProjectStatus } from '@/components/ProjectStatus';
-import { ProjectStageStrip } from '@/components/ProjectStageStrip';
 import { StewardPage } from '@/components/StewardPage';
 import { StudioAdminPage } from '@/components/StudioAdminPage';
-import { initLocalAutosave, stashAndStartFresh } from '@/project/local-projects';
+import { initLocalAutosave } from '@/project/local-projects';
+import { startNewProject } from '@/project/new-project';
+import { initAutoSync } from '@/project/auto-sync';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { RBMark } from '@/components/RBMark';
-import { AppNavMenu } from '@/components/AppNavMenu';
+import { MainNav } from '@/components/MainNav';
+import { useCurrentProjectName } from '@/lib/use-project-name';
+import { ProjectMenu } from '@/components/ProjectMenu';
 import { InviteBanner } from '@/components/InviteBanner';
 
 import { CommonsGallery } from '@/components/CommonsGallery';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { Plus, MessageSquare, PanelsTopLeft, Menu, X, CloudOff, LayoutGrid } from 'lucide-react';
+import { Plus, MessageSquare, PanelsTopLeft, Menu, X, ArrowLeft, FolderOpen, LayoutGrid } from 'lucide-react';
 
 /** True below the md breakpoint — drives the stacked mobile layout */
 /**
@@ -84,27 +84,19 @@ function App() {
     useCommunityStore.getState().init();
     useStudioStore.getState().init();
     initLocalAutosave();
+    // A connected repo keeps itself up to date — no push to remember
+    initAutoSync();
+    // The address bar decides which page is showing, and back/forward work
+    initRouting();
     // Shared build prompts arrive by link, ready to send
     import('@/cloud/prompts').then(m => m.handlePromptDeepLink()).catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const clearMessages = useChatStore(s => s.clearMessages);
-  const clearProject = useProjectStore(s => s.clearProject);
-  const closeCloudProject = useCloudStore(s => s.closeProject);
-
   const setView = useUIStore(s => s.setView);
   const handleNewProject = useCallback(() => {
-    // Never destructive: the current work is stashed on the local shelf
-    // (cloud projects are already saved in the cloud) before anything clears
-    stashAndStartFresh();
-    closeCloudProject();
-    clearMessages();
-    clearProject();
+    startNewProject();
     setView('builder');
-    // A fresh project starts with a fresh environment — service keys and
-    // Community Cloud backends belong to the app they were connected for
-    useEnvStore.getState().clearAll();
-  }, [clearMessages, clearProject, closeCloudProject, setView]);
+  }, [setView]);
 
   // Focused building mode: start-from actions live on the home state,
   // ship actions appear once there's a project to ship
@@ -142,8 +134,10 @@ function App() {
   // it (project name / wordmark), not per-page close buttons.
   const view = useUIStore(s => s.view);
 
-  const currentProjectName = useCloudStore(s => s.currentProjectName);
-  const syncStatus = useCloudStore(s => s.syncStatus);
+  // "Project view": a project is open and in front of you. Sync and Share
+  // only make sense here.
+  const inProject = view === 'builder' && hasProject;
+  const projectName = useCurrentProjectName();
 
   return (
     <div className="h-dvh flex flex-col overflow-x-hidden bg-background text-foreground">
@@ -162,26 +156,18 @@ function App() {
             shoving the right one off the edge — the header used to be two
             shrink-0 groups inside an overflow-hidden parent, which clips
             rather than reflows. */}
-        <div className="flex items-center gap-2 min-w-0">
-          {/* One door for "go somewhere else": the wordmark. Keeping New
-              Project / Gallery / Projects as three peers of Share made four
-              things compete for the same glance — Share is the only action
-              here that changes the world, so it's the only one left standing. */}
-          <AppNavMenu onNewProject={handleNewProject} />
-          <Separator orientation="vertical" className="h-5 shrink-0" />
-          {/* Studio affiliation lives on the builder profile page now — the
-              nav stays about the work in front of you */}
-          <ProjectStatus />
-          <ProjectStageStrip />
-        </div>
+        {/* In a project the left side is the project; on a page it's the way
+            around. Both live in MainNav. */}
+        <MainNav />
         <div className="flex items-center gap-2 shrink-0">
-          {/* Code sync belongs with the code — surface it once there is a project
-              to sync, not on the home/network screens. */}
-          {hasProject && <CodeSync />}
+          {/* Sync and Share belong to the project in front of you — on the
+              Gallery or your Projects there is nothing here to sync or
+              share, so they step out of the way entirely. */}
+          {inProject && <CodeSync />}
           {/* Publish, Prompt, preview links, and collaborators live behind
               one Share door — the header's single primary action.
               (Connections moved to the account menu.) */}
-          {hasProject && <ShareMenu />}
+          {inProject && <ShareMenu />}
           <Separator orientation="vertical" className="h-5" />
           {showStandaloneSettings && <ThemeToggle />}
           <AccountMenu />
@@ -193,30 +179,23 @@ function App() {
           The action sheet stays mounted (hidden by class) so any dialog a
           row opens survives the sheet closing. */}
       <header className="flex md:hidden items-center gap-2 px-3 py-2 border-b shrink-0">
-        <button onClick={() => setView('builder')} aria-label="Back to building" className="shrink-0">
-          <RBMark className="size-5" />
-        </button>
-        <ProjectStageStrip compact />
+        <RBMark className="size-5 shrink-0" />
         <div className="flex-1 flex justify-center min-w-0">
-          {/* Tapping the project pill returns to the builder from any page */}
-          <button
-            onClick={() => setView('builder')}
-            className="inline-flex items-center gap-1.5 max-w-full rounded-full border px-3 py-1 text-xs"
-          >
-            {currentProjectName ? (
-              <>
-                {/* Saving is the quiet baseline — only a failure gets an icon */}
-                {syncStatus === 'error' && (
-                  <CloudOff className="size-3 shrink-0 text-destructive" />
-                )}
-                <span className="truncate font-medium">{currentProjectName}</span>
-              </>
-            ) : (
-              <span className="truncate font-medium">
-                {hasProject ? 'New project' : 'Relational Builder'}
-              </span>
-            )}
-          </button>
+          {/* In the project, the pill is the project's own menu; from a page
+              it's the way back to it. */}
+          {inProject ? (
+            <ProjectMenu />
+          ) : projectName !== null ? (
+            <button
+              onClick={() => setView('builder')}
+              className="inline-flex items-center gap-1.5 max-w-full rounded-full border px-3 py-1 text-xs"
+            >
+              <ArrowLeft className="size-3 shrink-0 text-muted-foreground" />
+              <span className="truncate font-medium">{projectName}</span>
+            </button>
+          ) : (
+            <span className="truncate text-xs font-medium">Relational Builder</span>
+          )}
         </div>
         <button
           onClick={() => setMobileMenuOpen(o => !o)}
@@ -244,14 +223,22 @@ function App() {
               variant="outline"
               size="sm"
               className="h-8 gap-1 text-xs"
+              onClick={() => setView('projects')}
+            >
+              <FolderOpen className="size-3" />
+              Your Projects
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 gap-1 text-xs"
               onClick={() => setView('gallery')}
             >
               <LayoutGrid className="size-3" />
               Gallery
             </Button>
-            <ProjectsButton mobile />
-            {hasProject && <ShareMenu mobile />}
-            {hasProject && <CodeSync />}
+            {inProject && <ShareMenu mobile />}
+            {inProject && <CodeSync />}
           </div>
           <div className="flex items-center gap-1.5 pt-1 border-t">
             {showStandaloneSettings && <ThemeToggle />}

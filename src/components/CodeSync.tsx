@@ -14,14 +14,11 @@ import { useCloudStore } from '@/store/cloud-store';
 import { FORGES, forgeClient, type ForgeId, type ForgeRepo } from '@/project/forge';
 import {
   projectRepoKey,
-  checkPushSafety,
   pullRemoteChanges,
-  clientForRepo,
-  tokenForRepo,
+  pushToRepo,
   forgeNameForRepo,
 } from '@/project/code-sync';
-import { generateManifest } from '@/project/export';
-import { needsBuild, materializeSource } from '@/project/build-for-publish';
+import { syncNow } from '@/project/auto-sync';
 import {
   GitBranch,
   ArrowUpFromLine,
@@ -33,6 +30,7 @@ import {
   ExternalLink,
   Unplug,
   AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
 
 /** The instance URL a forge connection should use */
@@ -46,8 +44,17 @@ export function CodeSync() {
   const tokens = useSyncStore(s => s.tokens);
   const instanceUrls = useSyncStore(s => s.instanceUrls);
   const repos = useSyncStore(s => s.repos);
+  const pushStatus = useSyncStore(s => s.pushStatus);
   const currentProjectId = useCloudStore(s => s.currentProjectId);
-  const connectedRepo = repos[currentProjectId ?? 'local'] ?? null;
+  const repoKey = currentProjectId ?? 'local';
+  const connectedRepo = repos[repoKey] ?? null;
+  const autoOn = useSyncStore(s => s.autoPush[repoKey] !== false);
+
+  // The trigger carries the sync's state, so nobody has to open a panel to
+  // find out whether their work is safely on the repo
+  const attention =
+    !!connectedRepo && (pushStatus === 'held' || pushStatus === 'error');
+  const syncing = !!connectedRepo && pushStatus === 'pushing';
 
   // A saved token alone means "connected" to that forge — the username is
   // cosmetic and gets backfilled in the repo list. Each project still picks
@@ -69,10 +76,25 @@ export function CodeSync() {
       }}
     >
       <DialogTrigger
-        className="inline-flex items-center justify-center gap-1 rounded-md px-3 h-7 text-xs font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
-        title={connectedRepo ? connectedRepo.fullName : 'Sync this project with a repo'}
+        className={
+          'inline-flex items-center justify-center gap-1 rounded-md px-3 h-7 text-xs font-medium transition-colors hover:bg-accent hover:text-accent-foreground' +
+          (attention ? ' text-amber-600' : '')
+        }
+        title={
+          connectedRepo
+            ? attention
+              ? `${connectedRepo.fullName} — needs a moment`
+              : `${connectedRepo.fullName} — ${autoOn ? 'syncing automatically' : 'automatic sync is off'}`
+            : 'Sync this project with a repo'
+        }
       >
-        <GitBranch className="size-3 shrink-0" />
+        {syncing ? (
+          <Loader2 className="size-3 shrink-0 animate-spin" />
+        ) : attention ? (
+          <AlertTriangle className="size-3 shrink-0" />
+        ) : (
+          <GitBranch className="size-3 shrink-0" />
+        )}
         {/* Bounded: a repo name is someone else's string, and an unbounded one
             grows the header group until Share loses its edge. */}
         <span className="max-w-[9rem] truncate">
@@ -276,14 +298,14 @@ function RepoListView({ forge, onBack }: { forge: ForgeId; onBack: () => void })
     if (!username && token) client.getUser(token).then(u => setUsername(forge, u)).catch(() => {});
   }, [username, token, forge, setUsername]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const connect = (repo: ForgeRepo) => {
+  const connect = (repo: ForgeRepo, lastSyncSha: string | null = null) => {
     connectRepo(projectRepoKey(), {
       forge,
       baseUrl: baseUrl || undefined,
       fullName: repo.fullName,
       branch: repo.defaultBranch,
       htmlUrl: repo.htmlUrl,
-      lastSyncSha: null,
+      lastSyncSha,
     });
   };
 
@@ -294,7 +316,13 @@ function RepoListView({ forge, onBack }: { forge: ForgeId; onBack: () => void })
     try {
       const repo = await client.createRepo(token, newName, 'Built with Relational Builder');
       await client.addReltechTopic(token, repo.fullName).catch(() => {});
-      connect(repo);
+      // A repo we just made holds nothing but its initial commit, so there's
+      // no "whose version wins" question to ask: treat it as already in sync
+      // and let the first automatic push fill it.
+      const head = await client
+        .getBranchHead(token, repo.fullName, repo.defaultBranch)
+        .catch(() => null);
+      connect(repo, head);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create repo');
     } finally {
@@ -393,85 +421,55 @@ function RepoListView({ forge, onBack }: { forge: ForgeId; onBack: () => void })
   );
 }
 
-// ── Connected View (Push / Pull) ──────────────────────────────────────
+// ── Connected View ────────────────────────────────────────────────────
 
+/** "2 minutes ago", in the smallest unit that still reads naturally */
+function timeAgo(ts: number): string {
+  const secs = Math.max(0, Math.round((Date.now() - ts) / 1000));
+  if (secs < 60) return 'just now';
+  const mins = Math.round(secs / 60);
+  if (mins < 60) return `${mins} minute${mins === 1 ? '' : 's'} ago`;
+  const hours = Math.round(mins / 60);
+  if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`;
+  const days = Math.round(hours / 24);
+  return `${days} day${days === 1 ? '' : 's'} ago`;
+}
+
+/**
+ * A connected repo, once. Connecting is the decision; after that the Builder
+ * pushes your changes on its own and this panel is somewhere to *look*, not
+ * something to operate — where the code lives, whether it's up to date, and
+ * the one deliberate action that remains: pulling work done elsewhere in.
+ *
+ * The commit-message box and the Push button that used to live here are what
+ * made this a chore. Push is still available, quietly, for the moments the
+ * automatic path holds back — and it refuses to send an unchanged project, so
+ * pressing it twice can't repeat a push you already made.
+ */
 function ConnectedView() {
   const currentProjectId = useCloudStore(s => s.currentProjectId);
   const repoKey = currentProjectId ?? 'local';
   const connectedRepo = useSyncStore(s => s.repos[repoKey])!;
-  const updateLastSync = useSyncStore(s => s.updateLastSync);
   const disconnectRepo = useSyncStore(s => s.disconnectRepo);
+  const setAutoPush = useSyncStore(s => s.setAutoPush);
+  const pushStatus = useSyncStore(s => s.pushStatus);
+  const pushError = useSyncStore(s => s.pushError);
+  const lastPushedAt = useSyncStore(s => s.lastPushedAt[repoKey]);
+  const autoOn = useSyncStore(s => s.autoPush[repoKey] !== false);
   const forgeName = forgeNameForRepo(connectedRepo);
 
-  const getAllFiles = useProjectStore(s => s.getAllFiles);
   const fileCount = useProjectStore(s => s.getFileCount());
 
-  const [pushing, setPushing] = useState(false);
-  const [pulling, setPulling] = useState(false);
+  const [busy, setBusy] = useState<'push' | 'pull' | null>(null);
   const [message, setMessage] = useState('');
-  const [commitMsg, setCommitMsg] = useState('Update from Relational Builder');
   const [error, setError] = useState<string | null>(null);
-  // When the repo is ahead of us, confirm before overwriting
-  const [pushWarning, setPushWarning] = useState<{ aheadBy: number } | null>(null);
 
-  const doPush = useCallback(async () => {
-    const files = getAllFiles();
-    if (files.length === 0) return;
-
-    setPushing(true);
-    setError(null);
-    setMessage('');
-    setPushWarning(null);
-    try {
-      // Framework projects push their full runnable source: the kit files
-      // they import plus a Vite scaffold, so a clone runs with npm install.
-      const sourceFiles = needsBuild(files) ? materializeSource(files) : files;
-      // Include the .reltech.yml manifest (with lineage) unless the project
-      // already carries its own — the network watcher reads it from the repo.
-      const filesToPush = [...sourceFiles];
-      const hasManifest = files.some(f => f.path.replace(/^\//, '') === '.reltech.yml');
-      if (!hasManifest) {
-        const { lineage } = useProjectStore.getState();
-        const repoName = connectedRepo.fullName.split('/')[1] ?? 'my-community-app';
-        filesToPush.push({
-          path: '.reltech.yml',
-          content: generateManifest(repoName, lineage),
-          language: 'yaml',
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
-        });
-      }
-      const result = await clientForRepo(connectedRepo).pushFiles(
-        tokenForRepo(connectedRepo),
-        connectedRepo.fullName,
-        connectedRepo.branch,
-        filesToPush,
-        commitMsg,
-      );
-      updateLastSync(repoKey, result.commitSha);
-      setMessage(`Pushed ${result.filesChanged} files`);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Push failed');
-    } finally {
-      setPushing(false);
-    }
-  }, [connectedRepo, commitMsg, getAllFiles, updateLastSync, repoKey]);
-
-  const handlePush = useCallback(async () => {
-    // Don't clobber work that landed on the repo since we last synced
-    setPushing(true);
-    setError(null);
-    const remote = await checkPushSafety();
-    setPushing(false);
-    if (remote && (remote.aheadBy > 0 || remote.fullResync)) {
-      setPushWarning({ aheadBy: remote.aheadBy });
-      return;
-    }
-    doPush();
-  }, [doPush]);
+  // Never synced with this repo: which side is the starting point is a real
+  // question with no safe default, so it gets asked once — and never again.
+  const needsFirstSync = !connectedRepo.lastSyncSha;
 
   const handlePull = useCallback(async () => {
-    setPulling(true);
+    setBusy('pull');
     setError(null);
     setMessage('');
     try {
@@ -485,9 +483,30 @@ function ConnectedView() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Pull failed');
     } finally {
-      setPulling(false);
+      setBusy(null);
     }
   }, []);
+
+  const handlePush = useCallback(async (force = false) => {
+    setBusy('push');
+    setError(null);
+    setMessage('');
+    try {
+      const outcome = await pushToRepo({ force });
+      if (outcome.status === 'pushed') {
+        setMessage(`Pushed ${outcome.filesChanged} files`);
+        useSyncStore.getState().setPushStatus('pushed');
+      } else if (outcome.status === 'unchanged') {
+        setMessage(`${forgeName} already has this version`);
+      } else {
+        useSyncStore.getState().setPushStatus('held');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Push failed');
+    } finally {
+      setBusy(null);
+    }
+  }, [forgeName]);
 
   return (
     <div className="space-y-4 pt-2">
@@ -518,79 +537,145 @@ function ConnectedView() {
         </button>
       </div>
 
-      <p className="text-xs text-muted-foreground leading-relaxed">
-        Edit this project anywhere — Claude Code, your own editor — and{' '}
-        <span className="text-foreground">Pull</span> brings the changes back with a
-        plain-language summary. Push writes your Builder changes on top without deleting
-        files that live only in the repo.
-      </p>
-
-      {/* Commit message */}
-      <div className="space-y-1.5">
-        <label className="text-xs font-medium">Commit message</label>
-        <Input
-          value={commitMsg}
-          onChange={e => setCommitMsg(e.target.value)}
-          placeholder="Update from Relational Builder"
-          className="h-8 text-sm"
-        />
-      </div>
-
-      {/* Push / Pull buttons */}
-      <div className="flex gap-2">
-        <Button
-          onClick={handlePush}
-          disabled={pushing || pulling || fileCount === 0}
-          className="flex-1 gap-1.5"
-          variant="default"
-        >
-          {pushing ? (
-            <Loader2 className="size-3.5 animate-spin" />
-          ) : (
-            <ArrowUpFromLine className="size-3.5" />
-          )}
-          Push ({fileCount} files)
-        </Button>
-        <Button
-          onClick={handlePull}
-          disabled={pushing || pulling}
-          className="flex-1 gap-1.5"
-          variant="outline"
-        >
-          {pulling ? (
-            <Loader2 className="size-3.5 animate-spin" />
-          ) : (
-            <ArrowDownToLine className="size-3.5" />
-          )}
-          Pull
-        </Button>
-      </div>
-
-      {/* Push-would-overwrite warning */}
-      {pushWarning && (
-        <div className="rounded-lg border border-amber-500/50 bg-amber-500/10 p-3 space-y-2">
-          <div className="flex items-start gap-2">
-            <AlertTriangle className="size-4 text-amber-600 shrink-0 mt-0.5" />
-            <p className="text-xs">
-              {forgeName} has{' '}
-              <span className="font-medium">
-                {pushWarning.aheadBy > 0
-                  ? `${pushWarning.aheadBy} commit${pushWarning.aheadBy > 1 ? 's' : ''}`
-                  : 'changes'}
-              </span>{' '}
-              the Builder hasn't seen. Pull first so you don't lose them — or push anyway
-              to keep your version.
-            </p>
-          </div>
+      {needsFirstSync ? (
+        /* One-time starting point. After this, sync runs itself. */
+        <div className="rounded-lg border p-3 space-y-2.5">
+          <p className="text-xs leading-relaxed">
+            <span className="font-medium">Where should this start?</span> This
+            repo may already have code in it. Pick once — after that, changes
+            you make here push themselves.
+          </p>
           <div className="flex gap-2">
-            <Button size="sm" variant="outline" className="flex-1 h-7 text-xs" onClick={() => { setPushWarning(null); handlePull(); }}>
-              Pull first
+            <Button
+              size="sm"
+              className="flex-1 h-8 gap-1.5 text-xs"
+              onClick={handlePull}
+              disabled={busy !== null}
+            >
+              {busy === 'pull' ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <ArrowDownToLine className="size-3.5" />
+              )}
+              Start from the repo
             </Button>
-            <Button size="sm" variant="ghost" className="flex-1 h-7 text-xs" onClick={() => { setPushWarning(null); doPush(); }}>
-              Push anyway
+            <Button
+              size="sm"
+              variant="outline"
+              className="flex-1 h-8 gap-1.5 text-xs"
+              onClick={() => handlePush(true)}
+              disabled={busy !== null || fileCount === 0}
+            >
+              {busy === 'push' ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <ArrowUpFromLine className="size-3.5" />
+              )}
+              Start from this project
             </Button>
           </div>
+          <p className="text-[11px] text-muted-foreground">
+            Pulling brings the repo's code in here. Pushing writes this project
+            on top — it never deletes files that live only in the repo.
+          </p>
         </div>
+      ) : (
+        <>
+          {/* Sync state, in one line */}
+          <div className="rounded-lg border bg-muted/40 p-3 space-y-2">
+            <div className="flex items-start gap-2">
+              {pushStatus === 'pushing' || busy === 'push' ? (
+                <Loader2 className="size-3.5 shrink-0 mt-0.5 animate-spin text-muted-foreground" />
+              ) : pushStatus === 'held' ? (
+                <AlertTriangle className="size-3.5 shrink-0 mt-0.5 text-amber-600" />
+              ) : pushStatus === 'error' ? (
+                <AlertTriangle className="size-3.5 shrink-0 mt-0.5 text-destructive" />
+              ) : (
+                <Check className="size-3.5 shrink-0 mt-0.5 text-green-600" />
+              )}
+              <div className="text-xs space-y-0.5 min-w-0">
+                {pushStatus === 'pushing' || busy === 'push' ? (
+                  <p className="font-medium">Sending your changes to {forgeName}…</p>
+                ) : pushStatus === 'held' ? (
+                  <p className="font-medium">
+                    Waiting — {forgeName} has changes the Builder hasn't seen
+                  </p>
+                ) : pushStatus === 'error' ? (
+                  <p className="font-medium text-destructive">
+                    Couldn't sync: {pushError}
+                  </p>
+                ) : autoOn ? (
+                  <p className="font-medium">Up to date with {forgeName}</p>
+                ) : (
+                  <p className="font-medium">Automatic sync is off</p>
+                )}
+                <p className="text-muted-foreground">
+                  {pushStatus === 'held'
+                    ? 'Pull those changes in and syncing picks up again.'
+                    : autoOn
+                      ? 'Every change you make here lands on the repo a few seconds later — nothing to press.'
+                      : 'Your changes stay here until you push them.'}
+                  {lastPushedAt && ` Last synced ${timeAgo(lastPushedAt)}.`}
+                </p>
+              </div>
+            </div>
+
+            <label className="flex items-center gap-2 pt-1 border-t text-xs cursor-pointer">
+              <input
+                type="checkbox"
+                checked={autoOn}
+                onChange={e => {
+                  setAutoPush(repoKey, e.target.checked);
+                  if (e.target.checked) syncNow();
+                }}
+                className="size-3.5 accent-primary"
+              />
+              <span>Keep {connectedRepo.fullName.split('/')[1]} up to date automatically</span>
+            </label>
+          </div>
+
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Edit this project anywhere — Claude Code, your own editor — and{' '}
+            <span className="text-foreground">Pull</span> brings the changes back with a
+            plain-language summary.
+          </p>
+
+          <div className="flex gap-2">
+            <Button
+              onClick={handlePull}
+              disabled={busy !== null}
+              className="flex-1 gap-1.5"
+              variant={pushStatus === 'held' ? 'default' : 'outline'}
+            >
+              {busy === 'pull' ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <ArrowDownToLine className="size-3.5" />
+              )}
+              Pull changes
+            </Button>
+            {/* The manual path, kept for the moments automatic sync holds
+                back. It sends nothing when nothing changed. */}
+            <Button
+              onClick={() => handlePush(pushStatus === 'held')}
+              disabled={busy !== null || fileCount === 0}
+              className="gap-1.5"
+              variant="ghost"
+              title={
+                pushStatus === 'held'
+                  ? 'Push anyway — your version wins'
+                  : 'Push now instead of waiting'
+              }
+            >
+              {busy === 'push' ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <RefreshCw className="size-3.5" />
+              )}
+              {pushStatus === 'held' ? 'Push anyway' : 'Push now'}
+            </Button>
+          </div>
+        </>
       )}
 
       {/* Status messages */}

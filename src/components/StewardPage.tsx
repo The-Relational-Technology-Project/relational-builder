@@ -2,8 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   adminListRequests,
   adminDecideRequest,
+  isSuperAdmin,
   type AccountRequest,
 } from '@/cloud/account-requests';
+import { useAuthStore } from '@/store/auth-store';
 import { adminListAccounts, type StewardAccount } from '@/cloud/steward-accounts';
 import {
   adminListContributions,
@@ -58,9 +60,25 @@ import { Check, X, Loader2, ChevronDown, ChevronRight, ShieldCheck, KeyRound, Li
  *    holds each studio's admin role — the role that approves members and
  *    tends the studio's private library
  * Visibility is gated by email client-side for convenience; the
- * admin-requests edge function is the real boundary.
+ * admin-requests edge function is the real boundary. The gate lives here as
+ * well as on the menu item that opens it — the page has an address now, and
+ * an address can be typed by anyone.
  */
 export function StewardPage() {
+  const user = useAuthStore(s => s.user);
+  if (!isSuperAdmin(user?.email)) {
+    return (
+      <div className="flex-1 overflow-y-auto h-full">
+        <div className="max-w-lg mx-auto px-4 py-16 text-center space-y-2">
+          <ShieldCheck className="size-6 text-muted-foreground mx-auto" />
+          <p className="text-sm text-muted-foreground">
+            This page is for RTP stewards.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1 overflow-y-auto h-full">
       <div className="max-w-4xl mx-auto px-4 md:px-8 py-8 md:py-12 space-y-8">

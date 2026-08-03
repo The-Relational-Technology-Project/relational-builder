@@ -11,6 +11,10 @@
     {
       "source": "/steward/respond",
       "destination": "/api/steward-respond"
+    },
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
     }
   ]
 }
