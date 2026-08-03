@@ -1,57 +1,39 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { GitBranch, Loader2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useSyncStore } from '@/store/sync-store';
 import { useCloudStore } from '@/store/cloud-store';
-import { checkRemoteChanges, pullRemoteChanges, forgeNameForRepo } from '@/project/code-sync';
-
-/** Re-check when the tab regains focus, at most this often */
-const FOCUS_THROTTLE_MS = 30_000;
-/** Background re-check while the tab stays open */
-const POLL_INTERVAL_MS = 4 * 60_000;
+import { pullRemoteChanges, forgeNameForRepo } from '@/project/code-sync';
 
 /**
- * Watches the connected repo for commits made outside the Builder — from
- * Claude Code, an editor, a collaborator — and offers to pull them in.
- * Working on your project in both places is normal here, not a workaround.
+ * Commits that landed on the repo outside the Builder — and that the Builder
+ * won't bring in by itself.
+ *
+ * Most of the time it doesn't come to this: `auto-sync.ts` watches the repo
+ * and pulls outside work in on its own, summary in chat, checkpoint taken.
+ * This banner is what's left when that would cost someone something — there
+ * are Builder changes the repo hasn't seen, so the repo's version winning is
+ * a decision rather than a background task — or when the automatic pull hit
+ * an error. Then it's an offer, with the reason it's being offered.
  */
 export function RemoteChangesBanner() {
-  const tokens = useSyncStore(s => s.tokens);
   const repos = useSyncStore(s => s.repos);
   const remote = useSyncStore(s => s.remote);
   const dismissedHead = useSyncStore(s => s.dismissedHead);
+  const autoPulling = useSyncStore(s => s.autoPulling);
+  const applying = useSyncStore(s => s.pulling);
+  const pullError = useSyncStore(s => s.pullError);
   const currentProjectId = useCloudStore(s => s.currentProjectId);
   const repoKey = currentProjectId ?? 'local';
   const repo = repos[repoKey] ?? null;
-  const token = repo ? tokens[repo.forge] : undefined;
 
   const [pulling, setPulling] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const lastCheckRef = useRef(0);
-
-  const runCheck = useCallback(() => {
-    if (!token || !repo?.lastSyncSha) return;
-    if (Date.now() - lastCheckRef.current < FOCUS_THROTTLE_MS) return;
-    lastCheckRef.current = Date.now();
-    checkRemoteChanges();
-  }, [token, repo?.lastSyncSha, repo?.fullName]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (!token || !repo) return;
-    runCheck();
-    const onFocus = () => runCheck();
-    window.addEventListener('focus', onFocus);
-    const interval = setInterval(() => {
-      lastCheckRef.current = 0; // interval checks always go through
-      runCheck();
-    }, POLL_INTERVAL_MS);
-    return () => {
-      window.removeEventListener('focus', onFocus);
-      clearInterval(interval);
-    };
-  }, [token, repo, runCheck]);
 
   if (!repo || !remote) return null;
+  // Already on their way in — the banner would be a question nobody needs to
+  // answer, and it would vanish a second later
+  if (autoPulling || applying) return null;
   if (remote.headSha === dismissedHead) return null;
   if (!remote.fullResync && remote.aheadBy === 0) return null;
 
@@ -62,6 +44,7 @@ export function RemoteChangesBanner() {
     setError(null);
     try {
       await pullRemoteChanges();
+      useSyncStore.getState().setPullError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Pull failed');
     } finally {
@@ -84,8 +67,10 @@ export function RemoteChangesBanner() {
               <span className="font-medium">
                 {remote.aheadBy} new {commitWord}
               </span>{' '}
-              on {forgeName}{authors.length > 0 && <> from {authors.join(', ')}</>} — pull them in to
-              keep building from the latest.
+              on {forgeName}{authors.length > 0 && <> from {authors.join(', ')}</>} —{' '}
+              {pullError
+                ? 'the Builder couldn\'t bring them in on its own.'
+                : 'you have changes here that haven\'t been pushed yet, so this one\'s your call.'}
             </>
           )}
         </p>
@@ -105,6 +90,13 @@ export function RemoteChangesBanner() {
           <X className="size-3.5" />
         </button>
       </div>
+      {!remote.fullResync && (
+        <p className="mt-1 ml-7 text-xs text-muted-foreground">
+          {pullError
+            ? pullError
+            : 'The repo\'s version wins for any file both sides changed — everything from before the pull is kept as a checkpoint.'}
+        </p>
+      )}
       {!remote.fullResync && remote.commits.length > 0 && (
         <ul className="mt-1.5 ml-7 space-y-0.5">
           {remote.commits.slice(-3).map(c => (

@@ -18,7 +18,7 @@ import {
   pushToRepo,
   forgeNameForRepo,
 } from '@/project/code-sync';
-import { syncNow } from '@/project/auto-sync';
+import { checkRemoteNow, syncNow } from '@/project/auto-sync';
 import {
   GitBranch,
   ArrowUpFromLine,
@@ -138,9 +138,10 @@ function ForgePickerView({ onPick }: { onPick: (forge: ForgeId) => void }) {
   return (
     <div className="space-y-3 pt-2">
       <p className="text-sm text-muted-foreground">
-        Connect a repo and your project syncs both ways. Edit in Claude Code or any
-        editor, push, and the Builder notices — pulling the changes back in and telling
-        you if anything (like a migration) needs a hand.
+        Connect a repo and your project syncs both ways, on its own. What you
+        build here lands on the repo; what you push from Claude Code or any
+        editor comes back in — with a plain-language summary, and a note if
+        anything (like a migration) needs a hand.
       </p>
       <p className="text-xs font-medium">Where does your code live?</p>
       <div className="space-y-1.5">
@@ -613,8 +614,8 @@ function ConnectedView() {
                   {pushStatus === 'held'
                     ? 'Pull those changes in and syncing picks up again.'
                     : autoOn
-                      ? 'Every change you make here lands on the repo a few seconds later — nothing to press.'
-                      : 'Your changes stay here until you push them.'}
+                      ? 'Changes you make here land on the repo a few seconds later, and commits pushed from anywhere else come back in with a summary in chat — nothing to press.'
+                      : 'Your changes stay here until you push them, and work from elsewhere waits for you to pull it.'}
                   {lastPushedAt && ` Last synced ${timeAgo(lastPushedAt)}.`}
                 </p>
               </div>
@@ -626,18 +627,22 @@ function ConnectedView() {
                 checked={autoOn}
                 onChange={e => {
                   setAutoPush(repoKey, e.target.checked);
-                  if (e.target.checked) syncNow();
+                  if (e.target.checked) { syncNow(); checkRemoteNow(); }
                 }}
                 className="size-3.5 accent-primary"
               />
-              <span>Keep {connectedRepo.fullName.split('/')[1]} up to date automatically</span>
+              <span>
+                Keep {connectedRepo.fullName.split('/')[1]} and this project in sync
+                automatically
+              </span>
             </label>
           </div>
 
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Edit this project anywhere — Claude Code, your own editor — and{' '}
-            <span className="text-foreground">Pull</span> brings the changes back with a
-            plain-language summary.
+            Edit this project anywhere — Claude Code, your own editor — and the
+            changes find their way back here, with a plain-language summary in
+            chat. Pull brings them in early, or by hand when you have unpushed
+            changes of your own.
           </p>
 
           <div className="flex gap-2">

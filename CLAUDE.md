@@ -47,9 +47,13 @@ Chat/Builder Panel  |  Preview Sandbox (iframe)  |  RTP Knowledge Base Panel
     builds (`src/project/build-for-publish.ts`), so preview output ≡ deployed output.
   - *Simple tools* (single-file HTML/JS, plain React) — Sandpack, instant.
 - **Code sync:** connecting a repo is the whole decision — after it,
-  `src/project/auto-sync.ts` pushes changes on its own (settles ~6s, never
-  mid-generation, never an unchanged tree, never over commits the Builder
-  hasn't pulled). All pushes go through `pushToRepo` in `src/project/code-sync.ts`.
+  `src/project/auto-sync.ts` runs both directions on its own. Push settles
+  ~6s after a change (never mid-generation, never an unchanged tree, never
+  over commits the Builder hasn't pulled). Pull watches the repo (focus +
+  2-min poll) and applies outside commits when the workspace still matches
+  the last push — checkpoint first, plain-language summary to chat. Unpushed
+  local edits make it a person's call instead: `RemoteChangesBanner` asks.
+  All pushes go through `pushToRepo` in `src/project/code-sync.ts`.
 - **Models:** Three-tier provider system
   - Tier 1: RTP-hosted open-source model (free default, no API key)
   - Tier 2: BYOK cloud models (Claude, OpenAI, OpenRouter)

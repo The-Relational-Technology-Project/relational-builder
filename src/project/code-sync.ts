@@ -120,7 +120,9 @@ const OVERLAP_CHECK_CAP = 30;
  * a full resync), removes deleted files, then posts a summary to chat with
  * any follow-up steps the builder needs to take by hand.
  */
-export async function pullRemoteChanges(): Promise<PullSummary> {
+export async function pullRemoteChanges(
+  options: { automatic?: boolean } = {},
+): Promise<PullSummary> {
   const sync = useSyncStore.getState();
   const repo = connectedRepoForCurrentProject();
   if (!repo) throw new Error('No repository connected');
@@ -227,7 +229,9 @@ export async function pullRemoteChanges(): Promise<PullSummary> {
     // Tell the story in chat — the summary lives in history, so the AI
     // knows the project changed outside the Builder too.
     if (applied.length > 0 || deleted.length > 0) {
-      useChatStore.getState().addSyncMessage(buildSyncChatMessage(repo, summary));
+      useChatStore
+        .getState()
+        .addSyncMessage(buildSyncChatMessage(repo, summary, options.automatic === true));
     }
 
     return summary;
@@ -275,8 +279,10 @@ export function fingerprintFiles(files: FileEntry[]): string {
   let hash = 5381;
   const material = [...files]
     .sort((a, b) => a.path.localeCompare(b.path))
-    .map(f => `${f.path} ${f.content}`)
-    .join('');
+    // \u0000 / \u0001 as delimiters: file content can contain any printable
+    // text, so the separators have to be characters it never holds
+    .map(f => `${f.path}\u0000${f.content}`)
+    .join('\u0001');
   for (let i = 0; i < material.length; i++) {
     hash = ((hash << 5) + hash + material.charCodeAt(i)) | 0;
   }
@@ -473,10 +479,21 @@ function isCommonFalsePositive(key: string): boolean {
 
 const MAX_LISTED_FILES = 14;
 
-function buildSyncChatMessage(repo: ConnectedRepo, summary: PullSummary): string {
+function buildSyncChatMessage(
+  repo: ConnectedRepo,
+  summary: PullSummary,
+  automatic = false,
+): string {
   const lines: string[] = [];
   const repoName = repo.fullName.split('/')[1] ?? repo.fullName;
   const forgeName = forgeNameForRepo(repo);
+  const many = summary.commits.length > 1;
+  // An automatic pull changed the files under someone's hands. Say so in the
+  // first breath — "came in on its own" is the difference between a tool that
+  // keeps up and a workspace that moved for no visible reason.
+  const arrived = automatic
+    ? many ? 'and came in on their own' : 'and came in on its own'
+    : many ? 'and were pulled in' : 'and was pulled in';
 
   if (summary.fullResync) {
     lines.push(
@@ -486,7 +503,7 @@ function buildSyncChatMessage(repo: ConnectedRepo, summary: PullSummary): string
     const authors = [...new Set(summary.commits.map(c => c.author))];
     lines.push(
       `**${summary.commits.length} commit${summary.commits.length > 1 ? 's' : ''}** landed on ` +
-        `**${repoName}** outside the Builder (by ${authors.join(', ')}):`,
+        `**${repoName}** outside the Builder (by ${authors.join(', ')}) ${arrived}:`,
     );
     lines.push('');
     for (const c of summary.commits.slice(-8)) {
@@ -527,6 +544,13 @@ function buildSyncChatMessage(repo: ConnectedRepo, summary: PullSummary): string
   } else {
     lines.push('');
     lines.push('Nothing else needed — the preview reflects the new code.');
+  }
+
+  if (automatic && summary.overlaps.length === 0) {
+    lines.push('');
+    lines.push(
+      'Everything from just before this is saved as a checkpoint, if it turns out you wanted the older version.',
+    );
   }
 
   return lines.join('\n');

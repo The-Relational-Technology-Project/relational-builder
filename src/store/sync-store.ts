@@ -51,6 +51,14 @@ interface SyncState {
   dismissedHead: string | null;
   /** True while a pull is applying files (suppresses cloud auto-save echo churn) */
   pulling: boolean;
+  /**
+   * True from the moment an automatic pull is judged safe until it's done —
+   * so the "new commits" banner never flashes for changes already on their
+   * way in.
+   */
+  autoPulling: boolean;
+  /** Why the last automatic pull didn't land, if it didn't */
+  pullError: string | null;
   /** Where the current (or last) push got to */
   pushStatus: PushStatus;
   pushError: string | null;
@@ -73,6 +81,8 @@ interface SyncState {
   setCheckingRemote: (checking: boolean) => void;
   dismissRemote: (headSha: string) => void;
   setPulling: (pulling: boolean) => void;
+  setAutoPulling: (autoPulling: boolean) => void;
+  setPullError: (error: string | null) => void;
 }
 
 export const useSyncStore = create<SyncState>()(
@@ -91,6 +101,8 @@ export const useSyncStore = create<SyncState>()(
       lastCheckedAt: 0,
       dismissedHead: null,
       pulling: false,
+      autoPulling: false,
+      pullError: null,
       pushStatus: 'idle',
       pushError: null,
 
@@ -184,6 +196,8 @@ export const useSyncStore = create<SyncState>()(
       setCheckingRemote: (checkingRemote) => set({ checkingRemote }),
       dismissRemote: (headSha) => set({ dismissedHead: headSha }),
       setPulling: (pulling) => set({ pulling }),
+      setAutoPulling: (autoPulling) => set({ autoPulling }),
+      setPullError: (pullError) => set({ pullError }),
     }),
     {
       // Historical key — this store began GitHub-only, and renaming it

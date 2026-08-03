@@ -21,16 +21,24 @@
  *   history we've never seen waits for the one-time "where do we start"
  *   choice in the sync panel.
  *
- * Pulling stays deliberate: bringing outside work in changes what's in front
- * of you, and that's worth a click.
+ * It goes the other way too. Commits pushed from Claude Code, an editor, or a
+ * collaborator come back in on their own — with the plain-language summary in
+ * chat, so the change that moved your files is visible rather than mysterious,
+ * and a checkpoint taken first. The one condition: the workspace has to match
+ * what was last pushed. If there are Builder edits the repo hasn't seen, whose
+ * version wins is a person's call, and the banner asks instead.
  */
 
 import { useProjectStore } from '@/store/project-store';
 import { useChatStore } from '@/store/chat-store';
 import { useSyncStore } from '@/store/sync-store';
 import {
+  checkRemoteChanges,
   connectedRepoForCurrentProject,
+  filesForPush,
+  fingerprintFiles,
   projectRepoKey,
+  pullRemoteChanges,
   pushToRepo,
   tokenForRepo,
 } from './code-sync';
@@ -39,10 +47,16 @@ import {
 const SETTLE_MS = 6_000;
 /** Retry gap when something is in the way (a build running, a pull applying) */
 const RETRY_MS = 4_000;
+/** Background check for work that landed on the repo elsewhere */
+const REMOTE_POLL_MS = 2 * 60_000;
+/** Re-check when the tab regains focus, at most this often */
+const FOCUS_THROTTLE_MS = 20_000;
 
 let timer: ReturnType<typeof setTimeout> | null = null;
 let inFlight = false;
 let started = false;
+let lastRemoteCheck = 0;
+let remoteInFlight = false;
 
 /** Auto-push is on unless this project turned it off */
 export function autoPushEnabled(key: string = projectRepoKey()): boolean {
@@ -99,7 +113,79 @@ async function run(): Promise<void> {
       .setPushStatus('error', err instanceof Error ? err.message : 'Push failed');
   } finally {
     inFlight = false;
+    // Remote checks that ran while this push was in the air had to hold off.
+    // Now that the workspace and the repo agree again, look once more — this
+    // is the moment an automatic pull becomes safe.
+    void checkRemote(true);
   }
+}
+
+/**
+ * Is it safe to bring the repo's version in without asking? Only when the
+ * workspace is exactly what we last pushed (or holds nothing yet) — then a
+ * pull can't cost anyone work. Any local edit the repo hasn't seen makes this
+ * a decision, not a background task.
+ */
+function canAutoPull(): boolean {
+  const repo = connectedRepoForCurrentProject();
+  if (!repo || !repo.lastSyncSha) return false;
+  if (!autoPushEnabled()) return false;
+
+  const sync = useSyncStore.getState();
+  if (sync.pulling || inFlight) return false;
+  // Mid-build the files are moving under us — and the reply being written
+  // assumes the code it just read
+  if (useChatStore.getState().isGenerating) return false;
+
+  const project = useProjectStore.getState();
+  if (project.getFileCount() === 0) return true;
+
+  const key = projectRepoKey();
+  return sync.pushedFingerprint[key] === fingerprintFiles(filesForPush(repo));
+}
+
+/**
+ * Look for commits made elsewhere, and bring them in when that's safe. What
+ * isn't safe stays on the banner as an offer — this never decides for someone
+ * whose unpushed work is on the line.
+ */
+async function checkRemote(force = false): Promise<void> {
+  const repo = connectedRepoForCurrentProject();
+  if (!repo || !tokenForRepo(repo) || !repo.lastSyncSha) return;
+  if (remoteInFlight) return;
+  if (!force && Date.now() - lastRemoteCheck < FOCUS_THROTTLE_MS) return;
+  lastRemoteCheck = Date.now();
+
+  // Claim the banner before the network call when a pull is already known to
+  // be safe — otherwise "3 new commits" flashes up for the second it takes to
+  // bring them in on their own
+  remoteInFlight = true;
+  if (canAutoPull()) useSyncStore.getState().setAutoPulling(true);
+  try {
+    const remote = await checkRemoteChanges();
+    if (!remote) return;
+    // Decided on conditions *now*, not on the snapshot from before the round
+    // trip: a push finishing mid-check used to leave the banner standing for
+    // changes that were perfectly safe to bring in a second later.
+    if (!canAutoPull()) return;
+    useSyncStore.getState().setAutoPulling(true);
+    useSyncStore.getState().setPullError(null);
+    await pullRemoteChanges({ automatic: true });
+  } catch (err) {
+    // The banner is still standing with its Pull button — say why the quiet
+    // path didn't work rather than leaving it looking like nothing happened
+    useSyncStore
+      .getState()
+      .setPullError(err instanceof Error ? err.message : 'Pull failed');
+  } finally {
+    remoteInFlight = false;
+    useSyncStore.getState().setAutoPulling(false);
+  }
+}
+
+/** Check the repo now — used when the sync panel or a person asks directly */
+export function checkRemoteNow(): void {
+  void checkRemote(true);
 }
 
 export function initAutoSync(): void {
@@ -119,6 +205,19 @@ export function initAutoSync(): void {
 
   // A repo was connected, or a project with one was opened
   useSyncStore.subscribe((state, prev) => {
-    if (state.repos !== prev.repos) schedule();
+    if (state.repos !== prev.repos) {
+      schedule();
+      void checkRemote(true);
+    }
   });
+
+  // The other direction. Watching lives here rather than in the banner
+  // component: work landing on the repo doesn't stop mattering because
+  // someone happens to be looking at the Gallery.
+  void checkRemote(true);
+  window.addEventListener('focus', () => void checkRemote());
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) void checkRemote();
+  });
+  setInterval(() => void checkRemote(true), REMOTE_POLL_MS);
 }
