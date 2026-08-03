@@ -24,6 +24,7 @@ import {
   resolveCommunityModelDefault,
   COMMUNITY_EDIT_MODEL,
   COMMUNITY_FIRST_BUILD_MODEL,
+  type CommunityModelStage,
 } from '@/store/community-store';
 import { useStudioStore } from '@/store/studio-store';
 import { useAuthStore } from '@/store/auth-store';
@@ -83,20 +84,31 @@ function continuePrompt(planned = false): string {
  *  instead of streaming into the wall and paying a mid-file recovery. */
 const CHUNK_MARKER = /^NEXT-FILES:\s*(\S.*)$/m;
 
-/** Shown once per project when free community building steps down to the
- *  edit model — the model picker must never change behind anyone's back.
+/** Shown whenever free community building changes the model automatically —
+ *  the model picker must never change behind anyone's back. The copy has to
+ *  match what actually happened: a first-build switch means the community
+ *  default took over from an unpinned leftover model (so it names that model
+ *  and the way back to it), while an edit switch is the step-down after a
+ *  finished build. The "pick the bigger model" suggestion only appears when
+ *  the two stage models actually differ — with both slots on Opus 5 it once
+ *  told people "edits run on Opus 5 — making a bigger change? Pick Opus 5."
  *
- *  Both model names are DERIVED, never written out here. This note previously
+ *  All model names are DERIVED, never written out here. This note previously
  *  hardcoded "Claude Opus 4.8" and went on claiming it long after the code had
- *  moved to Opus 5 — nobody caught it because the two slots were identical, so
- *  the step-down never fired and the note was never displayed. A sentence that
- *  only appears when a constant changes is exactly the sentence that will be
- *  stale when it finally shows up. */
-function editModelNote(): string {
+ *  moved to Opus 5 — a sentence that only appears when a constant changes is
+ *  exactly the sentence that will be stale when it finally shows up. */
+function communityModelNote(stage: CommunityModelStage, movedOff: string): string {
   const name = (id: string) => CLAUDE_MODELS.find(m => m.id === id)?.name ?? id;
-  return `Edits and fixes now run on **${name(COMMUNITY_EDIT_MODEL)}** — quick, dependable for day-to-day changes, and it keeps the shared community budget stretching further for everyone. Making a bigger change? Pick ${name(COMMUNITY_FIRST_BUILD_MODEL)} in the model menu and it will stick for this project.`;
+  if (stage === 'first-build') {
+    return `This build runs on **${name(COMMUNITY_FIRST_BUILD_MODEL)}** — the community default for first builds, chosen for the most complete first version. Rather build with ${name(movedOff)}? Pick it in the model menu and it will stick for this project.`;
+  }
+  const stepUp =
+    COMMUNITY_FIRST_BUILD_MODEL === COMMUNITY_EDIT_MODEL
+      ? ''
+      : ` Making a bigger change? Pick ${name(COMMUNITY_FIRST_BUILD_MODEL)} in the model menu and it will stick for this project.`;
+  return `Edits and fixes now run on **${name(COMMUNITY_EDIT_MODEL)}** — quick, dependable for day-to-day changes, and it keeps the shared community budget stretching further for everyone.${stepUp}`;
 }
-const EDIT_MODEL_NOTE_LABEL = 'Model note · from Relational Builder';
+const MODEL_NOTE_LABEL = 'Model note · from Relational Builder';
 
 /**
  * A build reply whose files never reached the project — the tab reloaded or
@@ -360,18 +372,20 @@ export function ChatPanel() {
     // active (a continuation must finish what it started).
     let modelForSend = activeModelId;
     if (!wasFix) {
-      const autoModel = resolveCommunityModelDefault(
+      const autoDefault = resolveCommunityModelDefault(
         useProjectStore.getState().getFileCount(),
       );
-      if (autoModel) {
-        modelForSend = autoModel;
-        useProviderStore.getState().setActiveModel(autoModel);
-        // Stepping down at send time only happens when the post-build switch
-        // couldn't (e.g. a truncated first build finished via continuation) —
-        // same transparency either way
-        if (autoModel === COMMUNITY_EDIT_MODEL) {
-          useChatStore.getState().addSyncMessage(editModelNote(), EDIT_MODEL_NOTE_LABEL);
-        }
+      if (autoDefault) {
+        modelForSend = autoDefault.model;
+        useProviderStore.getState().setActiveModel(autoDefault.model);
+        // Every automatic switch is announced, with copy that matches its
+        // stage: first-build (the default taking over from an unpinned
+        // leftover) or edit (a step-down landing at send time because the
+        // post-build switch couldn't — e.g. a truncated first build that
+        // finished via continuation)
+        useChatStore
+          .getState()
+          .addSyncMessage(communityModelNote(autoDefault.stage, activeModelId), MODEL_NOTE_LABEL);
       }
     }
 
@@ -694,15 +708,19 @@ export function ChatPanel() {
                     // reviewed, so neither can loop.)
                     runQualityReview(firstBuildAsk);
                     // First build landed on the community key: step the
-                    // default down to Opus 4.8 for the edits ahead — visibly,
-                    // with a note, so the model picker never changes behind
-                    // anyone's back.
-                    const autoModel = resolveCommunityModelDefault(
+                    // default down to the edit model for the changes ahead —
+                    // visibly, with a note, so the model picker never changes
+                    // behind anyone's back. (No-op while both stage models
+                    // are the same, since there's nothing to step down to.)
+                    const autoDefault = resolveCommunityModelDefault(
                       useProjectStore.getState().getFileCount(),
                     );
-                    if (autoModel === COMMUNITY_EDIT_MODEL) {
-                      useProviderStore.getState().setActiveModel(autoModel);
-                      useChatStore.getState().addSyncMessage(editModelNote(), EDIT_MODEL_NOTE_LABEL);
+                    if (autoDefault?.stage === 'edit') {
+                      const movedOff = useProviderStore.getState().activeModelId;
+                      useProviderStore.getState().setActiveModel(autoDefault.model);
+                      useChatStore
+                        .getState()
+                        .addSyncMessage(communityModelNote('edit', movedOff), MODEL_NOTE_LABEL);
                     }
                   }
                 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { FilePanel } from './FilePanel';
 import { PreviewPanel } from './PreviewPanel';
 import { EnvPanel } from './EnvPanel';
@@ -6,12 +6,62 @@ import { IntegrationsPanel } from './IntegrationsPanel';
 import { CloudPanel } from './CloudPanel';
 import { NotepadPanel } from './NotepadPanel';
 import { useProjectStore } from '@/store/project-store';
+import { useChatStore } from '@/store/chat-store';
 import { useEnvStore } from '@/store/env-store';
 import { useNotepadStore } from '@/store/notepad-store';
+import { usePanelStore } from '@/store/panel-store';
 import { getConnectedIntegrations, communityCloudConnected } from '@/integrations/catalog';
 import { Eye, Code, KeyRound, NotebookPen, Plug, Cloud } from 'lucide-react';
 
-type Tab = 'preview' | 'files' | 'cloud' | 'services' | 'notepad' | 'env';
+/** The pane has introduced the Notepad on this device — never yank it again */
+const NOTEPAD_INTRO_SEEN_KEY = 'rb-notepad-introduced';
+
+/** Flip once a first build has clearly become a wait — the same beat the
+ *  chat's "while this builds" pointer uses (see MessageList.WaitActivity) */
+const NOTEPAD_INTRO_AFTER_S = 20;
+
+/**
+ * While a first build cooks, the Preview tab has nothing to show — so turn
+ * the pane toward the Notepad once (per device, ever) and let its intro
+ * invite a first note. When the build finishes and files land, the pane goes
+ * back to the Preview on its own — the reveal is the moment that makes the
+ * tool feel real, and it must never happen behind a tab the app itself
+ * switched away. A person's own tab click cancels the give-back (they went
+ * somewhere on purpose; see panel-store).
+ */
+function useNotepadIntro() {
+  const isGenerating = useChatStore(s => s.isGenerating);
+  const mode = useChatStore(s => s.mode);
+  const startedAt = useChatStore(s => s.progress?.startedAt);
+  const firstBuild = useProjectStore(s => s.getFileCount() === 0);
+
+  useEffect(() => {
+    if (!isGenerating || mode !== 'build' || !firstBuild || !startedAt) return;
+    if (localStorage.getItem(NOTEPAD_INTRO_SEEN_KEY)) return;
+    const fire = () => {
+      localStorage.setItem(NOTEPAD_INTRO_SEEN_KEY, new Date().toISOString());
+      usePanelStore.getState().autoFlip('notepad');
+    };
+    const wait = Math.max(0, NOTEPAD_INTRO_AFTER_S * 1000 - (Date.now() - startedAt));
+    const t = setTimeout(fire, wait);
+    return () => clearTimeout(t);
+  }, [isGenerating, mode, firstBuild, startedAt]);
+
+  // Generation ended with files in the project → the Preview gets the pane
+  // back (a no-op unless the app was the one who flipped it away)
+  const wasGenerating = useRef(false);
+  useEffect(() => {
+    if (isGenerating) {
+      wasGenerating.current = true;
+      return;
+    }
+    if (!wasGenerating.current) return;
+    wasGenerating.current = false;
+    if (useProjectStore.getState().getFileCount() > 0) {
+      usePanelStore.getState().autoRestore('preview');
+    }
+  }, [isGenerating]);
+}
 
 export function RightPanel() {
   const version = useProjectStore(s => s.version);
@@ -23,7 +73,18 @@ export function RightPanel() {
   const cloudOn = communityCloudConnected(envVars);
   void version;
 
-  const [activeTab, setActiveTab] = useState<Tab>('preview');
+  const activeTab = usePanelStore(s => s.rightTab);
+  const setActiveTab = usePanelStore(s => s.setRightTab);
+  useNotepadIntro();
+
+  // A sharing-plan draft from the old in-chat wait card becomes a real note:
+  // it was written mid-build to survive, and the Notepad is where it lives now
+  useEffect(() => {
+    const text = (localStorage.getItem('rb-sharing-plan-draft') ?? '').trim();
+    if (!text) return;
+    localStorage.removeItem('rb-sharing-plan-draft');
+    useNotepadStore.getState().addNote(text);
+  }, []);
 
   // Raw env vars are a power-user surface — Services is the friendly front
   // door that writes them. Only show the Env tab once something's in it.

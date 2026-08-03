@@ -140,12 +140,24 @@ export function communityAccessActive(): boolean {
  * picked a model themselves (the picker pins their choice for the project).
  * BYOK and other providers are never touched.
  *
- * Returns the model to switch to, or null when no change is called for.
+ * Returns the model to switch to AND which stage asked for it, or null when
+ * no change is called for. The stage travels with the model because the
+ * announcement in chat must tell the right story: a first-build switch is
+ * the community default taking over from a leftover unpinned model, while
+ * an edit switch is the step-down after a finished build — and with both
+ * constants currently equal, comparing the returned model against
+ * COMMUNITY_EDIT_MODEL cannot tell the two apart (that exact comparison once
+ * showed an "edits and fixes" note to someone whose first build hadn't even
+ * started).
  */
 export const COMMUNITY_FIRST_BUILD_MODEL = 'claude-opus-5';
 export const COMMUNITY_EDIT_MODEL = 'claude-opus-5';
 
-export function resolveCommunityModelDefault(projectFileCount: number): string | null {
+export type CommunityModelStage = 'first-build' | 'edit';
+
+export function resolveCommunityModelDefault(
+  projectFileCount: number,
+): { model: string; stage: CommunityModelStage } | null {
   const providers = useProviderStore.getState();
   const autoManaged =
     useCommunityStore.getState().active &&
@@ -154,7 +166,9 @@ export function resolveCommunityModelDefault(projectFileCount: number): string |
     !providers.modelPinned;
   if (!autoManaged) return null;
 
+  const stage: CommunityModelStage =
+    projectFileCount === 0 ? 'first-build' : 'edit';
   const desired =
-    projectFileCount === 0 ? COMMUNITY_FIRST_BUILD_MODEL : COMMUNITY_EDIT_MODEL;
-  return providers.activeModelId === desired ? null : desired;
+    stage === 'first-build' ? COMMUNITY_FIRST_BUILD_MODEL : COMMUNITY_EDIT_MODEL;
+  return providers.activeModelId === desired ? null : { model: desired, stage };
 }

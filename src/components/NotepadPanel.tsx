@@ -3,6 +3,7 @@ import ReactMarkdown, { defaultUrlTransform } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useNotepadStore, type ProjectNote } from '@/store/notepad-store';
 import { useProjectStore } from '@/store/project-store';
+import { useChatStore } from '@/store/chat-store';
 import { useAuthStore } from '@/store/auth-store';
 import { draftProjectStory, storyPhotos, stripPhotoEmbeds } from '@/project/draft-story';
 import { embeddedPhotoNumbers, canSharePhotos, bodyWithHostedPhotos } from '@/project/story-photos';
@@ -131,11 +132,32 @@ export function NotepadPanel() {
 
 // ── Notes ──────────────────────────────────────────────────────────────
 
+/** First-note invitations, shown while a build cooks and the pad is empty.
+ *  Clicking one starts the note with the question, so the answer keeps its
+ *  context when it's read back later (and when the story is drafted). */
+const STARTER_PROMPTS = [
+  "Who else cares about what you're building?",
+  'Who might have good ideas to make it better?',
+  'What would be a good way to introduce this to neighbors?',
+];
+
 function NotesView({ notes }: { notes: ProjectNote[] }) {
   const [draft, setDraft] = useState('');
   const [draftImage, setDraftImage] = useState<string | null>(null);
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  // The build-time intro: an empty pad while the AI is off building is
+  // exactly the moment the Notepad exists for
+  const building = useChatStore(s => s.isGenerating && s.mode === 'build');
+
+  // Keep the composer sized right when a starter prompt fills it (typing is
+  // handled by onChange; this covers the programmatic path)
+  useEffect(() => autoGrow(composerRef.current), [draft]);
+
+  function startFromPrompt(question: string) {
+    setDraft(d => (d.trim() ? d : `${question}\n`));
+    composerRef.current?.focus();
+  }
 
   // Oldest first, newest at the bottom — the notepad reads like a shared doc,
   // and on a project with collaborators the order IS the conversation. The
@@ -170,10 +192,35 @@ function NotesView({ notes }: { notes: ProjectNote[] }) {
   return (
     <div className="space-y-2">
       {ordered.length === 0 ? (
-        <p className="text-xs text-muted-foreground py-4 text-center">
-          No notes yet. A quote from a neighbor, a photo from the block party,
-          an idea at 2am — it all belongs here.
-        </p>
+        building ? (
+          <div className="rounded-lg border border-dashed border-primary/40 bg-primary/5 p-3 space-y-2">
+            <p className="text-xs font-medium">
+              While this builds — try out your Notepad
+            </p>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Your space for notes, quotes, and stories about this project.
+              Everything you keep here saves with the project — and feeds its
+              story when you're ready to tell it.
+            </p>
+            <p className="text-xs text-muted-foreground">Try a first note:</p>
+            <div className="flex flex-col gap-1.5">
+              {STARTER_PROMPTS.map(q => (
+                <button
+                  key={q}
+                  onClick={() => startFromPrompt(q)}
+                  className="text-left text-xs rounded-md border bg-background px-2.5 py-1.5 text-foreground/80 hover:text-foreground hover:border-ring transition-colors"
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground py-4 text-center">
+            No notes yet. A quote from a neighbor, a photo from the block party,
+            an idea at 2am — it all belongs here.
+          </p>
+        )
       ) : (
         ordered.map(n => <NoteCard key={n.id} note={n} />)
       )}

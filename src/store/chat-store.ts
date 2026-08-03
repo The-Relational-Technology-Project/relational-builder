@@ -100,9 +100,6 @@ interface ChatState {
   queueContinuation: (content: string, label?: string) => void;
   /** True while the background quality review reads the build */
   reviewing: boolean;
-  /** The wait-time sharing plan has been saved into this conversation */
-  sharingPlanSaved: boolean;
-  markSharingPlanSaved: () => void;
   /** Live generation progress — what's happening during the wait
    *  (transient: never persisted, cleared when generation ends) */
   progress: GenerationProgress | null;
@@ -216,8 +213,6 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
       continuationCount: state.continuationCount + 1,
     })),
   reviewing: false,
-  sharingPlanSaved: false,
-  markSharingPlanSaved: () => set({ sharingPlanSaved: true }),
 
   progress: null,
   beginProgress: () =>
@@ -266,10 +261,6 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
     set({
       messages: messages.map(m => ({ ...m, isStreaming: false })),
       mode,
-      // Cloud-loaded chats carry the plan inside the messages themselves
-      sharingPlanSaved: messages.some(
-        m => m.isSync && m.content.startsWith('**Sharing plan**'),
-      ),
     }),
 
   addUserMessage: (content: string, attachments?: string[], auto?: { label?: string }) => {
@@ -379,7 +370,7 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
   // conversation — and returns to plan mode, the default for new builds.
   // Paths that want a different mode set it right after (fix sends and
   // "Build this plan" already flip to build themselves).
-  clearMessages: () => set({ messages: [], sharingPlanSaved: false, mode: 'plan' }),
+  clearMessages: () => set({ messages: [], mode: 'plan' }),
 
   toChatMessages: (): ChatMessage[] => {
     const { systemPrompt, messages: allMessages } = get();
@@ -457,6 +448,5 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
   partialize: (state) => ({
     messages: state.messages.map(m => ({ ...m, isStreaming: false })),
     mode: state.mode,
-    sharingPlanSaved: state.sharingPlanSaved,
   } as unknown as ChatState),
 }));
