@@ -1,7 +1,8 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { SendHorizontal, Square, Map, Hammer, ImagePlus, X, FolderOpen, Globe, Clock } from 'lucide-react';
+import { SendHorizontal, Square, Map, Hammer, ImagePlus, X, FolderOpen, Globe, Clock, MessagesSquare } from 'lucide-react';
 import { useChatStore, type ChatMode } from '@/store/chat-store';
+import { useCloudStore } from '@/store/cloud-store';
 import { fileToDataUrl, isImageFile } from '@/lib/image';
 import { listMentionables, type Mentionable } from '@/knowledge/mentions';
 import { ModelSelector } from '@/components/ModelSelector';
@@ -38,6 +39,15 @@ export function MessageInput({
 
   const hero = variant === 'hero';
   const maxHeight = hero ? 280 : 220;
+
+  // Message mode exists only on shared projects — it's a note to the other
+  // humans, so it needs other humans. A persisted or synced 'message' mode
+  // with nobody to read it falls back to build.
+  const hasCollaborators = useCloudStore(s => s.members.length > 0);
+  useEffect(() => {
+    if (mode === 'message' && !hasCollaborators) onModeChange?.('build');
+  }, [mode, hasCollaborators, onModeChange]);
+  const messageMode = mode === 'message' && hasCollaborators;
 
   // @ mentions: candidates load on first @, popover filters as you type
   const [mentionables, setMentionables] = useState<Mentionable[] | null>(null);
@@ -110,6 +120,15 @@ export function MessageInput({
     const trimmed = input.trim();
     if ((!trimmed && attachments.length === 0) || disabled) return;
     noteSubmit(trimmed);
+    if (mode === 'message') {
+      // A note to collaborators involves no model — it posts immediately,
+      // even while the AI is mid-reply, and never rides the AI queue
+      onSend(trimmed || 'Here’s an image.', attachments);
+      setInput('');
+      setAttachments([]);
+      if (textareaRef.current) textareaRef.current.style.height = 'auto';
+      return;
+    }
     if (isGenerating) {
       // Everything queues, images included. This branch used to return
       // silently for an attachment or an empty-after-trim send: the person
@@ -132,7 +151,7 @@ export function MessageInput({
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
-  }, [input, attachments, disabled, isGenerating, onSend]);
+  }, [input, attachments, disabled, isGenerating, mode, onSend]);
 
   function handleKeyDown(e: React.KeyboardEvent) {
     if (mentionMatches.length > 0 && (e.key === 'Enter' || e.key === 'Tab')) {
@@ -256,9 +275,11 @@ export function MessageInput({
 
       {/* One quiet container: write on top, act along the bottom */}
       <div
-        className={`rounded-xl border bg-background transition-shadow focus-within:border-ring focus-within:ring-1 focus-within:ring-ring ${
-          hero ? 'rounded-2xl shadow-sm' : ''
-        } ${disabled ? 'opacity-60' : ''}`}
+        className={`rounded-xl border transition-shadow focus-within:ring-1 ${
+          messageMode
+            ? 'border-violet-500/50 bg-violet-500/5 focus-within:border-violet-500 focus-within:ring-violet-500/40'
+            : 'bg-background focus-within:border-ring focus-within:ring-ring'
+        } ${hero ? 'rounded-2xl shadow-sm' : ''} ${disabled ? 'opacity-60' : ''}`}
       >
         <textarea
           ref={textareaRef}
@@ -269,11 +290,13 @@ export function MessageInput({
           placeholder={
             hero
               ? 'What does your neighborhood need? Describe it in your own words…'
-              : isGenerating
-                ? 'Queue a follow-up — it sends when this finishes…'
-                : mode === 'plan'
-                  ? 'What should we think through?'
-                  : 'Describe a change or something new…'
+              : messageMode
+                ? 'A note for your collaborators — the AI stays out of this one…'
+                : isGenerating
+                  ? 'Queue a follow-up — it sends when this finishes…'
+                  : mode === 'plan'
+                    ? 'What should we think through?'
+                    : 'Describe a change or something new…'
           }
           disabled={disabled}
           rows={hero ? 3 : 2}
@@ -345,13 +368,31 @@ export function MessageInput({
                 <Hammer className="size-3" />
                 Build
               </button>
+              {/* Human-to-human, so it only appears when other humans are on
+                  the project — and wears its own color so a note is never
+                  mistaken for an ask to the AI */}
+              {hasCollaborators && (
+                <button
+                  type="button"
+                  onClick={() => onModeChange('message')}
+                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs transition-colors ${
+                    mode === 'message'
+                      ? 'bg-violet-600 text-white'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                  title="Message collaborators — a note for the people on this project; the AI doesn't see or answer it"
+                >
+                  <MessagesSquare className="size-3" />
+                  Message
+                </button>
+              )}
             </div>
           )}
           <div className="ml-auto flex items-center gap-1 min-w-0">
             {/* Model choice lives here, with the conversation — not in the main nav.
                 Tighter cap on phones so the send button always stays on-screen. */}
             <ModelSelector className="h-8 min-w-0 max-w-[116px] sm:max-w-[150px] gap-1 border-none bg-transparent px-2 text-xs text-muted-foreground shadow-none hover:text-foreground" />
-            {isGenerating ? (
+            {isGenerating && mode !== 'message' ? (
               <Button
                 size="icon"
                 variant="outline"

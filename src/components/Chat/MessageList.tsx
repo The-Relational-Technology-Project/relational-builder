@@ -7,7 +7,7 @@ import { useProjectStore } from '@/store/project-store';
 import { CodeBlock } from './CodeBlock';
 import { ConnectionSuggestion } from './ConnectionSuggestion';
 import { Button } from '@/components/ui/button';
-import { Hammer, History, FileCode, ChevronDown, ChevronRight, Loader2, Copy, Check, ArrowDown, ArrowRight, GitBranch, Sparkles } from 'lucide-react';
+import { Hammer, History, FileCode, ChevronDown, ChevronRight, Loader2, Copy, Check, ArrowDown, ArrowRight, GitBranch, Sparkles, MessagesSquare } from 'lucide-react';
 
 /** "Today at 4:26 PM" / "Tuesday at 9:12 AM" — calm dividers between sittings */
 function formatSitting(ts: number): string {
@@ -262,6 +262,9 @@ export function MessageList({ messages, onBuildPlan, isGenerating }: MessageList
   const bottomRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const reviewing = useChatStore(s => s.reviewing);
+  // On an existing project a plan is a change to something built — the action
+  // reads as approval of that change, not a first build
+  const hasProject = useProjectStore(s => s.getFileCount() > 0);
   // Reading back through history shouldn't fight the auto-scroll — only
   // follow the stream while the person is already near the bottom
   const [nearBottom, setNearBottom] = useState(true);
@@ -340,8 +343,17 @@ export function MessageList({ messages, onBuildPlan, isGenerating }: MessageList
         {showBuildAction && (
           <div className="flex justify-start pl-1">
             <Button size="sm" onClick={onBuildPlan}>
-              <Hammer className="size-3.5 mr-1.5" />
-              Build this plan
+              {hasProject ? (
+                <>
+                  <Check className="size-3.5 mr-1.5" />
+                  Approve this plan
+                </>
+              ) : (
+                <>
+                  <Hammer className="size-3.5 mr-1.5" />
+                  Build this plan
+                </>
+              )}
             </Button>
           </div>
         )}
@@ -410,6 +422,43 @@ function AutoMessage({ message }: { message: DisplayMessage }) {
   );
 }
 
+/**
+ * A message from one human to the others on a shared project. It travels
+ * with the conversation (so collaborators see it in place, in order) but the
+ * AI never receives it — the header says both things at a glance, and the
+ * violet dress matches the Message mode that wrote it.
+ */
+function CollabNote({ message }: { message: DisplayMessage }) {
+  return (
+    <div className="flex flex-col items-start">
+      <div className="w-full rounded-xl border border-violet-500/40 bg-violet-500/5 px-3.5 py-2.5">
+        <div className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-violet-600 dark:text-violet-400 mb-1.5">
+          <MessagesSquare className="size-3 shrink-0" />
+          <span className="truncate">
+            {message.authorName ? `${message.authorName} · to collaborators` : 'Note to collaborators'}
+          </span>
+          <span className="ml-auto shrink-0 normal-case tracking-normal text-muted-foreground/70">
+            not sent to the AI
+          </span>
+        </div>
+        {message.attachments && message.attachments.length > 0 && (
+          <div className="flex gap-1.5 mb-1.5">
+            {message.attachments.map((url, i) => (
+              <img
+                key={i}
+                src={url}
+                alt={`Attached image ${i + 1}`}
+                className="h-20 max-w-[160px] object-cover rounded-md border"
+              />
+            ))}
+          </div>
+        )}
+        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+      </div>
+    </div>
+  );
+}
+
 function MessageBubble({ message }: { message: DisplayMessage }) {
   const isUser = message.role === 'user';
   const checkpoints = useProjectStore(s => s.checkpoints);
@@ -419,6 +468,10 @@ function MessageBubble({ message }: { message: DisplayMessage }) {
   // Auto sends (quality review, error fix, length continue) render as a
   // distinct Builder note — after the hooks above, to keep hook order stable.
   if (message.isAuto) return <AutoMessage message={message} />;
+
+  // A note from one collaborator to the others — human-to-human, the AI
+  // never saw it, and it must not read as anyone's ask to the Builder
+  if (message.isCollabNote) return <CollabNote message={message} />;
 
   // A plan being written stays out of view until it's done — watching a
   // document assemble line by line is disorienting. The status line says

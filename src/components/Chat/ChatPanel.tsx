@@ -317,10 +317,19 @@ export function ChatPanel() {
     !(activeProviderId === 'claude' && communityActive);
 
   const handleSend = useCallback(async (content: string, attachments?: string[]) => {
-    if (!provider) return;
-
     // Mode is read fresh from the store: "Build this plan" flips it right before sending
     const currentMode = useChatStore.getState().mode;
+    // Message mode is human-to-human: the note joins the conversation (and
+    // syncs to collaborators with it) but no model is called — ever. Before
+    // the provider guard on purpose: a note needs no provider.
+    if (currentMode === 'message') {
+      const { profile, user } = useAuthStore.getState();
+      const author = profile?.display_name?.trim() || user?.email || undefined;
+      useChatStore.getState().addCollabNote(content, author, attachments);
+      return;
+    }
+
+    if (!provider) return;
     // Fix requests (auto or manual) never re-arm the automatic pass. They ride
     // as a user turn so the model acts on them, but render as a Builder note —
     // not the person's own chat bubble — via the captured label.
@@ -801,8 +810,13 @@ export function ChatPanel() {
 
   const handleBuildPlan = useCallback(() => {
     setMode('build');
+    // On an existing project the plan is a delta — build only it. From
+    // scratch, the plan is the whole first build.
+    const existing = useProjectStore.getState().getFileCount() > 0;
     handleSend(
-      'Build the first version of the app described in the plan above — the plan\'s First-build features, not its Later ones. Generate complete, working files with filename annotations, following the plan\'s look & feel and data decisions. End by naming, in one line, what you left for the next pass.',
+      existing
+        ? 'Make the changes agreed in the plan above — only those changes, keeping everything else in the app exactly as it is. Generate the complete added or edited files with filename annotations. End by naming, in one line, anything you deliberately left for a later pass.'
+        : 'Build the first version of the app described in the plan above — the plan\'s First-build features, not its Later ones. Generate complete, working files with filename annotations, following the plan\'s look & feel and data decisions. End by naming, in one line, what you left for the next pass.',
     );
   }, [setMode, handleSend]);
 
@@ -822,7 +836,9 @@ export function ChatPanel() {
     onSend: handleSend,
     onStop: handleStop,
     isGenerating,
-    disabled: needsKey,
+    // A note to collaborators involves no model — a missing API key must
+    // not silence the humans on a shared project
+    disabled: needsKey && mode !== 'message',
     mode,
     onModeChange: setMode,
   };

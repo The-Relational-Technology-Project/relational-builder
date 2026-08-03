@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import ReactMarkdown, { defaultUrlTransform } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useNotepadStore, type ProjectNote } from '@/store/notepad-store';
@@ -137,10 +137,21 @@ function NotesView({ notes }: { notes: ProjectNote[] }) {
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // Oldest first, newest at the bottom — the notepad reads like a shared doc,
+  // and on a project with collaborators the order IS the conversation. The
+  // sort also flips notes saved under the old newest-first ordering.
+  const ordered = useMemo(
+    () => [...notes].sort((a, b) => a.createdAt - b.createdAt),
+    [notes],
+  );
+
   function addDraft() {
     const text = draft.trim();
     if (!text && !draftImage) return;
-    useNotepadStore.getState().addNote(text, draftImage ?? undefined);
+    // Stamped so collaborators can see who wrote or uploaded what
+    const { profile, user } = useAuthStore.getState();
+    const author = profile?.display_name?.trim() || user?.email || undefined;
+    useNotepadStore.getState().addNote(text, draftImage ?? undefined, author);
     setDraft('');
     setDraftImage(null);
     autoGrow(composerRef.current);
@@ -158,6 +169,18 @@ function NotesView({ notes }: { notes: ProjectNote[] }) {
 
   return (
     <div className="space-y-2">
+      {ordered.length === 0 ? (
+        <p className="text-xs text-muted-foreground py-4 text-center">
+          No notes yet. A quote from a neighbor, a photo from the block party,
+          an idea at 2am — it all belongs here.
+        </p>
+      ) : (
+        ordered.map(n => <NoteCard key={n.id} note={n} />)
+      )}
+
+      {/* The composer lives at the bottom — new notes append below the last
+          one, like a doc or a chat, so a collaborator's latest words are
+          always where the writing happens */}
       <div className="rounded-md border bg-muted/30 focus-within:border-ring">
         {draftImage && (
           <div className="relative inline-block m-2 mb-0">
@@ -209,15 +232,6 @@ function NotesView({ notes }: { notes: ProjectNote[] }) {
           )}
         </div>
       </div>
-
-      {notes.length === 0 ? (
-        <p className="text-xs text-muted-foreground py-4 text-center">
-          No notes yet. A quote from a neighbor, a photo from the block party,
-          an idea at 2am — it all belongs here.
-        </p>
-      ) : (
-        notes.map(n => <NoteCard key={n.id} note={n} />)
-      )}
     </div>
   );
 }
@@ -226,7 +240,8 @@ function NoteCard({ note }: { note: ProjectNote }) {
   return (
     <div className="group rounded-md border p-2 space-y-1">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+        <span className="text-[10px] uppercase tracking-wide text-muted-foreground truncate">
+          {note.author ? <span className="font-medium text-foreground/70">{note.author} · </span> : null}
           {fmtStamp(note.createdAt)}
           {note.updatedAt > note.createdAt + 60_000 ? ' · edited' : ''}
         </span>

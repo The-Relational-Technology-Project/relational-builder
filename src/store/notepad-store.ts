@@ -26,6 +26,9 @@ export interface ProjectNote {
   createdAt: number;
   /** Epoch ms of the last edit */
   updatedAt: number;
+  /** Who wrote it — display name (or email) at write time. Absent on notes
+   *  from before attribution existed, and on signed-out sessions. */
+  author?: string;
 }
 
 export interface ProjectStory {
@@ -45,7 +48,7 @@ interface NotepadState {
   story: ProjectStory | null;
 
   /** Add a note (text, photo, or both); returns its id so the UI can focus it */
-  addNote: (text: string, image?: string) => string;
+  addNote: (text: string, image?: string, author?: string) => string;
   updateNote: (id: string, text: string) => void;
   deleteNote: (id: string) => void;
 
@@ -63,11 +66,18 @@ export const useNotepadStore = create<NotepadState>()(persist((set) => ({
   notes: [],
   story: null,
 
-  addNote: (text, image) => {
+  // New notes append to the end — the notepad reads top-to-bottom like a
+  // shared doc, oldest first, so collaborators' notes land in conversation
+  // order (the panel sorts by createdAt for notes saved under the old
+  // newest-first ordering)
+  addNote: (text, image, author) => {
     const id = crypto.randomUUID();
     const now = Date.now();
     set(s => ({
-      notes: [{ id, text, ...(image ? { image } : {}), createdAt: now, updatedAt: now }, ...s.notes],
+      notes: [
+        ...s.notes,
+        { id, text, ...(image ? { image } : {}), ...(author ? { author } : {}), createdAt: now, updatedAt: now },
+      ],
     }));
     return id;
   },

@@ -4,7 +4,8 @@ import type { ChatMessage } from '@/providers/types';
 import { buildSystemPrompt } from '@/knowledge/context-builder';
 import { collapseFileBlocks } from '@/project/code-extractor';
 
-export type ChatMode = 'plan' | 'build';
+/** `message` is human-to-human: a note for collaborators the AI never sees */
+export type ChatMode = 'plan' | 'build' | 'message';
 
 export interface GenerationProgress {
   startedAt: number;
@@ -46,6 +47,11 @@ export interface DisplayMessage {
   /** True for assistant replies that ended in a provider/network error —
    * the reply's files were never applied, so a retry loses nothing */
   errored?: boolean;
+  /** A note from one human to the others on a shared project. Lives in the
+   * conversation (and syncs with it) but is never sent to the AI. */
+  isCollabNote?: boolean;
+  /** Who wrote a collaborator note — display name or email at write time */
+  authorName?: string;
 }
 
 interface ChatState {
@@ -123,6 +129,8 @@ interface ChatState {
   ) => void;
   /** Add a Builder-generated note (e.g. GitHub pull summary) to the conversation */
   addSyncMessage: (content: string, label?: string) => void;
+  /** Add a human-to-human note for collaborators — stays out of the AI's history */
+  addCollabNote: (content: string, author?: string, attachments?: string[]) => void;
   startAssistantMessage: (isPlan?: boolean) => string;
   /** Add an imported build plan (e.g. from RTP Studio) as a plan message */
   importBuildPlan: (planMarkdown: string) => void;
@@ -303,6 +311,19 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
     set(state => ({ messages: [...state.messages, msg] }));
   },
 
+  addCollabNote: (content: string, author?: string, attachments?: string[]) => {
+    const msg: DisplayMessage = {
+      id: nextId(),
+      role: 'user',
+      content,
+      timestamp: Date.now(),
+      isCollabNote: true,
+      ...(author ? { authorName: author } : {}),
+      attachments: attachments?.length ? attachments : undefined,
+    };
+    set(state => ({ messages: [...state.messages, msg] }));
+  },
+
   importBuildPlan: (planMarkdown: string) => {
     const userMsg: DisplayMessage = {
       id: nextId(),
@@ -361,12 +382,16 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
   clearMessages: () => set({ messages: [], sharingPlanSaved: false, mode: 'plan' }),
 
   toChatMessages: (): ChatMessage[] => {
-    const { systemPrompt, messages } = get();
+    const { systemPrompt, messages: allMessages } = get();
     const chatMsgs: ChatMessage[] = [];
 
     if (systemPrompt) {
       chatMsgs.push({ role: 'system', content: systemPrompt });
     }
+
+    // Collaborator notes are human-to-human by contract — they never reach
+    // the model, in the window or anywhere else
+    const messages = allMessages.filter(m => !m.isCollabNote);
 
     // Context discipline: long chats don't need full history — the Current
     // Project Files snapshot in the system prompt is authoritative for state.
