@@ -334,4 +334,9 @@ export function initLocalAutosave(): void {
   useNotepadStore.subscribe((state, prev) => {
     if (state.notes !== prev.notes || state.story !== prev.story) schedule();
   });
+  // Env vars travel in the snapshot too — without this, a key added
+  // moments before switching projects is missing from the shelf copy
+  useEnvStore.subscribe((state, prev) => {
+    if (state.vars !== prev.vars) schedule();
+  });
 }

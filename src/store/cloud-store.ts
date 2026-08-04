@@ -6,6 +6,7 @@ import { useProjectStore, type ProjectLineage } from '@/store/project-store';
 import { useProviderStore } from '@/store/provider-store';
 import { useChatStore, type ChatMode, type DisplayMessage } from '@/store/chat-store';
 import { useNotepadStore, captureNotepad, type NotepadSnapshot } from '@/store/notepad-store';
+import { useEnvStore } from '@/store/env-store';
 import type { FileEntry } from '@/project/virtual-fs';
 
 export interface CloudProjectSummary {
@@ -269,7 +270,8 @@ export const useCloudStore = create<CloudState>()((set, get) => ({
     if (!builderClient || !user) return { error: 'Sign in first' };
 
     // Whatever's open still owes the cloud its last debounced edits
-    if (get().currentProjectId && get().currentProjectId !== id) await get().saveNow();
+    const previousId = get().currentProjectId;
+    if (previousId && previousId !== id) await get().saveNow();
 
     const { data, error } = await builderClient
       .from('projects')
@@ -279,9 +281,14 @@ export const useCloudStore = create<CloudState>()((set, get) => ({
     if (error || !data) return { error: error?.message ?? 'Project not found' };
 
     const row = data as CloudProjectRow;
+    // Env vars are project-scoped and device-local: park the outgoing
+    // project's, bring in the incoming project's — otherwise the previous
+    // project's keys stay live and feed this one's previews and deploys
+    if (previousId && previousId !== id) useEnvStore.getState().stashCurrent(previousId);
     set({ applyingRemote: true });
     try {
       applyWorkspace(row);
+      if (previousId !== id) useEnvStore.getState().restoreFor(row.id);
     } finally {
       setTimeout(() => useCloudStore.setState({ applyingRemote: false }), 100);
     }
@@ -375,6 +382,10 @@ export const useCloudStore = create<CloudState>()((set, get) => ({
     // flush before detaching. saveNow snapshots the workspace synchronously,
     // so clearing state right after is safe.
     if (opts?.flush !== false && get().currentProjectId) void get().saveNow();
+    // Park the project's env vars on this device so reopening it brings
+    // them back — and the next workspace doesn't inherit its secrets
+    const closingId = get().currentProjectId;
+    if (closingId) useEnvStore.getState().stashCurrent(closingId);
     unsubscribe();
     writeAttachment(null);
     set({
@@ -402,6 +413,7 @@ export const useCloudStore = create<CloudState>()((set, get) => ({
     await builderClient.from('projects').delete().eq('id', id);
     // No flush — a farewell save would just error against the deleted row
     if (get().currentProjectId === id) get().closeProject({ flush: false });
+    useEnvStore.getState().dropStash(id);
     await get().refreshProjects();
   },
 
