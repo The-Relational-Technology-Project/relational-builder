@@ -786,13 +786,18 @@ function formatCommonsForPrompt(results: CommonsSearchResult[], connections?: Co
     return [
       `- **${r.title}** (${r.kind}${who})${summary}`,
       ...connectionLine(connections, refKey('commons', r.slug)),
+      // The strongest hits carry their full text (bounded) — this is what
+      // lets a plan borrow a recipe's actual steps instead of name-dropping
+      ...(r.body_excerpt
+        ? [`  Full text of "${r.title}":`, ...r.body_excerpt.split('\n').map(l => `  > ${l}`)]
+        : []),
     ];
   });
 
   return [
     '## Relevant Knowledge from the RT Commons',
     '',
-    'Tools, stories, recipes, and practice knowledge from the relational tech commons that relate to this build. Let them inform your design — and mention them to the user when one is directly useful. Where an entry lists connections, draw on them: they say where else the thing showed up and what it paired with ("it worked really well in…", "it pairs with the neighboring practice…"):',
+    'Tools, stories, recipes, and practice knowledge from the relational tech commons that relate to this build. These passed a relevance filter, so treat them as genuinely related: let them inform your design, cite them by name when one shapes a decision, and where full text is included, draw on its actual content — steps, sizes, cautions — not just its title. Where an entry lists connections, draw on them: they say where else the thing showed up and what it paired with ("it worked really well in…", "it pairs with the neighboring practice…"). Never invent a commons entry that is not listed here:',
     '',
     ...entries,
   ].join('\n');

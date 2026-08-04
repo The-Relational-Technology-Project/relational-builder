@@ -28,6 +28,9 @@ export interface CommonsSearchResult {
   tags: string[] | null;
   similarity?: number;
   match: 'semantic' | 'text' | 'both';
+  /** Full-body excerpt attached client-side for the strongest hits
+   *  (see knowledge/retrieval.ts) — never returned by the edge function */
+  body_excerpt?: string;
 }
 
 const SEARCH_TIMEOUT_MS = 3500;

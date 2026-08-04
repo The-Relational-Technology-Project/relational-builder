@@ -1,0 +1,806 @@
+{
+  "goldenVersion": "v1",
+  "floor": 0.6,
+  "at": "2026-08-04T06:09:54.070Z",
+  "recall": 1,
+  "mrr": 0.9615384615384616,
+  "leakage": 0.2222222222222222,
+  "textArm": {
+    "total": 4,
+    "dead": 0
+  },
+  "results": [
+    {
+      "id": "mutual-aid-board",
+      "category": "build",
+      "raw": 8,
+      "kept": [
+        {
+          "slug": "faith-community-care-connector",
+          "similarity": 0.728892018136738,
+          "match": "semantic"
+        },
+        {
+          "slug": "mutual-aid-pod",
+          "similarity": 0.696317662351086,
+          "match": "semantic"
+        },
+        {
+          "slug": "buy-nothing-group",
+          "similarity": 0.687039053358396,
+          "match": "semantic"
+        },
+        {
+          "slug": "asking-for-help-offering-support",
+          "similarity": 0.684490693374413,
+          "match": "semantic"
+        },
+        {
+          "slug": "build-prompt-neighbor-hub",
+          "similarity": 0.703262209827584,
+          "match": "semantic"
+        },
+        {
+          "slug": "community-income-sharing",
+          "similarity": 0.700136469201462,
+          "match": "semantic"
+        },
+        {
+          "slug": "neighbor-story-sharing",
+          "similarity": 0.688695761311587,
+          "match": "semantic"
+        },
+        {
+          "slug": "build-prompt-promise-tracker",
+          "similarity": 0.684669104579031,
+          "match": "semantic"
+        }
+      ],
+      "hit": true,
+      "firstExpectedRank": 2,
+      "emptyOk": null,
+      "canaryOk": null
+    },
+    {
+      "id": "event-calendar",
+      "category": "build",
+      "raw": 8,
+      "kept": [
+        {
+          "slug": "our-neighborhood-today",
+          "similarity": 0.718096291123356,
+          "match": "semantic"
+        },
+        {
+          "slug": "neighborhood-today-calendar",
+          "similarity": 0.685885454266369,
+          "match": "semantic"
+        },
+        {
+          "slug": "janes-walk",
+          "similarity": 0.657226955083815,
+          "match": "semantic"
+        },
+        {
+          "slug": "skillshare",
+          "similarity": 0.653003762295169,
+          "match": "semantic"
+        },
+        {
+          "slug": "neighborhood-association",
+          "similarity": 0.649174798712572,
+          "match": "semantic"
+        },
+        {
+          "slug": "block-stewards",
+          "similarity": 0.646944773479056,
+          "match": "semantic"
+        },
+        {
+          "slug": "firecrawl",
+          "similarity": 0.651035823519683,
+          "match": "semantic"
+        },
+        {
+          "slug": "neighborhood-api",
+          "similarity": 0.646227231883048,
+          "match": "semantic"
+        }
+      ],
+      "hit": true,
+      "firstExpectedRank": 1,
+      "emptyOk": null,
+      "canaryOk": null
+    },
+    {
+      "id": "tool-lending",
+      "category": "build",
+      "raw": 8,
+      "kept": [
+        {
+          "slug": "tool-library",
+          "similarity": 0.743465572648492,
+          "match": "both"
+        },
+        {
+          "slug": "local-supplies-sharing",
+          "similarity": 0.751763864896224,
+          "match": "semantic"
+        },
+        {
+          "slug": "community-supplies",
+          "similarity": 0.731384006601095,
+          "match": "semantic"
+        },
+        {
+          "slug": "asking-for-help-offering-support",
+          "similarity": 0.708885624103734,
+          "match": "semantic"
+        },
+        {
+          "slug": "tool-libraries-and-maker-spaces",
+          "similarity": 0.698130727767287,
+          "match": "semantic"
+        },
+        {
+          "slug": "community-supplies",
+          "similarity": 0.693494141002826,
+          "match": "semantic"
+        },
+        {
+          "slug": "hyperlocal-neighbor-hub",
+          "similarity": 0.679295465789088,
+          "match": "semantic"
+        },
+        {
+          "slug": "microgrant-management",
+          "similarity": 0.672534098163801,
+          "match": "semantic"
+        }
+      ],
+      "hit": true,
+      "firstExpectedRank": 1,
+      "emptyOk": null,
+      "canaryOk": null
+    },
+    {
+      "id": "welcome-newcomers",
+      "category": "build",
+      "raw": 8,
+      "kept": [
+        {
+          "slug": "welcome-wagon",
+          "similarity": 0.773372516168401,
+          "match": "semantic"
+        },
+        {
+          "slug": "welcome-wagon-practices-new-neighbor-welcoming",
+          "similarity": 0.742216028829119,
+          "match": "semantic"
+        },
+        {
+          "slug": "welcoming-newcomers",
+          "similarity": 0.672111309376759,
+          "match": "semantic"
+        },
+        {
+          "slug": "block-stewards",
+          "similarity": 0.664084903936756,
+          "match": "semantic"
+        },
+        {
+          "slug": "porch-conversations",
+          "similarity": 0.657027760267404,
+          "match": "semantic"
+        },
+        {
+          "slug": "good-neighbor-agreement",
+          "similarity": 0.643854498419904,
+          "match": "semantic"
+        },
+        {
+          "slug": "block-party",
+          "similarity": 0.645634257974969,
+          "match": "semantic"
+        },
+        {
+          "slug": "front-porch-forum-and-what-to-do-if-you-cant-have-one",
+          "similarity": 0.632593093297095,
+          "match": "semantic"
+        }
+      ],
+      "hit": true,
+      "firstExpectedRank": 1,
+      "emptyOk": null,
+      "canaryOk": null
+    },
+    {
+      "id": "skill-swap",
+      "category": "build",
+      "raw": 8,
+      "kept": [
+        {
+          "slug": "skillshare",
+          "similarity": 0.734455295297558,
+          "match": "semantic"
+        },
+        {
+          "slug": "asking-for-help-offering-support",
+          "similarity": 0.701577111549971,
+          "match": "semantic"
+        },
+        {
+          "slug": "skillshare-event",
+          "similarity": 0.706567969651527,
+          "match": "semantic"
+        },
+        {
+          "slug": "repair-cafe",
+          "similarity": 0.679181946641468,
+          "match": "semantic"
+        },
+        {
+          "slug": "block-stewards",
+          "similarity": 0.668475233012437,
+          "match": "semantic"
+        },
+        {
+          "slug": "time-banking",
+          "similarity": 0.6682100120505,
+          "match": "semantic"
+        },
+        {
+          "slug": "crafting-tech-as-care",
+          "similarity": 0.662905261506121,
+          "match": "semantic"
+        },
+        {
+          "slug": "mutual-aid-pod",
+          "similarity": 0.662107990609993,
+          "match": "semantic"
+        }
+      ],
+      "hit": true,
+      "firstExpectedRank": 1,
+      "emptyOk": null,
+      "canaryOk": null
+    },
+    {
+      "id": "time-exchange",
+      "category": "build",
+      "raw": 8,
+      "kept": [
+        {
+          "slug": "time-banking",
+          "similarity": 0.742539073483653,
+          "match": "semantic"
+        },
+        {
+          "slug": "time-banking",
+          "similarity": 0.7270407125003,
+          "match": "semantic"
+        },
+        {
+          "slug": "asking-for-help-offering-support",
+          "similarity": 0.674732596119332,
+          "match": "semantic"
+        },
+        {
+          "slug": "community-babysitting-co-op",
+          "similarity": 0.674783660311347,
+          "match": "semantic"
+        },
+        {
+          "slug": "mutual-aid-networks-mans",
+          "similarity": 0.67029467199877,
+          "match": "semantic"
+        },
+        {
+          "slug": "babysitting-co-op",
+          "similarity": 0.653800872062084,
+          "match": "semantic"
+        },
+        {
+          "slug": "community-income-sharing",
+          "similarity": 0.645431637199679,
+          "match": "semantic"
+        },
+        {
+          "slug": "community-income-sharing",
+          "similarity": 0.635514190695523,
+          "match": "semantic"
+        }
+      ],
+      "hit": true,
+      "firstExpectedRank": 1,
+      "emptyOk": null,
+      "canaryOk": null
+    },
+    {
+      "id": "community-fridge",
+      "category": "build",
+      "raw": 8,
+      "kept": [
+        {
+          "slug": "community-fridge",
+          "similarity": 0.748095518246954,
+          "match": "both"
+        },
+        {
+          "slug": "community-fridges-public-food-sharing",
+          "similarity": 0.740142271012777,
+          "match": "both"
+        },
+        {
+          "slug": "community-fridges-mutual-aid-network",
+          "similarity": 0.729134123502599,
+          "match": "both"
+        },
+        {
+          "slug": "little-free-pantry-community-fridge",
+          "similarity": 0.704726533130085,
+          "match": "both"
+        },
+        {
+          "slug": "little-free-pantry",
+          "similarity": 0.673315673148741,
+          "match": "both"
+        },
+        {
+          "slug": "free-store",
+          "similarity": 0.654196235726371,
+          "match": "semantic"
+        },
+        {
+          "slug": "potluck-style-resource-sharing-international-food-sharing-practices",
+          "similarity": 0.655121416363886,
+          "match": "semantic"
+        },
+        {
+          "slug": "buy-nothing-group",
+          "similarity": 0.648622900632081,
+          "match": "semantic"
+        }
+      ],
+      "hit": true,
+      "firstExpectedRank": 1,
+      "emptyOk": null,
+      "canaryOk": null
+    },
+    {
+      "id": "neighborhood-walk",
+      "category": "build",
+      "raw": 8,
+      "kept": [
+        {
+          "slug": "janes-walk",
+          "similarity": 0.676652994775629,
+          "match": "semantic"
+        },
+        {
+          "slug": "format-walking-tour",
+          "similarity": 0.666029810901966,
+          "match": "semantic"
+        },
+        {
+          "slug": "westminster-stories",
+          "similarity": 0.658416560255797,
+          "match": "semantic"
+        },
+        {
+          "slug": "community-mapping",
+          "similarity": 0.651791747435611,
+          "match": "semantic"
+        },
+        {
+          "slug": "outer-sunset-field-guide",
+          "similarity": 0.646745726661848,
+          "match": "semantic"
+        },
+        {
+          "slug": "greene-street",
+          "similarity": 0.633626480993622,
+          "match": "semantic"
+        },
+        {
+          "slug": "place-as-canvas",
+          "similarity": 0.63004359952777,
+          "match": "semantic"
+        },
+        {
+          "slug": "inclusive-local-ancestry-posters",
+          "similarity": 0.626993151048334,
+          "match": "semantic"
+        }
+      ],
+      "hit": true,
+      "firstExpectedRank": 1,
+      "emptyOk": null,
+      "canaryOk": null
+    },
+    {
+      "id": "seed-block-food",
+      "category": "plan-seed",
+      "raw": 8,
+      "kept": [
+        {
+          "slug": "block-party",
+          "similarity": 0.62696514816579,
+          "match": "semantic"
+        },
+        {
+          "slug": "block-stewards",
+          "similarity": 0.618045225867443,
+          "match": "semantic"
+        },
+        {
+          "slug": "an-outer-sunset-story",
+          "similarity": 0.607604498631642,
+          "match": "semantic"
+        }
+      ],
+      "hit": true,
+      "firstExpectedRank": 1,
+      "emptyOk": null,
+      "canaryOk": null
+    },
+    {
+      "id": "seed-lonely-seniors",
+      "category": "plan-seed",
+      "raw": 8,
+      "kept": [
+        {
+          "slug": "welcome-wagon",
+          "similarity": 0.669621145571597,
+          "match": "semantic"
+        },
+        {
+          "slug": "village-movement-aging-in-community",
+          "similarity": 0.658589298174048,
+          "match": "semantic"
+        },
+        {
+          "slug": "porch-conversations",
+          "similarity": 0.656364009640604,
+          "match": "semantic"
+        },
+        {
+          "slug": "block-stewards",
+          "similarity": 0.647391431578818,
+          "match": "semantic"
+        },
+        {
+          "slug": "block-party",
+          "similarity": 0.63821817460292,
+          "match": "semantic"
+        },
+        {
+          "slug": "welcome-wagon-practices-new-neighbor-welcoming",
+          "similarity": 0.636546084141489,
+          "match": "semantic"
+        },
+        {
+          "slug": "intersection-repair",
+          "similarity": 0.63115343758137,
+          "match": "semantic"
+        },
+        {
+          "slug": "neighbor-to-neighbor-california-community-resilience-through-connection",
+          "similarity": 0.631214431526835,
+          "match": "semantic"
+        }
+      ],
+      "hit": null,
+      "firstExpectedRank": null,
+      "emptyOk": null,
+      "canaryOk": null
+    },
+    {
+      "id": "seed-know-neighbors",
+      "category": "plan-seed",
+      "raw": 8,
+      "kept": [
+        {
+          "slug": "block-stewards",
+          "similarity": 0.70887319900393,
+          "match": "semantic"
+        },
+        {
+          "slug": "an-outer-sunset-story",
+          "similarity": 0.70450983025506,
+          "match": "semantic"
+        },
+        {
+          "slug": "front-porch-forum-and-what-to-do-if-you-cant-have-one",
+          "similarity": 0.702639762234674,
+          "match": "semantic"
+        },
+        {
+          "slug": "build-prompt-neighbor-hub",
+          "similarity": 0.71986768627366,
+          "match": "semantic"
+        },
+        {
+          "slug": "porch-conversations",
+          "similarity": 0.69862494794752,
+          "match": "semantic"
+        },
+        {
+          "slug": "neighbor-story-sharing",
+          "similarity": 0.706228039337549,
+          "match": "semantic"
+        },
+        {
+          "slug": "neighborhood-connector-site",
+          "similarity": 0.701343698665079,
+          "match": "semantic"
+        },
+        {
+          "slug": "hyperlocal-neighbor-hub",
+          "similarity": 0.695817128345608,
+          "match": "semantic"
+        }
+      ],
+      "hit": null,
+      "firstExpectedRank": null,
+      "emptyOk": null,
+      "canaryOk": null
+    },
+    {
+      "id": "exact-skillshare",
+      "category": "exact-term",
+      "raw": 8,
+      "kept": [
+        {
+          "slug": "skillshare",
+          "similarity": 0.660628987038257,
+          "match": "both"
+        },
+        {
+          "slug": "skillshare-event",
+          "similarity": 0.632866624220202,
+          "match": "both"
+        },
+        {
+          "slug": "how-to-organize-a-skillshare",
+          "similarity": 0.613680108133733,
+          "match": "both"
+        },
+        {
+          "slug": "shareables-top-20-how-to-share-guides",
+          "similarity": 0.543761552098102,
+          "match": "both"
+        }
+      ],
+      "hit": true,
+      "firstExpectedRank": 1,
+      "emptyOk": null,
+      "canaryOk": true
+    },
+    {
+      "id": "exact-block-party",
+      "category": "exact-term",
+      "raw": 8,
+      "kept": [
+        {
+          "slug": "block-party",
+          "similarity": 0.675085691377855,
+          "match": "both"
+        },
+        {
+          "slug": "block-party-organizing",
+          "similarity": 0.625247413251127,
+          "match": "both"
+        },
+        {
+          "slug": "block-party-organizing",
+          "similarity": 0.615243080315743,
+          "match": "both"
+        },
+        {
+          "slug": "block-party-usa-free-tools-templates",
+          "similarity": 0.627831373473496,
+          "match": "both"
+        },
+        {
+          "slug": "an-outer-sunset-story",
+          "similarity": 0.606530993590167,
+          "match": "semantic"
+        }
+      ],
+      "hit": true,
+      "firstExpectedRank": 1,
+      "emptyOk": null,
+      "canaryOk": true
+    },
+    {
+      "id": "exact-time-banking",
+      "category": "exact-term",
+      "raw": 8,
+      "kept": [
+        {
+          "slug": "time-banking",
+          "similarity": 0.763645895817746,
+          "match": "both"
+        },
+        {
+          "slug": "time-banking",
+          "similarity": 0.761939703353909,
+          "match": "both"
+        },
+        {
+          "slug": "mutual-aid-networks-mans",
+          "similarity": 0.651207312569455,
+          "match": "both"
+        },
+        {
+          "slug": "community-babysitting-co-op",
+          "similarity": 0.640071917155661,
+          "match": "both"
+        },
+        {
+          "slug": "babysitting-co-op",
+          "similarity": 0.600475208729488,
+          "match": "semantic"
+        },
+        {
+          "slug": "buy-nothing-group",
+          "similarity": 0.574907678423113,
+          "match": "both"
+        }
+      ],
+      "hit": true,
+      "firstExpectedRank": 1,
+      "emptyOk": null,
+      "canaryOk": true
+    },
+    {
+      "id": "exact-repair-cafe",
+      "category": "exact-term",
+      "raw": 8,
+      "kept": [
+        {
+          "slug": "repair-cafe",
+          "similarity": 0.753700960477037,
+          "match": "both"
+        },
+        {
+          "slug": "repair-caf",
+          "similarity": 0.745203509767519,
+          "match": "semantic"
+        },
+        {
+          "slug": "repair-cafe",
+          "similarity": 0.69760244166743,
+          "match": "both"
+        },
+        {
+          "slug": "death-cafe",
+          "similarity": 0.611443112862886,
+          "match": "semantic"
+        },
+        {
+          "slug": "skillshare",
+          "similarity": 0.60864827220947,
+          "match": "both"
+        },
+        {
+          "slug": "tool-library",
+          "similarity": 0.604428854416908,
+          "match": "both"
+        },
+        {
+          "slug": "death-cafs",
+          "similarity": 0.603305844942313,
+          "match": "semantic"
+        }
+      ],
+      "hit": true,
+      "firstExpectedRank": 1,
+      "emptyOk": null,
+      "canaryOk": true
+    },
+    {
+      "id": "edit-header-color",
+      "category": "edit",
+      "raw": 8,
+      "kept": [],
+      "hit": null,
+      "firstExpectedRank": null,
+      "emptyOk": true,
+      "canaryOk": null
+    },
+    {
+      "id": "edit-font-size",
+      "category": "edit",
+      "raw": 8,
+      "kept": [],
+      "hit": null,
+      "firstExpectedRank": null,
+      "emptyOk": true,
+      "canaryOk": null
+    },
+    {
+      "id": "edit-typo",
+      "category": "edit",
+      "raw": 8,
+      "kept": [],
+      "hit": null,
+      "firstExpectedRank": null,
+      "emptyOk": true,
+      "canaryOk": null
+    },
+    {
+      "id": "edit-remove-footer",
+      "category": "edit",
+      "raw": 8,
+      "kept": [
+        {
+          "slug": "footer-component",
+          "similarity": 0.609435705338847,
+          "match": "semantic"
+        }
+      ],
+      "hit": null,
+      "firstExpectedRank": null,
+      "emptyOk": false,
+      "canaryOk": null
+    },
+    {
+      "id": "edit-loading-bug",
+      "category": "edit",
+      "raw": 8,
+      "kept": [],
+      "hit": null,
+      "firstExpectedRank": null,
+      "emptyOk": true,
+      "canaryOk": null
+    },
+    {
+      "id": "off-habit-tracker",
+      "category": "off-topic",
+      "raw": 8,
+      "kept": [],
+      "hit": null,
+      "firstExpectedRank": null,
+      "emptyOk": true,
+      "canaryOk": null
+    },
+    {
+      "id": "off-invoice-tool",
+      "category": "off-topic",
+      "raw": 8,
+      "kept": [],
+      "hit": null,
+      "firstExpectedRank": null,
+      "emptyOk": true,
+      "canaryOk": null
+    },
+    {
+      "id": "off-workout-log",
+      "category": "off-topic",
+      "raw": 8,
+      "kept": [],
+      "hit": null,
+      "firstExpectedRank": null,
+      "emptyOk": true,
+      "canaryOk": null
+    },
+    {
+      "id": "off-crypto",
+      "category": "off-topic",
+      "raw": 8,
+      "kept": [
+        {
+          "slug": "build-prompt-promise-tracker",
+          "similarity": 0.602139696366929,
+          "match": "semantic"
+        }
+      ],
+      "hit": null,
+      "firstExpectedRank": null,
+      "emptyOk": false,
+      "canaryOk": null
+    }
+  ]
+}

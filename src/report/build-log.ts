@@ -48,7 +48,15 @@ export type BuildEventType =
   /** The background quality review found defects and queued a fix */
   | 'quality_review_fix'
   /** The build (or its continuation chain) landed complete */
-  | 'build_ready';
+  | 'build_ready'
+  /** Commons retrieval ran for a send — detail carries the query head and
+   *  what survived the relevance floor (slugs · similarities). The eval
+   *  data every retrieval-tuning decision has been missing. */
+  | 'retrieval'
+  /** A finished reply named surfaced commons entries — detail carries their
+   *  slugs. Together with 'retrieval' this measures whether surfaced
+   *  knowledge actually lands in plans and builds. */
+  | 'commons_mentions';
 
 export interface BuildEvent {
   /** Epoch ms */

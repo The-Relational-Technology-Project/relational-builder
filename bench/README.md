@@ -5,6 +5,10 @@ Builder should use, and for what** — the community first-build default, the
 edit-step model, BYOK recommendations, and open-model candidates for the free
 RTP-hosted tier.
 
+It also carries two **commons retrieval evals** (see below): a free golden-set
+eval of the RT Commons search pipeline, and an LLM-judged eval of whether
+surfaced knowledge actually lands in plans.
+
 One frozen design+build task goes to every candidate model through the **real
 production pipeline** — the actual system prompt (`buildSystemPrompt`), the
 actual providers, the actual code extractor, the actual esbuild bundler with
@@ -88,3 +92,53 @@ bench/results/<runId>/
   intercepting proxies don't blank the CDN fetches) and fall back to plain
   `chromium --screenshot`; with neither installed they're skipped and the
   review page still works.
+
+## Commons retrieval evals
+
+Two additional subcommands measure the knowledge side of the Builder — how
+well RT Commons retrieval finds, filters, and lands in plans. They use the
+same Vite-SSR harness (production `searchCommons`, the retrieval policy in
+`src/knowledge/retrieval.ts`, the production `buildSystemPrompt`).
+
+### Layer 1 — retrieval golden set (free, no LLM)
+
+```bash
+npm run bench -- retrieval
+```
+
+Runs `bench/retrieval-golden.ts` (~24 frozen queries) against the LIVE
+commons hybrid search plus the client pipeline, and reports **recall@K**,
+**MRR**, **noise leakage** (mid-build edits and off-topic asks must come back
+empty past the relevance floor), the **text-arm canary** (exact keyword
+queries must produce `text`/`both` matches — the FTS half of the hybrid
+search fails silently otherwise), and kept/dropped **similarity
+distributions** so floor drift is visible as the corpus grows. Pure pipeline
+selftests (turn gating, topic derivation, query blending, mention matching)
+run first with no network. Exits 1 on threshold failures, so it can gate CI.
+Results land in `bench/results/retrieval/<stamp>.json` (committed — they're
+the drift record).
+
+Baseline (2026-08, golden v1): recall 100%, MRR 0.96, leakage 2/9 (both
+borderline ~0.60 semantic hits), text arm 4/4.
+
+When a case fails after a corpus change, first check whether the corpus moved
+(an entry renamed or re-slugged) before touching the pipeline; expectations
+live in `retrieval-golden.ts` and bump `GOLDEN_VERSION` when they change.
+
+### Layer 2 — design eval (LLM-judged, ~$1 on Sonnet)
+
+```bash
+export ANTHROPIC_API_KEY=…
+npm run bench -- design-eval            # --model / --judge to override, --dry-run for pipeline-only
+```
+
+Five scenarios run the real plan-mode pipeline end to end (live retrieval →
+production system prompt → real generation), then an LLM judge answers three
+factual questions: which surfaced entries the plan **referenced**, whether it
+**fabricated** commons-ish citations that weren't surfaced, and whether it
+**shoehorned** community framing into a generic ask. A mechanical title-match
+cross-check (the same matcher that drives the in-app "Drew on the commons"
+chips) corroborates the judge. The model bench's no-LLM-judge rule doesn't
+apply here: these questions are factual, not aesthetic. Generations vary —
+re-run before treating a single failure as a regression. Artifacts land in
+`bench/results/design-eval/<stamp>/` (per-scenario plan + judge verdict).

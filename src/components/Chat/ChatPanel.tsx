@@ -29,7 +29,7 @@ import {
 import { useStudioStore } from '@/store/studio-store';
 import { useAuthStore } from '@/store/auth-store';
 import { useCloudStore } from '@/store/cloud-store';
-import { searchCommons } from '@/knowledge/commons-search';
+import { retrieveCommonsContext, findMentionedResults } from '@/knowledge/retrieval';
 import { loadGalleryReferences } from '@/cloud/gallery-references';
 import { detectFrames, framesFromSlugs } from '@/knowledge/frames';
 import { buildMentionContext } from '@/knowledge/mentions';
@@ -403,16 +403,42 @@ export function ChatPanel() {
     }
 
     // Retrieval: hybrid semantic+text search against the RT Commons (the
-    // canonical knowledge base), falling back to local TF-IDF scoring of the
-    // Studio KB when the commons is unreachable.
-    const [commonsResults, references, galleryReferences] = await Promise.all([
-      searchCommons(content),
+    // canonical knowledge base), governed by the policy in
+    // knowledge/retrieval.ts — fix sends and preview-machinery turns skip
+    // it, follow-up turns search the project's topic blended with the
+    // message, and a measured relevance floor keeps noise out of the prompt.
+    const [retrieval, references, galleryReferences] = await Promise.all([
+      retrieveCommonsContext({
+        message: content,
+        mode: currentMode === 'plan' ? 'plan' : 'build',
+        isFixSend: wasFix,
+        messages: useChatStore.getState().messages,
+      }),
       buildMentionContext(content),
       // Connections between entries — cached for the session; lets the AI
       // say where else a surfaced tool or practice showed up
       loadGalleryReferences(),
     ]);
-    const relevant = commonsResults.length > 0 ? null : getRelevantContext(content);
+    const commonsResults = retrieval.results;
+    if (retrieval.query !== null) {
+      // The eval trail: what was searched, what survived the floor. A
+      // deliberate empty ("kept 0/8") is a finding, not a failure.
+      recordBuildEvent(
+        'retrieval',
+        `"${retrieval.query.replace(/\s+/g, ' ').slice(0, 80)}" · kept ${commonsResults.length}/${commonsResults.length + retrieval.dropped}` +
+          (commonsResults.length > 0
+            ? ` (${commonsResults.slice(0, 3).map(r => `${r.slug}${r.similarity ? ` ${r.similarity.toFixed(2)}` : ''}`).join(', ')})`
+            : ''),
+      );
+    }
+    // Local TF-IDF over the Studio KB is the fallback for an UNREACHABLE
+    // commons (zero raw hits — the live search always returns candidates).
+    // A reachable search whose hits all fell below the relevance floor is a
+    // deliberate empty: injecting TF-IDF noise instead would undo the floor.
+    const relevant =
+      retrieval.query !== null && commonsResults.length === 0 && retrieval.dropped === 0
+        ? getRelevantContext(content)
+        : null;
     const envVars = useEnvStore.getState().vars;
     const connectedServices = getConnectedIntegrations(envVars);
     // Resend via the Community Cloud vault (COMMUNITY_EMAIL marker) swaps the
@@ -592,6 +618,19 @@ export function ChatPanel() {
               setAbortController(null);
               if (useCommunityStore.getState().active) void useCommunityStore.getState().check();
               return;
+            }
+            // Close the commons loop: which surfaced entries did this reply
+            // actually draw on? Chips make it visible; the log makes it
+            // measurable alongside the 'retrieval' event that offered them.
+            if (done && commonsResults.length > 0) {
+              const drawnOn = findMentionedResults(done.content, commonsResults);
+              if (drawnOn.length > 0) {
+                useChatStore.getState().setCommonsRefs(
+                  msgId,
+                  drawnOn.map(r => ({ slug: r.slug, title: r.title, kind: r.kind })),
+                );
+                recordBuildEvent('commons_mentions', drawnOn.map(r => r.slug).join(', '));
+              }
             }
             // Extract code blocks into the virtual file system (build mode only)
             if (currentMode === 'build') {

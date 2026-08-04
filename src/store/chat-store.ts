@@ -52,6 +52,10 @@ export interface DisplayMessage {
   isCollabNote?: boolean;
   /** Who wrote a collaborator note — display name or email at write time */
   authorName?: string;
+  /** Commons entries this reply actually drew on (surfaced by retrieval AND
+   * named in the reply) — rendered as "Drew on the commons" chips that open
+   * the entry's gallery card */
+  commonsRefs?: { slug: string; title: string; kind: string }[];
 }
 
 interface ChatState {
@@ -135,6 +139,8 @@ interface ChatState {
   finalizeMessage: (id: string) => void;
   /** Mark an assistant reply as ended-in-error (renders a retry offer) */
   markErrored: (id: string) => void;
+  /** Record which surfaced commons entries a finished reply drew on */
+  setCommonsRefs: (id: string, refs: { slug: string; title: string; kind: string }[]) => void;
   setIsGenerating: (generating: boolean) => void;
   setAbortController: (controller: AbortController | null) => void;
   setSystemPrompt: (prompt: string) => void;
@@ -355,6 +361,15 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
     set(state => ({
       messages: state.messages.map(m =>
         m.id === id ? { ...m, errored: true } : m,
+      ),
+    }));
+  },
+
+  setCommonsRefs: (id: string, refs: { slug: string; title: string; kind: string }[]) => {
+    if (refs.length === 0) return;
+    set(state => ({
+      messages: state.messages.map(m =>
+        m.id === id ? { ...m, commonsRefs: refs } : m,
       ),
     }));
   },

@@ -4,10 +4,11 @@ import remarkGfm from 'remark-gfm';
 import { buildNotifyGranted } from '@/notify/build-ready';
 import { useChatStore, type DisplayMessage } from '@/store/chat-store';
 import { useProjectStore } from '@/store/project-store';
+import { useUIStore } from '@/store/ui-store';
 import { CodeBlock } from './CodeBlock';
 import { ConnectionSuggestion } from './ConnectionSuggestion';
 import { Button } from '@/components/ui/button';
-import { Hammer, History, FileCode, ChevronDown, ChevronRight, Loader2, Copy, Check, ArrowDown, ArrowRight, GitBranch, Sparkles, MessagesSquare } from 'lucide-react';
+import { Hammer, History, FileCode, ChevronDown, ChevronRight, Loader2, Copy, Check, ArrowDown, ArrowRight, GitBranch, Sparkles, MessagesSquare, BookOpen } from 'lucide-react';
 
 /** "Today at 4:26 PM" / "Tuesday at 9:12 AM" — calm dividers between sittings */
 function formatSitting(ts: number): string {
@@ -533,6 +534,9 @@ function MessageBubble({ message }: { message: DisplayMessage }) {
       {message.isPlan && !message.isStreaming && (
         <PlanQuestionCards message={message} />
       )}
+      {!isUser && !message.isStreaming && message.commonsRefs && message.commonsRefs.length > 0 && (
+        <CommonsRefChips refs={message.commonsRefs} />
+      )}
       {!isUser && !message.isStreaming && message.content.trim() && (
         <div className="mt-1 pl-1 flex items-center gap-2">
           <CopyMessage content={message.content} />
@@ -561,6 +565,33 @@ function MessageBubble({ message }: { message: DisplayMessage }) {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * The commons entries a reply actually drew on — surfaced by retrieval AND
+ * named in the text. Each chip opens the entry's gallery card, so "we're
+ * borrowing from the Mutual Aid Pod recipe" is one tap from the recipe
+ * itself. This is the visible half of the commons loop; the build log keeps
+ * the measurable half.
+ */
+function CommonsRefChips({ refs }: { refs: { slug: string; title: string; kind: string }[] }) {
+  const openGalleryItem = useUIStore(s => s.openGalleryItem);
+  return (
+    <div className="mt-1.5 pl-1 flex flex-wrap items-center gap-1.5">
+      <span className="text-xs text-muted-foreground/70">Drew on the commons:</span>
+      {refs.slice(0, 4).map(r => (
+        <button
+          key={r.slug}
+          onClick={() => openGalleryItem(r.slug)}
+          className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-primary/5 transition-colors"
+          title={`Open "${r.title}" in the Commons Gallery`}
+        >
+          <BookOpen className="size-2.5 shrink-0" />
+          {r.title}
+        </button>
+      ))}
     </div>
   );
 }

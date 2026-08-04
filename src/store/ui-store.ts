@@ -32,6 +32,11 @@ export type AppView =
 interface UIState {
   view: AppView;
   setView: (view: AppView) => void;
+  /** A commons entry the gallery should open on arrival (e.g. a "Drew on
+   *  the commons" chip in chat) — consumed and cleared by CommonsGallery */
+  galleryFocusSlug: string | null;
+  openGalleryItem: (slug: string) => void;
+  clearGalleryFocus: () => void;
 }
 
 export const useUIStore = create<UIState>(set => ({
@@ -42,6 +47,12 @@ export const useUIStore = create<UIState>(set => ({
     set({ view });
     pushPath(pathForView(view));
   },
+  galleryFocusSlug: null,
+  openGalleryItem: slug => {
+    set({ galleryFocusSlug: slug, view: 'gallery' });
+    pushPath(pathForView('gallery'));
+  },
+  clearGalleryFocus: () => set({ galleryFocusSlug: null }),
 }));
 
 /**

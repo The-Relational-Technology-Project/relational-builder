@@ -87,6 +87,18 @@ export async function main(argv: string[]): Promise<number> {
     return runSelftest();
   }
 
+  // Commons retrieval eval (layer 1: golden set vs the live hybrid search —
+  // free, no LLM) and design eval (layer 2: does surfaced knowledge actually
+  // land in plans — needs ANTHROPIC_API_KEY).
+  if (argv[0] === 'retrieval') {
+    const { runRetrievalEval } = await import('./retrieval-eval');
+    return runRetrievalEval();
+  }
+  if (argv[0] === 'design-eval') {
+    const { runDesignEval } = await import('./design-eval');
+    return runDesignEval(argv.slice(1));
+  }
+
   // Regenerate review/index.html from run.json (e.g. after merging a
   // retried trial into a run directory).
   if (argv[0] === 'review') {

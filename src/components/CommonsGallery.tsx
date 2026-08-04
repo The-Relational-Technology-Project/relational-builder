@@ -152,6 +152,18 @@ export function CommonsGallery() {
     loadGalleryReferences().then(setReferences).catch(() => {});
   }, []);
 
+  // Arriving with a specific entry in hand (a "Drew on the commons" chip in
+  // chat) — open its card directly, wherever on the shelves it lives
+  const galleryFocusSlug = useUIStore(s => s.galleryFocusSlug);
+  const clearGalleryFocus = useUIStore(s => s.clearGalleryFocus);
+  useEffect(() => {
+    if (!galleryFocusSlug) return;
+    clearGalleryFocus();
+    fetchCommonsItemDetail(galleryFocusSlug)
+      .then(d => { if (d) setCommonsDetail(d); })
+      .catch(() => {});
+  }, [galleryFocusSlug, clearGalleryFocus]);
+
   // Debounced hybrid search — the same semantic+text retrieval that informs
   // builds ranks the gallery, so "help seniors feel less alone" finds the
   // right recipes even when no card contains those words.
