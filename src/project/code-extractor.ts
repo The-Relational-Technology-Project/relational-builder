@@ -169,7 +169,9 @@ export function applyEdits(
 
   for (const edit of edits) {
     if (edit.search && content.includes(edit.search)) {
-      content = content.replace(edit.search, edit.replace);
+      // Function replacement: a plain string here would have $&, $1 etc.
+      // in AI-generated code interpreted as substitution patterns.
+      content = content.replace(edit.search, () => edit.replace);
       continue;
     }
 

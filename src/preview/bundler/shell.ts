@@ -39,11 +39,15 @@ const DEFAULT_SHELL = [
   '</html>',
 ].join('\n');
 
-/** Strip the module-script entry tag(s) a Vite-style index.html carries. */
+/**
+ * Strip the module-script entry tag(s) a Vite-style index.html carries.
+ * Attribute order varies (findFrameworkEntry accepts both), so test the
+ * attributes rather than their sequence — a tag left behind here ships a
+ * 404ing script into the published site.
+ */
 function stripModuleEntry(html: string): string {
-  return html.replace(
-    /<script[^>]*type=["']module["'][^>]*src=["'][^"']+["'][^>]*>\s*<\/script>/gi,
-    '',
+  return html.replace(/<script\b[^>]*>\s*<\/script>/gi, tag =>
+    /type=["']module["']/i.test(tag) && /\bsrc=["'][^"']+["']/i.test(tag) ? '' : tag,
   );
 }
 
