@@ -4,7 +4,7 @@ import {
   type CommunitySite, type SiteVersion,
 } from '@/project/community-sites';
 import { Button } from '@/components/ui/button';
-import { Globe, Eye, MessageCircle, Trash2, ExternalLink, Loader2, ChevronDown, ChevronUp, History } from 'lucide-react';
+import { Globe, Eye, MessageCircle, Trash2, ExternalLink, Loader2, ChevronDown, ChevronUp, History, AlertTriangle } from 'lucide-react';
 
 /**
  * Two weeks of daily views as a quiet inline sparkline — enough to answer
@@ -65,6 +65,8 @@ export function YourSites() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  // Site health: which site's error list is open
+  const [errorsFor, setErrorsFor] = useState<string | null>(null);
   // Version history: which site's is open, its snapshots, restore-in-flight
   const [versionsFor, setVersionsFor] = useState<string | null>(null);
   const [versions, setVersions] = useState<Record<string, SiteVersion[]>>({});
@@ -167,6 +169,16 @@ export function YourSites() {
                     {site.feedback.length}
                     {site.feedback.length > 0 && (isExpanded ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />)}
                   </button>
+                  {(site.week_errors ?? 0) > 0 && (
+                    <button
+                      className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-500 hover:text-amber-700"
+                      onClick={() => setErrorsFor(errorsFor === site.slug ? null : site.slug)}
+                      title="Neighbors hit errors on this site this week"
+                    >
+                      <AlertTriangle className="size-3" />
+                      {site.week_errors}
+                    </button>
+                  )}
                   <button
                     className="hover:text-foreground"
                     onClick={() => toggleVersions(site.slug)}
@@ -214,6 +226,20 @@ export function YourSites() {
                         {note.name || 'A neighbor'} · {new Date(note.created_at).toLocaleDateString()}:
                       </span>{' '}
                       {note.message}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {errorsFor === site.slug && (site.errors?.length ?? 0) > 0 && (
+                <div className="space-y-1.5 pt-1 border-t">
+                  <p className="text-xs text-amber-700 dark:text-amber-500 font-medium">
+                    Errors neighbors hit this week — open the project and ask
+                    the Builder to fix one, or restore an earlier version below.
+                  </p>
+                  {site.errors!.map((err, i) => (
+                    <div key={i} className="text-xs text-muted-foreground">
+                      <span className="font-mono break-all">{err.message}</span>
+                      {' · '}{err.count}×, last {new Date(err.last_seen).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
                     </div>
                   ))}
                 </div>

@@ -217,11 +217,60 @@ Deno.serve(async (req: Request) => {
         const ok = await sendEmail(
           alertEmail,
           'Community Supabase: consider bumping compute past Micro',
-          renderInfraEmail(signals, stats, metrics),
+          renderInfraEmail(signals, stats),
         );
         if (ok) sent.push(key);
         else errors.push('email send failed for infra alert');
       }
+    }
+  }
+
+  // ── 3. Site health: builders hear when their published tool is hurting ──
+  //
+  // The error beacon in served sites lands runtime errors in site_errors.
+  // When a site crosses a few occurrences in a day, its BUILDER (not the
+  // steward) gets one plain-language email — with a 72h cooldown per site,
+  // so a broken tool nudges rather than nags.
+
+  const siteErrorMin = rate('MONITOR_SITE_ERROR_MIN', 3);
+  const siteAlerts: string[] = [];
+  if (!dryRun) {
+    try {
+      const errRes = await fetch(
+        `${supabaseUrl}/rest/v1/site_errors?day=eq.${today}` +
+          `&select=site_id,message,count,community_sites(slug,name,owner_email,kind)`,
+        { headers: svc },
+      );
+      const errRows: {
+        site_id: string; message: string; count: number;
+        community_sites: { slug: string; name: string; owner_email: string; kind: string } | null;
+      }[] = errRes.ok ? await errRes.json() : [];
+
+      const bySite = new Map<string, { slug: string; name: string; owner: string; total: number; messages: { message: string; count: number }[] }>();
+      for (const r of errRows) {
+        const site = r.community_sites;
+        if (!site || site.kind !== 'site' || !site.owner_email) continue;
+        const cur = bySite.get(r.site_id) ?? { slug: site.slug, name: site.name, owner: site.owner_email, total: 0, messages: [] };
+        cur.total += Number(r.count);
+        cur.messages.push({ message: r.message, count: Number(r.count) });
+        bySite.set(r.site_id, cur);
+      }
+
+      for (const s of bySite.values()) {
+        if (s.total < siteErrorMin) continue;
+        if (!(await siteAlertCooldownExpired(supabaseUrl, svc, s.slug))) continue;
+        const key = `site-errors-${s.slug}-${today}`;
+        if (!(await claimAlert(supabaseUrl, svc, key, { total: s.total }))) continue;
+        const ok = await sendEmail(
+          s.owner,
+          `Your site "${s.name}" hit some errors today`,
+          renderSiteErrorEmail(s),
+        );
+        if (ok) { sent.push(key); siteAlerts.push(s.slug); }
+        else errors.push(`email send failed for ${key}`);
+      }
+    } catch (err) {
+      errors.push(`site health check failed: ${err instanceof Error ? err.message : String(err)}`);
     }
   }
 
@@ -256,6 +305,7 @@ Deno.serve(async (req: Request) => {
     estimated_spend_usd: Number(totalSpend.toFixed(4)),
     thresholds,
     thresholds_crossed: crossed,
+    site_alerts: siteAlerts,
     members: memberSpend.map((m) => ({ ...m, usd: Number(m.usd.toFixed(4)) })),
     infra: { stats, metrics, signals: signals.map((s) => s.key), sustained },
     alerts_sent: sent,
@@ -293,6 +343,26 @@ async function infraCooldownExpired(
   try {
     const res = await fetch(
       `${supabaseUrl}/rest/v1/monitor_alerts?alert_key=like.infra-upgrade-*&order=sent_at.desc&limit=1&select=sent_at`,
+      { headers: svc },
+    );
+    if (!res.ok) return true;
+    const rows = await res.json();
+    if (!Array.isArray(rows) || rows.length === 0) return true;
+    return Date.now() - new Date(rows[0].sent_at).getTime() > 72 * 3600_000;
+  } catch {
+    return true;
+  }
+}
+
+/** One nudge per site per 72 hours, however long it stays broken. */
+async function siteAlertCooldownExpired(
+  supabaseUrl: string,
+  svc: Record<string, string>,
+  slug: string,
+): Promise<boolean> {
+  try {
+    const res = await fetch(
+      `${supabaseUrl}/rest/v1/monitor_alerts?alert_key=like.site-errors-${encodeURIComponent(slug)}-*&order=sent_at.desc&limit=1&select=sent_at`,
       { headers: svc },
     );
     if (!res.ok) return true;
@@ -540,7 +610,6 @@ function renderSpendEmail(
 function renderInfraEmail(
   signals: Signal[],
   stats: Record<string, number>,
-  metrics: Record<string, number>,
 ): string {
   const signalsHtml = signals
     .map(
@@ -564,6 +633,40 @@ function renderInfraEmail(
     <p style="font-size:13px;color:#78716C;line-height:1.6;margin:0;">
       This recommendation sends at most once every 72 hours. If it keeps arriving after an
       upgrade, the thresholds in the community-monitor function may need retuning.
+    </p>`,
+  );
+}
+
+function renderSiteErrorEmail(s: {
+  slug: string; name: string; total: number;
+  messages: { message: string; count: number }[];
+}): string {
+  const appUrl = Deno.env.get('APP_URL') ?? 'https://relationalbuilder.org';
+  const top = s.messages
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5)
+    .map(
+      (m) =>
+        `<li style="font-size:13px;line-height:1.6;margin:0 0 8px;font-family:ui-monospace,monospace;">${escapeHtml(m.message)} <span style="color:#78716C;">(${m.count}&times;)</span></li>`,
+    )
+    .join('');
+  return emailShell(
+    `Your site "${escapeHtml(s.name)}" hit some errors today`,
+    `<p style="font-size:15px;line-height:1.6;margin:0 0 16px;">
+      Neighbors visiting <a href="${appUrl}/s/${escapeHtml(s.slug)}/" style="color:#C2410C;">${escapeHtml(s.name)}</a>
+      ran into errors ${s.total} times today. The tool may still mostly work —
+      but something is breaking for real people, and it's worth a look.
+    </p>
+    <ul style="margin:0 0 16px;padding-left:20px;">${top}</ul>
+    <p style="font-size:14px;line-height:1.6;margin:0 0 16px;">
+      Two ways to fix it, both from <a href="${appUrl}" style="color:#C2410C;">Relational Builder</a>:
+      open the project and paste one of the errors above into the chat ("neighbors
+      are seeing this error"), or restore an earlier version of the site from
+      Your Sites on the home page — it goes live again at the same address.
+    </p>
+    <p style="font-size:13px;color:#78716C;line-height:1.6;margin:0;">
+      You'll get at most one of these every three days per site. Errors are
+      collected anonymously — messages only, nothing about your visitors.
     </p>`,
   );
 }

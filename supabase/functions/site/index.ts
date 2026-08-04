@@ -4,6 +4,7 @@
  * GET /site/{slug}/            → index.html
  * GET /site/{slug}/{filepath}  → that file with its content type
  * POST /site/{slug}/__feedback → a neighbor's note for the builder
+ * POST /site/{slug}/__error    → a runtime error the page caught (beacon)
  *
  * Views of index.html increment the site's daily counter (simple,
  * privacy-friendly analytics — no cookies, no per-visitor tracking).
@@ -12,6 +13,12 @@
  * neighbors can respond to the tool without accounts — the notes appear in
  * the builder's dashboard. Sites can opt out with:
  *   <meta name="rb-feedback" content="off">
+ *
+ * It also gets a tiny error beacon: runtime errors and unhandled promise
+ * rejections post back (messages only — nothing about the visitor), land
+ * deduplicated in site_errors, and surface as site health on the builder's
+ * dashboard. Opt out with:
+ *   <meta name="rb-monitor" content="off">
  *
  * Fronted by a rewrite on the builder domain so sites get clean URLs:
  *   https://relationalbuilder.org/s/{slug}/
@@ -80,6 +87,40 @@ function feedbackWidget(siteName: string): string {
 </script>`;
 }
 
+/**
+ * The injected error beacon. Sends each distinct message once per page
+ * load, at most 3 per load — enough to know the tool is hurting without
+ * turning a render loop into traffic.
+ */
+const ERROR_BEACON = `
+<script>
+(function () {
+  if (document.querySelector('meta[name="rb-monitor"][content="off"]')) return;
+  var base = location.href.split(/[?#]/)[0];
+  if (!base.endsWith('/')) base += '/';
+  var url = base + '__error';
+  var seen = {};
+  var sent = 0;
+  function report(message) {
+    message = String(message || '').slice(0, 500);
+    if (!message || seen[message] || sent >= 3) return;
+    seen[message] = 1;
+    sent++;
+    try {
+      fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: message }), keepalive: true }).catch(function () {});
+    } catch (e) {}
+  }
+  window.addEventListener('error', function (e) {
+    report(e.message + (e.filename ? ' (' + e.filename.split('/').pop() + ':' + e.lineno + ')' : ''));
+  });
+  window.addEventListener('unhandledrejection', function (e) {
+    var r = e.reason;
+    report('Unhandled rejection: ' + (r && r.message ? r.message : String(r)));
+  });
+})();
+</script>`;
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
   if (req.method !== 'GET' && req.method !== 'HEAD' && req.method !== 'POST') {
@@ -117,6 +158,32 @@ Deno.serve(async (req: Request) => {
       return new Response('This preview link has expired — ask the builder for a fresh one.', {
         status: 410,
         headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+      });
+    }
+
+    // ---- Error beacon (the injected script POSTs here) ----
+    if (req.method === 'POST' && filePath.split('/').pop() === '__error') {
+      const body = await req.json().catch(() => ({}));
+      const message = String(body.message ?? '').trim().slice(0, 500);
+      if (!message || isPreview) {
+        return new Response(JSON.stringify({ ok: true }), {
+          headers: { ...CORS, 'Content-Type': 'application/json' },
+        });
+      }
+      // Signature: the message minus volatile bits (numbers, urls) so the
+      // same crash dedupes across visitors and reloads
+      const signature = message
+        .replace(/https?:\/\/\S+/g, 'url')
+        .replace(/\d+/g, 'N')
+        .toLowerCase()
+        .slice(0, 200);
+      await fetch(rest('/rpc/record_site_error'), {
+        method: 'POST',
+        headers: { ...svc(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ p_site_id: siteId, p_signature: signature, p_message: message }),
+      }).catch(() => {});
+      return new Response(JSON.stringify({ ok: true }), {
+        headers: { ...CORS, 'Content-Type': 'application/json' },
       });
     }
 
@@ -190,14 +257,21 @@ Deno.serve(async (req: Request) => {
       }).catch(() => {});
     }
 
-    // Inject the neighbor-note widget into served HTML pages
+    // Inject the neighbor-note widget and error beacon into served HTML
     let content = file.content as string;
-    if (servedIndex && !isPreview && String(file.content_type).startsWith('text/html') &&
-        !/name=["']rb-feedback["']\s+content=["']off["']/i.test(content)) {
-      const widget = feedbackWidget(siteName);
-      content = /<\/body>/i.test(content)
-        ? content.replace(/<\/body>/i, `${widget}\n</body>`)
-        : content + widget;
+    if (servedIndex && !isPreview && String(file.content_type).startsWith('text/html')) {
+      let extras = '';
+      if (!/name=["']rb-feedback["']\s+content=["']off["']/i.test(content)) {
+        extras += feedbackWidget(siteName);
+      }
+      if (!/name=["']rb-monitor["']\s+content=["']off["']/i.test(content)) {
+        extras += ERROR_BEACON;
+      }
+      if (extras) {
+        content = /<\/body>/i.test(content)
+          ? content.replace(/<\/body>/i, `${extras}\n</body>`)
+          : content + extras;
+      }
     }
 
     // Supabase's gateway rewrites text/html GET responses on *.supabase.co

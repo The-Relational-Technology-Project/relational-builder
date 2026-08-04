@@ -12,6 +12,13 @@ export interface SiteFeedback {
   created_at: string;
 }
 
+export interface SiteError {
+  day: string;
+  message: string;
+  count: number;
+  last_seen: string;
+}
+
 export interface CommunitySite {
   slug: string;
   name: string;
@@ -23,6 +30,9 @@ export interface CommunitySite {
   /** Daily view counts, oldest → newest (up to 30 days) */
   daily?: { day: string; views: number }[];
   feedback: SiteFeedback[];
+  /** Runtime errors neighbors hit this week (from the site's error beacon) */
+  week_errors?: number;
+  errors?: SiteError[];
 }
 
 async function call(body: Record<string, unknown>): Promise<Record<string, unknown>> {

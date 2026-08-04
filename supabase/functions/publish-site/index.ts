@@ -123,14 +123,17 @@ Deno.serve(async (req: Request) => {
       const appUrl = Deno.env.get('APP_URL') ?? 'https://relationalbuilder.org';
 
       const enriched = await Promise.all(sites.map(async (s: { id: string; slug: string; name: string; created_at: string; updated_at: string }) => {
-        const [statsRes, feedbackRes] = await Promise.all([
+        const weekAgo = new Date(Date.now() - 7 * 86400_000).toISOString().slice(0, 10);
+        const [statsRes, feedbackRes, errorsRes] = await Promise.all([
           fetch(rest(`/site_stats?site_id=eq.${s.id}&select=day,views&order=day.desc&limit=30`), { headers: svc() }),
           fetch(rest(`/site_feedback?site_id=eq.${s.id}&select=id,name,message,created_at&order=created_at.desc&limit=20`), { headers: svc() }),
+          fetch(rest(`/site_errors?site_id=eq.${s.id}&day=gte.${weekAgo}&select=day,message,count,last_seen&order=last_seen.desc&limit=10`), { headers: svc() }),
         ]);
         const stats: { day: string; views: number }[] = statsRes.ok ? await statsRes.json() : [];
         const feedback = feedbackRes.ok ? await feedbackRes.json() : [];
+        const errors: { day: string; message: string; count: number; last_seen: string }[] =
+          errorsRes.ok ? await errorsRes.json() : [];
         const totalViews = stats.reduce((sum, d) => sum + Number(d.views), 0);
-        const weekAgo = new Date(Date.now() - 7 * 86400_000).toISOString().slice(0, 10);
         const weekViews = stats.filter(d => d.day >= weekAgo).reduce((sum, d) => sum + Number(d.views), 0);
         return {
           slug: s.slug,
@@ -143,6 +146,9 @@ Deno.serve(async (req: Request) => {
           // Oldest → newest, for the dashboard's activity sparkline
           daily: stats.slice().reverse(),
           feedback,
+          // Site health: distinct runtime errors neighbors hit this week
+          week_errors: errors.reduce((sum, e) => sum + Number(e.count), 0),
+          errors,
         };
       }));
       return json({ ok: true, sites: enriched });
