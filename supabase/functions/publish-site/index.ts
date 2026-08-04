@@ -19,6 +19,15 @@
  *   { action: 'list' }                  → the builder's sites with view
  *                                         stats + recent neighbor feedback
  *   { action: 'delete', slug }          → take down an owned site
+ *   { action: 'versions', slug }        → the site's kept snapshots (newest 5;
+ *                                         one is taken automatically before
+ *                                         every republish and restore)
+ *   { action: 'restore_version', slug, version_id }
+ *                                       → roll the live site back to a snapshot
+ *
+ * File replacement is ATOMIC: publishes and restores go through the
+ * publish_site_files / restore_site_version SQL functions, so a failure
+ * mid-way rolls back and can never leave a live site empty.
  *
  * Deploy: supabase functions deploy publish-site --no-verify-jwt
  */
@@ -139,7 +148,7 @@ Deno.serve(async (req: Request) => {
       return json({ ok: true, sites: enriched });
     }
 
-    if (body.action === 'delete') {
+    if (body.action === 'delete' || body.action === 'versions' || body.action === 'restore_version') {
       const slug = slugify(String(body.slug ?? ''));
       if (!slug) return json({ error: 'Which site?' }, 400);
       const siteRes = await fetch(
@@ -150,8 +159,33 @@ Deno.serve(async (req: Request) => {
       if (found.length === 0 || found[0].owner_email !== email) {
         return json({ error: 'No site of yours with that name' }, 404);
       }
-      // Cascade removes files, stats, and feedback
-      const delRes = await fetch(rest(`/community_sites?id=eq.${found[0].id}`), {
+      const ownedSiteId = found[0].id;
+
+      if (body.action === 'versions') {
+        const res = await fetch(
+          rest(`/site_versions?site_id=eq.${ownedSiteId}&select=id,taken_at,label,file_count,bytes&order=taken_at.desc&limit=10`),
+          { headers: svc() },
+        );
+        return json({ ok: true, versions: res.ok ? await res.json() : [] });
+      }
+
+      if (body.action === 'restore_version') {
+        const versionId = String(body.version_id ?? '');
+        if (!versionId) return json({ error: 'version_id required' }, 400);
+        const res = await fetch(rest('/rpc/restore_site_version'), {
+          method: 'POST',
+          headers: svc(),
+          body: JSON.stringify({ p_site_id: ownedSiteId, p_version_id: versionId }),
+        });
+        if (!res.ok) return json({ error: 'Restore failed — the live site is unchanged' }, 500);
+        const result = await res.json();
+        if (result?.error) return json({ error: result.error }, 422);
+        const appUrl = Deno.env.get('APP_URL') ?? 'https://relationalbuilder.org';
+        return json({ ...result, url: `${appUrl}/s/${slug}/` });
+      }
+
+      // Cascade removes files, versions, stats, and feedback
+      const delRes = await fetch(rest(`/community_sites?id=eq.${ownedSiteId}`), {
         method: 'DELETE',
         headers: svc(),
       });
@@ -226,6 +260,10 @@ Deno.serve(async (req: Request) => {
       }
     }
 
+    // An existing owned site keeping its slug is a republish — the only case
+    // where there's an outgoing version worth snapshotting
+    const isRepublish = !isPreview && siteId !== null;
+
     if (!siteId) {
       // New site — enforce the per-builder cap (real sites only)
       const mineRes = await fetch(
@@ -246,32 +284,32 @@ Deno.serve(async (req: Request) => {
       });
       if (!createRes.ok) return json({ error: 'Could not create site' }, 500);
       siteId = (await createRes.json())[0].id;
-    } else if (!isPreview) {
+    } else if (isRepublish) {
       await fetch(rest(`/community_sites?id=eq.${siteId}`), {
         method: 'PATCH',
         headers: svc(),
-        body: JSON.stringify({ name, updated_at: new Date().toISOString() }),
+        body: JSON.stringify({ name }),
       });
-      // Replace all files
-      await fetch(rest(`/site_files?site_id=eq.${siteId}`), { method: 'DELETE', headers: svc() });
     }
 
     const rows = files.map((f: { path: string; content: string }) => {
       const clean = String(f.path).replace(/^\//, '');
       const ext = clean.split('.').pop()?.toLowerCase() ?? '';
       return {
-        site_id: siteId,
         path: clean,
         content: String(f.content),
         content_type: CONTENT_TYPES[ext] ?? 'text/plain; charset=utf-8',
       };
     });
-    const insertRes = await fetch(rest('/site_files'), {
+    // Atomic replace: snapshots the outgoing version (republish only), then
+    // delete + insert in one transaction — a failure rolls the whole thing
+    // back instead of leaving the live site empty
+    const publishRes = await fetch(rest('/rpc/publish_site_files'), {
       method: 'POST',
       headers: svc(),
-      body: JSON.stringify(rows),
+      body: JSON.stringify({ p_site_id: siteId, p_files: rows, p_snapshot: isRepublish }),
     });
-    if (!insertRes.ok) return json({ error: 'Could not upload site files' }, 500);
+    if (!publishRes.ok) return json({ error: 'Could not upload site files — the live site is unchanged' }, 500);
 
     const appUrl = Deno.env.get('APP_URL') ?? 'https://relationalbuilder.org';
 

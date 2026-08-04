@@ -50,3 +50,24 @@ export async function listCommunitySites(): Promise<CommunitySite[]> {
 export async function deleteCommunitySite(slug: string): Promise<void> {
   await call({ action: 'delete', slug });
 }
+
+// ── Versions: every republish keeps the outgoing site, restorable ──
+
+export interface SiteVersion {
+  id: string;
+  taken_at: string;
+  label: string | null;
+  file_count: number;
+  bytes: number;
+}
+
+export async function listSiteVersions(slug: string): Promise<SiteVersion[]> {
+  const result = await call({ action: 'versions', slug });
+  return (result.versions as SiteVersion[]) ?? [];
+}
+
+/** Roll the live site back to a snapshot. The current version is snapshotted
+ *  first, so a restore can always be restored from. */
+export async function restoreSiteVersion(slug: string, versionId: string): Promise<void> {
+  await call({ action: 'restore_version', slug, version_id: versionId });
+}

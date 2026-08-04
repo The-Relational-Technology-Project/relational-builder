@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
-import { listCommunitySites, deleteCommunitySite, type CommunitySite } from '@/project/community-sites';
+import {
+  listCommunitySites, deleteCommunitySite, listSiteVersions, restoreSiteVersion,
+  type CommunitySite, type SiteVersion,
+} from '@/project/community-sites';
 import { Button } from '@/components/ui/button';
-import { Globe, Eye, MessageCircle, Trash2, ExternalLink, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Globe, Eye, MessageCircle, Trash2, ExternalLink, Loader2, ChevronDown, ChevronUp, History } from 'lucide-react';
 
 /**
  * Two weeks of daily views as a quiet inline sparkline — enough to answer
@@ -9,11 +12,14 @@ import { Globe, Eye, MessageCircle, Trash2, ExternalLink, Loader2, ChevronDown, 
  */
 function ViewSparkline({ daily }: { daily: { day: string; views: number }[] }) {
   const DAYS = 14;
+  // Anchored once at mount: render must stay pure, and a dashboard open
+  // across midnight shifting its window by a day mid-render helps nobody
+  const [now] = useState(() => Date.now());
   // Fill missing days with zeros so gaps read as gaps
   const byDay = new Map(daily.map(d => [d.day, Number(d.views)]));
   const bars: number[] = [];
   for (let i = DAYS - 1; i >= 0; i--) {
-    const day = new Date(Date.now() - i * 86400_000).toISOString().slice(0, 10);
+    const day = new Date(now - i * 86400_000).toISOString().slice(0, 10);
     bars.push(byDay.get(day) ?? 0);
   }
   const max = Math.max(...bars);
@@ -59,12 +65,53 @@ export function YourSites() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  // Version history: which site's is open, its snapshots, restore-in-flight
+  const [versionsFor, setVersionsFor] = useState<string | null>(null);
+  const [versions, setVersions] = useState<Record<string, SiteVersion[]>>({});
+  const [restoring, setRestoring] = useState<string | null>(null);
+  const [restoredNote, setRestoredNote] = useState<string | null>(null);
 
   useEffect(() => {
     listCommunitySites()
       .then(setSites)
       .catch((e: Error) => setError(e.message));
   }, []);
+
+  async function toggleVersions(slug: string) {
+    if (versionsFor === slug) {
+      setVersionsFor(null);
+      return;
+    }
+    setVersionsFor(slug);
+    setRestoredNote(null);
+    if (!versions[slug]) {
+      try {
+        const list = await listSiteVersions(slug);
+        setVersions(v => ({ ...v, [slug]: list }));
+      } catch {
+        setVersions(v => ({ ...v, [slug]: [] }));
+      }
+    }
+  }
+
+  async function handleRestore(slug: string, version: SiteVersion) {
+    const when = new Date(version.taken_at).toLocaleString();
+    if (!window.confirm(
+      `Put the live site back to how it was on ${when}? ` +
+      `Today's version is saved as a snapshot first, so you can change your mind.`,
+    )) return;
+    setRestoring(version.id);
+    try {
+      await restoreSiteVersion(slug, version.id);
+      const list = await listSiteVersions(slug).catch(() => null);
+      if (list) setVersions(v => ({ ...v, [slug]: list }));
+      setRestoredNote(`The site is back to its ${when} version — same address, live now.`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Restore failed — the live site is unchanged');
+    } finally {
+      setRestoring(null);
+    }
+  }
 
   async function handleDelete(slug: string) {
     setDeleting(slug);
@@ -120,6 +167,13 @@ export function YourSites() {
                     {site.feedback.length}
                     {site.feedback.length > 0 && (isExpanded ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />)}
                   </button>
+                  <button
+                    className="hover:text-foreground"
+                    onClick={() => toggleVersions(site.slug)}
+                    title="Earlier versions of this site"
+                  >
+                    <History className="size-3" />
+                  </button>
                   {confirming === site.slug ? (
                     <span className="inline-flex items-center gap-1">
                       <Button
@@ -162,6 +216,37 @@ export function YourSites() {
                       {note.message}
                     </div>
                   ))}
+                </div>
+              )}
+              {versionsFor === site.slug && (
+                <div className="space-y-1.5 pt-1 border-t">
+                  {restoredNote && <p className="text-xs text-primary">{restoredNote}</p>}
+                  {!versions[site.slug] ? (
+                    <p className="text-xs text-muted-foreground">Loading versions…</p>
+                  ) : versions[site.slug].length === 0 ? (
+                    <p className="text-xs text-muted-foreground">
+                      No earlier versions yet — one is kept automatically every
+                      time you republish.
+                    </p>
+                  ) : (
+                    versions[site.slug].map(v => (
+                      <div key={v.id} className="flex items-center gap-2 text-xs">
+                        <History className="size-2.5 text-muted-foreground shrink-0" />
+                        <span className="text-muted-foreground truncate">
+                          {new Date(v.taken_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                          {' · '}{v.file_count} files
+                          {v.label === 'before restore' ? ' · saved before a restore' : ''}
+                        </span>
+                        <button
+                          className="ml-auto shrink-0 text-muted-foreground hover:text-foreground underline decoration-dotted disabled:opacity-40"
+                          onClick={() => handleRestore(site.slug, v)}
+                          disabled={restoring !== null}
+                        >
+                          {restoring === v.id ? <Loader2 className="size-3 animate-spin" /> : 'Restore'}
+                        </button>
+                      </div>
+                    ))
+                  )}
                 </div>
               )}
             </div>
