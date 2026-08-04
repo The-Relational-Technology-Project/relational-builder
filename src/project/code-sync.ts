@@ -10,6 +10,7 @@
  */
 
 import { forgeClient, isBinaryPath, FORGES, type ForgeClient } from './forge';
+import { mapLimit, FORGE_FETCH_CONCURRENCY } from './forge/concurrency';
 import { useSyncStore, type ConnectedRepo, type RemoteChanges } from '@/store/sync-store';
 import { useProjectStore } from '@/store/project-store';
 import { useChatStore } from '@/store/chat-store';
@@ -160,25 +161,25 @@ export async function pullRemoteChanges(
       const overlapCandidates = toFetch
         .filter(f => project.getFile(f.path))
         .slice(0, OVERLAP_CHECK_CAP);
-      await Promise.all(
-        overlapCandidates.map(async f => {
-          const base = await client.getFileAtRef(token, repo.fullName, f.path, repo.lastSyncSha!);
-          const local = useProjectStore.getState().getFile(f.path)?.content;
-          if (base !== null && local !== undefined && local !== base) {
-            overlaps.push(f.path);
-          }
-        }),
-      );
+      await mapLimit(overlapCandidates, FORGE_FETCH_CONCURRENCY, async f => {
+        const base = await client.getFileAtRef(token, repo.fullName, f.path, repo.lastSyncSha!);
+        const local = useProjectStore.getState().getFile(f.path)?.content;
+        if (base !== null && local !== undefined && local !== base) {
+          overlaps.push(f.path);
+        }
+      });
 
-      const contents = await Promise.all(
-        toFetch.map(async f => ({
-          file: f,
-          content: await client.getFileAtRef(token, repo.fullName, f.path, head),
-        })),
-      );
+      // All-or-nothing: a fetch that fails throws (see getFileAtRef), which
+      // aborts the pull before anything is applied and before the sync point
+      // advances. Skipping failed files and recording the head anyway made
+      // them vanish from every future diff — silent data loss.
+      const contents = await mapLimit(toFetch, FORGE_FETCH_CONCURRENCY, async f => ({
+        file: f,
+        content: await client.getFileAtRef(token, repo.fullName, f.path, head),
+      }));
       const store = useProjectStore.getState();
       for (const { file, content } of contents) {
-        if (content === null) continue; // binary or unreadable — leave it to the repo
+        if (content === null) continue; // genuinely absent or not text — leave it to the repo
         if (file.status === 'renamed' && file.previousPath && store.getFile(file.previousPath)) {
           store.deleteFile(file.previousPath);
           deleted.push(file.previousPath);

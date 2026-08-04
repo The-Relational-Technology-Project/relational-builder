@@ -6,6 +6,8 @@
  */
 
 import type { FileEntry } from './virtual-fs';
+import { isBinaryPath } from './forge/types';
+import { mapLimit, FORGE_FETCH_CONCURRENCY } from './forge/concurrency';
 
 const API = 'https://api.github.com';
 
@@ -139,7 +141,10 @@ export async function getFileAtRef(
     `${API}/repos/${repoFullName}/contents/${encodeURIComponent(clean).replace(/%2F/g, '/')}?ref=${ref}`,
     { headers: headers(token) },
   );
-  if (!res.ok) return null;
+  if (res.status === 404) return null;
+  // Anything else non-OK (rate limit, 5xx) is a failed fetch, not a missing
+  // file — returning null here made pulls silently skip real changes.
+  if (!res.ok) throw new Error(`Failed to fetch ${clean} (${res.status})`);
   const data = await res.json();
   if (data.encoding !== 'base64' || typeof data.content !== 'string') return null;
   try {
@@ -242,24 +247,30 @@ export async function pullFiles(
   if (!treeRes.ok) throw new Error('Failed to fetch file tree');
   const tree = await treeRes.json();
 
-  // Fetch content for each blob (file)
-  const blobs = tree.tree.filter(
-    (item: { type: string; size?: number }) =>
-      item.type === 'blob' && (item.size ?? 0) < 500_000, // skip large files
+  // Fetch content for each text blob — binaries are filtered by path up
+  // front rather than downloaded and discarded
+  const blobs: { path: string; sha: string }[] = tree.tree.filter(
+    (item: { type: string; path: string; size?: number }) =>
+      item.type === 'blob' &&
+      (item.size ?? 0) < 500_000 && // skip large files
+      !isBinaryPath(item.path),
   );
 
-  const files: GitHubFile[] = await Promise.all(
-    blobs.map(async (blob: { path: string; sha: string }) => {
-      const blobRes = await fetch(
-        `${API}/repos/${repoFullName}/git/blobs/${blob.sha}`,
-        { headers: headers(token) },
-      );
-      if (!blobRes.ok) return null;
-      const blobData = await blobRes.json();
-      const content = atob(blobData.content.replace(/\n/g, ''));
-      return { path: '/' + blob.path, content, sha: blob.sha };
-    }),
-  );
+  const files = await mapLimit(blobs, FORGE_FETCH_CONCURRENCY, async blob => {
+    const blobRes = await fetch(
+      `${API}/repos/${repoFullName}/git/blobs/${blob.sha}`,
+      { headers: headers(token) },
+    );
+    // A blob fetch by sha only fails transiently — surfacing it beats
+    // silently dropping the file from the pulled tree
+    if (!blobRes.ok) throw new Error(`Failed to fetch ${blob.path} (${blobRes.status})`);
+    const blobData = await blobRes.json();
+    try {
+      return { path: '/' + blob.path, content: atob(blobData.content.replace(/\n/g, '')), sha: blob.sha };
+    } catch {
+      return null; // not valid text after all
+    }
+  });
 
   return {
     files: files.filter((f): f is GitHubFile => f !== null),

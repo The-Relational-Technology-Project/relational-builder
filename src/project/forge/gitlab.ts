@@ -9,6 +9,7 @@
 import type { FileEntry } from '../virtual-fs';
 import type { ForgeClient, ForgeRepo, CompareResult, RemoteCommit, RemoteFileChange, RepoFile, SyncResult } from './types';
 import { isBinaryPath } from './types';
+import { mapLimit, FORGE_FETCH_CONCURRENCY } from './concurrency';
 
 interface GitLabProject {
   path_with_namespace: string;
@@ -171,7 +172,9 @@ export class GitLabClient implements ForgeClient {
       `${this.api}/projects/${this.project(fullName)}/repository/files/${encodeURIComponent(repoPath(path))}/raw?ref=${encodeURIComponent(ref)}`,
       { headers: this.headers(token) },
     );
-    if (!res.ok) return null;
+    if (res.status === 404) return null;
+    // Non-404 failures (rate limit, 5xx) must not read as "no file"
+    if (!res.ok) throw new Error(`Failed to fetch ${repoPath(path)} (${res.status})`);
     return res.text();
   }
 
@@ -200,12 +203,10 @@ export class GitLabClient implements ForgeClient {
     const paths = (await this.listTreePaths(token, fullName, commitSha)).filter(
       p => !isBinaryPath(p),
     );
-    const files = await Promise.all(
-      paths.map(async (p): Promise<RepoFile | null> => {
-        const content = await this.getFileAtRef(token, fullName, p, commitSha);
-        return content === null ? null : { path: '/' + p, content, sha: commitSha };
-      }),
-    );
+    const files = await mapLimit(paths, FORGE_FETCH_CONCURRENCY, async (p): Promise<RepoFile | null> => {
+      const content = await this.getFileAtRef(token, fullName, p, commitSha);
+      return content === null ? null : { path: '/' + p, content, sha: commitSha };
+    });
     return { files: files.filter((f): f is RepoFile => f !== null), commitSha };
   }
 

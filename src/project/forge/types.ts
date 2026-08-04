@@ -78,7 +78,12 @@ export interface ForgeClient {
     branch: string,
     limit?: number,
   ): Promise<RemoteCommit[]>;
-  /** One file's text content at a ref, or null if binary/missing */
+  /**
+   * One file's text content at a ref; null only when the file is genuinely
+   * absent (404) or not representable as text. Any other failure — rate
+   * limit, server error, network — throws, so a failed fetch can never be
+   * mistaken for a missing file.
+   */
   getFileAtRef(
     token: string,
     fullName: string,

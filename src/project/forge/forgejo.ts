@@ -10,6 +10,7 @@
 import type { FileEntry } from '../virtual-fs';
 import type { ForgeClient, ForgeRepo, CompareResult, RemoteCommit, RemoteFileChange, RepoFile, SyncResult } from './types';
 import { isBinaryPath, toBase64 } from './types';
+import { mapLimit, FORGE_FETCH_CONCURRENCY } from './concurrency';
 
 interface ForgejoRepo {
   full_name: string;
@@ -165,7 +166,9 @@ export class ForgejoClient implements ForgeClient {
       `${this.api}/repos/${fullName}/raw/${encPath(repoPath(path))}?ref=${encodeURIComponent(ref)}`,
       { headers: this.headers(token) },
     );
-    if (!res.ok) return null;
+    if (res.status === 404) return null;
+    // Non-404 failures (rate limit, 5xx) must not read as "no file"
+    if (!res.ok) throw new Error(`Failed to fetch ${repoPath(path)} (${res.status})`);
     return res.text();
   }
 
@@ -199,12 +202,10 @@ export class ForgejoClient implements ForgeClient {
     const commitSha = await this.getBranchHead(token, fullName, branch);
     const tree = await this.listTree(token, fullName, commitSha);
     const paths = [...tree.keys()].filter(p => !isBinaryPath(p));
-    const files = await Promise.all(
-      paths.map(async (p): Promise<RepoFile | null> => {
-        const content = await this.getFileAtRef(token, fullName, p, commitSha);
-        return content === null ? null : { path: '/' + p, content, sha: tree.get(p)! };
-      }),
-    );
+    const files = await mapLimit(paths, FORGE_FETCH_CONCURRENCY, async (p): Promise<RepoFile | null> => {
+      const content = await this.getFileAtRef(token, fullName, p, commitSha);
+      return content === null ? null : { path: '/' + p, content, sha: tree.get(p)! };
+    });
     return { files: files.filter((f): f is RepoFile => f !== null), commitSha };
   }
 
