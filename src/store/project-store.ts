@@ -295,14 +295,32 @@ export const useProjectStore = create<ProjectState>()(persist((set, get) => ({
     },
     setItem: (name, value) => {
       // Serialize VirtualFS to plain array before storing
-      const serializable = {
-        ...value,
-        state: {
-          ...value.state,
-          fs: value.state.fs.toJSON(),
-        },
-      };
-      localStorage.setItem(name, JSON.stringify(serializable));
+      const write = (checkpoints: ProjectState['checkpoints']) =>
+        localStorage.setItem(
+          name,
+          JSON.stringify({
+            ...value,
+            state: { ...value.state, fs: value.state.fs.toJSON(), checkpoints },
+          }),
+        );
+      const checkpoints = value.state.checkpoints ?? [];
+      try {
+        write(checkpoints);
+      } catch {
+        // Quota. Checkpoints are the bulk — each holds a full copy of every
+        // file — so shed them oldest-first rather than let the write throw
+        // out of writeFile mid-generation. The live store keeps the full
+        // set for this session either way.
+        try {
+          write(checkpoints.slice(-1));
+        } catch {
+          try {
+            write([]);
+          } catch (err) {
+            console.warn('Persisting project failed (storage quota?) — work stays in memory', err);
+          }
+        }
+      }
     },
     removeItem: (name) => localStorage.removeItem(name),
   },
@@ -311,7 +329,10 @@ export const useProjectStore = create<ProjectState>()(persist((set, get) => ({
     selectedFile: state.selectedFile,
     version: state.version,
     lineage: state.lineage,
-    checkpoints: state.checkpoints,
+    // In memory the session keeps MAX_CHECKPOINTS; on disk each one is a
+    // full copy of every file, so persisting all of them multiplied the
+    // project's localStorage footprint ~11× and exhausted the quota
+    checkpoints: state.checkpoints.slice(-3),
     activeCheckpointId: state.activeCheckpointId,
   } as unknown as ProjectState),
 }));

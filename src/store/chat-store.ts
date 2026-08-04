@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { safeLocalStorage } from '@/store/safe-storage';
 import type { ChatMessage } from '@/providers/types';
 import { buildSystemPrompt } from '@/knowledge/context-builder';
 import { collapseFileBlocks } from '@/project/code-extractor';
@@ -460,8 +461,17 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
   },
 }), {
   name: 'relational-builder-chat',
+  storage: createJSONStorage(() => safeLocalStorage),
+  // The code is the artifact — far history isn't worth a quota failure.
+  // Attachments are base64 data URLs (the heaviest thing in the store);
+  // only recent ones are worth the storage — older messages reload as
+  // text-only. Cloud rows and shelf snapshots keep their own copies.
   partialize: (state) => ({
-    messages: state.messages.map(m => ({ ...m, isStreaming: false })),
+    messages: state.messages.slice(-200).map((m, i, arr) => {
+      const { attachments, ...rest } = m;
+      const keep = attachments?.length && i >= arr.length - 20;
+      return { ...rest, ...(keep ? { attachments } : {}), isStreaming: false };
+    }),
     mode: state.mode,
   } as unknown as ChatState),
 }));

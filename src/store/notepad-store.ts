@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { safeLocalStorage } from '@/store/safe-storage';
 
 /**
  * The project Notepad — a place to jot what the code can't hold: an idea,
@@ -102,6 +103,8 @@ export const useNotepadStore = create<NotepadState>()(persist((set) => ({
   clearNotepad: () => set({ notes: [], story: null }),
 }), {
   name: 'rb-notepad',
+  // Notes can carry image data URLs — a full quota must not break note-taking
+  storage: createJSONStorage(() => safeLocalStorage),
   partialize: (state) => ({ notes: state.notes, story: state.story } as unknown as NotepadState),
 }));
 
