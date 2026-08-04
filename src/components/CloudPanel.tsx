@@ -17,20 +17,30 @@ import {
   getSecretStatus,
   getEmailLog,
   updateSecretConfig,
+  exportBackend,
+  documentsToCsv,
+  listBackups,
+  takeBackupNow,
+  downloadBackup,
+  restoreBackup,
   type CloudAppOverview,
   type CloudLimits,
   type CloudCollection,
   type CloudDocument,
   type CloudMember,
+  type CloudExportDocument,
+  type CloudBackupMeta,
   type AppSecretStatus,
   type EmailLogRow,
 } from '@/cloud/community-cloud';
+import { downloadBlob } from '@/project/export';
+import JSZip from 'jszip';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
   Cloud, Loader2, ChevronRight, ChevronLeft, Database, Users, Settings2,
-  Trash2, RefreshCw, Copy, Check, Plug, Unplug, FileJson,
+  Trash2, RefreshCw, Copy, Check, Plug, Unplug, FileJson, ArrowDownToLine,
 } from 'lucide-react';
 
 /**
@@ -612,6 +622,8 @@ function AppSettings({
         </p>
       </div>
 
+      <DataSafetySection appId={app.app_id} appName={app.name} />
+
       <EmailSection appId={app.app_id} />
 
       <div className="space-y-1.5">
@@ -640,6 +652,194 @@ function AppSettings({
           {deleting ? <Loader2 className="size-3 animate-spin" /> : <Trash2 className="size-3" />}
           Delete app backend
         </Button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Neighbors' data can always leave, and can survive a mistake. Export
+ * downloads the whole backend as a zip (canonical JSON + one CSV per
+ * collection + neighbors list). Backups are taken daily by the server when
+ * data changed, kept 14 deep; restoring replaces documents (a pre-restore
+ * snapshot is taken first, so restores are themselves undoable) and never
+ * deletes current neighbor accounts or signs anyone out.
+ */
+function DataSafetySection({ appId, appName }: { appId: string; appName: string }) {
+  const [backups, setBackups] = useState<CloudBackupMeta[] | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [note, setNote] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    try {
+      setBackups((await listBackups(appId)).backups);
+    } catch {
+      setBackups([]);
+    }
+  }, [appId]);
+  useEffect(() => { void refresh(); }, [refresh]);
+
+  const say = (msg: string) => { setNote(msg); setError(null); };
+  const fail = (e: unknown, fallback: string) => {
+    setError(e instanceof Error ? e.message : fallback);
+    setNote(null);
+  };
+
+  async function handleExport() {
+    setBusy('export');
+    try {
+      const data = await exportBackend(appId);
+      const zip = new JSZip();
+      zip.file('export.json', JSON.stringify(data, null, 2));
+      const byCollection = new Map<string, CloudExportDocument[]>();
+      for (const d of data.documents) {
+        const list = byCollection.get(d.collection) ?? [];
+        list.push(d);
+        byCollection.set(d.collection, list);
+      }
+      for (const [name, docs] of byCollection) {
+        zip.file(`${name.replace(/[^a-zA-Z0-9-_]/g, '-')}.csv`, documentsToCsv(docs));
+      }
+      if (data.members.length > 0) {
+        const rows = data.members.map(m =>
+          [m.email, m.name ?? '', m.created_at].map(v => /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v).join(','),
+        );
+        zip.file('neighbors.csv', ['email,name,joined', ...rows].join('\n'));
+      }
+      const blob = await zip.generateAsync({ type: 'blob' });
+      downloadBlob(blob, `${appName.replace(/[^a-zA-Z0-9-_]/g, '-')}-data.zip`);
+      say(`Downloaded ${data.documents.length.toLocaleString()} documents and ${data.members.length} neighbor accounts.`);
+    } catch (e) {
+      fail(e, 'Export failed — try again in a moment');
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function handleBackupNow() {
+    setBusy('backup');
+    try {
+      await takeBackupNow(appId);
+      await refresh();
+      say('Snapshot taken.');
+    } catch (e) {
+      fail(e, 'Backup failed — try again in a moment');
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function handleDownloadBackup(b: CloudBackupMeta) {
+    setBusy(b.id);
+    try {
+      const { backup } = await downloadBackup(appId, b.id);
+      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+      downloadBlob(blob, `${appName.replace(/[^a-zA-Z0-9-_]/g, '-')}-backup-${b.taken_at.slice(0, 10)}.json`);
+    } catch (e) {
+      fail(e, 'Could not download that backup');
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function handleRestore(b: CloudBackupMeta) {
+    const when = new Date(b.taken_at).toLocaleString();
+    if (!confirm(
+      `Put the data back to how it was on ${when}? ` +
+      `Current documents are replaced by the ${b.doc_count.toLocaleString()} in this snapshot. ` +
+      `A snapshot of right now is saved first, so you can restore forward again if needed. ` +
+      `Neighbor accounts are never removed by a restore.`,
+    )) return;
+    setBusy(b.id);
+    try {
+      const result = await restoreBackup(appId, b.id);
+      if (result.error) {
+        fail(new Error(result.error), 'Restore failed');
+      } else {
+        await refresh();
+        say(`Restored ${result.documents?.toLocaleString() ?? 0} documents from ${when}.`);
+      }
+    } catch (e) {
+      fail(e, 'Restore failed — nothing was changed');
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  const reasonLabel: Record<CloudBackupMeta['reason'], string> = {
+    daily: 'daily',
+    manual: 'manual',
+    pre_restore: 'before a restore',
+  };
+
+  return (
+    <div className="space-y-1.5">
+      <label className="text-xs font-medium">Your neighbors&apos; data</label>
+      <div className="rounded-lg border p-3 space-y-3">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Everything here can leave with you — the export carries every
+            document, plus a spreadsheet per collection.
+          </p>
+          <Button size="sm" variant="outline" className="h-7 gap-1 text-xs shrink-0" onClick={handleExport} disabled={busy !== null}>
+            {busy === 'export' ? <Loader2 className="size-3 animate-spin" /> : <ArrowDownToLine className="size-3" />}
+            Download data
+          </Button>
+        </div>
+
+        <div className="space-y-1.5 pt-1 border-t">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs font-medium">Backups</p>
+            <Button size="sm" variant="ghost" className="h-6 gap-1 text-xs text-muted-foreground" onClick={handleBackupNow} disabled={busy !== null}>
+              {busy === 'backup' ? <Loader2 className="size-3 animate-spin" /> : null}
+              Back up now
+            </Button>
+          </div>
+          {backups === null ? (
+            <p className="text-xs text-muted-foreground">Loading…</p>
+          ) : backups.length === 0 ? (
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              None yet — a snapshot is taken automatically each day the data
+              changes, and kept two weeks deep.
+            </p>
+          ) : (
+            <ul className="space-y-1">
+              {backups.map(b => (
+                <li key={b.id} className="flex items-center gap-2 text-xs">
+                  <span className="text-muted-foreground min-w-0 truncate">
+                    {new Date(b.taken_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                    {' · '}{b.doc_count.toLocaleString()} docs
+                    {b.reason !== 'daily' ? ` · ${reasonLabel[b.reason]}` : ''}
+                    {b.skipped_reason ? ' · too large to store' : ''}
+                  </span>
+                  {!b.skipped_reason && (
+                    <span className="ml-auto flex items-center gap-1 shrink-0">
+                      <button
+                        onClick={() => handleDownloadBackup(b)}
+                        disabled={busy !== null}
+                        className="text-muted-foreground hover:text-foreground p-0.5"
+                        title="Download this snapshot as JSON"
+                      >
+                        {busy === b.id ? <Loader2 className="size-3 animate-spin" /> : <ArrowDownToLine className="size-3" />}
+                      </button>
+                      <button
+                        onClick={() => handleRestore(b)}
+                        disabled={busy !== null}
+                        className="text-muted-foreground hover:text-foreground underline decoration-dotted"
+                        title="Put the data back to this snapshot"
+                      >
+                        Restore
+                      </button>
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+          {note && <p className="text-xs text-primary">{note}</p>}
+          {error && <p className="text-xs text-destructive">{error}</p>}
+        </div>
       </div>
     </div>
   );

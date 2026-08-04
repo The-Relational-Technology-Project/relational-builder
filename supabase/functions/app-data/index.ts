@@ -35,6 +35,15 @@
  *   admin_delete_app   {app_id}                    — removes app + all its data
  *   admin_schema_get   {app_id}                    — collection specs + versions
  *   admin_schema_set   {app_id, collections}       — replace all specs (versioned)
+ *   admin_export_page  {app_id, offset?, limit?}   — paged full export (docs;
+ *                        page 0 also carries members + collection specs)
+ *   admin_backups      {app_id}                    — snapshot list (daily cron
+ *                        + manual + pre-restore; newest 14 kept)
+ *   admin_backup_now   {app_id}                    — take a snapshot right now
+ *   admin_backup_download {app_id, backup_id}      — one snapshot's full payload
+ *   admin_restore_backup  {app_id, backup_id}      — replace documents from a
+ *                        snapshot (members upserted, never deleted; a
+ *                        pre-restore snapshot is taken first)
  *
  * Free community tier: 3 backends per builder, 100MB / 5000 documents each.
  *
@@ -820,6 +829,98 @@ async function handleAdmin(req: Request, body: Record<string, unknown>, action: 
         );
       }
       return json({ ok: true, count: entries.length });
+    }
+
+    case 'admin_export_page': {
+      // Full-fidelity export, paged: the whole point of Community Cloud is
+      // that neighbors' data can always leave with the builder. Client
+      // assembles pages into one JSON (or per-collection CSVs).
+      const offset = Math.max(0, Number(body.offset ?? 0) || 0);
+      const limit = Math.min(Number(body.limit ?? 1000) || 1000, 1000);
+      const res = await fetch(
+        restUrl(
+          `/app_documents?app_id=eq.${encodeURIComponent(appId)}` +
+          `&select=id,collection,data,member_id,member_name,visibility,created_at,updated_at` +
+          `&order=created_at.asc&offset=${offset}&limit=${limit}`,
+        ),
+        { headers: svcHeaders() },
+      );
+      if (!res.ok) return json({ error: 'Could not read documents' }, 500);
+      const documents = await res.json();
+      // First page carries the surroundings so one loop yields a complete file
+      if (offset === 0) {
+        const [membersRes, collectionsRes] = await Promise.all([
+          fetch(
+            restUrl(`/app_members?app_id=eq.${encodeURIComponent(appId)}&select=id,email,name,created_at&order=created_at.asc&limit=1000`),
+            { headers: svcHeaders() },
+          ),
+          fetch(
+            restUrl(`/app_collections?app_id=eq.${encodeURIComponent(appId)}&select=name,spec,version&order=name.asc`),
+            { headers: svcHeaders() },
+          ),
+        ]);
+        return json({
+          app: { id: appId, name: apps[0].name },
+          documents,
+          members: membersRes.ok ? await membersRes.json() : [],
+          collections: collectionsRes.ok ? await collectionsRes.json() : [],
+          done: documents.length < limit,
+        });
+      }
+      return json({ documents, done: documents.length < limit });
+    }
+
+    case 'admin_backups': {
+      const res = await fetch(
+        restUrl(
+          `/app_backend_backups?app_id=eq.${encodeURIComponent(appId)}` +
+          `&select=id,taken_at,reason,doc_count,member_count,bytes,skipped_reason&order=taken_at.desc&limit=20`,
+        ),
+        { headers: svcHeaders() },
+      );
+      return json({ backups: res.ok ? await res.json() : [] });
+    }
+
+    case 'admin_backup_now': {
+      const res = await fetch(restUrl('/rpc/take_app_backend_backup'), {
+        method: 'POST',
+        headers: svcHeaders(),
+        body: JSON.stringify({ p_app_id: appId, p_reason: 'manual' }),
+      });
+      if (!res.ok) return json({ error: 'Backup failed' }, 500);
+      return json({ ok: true, backup_id: await res.json() });
+    }
+
+    case 'admin_backup_download': {
+      const backupId = String(body.backup_id ?? '');
+      if (!backupId) return json({ error: 'backup_id required' }, 400);
+      const res = await fetch(
+        restUrl(
+          `/app_backend_backups?id=eq.${encodeURIComponent(backupId)}&app_id=eq.${encodeURIComponent(appId)}` +
+          `&select=id,taken_at,doc_count,member_count,payload,skipped_reason`,
+        ),
+        { headers: svcHeaders() },
+      );
+      const rows = res.ok ? await res.json() : [];
+      if (!rows.length) return json({ error: 'Backup not found' }, 404);
+      if (!rows[0].payload) {
+        return json({ error: 'This backup was too large to store — use Download data instead' }, 422);
+      }
+      return json({ backup: rows[0] });
+    }
+
+    case 'admin_restore_backup': {
+      const backupId = String(body.backup_id ?? '');
+      if (!backupId) return json({ error: 'backup_id required' }, 400);
+      const res = await fetch(restUrl('/rpc/restore_app_backend_backup'), {
+        method: 'POST',
+        headers: svcHeaders(),
+        body: JSON.stringify({ p_app_id: appId, p_backup_id: backupId }),
+      });
+      if (!res.ok) return json({ error: 'Restore failed' }, 500);
+      const result = await res.json();
+      if (result?.error) return json({ error: result.error }, 422);
+      return json(result);
     }
 
     case 'admin_delete_app': {

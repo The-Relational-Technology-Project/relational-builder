@@ -107,6 +107,104 @@ export function deleteApp(appId: string) {
   return adminRequest<{ ok: boolean }>('admin_delete_app', { app_id: appId });
 }
 
+// ── Export & backups: neighbors' data can always leave, and survive a mistake ──
+
+export interface CloudExportDocument extends CloudDocument {
+  collection: string;
+}
+
+export interface CloudBackupMeta {
+  id: string;
+  taken_at: string;
+  reason: 'daily' | 'manual' | 'pre_restore';
+  doc_count: number;
+  member_count: number;
+  bytes: number;
+  skipped_reason: string | null;
+}
+
+/**
+ * Pull the whole backend, paged, and assemble one export object. The first
+ * page carries members + collection specs; later pages append documents.
+ */
+export async function exportBackend(appId: string): Promise<{
+  app: { id: string; name: string };
+  exported_at: string;
+  collections: CloudSchemaRow[];
+  members: CloudMember[];
+  documents: CloudExportDocument[];
+}> {
+  const first = await adminRequest<{
+    app: { id: string; name: string };
+    documents: CloudExportDocument[];
+    members: CloudMember[];
+    collections: CloudSchemaRow[];
+    done: boolean;
+  }>('admin_export_page', { app_id: appId, offset: 0 });
+  const documents = [...first.documents];
+  let done = first.done;
+  while (!done) {
+    const page = await adminRequest<{ documents: CloudExportDocument[]; done: boolean }>(
+      'admin_export_page',
+      { app_id: appId, offset: documents.length },
+    );
+    documents.push(...page.documents);
+    done = page.done || page.documents.length === 0;
+  }
+  return {
+    app: first.app,
+    exported_at: new Date().toISOString(),
+    collections: first.collections,
+    members: first.members,
+    documents,
+  };
+}
+
+/** One collection's documents as CSV — data keys become columns. */
+export function documentsToCsv(documents: CloudExportDocument[]): string {
+  const keys = new Set<string>();
+  for (const d of documents) {
+    for (const k of Object.keys(d.data ?? {})) keys.add(k);
+  }
+  const dataKeys = [...keys].sort();
+  const header = ['id', ...dataKeys, 'posted_by', 'visibility', 'created_at', 'updated_at'];
+  const cell = (v: unknown): string => {
+    const s = v === null || v === undefined ? '' : typeof v === 'object' ? JSON.stringify(v) : String(v);
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const rows = documents.map(d => [
+    d.id,
+    ...dataKeys.map(k => cell((d.data as Record<string, unknown>)?.[k])),
+    cell(d.member_name ?? ''),
+    d.visibility ?? 'public',
+    d.created_at,
+    d.updated_at,
+  ].join(','));
+  return [header.join(','), ...rows].join('\n');
+}
+
+export function listBackups(appId: string) {
+  return adminRequest<{ backups: CloudBackupMeta[] }>('admin_backups', { app_id: appId });
+}
+
+export function takeBackupNow(appId: string) {
+  return adminRequest<{ ok: boolean; backup_id: string | null }>('admin_backup_now', { app_id: appId });
+}
+
+export function downloadBackup(appId: string, backupId: string) {
+  return adminRequest<{ backup: CloudBackupMeta & { payload: unknown } }>(
+    'admin_backup_download',
+    { app_id: appId, backup_id: backupId },
+  );
+}
+
+export function restoreBackup(appId: string, backupId: string) {
+  return adminRequest<{ ok?: boolean; documents?: number; members_added?: number; error?: string }>(
+    'admin_restore_backup',
+    { app_id: appId, backup_id: backupId },
+  );
+}
+
 // ── Typed collections: the project's cloud-schema.json mirrored server-side ──
 
 export interface CloudFieldSpec {
