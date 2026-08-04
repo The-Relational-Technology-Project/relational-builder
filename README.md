@@ -27,6 +27,7 @@ Relational Builder combines three things that don't yet exist together:
 - **Community access** -- invited pilot builders get free Claude building via RTP's subsidized key, gated server-side with generous daily budgets — no API key, no credit card. Claude Opus 5 (the strongest builder on our bench) is the default for builds and edits; the daily budget also covers Fable 5, Opus 4.8, Sonnet 5, and Haiku 4.5, and picking a model in the picker pins it for that project. If Anthropic has an outage, community builds automatically fail over to a covered non-Anthropic model so a workshop never stalls
 - **Community Cloud** -- one click gives any project a free shared data store hosted by RTP (3 backends per builder, 100MB each) with built-in neighbor email-code sign-in — no database accounts, no SQL
 - **Cloud dashboard** -- the Cloud tab shows everything behind your apps: collections and documents (with moderation), the neighbors who've signed in, storage against the free tier, and backend settings — a friendly database console
+- **Your neighbors' data is safe, and it's yours** -- every backend exports as one zip (full JSON plus a spreadsheet per collection and the neighbor list), daily server-side backups snapshot each backend that changed (kept two weeks deep, plus back-up-now on demand), and restore puts documents back atomically — with a pre-restore snapshot first, so even a restore is undoable
 - **Quality review pass** -- after your first build, a fast second model quietly checks the result against what you asked for; real defects (dead buttons, broken references) trigger one automatic fix, solid builds pass in silence
 - **Any web stack that fits** -- simple tools ship as plain HTML, richer ones as React, and "an app neighbors can install on their phones" becomes a real PWA (manifest + service worker) that installs from your published site
 - **Home-screen ready by default** -- every published site (community hosting, preview links, Netlify, Vercel) automatically gets an app icon drawn from its name, a web manifest, and an apple-touch-icon, so "Add to Home Screen" on any phone shows a real icon — projects that bring their own icons keep them
@@ -41,18 +42,20 @@ Relational Builder combines three things that don't yet exist together:
 - **Image input** -- attach or paste a sketch, screenshot, or mockup and the AI builds from it (works with Claude and Gemini vision)
 - **Targeted edits** -- the AI sees your current files and makes surgical SEARCH/REPLACE changes instead of rewriting whole files (faster, cheaper, safer on big projects)
 - **Auto-fix** -- when a fresh build throws an error in the preview, the exact error goes back to the AI for one automatic repair pass (bounded — it can never loop); if anything's left, "Ask AI to fix it" is one click, no copy-pasting stack traces
-- **Security scan on publish** -- publishing runs a deterministic scan for leaked API keys and secret values in your files; findings block with file and line, plus a "let me fix it first" path
+- **Security scan on publish** -- publishing runs a deterministic scan for leaked API keys and secret values in your files; findings are shown with file and line and a "let me fix it first" path (publishing anyway stays possible — it's your call, made informed)
 - **Remix** -- pull any public GitHub repo into the builder as a starting point, with lineage recorded (and a friendly explanation — not an error — for server-rendered apps the browser can't preview)
 - **Point at it** -- toggle select mode in the preview, click any element in your running app, and the chat is prefilled with what you pointed at — describe the change in plain words, no selectors or code-speak
+- **Edit text without AI** -- point at a piece of copy and, when it lives at exactly one place in the source, a small editor opens right there: change the wording and save — instant, free, checkpointed like any AI change (ambiguous text falls back to the AI path automatically)
 - **Version history** -- every AI change is a restorable checkpoint; walk back a bad stretch (or forward again) from the chat
-- **RTP Knowledge Base** -- browse 20+ community tools and 45+ stories from the relational tech network, all injected into the AI's context
 - **Network Activity feed** -- see what other builders are shipping across the ecosystem, pulled live from [updates.relationaltechproject.org](https://updates.relationaltechproject.org)
 - **Publish to Commons** -- export your project as a zip with a `.reltech.yml` manifest, push to GitHub, and the [network watcher](https://github.com/The-Relational-Technology-Project/watcher) discovers it automatically
 - **Community Hosting** -- one-click free hosting from RTP (3 sites per builder, no platform accounts or tokens) with privacy-friendly visit counts; Netlify/Vercel still available for bigger needs
-- **My Sites dashboard** -- your live community-hosted sites on the home screen: views, weekly activity, and take-down — the "is it alive?" surface for showing your neighborhood what the work is worth
+- **My Sites dashboard** -- your live community-hosted sites on the home screen: views, weekly activity, neighbor notes, site health, version history, and take-down — the "is it alive?" surface for showing your neighborhood what the work is worth
 - **Neighbor notes** -- every community-hosted site gets a built-in "leave a note" widget (no accounts, no tracking); notes flow back to your dashboard, so building *with* neighbors has a return channel (opt out per site with `<meta name="rb-feedback" content="off">`)
+- **Site health** -- published sites carry a tiny error beacon (messages only, nothing about visitors); errors neighbors hit show on your dashboard, and when a site is really hurting you get one plain-language email with what broke and the two ways to fix it — at most one every three days per site (opt out with `<meta name="rb-monitor" content="off">`)
+- **Published versions & rollback** -- every republish keeps the outgoing version (newest five), and any of them restores to the live address in one tap — with the current version snapshotted first, so a rollback is never a one-way door. Republishing is atomic: a failed upload can no longer leave a live site empty
 - **Deploy to Netlify/Vercel** -- deploy directly from the builder with a personal access token
-- **GitHub two-way sync** -- connect a GitHub repo, push project files as atomic commits, and pull remote changes back into the builder
+- **Code sync with any forge** -- connect a repo on GitHub, GitLab, or a community's own Forgejo/Gitea instance; after that the sync runs itself: changes push automatically once they settle, outside commits pull back in with a checkpoint and a plain-language summary in chat, and a README introducing the project is written on connect if it doesn't have one
 - **RAG-powered context** -- AI responses informed by the most relevant KB tools, stories, and network activity for each message
 - **Share preview links** -- generate a shareable link (hosted on community infrastructure, 30-day lifespan) that anyone can open — no signup needed, perfect for sharing with neighbors
 - **Service integrations** -- connect Supabase, Neon, Resend, and Firecrawl in the Services tab; the AI knows what's connected and generates code that uses it (secrets only ever reach deploy platforms)
@@ -91,9 +94,9 @@ Chat Panel          |  Preview Sandbox        |  Knowledge / Files / Network
      (RTP-hosted vLLM | Claude BYOK | OpenAI BYOK | OpenRouter)
                     |
      ┌──────────────┼──────────────┬────────────────────┐
-  Supabase          |         GitHub API          Network Watcher
-  (KB tools,     Deploy         (two-way        (updates.relational
-   stories)   (Netlify/Vercel)   file sync)     techproject.org)
+  Supabase          |         Forge sync          Network Watcher
+  (KB, hosting,  Deploy      (GitHub/GitLab/     (updates.relational
+   cloud data) (Netlify/Vercel)  Forgejo)        techproject.org)
 ```
 
 ## Tech Stack
@@ -156,7 +159,6 @@ To use cloud models, click **Settings** in the toolbar and enter your API key:
 src/
   components/         React components
     Chat/             Chat interface (panel, messages, input, plan/build toggle)
-    KnowledgeBase/    KB panel, tool/story cards, network feed
     ui/               shadcn/ui primitives
   providers/          LLM provider abstraction (Claude, Gemini, OpenAI, Together, OpenRouter, RTP)
   store/              Zustand stores (provider, chat, project, github, deploy, env, knowledge, auth, cloud, community)
@@ -186,21 +188,30 @@ Everything still works signed-out in local-only mode.
 
 Setting up the backend takes about five minutes — see [DEPLOY.md](DEPLOY.md).
 
-## GitHub Sync
+## Code Sync
 
-Click **GitHub** in the toolbar to connect a repository:
+Click **Sync** in the toolbar to connect a repository on GitHub, GitLab, or a
+community's own Forgejo/Gitea instance:
 
-1. Enter a GitHub Personal Access Token with `repo` scope
-2. Select an existing repo or create a new one (auto-adds the `relational-tech` topic)
-3. **Push** -- commits all project files to the repo as a single atomic commit
-4. **Pull** -- fetches all files from the repo into the builder
+1. Enter a Personal Access Token for your forge (`repo` scope or equivalent)
+2. Select an existing repo or create a new one (GitHub repos auto-add the
+   `relational-tech` topic); a README introducing the project is written on
+   connect if the project doesn't have one
+3. From then on the sync runs itself: changes push automatically ~6 seconds
+   after they settle (never mid-generation, never an unchanged tree), and
+   commits made outside the Builder are pulled back in — checkpoint first,
+   with a plain-language summary in chat. When you have unpushed local edits,
+   bringing in remote changes becomes your call via a banner instead of a
+   background task.
 
-Tokens are saved to localStorage. The sync uses GitHub's Git Data API for atomic multi-file commits (blobs → tree → commit → ref update).
+Tokens are saved to localStorage. Pushes are atomic multi-file commits on
+every forge (GitHub's Git Data API; GitLab's and Forgejo's commit endpoints).
 
 ## Publishing & Deploying
 
-When your project is ready to share, click **Publish** in the toolbar. You have three options:
+When your project is ready to share, click **Publish** in the toolbar. You have four options:
 
+- **Community hosting** -- one click, free, no platform accounts: your site goes live at `relationalbuilder.org/s/{name}/` with neighbor notes, view counts, site health, and version rollback built in
 - **Download** -- get a zip file with all project files, a `.reltech.yml` manifest, and a README
 - **Netlify** -- deploy directly to Netlify with a personal access token ([get one here](https://app.netlify.com/user/applications#personal-access-tokens))
 - **Vercel** -- deploy directly to Vercel with an access token ([get one here](https://vercel.com/account/tokens))

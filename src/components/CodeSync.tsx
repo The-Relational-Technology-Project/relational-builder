@@ -20,6 +20,7 @@ import {
   forgeNameForRepo,
 } from '@/project/code-sync';
 import { checkRemoteNow, syncNow } from '@/project/auto-sync';
+import { ensureRepoReadme } from '@/project/repo-readme';
 import {
   GitBranch,
   ArrowUpFromLine,
@@ -310,6 +311,9 @@ function RepoListView({ forge, onBack }: { forge: ForgeId; onBack: () => void })
       htmlUrl: repo.htmlUrl,
       lastSyncSha,
     });
+    // The repo should explain itself to whoever lands on it — written once,
+    // an ordinary workspace file from then on (see repo-readme.ts)
+    ensureRepoReadme(repo.fullName);
   };
 
   const handleCreateRepo = async () => {

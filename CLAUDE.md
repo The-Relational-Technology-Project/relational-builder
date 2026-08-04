@@ -77,7 +77,6 @@ Chat/Builder Panel  |  Preview Sandbox (iframe)  |  RTP Knowledge Base Panel
 - `src/knowledge/` — Supabase client, RTP principles, context builder, queries
 - `src/components/` — React components (UI lives here)
 - `src/components/Chat/` — Chat interface (panel, messages, input, code blocks)
-- `src/components/KnowledgeBase/` — RTP knowledge base panel and cards
 - `src/components/ui/` — shadcn/ui primitives (don't edit directly)
 
 ## Design Principles
