@@ -69,6 +69,7 @@ export function ProjectMenu() {
   const publishNames = useDeployStore(s => s.publishNames);
 
   const localName = useLocalProjects(s => s.currentName);
+  const localProjectId = useLocalProjects(s => s.currentId);
   const user = useAuthStore(s => s.user);
   const setView = useUIStore(s => s.setView);
 
@@ -96,7 +97,7 @@ export function ProjectMenu() {
     signedIn: !!user,
     inCloud: isCloud,
     collaborators: Math.max(0, members.length - 1),
-    publishedName: publishNames[cloudProjectId ?? 'local'] ?? null,
+    publishedName: publishNames[cloudProjectId ?? localProjectId ?? 'local'] ?? null,
     canUndo: currentIdx > 0,
   });
 

@@ -11,6 +11,7 @@
 
 import { forgeClient, isBinaryPath, FORGES, type ForgeClient } from './forge';
 import { mapLimit, FORGE_FETCH_CONCURRENCY } from './forge/concurrency';
+import { useLocalProjects } from './local-projects';
 import { useSyncStore, type ConnectedRepo, type RemoteChanges } from '@/store/sync-store';
 import { useProjectStore } from '@/store/project-store';
 import { useChatStore } from '@/store/chat-store';
@@ -20,9 +21,17 @@ import { generateManifest } from './export';
 import { needsBuild, materializeSource } from './build-for-publish';
 import type { FileEntry } from './virtual-fs';
 
-/** The key this workspace's repo connection lives under */
+/**
+ * The key this workspace's repo connection lives under: the cloud project
+ * id, or the signed-out shelf slot's id. Bare 'local' covers only the
+ * moment before the first autosave mints a slot — if it named every
+ * signed-out project, they'd all share one repo connection and switching
+ * projects would push one project's files to another's repo.
+ */
 export function projectRepoKey(): string {
-  return useCloudStore.getState().currentProjectId ?? 'local';
+  const cloudId = useCloudStore.getState().currentProjectId;
+  if (cloudId) return cloudId;
+  return useLocalProjects.getState().currentId ?? 'local';
 }
 
 export function connectedRepoForCurrentProject(): ConnectedRepo | null {

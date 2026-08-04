@@ -7,6 +7,7 @@ import { useNotepadStore, captureNotepad, type NotepadSnapshot } from '@/store/n
 import { useCloudStore, cloudProjectOwnsWorkspace } from '@/store/cloud-store';
 import { useDeployStore } from '@/store/deploy-store';
 import { useAuthStore, cloudEnabled } from '@/store/auth-store';
+import { useSyncStore } from '@/store/sync-store';
 import { suggestProjectName } from './suggest-name';
 
 /**
@@ -123,9 +124,10 @@ export function saveCurrentLocally(fallbackName?: string): void {
   let id = useLocalProjects.getState().currentId;
   if (!id) {
     id = crypto.randomUUID();
-    // A publish that happened before this slot existed was keyed 'local' —
-    // the remembered name belongs to this project now
+    // A publish or repo connection made before this slot existed was keyed
+    // 'local' — both belong to this project now
     useDeployStore.getState().movePublishName('local', id);
+    useSyncStore.getState().moveRepo('local', id);
   }
   const existing = readSnapshot(id);
   const name = existing?.name ?? (fallbackName?.trim() || deriveName(files));
@@ -200,6 +202,7 @@ export function openLocalProject(id: string): boolean {
 export function deleteLocalProject(id: string): void {
   localStorage.removeItem(projectKey(id));
   writeIndex(readIndex().filter(m => m.id !== id));
+  useSyncStore.getState().disconnectRepo(id);
   if (useLocalProjects.getState().currentId === id) {
     setCurrent(null);
     useLocalProjects.setState({ savedAt: null });
@@ -272,9 +275,12 @@ export async function promoteWorkspaceToCloud(
     }
     // The account owns it now — a shelf copy would only shadow it
     const id = useLocalProjects.getState().currentId;
-    // The name this work was published under follows it onto the account
+    // The published name and repo connection follow the work onto the account
     const cloudId = useCloudStore.getState().currentProjectId;
-    if (cloudId) useDeployStore.getState().movePublishName(id ?? 'local', cloudId);
+    if (cloudId) {
+      useDeployStore.getState().movePublishName(id ?? 'local', cloudId);
+      useSyncStore.getState().moveRepo(id ?? 'local', cloudId);
+    }
     if (id) deleteLocalProject(id);
     else detachLocalTracking();
     return { error: null };
@@ -309,6 +315,10 @@ export function initLocalAutosave(): void {
   if (currentId) {
     const snap = readSnapshot(currentId);
     if (snap) useLocalProjects.setState({ currentName: snap.name, savedAt: snap.updatedAt });
+    // Heal connections from when every signed-out project shared the
+    // 'local' repo key: the open slot is the project that connection
+    // belonged to (no-op when nothing sits under 'local')
+    useSyncStore.getState().moveRepo('local', currentId);
   }
 
   const schedule = () => {

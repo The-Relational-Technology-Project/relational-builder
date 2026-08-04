@@ -3,6 +3,7 @@ import { GitBranch, Loader2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useSyncStore } from '@/store/sync-store';
 import { useCloudStore } from '@/store/cloud-store';
+import { useLocalProjects } from '@/project/local-projects';
 import { pullRemoteChanges, forgeNameForRepo } from '@/project/code-sync';
 
 /**
@@ -24,7 +25,8 @@ export function RemoteChangesBanner() {
   const applying = useSyncStore(s => s.pulling);
   const pullError = useSyncStore(s => s.pullError);
   const currentProjectId = useCloudStore(s => s.currentProjectId);
-  const repoKey = currentProjectId ?? 'local';
+  const localId = useLocalProjects(s => s.currentId);
+  const repoKey = currentProjectId ?? localId ?? 'local';
   const repo = repos[repoKey] ?? null;
 
   const [pulling, setPulling] = useState(false);

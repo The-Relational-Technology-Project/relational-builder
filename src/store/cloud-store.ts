@@ -6,7 +6,6 @@ import { useProjectStore, type ProjectLineage } from '@/store/project-store';
 import { useProviderStore } from '@/store/provider-store';
 import { useChatStore, type ChatMode, type DisplayMessage } from '@/store/chat-store';
 import { useNotepadStore, captureNotepad, type NotepadSnapshot } from '@/store/notepad-store';
-import { useSyncStore } from '@/store/sync-store';
 import type { FileEntry } from '@/project/virtual-fs';
 
 export interface CloudProjectSummary {
@@ -249,9 +248,8 @@ export const useCloudStore = create<CloudState>()((set, get) => ({
     if (error) return { error: error.message };
     if (!data) return { error: 'Save failed' };
 
-    // A repo connected while this was a local project follows it into the cloud
-    useSyncStore.getState().moveRepo('local', data.id);
-
+    // The repo connection follows the work onto the account from
+    // promoteWorkspaceToCloud, which knows the shelf slot it came from
     set({
       currentProjectId: data.id,
       currentProjectName: data.name,

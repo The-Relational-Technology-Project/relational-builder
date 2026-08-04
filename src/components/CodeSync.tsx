@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { useSyncStore } from '@/store/sync-store';
 import { useProjectStore } from '@/store/project-store';
 import { useCloudStore } from '@/store/cloud-store';
+import { useLocalProjects } from '@/project/local-projects';
 import { FORGES, forgeClient, type ForgeId, type ForgeRepo } from '@/project/forge';
 import {
   projectRepoKey,
@@ -46,7 +47,8 @@ export function CodeSync() {
   const repos = useSyncStore(s => s.repos);
   const pushStatus = useSyncStore(s => s.pushStatus);
   const currentProjectId = useCloudStore(s => s.currentProjectId);
-  const repoKey = currentProjectId ?? 'local';
+  const localId = useLocalProjects(s => s.currentId);
+  const repoKey = currentProjectId ?? localId ?? 'local';
   const connectedRepo = repos[repoKey] ?? null;
   const autoOn = useSyncStore(s => s.autoPush[repoKey] !== false);
 
@@ -449,7 +451,8 @@ function timeAgo(ts: number): string {
  */
 function ConnectedView() {
   const currentProjectId = useCloudStore(s => s.currentProjectId);
-  const repoKey = currentProjectId ?? 'local';
+  const localId = useLocalProjects(s => s.currentId);
+  const repoKey = currentProjectId ?? localId ?? 'local';
   const connectedRepo = useSyncStore(s => s.repos[repoKey])!;
   const disconnectRepo = useSyncStore(s => s.disconnectRepo);
   const setAutoPush = useSyncStore(s => s.setAutoPush);
