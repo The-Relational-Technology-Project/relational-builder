@@ -1,10 +1,18 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useChatStore } from '@/store/chat-store';
+import { locateExactText, applyDirectTextEdit } from '@/project/direct-text-edit';
+import { Button } from '@/components/ui/button';
 
 /**
  * "Point at it" wiring around any preview iframe: while armed, a click on
  * any element in the running app prefills the chat input with a description
  * of that element — no selectors, no code-speak, just point.
+ *
+ * Copy elements get a faster door first: when the pointed-at wording
+ * appears at exactly one place in the source, a small editor opens and the
+ * change lands as a plain string replacement — instant, no model call,
+ * checkpointed like any AI change. Ambiguous text (data-rendered, repeated,
+ * assembled) falls back to the AI prefill, which handles everything.
  *
  * The wrapper is pure plumbing — the visible toggle lives in the preview
  * toolbar (builder chrome), never floating over the previewed app. It finds
@@ -22,6 +30,9 @@ export function PointAtIt({
 }) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const setDraftMessage = useChatStore(s => s.setDraftMessage);
+  // A pointed-at piece of copy that source-matches exactly once — editable
+  // in place, no model call
+  const [directEdit, setDirectEdit] = useState<{ path: string; original: string; value: string } | null>(null);
 
   // Tell the preview iframe to enter/leave select mode. The injected
   // script's state dies with every rebuild (fresh document), so re-arm on
@@ -45,6 +56,15 @@ export function PointAtIt({
         tag: string; text: string; fullText?: string; isCopy?: boolean;
         path: string; html: string;
       };
+      // Unambiguous copy edits skip the AI entirely: open the in-place editor
+      if (el.isCopy && el.fullText) {
+        const located = locateExactText(el.fullText);
+        if (located) {
+          setDirectEdit({ path: located.path, original: el.fullText, value: el.fullText });
+          onSelectingChange(false);
+          return;
+        }
+      }
       // Text elements get a rewrite-friendly prefill: the current wording is
       // quoted so the AI changes exactly that copy, verbatim, nothing else.
       // Other elements keep the generic describe-the-change prefill.
@@ -69,9 +89,73 @@ export function PointAtIt({
     return () => window.removeEventListener('message', onMessage);
   }, [setDraftMessage, onSelectingChange]);
 
+  // Hand the copy to the AI after all — same prefill the fallback path uses
+  function askAiInstead() {
+    if (!directEdit) return;
+    setDraftMessage([
+      'Copy change — this text in the preview:',
+      `"${directEdit.original}"`,
+      '',
+      'Replace it with: ',
+    ].join('\n'));
+    setDirectEdit(null);
+  }
+
+  function saveDirectEdit() {
+    if (!directEdit) return;
+    const applied = applyDirectTextEdit(directEdit.path, directEdit.original, directEdit.value);
+    if (!applied) {
+      // The file moved under us (a build landed) — the AI path still works
+      askAiInstead();
+      return;
+    }
+    setDirectEdit(null);
+  }
+
   return (
     <div ref={wrapperRef} className="relative" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
       {children}
+      {directEdit && (
+        <div
+          className="absolute inset-0 z-20 bg-black/20 flex items-start justify-center pt-10"
+          onClick={() => setDirectEdit(null)}
+        >
+          <div
+            className="bg-background border rounded-xl shadow-lg p-3 w-[min(28rem,92%)] space-y-2"
+            onClick={e => e.stopPropagation()}
+          >
+            <p className="text-xs font-medium">Edit this text</p>
+            <textarea
+              value={directEdit.value}
+              onChange={e => setDirectEdit(d => (d ? { ...d, value: e.target.value } : d))}
+              rows={Math.min(6, Math.max(2, Math.ceil(directEdit.original.length / 60)))}
+              autoFocus
+              className="w-full text-sm border rounded-md p-2 bg-background resize-y"
+            />
+            <p className="text-[11px] text-muted-foreground">
+              Changes just this wording — instant, no AI. Undo lives where it always does.
+            </p>
+            <div className="flex items-center justify-between gap-2">
+              <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground" onClick={askAiInstead}>
+                Ask AI instead
+              </Button>
+              <div className="flex items-center gap-1.5">
+                <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setDirectEdit(null)}>
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  className="h-7 text-xs"
+                  onClick={saveDirectEdit}
+                  disabled={directEdit.value.trim() === directEdit.original.trim() || !directEdit.value.trim()}
+                >
+                  Save
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
