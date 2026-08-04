@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import type { FileEntry } from '@/project/virtual-fs';
 import type { EnvVar } from '@/store/env-store';
+import { useChatStore } from '@/store/chat-store';
 import { buildEnvJs, buildEnvTs } from '@/project/env-module';
 import { bundleProject, findFrameworkEntry } from '@/preview/bundler/bundle';
 import { ASSET_APPLIER, buildShellHtml, ERROR_RELAY, NAV_BRIDGE } from '@/preview/bundler/shell';
@@ -47,6 +48,11 @@ export function FrameworkPreview({
   const [runtimeError, setRuntimeError] = useState<string | null>(null);
   const [bundling, setBundling] = useState(true);
   const runId = useRef(0);
+  // While a reply is streaming, files land in bursts — a version bump per
+  // file. The preview still follows along, but at a calmer cadence: each
+  // rebundle is a full esbuild pass over the project plus the kit, and the
+  // 250ms debounce alone ran ~20 of them for a 20-file build.
+  const isGenerating = useChatStore(s => s.isGenerating);
 
   useEffect(() => {
     const id = ++runId.current;
@@ -109,11 +115,11 @@ export function FrameworkPreview({
           ],
         }),
       );
-    }, 250);
+    }, isGenerating ? 1250 : 250);
 
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- version is the VFS change signal
-  }, [version, publicEnvVars]);
+  }, [version, publicEnvVars, isGenerating]);
 
   // Runtime errors surface through the shell's relay script
   useEffect(() => {
@@ -129,7 +135,11 @@ export function FrameworkPreview({
   // Blob URL (not srcdoc) so hash routing and history work inside the app.
   // Old URLs are revoked on a delay: immediate revocation races the iframe's
   // fetch (visibly so under StrictMode's double-mount) and 404s the document.
+  // Refresh re-runs this effect (via refreshKey) instead of minting its own
+  // URL, so every document the iframe loads gets revoked eventually — the
+  // toolbar button used to leak a full bundle-sized document per click.
   const [src, setSrc] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
   useEffect(() => {
     if (html === null) return;
     const url = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
@@ -137,7 +147,7 @@ export function FrameworkPreview({
     return () => {
       setTimeout(() => URL.revokeObjectURL(url), 5000);
     };
-  }, [html]);
+  }, [html, refreshKey]);
 
   // Offer the toolbar its controls for this engine
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -155,8 +165,7 @@ export function FrameworkPreview({
   useEffect(() => {
     if (!onHandle || html === null) return;
     onHandle({
-      refresh: () =>
-        setSrc(URL.createObjectURL(new Blob([html], { type: 'text/html' }))),
+      refresh: () => setRefreshKey(k => k + 1),
       openExternal: () => {
         // A fresh URL per open: revoking the iframe's own URL later must not
         // kill the tab, and vice versa

@@ -140,25 +140,39 @@ export function selectRelevant(
     .slice(0, limit);
 }
 
+// Entry bodies don't change within a session, and the topic-blended query
+// makes the same strongest hits recur turn after turn — without this cache,
+// every send re-fetched the same three bodies.
+const bodyCache = new Map<string, string | null>();
+
 /** Attach full-body excerpts to the strongest hits, best-effort and bounded. */
 export async function deepenResults(results: CommonsSearchResult[]): Promise<void> {
   const strong = results
     .filter(r => r.match === 'both' || r.match === 'text' || (r.similarity ?? 0) >= DEEPEN_SIMILARITY)
     .slice(0, DEEPEN_COUNT);
   if (strong.length === 0) return;
-  const timeout = new Promise<null>(resolve => setTimeout(() => resolve(null), DEEPEN_TIMEOUT_MS));
-  await Promise.all(
-    strong.map(async r => {
-      const detail = await Promise.race([
-        fetchCommonsItemDetail(r.slug).catch(() => null),
-        timeout,
-      ]);
-      const body = detail?.body?.trim();
-      if (body && body.length > (r.summary?.length ?? 0)) {
-        r.body_excerpt = body.slice(0, DEEPEN_EXCERPT_CHARS);
-      }
-    }),
-  );
+  if (strong.some(r => !bodyCache.has(r.slug))) {
+    // The deadline aborts the requests outright — racing a bare timeout left
+    // the HTTP requests running to completion after the send moved on
+    const controller = new AbortController();
+    const deadline = setTimeout(() => controller.abort(), DEEPEN_TIMEOUT_MS);
+    await Promise.all(
+      strong
+        .filter(r => !bodyCache.has(r.slug))
+        .map(async r => {
+          const detail = await fetchCommonsItemDetail(r.slug, controller.signal).catch(() => null);
+          // Only cache real answers — a timeout must not stick as "no body"
+          if (detail) bodyCache.set(r.slug, detail.body?.trim() || null);
+        }),
+    );
+    clearTimeout(deadline);
+  }
+  for (const r of strong) {
+    const body = bodyCache.get(r.slug);
+    if (body && body.length > (r.summary?.length ?? 0)) {
+      r.body_excerpt = body.slice(0, DEEPEN_EXCERPT_CHARS);
+    }
+  }
 }
 
 export interface RetrievalOutcome {

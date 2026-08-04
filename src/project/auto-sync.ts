@@ -121,6 +121,25 @@ async function run(): Promise<void> {
 }
 
 /**
+ * Fingerprinting the push set is a full materialization of the project —
+ * kit merge, import scan, manifest synthesis, then hashing every file —
+ * and canAutoPull runs on every tab focus and poll tick. Cache it on what
+ * it actually depends on: the VFS version, the repo key, and lineage
+ * (which feeds the manifest without bumping the version).
+ */
+let fpCache: { version: number; key: string; lineage: unknown; value: string } | null = null;
+function currentFingerprint(repo: NonNullable<ReturnType<typeof connectedRepoForCurrentProject>>): string {
+  const { version, lineage } = useProjectStore.getState();
+  const key = projectRepoKey();
+  if (fpCache && fpCache.version === version && fpCache.key === key && fpCache.lineage === lineage) {
+    return fpCache.value;
+  }
+  const value = fingerprintFiles(filesForPush(repo));
+  fpCache = { version, key, lineage, value };
+  return value;
+}
+
+/**
  * Is it safe to bring the repo's version in without asking? Only when the
  * workspace is exactly what we last pushed (or holds nothing yet) — then a
  * pull can't cost anyone work. Any local edit the repo hasn't seen makes this
@@ -141,7 +160,7 @@ function canAutoPull(): boolean {
   if (project.getFileCount() === 0) return true;
 
   const key = projectRepoKey();
-  return sync.pushedFingerprint[key] === fingerprintFiles(filesForPush(repo));
+  return sync.pushedFingerprint[key] === currentFingerprint(repo);
 }
 
 /**

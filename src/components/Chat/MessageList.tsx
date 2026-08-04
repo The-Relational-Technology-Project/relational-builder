@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { buildNotifyGranted } from '@/notify/build-ready';
@@ -243,9 +243,30 @@ export function MessageList({ messages, onBuildPlan, isGenerating }: MessageList
     return () => el.removeEventListener('scroll', onScroll);
   }, []);
 
+  // Follow the stream, throttled: this effect fires on every streamed token,
+  // and restarting a smooth scroll animation hundreds of times a second turns
+  // long builds into jank. One scroll per ~150ms reads identically.
+  const lastContent = messages[messages.length - 1]?.content;
+  const lastFollowAt = useRef(0);
+  const followTimer = useRef<number | null>(null);
   useEffect(() => {
-    if (nearBottom) bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, messages[messages.length - 1]?.content, nearBottom]);
+    if (!nearBottom) return;
+    const follow = () => bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const since = Date.now() - lastFollowAt.current;
+    if (since >= 150) {
+      lastFollowAt.current = Date.now();
+      follow();
+    } else if (followTimer.current === null) {
+      followTimer.current = window.setTimeout(() => {
+        followTimer.current = null;
+        lastFollowAt.current = Date.now();
+        follow();
+      }, 150 - since);
+    }
+  }, [messages, lastContent, nearBottom]);
+  useEffect(() => () => {
+    if (followTimer.current !== null) clearTimeout(followTimer.current);
+  }, []);
 
   // A plan stays hidden while it's written and lands in one piece — when it
   // does, start the reader at its top instead of letting the bottom-follow
@@ -423,7 +444,10 @@ function CollabNote({ message }: { message: DisplayMessage }) {
   );
 }
 
-function MessageBubble({ message }: { message: DisplayMessage }) {
+// Memoized: the store appends streamed tokens by remapping the messages
+// array, so the list re-renders per token — without this, every bubble in
+// the history re-ran its full markdown parse for each token of a long build.
+const MessageBubble = memo(function MessageBubble({ message }: { message: DisplayMessage }) {
   const isUser = message.role === 'user';
   const checkpoints = useProjectStore(s => s.checkpoints);
   const activeCheckpointId = useProjectStore(s => s.activeCheckpointId);
@@ -567,7 +591,7 @@ function MessageBubble({ message }: { message: DisplayMessage }) {
       )}
     </div>
   );
-}
+});
 
 /**
  * The commons entries a reply actually drew on — surfaced by retrieval AND

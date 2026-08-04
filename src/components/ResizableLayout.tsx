@@ -34,22 +34,31 @@ export function ResizableLayout({ panels }: ResizableLayoutProps) {
         p => ((p.minSize ?? 150) / containerWidth) * 100,
       );
 
+      // One resize per frame: these panels hold the preview iframe and the
+      // chat list, and an unthrottled mousemove forced a full relayout of
+      // both per mouse event
+      let frame: number | null = null;
       function onMouseMove(ev: MouseEvent) {
-        const dx = ev.clientX - startX;
-        const deltaPct = (dx / containerWidth) * 100;
+        if (frame !== null) return;
+        frame = requestAnimationFrame(() => {
+          frame = null;
+          const dx = ev.clientX - startX;
+          const deltaPct = (dx / containerWidth) * 100;
 
-        const newSizes = [...startSizes];
-        const leftNew = startSizes[index] + deltaPct;
-        const rightNew = startSizes[index + 1] - deltaPct;
+          const newSizes = [...startSizes];
+          const leftNew = startSizes[index] + deltaPct;
+          const rightNew = startSizes[index + 1] - deltaPct;
 
-        if (leftNew >= minPcts[index] && rightNew >= minPcts[index + 1]) {
-          newSizes[index] = leftNew;
-          newSizes[index + 1] = rightNew;
-          setSizes(newSizes);
-        }
+          if (leftNew >= minPcts[index] && rightNew >= minPcts[index + 1]) {
+            newSizes[index] = leftNew;
+            newSizes[index + 1] = rightNew;
+            setSizes(newSizes);
+          }
+        });
       }
 
       function onMouseUp() {
+        if (frame !== null) cancelAnimationFrame(frame);
         document.removeEventListener('mousemove', onMouseMove);
         document.removeEventListener('mouseup', onMouseUp);
         document.body.style.cursor = '';

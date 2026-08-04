@@ -79,14 +79,13 @@ class ProviderRegistry {
 
   /** Get all available models across configured providers (async — hits APIs) */
   async getAllModels(): Promise<ModelInfo[]> {
-    const results: ModelInfo[] = [];
-    for (const { provider } of this.providers.values()) {
-      if (provider.isConfigured()) {
-        const models = await provider.getModels();
-        results.push(...models);
-      }
-    }
-    return results;
+    // In parallel, and one slow or failing provider doesn't hide the others'
+    // models — this used to await each provider in sequence
+    const configured = Array.from(this.providers.values()).filter(({ provider }) =>
+      provider.isConfigured(),
+    );
+    const settled = await Promise.allSettled(configured.map(({ provider }) => provider.getModels()));
+    return settled.flatMap(r => (r.status === 'fulfilled' ? r.value : []));
   }
 
   /** Get default models for a specific provider (sync — no API calls) */

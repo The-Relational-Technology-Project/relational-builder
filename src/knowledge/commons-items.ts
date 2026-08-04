@@ -36,9 +36,10 @@ export interface CommonsItemDetail extends CommonsCard {
 
 const CARD_COLUMNS = 'id,slug,kind,title,summary,attribution,source_studio_slug,source_url,license,tags';
 
-async function rest<T>(path: string): Promise<T> {
+async function rest<T>(path: string, signal?: AbortSignal): Promise<T> {
   const res = await fetch(`${COMMONS_URL}/rest/v1/${path}`, {
     headers: { apikey: COMMONS_ANON_KEY, Authorization: `Bearer ${COMMONS_ANON_KEY}` },
+    signal,
   });
   if (!res.ok) throw new Error(`Commons read failed (${res.status})`);
   return res.json() as Promise<T>;
@@ -75,9 +76,13 @@ export async function fetchNeighboringRecipeCards(): Promise<CommonsCard[]> {
 }
 
 /** Full entry (body + structured metadata) for a card's detail view / remix. */
-export async function fetchCommonsItemDetail(slug: string): Promise<CommonsItemDetail | null> {
+export async function fetchCommonsItemDetail(
+  slug: string,
+  signal?: AbortSignal,
+): Promise<CommonsItemDetail | null> {
   const rows = await rest<CommonsItemDetail[]>(
     `commons_items?select=${CARD_COLUMNS},body,metadata&slug=eq.${encodeURIComponent(slug)}&limit=1`,
+    signal,
   );
   return rows[0] ?? null;
 }

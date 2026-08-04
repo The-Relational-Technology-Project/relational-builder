@@ -51,9 +51,13 @@ export function PreviewPanel() {
   const allEnvVars = useEnvStore(s => s.vars);
   const publicEnvVars = useMemo(() => allEnvVars.filter(v => !v.isSecret), [allEnvVars]);
 
-  // Re-read files when VFS changes
-  void version;
-  const files = getAllFiles();
+  // Re-read files when the VFS version bumps — and ONLY then. getAllFiles()
+  // allocates a fresh array per call, so calling it bare gave `files` a new
+  // identity every render and silently defeated every useMemo keyed on it
+  // (kind detection, route extraction, doc/material scans — all re-ran per
+  // render).
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- version is the VFS change signal
+  const files = useMemo(() => getAllFiles(), [version, getAllFiles]);
   const kind = useMemo(() => detectPreviewKind(files), [files]);
 
   // Toolbar state: device width, engine controls, page tracking
