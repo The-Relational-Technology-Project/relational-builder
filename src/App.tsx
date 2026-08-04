@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
+import { Loader2 } from 'lucide-react';
 import { ProviderSettings } from '@/components/ProviderSettings';
 import { ChatPanel } from '@/components/Chat/ChatPanel';
-import { RightPanel } from '@/components/RightPanel';
 import { ResizableLayout } from '@/components/ResizableLayout';
 import { ShareMenu } from '@/components/ShareMenu';
 import { CodeSync } from '@/components/CodeSync';
@@ -16,12 +16,7 @@ import { useUIStore, initRouting } from '@/store/ui-store';
 import { BuilderOnboarding } from '@/components/BuilderOnboarding';
 import { initCloudSync } from '@/cloud/sync';
 import { AccountMenu, SignInDialogHost } from '@/components/AccountMenu';
-import { HomePage } from '@/components/HomePage';
-import { ProjectsPage } from '@/components/ProjectsPage';
-import { ConnectionsPage } from '@/components/ConnectionsPage';
-import { ProfilePage } from '@/components/ProfilePage';
-import { StewardPage } from '@/components/StewardPage';
-import { StudioAdminPage } from '@/components/StudioAdminPage';
+import { handlePromptDeepLink } from '@/cloud/prompts';
 import { initLocalAutosave } from '@/project/local-projects';
 import { initAutoSync } from '@/project/auto-sync';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -31,10 +26,32 @@ import { useCurrentProjectName } from '@/lib/use-project-name';
 import { ProjectMenu } from '@/components/ProjectMenu';
 import { InviteBanner } from '@/components/InviteBanner';
 
-import { CommonsGallery } from '@/components/CommonsGallery';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { Home, MessageSquare, PanelsTopLeft, Menu, X, ArrowLeft, FolderOpen, LayoutGrid } from 'lucide-react';
+
+// The full-width pages and the workspace panel load on demand — the builder
+// shell (chat, header, nav) stays in the initial chunk, everything else
+// splits out. RightPanel matters most: it carries both preview engines
+// (Sandpack and the esbuild bundler), which nobody needs to download to
+// read the landing page or send a first message.
+const RightPanel = lazy(() => import('@/components/RightPanel').then(m => ({ default: m.RightPanel })));
+const HomePage = lazy(() => import('@/components/HomePage').then(m => ({ default: m.HomePage })));
+const ProjectsPage = lazy(() => import('@/components/ProjectsPage').then(m => ({ default: m.ProjectsPage })));
+const ConnectionsPage = lazy(() => import('@/components/ConnectionsPage').then(m => ({ default: m.ConnectionsPage })));
+const ProfilePage = lazy(() => import('@/components/ProfilePage').then(m => ({ default: m.ProfilePage })));
+const StewardPage = lazy(() => import('@/components/StewardPage').then(m => ({ default: m.StewardPage })));
+const StudioAdminPage = lazy(() => import('@/components/StudioAdminPage').then(m => ({ default: m.StudioAdminPage })));
+const CommonsGallery = lazy(() => import('@/components/CommonsGallery').then(m => ({ default: m.CommonsGallery })));
+
+/** Calm centered loader for a lazy page or panel arriving */
+function LazyFallback() {
+  return (
+    <div className="h-full flex items-center justify-center text-muted-foreground">
+      <Loader2 className="size-5 animate-spin" />
+    </div>
+  );
+}
 
 /** True below the md breakpoint — drives the stacked mobile layout */
 /**
@@ -89,7 +106,7 @@ function App() {
     // The address bar decides which page is showing, and back/forward work
     initRouting();
     // Shared build prompts arrive by link, ready to send
-    import('@/cloud/prompts').then(m => m.handlePromptDeepLink()).catch(() => {});
+    void handlePromptDeepLink();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const setView = useUIStore(s => s.setView);
@@ -118,7 +135,13 @@ function App() {
 
   const panels = useMemo(() => [
     { content: <ChatPanel />, defaultSize: 45, minSize: 300 },
-    { content: <RightPanel />, defaultSize: 55, minSize: 350 },
+    // Its own Suspense boundary: the panel chunk arriving must not blank
+    // the conversation next to it
+    {
+      content: <Suspense fallback={<LazyFallback />}><RightPanel /></Suspense>,
+      defaultSize: 55,
+      minSize: 350,
+    },
   ], []);
 
   const isMobile = useIsMobile();
@@ -251,6 +274,7 @@ function App() {
       {/* Main content — home gets the full width (nothing to preview yet);
           building gets split panels on desktop, a tab-switched stack on mobile */}
       <main className="flex-1 min-h-0">
+        <Suspense fallback={<LazyFallback />}>
         {view === 'home' ? (
           <div className="h-full flex flex-col">
             <div className="flex-1 min-h-0">
@@ -284,7 +308,11 @@ function App() {
         ) : isMobile ? (
           <div className="h-full flex flex-col">
             <div className="flex-1 min-h-0">
-              {mobileTab === 'chat' ? <ChatPanel /> : <RightPanel />}
+              {mobileTab === 'chat' ? (
+                <ChatPanel />
+              ) : (
+                <Suspense fallback={<LazyFallback />}><RightPanel /></Suspense>
+              )}
             </div>
             <nav className="flex border-t shrink-0 pb-[env(safe-area-inset-bottom)]" aria-label="Mobile panels">
               <button
@@ -310,6 +338,7 @@ function App() {
         ) : (
           <ResizableLayout panels={panels} />
         )}
+        </Suspense>
       </main>
     </div>
   );

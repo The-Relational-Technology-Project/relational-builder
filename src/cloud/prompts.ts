@@ -1,4 +1,6 @@
 import { builderClient } from '@/cloud/builder-client';
+import { useStudioStore } from '@/store/studio-store';
+import { recordStudioActivity } from '@/cloud/studios';
 
 /**
  * Prompts are first-class citizens — the artifact that actually spreads.
@@ -184,14 +186,8 @@ export async function sharePrompt(prompt: BuildPrompt): Promise<{ slug: string; 
   const url = promptShareUrl(slug);
   // A share is studio life — let the builder's studios see it (best-effort)
   if (!prompt.share_slug) {
-    void (async () => {
-      const [{ useStudioStore }, { recordStudioActivity }] = await Promise.all([
-        import('@/store/studio-store'),
-        import('@/cloud/studios'),
-      ]);
-      const studio = useStudioStore.getState().activeStudio;
-      if (studio) void recordStudioActivity('share', studio.slug, prompt.title, url);
-    })();
+    const studio = useStudioStore.getState().activeStudio;
+    if (studio) void recordStudioActivity('share', studio.slug, prompt.title, url);
   }
   return { slug, url };
 }

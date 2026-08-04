@@ -1,7 +1,6 @@
-import { StrictMode } from 'react'
+import { lazy, StrictMode, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import App from './App.tsx'
 import { Landing } from './components/Landing.tsx'
 import { initTheme } from './theme.ts'
 import { captureInviteFromUrl } from './cloud/invite-link.ts'
@@ -21,10 +20,17 @@ if (import.meta.env.DEV) {
   w.__rbProject = useProjectStore
 }
 
+// The app itself loads only once someone is through the door — the landing
+// page (most first visits) costs its own chunk, not the whole builder
+// eslint-disable-next-line react-refresh/only-export-components -- entry file, nothing hot-reloads into it
+const App = lazy(() => import('./App.tsx'))
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Landing>
-      <App />
+      <Suspense fallback={null}>
+        <App />
+      </Suspense>
     </Landing>
   </StrictMode>,
 )

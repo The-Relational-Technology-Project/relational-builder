@@ -1,7 +1,6 @@
 import type { FileEntry } from './virtual-fs';
 import type { PublicEnvVar } from './env-module';
 import { buildEnvJs, buildEnvTs } from './env-module';
-import { bundleProject, findFrameworkEntry } from '@/preview/bundler/bundle';
 import { ASSET_APPLIER, buildShellHtml } from '@/preview/bundler/shell';
 import { isPhotoAssetPath } from './assets';
 import { detectPreviewKind } from '@/preview/detect';
@@ -51,6 +50,12 @@ export async function buildStaticSite(
   files: FileEntry[],
   publicEnvVars: PublicEnvVar[],
 ): Promise<FileEntry[]> {
+  // The compiler loads on demand: this module rides in the app's core graph
+  // (code-sync's push path imports materializeSource below), and a static
+  // import here put the whole esbuild-wasm shim in the initial chunk for
+  // every visitor. Only publishing actually bundles.
+  const { bundleProject, findFrameworkEntry } = await import('@/preview/bundler/bundle');
+
   const vfs: Record<string, string> = { ...KIT_FILES, ...toRecord(files) };
   vfs['/env.js'] = buildEnvJs(publicEnvVars);
   vfs['/src/env.ts'] = buildEnvTs(publicEnvVars);

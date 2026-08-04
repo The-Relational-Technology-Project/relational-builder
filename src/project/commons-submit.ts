@@ -6,6 +6,8 @@
  * land as `pending` for steward review — nothing is public until approved.
  */
 
+import { useStudioStore } from '@/store/studio-store';
+
 const COMMONS_URL =
   import.meta.env.VITE_COMMONS_SUPABASE_URL ?? 'https://odowkowcinyoxejyzhwl.supabase.co';
 
@@ -37,7 +39,6 @@ export async function submitToCommons(submission: CommonsSubmission): Promise<Su
   try {
     // Builds grow inside a studio frame — the contribution carries it, so
     // studio-scoped views of the commons know where this one came from
-    const { useStudioStore } = await import('@/store/studio-store');
     const activeStudio = useStudioStore.getState().activeStudio;
 
     const res = await fetch(`${COMMONS_URL}/functions/v1/submit-contribution`, {
