@@ -402,19 +402,31 @@ export function ChatPanel() {
       );
     }
 
+    // The person's message renders NOW — before retrieval. The searches
+    // below can take seconds, and a send that doesn't appear until they
+    // finish looks dropped. History is snapshotted first so retrieval and
+    // the provider payload both see the conversation as it was.
+    const priorMessages = useChatStore.getState().messages;
+    addUserMessage(content, attachments, wasFix ? { label: fixLabel ?? 'Automatic fix' } : undefined);
+    setIsGenerating(true);
+    useChatStore.getState().beginProgress();
+
     // Retrieval: hybrid semantic+text search against the RT Commons (the
     // canonical knowledge base), governed by the policy in
     // knowledge/retrieval.ts — fix sends and preview-machinery turns skip
     // it, follow-up turns search the project's topic blended with the
     // message, and a measured relevance floor keeps noise out of the prompt.
+    // Context enriches the send; it must never break one. The person's
+    // message is already on screen — a retrieval failure falls back to an
+    // uninformed send instead of stranding the composer mid-generation.
     const [retrieval, references, galleryReferences] = await Promise.all([
       retrieveCommonsContext({
         message: content,
         mode: currentMode === 'plan' ? 'plan' : 'build',
         isFixSend: wasFix,
-        messages: useChatStore.getState().messages,
-      }),
-      buildMentionContext(content),
+        messages: priorMessages,
+      }).catch(() => ({ results: [], query: null, dropped: 0 })),
+      buildMentionContext(content).catch(() => []),
       // Connections between entries — cached for the session; lets the AI
       // say where else a surfaced tool or practice showed up
       loadGalleryReferences(),
@@ -468,9 +480,11 @@ export function ChatPanel() {
     // library to what this builder may see; pending offers stay out of the
     // AI's context until an admin approves them
     const studioLibraryItems = activeStudio
-      ? useStudioStore.getState().library.filter(
-          i => i.studio_slug === activeStudio.slug && i.status === 'approved',
-        )
+      ? useStudioStore.getState().library
+          .filter(i => i.studio_slug === activeStudio.slug && i.status === 'approved')
+          // Stable order: this section sits in the cached prompt prefix, and
+          // load-sequence-dependent ordering would silently invalidate it
+          .sort((a, b) => a.id.localeCompare(b.id))
       : [];
     const builderProfile = useAuthStore.getState().profile;
 
@@ -519,25 +533,13 @@ export function ChatPanel() {
       }
     }
 
-    addUserMessage(content, attachments, wasFix ? { label: fixLabel ?? 'Automatic fix' } : undefined);
-
-    // Build messages array including the new user message (with any images)
-    const newUserContent = attachments?.length
-      ? [
-          { type: 'text' as const, text: content },
-          ...attachments.map(url => ({ type: 'image_url' as const, image_url: { url } })),
-        ]
-      : content;
-    const chatMessages = [
-      ...toChatMessages(),
-      { role: 'user' as const, content: newUserContent },
-    ];
+    // The provider payload: fresh system prompt plus the window of history —
+    // which already ends with the user message (and attachments) added above
+    const chatMessages = toChatMessages();
 
     const msgId = startAssistantMessage(currentMode === 'plan');
     const controller = new AbortController();
     setAbortController(controller);
-    setIsGenerating(true);
-    useChatStore.getState().beginProgress();
     let finishReason: string | null = null;
     let sawToken = false;
 

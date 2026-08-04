@@ -578,12 +578,6 @@ export function buildSystemPrompt(options: ContextOptions = {}): string {
     }
   }
 
-  // Domain frames layer like studio principles but travel with the project
-  // (lineage) or the moment (retrieval sensing), not with membership
-  for (const frame of options.frames ?? []) {
-    sections.push('', frame.principles);
-  }
-
   if (options.builderProfile && (options.builderProfile.neighborhood || options.builderProfile.dreams || options.builderProfile.display_name)) {
     sections.push('', formatBuilderProfileForPrompt(options.builderProfile));
   }
@@ -619,6 +613,15 @@ export function buildSystemPrompt(options: ContextOptions = {}): string {
     sections.push('', formatProjectFilesForPrompt(options.projectFiles));
     // Files change once per build, not per message — their own cache segment.
     sections.push(CACHE_BREAK);
+  }
+
+  // Domain frames layer like studio principles but travel with the project
+  // (lineage) or the moment (retrieval sensing), not with membership. They
+  // live in the volatile tail on purpose: a frame sensed mid-conversation
+  // used to land BEFORE the cache breaks and rewrite both cached segments
+  // at the 2× write rate — the exact cost the segments exist to avoid.
+  for (const frame of options.frames ?? []) {
+    sections.push('', frame.principles);
   }
 
   if (options.references && options.references.length > 0) {
