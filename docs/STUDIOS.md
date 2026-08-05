@@ -73,8 +73,8 @@ The loop a gated studio runs, end to end:
    library in the AI's context throughout).
 3. From **Share → Put it out there**, they publish and then **Share it to
    the studio's gallery** — the offer lands as `pending`, with `remix_of`
-   pointing at the shelf item it grew from, and shows up in the studio's
-   Network Updates.
+   pointing at the shelf item it grew from, waiting in the Studio Admin's
+   "Offered by members" list.
 4. A Studio Admin reviews it (Studio admin → Library → "Offered by
    members") and approves it onto the shelf.
 5. The next member finds the remix in the gallery — badged `remix`, lineage

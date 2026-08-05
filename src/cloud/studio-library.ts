@@ -109,7 +109,8 @@ export async function submitStudioItem(
     .select(SELECT_COLUMNS)
     .single();
   if (error) throw new Error(error.message);
-  // The offer is studio life — members see "X shared ..." in Network Updates
+  // The offer is studio life — recorded on the studio's stream even though
+  // nothing surfaces it in the UI right now
   void import('@/cloud/studios').then(({ recordStudioActivity }) =>
     recordStudioActivity('share', input.studio_slug, input.title, input.url ?? undefined),
   );
