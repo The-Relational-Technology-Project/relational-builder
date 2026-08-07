@@ -8,6 +8,7 @@ import { useKnowledgeStore } from '@/store/knowledge-store';
 import { buildSystemPrompt } from '@/knowledge/context-builder';
 import { registry } from '@/providers/registry';
 import { CLAUDE_MODELS } from '@/providers/claude';
+import { shortModelName } from '@/providers/model-label';
 import { useEnvStore } from '@/store/env-store';
 import {
   getConnectedIntegrations,
@@ -98,7 +99,9 @@ const CHUNK_MARKER = /^NEXT-FILES:\s*(\S.*)$/m;
  *  moved to Opus 5 — a sentence that only appears when a constant changes is
  *  exactly the sentence that will be stale when it finally shows up. */
 function communityModelNote(stage: CommunityModelStage, movedOff: string): string {
-  const name = (id: string) => CLAUDE_MODELS.find(m => m.id === id)?.name ?? id;
+  // Named the way the model menu names them — "Opus 5", not "Claude Opus 5"
+  const name = (id: string) =>
+    shortModelName(CLAUDE_MODELS.find(m => m.id === id)?.name ?? id);
   if (stage === 'first-build') {
     return `This build runs on **${name(COMMUNITY_FIRST_BUILD_MODEL)}** — the community default for first builds, chosen for the most complete first version. Rather build with ${name(movedOff)}? Pick it in the model menu and it will stick for this project.`;
   }

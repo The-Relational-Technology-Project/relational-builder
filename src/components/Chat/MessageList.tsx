@@ -136,7 +136,7 @@ function GenerationStatus() {
   const label =
     notice ??
     (phase === 'waiting'
-      ? 'Reaching Claude'
+      ? 'Reaching the model'
       : phase === 'thinking'
         ? 'Thinking it through'
         : mode === 'plan'
