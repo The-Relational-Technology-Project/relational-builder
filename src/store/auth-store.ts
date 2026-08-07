@@ -102,17 +102,26 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     }
     set({ initialized: true });
 
-    builderClient.auth.getSession().then(({ data }) => {
-      const u = data.session?.user;
-      set({ user: u?.email ? { id: u.id, email: u.email } : null });
-      get().refreshProfile();
-    });
+    // Adopting a session: when the account actually changes — the session
+    // restoring after an expired token, a sign-in, a sign-out — whatever we
+    // held for `profile` belongs to the old account. Unload it *before*
+    // refetching, so the onboarding gate waits for this account's row
+    // instead of reading a stale "loaded, no profile" from the signed-out
+    // pass as a first run.
+    const adopt = (u: { id: string; email?: string } | null | undefined, refetch = false) => {
+      const next = u?.email ? { id: u.id, email: u.email } : null;
+      const changed = (next?.id ?? null) !== (get().user?.id ?? null);
+      if (changed) set({ user: next, profile: null, profileLoaded: false });
+      else set({ user: next });
+      if (changed || refetch) get().refreshProfile();
+    };
+
+    // refetch even when the user is unchanged: for a signed-out visitor this
+    // is what settles profileLoaded to its "no user, nothing to load" true
+    builderClient.auth.getSession().then(({ data }) => adopt(data.session?.user, true));
 
     builderClient.auth.onAuthStateChange((_event, session) => {
-      const u = session?.user;
-      const prev = get().user?.id;
-      set({ user: u?.email ? { id: u.id, email: u.email } : null });
-      if (u?.id !== prev) get().refreshProfile();
+      adopt(session?.user);
       // Token's been consumed by now — tidy the address bar
       clearAuthHash();
     });
@@ -160,11 +169,17 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       set({ profile: null, profileLoaded: true });
       return;
     }
-    const { data } = await builderClient
+    const { data, error } = await builderClient
       .from('profiles')
       .select('display_name, full_name, neighborhood, neighborhood_description, dreams, tech_familiarity, ai_coding_experience, email_opt_in, terms_accepted_at, profile_completed, design_system, local_tech_ecosystem, open_to_connecting, connect_note, cal_link, allow_requests, referral_code')
       .eq('id', user.id)
       .maybeSingle();
+    // The account changed while we were fetching — this row isn't theirs
+    if (get().user?.id !== user.id) return;
+    // A failed fetch is not "no profile row": treating it as one used to
+    // open the first-run wizard over finished accounts. Keep what we knew;
+    // the next auth event or manual refresh tries again.
+    if (error) return;
     set({ profile: (data as BuilderProfile | null) ?? null, profileLoaded: true });
   },
 

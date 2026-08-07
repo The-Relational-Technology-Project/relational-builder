@@ -32,6 +32,15 @@ export function BuilderOnboarding({ onDone }: { onDone?: () => void }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Self-healing for a false-positive open: if the finished profile lands
+  // while the wizard is still untouched on its welcome step, this is a
+  // signed-in builder caught mid-session-restore — not a first run. Bow out
+  // rather than greet them like a stranger. Anyone actually mid-flow (any
+  // later step, including the post-save "share" close) is left alone.
+  useEffect(() => {
+    if (step === 'welcome' && profile?.profile_completed) onDone?.();
+  }, [step, profile?.profile_completed, onDone]);
+
   const [fullName, setFullName] = useState(profile?.full_name ?? '');
   const [displayName, setDisplayName] = useState(profile?.display_name ?? '');
   const [neighborhood, setNeighborhood] = useState(profile?.neighborhood ?? '');
