@@ -189,6 +189,50 @@ Vite bakes them in at build time):
 For a custom domain, add it in Vercel and remember to add the same origin to
 the proxy's `ALLOWED_ORIGINS` and Supabase Auth's *Site URL*.
 
+### Redeploying after a change
+
+Production is a static build baked at deploy time. **Landing a commit on `main`
+does not update the live site** — there is no CI in this repo, so nothing
+watches `main` on its own. When a change is merged but the site still shows the
+old behaviour, a missing deploy is the first thing to suspect, not a caching
+problem.
+
+Confirm it before guessing. The live bundle is fingerprinted, so you can read
+what's actually deployed:
+
+```bash
+# which chunk is the site serving right now
+curl -s https://relationalbuilder.org/ | grep -o 'src="[^"]*\.js"'
+# then fetch the chunk your change touched and grep for a string it added or removed
+curl -s https://relationalbuilder.org/assets/ConnectionsPage-XXXX.js | grep -c "Some removed string"
+```
+
+To ship the current `main`:
+
+```bash
+npm i -g vercel   # once
+vercel login      # once
+vercel link       # once — pick the existing relational-builder project
+vercel --prod
+```
+
+`vercel --prod` uploads the source and builds *on Vercel*, so it picks up the
+Environment Variables configured above. Don't reach for `--prebuilt` unless
+every `VITE_*` var is set in your local shell first — Vite bakes them in at
+build time, so a prebuilt deploy with vars missing ships a working-looking app
+with no backend attached.
+
+Two things worth knowing:
+
+- **The dashboard's Redeploy button rebuilds the source of the deployment you
+  clicked on**, which for the newest deployment just reproduces the same stale
+  commit. It ships the current `main` only if the deployment you picked was
+  already built from it.
+- **If Vercel's Git integration is attached**, the project's Deployments list
+  shows commit messages and branch names, and pushing to `main` deploys by
+  itself. If the list shows only CLI deploys, shipping is manual and the
+  commands above are the only path.
+
 ## 5. Community Hosting
 
 Built apps deploy free to RTP-hosted community hosting (3 sites per
