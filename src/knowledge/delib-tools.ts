@@ -186,27 +186,30 @@ export const DELIB_TOOLS: DelibTool[] = [
   {
     id: 'heard',
     name: 'Heard',
-    tagline: 'A place to be heard — hyperlocal questions, responses, and results',
+    tagline: 'A place to be heard — participatory surveys for the feed generation',
     description:
-      'Neighbors post a question, respond to each other\'s, and see results as they come in — a lightweight way for a place to hear itself between meetings. Built hyperlocal-first in Washington, DC.',
+      'A participatory survey platform inspired by Polis, vTaiwan, and Participativo Brazil — "large-scale civic engagement, designed for the Instagram/TikTok generation." Neighbors respond to each other\'s questions and watch results form in real time; grown hyperlocal-first in Washington, DC.',
     url: 'https://heard.vote',
+    repoUrl: 'https://github.com/Heard-Platform/heard',
+    license: 'MIT',
     openSource: true,
     builders: [
-      { name: 'Alex and the Heard team', org: 'heard.vote', url: 'https://heard.vote' },
+      { name: 'Alex and the Heard team', org: 'Heard Platform', url: 'https://github.com/Heard-Platform/heard' },
     ],
-    stages: ['eliciting', 'deciding'],
+    stages: ['eliciting', 'deliberating'],
     listedInMetagovGallery: false,
     neighborhoodUse:
       'The standing question box for a block or an ANC-scale neighborhood: what should we take up next, how do people actually feel about the proposal, quick pulse before the meeting so the meeting starts warm.',
     remixPattern:
       'A neighborhood question board: anyone poses a question, neighbors respond and see live results, recent questions stay browsable — tuned to one place, with the steward deciding what carries forward to the in-person agenda.',
     connects: [
+      'Carries the Pol.is / vTaiwan lineage into a phone-native, feed-style format',
       'ANC-scale: agendas and decisions neighbors can weigh in on between meetings',
       'Pairs with printed meeting notices going out and public minutes coming back',
     ],
     screenshot: '/delib/heard.jpg',
     attributionNote:
-      'An RTP field pick from the network — details worth confirming with the builder (via heard.vote) before wider publishing.',
+      'Builder credit to confirm before wider publishing — the platform is open source at github.com/Heard-Platform/heard.',
   },
   {
     id: 'civicos',
@@ -241,32 +244,6 @@ export const DELIB_TOOLS: DelibTool[] = [
       'Partners\' existing convenings (colleges, health orgs, civic groups) are the on-land infrastructure',
     ],
     screenshot: '/delib/civicos.jpg',
-  },
-  {
-    id: 'hear-the-room',
-    name: 'Hear The Room',
-    tagline: 'Live listening: pairs talk, and the room hears itself in 90 seconds',
-    description:
-      'No raised hands, space for all voices: everyone pairs up around a prompt, streaming transcription listens, and within about ninety seconds the room sees the five things it most wants its host to hear. Built for public meetings, campaign events, offsites — any room that usually only hears its loudest three people.',
-    url: 'https://www.heartheroom.com',
-    openSource: false,
-    builders: [
-      { name: 'Wren', org: 'Hear The Room', url: 'https://www.heartheroom.com' },
-    ],
-    stages: ['eliciting', 'learning'],
-    listedInMetagovGallery: false,
-    neighborhoodUse:
-      'The opening twenty minutes of any neighborhood assembly: pairs instead of a microphone line, then the whole room reads its own top five and the agenda adjusts to what the room actually said.',
-    remixPattern:
-      'A room-listening session page: a prompt on the screen, pair timers, a way to capture what pairs heard (typed or transcribed), and a live synthesis view — ending in a printable one-pager of what the room said.',
-    connects: [
-      'Church basements, city halls, and block parties become listening infrastructure',
-      'The five-things summary prints onto a one-pager for the bulletin board',
-      'Feeds Talk to the City-style analysis when sessions accumulate',
-    ],
-    screenshot: '/delib/hear-the-room.jpg',
-    attributionNote:
-      'An RTP field pick from the network — builder details worth confirming (via heartheroom.com) before wider publishing.',
   },
   {
     id: 'talk-to-the-city',

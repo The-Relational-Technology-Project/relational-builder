@@ -14,7 +14,7 @@ printable flyer — with results that can travel.
 
 | Piece | Where | What it does |
 |---|---|---|
-| Registry | `src/knowledge/delib-tools.ts` | Code-defined shelf: 8 featured tools with full attribution, stages, stories, interop edges; the 17 remaining Metagov gallery tools by name; starting tensions; the prompt digest |
+| Registry | `src/knowledge/delib-tools.ts` | Code-defined shelf: 7 featured tools with full attribution, stages, stories, interop edges; the 17 remaining Metagov gallery tools by name; starting tensions; the prompt digest |
 | Frame | `src/knowledge/frames.ts` (`DELIBERATIVE_FRAME`) | Tension-first design, stage hand-offs, facilitation guardrails, honest-signal caveats, the four-output kit contract, flatfile exports, attribution norms — plus the tools digest. Sensed from deliberation-shaped asks (`DELIBERATION_ASK`) and stamped by both start flows |
 | Entry point | `src/components/DeliberationStudio.tsx` at `/deliberate` | Question → tension (suggested, never imposed) → stages → optional pattern → an editable Plan-mode draft. Reached from "or start from · a neighborhood question" and the gallery shelf banner |
 | Gallery shelf | `src/components/CommonsGallery.tsx` (`Deliberative tools` category) | Screenshot cards with builders named; detail dialogs with makers, curators, stages, field stories with sources, and interop edges; the "More in the Metagov gallery" strip |
@@ -37,15 +37,17 @@ github.com/compdemocracy/polis (Pol.is, AGPL-3.0, vTaiwan);
 theflyer.org + metagov.org/people/humphrey-obuobi (The Flyer, North Oakland);
 ai.objectives.institute/talk-to-the-city + github.com/AIObjectives (Talk to
 the City team and deployments); decidim.org (Decidim); 
-github.com/codeforboston/maple (MAPLE, MIT); Central Oregonian (2026-05-21)
-and KTVZ (2026-04-01) for the CivicOS / Bloom Project Central Oregon civic
-assembly story; heartheroom.com for Hear The Room's mechanics.
+github.com/codeforboston/maple (MAPLE, MIT);
+github.com/Heard-Platform/heard (Heard, MIT — "a participatory survey
+platform inspired by Polis, vTaiwan, and Participativo Brazil");
+Central Oregonian (2026-05-21) and KTVZ (2026-04-01) for the CivicOS /
+Bloom Project Central Oregon civic assembly story.
 
 **Still to confirm with the builders** (marked with `attributionNote` in the
-registry, and flagged on their cards): Heard's full builder credit and repo
-link (Alex, heard.vote), and Hear The Room's builder details (Wren). Both are
-RTP field picks whose stage mappings are ours, not Metagov's — the detail
-dialogs say so.
+registry, and flagged on their cards): Heard's builder credit beyond "Alex
+and the Heard team". Field picks' stage mappings are ours, not Metagov's —
+the detail dialogs say so. (Hear The Room was in the first cut and is set
+aside for now — restorable from git history if it returns.)
 
 ## What a deliberation build produces
 
