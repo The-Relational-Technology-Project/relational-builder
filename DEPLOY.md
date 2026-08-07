@@ -191,14 +191,21 @@ the proxy's `ALLOWED_ORIGINS` and Supabase Auth's *Site URL*.
 
 ### Redeploying after a change
 
-Production is a static build baked at deploy time. **Landing a commit on `main`
-does not update the live site** — there is no CI in this repo, so nothing
-watches `main` on its own. When a change is merged but the site still shows the
-old behaviour, a missing deploy is the first thing to suspect, not a caching
-problem.
+**Pushing to `main` deploys.** Vercel's Git integration is attached to this
+repo, so a push to `main` builds and promotes to production on its own — there
+is no workflow file here because none is needed. A doc-only commit deploys too;
+any push to `main` does.
 
-Confirm it before guessing. The live bundle is fingerprinted, so you can read
-what's actually deployed:
+That makes a stale production site a *deploy failure*, not a missing step.
+Production is a static build baked at deploy time, so when a change is on `main`
+but the live site still shows the old behaviour, open the project's
+**Deployments** tab and look for a build that errored — that is where the change
+stopped. Reach for a cache explanation only after ruling that out. (This has
+happened: the Connections page served a section for two days after it was
+deleted from the source, because the deploy for that commit never landed.)
+
+The live bundle is fingerprinted, so you can check what's deployed without
+trusting a browser cache:
 
 ```bash
 # which chunk is the site serving right now
@@ -207,7 +214,17 @@ curl -s https://relationalbuilder.org/ | grep -o 'src="[^"]*\.js"'
 curl -s https://relationalbuilder.org/assets/ConnectionsPage-XXXX.js | grep -c "Some removed string"
 ```
 
-To ship the current `main`:
+The chunk names change on every build, so start from the entry point and follow
+it to the chunk you care about.
+
+To force a deploy without a code change, push an empty commit:
+
+```bash
+git commit --allow-empty -m "Redeploy" && git push origin main
+```
+
+Or ship from your machine, which also works when the Git integration is the
+thing that's broken:
 
 ```bash
 npm i -g vercel   # once
@@ -222,16 +239,10 @@ every `VITE_*` var is set in your local shell first — Vite bakes them in at
 build time, so a prebuilt deploy with vars missing ships a working-looking app
 with no backend attached.
 
-Two things worth knowing:
-
-- **The dashboard's Redeploy button rebuilds the source of the deployment you
-  clicked on**, which for the newest deployment just reproduces the same stale
-  commit. It ships the current `main` only if the deployment you picked was
-  already built from it.
-- **If Vercel's Git integration is attached**, the project's Deployments list
-  shows commit messages and branch names, and pushing to `main` deploys by
-  itself. If the list shows only CLI deploys, shipping is manual and the
-  commands above are the only path.
+One trap in the dashboard: **Redeploy rebuilds the source of the deployment you
+clicked on**, not the current `main`. If the newest deployment is the stale one,
+redeploying it faithfully reproduces the stale build. Check the commit shown on
+the deployment before using that button, or push instead.
 
 ## 5. Community Hosting
 
