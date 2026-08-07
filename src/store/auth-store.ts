@@ -54,6 +54,8 @@ export interface BuilderProfile {
   connect_note: string | null;
   cal_link: string | null;
   allow_requests: boolean;
+  /** Personal invite code — anyone who signs up with it skips steward approval */
+  referral_code: string | null;
 }
 
 interface AuthState {
@@ -160,7 +162,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     }
     const { data } = await builderClient
       .from('profiles')
-      .select('display_name, full_name, neighborhood, neighborhood_description, dreams, tech_familiarity, ai_coding_experience, email_opt_in, terms_accepted_at, profile_completed, design_system, local_tech_ecosystem, open_to_connecting, connect_note, cal_link, allow_requests')
+      .select('display_name, full_name, neighborhood, neighborhood_description, dreams, tech_familiarity, ai_coding_experience, email_opt_in, terms_accepted_at, profile_completed, design_system, local_tech_ecosystem, open_to_connecting, connect_note, cal_link, allow_requests, referral_code')
       .eq('id', user.id)
       .maybeSingle();
     set({ profile: (data as BuilderProfile | null) ?? null, profileLoaded: true });

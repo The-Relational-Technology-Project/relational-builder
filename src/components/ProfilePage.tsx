@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuthStore, type BuilderProfile } from '@/store/auth-store';
+import { ReferralCard } from '@/components/ReferralCard';
 import { useStudioStore, approvedMemberships } from '@/store/studio-store';
 import type { StudioContext } from '@/knowledge/studio-context';
 import { useUIStore } from '@/store/ui-store';
@@ -114,6 +115,10 @@ export function ProfilePage() {
             <p className="text-xs text-muted-foreground mt-0.5">{user.email}</p>
           </div>
         </div>
+
+        {/* The invite code rides at the top: sharing the Builder should
+            never require scrolling past your own profile */}
+        <ReferralCard />
 
         {/* About you */}
         <section className="space-y-4">

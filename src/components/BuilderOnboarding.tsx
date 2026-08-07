@@ -10,10 +10,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RBMark } from '@/components/RBMark';
-import { Loader2, ArrowRight, ArrowLeft, MapPin, User, Cpu, Sparkles, Shield, Package, Users } from 'lucide-react';
+import { ReferralCard } from '@/components/ReferralCard';
+import { Loader2, ArrowRight, ArrowLeft, MapPin, User, Cpu, Sparkles, Shield, Package, Users, Gift } from 'lucide-react';
 
-type Step = 'welcome' | 'studio' | 'about' | 'dreams' | 'tech' | 'connect' | 'consent';
-const STEPS: Step[] = ['welcome', 'about', 'dreams', 'tech', 'connect', 'consent'];
+type Step = 'welcome' | 'studio' | 'about' | 'dreams' | 'tech' | 'connect' | 'consent' | 'share';
+const STEPS: Step[] = ['welcome', 'about', 'dreams', 'tech', 'connect', 'consent', 'share'];
 
 const textareaClass =
   'w-full rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs outline-none placeholder:text-muted-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:border-ring';
@@ -58,7 +59,7 @@ export function BuilderOnboarding({ onDone }: { onDone?: () => void }) {
   }, []);
 
   const steps: Step[] = studio
-    ? ['welcome', 'studio', 'about', 'dreams', 'tech', 'connect', 'consent']
+    ? ['welcome', 'studio', 'about', 'dreams', 'tech', 'connect', 'consent', 'share']
     : STEPS;
   const index = steps.indexOf(step);
   const goNext = () => setStep(steps[Math.min(index + 1, steps.length - 1)]);
@@ -115,6 +116,9 @@ export function BuilderOnboarding({ onDone }: { onDone?: () => void }) {
     const r = await saveProfile(fields);
     setSaving(false);
     if (r.error) setError(r.error);
+    // Close on your invite code, not a door slam — unless there isn't one
+    // (cloud off / migration not yet applied), then just land in the app
+    else if (useAuthStore.getState().profile?.referral_code) setStep('share');
     else onDone?.();
   }
 
@@ -512,6 +516,27 @@ export function BuilderOnboarding({ onDone }: { onDone?: () => void }) {
                   )}
                 </Button>
               </div>
+            </div>
+          )}
+
+          {step === 'share' && (
+            <div className="space-y-6">
+              <div className="text-center space-y-2">
+                <div className="mx-auto rounded-full bg-primary/10 p-3 w-fit">
+                  <Gift className="size-6 text-primary" />
+                </div>
+                <h2 className="text-xl font-semibold">You're in — and you hold a key</h2>
+                <p className="text-muted-foreground text-sm leading-relaxed">
+                  Every builder gets a personal invite code. A friend or
+                  neighbor who signs up with yours walks straight in — no
+                  waiting for approval.
+                </p>
+              </div>
+              <ReferralCard />
+              <Button onClick={() => onDone?.()} className="w-full">
+                Start building
+                <ArrowRight className="ml-2 size-4" />
+              </Button>
             </div>
           )}
         </div>

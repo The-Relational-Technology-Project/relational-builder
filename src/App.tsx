@@ -132,6 +132,13 @@ function App() {
   const profile = useAuthStore(s => s.profile);
   const profileLoaded = useAuthStore(s => s.profileLoaded);
   const needsOnboarding = !!authUser && profileLoaded && !profile?.profile_completed;
+  // The overlay outlives needsOnboarding: saving the profile flips
+  // profile_completed mid-flow, but the closing "your invite code" step
+  // still deserves its moment — the wizard closes itself via onDone.
+  const [onboardingOpen, setOnboardingOpen] = useState(false);
+  useEffect(() => {
+    if (needsOnboarding) setOnboardingOpen(true);
+  }, [needsOnboarding]);
 
   const panels = useMemo(() => [
     { content: <ChatPanel />, defaultSize: 45, minSize: 300 },
@@ -160,7 +167,7 @@ function App() {
 
   return (
     <div className="h-dvh flex flex-col overflow-x-hidden bg-background text-foreground">
-      {needsOnboarding && <BuilderOnboarding />}
+      {onboardingOpen && <BuilderOnboarding onDone={() => setOnboardingOpen(false)} />}
       {/* One sign-in dialog for the whole app. Both headers are always
           mounted (one is CSS-hidden), and a portalled dialog inside each
           opened two stacked copies — so the close button appeared to do

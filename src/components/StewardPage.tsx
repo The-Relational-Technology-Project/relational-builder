@@ -319,6 +319,13 @@ function RequestsTab({ active }: { active: boolean }) {
                 {r.status}
               </Badge>
               <span className="truncate">{r.name || r.email}</span>
+              {/* Referred joins settle themselves — this badge is how the
+                  steward keeps an eye on the self-serve door */}
+              {r.referral_code && (
+                <Badge variant="outline" className="text-[10px] shrink-0">
+                  code {r.referral_code}
+                </Badge>
+              )}
               {r.decided_at && (
                 <span className="ml-auto text-muted-foreground/60 shrink-0">
                   {new Date(r.decided_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}

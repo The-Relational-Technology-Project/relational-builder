@@ -33,13 +33,25 @@ export interface AccountRequest {
    *  grants anything — it's the referral, so approving is an informed call. */
   invited_by_email: string | null;
   invited_project_name: string | null;
+  /** A builder's personal invite code, validated server-side. Unlike a
+   *  project invitation this one DOES grant access: the request arrives
+   *  already approved, and the steward sees it here after the fact. */
+  referral_code: string | null;
   status: 'pending' | 'approved' | 'declined';
   created_at: string;
   decided_at: string | null;
   decided_by: string | null;
 }
 
-export type RequestOutcome = 'pending' | 'already-member';
+export type RequestOutcome = 'pending' | 'already-member' | 'approved';
+
+export interface RequestResult {
+  status: RequestOutcome;
+  /** How the referral code fared, when one was sent: 'accepted' came with
+   *  status 'approved'; 'unknown' means it matched nobody and the request
+   *  fell back to the normal pending flow. */
+  referral: 'accepted' | 'unknown' | null;
+}
 
 export async function requestAccount(input: {
   email: string;
@@ -49,19 +61,26 @@ export async function requestAccount(input: {
   /** Studio doorway (?studio=slug) — files their join request at first sign-in */
   studioSlug?: string;
   studioLabel?: string;
-}): Promise<RequestOutcome> {
-  const { studioSlug, studioLabel, ...rest } = input;
+  /** A builder's invite code (?ref=CODE) — a valid one approves on the spot */
+  referralCode?: string;
+}): Promise<RequestResult> {
+  const { studioSlug, studioLabel, referralCode, ...rest } = input;
   const res = await fetch(`${FUNCTIONS_URL}/request-account`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       ...rest,
       ...(studioSlug ? { studio_slug: studioSlug, studio_label: studioLabel } : {}),
+      ...(referralCode?.trim() ? { referral_code: referralCode.trim() } : {}),
     }),
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error ?? 'Could not send your request');
-  return data.status === 'already-member' ? 'already-member' : 'pending';
+  const status: RequestOutcome =
+    data.status === 'already-member' || data.status === 'approved' ? data.status : 'pending';
+  const referral =
+    data.referral === 'accepted' || data.referral === 'unknown' ? data.referral : null;
+  return { status, referral };
 }
 
 /** Authenticated call into the admin-requests function (shared by the whole super admin dashboard) */

@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { RBMark } from './RBMark';
-import { requestAccount, type RequestOutcome } from '@/cloud/account-requests';
+import { requestAccount, type RequestResult } from '@/cloud/account-requests';
 import { getPendingInvite } from '@/cloud/invite-link';
 import { useAuthStore, cloudEnabled } from '@/store/auth-store';
 import { useStudioStore } from '@/store/studio-store';
@@ -25,6 +25,24 @@ function scrubCodeParam(): void {
   const params = new URLSearchParams(window.location.search);
   if (params.get('code') === null) return;
   params.delete('code');
+  const qs = params.toString();
+  window.history.replaceState(null, '', window.location.pathname + (qs ? `?${qs}` : '') + window.location.hash);
+}
+
+const REF_KEY = 'rb-referral-code';
+
+/**
+ * A builder's invite link carries ?ref=CODE. Stash the code (sessionStorage —
+ * it should survive the sign-in round-trip in this tab, not follow the
+ * browser forever) and clean the address bar; the request form below picks
+ * it up. The server re-validates, so this is a convenience, not a grant.
+ */
+function captureRefParam(): void {
+  const params = new URLSearchParams(window.location.search);
+  const ref = params.get('ref');
+  if (ref === null) return;
+  if (ref.trim()) sessionStorage.setItem(REF_KEY, ref.trim());
+  params.delete('ref');
   const qs = params.toString();
   window.history.replaceState(null, '', window.location.pathname + (qs ? `?${qs}` : '') + window.location.hash);
 }
@@ -56,6 +74,7 @@ export function Landing({ children }: { children: ReactNode }) {
   const user = useAuthStore(s => s.user);
   const [granted, setGranted] = useState(() => {
     scrubCodeParam();
+    captureRefParam();
     // Someone arriving on an invite link was sent here by a person, not by
     // the marketing page — walk them through to the app shell, where the
     // invite banner and a prefilled sign-in are waiting.
@@ -302,8 +321,13 @@ function RequestAccountForm() {
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [reason, setReason] = useState('');
+  // An invite link's code arrives pre-filled but stays editable — a typo'd
+  // or borrowed code is the person's to fix
+  const [referralCode, setReferralCode] = useState(
+    () => sessionStorage.getItem(REF_KEY)?.toUpperCase() ?? '',
+  );
   const [busy, setBusy] = useState(false);
-  const [outcome, setOutcome] = useState<RequestOutcome | null>(null);
+  const [outcome, setOutcome] = useState<RequestResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Arriving through a studio link (?studio=thread) makes this that studio's
@@ -317,16 +341,22 @@ function RequestAccountForm() {
     setBusy(true);
     setError(null);
     try {
-      setOutcome(
-        await requestAccount({
-          email,
-          name,
-          reason,
-          ...(doorwayStudio
-            ? { studioSlug: doorwayStudio.slug, studioLabel: doorwayStudio.label }
-            : {}),
-        }),
-      );
+      const result = await requestAccount({
+        email,
+        name,
+        reason,
+        referralCode,
+        ...(doorwayStudio
+          ? { studioSlug: doorwayStudio.slug, studioLabel: doorwayStudio.label }
+          : {}),
+      });
+      // A referred builder is in already — send the sign-in link in the same
+      // motion, so the email that arrives is both confirmation and the door
+      if (result.status === 'approved') {
+        sessionStorage.removeItem(REF_KEY);
+        await useAuthStore.getState().signIn(email.trim());
+      }
+      setOutcome(result);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not send your request');
     } finally {
@@ -334,9 +364,27 @@ function RequestAccountForm() {
     }
   }
 
-  if (outcome === 'pending') {
+  if (outcome?.status === 'approved') {
+    return (
+      <div className="max-w-sm mx-auto space-y-2">
+        <div className="flex items-center justify-center gap-2 text-sm font-medium">
+          <MailCheck className="size-4" style={{ color: C.green }} />
+          You're in — welcome!
+        </div>
+        <p className="text-xs leading-relaxed" style={{ color: C.body }}>
+          Your invite code checked out, so there's no waiting for approval. We
+          sent a sign-in link to <strong>{email}</strong> — tap it, or type the
+          6-digit code from that email here.
+        </p>
+        <CodeEntry email={email} />
+      </div>
+    );
+  }
+  if (outcome?.status === 'pending') {
     return (
       <p className="text-sm leading-relaxed max-w-md mx-auto" style={{ color: C.body }}>
+        {outcome.referral === 'unknown' &&
+          'That invite code didn’t match a builder, so your request went to the steward the usual way. '}
         Request sent — thank you! A real person reviews every request; you'll
         get a welcome email as soon as yours is approved.
         {doorwayStudio &&
@@ -344,7 +392,7 @@ function RequestAccountForm() {
       </p>
     );
   }
-  if (outcome === 'already-member') {
+  if (outcome?.status === 'already-member') {
     return (
       <p className="text-sm leading-relaxed max-w-md mx-auto" style={{ color: C.body }}>
         Good news — this email is already approved. Come on in below and sign
@@ -393,6 +441,20 @@ function RequestAccountForm() {
         rows={3}
         className={`${inputClass} resize-none`}
       />
+      <input
+        value={referralCode}
+        onChange={e => setReferralCode(e.target.value.toUpperCase())}
+        placeholder="Invite code (optional)"
+        autoCapitalize="characters"
+        autoCorrect="off"
+        spellCheck={false}
+        className={inputClass}
+      />
+      <p className="text-xs" style={{ color: C.muted }}>
+        {referralCode.trim()
+          ? 'A builder’s invite code lets you skip the wait — your account opens the moment you ask.'
+          : 'Got an invite code from a builder? It opens your account right away.'}
+      </p>
       {error && <p className="text-xs text-center" style={{ color: C.orangeDeep }}>{error}</p>}
       <button
         onClick={submit}

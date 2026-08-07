@@ -168,6 +168,25 @@ NB for open events (see docs/EVENT-OWNER-TASKS-HANDOFF.md): walk-ins can
 no longer self-serve sign in; pre-approve attendees or batch-approve
 requests from the dashboard during the session.
 
+**d) Referral codes (the self-serve door).** Every builder carries a
+personal invite code (`profiles.referral_code`, shown on their Builder
+Profile and at the end of onboarding, shareable as `APP_URL/?ref=CODE`).
+A signup with a valid code is approved on the spot by `request-account`:
+auth user + community membership created, welcome email out, steward gets
+an FYI email instead of an approve ask — and the join still lands in the
+dashboard's request history tagged with the code. The magic-link sign-in
+that follows is the email confirmation (OTPs only ever reach the address
+itself). Unrecognized codes fall back to the normal pending flow.
+`profiles.referred_by_code` is stamped at first sign-in, and the
+`my_referral_stats()` RPC powers the "N builders joined through your
+code" count.
+
+```bash
+# Run supabase/migrations/20260807000000_referral_codes.sql in the SQL
+# editor (backfills codes for existing builders), then redeploy:
+supabase functions deploy request-account --no-verify-jwt
+```
+
 ## 4. Deploy the builder itself (Vercel)
 
 ```bash
