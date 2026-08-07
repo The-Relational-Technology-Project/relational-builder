@@ -75,6 +75,11 @@ Chat/Builder Panel  |  Preview Sandbox (iframe)  |  RTP Knowledge Base Panel
   and follows back/forward. Deep links need the SPA fallback rewrite in
   `vercel.json`. `#privacy` / `#contact` stay hash pages, above the app shell
 - `src/knowledge/` — Supabase client, RTP principles, context builder, queries
+- `src/knowledge/delib-tools.ts` — the deliberative tools registry (Metagov's
+  Deliberative Tools Gallery + RTP field picks, full attribution — see
+  `docs/DELIBERATION.md`); `/deliberate` (`DeliberationStudio`) is its entry
+  point, the `deliberative` frame its prompt contract, `public/delib/` its
+  screenshots
 - `src/components/` — React components (UI lives here)
 - `src/components/Chat/` — Chat interface (panel, messages, input, code blocks)
 - `src/components/ui/` — shadcn/ui primitives (don't edit directly)

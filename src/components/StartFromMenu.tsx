@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { useUIStore } from '@/store/ui-store';
 import { ImportPlanDialog } from '@/components/ImportPlanDialog';
 import { RemixDialog } from '@/components/RemixDialog';
-import { LayoutGrid, FileDown, Shuffle } from 'lucide-react';
+import { LayoutGrid, FileDown, MessagesSquare, Shuffle } from 'lucide-react';
 
 /**
  * The other ways a build can start, offered right where builds start — under
  * the home composer instead of in the main nav. The gallery is the headline
- * (browse the network's tools and grow your own version); importing a Studio
- * build plan and forking a repo stay as the quieter options beside it.
+ * (browse the network's tools and grow your own version); a neighborhood
+ * question opens the Deliberation Studio; importing a Studio build plan and
+ * forking a repo stay as the quieter options beside them.
  */
 export function StartFromOptions() {
   const setView = useUIStore(s => s.setView);
@@ -27,6 +28,10 @@ export function StartFromOptions() {
         <button className={optionClass} onClick={() => setView('gallery')}>
           <LayoutGrid className="size-3" />
           the Gallery
+        </button>
+        <button className={optionClass} onClick={() => setView('deliberate')}>
+          <MessagesSquare className="size-3" />
+          a neighborhood question
         </button>
         <button className={optionClass} onClick={() => setImportOpen(true)}>
           <FileDown className="size-3" />

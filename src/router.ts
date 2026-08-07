@@ -26,6 +26,9 @@ const VIEW_PATHS: Record<AppView, string> = {
   // at '/' — two addresses, one screen, no project lost either way.
   home: '/home',
   gallery: '/gallery',
+  // The Deliberation Studio: the front door for neighborhoods that arrive
+  // with a question to work through rather than an app idea
+  deliberate: '/deliberate',
   projects: '/projects',
   connections: '/connections',
   profile: '/profile',

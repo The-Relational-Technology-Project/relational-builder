@@ -14,6 +14,11 @@ import {
 } from '@/knowledge/commons-items';
 import { startFromStudioTool } from '@/project/start-from-tool';
 import { startFromCommonsItem } from '@/project/start-from-commons';
+import { startFromDelibTool } from '@/project/start-from-delib-tool';
+import {
+  DELIB_CURATION, DELIB_STAGE_META, DELIB_TOOLS, MORE_METAGOV_TOOLS,
+  type DelibTool,
+} from '@/knowledge/delib-tools';
 import { loadGalleryReferences, invalidateGalleryReferences } from '@/cloud/gallery-references';
 import type { GalleryReference, RefSource } from '@/knowledge/gallery-references';
 import {
@@ -37,16 +42,19 @@ import {
 import { useUIStore } from '@/store/ui-store';
 import {
   BookOpen, ExternalLink, GitBranch, GitFork, Globe, Hammer,
-  ImageOff, Loader2, Map as MapIcon, Newspaper, ScrollText, Sprout,
+  ImageOff, Loader2, Map as MapIcon, MessagesSquare, Newspaper, ScrollText, Sprout,
   ChevronDown, ChevronRight, Library, Lock, KeyRound,
 } from 'lucide-react';
 
 /**
  * The Commons Gallery — the civic commons as a first-class space in the
- * Builder. Three shelves side by side: Relational Tech Tools (the Studio
+ * Builder. Four shelves side by side: Relational Tech Tools (the Studio
  * KB's built software), Civic Media (the News Futures / Civic Media
- * Cookbook — recipes, worksheets, and the field-guide stories), and
- * Neighboring Recipes (the canonical neighboring practices) — every card
+ * Cookbook — recipes, worksheets, and the field-guide stories),
+ * Neighboring Recipes (the canonical neighboring practices), and
+ * Deliberative Tools (neighborhood-scale deliberation tech, surfaced via
+ * Metagov's Deliberative Tools Gallery plus RTP field picks, from the
+ * code-defined registry in `@/knowledge/delib-tools`) — every card
  * remixable for your place, with attribution and lineage kept front and
  * center.
  *
@@ -57,6 +65,7 @@ import {
 const CATEGORIES = [
   { key: 'all', label: 'Everything' },
   { key: 'relational_tech', label: 'Relational tech tools' },
+  { key: 'deliberative', label: 'Deliberative tools' },
   { key: 'civic_media', label: 'Civic media' },
   { key: 'neighboring', label: 'Neighboring recipes' },
   { key: 'stories', label: 'Local stories' },
@@ -84,7 +93,8 @@ type GalleryEntry =
   | { key: string; type: 'tool'; tool: Tool }
   | { key: string; type: 'commons'; card: CommonsCard }
   | { key: string; type: 'studio'; item: StudioLibraryItem }
-  | { key: string; type: 'kb-story'; story: Story };
+  | { key: string; type: 'kb-story'; story: Story }
+  | { key: string; type: 'delib'; tool: DelibTool };
 
 function studioKindLabel(kind: StudioLibraryItem['kind']): string {
   return STUDIO_ITEM_KINDS.find(k => k.key === kind)?.label.toLowerCase() ?? kind;
@@ -132,6 +142,7 @@ export function CommonsGallery() {
   const [commonsDetail, setCommonsDetail] = useState<CommonsCard | null>(null);
   const [studioDetail, setStudioDetail] = useState<StudioLibraryItem | null>(null);
   const [storyDetail, setStoryDetail] = useState<Story | null>(null);
+  const [delibDetail, setDelibDetail] = useState<DelibTool | null>(null);
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [links, setLinks] = useState<GalleryLink[]>([]);
   const [references, setReferences] = useState<GalleryReference[]>([]);
@@ -263,6 +274,14 @@ export function CommonsGallery() {
         return [s.title, s.story_text, s.attribution]
           .some(v => v && v.toLowerCase().includes(q));
       }
+      if (e.type === 'delib') {
+        const t = e.tool;
+        return [
+          t.name, t.tagline, t.description, t.neighborhoodUse,
+          ...t.stages, ...t.builders.flatMap(b => [b.name, b.org]),
+          t.story?.title, t.story?.place,
+        ].some(v => v && v.toLowerCase().includes(q));
+      }
       const c = e.card;
       return [c.title, c.summary, c.attribution?.name, ...(c.tags ?? [])]
         .some(v => v && v.toLowerCase().includes(q));
@@ -287,6 +306,12 @@ export function CommonsGallery() {
       category === 'all' || category === 'relational_tech' || category === 'mine'
         ? (category === 'mine' ? galleryTools.filter(t => badgesFor(t).length > 0) : galleryTools)
             .map(t => ({ key: `tool-${t.id}`, type: 'tool' as const, tool: t }))
+        : [];
+    // The deliberative shelf is code-defined (see @/knowledge/delib-tools) —
+    // curated with attribution, not fetched
+    const delibEntries: GalleryEntry[] =
+      category === 'all' || category === 'deliberative'
+        ? DELIB_TOOLS.map(t => ({ key: `delib-${t.id}`, type: 'delib' as const, tool: t }))
         : [];
     const civicEntries: GalleryEntry[] =
       category === 'all' || category === 'civic_media'
@@ -327,7 +352,7 @@ export function CommonsGallery() {
             ? semanticRank.get(e.story.title.trim().toLowerCase())
             : undefined;
 
-    const all = [...toolEntries, ...civicEntries, ...neighboringEntries, ...sharedEntries, ...kbStoryEntries];
+    const all = [...toolEntries, ...delibEntries, ...civicEntries, ...neighboringEntries, ...sharedEntries, ...kbStoryEntries];
 
     if (!q) {
       // Browsing order: your studios' tools lead, then each shelf in turn
@@ -442,6 +467,12 @@ export function CommonsGallery() {
     }
   }
 
+  function growDelibTool(tool: DelibTool) {
+    startFromDelibTool(tool);
+    setDelibDetail(null);
+    setView('builder'); // the fresh Plan-mode draft is waiting in the composer
+  }
+
   return (
     <div className="h-full overflow-y-auto">
       <div className="max-w-5xl mx-auto px-4 md:px-6 py-6 space-y-5">
@@ -527,6 +558,34 @@ export function CommonsGallery() {
 
         {error && <p className="text-sm text-destructive">{error}</p>}
 
+        {/* The deliberative shelf leads with its provenance — who curates the
+            source collection, who the field picks come from, and the door
+            into the Deliberation Studio for anyone arriving with a question */}
+        {scope === 'commons' && category === 'deliberative' && (
+          <div className="rounded-lg border border-dashed px-3 py-2.5 text-xs text-muted-foreground space-y-1.5">
+            <p>
+              Neighborhood-scale deliberation tech: patterns surfaced via{' '}
+              <a href={DELIB_CURATION.collectionUrl} target="_blank" rel="noreferrer" className="underline decoration-dotted hover:text-foreground">
+                {DELIB_CURATION.curator}'s {DELIB_CURATION.collection}
+              </a>{' '}
+              — curated by the{' '}
+              <a href={DELIB_CURATION.projectUrl} target="_blank" rel="noreferrer" className="underline decoration-dotted hover:text-foreground">
+                {DELIB_CURATION.project}
+              </a>{' '}
+              project ({DELIB_CURATION.people.map(p => p.name).join(', ')}) — plus field picks
+              from the RTP network. Each card names its builders; every remix carries the credit
+              forward.
+            </p>
+            <button
+              onClick={() => setView('deliberate')}
+              className="inline-flex items-center gap-1 underline decoration-dotted hover:text-foreground"
+            >
+              <MessagesSquare className="size-3" />
+              Have a question your neighborhood is working through? Open the Deliberation Studio
+            </button>
+          </div>
+        )}
+
         {!loaded ? (
           <p className="text-sm text-muted-foreground flex items-center gap-2">
             <Loader2 className="size-3.5 animate-spin" /> Loading the gallery…
@@ -567,6 +626,13 @@ export function CommonsGallery() {
                   story={entry.story}
                   onOpen={() => setStoryDetail(entry.story)}
                 />
+              ) : entry.type === 'delib' ? (
+                <DelibToolCard
+                  key={entry.key}
+                  tool={entry.tool}
+                  onOpen={() => setDelibDetail(entry.tool)}
+                  onGrow={() => growDelibTool(entry.tool)}
+                />
               ) : (
                 <RecipeCard
                   key={entry.key}
@@ -578,6 +644,30 @@ export function CommonsGallery() {
                 />
               ),
             )}
+          </div>
+        )}
+
+        {/* The rest of Metagov's gallery, by name — pointing people at the
+            source rather than pretending we've vetted all 21 tools */}
+        {scope === 'commons' && category === 'deliberative' && !query.trim() && (
+          <div className="space-y-1.5 pt-1">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              More in the Metagov gallery
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {MORE_METAGOV_TOOLS.map(t => (
+                <a
+                  key={t.name}
+                  href={DELIB_CURATION.collectionUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  title={`Stages: ${t.stages.map(s => DELIB_STAGE_META[s].label).join(', ')} — details at ${DELIB_CURATION.curator}`}
+                  className="rounded-full border px-2.5 py-0.5 text-xs text-muted-foreground hover:text-foreground hover:border-foreground/40 transition-colors"
+                >
+                  {t.name}
+                </a>
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -639,6 +729,13 @@ export function CommonsGallery() {
           curation={curation}
           onOpenRef={openRef}
           onOpenChange={open => { if (!open) setStoryDetail(null); }}
+        />
+      )}
+      {delibDetail && (
+        <DelibToolDetailDialog
+          tool={delibDetail}
+          onGrow={() => growDelibTool(delibDetail)}
+          onOpenChange={open => { if (!open) setDelibDetail(null); }}
         />
       )}
     </div>
@@ -1338,6 +1435,210 @@ function ToolDetailDialog({
             with it.
           </p>
         )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/**
+ * A deliberative tools shelf card — screenshot up top like a KB tool (the
+ * card points at real, running software), builders named right under the
+ * title, stages as chips. "Grow yours" seeds Plan mode with the pattern and
+ * its credit line.
+ */
+function DelibToolCard({
+  tool, onOpen, onGrow,
+}: {
+  tool: DelibTool; onOpen: () => void; onGrow: () => void;
+}) {
+  const [imgBroken, setImgBroken] = useState(false);
+  return (
+    <div className="group border rounded-xl overflow-hidden flex flex-col bg-background hover:border-foreground/25 transition-colors">
+      <button onClick={onOpen} className="block w-full aspect-[16/10] bg-muted overflow-hidden">
+        {tool.screenshot && !imgBroken ? (
+          <img
+            src={tool.screenshot}
+            alt={tool.name}
+            loading="lazy"
+            onError={() => setImgBroken(true)}
+            className="w-full h-full object-cover object-top group-hover:scale-[1.02] transition-transform"
+          />
+        ) : (
+          <span className="w-full h-full flex items-center justify-center text-muted-foreground/40">
+            <ImageOff className="size-6" />
+          </span>
+        )}
+      </button>
+      <div className="p-3.5 flex-1 flex flex-col gap-1.5">
+        <div className="flex items-center gap-1.5">
+          <MessagesSquare className="size-3.5 shrink-0 text-muted-foreground" />
+          <span className="text-[10px] uppercase tracking-wide text-muted-foreground">Deliberative</span>
+          <span className="ml-auto flex gap-1 shrink-0">
+            {tool.openSource && <Badge variant="outline" className="text-[9px]">open&nbsp;source</Badge>}
+          </span>
+        </div>
+        <button onClick={onOpen} className="font-medium text-[15px] truncate hover:underline text-left">
+          {tool.name}
+        </button>
+        <p className="text-xs text-muted-foreground -mt-1">by {tool.builders[0].name}</p>
+        <div className="flex flex-wrap gap-1">
+          {tool.stages.map(s => (
+            <span key={s} className="rounded-full border px-2 py-0.5 text-[10px] text-muted-foreground">
+              {DELIB_STAGE_META[s].label.toLowerCase()}
+            </span>
+          ))}
+        </div>
+        <p className="text-sm text-muted-foreground line-clamp-3 flex-1">{tool.tagline}</p>
+        <div className="flex gap-1.5 pt-1">
+          <Button variant="outline" size="sm" className="h-7 text-xs flex-1" onClick={onOpen}>
+            Details
+          </Button>
+          <Button size="sm" className="h-7 text-xs flex-1" onClick={onGrow}>
+            <Hammer className="size-3 mr-1" />
+            Grow yours
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The deep dive on a deliberative tool: who made it (with links), who
+ * surfaced it (Metagov's gallery or an RTP field pick), the stages it
+ * serves, a real implementation story with sources, and its interop edges —
+ * the connections to other tools, local relational tech, and on-land spaces.
+ */
+function DelibToolDetailDialog({
+  tool, onGrow, onOpenChange,
+}: {
+  tool: DelibTool; onGrow: () => void; onOpenChange: (open: boolean) => void;
+}) {
+  return (
+    <Dialog open onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="pr-6">{tool.name}</DialogTitle>
+        </DialogHeader>
+
+        {tool.screenshot && (
+          <div className="rounded-lg overflow-hidden border bg-muted">
+            <img src={tool.screenshot} alt={tool.name} className="w-full object-contain max-h-80" />
+          </div>
+        )}
+
+        <p className="text-sm leading-relaxed">{tool.description}</p>
+
+        {/* Attribution first: the people, then the curators who surfaced it */}
+        <div className="rounded-lg border border-dashed px-3 py-2.5 text-sm space-y-1.5">
+          <p className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted-foreground">
+            <GitBranch className="size-3" /> Made by
+          </p>
+          {tool.builders.map(b => (
+            <p key={b.name}>
+              {b.url ? (
+                <a href={b.url} target="_blank" rel="noreferrer" className="underline decoration-dotted hover:text-primary">
+                  {b.name}
+                </a>
+              ) : (
+                b.name
+              )}
+              {b.org && <span className="text-muted-foreground"> · {b.org}</span>}
+            </p>
+          ))}
+          {(tool.license || tool.openSource) && (
+            <p className="text-xs text-muted-foreground">
+              {tool.openSource ? 'Open source' : ''}
+              {tool.license ? `${tool.openSource ? ' · ' : ''}${tool.license}` : ''}
+            </p>
+          )}
+          <p className="text-xs text-muted-foreground pt-1">
+            {tool.listedInMetagovGallery ? (
+              <>
+                Surfaced via{' '}
+                <a href={DELIB_CURATION.collectionUrl} target="_blank" rel="noreferrer" className="underline decoration-dotted hover:text-foreground">
+                  {DELIB_CURATION.curator}'s {DELIB_CURATION.collection}
+                </a>{' '}
+                ({DELIB_CURATION.project}: {DELIB_CURATION.people.map(p => p.name).join(', ')}) —
+                stages below are theirs.
+              </>
+            ) : (
+              <>An RTP field pick — stages below are our read, not {DELIB_CURATION.curator}'s.</>
+            )}
+          </p>
+          {tool.attributionNote && (
+            <p className="text-xs text-muted-foreground italic">{tool.attributionNote}</p>
+          )}
+        </div>
+
+        <div className="space-y-1">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Stages it serves</p>
+          <div className="flex flex-wrap gap-1">
+            {tool.stages.map(s => (
+              <span key={s} title={DELIB_STAGE_META[s].blurb} className="rounded-full border px-2 py-0.5 text-[11px] text-muted-foreground">
+                {DELIB_STAGE_META[s].label.toLowerCase()} — {DELIB_STAGE_META[s].blurb}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-1">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">At neighborhood scale</p>
+          <p className="text-sm text-muted-foreground leading-relaxed">{tool.neighborhoodUse}</p>
+        </div>
+
+        {tool.story && (
+          <div className="rounded-lg bg-muted/50 px-3 py-2.5 space-y-1">
+            <p className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted-foreground">
+              <BookOpen className="size-3" /> From the field: {tool.story.title}
+            </p>
+            <p className="text-xs text-muted-foreground">{tool.story.place}</p>
+            <p className="text-sm leading-relaxed">{tool.story.text}</p>
+            <p className="text-xs text-muted-foreground">
+              {tool.story.sources.map((s, i) => (
+                <span key={s.url}>
+                  {i > 0 && ' · '}
+                  <a href={s.url} target="_blank" rel="noreferrer" className="underline decoration-dotted hover:text-foreground">
+                    {s.label}
+                  </a>
+                </span>
+              ))}
+            </p>
+          </div>
+        )}
+
+        {tool.connects.length > 0 && (
+          <div className="space-y-1">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">Plays well with</p>
+            <ul className="text-sm text-muted-foreground space-y-0.5">
+              {tool.connects.map(c => (
+                <li key={c} className="flex gap-1.5">
+                  <span className="text-muted-foreground/50">·</span>
+                  <span>{c}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <div className="flex flex-wrap gap-2 pt-1">
+          <Button size="sm" onClick={onGrow}>
+            <Hammer className="size-3.5 mr-1.5" /> Grow your version
+          </Button>
+          <a href={tool.url} target="_blank" rel="noreferrer" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
+            <ExternalLink className="size-3.5 mr-1.5" /> Visit
+          </a>
+          {tool.repoUrl && (
+            <a href={tool.repoUrl} target="_blank" rel="noreferrer" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
+              <GitFork className="size-3.5 mr-1.5" /> Source
+            </a>
+          )}
+        </div>
+        <p className="text-xs text-muted-foreground">
+          "Grow your version" opens a Plan-mode draft shaped on this pattern — with the builders
+          credited in the draft itself — for you to adapt to your neighborhood's question before
+          anything is built. The deliberative principles ride the whole project.
+        </p>
       </DialogContent>
     </Dialog>
   );
