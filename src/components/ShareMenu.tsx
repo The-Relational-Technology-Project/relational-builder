@@ -12,7 +12,8 @@ import { PublishDialog } from '@/components/PublishDialog';
 import { PromptDialog } from '@/components/PromptDialog';
 import { SharePreview } from '@/components/SharePreview';
 import { CollaborateDialog } from '@/components/CollaborateDialog';
-import { Share2, Upload, ScrollText, Eye, Users, ChevronDown } from 'lucide-react';
+import { ShareLiveDialog } from '@/components/ShareLiveDialog';
+import { Share2, Upload, ScrollText, Eye, Users, ChevronDown, Presentation } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 /**
@@ -29,6 +30,7 @@ export function ShareMenu({ mobile }: { mobile?: boolean }) {
   const [promptOpen, setPromptOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [collabOpen, setCollabOpen] = useState(false);
+  const [liveOpen, setLiveOpen] = useState(false);
 
   const dialogs = (
     <>
@@ -36,6 +38,7 @@ export function ShareMenu({ mobile }: { mobile?: boolean }) {
       {promptOpen && <PromptDialog open={promptOpen} onOpenChange={setPromptOpen} />}
       {previewOpen && <SharePreview open={previewOpen} onOpenChange={setPreviewOpen} />}
       {collabOpen && <CollaborateDialog open={collabOpen} onOpenChange={setCollabOpen} />}
+      {liveOpen && <ShareLiveDialog open={liveOpen} onOpenChange={setLiveOpen} />}
     </>
   );
 
@@ -66,6 +69,18 @@ export function ShareMenu({ mobile }: { mobile?: boolean }) {
           <Eye className="size-3" />
           Preview
         </Button>
+        {cloudEnabled && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 gap-1 text-xs"
+            disabled={fileCount === 0}
+            onClick={() => setLiveOpen(true)}
+          >
+            <Presentation className="size-3" />
+            Share Live
+          </Button>
+        )}
         {cloudEnabled && (
           <Button variant="outline" size="sm" className="h-8 gap-1 text-xs" onClick={() => setCollabOpen(true)}>
             <Users className="size-3" />
@@ -113,6 +128,16 @@ export function ShareMenu({ mobile }: { mobile?: boolean }) {
             <Eye className="size-3.5 text-muted-foreground" />
             Share preview
           </DropdownMenuItem>
+          {cloudEnabled && (
+            <DropdownMenuItem
+              onClick={() => setLiveOpen(true)}
+              disabled={fileCount === 0}
+              className="gap-2 text-xs"
+            >
+              <Presentation className="size-3.5 text-muted-foreground" />
+              Share Live
+            </DropdownMenuItem>
+          )}
           {cloudEnabled && (
             <DropdownMenuItem onClick={() => setCollabOpen(true)} className="gap-2 text-xs">
               <Users className="size-3.5 text-muted-foreground" />

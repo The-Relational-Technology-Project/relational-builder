@@ -23,6 +23,7 @@ import {
 } from './GalleryConnections';
 import { isSuperAdmin } from '@/cloud/account-requests';
 import { GalleryToolBuilders } from '@/components/GalleryToolBuilders';
+import { EventShowcaseSection } from '@/components/EventShowcase';
 import { useAuthStore } from '@/store/auth-store';
 import type { Tool, Prompt, Story } from '@/knowledge/types';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -526,6 +527,11 @@ export function CommonsGallery() {
         </div>
 
         {error && <p className="text-sm text-destructive">{error}</p>}
+
+        {/* Demo walls from recent events — what each room built, pinned by
+            the builders themselves via Share Live. Renders nothing outside
+            event season. */}
+        {scope === 'commons' && <EventShowcaseSection />}
 
         {!loaded ? (
           <p className="text-sm text-muted-foreground flex items-center gap-2">

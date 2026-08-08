@@ -49,12 +49,13 @@ import {
   type EventCode,
   type ReferralStat,
 } from '@/cloud/event-codes';
+import { openRoomKey } from '@/project/room-key';
 import { useKnowledgeStore } from '@/store/knowledge-store';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Check, X, Loader2, ChevronDown, ChevronRight, ShieldCheck, KeyRound, Link2, Lock, LockOpen, Ticket, Copy } from 'lucide-react';
+import { Check, X, Loader2, ChevronDown, ChevronRight, ShieldCheck, KeyRound, Link2, Lock, LockOpen, Ticket, Copy, Printer } from 'lucide-react';
 
 /**
  * The Steward page — every steward task in one full-width space (these
@@ -1069,6 +1070,20 @@ function EventsTab() {
                   >
                     {copiedCode === c.code ? <Check className="size-3" /> : <Copy className="size-3" />}
                     {copiedCode === c.code ? 'Copied' : 'Copy link'}
+                  </button>
+                  {/* The room key: a full-page QR + code for the projector,
+                      the door, or a stack on the welcome table */}
+                  <button
+                    onClick={() => {
+                      if (!openRoomKey({ name: c.name, code: c.code, link: eventInviteLink(c.code) })) {
+                        setError('The room key opens in a new tab — allow pop-ups for this site');
+                      }
+                    }}
+                    className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                    title="Open a printable page: big QR code + the code itself"
+                  >
+                    <Printer className="size-3" />
+                    Room key
                   </button>
                   <button
                     onClick={() => setActive(c, !c.active)}

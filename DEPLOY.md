@@ -210,6 +210,21 @@ supabase functions deploy connect --no-verify-jwt
 supabase functions deploy admin-requests
 ```
 
+**f) Share Live + the demo wall.** Share → Share Live turns the current
+build into a three-slide deck (title + one-liner, screenshot + features,
+QR + live link) published as two unlisted preview links — no new server
+pieces, it rides on publish-site and story-photos. Event participants can
+pin the result to their event's demo wall, a public section in the
+Commons Gallery backed by `event_showcase` (RLS + column grants keep the
+event *code* write-only for clients; everything else is public). The
+steward's Events tab also gets a printable "room key" page per code —
+all client-side.
+
+```bash
+# Run supabase/migrations/20260808120000_event_showcase.sql in the SQL
+# editor. No function deploys needed.
+```
+
 ## 4. Deploy the builder itself (Vercel)
 
 ```bash
