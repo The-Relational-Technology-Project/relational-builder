@@ -212,6 +212,8 @@ export function SignInDialogHost() {
   const user = useAuthStore(s => s.user);
   const signInPromptCount = useAuthStore(s => s.signInPromptCount);
   const signInPromptEmail = useAuthStore(s => s.signInPromptEmail);
+  // Why the dialog opened on its own — e.g. the magic link came back spent
+  const notice = useAuthStore(s => s.signInPromptNotice);
 
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState('');
@@ -240,7 +242,11 @@ export function SignInDialogHost() {
     const { error: err } = await signIn(trimmed);
     setSending(false);
     if (err) setError(err);
-    else setSent(true);
+    else {
+      setSent(true);
+      // A fresh email is on its way — the notice about the old one is done
+      useAuthStore.getState().clearSignInNotice();
+    }
   }
 
   // The magic link can open in the mail app's own browser (especially on
@@ -263,6 +269,7 @@ export function SignInDialogHost() {
       setSent(false);
       setError(null);
       setCode('');
+      useAuthStore.getState().clearSignInNotice();
     }
   }
 
@@ -287,8 +294,8 @@ export function SignInDialogHost() {
               Check your email
             </div>
             <p className="text-xs text-muted-foreground">
-              We sent a sign-in link to <strong>{email}</strong> — tap it, or
-              type the 6-digit code from that email here. No password needed.
+              We sent a 6-digit code to <strong>{email}</strong> — type it
+              here to sign in. No password needed.
             </p>
             <div className="flex gap-2">
               <Input
@@ -310,12 +317,27 @@ export function SignInDialogHost() {
               </Button>
             </div>
             {error && <p className="text-xs text-destructive">{error}</p>}
+            <p className="text-xs text-muted-foreground">
+              The email has a sign-in link too, but the typed code is the sure
+              path — some inboxes (especially work ones) scan links and use
+              them up.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Not seeing the email? Check your spam or junk folder — look for
+              &ldquo;Relational Builder&rdquo;.
+            </p>
           </div>
         ) : (
           <div className="space-y-3">
+            {notice && (
+              <p className="text-xs rounded-md border border-amber-500/30 bg-amber-500/10 p-2 text-amber-700 dark:text-amber-400">
+                {notice}
+              </p>
+            )}
             <p className="text-xs text-muted-foreground">
               Sign in to save projects to the cloud, work across devices, and
-              invite collaborators. We'll email you a sign-in link.
+              invite collaborators. We'll email you a 6-digit code and a
+              sign-in link.
             </p>
             <div className="space-y-1.5">
               <Label htmlFor="auth-email" className="text-xs">Email</Label>

@@ -27,6 +27,27 @@ function clearAuthHash() {
   }
 }
 
+/**
+ * A failed magic link lands back here with the reason in the hash
+ * (#error=access_denied&error_code=otp_expired&…). Read it before the hash is
+ * wiped, so the sign-in dialog can say what happened — silently swallowing it
+ * looks like the click did nothing, and people loop on requesting new links.
+ */
+function readAuthHashError(): string | null {
+  const h = window.location.hash;
+  if (!h.includes('error=')) return null;
+  const params = new URLSearchParams(h.replace(/^#\/?/, ''));
+  if (params.get('error_code') === 'otp_expired') {
+    // The common cause on work inboxes: a security filter opens the link to
+    // scan it, which uses up the one-time token before the person can
+    return 'That sign-in link was already used or expired — some inboxes scan links and use them up. Request a fresh email, then type the 6-digit code from it instead of tapping the link.';
+  }
+  const description = params.get('error_description');
+  return description
+    ? `Sign-in didn't go through: ${description}. Request a fresh email and try the 6-digit code.`
+    : "Sign-in didn't go through — request a fresh email and try the 6-digit code.";
+}
+
 export interface AuthUser {
   id: string;
   email: string;
@@ -70,7 +91,10 @@ interface AuthState {
   signInPromptCount: number;
   /** Address to prefill when the prompt opens — an invite knows which one */
   signInPromptEmail: string | null;
+  /** Why the dialog opened on its own — e.g. the magic link came back spent */
+  signInPromptNotice: string | null;
   promptSignIn: (email?: string) => void;
+  clearSignInNotice: () => void;
 
   /** Wire up the Supabase auth listener — call once on app mount */
   init: () => void;
@@ -91,11 +115,13 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   initialized: false,
   signInPromptCount: 0,
   signInPromptEmail: null,
+  signInPromptNotice: null,
   promptSignIn: (email?: string) =>
     set(s => ({
       signInPromptCount: s.signInPromptCount + 1,
       signInPromptEmail: email ?? null,
     })),
+  clearSignInNotice: () => set({ signInPromptNotice: null }),
 
   init: () => {
     if (get().initialized || !builderClient) {
@@ -103,6 +129,19 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       return;
     }
     set({ initialized: true });
+
+    // A magic link that failed (token spent by a mail scanner, expired, or
+    // superseded by a newer email) redirects back with the reason in the
+    // hash. Surface it through the sign-in dialog — then tidy the address
+    // bar as usual.
+    const redirectError = readAuthHashError();
+    if (redirectError) {
+      clearAuthHash();
+      set(s => ({
+        signInPromptCount: s.signInPromptCount + 1,
+        signInPromptNotice: redirectError,
+      }));
+    }
 
     // Adopting a session: when the account actually changes — the session
     // restoring after an expired token, a sign-in, a sign-out — whatever we

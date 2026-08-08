@@ -411,8 +411,8 @@ function RequestAccountForm() {
         </div>
         <p className="text-xs leading-relaxed" style={{ color: C.body }}>
           Your invite code checked out, so there's no waiting for approval. We
-          sent a sign-in link to <strong>{email}</strong> — tap it, or type the
-          6-digit code from that email here.
+          emailed a 6-digit code to <strong>{email}</strong> — type it here to
+          sign in. Not seeing it? Check your spam or junk folder.
         </p>
         <CodeEntry email={email} />
       </div>
@@ -518,6 +518,10 @@ function SignInPanel({ onEnter }: { onEnter: () => void }) {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // A magic link that came back spent lands out here when the browser has no
+  // session — the app shell (and its sign-in dialog) never mounts, so this
+  // panel is where the explanation has to live. A notice opens the form.
+  const notice = useAuthStore(s => s.signInPromptNotice);
 
   if (!cloudEnabled) {
     return (
@@ -538,7 +542,11 @@ function SignInPanel({ onEnter }: { onEnter: () => void }) {
     const { error: err } = await useAuthStore.getState().signIn(trimmed);
     setSending(false);
     if (err) setError(err);
-    else setSent(true);
+    else {
+      setSent(true);
+      // A fresh email is on its way — the notice about the old one is done
+      useAuthStore.getState().clearSignInNotice();
+    }
   }
 
   // min-w-0 lets the input shrink so the row never pushes "Send link" off
@@ -555,15 +563,29 @@ function SignInPanel({ onEnter }: { onEnter: () => void }) {
             Check your email
           </div>
           <p className="text-xs leading-relaxed" style={{ color: C.body }}>
-            We sent a sign-in link to <strong>{email}</strong> — tap it, or type
-            the 6-digit code from that email here. No password needed.
+            We sent a 6-digit code to <strong>{email}</strong> — type it here
+            to sign in. No password needed. (The email has a sign-in link too,
+            but the typed code works even when a work inbox's link scanner has
+            used the link up.)
           </p>
           <CodeEntry email={email} />
+          <p className="text-xs leading-relaxed" style={{ color: C.muted }}>
+            Not seeing the email? Check your spam or junk folder — look for
+            &ldquo;Relational Builder&rdquo;.
+          </p>
         </div>
-      ) : open ? (
+      ) : open || notice ? (
         <div className="max-w-sm mx-auto space-y-2">
+          {notice && (
+            <p
+              className="rounded-lg border px-3 py-2 text-xs leading-relaxed text-left"
+              style={{ color: C.orangeDeep, borderColor: '#E8C4AE', background: '#FBF1EA' }}
+            >
+              {notice}
+            </p>
+          )}
           <p className="text-sm" style={{ color: C.body }}>
-            Welcome back — we'll email you a one-tap sign-in link.
+            Welcome back — we'll email you a 6-digit code and a sign-in link.
           </p>
           <div className="flex gap-2">
             <input
