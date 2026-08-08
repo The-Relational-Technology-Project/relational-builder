@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react';
 import { RBMark } from './RBMark';
 import { requestAccount, type RequestResult } from '@/cloud/account-requests';
 import { getPendingInvite } from '@/cloud/invite-link';
@@ -8,7 +8,19 @@ import { DEFAULT_STUDIO_SLUG } from '@/knowledge/studio-context';
 import { MailCheck, Plus, Minus } from 'lucide-react';
 import { PrivacyPage, ContactPage } from './LandingPages';
 
+// The build-a-thon page is for event partners who may never sign in — its
+// own chunk, loaded only at its own address
+const BuildathonPage = lazy(() =>
+  import('./BuildathonPage').then(m => ({ default: m.BuildathonPage })),
+);
+
 const ENTERED_KEY = 'rb-entered';
+
+/** /buildathon is a public companion page like #privacy — it wins over both
+ *  the landing and the app, signed in or not, so partners can share the link */
+function isBuildathonPath(): boolean {
+  return window.location.pathname.replace(/\/+$/, '').toLowerCase() === '/buildathon';
+}
 
 /**
  * Public landing page. Invitation passcodes are fully retired: the front
@@ -98,6 +110,16 @@ export function Landing({ children }: { children: ReactNode }) {
   if (hashPage === 'privacy') return <PrivacyPage />;
   if (hashPage === 'contact') return <ContactPage />;
 
+  // Same standing for the build-a-thon page, which lives at a path so it
+  // reads like the site page it is (relationalbuilder.org/buildathon)
+  if (isBuildathonPath()) {
+    return (
+      <Suspense fallback={null}>
+        <BuildathonPage />
+      </Suspense>
+    );
+  }
+
   // A signed-in builder is always through the door: after signing in from the
   // panel below, the magic-link redirect returns here and walks them straight in.
   if (granted || user) return <>{children}</>;
@@ -152,9 +174,11 @@ function LandingPage({ onUnlock }: { onUnlock: () => void }) {
           </ValueCard>
         </div>
 
-        {/* The front door */}
+        {/* The front door. The id is a shareable anchor (/#join) — the
+            build-a-thon page's "get an account" buttons land right here. */}
         <section
-          className="rounded-2xl border p-8 space-y-5 text-center"
+          id="join"
+          className="rounded-2xl border p-8 space-y-5 text-center scroll-mt-6"
           style={{ borderColor: C.border, background: C.card }}
         >
           <h2 className="text-xl font-semibold">We're in a community pilot</h2>
@@ -167,6 +191,20 @@ function LandingPage({ onUnlock }: { onUnlock: () => void }) {
         </section>
 
         <SocialProof />
+
+        {/* A quiet pointer for event partners — most visitors are here for
+            the door above, so this stays a sentence, not a section */}
+        <p className="text-center text-sm" style={{ color: C.muted }}>
+          Planning a build-a-thon or a group build day?{' '}
+          <a
+            href="/buildathon"
+            className="underline underline-offset-2"
+            style={{ color: C.body, textDecorationColor: C.border }}
+          >
+            See how Relational Builder supports events
+          </a>
+          .
+        </p>
 
         <FAQ />
 
