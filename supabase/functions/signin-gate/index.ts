@@ -8,11 +8,14 @@
  *     the auth user is created right here (service role, email confirmed),
  *     then allowed. This also backfills anyone approved before approval
  *     started creating auth users.
+ *   - A project invitation is waiting on the address (and the steward hasn't
+ *     declined this email) → the invite IS the vouch, same as a referral
+ *     code: the auth user + community membership are created right here and
+ *     the door opens ('invited', allowed). The account_requests history gets
+ *     a row either way, so every self-serve join stays on the steward's
+ *     screen, and the steward gets an FYI email.
  *   - Neither → not allowed; the client shows a friendly pointer to the
- *     request-account form ('pending' if their request is still waiting,
- *     'invited' if an existing builder has invited them to a project — still
- *     not allowed, but the copy can say so instead of implying a dead end,
- *     and the referral rides along on the account request for the steward).
+ *     request-account form ('pending' if their request is still waiting).
  *
  * The real enforcement is Supabase Auth itself: the client sends OTPs with
  * shouldCreateUser: false and the project has disable_signup: true, so a
@@ -21,13 +24,16 @@
  * messages) plus the just-in-time user creation for approved members.
  *
  * POST JSON: { email }
- *   → { allowed: true, status: 'member' }
- *   → { allowed: false, status: 'pending' | 'not-approved' }
+ *   → { allowed: true, status: 'member' | 'invited' }
+ *   → { allowed: false, status: 'pending' | 'not-approved' | 'invited' }
+ *     ('invited' is only ever blocked when the steward already declined
+ *      this address — a decline outranks any builder's invitation)
  *   - No auth (the caller is signed out by definition); per-IP rate limited
  *   - Reveals only what request-account already reveals (member / pending)
  *
  * Deploy: supabase functions deploy signin-gate --no-verify-jwt
- * Secrets: none beyond the standard SUPABASE_* runtime ones.
+ * Secrets: RESEND_API_KEY + STEWARD_EMAIL (optional — the FYI email when an
+ * invitation opens the door), plus the standard SUPABASE_* runtime ones.
  */
 
 const CORS = {
@@ -55,10 +61,14 @@ function rest(path: string): string {
   return `${Deno.env.get('SUPABASE_URL')}/rest/v1${path}`;
 }
 
+function esc(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
 /**
  * An unclaimed project invitation for this address, with who sent it.
- * Informational: it never grants entry, it only lets the door explain itself
- * (and rides along on the account request so the steward sees the referral).
+ * The invite is an existing builder's vouch — the same standing as their
+ * referral code, which is exactly how the gate now treats it.
  */
 async function pendingInvite(
   email: string,
@@ -150,28 +160,91 @@ Deno.serve(async (req: Request) => {
       return json({ allowed: true, status: 'member' });
     }
 
-    // Not approved (yet) — say whether their request is still in the queue
+    // Where their account request stands, if they have one — a steward's
+    // decline is the one thing an invitation cannot override
     const reqRes = await fetch(
-      rest(`/account_requests?email=eq.${encodeURIComponent(email)}&select=status&limit=1`),
+      rest(`/account_requests?email=eq.${encodeURIComponent(email)}&select=id,status&limit=1`),
       { headers: svc() },
     );
     const requests = reqRes.ok ? await reqRes.json() : [];
-    const pending = requests.length > 0 && requests[0].status === 'pending';
-    if (pending) return json({ allowed: false, status: 'pending' });
+    const existing = requests.length > 0 ? requests[0] : null;
+    const declined = existing?.status === 'declined';
 
-    // An outstanding project invitation doesn't open the door — every new
-    // builder still goes past a steward — but it changes what we can honestly
-    // say at it. Being told "this email doesn't have an account" right after
-    // an email promised the project would be waiting reads as a broken tool.
-    const invite = await pendingInvite(email);
+    const invite = declined ? null : await pendingInvite(email);
     if (invite) {
+      // An invitation opens the door the way a referral code does: an
+      // existing builder chose this address on purpose, and the magic-link
+      // email that follows is the proof they own it. Side effects mirror
+      // admin-requests' approve block and request-account's performApprove
+      // (keep in sync): auth user first, then the membership allowlist.
+      if (!(await ensureAuthUser(email))) {
+        return json({ error: 'Could not prepare your account — try again in a moment' }, 500);
+      }
+      const inviterLabel = invite.inviterEmail ?? 'a builder';
+      const note =
+        `invited by ${inviterLabel}` +
+        (invite.projectName ? ` to collaborate on "${invite.projectName}"` : '');
+      const memberIns = await fetch(rest('/community_members'), {
+        method: 'POST',
+        headers: { ...svc(), Prefer: 'resolution=ignore-duplicates' },
+        body: JSON.stringify({ email, note }),
+      });
+      if (!memberIns.ok && memberIns.status !== 409) {
+        return json({ error: 'Could not prepare your account — try again in a moment' }, 500);
+      }
+
+      // The steward's history sees every self-serve join: settle a pending
+      // request, or file an already-decided one. Best-effort — the person is
+      // already through the door.
+      const decision = {
+        status: 'approved',
+        invited_by_email: invite.inviterEmail,
+        invited_project_name: invite.projectName,
+        decided_at: new Date().toISOString(),
+        decided_by: `project invite (${inviterLabel})`,
+      };
+      if (existing?.status === 'pending') {
+        await fetch(
+          rest(`/account_requests?id=eq.${encodeURIComponent(String(existing.id))}&status=eq.pending`),
+          { method: 'PATCH', headers: svc(), body: JSON.stringify(decision) },
+        ).catch(() => {});
+      } else if (!existing) {
+        await fetch(rest('/account_requests'), {
+          method: 'POST',
+          headers: svc(),
+          body: JSON.stringify({ email, ...decision }),
+        }).catch(() => {});
+      }
+
+      // FYI the steward — best-effort
+      const resendKey = Deno.env.get('RESEND_API_KEY') ?? '';
+      if (resendKey) {
+        const steward = Deno.env.get('STEWARD_EMAIL') ?? 'josh@relationaltechproject.org';
+        const appUrl = Deno.env.get('APP_URL') ?? 'https://relationalbuilder.org';
+        await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            from: 'Relational Builder <hello@relationalbuilder.org>',
+            to: [steward],
+            subject: `New builder via project invite: ${email}`,
+            html: [
+              `<p><strong>${esc(email)}</strong> just signed in through ${esc(inviterLabel)}'s project invitation${invite.projectName ? ` to “${esc(invite.projectName)}”` : ''} — the invite vouched for them, so no approval was needed.</p>`,
+              `<p style="font-size:13px;color:#93806F;">FYI only. Every self-serve join is in your <a href="${appUrl}">steward dashboard</a> under recent decisions.</p>`,
+            ].join('\n'),
+          }),
+        }).catch(() => {});
+      }
+
       return json({
-        allowed: false,
+        allowed: true,
         status: 'invited',
         invited_by: invite.inviterEmail,
         project_name: invite.projectName,
       });
     }
+
+    if (existing?.status === 'pending') return json({ allowed: false, status: 'pending' });
 
     return json({ allowed: false, status: 'not-approved' });
   } catch (err) {

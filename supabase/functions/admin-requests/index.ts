@@ -44,6 +44,18 @@
  * view can only exist here, behind the service role):
  *   { action: "accounts" }                 → { accounts: [...] }
  *
+ * POST JSON — event codes (steward-minted room keys: a ?ref=CODE that
+ * auto-joins like a builder's referral code and tags each joiner's profile
+ * as an event participant) + join counts per code:
+ *   { action: "event_code_create", name, code?, expires_at? }
+ *                                          → { event_code: {...} }
+ *   { action: "event_code_list" }          → { event_codes: [...] }
+ *     (each with a `joined` count of profiles carrying the code)
+ *   { action: "event_code_set", code, active }
+ *   { action: "referral_stats" }           → { stats: [...] }
+ *     (per-builder joined counts over profiles.referred_by_code — which
+ *      covers typed referral codes and project-invite joins alike)
+ *
  * Deploy: supabase functions deploy admin-requests
  * (verify_jwt ON — every caller is a signed-in steward; the real gate is
  * the SUPER_ADMIN_EMAILS check below.)
@@ -301,6 +313,123 @@ Deno.serve(async (req: Request) => {
         if (!res.ok) return json({ error: 'Could not revoke the admin role' }, 500);
       }
       return json({ ok: true });
+    }
+
+    // --- Event codes: a key the steward cuts for a whole room ---
+    if (action === 'event_code_create') {
+      const name = String(body.name ?? '').trim().slice(0, 80);
+      if (!name) return json({ error: 'The event needs a name' }, 400);
+      // Same normalization as the door applies to whatever people type
+      let code = String(body.code ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12);
+      if (code && code.length < 3) {
+        return json({ error: 'Codes are 3–12 letters and digits' }, 400);
+      }
+      if (!code) {
+        // The shared generator already steers around both namespaces
+        const gen = await fetch(rest('/rpc/generate_referral_code'), {
+          method: 'POST',
+          headers: svc(),
+          body: '{}',
+        });
+        code = gen.ok ? String(await gen.json()) : '';
+        if (!code) return json({ error: 'Could not generate a code' }, 500);
+      } else {
+        // A hand-picked code must not collide with any builder's personal one
+        const clashRes = await fetch(
+          rest(`/profiles?referral_code=eq.${encodeURIComponent(code)}&select=id&limit=1`),
+          { headers: svc() },
+        );
+        const clash = clashRes.ok ? await clashRes.json() : [];
+        if (clash.length > 0) {
+          return json({ error: 'That code already belongs to a builder — pick another' }, 409);
+        }
+      }
+      const expiresRaw = String(body.expires_at ?? '').trim();
+      const expiresMs = expiresRaw ? Date.parse(expiresRaw) : NaN;
+      const insRes = await fetch(rest('/event_codes'), {
+        method: 'POST',
+        headers: { ...svc(), Prefer: 'return=representation' },
+        body: JSON.stringify({
+          code,
+          name,
+          expires_at: Number.isNaN(expiresMs) ? null : new Date(expiresMs).toISOString(),
+          created_by: callerEmail,
+        }),
+      });
+      if (insRes.status === 409) {
+        return json({ error: 'That code is already in use for an event' }, 409);
+      }
+      if (!insRes.ok) return json({ error: 'Could not create the event code' }, 500);
+      const [row] = await insRes.json();
+      return json({ ok: true, event_code: { ...row, joined: 0 } });
+    }
+
+    if (action === 'event_code_set') {
+      const code = String(body.code ?? '').trim().toUpperCase();
+      if (!code) return json({ error: 'code is required' }, 400);
+      const res = await fetch(rest(`/event_codes?code=eq.${encodeURIComponent(code)}`), {
+        method: 'PATCH',
+        headers: svc(),
+        body: JSON.stringify({ active: body.active === true }),
+      });
+      if (!res.ok) return json({ error: 'Could not update the event code' }, 500);
+      return json({ ok: true });
+    }
+
+    if (action === 'event_code_list') {
+      const [codesRes, joinsRes] = await Promise.all([
+        fetch(rest('/event_codes?select=*&order=created_at.desc&limit=200'), { headers: svc() }),
+        fetch(rest('/profiles?event_code=not.is.null&select=event_code&limit=10000'), {
+          headers: svc(),
+        }),
+      ]);
+      if (!codesRes.ok) return json({ error: 'Could not load event codes' }, 500);
+      const codes: Array<Record<string, unknown>> = await codesRes.json();
+      const joins: Array<{ event_code: string }> = joinsRes.ok ? await joinsRes.json() : [];
+      const counts = new Map<string, number>();
+      for (const j of joins) {
+        const key = j.event_code.toUpperCase();
+        counts.set(key, (counts.get(key) ?? 0) + 1);
+      }
+      return json({
+        event_codes: codes.map(c => ({
+          ...c,
+          joined: counts.get(String(c.code).toUpperCase()) ?? 0,
+        })),
+      });
+    }
+
+    // --- Referral stats: who is opening the door, and how wide ---
+    if (action === 'referral_stats') {
+      const [ownersRes, joinsRes] = await Promise.all([
+        fetch(
+          rest(
+            '/profiles?referral_code=not.is.null&select=email,display_name,full_name,referral_code&limit=2000',
+          ),
+          { headers: svc() },
+        ),
+        fetch(rest('/profiles?referred_by_code=not.is.null&select=referred_by_code&limit=10000'), {
+          headers: svc(),
+        }),
+      ]);
+      if (!ownersRes.ok) return json({ error: 'Could not load referral stats' }, 500);
+      const owners: Array<Record<string, unknown>> = await ownersRes.json();
+      const joins: Array<{ referred_by_code: string }> = joinsRes.ok ? await joinsRes.json() : [];
+      const counts = new Map<string, number>();
+      for (const j of joins) {
+        const key = j.referred_by_code.toUpperCase();
+        counts.set(key, (counts.get(key) ?? 0) + 1);
+      }
+      const stats = owners
+        .map(o => ({
+          code: String(o.referral_code),
+          name: (o.full_name ?? o.display_name ?? null) as string | null,
+          email: String(o.email),
+          joined: counts.get(String(o.referral_code).toUpperCase()) ?? 0,
+        }))
+        .filter(s => s.joined > 0)
+        .sort((a, b) => b.joined - a.joined);
+      return json({ stats });
     }
 
     // --- Accounts overview: every builder, their place, their project count ---

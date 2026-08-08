@@ -40,12 +40,21 @@ import {
   type StudioAccess,
   type StudioMemberRow,
 } from '@/cloud/studios';
+import {
+  adminListEventCodes,
+  adminCreateEventCode,
+  adminSetEventCodeActive,
+  adminReferralStats,
+  eventInviteLink,
+  type EventCode,
+  type ReferralStat,
+} from '@/cloud/event-codes';
 import { useKnowledgeStore } from '@/store/knowledge-store';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Check, X, Loader2, ChevronDown, ChevronRight, ShieldCheck, KeyRound, Link2, Lock, LockOpen } from 'lucide-react';
+import { Check, X, Loader2, ChevronDown, ChevronRight, ShieldCheck, KeyRound, Link2, Lock, LockOpen, Ticket, Copy } from 'lucide-react';
 
 /**
  * The Steward page — every steward task in one full-width space (these
@@ -94,6 +103,7 @@ export function StewardPage() {
             <TabsList className="w-max">
               <TabsTrigger value="accounts" className="text-xs px-3 sm:px-4">Accounts</TabsTrigger>
               <TabsTrigger value="door" className="text-xs px-3 sm:px-4">Account requests</TabsTrigger>
+              <TabsTrigger value="events" className="text-xs px-3 sm:px-4">Events</TabsTrigger>
               <TabsTrigger value="commons" className="text-xs px-3 sm:px-4">Commons review</TabsTrigger>
               <TabsTrigger value="gallery" className="text-xs px-3 sm:px-4">Studio gallery</TabsTrigger>
               <TabsTrigger value="connections" className="text-xs px-3 sm:px-4">Connections</TabsTrigger>
@@ -105,6 +115,9 @@ export function StewardPage() {
           </TabsContent>
           <TabsContent value="door" className="pt-4">
             <RequestsTab active />
+          </TabsContent>
+          <TabsContent value="events" className="pt-4">
+            <EventsTab />
           </TabsContent>
           <TabsContent value="commons" className="pt-4">
             <CommonsTab />
@@ -324,6 +337,11 @@ function RequestsTab({ active }: { active: boolean }) {
               {r.referral_code && (
                 <Badge variant="outline" className="text-[10px] shrink-0">
                   code {r.referral_code}
+                </Badge>
+              )}
+              {r.event_code && (
+                <Badge variant="outline" className="text-[10px] shrink-0">
+                  event {r.event_code}
                 </Badge>
               )}
               {r.decided_at && (
@@ -870,6 +888,231 @@ function ConnectionsTab() {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+// --- Events: room keys + who's opening the door ---
+
+function EventsTab() {
+  const [codes, setCodes] = useState<EventCode[]>([]);
+  const [stats, setStats] = useState<ReferralStat[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [busyKey, setBusyKey] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [name, setName] = useState('');
+  const [customCode, setCustomCode] = useState('');
+  const [expires, setExpires] = useState('');
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    setError(null);
+    try {
+      const [codeList, statList] = await Promise.all([
+        adminListEventCodes(),
+        adminReferralStats(),
+      ]);
+      setCodes(codeList);
+      setStats(statList);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not load event codes');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  async function create() {
+    if (!name.trim()) return;
+    setBusyKey('create');
+    setError(null);
+    try {
+      // A date picked in the steward's timezone should last through that
+      // whole day — expiry lands at local midnight after it
+      const expiresAt = expires
+        ? new Date(`${expires}T23:59:59`).toISOString()
+        : undefined;
+      const created = await adminCreateEventCode({
+        name: name.trim(),
+        code: customCode.trim() || undefined,
+        expiresAt,
+      });
+      setCodes(list => [created, ...list]);
+      setName('');
+      setCustomCode('');
+      setExpires('');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not create the code');
+    } finally {
+      setBusyKey(null);
+    }
+  }
+
+  async function setActive(code: EventCode, active: boolean) {
+    setBusyKey(`active-${code.code}`);
+    setError(null);
+    try {
+      await adminSetEventCodeActive(code.code, active);
+      setCodes(list => list.map(c => (c.code === code.code ? { ...c, active } : c)));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'That change did not save');
+    } finally {
+      setBusyKey(null);
+    }
+  }
+
+  async function copyLink(code: string) {
+    try {
+      await navigator.clipboard.writeText(eventInviteLink(code));
+      setCopiedCode(code);
+      setTimeout(() => setCopiedCode(current => (current === code ? null : current)), 2000);
+    } catch {
+      setError('Could not copy — the link is ' + eventInviteLink(code));
+    }
+  }
+
+  if (loading) {
+    return (
+      <p className="text-sm text-muted-foreground flex items-center gap-2">
+        <Loader2 className="size-3.5 animate-spin" /> Loading event codes…
+      </p>
+    );
+  }
+
+  const expired = (c: EventCode) =>
+    c.expires_at !== null && Date.parse(c.expires_at) < Date.now();
+
+  return (
+    <div className="space-y-6">
+      <div className="space-y-3">
+        <p className="text-xs text-muted-foreground">
+          An event code is a room key: everyone who joins with it gets in on the
+          spot — no waiting on you — and their profile carries the event, so the
+          Builder knows who was in the room together. Share the link, or put the
+          code on a slide.
+        </p>
+        {error && <p className="text-xs text-destructive">{error}</p>}
+
+        <div className="rounded-lg border p-3 space-y-2">
+          <p className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted-foreground">
+            <Ticket className="size-3" /> New event code
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            <Input
+              value={name}
+              onChange={e => setName(e.target.value)}
+              placeholder="Event name — e.g. Oakland Build-a-thon"
+              className="h-7 text-xs flex-1 min-w-40"
+              maxLength={80}
+            />
+            <Input
+              value={customCode}
+              onChange={e => setCustomCode(e.target.value.toUpperCase())}
+              placeholder="Code (blank = generated)"
+              className="h-7 text-xs w-44 font-mono"
+              maxLength={12}
+            />
+            <Input
+              type="date"
+              value={expires}
+              onChange={e => setExpires(e.target.value)}
+              title="Last day the code works (optional)"
+              className="h-7 text-xs w-36"
+            />
+            <Button
+              size="sm"
+              className="h-7 text-xs shrink-0"
+              disabled={busyKey !== null || !name.trim()}
+              onClick={create}
+            >
+              {busyKey === 'create' ? (
+                <Loader2 className="size-3 mr-1 animate-spin" />
+              ) : (
+                <Ticket className="size-3 mr-1" />
+              )}
+              Create
+            </Button>
+          </div>
+        </div>
+
+        {codes.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No event codes yet.</p>
+        ) : (
+          <div className="space-y-1.5">
+            {codes.map(c => (
+              <div key={c.code} className="rounded-lg border px-3 py-2 flex items-center gap-2.5 flex-wrap">
+                <span className="font-mono text-sm font-semibold tracking-wide">{c.code}</span>
+                <span className="text-sm truncate">{c.name}</span>
+                <Badge variant="outline" className="shrink-0 tabular-nums">
+                  {c.joined} joined
+                </Badge>
+                {!c.active ? (
+                  <Badge variant="outline" className="text-[10px] text-muted-foreground shrink-0">off</Badge>
+                ) : expired(c) ? (
+                  <Badge variant="outline" className="text-[10px] text-muted-foreground shrink-0">expired</Badge>
+                ) : (
+                  <Badge variant="outline" className="text-[10px] text-green-600 border-green-600/40 shrink-0">live</Badge>
+                )}
+                {c.expires_at && !expired(c) && (
+                  <span className="text-xs text-muted-foreground/70 shrink-0">
+                    until {new Date(c.expires_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                  </span>
+                )}
+                <div className="ml-auto flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => copyLink(c.code)}
+                    className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                    title={eventInviteLink(c.code)}
+                  >
+                    {copiedCode === c.code ? <Check className="size-3" /> : <Copy className="size-3" />}
+                    {copiedCode === c.code ? 'Copied' : 'Copy link'}
+                  </button>
+                  <button
+                    onClick={() => setActive(c, !c.active)}
+                    disabled={busyKey !== null}
+                    className="text-xs text-muted-foreground hover:text-foreground underline decoration-dotted"
+                  >
+                    {busyKey === `active-${c.code}` ? (
+                      <Loader2 className="size-3 animate-spin" />
+                    ) : c.active ? (
+                      'turn off'
+                    ) : (
+                      'turn on'
+                    )}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="space-y-1.5">
+        <p className="text-xs uppercase tracking-wide text-muted-foreground">
+          Builders opening the door
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Everyone a builder has brought in — through their personal invite code
+          or by inviting a collaborator to a project.
+        </p>
+        {stats.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No referred joins yet.</p>
+        ) : (
+          stats.map(s => (
+            <div key={s.code} className="flex items-center gap-2 text-xs rounded-lg border px-3 py-2">
+              <span className="text-sm font-medium truncate">{s.name || s.email}</span>
+              {s.name && <span className="text-muted-foreground truncate">{s.email}</span>}
+              <Badge variant="outline" className="text-[10px] shrink-0 font-mono">{s.code}</Badge>
+              <Badge variant="outline" className="ml-auto shrink-0 tabular-nums">
+                {s.joined} joined
+              </Badge>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 }

@@ -37,6 +37,9 @@ export interface AccountRequest {
    *  project invitation this one DOES grant access: the request arrives
    *  already approved, and the steward sees it here after the fact. */
   referral_code: string | null;
+  /** A steward-minted event code — grants access the same way, and tags the
+   *  joiner's profile as a participant of that event at first sign-in. */
+  event_code: string | null;
   status: 'pending' | 'approved' | 'declined';
   created_at: string;
   decided_at: string | null;

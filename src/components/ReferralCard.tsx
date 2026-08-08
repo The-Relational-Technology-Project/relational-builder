@@ -89,11 +89,13 @@ export function ReferralCard() {
               <strong className="font-medium text-foreground">
                 {joined} builder{joined === 1 ? '' : 's'}
               </strong>{' '}
-              {joined === 1 ? 'has' : 'have'} joined through your code.{' '}
+              {joined === 1 ? 'has' : 'have'} joined through your invites.{' '}
             </>
           ) : null}
           Anyone who signs up with it gets in right away — no waiting for
           approval. Share it with friends and neighbors you'd vouch for.
+          Inviting a collaborator to a project opens the door the same way,
+          and counts here too.
         </span>
       </p>
     </section>

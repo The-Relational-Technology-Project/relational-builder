@@ -96,7 +96,8 @@ function countOffer(id: string): void {
  */
 export function ConnectionSuggestion({ conversationText }: { conversationText: string }) {
   const user = useAuthStore(s => s.user);
-  const [suggestion, setSuggestion] = useState<{ builder: DirectoryBuilder; matched: string[] } | null>(null);
+  const eventCode = useAuthStore(s => s.profile?.event_code ?? null);
+  const [suggestion, setSuggestion] = useState<{ builder: DirectoryBuilder; matched: string[]; sameEvent: boolean } | null>(null);
   const [requesting, setRequesting] = useState(false);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
@@ -111,14 +112,14 @@ export function ConnectionSuggestion({ conversationText }: { conversationText: s
     let cancelled = false;
     fetchDirectoryCached().then(builders => {
       if (cancelled) return;
-      const next = suggestConnection(conversationText, builders, retiredIds(readMemory()));
+      const next = suggestConnection(conversationText, builders, retiredIds(readMemory()), eventCode);
       // Showing it is what spends an offer — a match we never render (because
       // this builder is already retired) costs nothing.
       if (next) countOffer(next.builder.id);
       setSuggestion(next);
     });
     return () => { cancelled = true; };
-  }, [user, conversationText]);
+  }, [user, conversationText, eventCode]);
 
   if (!suggestion) return null;
   const { builder } = suggestion;
@@ -144,7 +145,9 @@ export function ConnectionSuggestion({ conversationText }: { conversationText: s
       <div className="flex items-center gap-1.5">
         <HeartHandshake className="size-3.5 text-primary shrink-0" />
         <span className="text-xs font-medium truncate">
-          {builder.name} might be good to talk to
+          {suggestion.sameEvent
+            ? `${builder.name} is at your event — go find them`
+            : `${builder.name} might be good to talk to`}
         </span>
         {builder.neighborhood && (
           <span className="inline-flex items-center gap-0.5 text-xs text-muted-foreground shrink-0">

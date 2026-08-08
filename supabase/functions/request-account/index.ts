@@ -14,10 +14,13 @@
  *   - studio_slug/label carry the studio doorway the person arrived through
  *     (?studio=thread): at first sign-in a trigger files their request to
  *     join that studio automatically
- *   - referral_code: a builder's personal invite code (?ref=CODE). Validated
- *     server-side against profiles.referral_code — a real builder's code
+ *   - referral_code: an invite code (?ref=CODE) — either a builder's personal
+ *     code (profiles.referral_code) or a steward-minted event code
+ *     (event_codes, active + unexpired). Validated server-side; a valid code
  *     auto-approves the request on the spot (account + membership created,
  *     welcome email sent, steward gets an FYI instead of an approve ask).
+ *     An event code additionally rides along on the request so the joiner's
+ *     profile gets tagged as an event participant at first sign-in.
  *     The magic-link sign-in that follows is the email confirmation: OTPs
  *     only ever go to the address itself. An unrecognized code falls back
  *     to the normal pending flow.
@@ -76,9 +79,9 @@ const RESPOND_TOKEN_DAYS = 7;
  *
  * Looked up here rather than accepted from the request body: a referral is the
  * most load-bearing thing on the steward's screen, so it has to be something
- * the server established, not something the form claimed. Informational only —
- * an invitation never approves anyone, it just means the steward is looking at
- * someone an existing builder already vouched for.
+ * the server established, not something the form claimed. Informational here —
+ * if this person goes to the sign-in form instead, the invitation opens the
+ * door on its own (signin-gate treats it like a referral code).
  */
 async function inviteContext(
   email: string,
@@ -138,17 +141,33 @@ async function referrerByCode(
 }
 
 /**
- * Referral approval side effects, mirroring admin-requests' approve block
- * (keep in sync): the auth user must exist before anything says "just sign
- * in", because sign-in OTPs are sent with shouldCreateUser: false. Runs
- * BEFORE the account_requests row is written, so a failure here leaves
- * nothing half-approved — the person just tries again.
+ * The event behind a code, or null. Only a live code opens the door: the
+ * steward can deactivate one the moment an event wraps, and an expiry set at
+ * creation retires it on its own.
  */
-async function performReferralApprove(
-  email: string,
-  referrer: { email: string; name: string | null },
-  code: string,
-): Promise<string | null> {
+async function eventByCode(code: string): Promise<{ code: string; name: string } | null> {
+  const res = await fetch(
+    rest(
+      `/event_codes?code=eq.${encodeURIComponent(code)}&active=eq.true&select=code,name,expires_at&limit=1`,
+    ),
+    { headers: svc() },
+  );
+  const rows = res.ok ? await res.json() : [];
+  if (rows.length === 0) return null;
+  const expires = rows[0].expires_at ? Date.parse(String(rows[0].expires_at)) : null;
+  if (expires !== null && !Number.isNaN(expires) && expires < Date.now()) return null;
+  return { code: String(rows[0].code), name: String(rows[0].name) };
+}
+
+/**
+ * Approval side effects, mirroring admin-requests' approve block and
+ * signin-gate's invite auto-join (keep all three in sync): the auth user must
+ * exist before anything says "just sign in", because sign-in OTPs are sent
+ * with shouldCreateUser: false. Runs BEFORE the account_requests row is
+ * written, so a failure here leaves nothing half-approved — the person just
+ * tries again.
+ */
+async function performApprove(email: string, note: string): Promise<string | null> {
   const userRes = await fetch(`${Deno.env.get('SUPABASE_URL')}/auth/v1/admin/users`, {
     method: 'POST',
     headers: svc(),
@@ -159,7 +178,7 @@ async function performReferralApprove(
   const insertRes = await fetch(rest('/community_members'), {
     method: 'POST',
     headers: { ...svc(), Prefer: 'resolution=ignore-duplicates' },
-    body: JSON.stringify({ email, note: `referred by ${referrer.email} (code ${code})` }),
+    body: JSON.stringify({ email, note }),
   });
   if (!insertRes.ok && insertRes.status !== 409) return 'Could not create community membership';
   return null;
@@ -213,6 +232,48 @@ async function sendReferralEmails(
   }).catch(() => {});
 }
 
+/** Welcome the event joiner + FYI the steward — both best-effort */
+async function sendEventEmails(
+  email: string,
+  name: string | null,
+  event: { code: string; name: string },
+): Promise<void> {
+  const resendKey = Deno.env.get('RESEND_API_KEY') ?? '';
+  if (!resendKey) return;
+  const appUrl = Deno.env.get('APP_URL') ?? 'https://relationalbuilder.org';
+  const steward = Deno.env.get('STEWARD_EMAIL') ?? 'josh@relationaltechproject.org';
+
+  await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      from: 'Relational Builder <hello@relationalbuilder.org>',
+      to: [email],
+      subject: "You're in — welcome to Relational Builder",
+      html: [
+        `<p>Hi${name ? ' ' + esc(name) : ''},</p>`,
+        `<p>Your Relational Builder account is ready — the <strong>${esc(event.name)}</strong> code opened the door, so there was no waiting. Free community building is included: no API key, no credit card.</p>`,
+        `<p><a href="${appUrl}">Open Relational Builder</a> and sign in with this email address (we'll send you a sign-in link — no password to remember).</p>`,
+        `<p>Build something your neighborhood will love.</p>`,
+      ].join('\n'),
+    }),
+  }).catch(() => {});
+
+  await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      from: 'Relational Builder <hello@relationalbuilder.org>',
+      to: [steward],
+      subject: `New builder via ${event.name}: ${name ?? email}`,
+      html: [
+        `<p><strong>${esc(name ?? 'Someone')}</strong> (${esc(email)}) just joined with the <strong>${esc(event.name)}</strong> event code (<code>${esc(event.code)}</code>) — no approval needed, their welcome email is on its way.</p>`,
+        `<p style="font-size:13px;color:#93806F;">FYI only. The running count for each event code is in your <a href="${appUrl}">steward dashboard</a> under Events.</p>`,
+      ].join('\n'),
+    }),
+  }).catch(() => {});
+}
+
 const emailBtn = (href: string, label: string, primary: boolean) =>
   `<a href="${href}" style="display:inline-block;margin:4px 10px 4px 0;padding:12px 22px;border-radius:10px;text-decoration:none;font-weight:600;font-size:15px;${
     primary
@@ -255,7 +316,10 @@ Deno.serve(async (req: Request) => {
       .replace(/[^A-Z0-9]/g, '')
       .slice(0, 12);
     const attemptedCode = rawReferral.length >= 3 ? rawReferral : null;
+    // One field, two namespaces: a builder's personal code first, then a
+    // steward-minted event code (creation keeps them from colliding)
     const referrer = attemptedCode ? await referrerByCode(attemptedCode) : null;
+    const event = attemptedCode && !referrer ? await eventByCode(attemptedCode) : null;
 
     // Already a community member → just sign in
     const memberRes = await fetch(
@@ -275,9 +339,26 @@ Deno.serve(async (req: Request) => {
       { headers: svc() },
     );
     const existing = existingRes.ok ? await existingRes.json() : [];
+    // What a valid code stamps on the request row, and who the decision is
+    // attributed to — the same fields either way, sourced from whichever
+    // namespace matched
+    const codeFields = referrer && attemptedCode
+      ? {
+          approveNote: `referred by ${referrer.email} (code ${attemptedCode})`,
+          requestPatch: { referral_code: attemptedCode },
+          decidedBy: `referral code ${attemptedCode} (${referrer.email})`,
+        }
+      : event && attemptedCode
+        ? {
+            approveNote: `joined via event code ${attemptedCode} (${event.name})`,
+            requestPatch: { event_code: attemptedCode },
+            decidedBy: `event code ${attemptedCode} (${event.name})`,
+          }
+        : null;
+
     if (existing.length > 0) {
-      if (referrer && attemptedCode && existing[0].status === 'pending') {
-        const failure = await performReferralApprove(email, referrer, attemptedCode);
+      if (codeFields && existing[0].status === 'pending') {
+        const failure = await performApprove(email, codeFields.approveNote);
         if (failure) return json({ error: failure }, 500);
         await fetch(
           rest(`/account_requests?id=eq.${encodeURIComponent(existing[0].id)}&status=eq.pending`),
@@ -286,19 +367,23 @@ Deno.serve(async (req: Request) => {
             headers: svc(),
             body: JSON.stringify({
               status: 'approved',
-              referral_code: attemptedCode,
+              ...codeFields.requestPatch,
               decided_at: new Date().toISOString(),
-              decided_by: `referral code ${attemptedCode} (${referrer.email})`,
+              decided_by: codeFields.decidedBy,
             }),
           },
         );
-        await sendReferralEmails(
-          email,
-          name ?? existing[0].name ?? null,
-          referrer,
-          attemptedCode,
-          studioLabel ?? existing[0].studio_label ?? null,
-        );
+        if (referrer && attemptedCode) {
+          await sendReferralEmails(
+            email,
+            name ?? existing[0].name ?? null,
+            referrer,
+            attemptedCode,
+            studioLabel ?? existing[0].studio_label ?? null,
+          );
+        } else if (event) {
+          await sendEventEmails(email, name ?? existing[0].name ?? null, event);
+        }
         return json({ ok: true, status: 'approved', referral: 'accepted' });
       }
       return json({ ok: true, status: existing[0].status === 'approved' ? 'already-member' : 'pending' });
@@ -307,8 +392,8 @@ Deno.serve(async (req: Request) => {
     // A valid invite code approves on the spot: account + membership first
     // (so a failure leaves nothing half-done), then the request row lands
     // already-decided in the steward's history, then the emails go out.
-    if (referrer && attemptedCode) {
-      const failure = await performReferralApprove(email, referrer, attemptedCode);
+    if (codeFields) {
+      const failure = await performApprove(email, codeFields.approveNote);
       if (failure) return json({ error: failure }, 500);
       await fetch(rest('/account_requests'), {
         method: 'POST',
@@ -316,13 +401,17 @@ Deno.serve(async (req: Request) => {
         body: JSON.stringify({
           email, name, neighborhood, reason,
           studio_slug: studioSlug, studio_label: studioLabel,
-          referral_code: attemptedCode,
+          ...codeFields.requestPatch,
           status: 'approved',
           decided_at: new Date().toISOString(),
-          decided_by: `referral code ${attemptedCode} (${referrer.email})`,
+          decided_by: codeFields.decidedBy,
         }),
       }).catch(() => {});
-      await sendReferralEmails(email, name, referrer, attemptedCode, studioLabel);
+      if (referrer && attemptedCode) {
+        await sendReferralEmails(email, name, referrer, attemptedCode, studioLabel);
+      } else if (event) {
+        await sendEventEmails(email, name, event);
+      }
       return json({ ok: true, status: 'approved', referral: 'accepted' });
     }
 
@@ -373,7 +462,7 @@ Deno.serve(async (req: Request) => {
               : '',
             neighborhood ? `<p><strong>Neighborhood:</strong> ${esc(neighborhood)}</p>` : '',
             attemptedCode
-              ? `<p><strong>Referral code:</strong> they entered <code>${esc(attemptedCode)}</code>, which didn't match any builder — so this request came to you the usual way.</p>`
+              ? `<p><strong>Referral code:</strong> they entered <code>${esc(attemptedCode)}</code>, which didn't match any builder or live event — so this request came to you the usual way.</p>`
               : '',
             reason ? `<p><strong>What they want to build:</strong><br>${esc(reason)}</p>` : '',
             `<div>${emailBtn(approveUrl, 'Approve', true)}${emailBtn(declineUrl, 'Decline', false)}</div>`,

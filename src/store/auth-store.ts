@@ -56,6 +56,8 @@ export interface BuilderProfile {
   allow_requests: boolean;
   /** Personal invite code — anyone who signs up with it skips steward approval */
   referral_code: string | null;
+  /** The event code this builder joined through — their participant tag */
+  event_code: string | null;
 }
 
 interface AuthState {
@@ -171,7 +173,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     }
     const { data, error } = await builderClient
       .from('profiles')
-      .select('display_name, full_name, neighborhood, neighborhood_description, dreams, tech_familiarity, ai_coding_experience, email_opt_in, terms_accepted_at, profile_completed, design_system, local_tech_ecosystem, open_to_connecting, connect_note, cal_link, allow_requests, referral_code')
+      .select('display_name, full_name, neighborhood, neighborhood_description, dreams, tech_familiarity, ai_coding_experience, email_opt_in, terms_accepted_at, profile_completed, design_system, local_tech_ecosystem, open_to_connecting, connect_note, cal_link, allow_requests, referral_code, event_code')
       .eq('id', user.id)
       .maybeSingle();
     // The account changed while we were fetching — this row isn't theirs

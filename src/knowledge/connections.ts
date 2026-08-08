@@ -13,6 +13,9 @@ export interface DirectoryBuilder {
   note: string | null;
   cal_link: string | null;
   allow_requests: boolean;
+  /** The event code they joined through, if any — same-event peers are
+   *  suggested to each other more readily */
+  event_code?: string | null;
   /** Prompts this builder has shared — seeds you can grow from */
   prompts?: { title: string; slug: string }[];
 }
@@ -72,26 +75,43 @@ function meaningfulTokens(text: string): string[] {
  * this conversation is about. Deterministic and local — no model call, no
  * data leaves the page. Returns null when nothing clears the bar, which is
  * most of the time by design.
+ *
+ * When the person is at an event (selfEventCode), builders from the same
+ * event clear a lower bar and win ties: you're already in the same room on
+ * purpose, so one genuine topical overlap is reason enough to say
+ * "go find them".
  */
 export function suggestConnection(
   conversationText: string,
   builders: DirectoryBuilder[],
   excludeIds: Set<string>,
-): { builder: DirectoryBuilder; matched: string[] } | null {
+  selfEventCode?: string | null,
+): { builder: DirectoryBuilder; matched: string[]; sameEvent: boolean } | null {
   const convo = new Set(meaningfulTokens(conversationText));
   if (convo.size === 0) return null;
 
-  let best: { builder: DirectoryBuilder; matched: string[] } | null = null;
+  let best: { builder: DirectoryBuilder; matched: string[]; sameEvent: boolean } | null = null;
+  let bestScore = 0;
   for (const b of builders) {
     if (excludeIds.has(b.id)) continue;
     if (!b.note && !b.neighborhood) continue;
+    const sameEvent =
+      !!selfEventCode && !!b.event_code &&
+      b.event_code.toUpperCase() === selfEventCode.toUpperCase();
     const noteMatches = meaningfulTokens(b.note ?? '').filter(t => convo.has(t));
     const placeMatches = meaningfulTokens(b.neighborhood ?? '').filter(t => convo.has(t));
     const matched = [...new Set([...noteMatches, ...placeMatches])];
-    // Bar: two topical matches, or one topical + a place match
-    const clears = noteMatches.length >= 2 || (noteMatches.length >= 1 && placeMatches.length >= 1);
-    if (clears && (!best || matched.length > best.matched.length)) {
-      best = { builder: b, matched };
+    // Bar: two topical matches, or one topical + a place match — or one
+    // topical match when you're both at the same event
+    const clears =
+      noteMatches.length >= 2 ||
+      (noteMatches.length >= 1 && placeMatches.length >= 1) ||
+      (sameEvent && noteMatches.length >= 1);
+    // Same-event peers outrank everyone: the introduction can happen today
+    const score = matched.length + (sameEvent ? 100 : 0);
+    if (clears && (!best || score > bestScore)) {
+      best = { builder: b, matched, sameEvent };
+      bestScore = score;
     }
   }
   return best;

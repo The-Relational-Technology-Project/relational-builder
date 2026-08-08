@@ -384,7 +384,7 @@ function RequestAccountForm() {
     return (
       <p className="text-sm leading-relaxed max-w-md mx-auto" style={{ color: C.body }}>
         {outcome.referral === 'unknown' &&
-          'That invite code didn’t match a builder, so your request went to the steward the usual way. '}
+          'That invite code didn’t match a builder or an event, so your request went to the steward the usual way. '}
         Request sent — thank you! A real person reviews every request; you'll
         get a welcome email as soon as yours is approved.
         {doorwayStudio &&
@@ -452,8 +452,8 @@ function RequestAccountForm() {
       />
       <p className="text-xs" style={{ color: C.muted }}>
         {referralCode.trim()
-          ? 'A builder’s invite code lets you skip the wait — your account opens the moment you ask.'
-          : 'Got an invite code from a builder? It opens your account right away.'}
+          ? 'An invite code — a builder’s or an event’s — lets you skip the wait: your account opens the moment you ask.'
+          : 'Got an invite code from a builder or an event? It opens your account right away.'}
       </p>
       {error && <p className="text-xs text-center" style={{ color: C.orangeDeep }}>{error}</p>}
       <button

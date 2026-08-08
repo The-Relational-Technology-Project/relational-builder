@@ -323,7 +323,7 @@ Deno.serve(async (req: Request) => {
 
     if (action === 'directory') {
       const res = await fetch(
-        rest(`/profiles?open_to_connecting=eq.true&select=id,display_name,neighborhood,connect_note,cal_link,allow_requests,email`),
+        rest(`/profiles?open_to_connecting=eq.true&select=id,display_name,neighborhood,connect_note,cal_link,allow_requests,event_code,email`),
         { headers: svc() },
       );
       const rows = res.ok ? await res.json() : [];
@@ -355,6 +355,9 @@ Deno.serve(async (req: Request) => {
         note: p.connect_note ?? null,
         cal_link: p.cal_link ?? null,
         allow_requests: Boolean(p.allow_requests),
+        // Which event they joined through — same-event peers get suggested
+        // to each other more readily
+        event_code: p.event_code ?? null,
         prompts: promptsByOwner.get(String(p.id)) ?? [],
         // email deliberately omitted
       }));
