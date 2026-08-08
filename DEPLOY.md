@@ -187,6 +187,29 @@ code" count.
 supabase functions deploy request-account --no-verify-jwt
 ```
 
+**e) Event codes + invite auto-join (hackathons and build-a-thons).**
+A steward mints a code for a whole room (dashboard → Events): custom or
+generated, optional expiry, deactivate any time. It opens the door
+exactly like a builder's referral code — `APP_URL/?ref=CODE`, approved
+on the spot — and stamps `profiles.event_code` on each joiner, which
+powers the per-event joined counts and same-event connection
+suggestions in chat. This replaces the walk-in caveat in (c): put the
+event code on a slide and the room lets itself in.
+Project invitations open the door the same way now: `signin-gate`
+creates an invited address's account on the spot (a steward's decline
+still outranks any invite) and the profile trigger credits the
+inviter's referral code, so collaborator invites count in
+`my_referral_stats()` and the dashboard's referral list.
+
+```bash
+# Run supabase/migrations/20260808000000_event_codes.sql in the SQL
+# editor, then redeploy:
+supabase functions deploy request-account --no-verify-jwt
+supabase functions deploy signin-gate --no-verify-jwt
+supabase functions deploy connect --no-verify-jwt
+supabase functions deploy admin-requests
+```
+
 ## 4. Deploy the builder itself (Vercel)
 
 ```bash
