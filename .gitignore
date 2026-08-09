@@ -37,3 +37,7 @@ bench/results/**/review/index.html
 bench/results/selftest/
 troubleshooting/
 internal reference docs/
+
+# Commons exports are regenerable — `npm run export:commons` rebuilds them
+# from the live commons, so the snapshot doesn't belong in git.
+commons-export/
