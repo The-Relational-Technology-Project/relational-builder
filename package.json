@@ -8,8 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "bench": "NODE_USE_ENV_PROXY=1 node bench/bootstrap.mjs",
-    "export:commons": "node scripts/export-commons.mjs"
+    "bench": "NODE_USE_ENV_PROXY=1 node bench/bootstrap.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",
