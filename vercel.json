@@ -5,6 +5,14 @@
       "destination": "/api/site?path=:path"
     },
     {
+      "source": "/commons",
+      "destination": "/api/commons?path="
+    },
+    {
+      "source": "/commons/:path(.*)",
+      "destination": "/api/commons?path=:path"
+    },
+    {
       "source": "/connect/respond",
       "destination": "/api/connect"
     },

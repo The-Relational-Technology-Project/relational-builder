@@ -1,0 +1,27 @@
+# relationalbuilder.org — everything public is meant to be found.
+# The commons (/commons/...) is a shared, credited, remixable library;
+# search and AI crawlers are explicitly welcome. Entries carry attribution
+# and the Relational Commons License — credit travels with the work.
+
+User-agent: *
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+Sitemap: https://relationalbuilder.org/commons/sitemap.xml
