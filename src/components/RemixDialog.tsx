@@ -79,6 +79,12 @@ export function RemixDialog({ open: controlledOpen, onOpenChange, hideTrigger }:
             real code is for continuing a specific app (and full framework apps
             run only after you deploy).
           </p>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Forking copies the code and stops there. To keep working on a repo
+            you own — with changes syncing both ways — use{' '}
+            <strong>start from… your own repo</strong> on the home screen
+            instead.
+          </p>
           <Input
             value={repoRef}
             onChange={e => setRepoRef(e.target.value)}

@@ -2,18 +2,21 @@ import { useState } from 'react';
 import { useUIStore } from '@/store/ui-store';
 import { ImportPlanDialog } from '@/components/ImportPlanDialog';
 import { RemixDialog } from '@/components/RemixDialog';
-import { LayoutGrid, FileDown, Shuffle } from 'lucide-react';
+import { ImportRepoDialog } from '@/components/ImportRepoDialog';
+import { LayoutGrid, FileDown, Shuffle, GitBranch } from 'lucide-react';
 
 /**
  * The other ways a build can start, offered right where builds start — under
  * the home composer instead of in the main nav. The gallery is the headline
  * (browse the network's tools and grow your own version); importing a Studio
- * build plan and forking a repo stay as the quieter options beside it.
+ * build plan, forking a repo, and importing your own repo stay as the
+ * quieter options beside it.
  */
 export function StartFromOptions() {
   const setView = useUIStore(s => s.setView);
   const [importOpen, setImportOpen] = useState(false);
   const [remixOpen, setRemixOpen] = useState(false);
+  const [repoOpen, setRepoOpen] = useState(false);
 
   // Never key-gated: browsing the gallery, importing a plan, and forking a
   // repo all work before any model is configured
@@ -36,9 +39,14 @@ export function StartFromOptions() {
           <Shuffle className="size-3" />
           a tool's code
         </button>
+        <button className={optionClass} onClick={() => setRepoOpen(true)}>
+          <GitBranch className="size-3" />
+          your own repo
+        </button>
       </div>
       <ImportPlanDialog open={importOpen} onOpenChange={setImportOpen} hideTrigger />
       <RemixDialog open={remixOpen} onOpenChange={setRemixOpen} hideTrigger />
+      <ImportRepoDialog open={repoOpen} onOpenChange={setRepoOpen} />
     </>
   );
 }

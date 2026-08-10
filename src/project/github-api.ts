@@ -179,10 +179,15 @@ export async function getUser(token: string): Promise<string> {
   return data.login;
 }
 
-/** List the user's repos (first 100, sorted by recent push) */
+/**
+ * List every repo the token can push to (first 100, sorted by recent push).
+ * All affiliations, not just owner: work often lives in an organization
+ * (or a collaborator's account), and a repo you can't see here is a repo
+ * you can't connect or import.
+ */
 export async function listRepos(token: string): Promise<GitHubRepo[]> {
   const res = await fetch(
-    `${API}/user/repos?sort=pushed&per_page=100&affiliation=owner`,
+    `${API}/user/repos?sort=pushed&per_page=100&affiliation=owner,collaborator,organization_member`,
     { headers: headers(token) },
   );
   if (!res.ok) throw new Error('Failed to list repos');

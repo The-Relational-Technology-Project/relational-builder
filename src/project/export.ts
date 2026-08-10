@@ -52,7 +52,9 @@ export function generateManifest(
           ? 'Started from an RTP Studio build plan'
           : lineage.source === 'prompt'
             ? 'Grown from a shared build prompt'
-            : 'Remixed from a relational tech commons project';
+            : lineage.source === 'repo-import'
+              ? 'Imported from its own existing repo'
+              : 'Remixed from a relational tech commons project';
       const dateBit = lineage.importedAt ? ` on ${lineage.importedAt.slice(0, 10)}` : '';
       lines.push(`  note: "${yamlEscape(`${noteBits}${dateBit}, built with Relational Builder.`)}"`);
     } else if (lineage.studioLabel) {

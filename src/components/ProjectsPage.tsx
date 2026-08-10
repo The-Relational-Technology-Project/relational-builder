@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { FolderOpen, Trash2, UserPlus, X, Loader2, Users } from 'lucide-react';
+import { FolderOpen, Trash2, UserPlus, X, Loader2, Users, Plus, GitBranch } from 'lucide-react';
+import { ImportRepoDialog } from '@/components/ImportRepoDialog';
 import {
   useLocalProjects,
   openLocalProject,
@@ -43,6 +44,7 @@ export function ProjectsPage() {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [prompts, setPrompts] = useState<BuildPrompt[]>([]);
+  const [importOpen, setImportOpen] = useState(false);
 
   const refreshPrompts = () => listMyPrompts().then(setPrompts).catch(() => {});
 
@@ -70,11 +72,32 @@ export function ProjectsPage() {
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="max-w-4xl mx-auto px-4 md:px-8 py-8 md:py-12 space-y-10">
-        {/* Page header */}
-        <div className="flex items-center gap-2.5">
+        {/* Page header, with the two ways a project that isn't here yet
+            begins: fresh from the home composer, or imported from a repo */}
+        <div className="flex flex-wrap items-center gap-2.5">
           <FolderOpen className="size-6 text-primary shrink-0" />
           <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">Projects</h1>
+          <div className="flex items-center gap-2 ml-auto">
+            <Button
+              size="sm"
+              className="h-8 gap-1.5 text-xs"
+              onClick={() => setView('home')}
+            >
+              <Plus className="size-3.5" />
+              New project
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 gap-1.5 text-xs"
+              onClick={() => setImportOpen(true)}
+            >
+              <GitBranch className="size-3.5" />
+              Import a repo
+            </Button>
+          </div>
         </div>
+        <ImportRepoDialog open={importOpen} onOpenChange={setImportOpen} />
 
         {/* The shelf stays private until sign-in: projects (device-saved and
             cloud alike) are someone's work, not a public list on a shared

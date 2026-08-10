@@ -127,6 +127,8 @@ export function CodeSync() {
 }
 
 // ── Forge Picker ──────────────────────────────────────────────────────
+// Exported (with ConnectView below) for the import-a-repo dialog: one auth
+// flow, one saved token per forge, wherever the connection starts.
 
 const FORGE_BLURBS: Record<ForgeId, string> = {
   github: 'The most common home for code — easiest if collaborators are already there.',
@@ -134,17 +136,24 @@ const FORGE_BLURBS: Record<ForgeId, string> = {
   forgejo: "A community-run instance on your own infrastructure — you set the rules.",
 };
 
-function ForgePickerView({ onPick }: { onPick: (forge: ForgeId) => void }) {
+export function ForgePickerView({
+  onPick,
+  intro,
+}: {
+  onPick: (forge: ForgeId) => void;
+  intro?: string;
+}) {
   const usernames = useSyncStore(s => s.usernames);
   const tokens = useSyncStore(s => s.tokens);
 
   return (
     <div className="space-y-3 pt-2">
       <p className="text-sm text-muted-foreground">
-        Connect a repo and your project syncs both ways, on its own. What you
-        build here lands on the repo; what you push from Claude Code or any
-        editor comes back in — with a plain-language summary, and a note if
-        anything (like a migration) needs a hand.
+        {intro ??
+          'Connect a repo and your project syncs both ways, on its own. What you ' +
+            'build here lands on the repo; what you push from Claude Code or any ' +
+            'editor comes back in — with a plain-language summary, and a note if ' +
+            'anything (like a migration) needs a hand.'}
       </p>
       <p className="text-xs font-medium">Where does your code live?</p>
       <div className="space-y-1.5">
@@ -172,7 +181,7 @@ function ForgePickerView({ onPick }: { onPick: (forge: ForgeId) => void }) {
 
 // ── Connect View ──────────────────────────────────────────────────────
 
-function ConnectView({ forge, onBack }: { forge: ForgeId; onBack: () => void }) {
+export function ConnectView({ forge, onBack }: { forge: ForgeId; onBack: () => void }) {
   const meta = FORGES[forge];
   const [tokenInput, setTokenInput] = useState('');
   const [urlInput, setUrlInput] = useState(instanceUrlFor(forge));

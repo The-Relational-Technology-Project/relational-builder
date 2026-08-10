@@ -16,7 +16,8 @@ export const FORGES: Record<ForgeId, ForgeMeta> = {
     defaultBaseUrl: 'https://github.com',
     needsInstanceUrl: false,
     tokenPlaceholder: 'ghp_...',
-    tokenHelp: 'Needs the repo scope.',
+    tokenHelp:
+      'Needs the repo scope. Organization repos appear too — if the org uses SAML/SSO, authorize the token for it.',
     tokenUrl: () =>
       'https://github.com/settings/tokens/new?scopes=repo&description=Relational+Builder',
   },

@@ -108,7 +108,9 @@ export function composeStoryRecord(): string {
         ? `Started from the build plan "${lineage.planTitle ?? 'untitled'}"`
         : lineage.source === 'remix'
           ? `Remixed from an existing project${lineage.sourceUrl ? ` (${lineage.sourceUrl})` : ''}`
-          : lineage.promptTitle
+          : lineage.source === 'repo-import'
+            ? `Imported from its own repo${lineage.sourceUrl ? ` (${lineage.sourceUrl})` : ''} and kept in sync`
+            : lineage.promptTitle
             ? `Grown from the shared prompt "${lineage.promptTitle}"`
             : 'Started from a fresh idea';
     parts.push(

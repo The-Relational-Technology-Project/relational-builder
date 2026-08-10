@@ -11,8 +11,9 @@ import { stashAndStartFresh } from '@/project/local-projects';
  * credit stays unbroken (remixed_from flows into .reltech.yml on export).
  */
 
-// Text files a remixed web app is actually made of — skips binaries,
-// lockfiles, and tooling noise that would drown the workspace
+// Text files a web app is actually made of — skips binaries, lockfiles,
+// and tooling noise that would drown the workspace. Shared with importing
+// an existing repo (import-repo.ts), so both doors keep the same things.
 const TEXT_EXTENSIONS = new Set([
   'html', 'css', 'js', 'jsx', 'ts', 'tsx', 'json', 'md', 'svg', 'txt',
   'yml', 'yaml', 'sql', 'env', 'mjs', 'cjs',
@@ -25,6 +26,18 @@ const SKIP_PATTERNS = [
 ];
 
 const MAX_FILES = 100;
+
+/** The workable subset of a pulled repo tree, capped */
+export function usableRepoFiles<T extends { path: string }>(files: T[], max: number): T[] {
+  return files
+    .filter(f => {
+      if (SKIP_PATTERNS.some(p => p.test(f.path))) return false;
+      const name = f.path.split('/').pop() ?? '';
+      const ext = name.includes('.') ? name.split('.').pop()!.toLowerCase() : '';
+      return TEXT_EXTENSIONS.has(ext) || name === '.reltech.yml' || name.startsWith('.env');
+    })
+    .slice(0, max);
+}
 
 export interface RemixResult {
   repoName: string;
@@ -52,13 +65,7 @@ export async function remixRepo(repoRef: string): Promise<RemixResult> {
   const repo = await getRepoInfo(fullName, token);
   const { files } = await pullFiles(token, fullName, repo.default_branch);
 
-  const usable = files.filter(f => {
-    if (SKIP_PATTERNS.some(p => p.test(f.path))) return false;
-    const name = f.path.split('/').pop() ?? '';
-    const ext = name.includes('.') ? name.split('.').pop()!.toLowerCase() : '';
-    return TEXT_EXTENSIONS.has(ext) || name === '.reltech.yml' || name.startsWith('.env');
-  });
-  const kept = usable.slice(0, MAX_FILES);
+  const kept = usableRepoFiles(files, MAX_FILES);
 
   if (kept.length === 0) {
     throw new Error("That repo doesn't contain web app files the builder can work with");
