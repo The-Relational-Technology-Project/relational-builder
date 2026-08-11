@@ -1,8 +1,8 @@
 /**
  * The public face of the RT Commons: /commons/... — server-rendered pages
  * for every substantial commons entry, theme pages to jam on with
- * colleagues, a story wall, a reading room, and a map of how the whole
- * thing connects. Built for the crawlers that don't run JavaScript (which
+ * colleagues, a story wall, a reading room, a search page over the whole
+ * commons, and a map of how the whole thing connects. Built for the crawlers that don't run JavaScript (which
  * is most of the AI ones) as much as for people: semantic HTML, JSON-LD,
  * canonicals, a sitemap — and no client JS at all. Forms post; pages render.
  *
@@ -14,7 +14,7 @@
 import {
   SITE, Entry, esc, kindLabel, KIND_COLOR, entryPath, hasOwnPage, resolveSlugTarget,
   fetchAllSlim, fetchAllRefs, fetchEntry, fetchBySlugs, fetchRefsFor, renderMarkdown,
-  qualifyAsset, monthKey,
+  qualifyAsset, monthKey, searchCommonsHybrid,
 } from './_commons/shared';
 import {
   page, FooterStats, constellation, entryCard, truncate, breadcrumbs, breadcrumbLd, fmtMonth, sparkline,
@@ -55,6 +55,7 @@ export default async function handler(req: Request): Promise<Response> {
     }
 
     if (seg.length === 0) return await homePage();
+    if (seg[0] === 'search') return await searchPage(url);
     if (seg[0] === 'sitemap.xml') return await sitemap();
     if (seg[0] === 'llms.txt') return await llmsTxt();
     if (seg[0] === 'map') return await mapPage();
@@ -153,6 +154,11 @@ you live — contributed by neighbors and community builders, connected to each 
 credited to the people they came from, and free to remix. This is the shared library behind
 <a href="/">Relational Builder</a>.</p>
 
+<form class="search-hero" action="/commons/search" method="get" role="search">
+<input type="search" name="q" placeholder="Search all ${footer.entries} entries — try &quot;block party&quot; or &quot;tool library&quot;…" aria-label="Search the commons">
+<button class="cta" type="submit">Search</button>
+</form>
+
 <span class="eyebrow">Two doors in</span>
 <ul class="grid">
 <li class="card"><h3><a href="/commons/themes/on-your-block">Community-Building on Your Block</a></h3>
@@ -201,6 +207,133 @@ contributor's name attached.</p>
       body,
       footer,
     ),
+  );
+}
+
+// --- Search ----------------------------------------------------------------
+
+/** Where a search hit should land — its own page, or its anchor on a collection. */
+function resultHref(e: Entry): string {
+  if (hasOwnPage(e)) return entryPath(e);
+  if (e.kind === 'reference') return `/commons/reading-room#${e.slug}`;
+  if (e.kind === 'story') return `/commons/stories#${e.slug}`;
+  return shelfPath(e.kind);
+}
+
+const escapeRe = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/** Escape, then wrap the query's words in <mark> so matches read at a glance. */
+function highlight(text: string, terms: string[]): string {
+  const safe = esc(text);
+  if (!terms.length) return safe;
+  const pattern = terms.map(t => escapeRe(esc(t))).filter(Boolean).join('|');
+  if (!pattern) return safe;
+  return safe.replace(new RegExp(`(${pattern})`, 'gi'), '<mark>$1</mark>');
+}
+
+/**
+ * One search box over the whole commons. Two passes, merged: the hybrid
+ * semantic+full-text edge function ranks by meaning first, then a plain
+ * word-match sweep over every entry's title, summary, tags and attribution
+ * catches anything retrieval missed — so the search is thorough even when
+ * the edge function is unreachable. No JS: the form GETs, the page renders.
+ */
+async function searchPage(url: URL): Promise<Response> {
+  const q = (url.searchParams.get('q') ?? '').trim().slice(0, 200);
+  const [{ all, footer, bySlug }, hybrid] = await Promise.all([
+    commonsData(),
+    q ? searchCommonsHybrid(q, 40) : Promise.resolve([]),
+  ]);
+
+  const terms = q.toLowerCase().split(/\s+/).filter(Boolean);
+  const keyOf = (e: Entry) => `${e.kind}/${e.slug}`;
+  const haystack = (e: Entry) =>
+    [
+      e.title, e.summary, e.attribution?.name, e.attribution?.neighborhood,
+      e.attribution?.source, ...(e.tags ?? []), kindLabel(e.kind),
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+
+  // Semantic rank leads; hits resolve to canonical entries by slug (+kind).
+  const seen = new Set<string>();
+  const results: Entry[] = [];
+  for (const h of hybrid) {
+    const candidates = bySlug.get(h.slug) ?? [];
+    const e = candidates.find(c => c.kind === h.kind) ?? candidates[0];
+    if (!e || seen.has(keyOf(e))) continue;
+    seen.add(keyOf(e));
+    results.push(e);
+  }
+
+  // Word-match sweep over everything — title matches surface first.
+  if (terms.length) {
+    const titleHit = (e: Entry) => terms.some(t => e.title.toLowerCase().includes(t));
+    const rest = all
+      .filter(e => !seen.has(keyOf(e)))
+      .filter(e => {
+        const h = haystack(e);
+        return terms.every(t => h.includes(t));
+      })
+      .sort((a, b) =>
+        (titleHit(a) ? 0 : 1) - (titleHit(b) ? 0 : 1) || (a.title < b.title ? -1 : 1),
+      );
+    results.push(...rest);
+  }
+
+  const resultCard = (e: Entry): string => {
+    const c = KIND_COLOR[e.kind] ?? '#999';
+    const who = [e.attribution?.name, e.attribution?.neighborhood].filter(Boolean).join(', ');
+    return `<li class="card">
+<div class="k"><span class="kind-dot" style="background:${c}"></span>${esc(kindLabel(e.kind))}${who ? ` · ${esc(who)}` : ''}</div>
+<h3><a href="${resultHref(e)}">${highlight(e.title, terms)}</a></h3>
+${e.summary ? `<p>${highlight(truncate(e.summary, 160), terms)}</p>` : ''}
+</li>`;
+  };
+
+  const SHOWN = 100;
+  const resultsHtml = !q
+    ? `<p class="meta" style="max-width:44rem">Search by name, topic, place or person — or describe what you're
+trying to do (“welcome new neighbors”, “share tools on my block”) and the commons will look for
+practices that fit, even when no entry uses your exact words. Or start from the
+<a href="/commons/map">map</a>, the <a href="/commons/stories">story wall</a>, or the
+<a href="/commons/reading-room">reading room</a>.</p>`
+    : results.length === 0
+      ? `<p class="meta" style="max-width:44rem">Nothing in the commons matches “${esc(q)}”. Try fewer or
+different words, or browse the <a href="/commons/map">map of everything</a> and the shelves on the
+<a href="/commons">commons home</a>.</p>`
+      : `<p class="meta">${results.length} ${results.length === 1 ? 'entry matches' : 'entries match'} “${esc(q)}”${
+          results.length > SHOWN ? ` — showing the first ${SHOWN}` : ''
+        }.</p>
+<ul class="grid">${results.slice(0, SHOWN).map(resultCard).join('')}</ul>`;
+
+  const trail: [string, string][] = [['The RT Commons', '/commons'], ['Search', '/commons/search']];
+  const body = `
+${breadcrumbs(trail)}
+<h1>Search the commons</h1>
+<p class="lede">One search across every shelf — recipes, tools, stories, prompts, frameworks,
+methodologies and the reading room. ${footer.entries} entries, all of them.</p>
+<form class="search-hero" action="/commons/search" method="get" role="search">
+<input type="search" name="q" value="${esc(q)}" placeholder="Try &quot;block party&quot;, &quot;tool library&quot;, or describe what you want to do…" aria-label="Search the commons" autofocus>
+<button class="cta" type="submit">Search</button>
+</form>
+${resultsHtml}`;
+
+  return html(
+    page(
+      {
+        title: q ? `“${q}” · Search · The RT Commons` : 'Search · The RT Commons',
+        description:
+          'Search the whole RT Commons — community-building practices, remixable neighborhood tools, stories, prompts and references — by keyword or by meaning.',
+        path: '/commons/search',
+        noindex: !!q,
+        jsonLd: [breadcrumbLd(trail)],
+      },
+      body,
+      footer,
+    ),
+    CACHE_SHORT,
   );
 }
 
@@ -798,7 +931,7 @@ async function sitemap(): Promise<Response> {
     fullStories.filter(e => e.kind === 'story' && hasOwnPage(e)).map(e => e.slug),
   );
   const staticPages = [
-    '/commons', '/commons/map', '/commons/stories', '/commons/reading-room', '/commons/license',
+    '/commons', '/commons/search', '/commons/map', '/commons/stories', '/commons/reading-room', '/commons/license',
     ...Object.keys(SHELVES).map(p => `/commons/${p}`),
     ...Object.keys(THEMES).map(t => `/commons/themes/${t}`),
   ];

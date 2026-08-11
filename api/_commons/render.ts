@@ -27,6 +27,15 @@ header.site .wrap{display:flex;align-items:baseline;gap:1rem;padding:.9rem 1.25r
 header.site nav{margin-left:auto;display:flex;gap:1rem;font-size:.92rem}
 header.site nav a{text-decoration:none;color:var(--soft)}
 header.site nav a:hover{color:var(--accent)}
+header.site form.search{flex:0 1 12rem;min-width:8rem}
+header.site input[type=search]{width:100%;font:inherit;font-size:.85rem;padding:.32rem .7rem;
+border:1px solid var(--line);border-radius:999px;background:var(--bg);color:var(--ink)}
+header.site input[type=search]:focus{outline:none;border-color:var(--accent)}
+form.search-hero{display:flex;gap:.6rem;max-width:34rem;margin:0 0 .5rem}
+form.search-hero input{flex:1;min-width:0;font:inherit;font-size:.95rem;padding:.55rem .85rem;
+border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+form.search-hero input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px #d95f1e33}
+mark{background:#f6dfb2;color:inherit;border-radius:3px;padding:0 .08em}
 .crumbs{font-size:.85rem;color:var(--soft);margin:1.6rem 0 .4rem;font-family:ui-sans-serif,system-ui,sans-serif}
 .crumbs a{color:var(--soft)}
 h1{font-size:2.1rem;line-height:1.15;letter-spacing:-.015em;margin:.2rem 0 .6rem}
@@ -126,6 +135,9 @@ ${ld}
 <a href="/commons/map">Map</a>
 <a href="/">Builder</a>
 </nav>
+<form class="search" action="/commons/search" method="get" role="search">
+<input type="search" name="q" placeholder="Search the commons…" aria-label="Search the commons">
+</form>
 </div></header>
 <main><div class="wrap${meta.wide ? ' wide' : ''}">
 ${body}
@@ -152,6 +164,7 @@ in <a href="/">Relational Builder</a>. Entries carry their contributors' names a
 <a href="/commons/license">Reciprocal Commons License</a>; credit travels with the work.</p>
 <nav>
 <a href="/commons">Commons home</a>
+<a href="/commons/search">Search</a>
 <a href="/commons/map">Map &amp; timeline</a>
 <a href="/commons/reading-room">Reading room</a>
 <a href="/commons/stories">Story wall</a>

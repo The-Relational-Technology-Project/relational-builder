@@ -153,6 +153,42 @@ export function fetchAllRefs(): Promise<GalleryRef[]> {
   );
 }
 
+/** What the search-commons edge function returns per hit (slimmer than Entry). */
+export interface SearchHit {
+  slug: string;
+  kind: string;
+  title: string;
+}
+
+/**
+ * Hybrid retrieval — the same semantic+full-text `search-commons` edge
+ * function the Builder uses, so "help seniors feel less alone" finds the
+ * right recipes even when no entry contains those words. Returns [] on any
+ * failure or timeout; callers fall back to plain word matching.
+ */
+export async function searchCommonsHybrid(query: string, matchCount = 40): Promise<SearchHit[]> {
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 4000);
+    const res = await fetch(`${COMMONS_URL}/functions/v1/search-commons`, {
+      method: 'POST',
+      headers: {
+        apikey: COMMONS_ANON,
+        Authorization: `Bearer ${COMMONS_ANON}`,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({ query, match_count: matchCount }),
+      signal: controller.signal,
+    });
+    clearTimeout(timer);
+    if (!res.ok) return [];
+    const data = (await res.json()) as { results?: SearchHit[] };
+    return Array.isArray(data.results) ? data.results : [];
+  } catch {
+    return [];
+  }
+}
+
 /** Entries sharing tags with this one — "related by topic" fill. */
 export async function fetchRelatedByTag(entry: Entry, limit = 6): Promise<Entry[]> {
   const tags = (entry.tags ?? []).slice(0, 6);
