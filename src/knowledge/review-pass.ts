@@ -77,6 +77,7 @@ function buildReviewUserMessage(ask: string, files: { path: string; content: str
   let budget = MAX_TOTAL_CHARS;
   for (const f of orderByReferenceCount(files)) {
     if (/^\/?assets\//.test(f.path)) continue; // photo assets are opaque blobs
+    if (/\.(png|jpe?g|gif|webp|avif|ico)$/i.test(f.path)) continue; // repo images: base64
     if (budget <= 0) {
       parts.push(`--- ${f.path} (omitted for length) ---`);
       continue;

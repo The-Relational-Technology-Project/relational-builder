@@ -6,8 +6,9 @@
  */
 
 import type { FileEntry } from './virtual-fs';
-import { isBinaryPath } from './forge/types';
+import { isBinaryPath, type RepoImagePull } from './forge/types';
 import { mapLimit, FORGE_FETCH_CONCURRENCY } from './forge/concurrency';
+import { isBinaryFilePath } from './app-icon';
 
 const API = 'https://api.github.com';
 
@@ -282,6 +283,60 @@ export async function pullFiles(
     treeSha,
     commitSha,
   };
+}
+
+/**
+ * Fetch a branch's images as base64 — the photos and logos an imported app
+ * needs for its preview to look like the real site. Files over the per-file
+ * cap are reported as skipped rather than downloaded; the caller decides
+ * what to tell the person.
+ */
+export async function pullImages(
+  token: string,
+  repoFullName: string,
+  branch: string,
+  opts: { maxFileBytes: number },
+): Promise<RepoImagePull> {
+  const refRes = await fetch(
+    `${API}/repos/${repoFullName}/git/refs/heads/${branch}`,
+    { headers: headers(token) },
+  );
+  if (!refRes.ok) throw new Error(`Branch "${branch}" not found`);
+  const ref = await refRes.json();
+
+  const commitRes = await fetch(
+    `${API}/repos/${repoFullName}/git/commits/${ref.object.sha}`,
+    { headers: headers(token) },
+  );
+  if (!commitRes.ok) throw new Error('Failed to fetch commit');
+  const commit = await commitRes.json();
+
+  const treeRes = await fetch(
+    `${API}/repos/${repoFullName}/git/trees/${commit.tree.sha}?recursive=1`,
+    { headers: headers(token) },
+  );
+  if (!treeRes.ok) throw new Error('Failed to fetch file tree');
+  const tree = await treeRes.json();
+
+  const all: { path: string; sha: string; size: number }[] = tree.tree.filter(
+    (item: { type: string; path: string; size?: number }) =>
+      item.type === 'blob' && isBinaryFilePath(item.path),
+  );
+  const skipped = all.filter(b => b.size > opts.maxFileBytes).map(b => '/' + b.path);
+  const toFetch = all.filter(b => b.size <= opts.maxFileBytes);
+
+  const images = await mapLimit(toFetch, FORGE_FETCH_CONCURRENCY, async blob => {
+    const blobRes = await fetch(
+      `${API}/repos/${repoFullName}/git/blobs/${blob.sha}`,
+      { headers: headers(token) },
+    );
+    if (!blobRes.ok) throw new Error(`Failed to fetch ${blob.path} (${blobRes.status})`);
+    const blobData = await blobRes.json();
+    // The blobs API already speaks base64 — exactly what the VFS stores
+    return { path: '/' + blob.path, base64: String(blobData.content).replace(/\n/g, ''), bytes: blob.size };
+  });
+
+  return { images, skipped };
 }
 
 // ── Push (VFS → GitHub) ───────────────────────────────────────────────

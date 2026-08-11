@@ -57,7 +57,8 @@ export async function distillBuildPrompt(): Promise<DistilledPrompt> {
     .slice(0, 12);
 
   const files = useProjectStore.getState().getAllFiles()
-    .filter(f => !/^\/?assets\//.test(f.path));
+    .filter(f => !/^\/?assets\//.test(f.path))
+    .filter(f => !/\.(png|jpe?g|gif|webp|avif|ico)$/i.test(f.path));
 
   if (asks.length === 0 && files.length === 0) {
     throw new Error('Nothing to distill yet — build something first');

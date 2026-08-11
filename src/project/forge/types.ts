@@ -24,6 +24,20 @@ export interface RepoFile {
   sha: string;
 }
 
+/** A binary image pulled from a repo, base64-encoded for the text-only VFS */
+export interface RepoImage {
+  path: string;
+  base64: string;
+  /** Decoded size in bytes */
+  bytes: number;
+}
+
+export interface RepoImagePull {
+  images: RepoImage[];
+  /** Paths that exist in the repo but were too large to bring in */
+  skipped: string[];
+}
+
 export interface SyncResult {
   commitSha: string;
   commitUrl: string;
@@ -108,6 +122,17 @@ export interface ForgeClient {
     fullName: string,
     branch: string,
   ): Promise<{ files: RepoFile[]; commitSha: string }>;
+  /**
+   * The images on a branch, base64-encoded, so an imported app's photos and
+   * logos show in the preview. Optional capability: a forge without it
+   * imports code only, and the preview shows placeholders instead.
+   */
+  pullImages?(
+    token: string,
+    fullName: string,
+    branch: string,
+    opts: { maxFileBytes: number },
+  ): Promise<RepoImagePull>;
   /**
    * Push files as a single commit. Only adds and updates — never deletes
    * something that exists only in the repo.

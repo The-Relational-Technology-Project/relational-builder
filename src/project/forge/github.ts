@@ -5,7 +5,7 @@
  */
 
 import type { FileEntry } from '../virtual-fs';
-import type { ForgeClient, ForgeRepo, CompareResult, MergeOutcome, RemoteCommit, RepoFile, SyncResult } from './types';
+import type { ForgeClient, ForgeRepo, CompareResult, MergeOutcome, RemoteCommit, RepoFile, RepoImagePull, SyncResult } from './types';
 import * as gh from '../github-api';
 
 function toForgeRepo(repo: gh.GitHubRepo): ForgeRepo {
@@ -70,6 +70,15 @@ export class GitHubClient implements ForgeClient {
   ): Promise<{ files: RepoFile[]; commitSha: string }> {
     const { files, commitSha } = await gh.pullFiles(token, fullName, branch);
     return { files, commitSha };
+  }
+
+  pullImages(
+    token: string,
+    fullName: string,
+    branch: string,
+    opts: { maxFileBytes: number },
+  ): Promise<RepoImagePull> {
+    return gh.pullImages(token, fullName, branch, opts);
   }
 
   pushFiles(

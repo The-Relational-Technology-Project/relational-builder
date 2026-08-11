@@ -92,3 +92,37 @@ export async function addPhotoAsset(file: File): Promise<AddedAsset> {
 export function isPhotoAssetPath(path: string): boolean {
   return /^\/?assets\/[\w-]+\.js$/.test(path);
 }
+
+/**
+ * Shrink an oversized repo image (bare base64) under `maxBytes` by
+ * re-encoding through the same ladder builder photo uploads use. Returns
+ * bare base64, or null when the bytes don't decode as an image or won't fit
+ * even at the smallest rung. The re-encoded bytes may be JPEG behind a .png
+ * path — fine for previews, where browsers sniff content, and these entries
+ * never push back to the repo (the repo keeps its original files).
+ */
+export async function compressBase64Image(
+  base64: string,
+  mime: string,
+  maxBytes: number,
+): Promise<string | null> {
+  let bytes: Uint8Array<ArrayBuffer>;
+  try {
+    const bin = atob(base64);
+    bytes = new Uint8Array(new ArrayBuffer(bin.length));
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  } catch {
+    return null;
+  }
+  const file = new File([bytes], 'image', { type: mime });
+  for (const [maxEdge, quality] of COMPRESSION_LADDER) {
+    try {
+      const dataUrl = await fileToDataUrl(file, maxEdge, quality);
+      const b64 = dataUrl.slice(dataUrl.indexOf(',') + 1);
+      if (b64.length * 0.75 <= maxBytes) return b64;
+    } catch {
+      return null; // not decodable as an image (or canvas unavailable)
+    }
+  }
+  return null;
+}

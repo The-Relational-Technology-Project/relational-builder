@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { codeToHtml } from 'shiki';
 import { useProjectStore } from '@/store/project-store';
+import { isBinaryFilePath, imageMimeFor } from '@/project/app-icon';
 import { X } from 'lucide-react';
 
 export function CodeViewer() {
@@ -33,7 +34,22 @@ export function CodeViewer() {
         </button>
       </div>
       <div className="flex-1 overflow-auto">
-        <HighlightedCode code={file.content} language={file.language} />
+        {isBinaryFilePath(file.path) ? (
+          // A real image (base64 in the text-only VFS) — show the picture,
+          // not four thousand lines of base64
+          <div className="flex flex-col items-center gap-2 p-4">
+            <img
+              src={`data:${imageMimeFor(file.path)};base64,${file.content}`}
+              alt={file.path}
+              className="max-w-full rounded border"
+            />
+            <p className="text-xs text-muted-foreground">
+              Image from your repo · ~{Math.max(1, Math.round((file.content.length * 0.75) / 1024))} KB
+            </p>
+          </div>
+        ) : (
+          <HighlightedCode code={file.content} language={file.language} />
+        )}
       </div>
     </div>
   );

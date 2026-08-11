@@ -19,6 +19,7 @@ import { useCloudStore } from '@/store/cloud-store';
 import { useEnvStore } from '@/store/env-store';
 import { generateManifest } from './export';
 import { needsBuild, materializeSource } from './build-for-publish';
+import { isBinaryFilePath } from './app-icon';
 import type { FileEntry } from './virtual-fs';
 
 /**
@@ -258,7 +259,12 @@ export async function pullRemoteChanges(
  * `npm install`) plus the `.reltech.yml` manifest the network watcher reads.
  */
 export function filesForPush(repo: ConnectedRepo): FileEntry[] {
-  const files = useProjectStore.getState().getAllFiles();
+  // Binary images stay home. They arrived FROM the repo (import pulls them
+  // base64, sometimes re-compressed for preview) — pushing them back as
+  // utf-8 text would replace the repo's real bytes with garbage, and the
+  // push path only speaks text. The repo always keeps the originals.
+  const files = useProjectStore.getState().getAllFiles()
+    .filter(f => !isBinaryFilePath(f.path));
   if (files.length === 0) return [];
 
   const sourceFiles = needsBuild(files) ? materializeSource(files) : files;

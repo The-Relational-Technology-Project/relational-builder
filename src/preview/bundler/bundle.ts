@@ -1,6 +1,7 @@
 import * as esbuild from 'esbuild-wasm';
 import wasmURL from 'esbuild-wasm/esbuild.wasm?url';
 import { buildImportMap } from './versions';
+import { imageMimeFor } from '@/project/app-icon';
 
 /**
  * The in-browser bundler: real multi-file React apps — Vite-style layout,
@@ -20,6 +21,12 @@ import { buildImportMap } from './versions';
  *   so Tailwind v4's browser JIT compiles utilities and `@theme` token
  *   blocks; plain CSS passes through the JIT untouched.
  * - SVG imports inline as data URLs; JSON imports work natively.
+ * - Binary images (png/jpg/…) live in the VFS as bare base64 (the app-icon
+ *   convention) and compile to `export default "data:…;base64,…"` — Vite
+ *   semantics, so imported apps' `import photo from '@/assets/photo.png'`
+ *   just works. An image the project doesn't have resolves to a neutral
+ *   placeholder instead of failing the whole build: a missing photo should
+ *   read as a missing photo, not a broken app.
  */
 
 export interface BundleInput {
@@ -63,6 +70,32 @@ const ALIASES: Array<[prefix: string, target: string]> = [
 ];
 
 const RESOLVE_EXTENSIONS = ['.tsx', '.ts', '.jsx', '.js'];
+
+const IMAGE_EXT = /\.(png|jpe?g|gif|webp|avif|ico)$/i;
+
+/** The real bytes win over the extension: an oversized import is stored
+ *  re-compressed, which can put JPEG bytes behind a .png path. */
+function sniffImageMime(base64: string, path: string): string {
+  if (base64.startsWith('/9j/')) return 'image/jpeg';
+  if (base64.startsWith('iVBOR')) return 'image/png';
+  if (base64.startsWith('R0lGOD')) return 'image/gif';
+  if (base64.startsWith('UklGR')) return 'image/webp';
+  return imageMimeFor(path);
+}
+
+/** What a missing image looks like: quiet, obviously a stand-in, never an
+ *  error screen. */
+const PLACEHOLDER_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500" viewBox="0 0 800 500">' +
+  '<rect width="800" height="500" fill="#e8e2d9"/>' +
+  '<g fill="none" stroke="#b0a695" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">' +
+  '<rect x="290" y="160" width="220" height="180" rx="18"/>' +
+  '<circle cx="352" cy="222" r="20"/>' +
+  '<path d="M310 320 L380 250 L430 300 L470 260 L490 320"/>' +
+  '</g></svg>';
+
+const PLACEHOLDER_DATA_URL =
+  'data:image/svg+xml,' + encodeURIComponent(PLACEHOLDER_SVG);
 
 let initPromise: Promise<void> | null = null;
 
@@ -158,8 +191,15 @@ export async function bundleProject(input: BundleInput): Promise<BundleResult> {
           path = joinRelative(args.importer, path);
         }
         if (path.startsWith('/')) {
-          const resolved = resolveInVfs(files, path);
+          // Vite-style asset suffixes (?url and friends) name the same file
+          const bare = path.replace(/\?[^?]*$/, '');
+          const resolved = resolveInVfs(files, IMAGE_EXT.test(bare) ? bare : path);
           if (resolved) return { path: resolved, namespace: 'vfs' };
+          if (IMAGE_EXT.test(bare)) {
+            // An image the workspace doesn't hold (skipped at import, or a
+            // forge that can't provide it): stand in, don't fail the build
+            return { path: bare, namespace: 'rb-missing-image' };
+          }
           return {
             errors: [{
               text: `Could not find "${args.path}" in the project (imported from ${args.importer})`,
@@ -175,8 +215,20 @@ export async function bundleProject(input: BundleInput): Promise<BundleResult> {
         return { path, external: true };
       });
 
+      build.onLoad({ filter: /.*/, namespace: 'rb-missing-image' }, () => ({
+        contents: `export default ${JSON.stringify(PLACEHOLDER_DATA_URL)};`,
+        loader: 'js',
+      }));
+
       build.onLoad({ filter: /.*/, namespace: 'vfs' }, args => {
         const content = files[args.path] ?? '';
+
+        // Binary images: bare base64 in the VFS → a data-URL module, the
+        // same shape Vite gives `import photo from './photo.png'`
+        if (IMAGE_EXT.test(args.path)) {
+          const url = `data:${sniffImageMime(content, args.path)};base64,${content}`;
+          return { contents: `export default ${JSON.stringify(url)};`, loader: 'js' };
+        }
 
         // CSS: collect for the shell's Tailwind JIT, import becomes a no-op
         if (args.path.endsWith('.css')) {

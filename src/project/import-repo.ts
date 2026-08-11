@@ -11,9 +11,11 @@
  * an unchanged project straight back at the repo as a commit.
  */
 
-import { forgeClient, type ForgeId, type ForgeRepo } from './forge';
+import { forgeClient, type ForgeId, type ForgeRepo, type RepoImagePull } from './forge';
 import { usableRepoFiles } from './remix';
 import { SAFE_COPY_BRANCH } from './promote';
+import { compressBase64Image } from './assets';
+import { imageMimeFor } from './app-icon';
 import { stashAndStartFresh, saveCurrentLocally } from './local-projects';
 import {
   projectRepoKey,
@@ -31,6 +33,18 @@ import { useSyncStore } from '@/store/sync-store';
 /** Bigger than remix's cap: this is someone's whole ongoing project, not a
  *  starting point to trim down */
 const MAX_FILES = 300;
+
+/**
+ * Image budgets. The workspace lives in localStorage (and every checkpoint
+ * copies it), so images come in preview-sized: originals up to the fetch cap
+ * are pulled and re-compressed under the per-file cap when needed; the total
+ * budget keeps a photo-heavy repo from swamping the store. Anything past a
+ * cap shows as a placeholder in the preview — the repo (and the live site
+ * built from it) always keeps the real files.
+ */
+const IMAGE_FETCH_CAP = 2 * 1024 * 1024;
+const IMAGE_FILE_CAP = 400 * 1024;
+const IMAGE_TOTAL_CAP = 2.5 * 1024 * 1024;
 
 export interface ImportResult {
   repoName: string;
@@ -62,6 +76,42 @@ export async function importRepoAsProject(
     throw new Error("That repo doesn't contain web app files the Builder can work with");
   }
 
+  // Images too, where the forge supports it — an imported app should look
+  // like itself, not like a wall of broken-image errors. Never fatal: a
+  // repo whose images can't come along still imports as code.
+  let imagePull: RepoImagePull = { images: [], skipped: [] };
+  if (client.pullImages) {
+    try {
+      imagePull = await client.pullImages(token, repo.fullName, repo.defaultBranch, {
+        maxFileBytes: IMAGE_FETCH_CAP,
+      });
+    } catch {
+      // e.g. rate-limited mid-walk — treated the same as an unsupported forge
+    }
+  }
+  const imageEntries: { path: string; base64: string; bytes: number }[] = [];
+  const imagesSkipped = [...imagePull.skipped];
+  let imageBudget = IMAGE_TOTAL_CAP;
+  for (const img of imagePull.images) {
+    let b64 = img.base64;
+    let bytes = img.bytes;
+    if (bytes > IMAGE_FILE_CAP) {
+      const shrunk = await compressBase64Image(b64, imageMimeFor(img.path), IMAGE_FILE_CAP);
+      if (shrunk === null) {
+        imagesSkipped.push(img.path);
+        continue;
+      }
+      b64 = shrunk;
+      bytes = Math.round(shrunk.length * 0.75);
+    }
+    if (bytes > imageBudget) {
+      imagesSkipped.push(img.path);
+      continue;
+    }
+    imageBudget -= bytes;
+    imageEntries.push({ path: img.path, base64: b64, bytes });
+  }
+
   // Mint the safe copy BEFORE touching the workspace: if the token can't
   // create branches, the import fails whole rather than half-connected.
   // (A leftover safe copy from an abandoned import is moved here — a fresh
@@ -78,6 +128,16 @@ export async function importRepoAsProject(
     createdAt: now,
     updatedAt: now,
   }));
+  // Binary images ride the same VFS convention as generated app icons:
+  // bare base64 under a binary extension (see app-icon.ts). They stay out
+  // of pushes and prompts; the preview bundler serves them as data URLs.
+  const imageFileEntries = imageEntries.map(img => ({
+    path: img.path,
+    content: img.base64,
+    language: 'base64',
+    createdAt: now,
+    updatedAt: now,
+  }));
 
   // A fresh workspace, never destructive: open work goes to the shelf (cloud
   // projects are already saved), and the import starts clean
@@ -85,7 +145,7 @@ export async function importRepoAsProject(
   useCloudStore.getState().closeProject();
   useProjectStore.getState().clearProject();
   useEnvStore.getState().clearAll();
-  useProjectStore.getState().hydrateFiles(entries, {
+  useProjectStore.getState().hydrateFiles([...entries, ...imageFileEntries], {
     source: 'repo-import',
     sourceUrl: repo.htmlUrl,
     importedAt: new Date(now).toISOString(),
@@ -93,6 +153,29 @@ export async function importRepoAsProject(
 
   const repoName = repo.fullName.split('/')[1] ?? repo.fullName;
   const skipped = files.length - kept.length;
+
+  // Images that couldn't come along are the classic import mystery — the
+  // preview shows placeholders and the person wonders if their site broke.
+  // Say what happened and, more important, what did NOT happen: the repo
+  // and the live site still have every original file.
+  const skippedNames = imagesSkipped.map(p => `\`${p.split('/').pop()}\``);
+  const imageNote =
+    imagesSkipped.length > 0
+      ? [
+          '',
+          `**About images:** ${
+            imageFileEntries.length > 0
+              ? `${imageFileEntries.length} came in with the code, but `
+              : ''
+          }${imagesSkipped.length === 1 ? `one (${skippedNames[0]}) was` : `${imagesSkipped.length} (${
+            skippedNames.length <= 4 ? skippedNames.join(', ') : skippedNames.slice(0, 3).join(', ') + ', …'
+          }) were`} too large to preview here, so the preview shows a placeholder in ${
+            imagesSkipped.length === 1 ? 'its' : 'their'
+          } place. **Your repo and live site still have the real ${
+            imagesSkipped.length === 1 ? 'image' : 'images'
+          }** — publishing from here never removes them.`,
+        ]
+      : [];
 
   // An app that lived elsewhere brought its expectations with it — say up
   // front which settings it reads (import.meta.env.*, env.*) that have no
@@ -122,9 +205,14 @@ export async function importRepoAsProject(
         id: `msg-import-${now}`,
         role: 'assistant',
         content: [
-          `Imported **${repo.fullName}** — ${kept.length} files are in your workspace, and the repo is connected for two-way sync${options.safeCopy ? ' through a safe copy' : ''}.`,
+          `Imported **${repo.fullName}** — ${kept.length} files${
+            imageFileEntries.length > 0
+              ? ` and ${imageFileEntries.length} image${imageFileEntries.length === 1 ? '' : 's'}`
+              : ''
+          } are in your workspace, and the repo is connected for two-way sync${options.safeCopy ? ' through a safe copy' : ''}.`,
           '',
           'From here it works like any Builder project: changes you make here push to the repo on their own, and commits from Claude Code, an editor, or a collaborator come back in with a summary in chat.',
+          ...imageNote,
           ...settingsNote,
           '',
           modeNote,

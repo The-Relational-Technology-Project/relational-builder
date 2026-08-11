@@ -676,12 +676,19 @@ function formatProjectFilesForPrompt(
     '',
   ];
 
+  // Base64 payloads (builder photo assets, images pulled from a connected
+  // repo) are named in one line each, never inlined — so they must not eat
+  // the content budget either.
+  const isPhotoAsset = (p: string) => /^\/?assets\/[\w-]+\.js$/.test(p);
+  const isRepoImage = (p: string) => /\.(png|jpe?g|gif|webp|avif|ico)$/i.test(p);
+
   // Files arrive least-recently-touched first, so the cached prefix survives
   // (see getFilesForPrompt). That is the wrong order to spend the content
   // budget in — it would drop the file they are working on right now. Pick
   // what gets full content by recency FIRST, then emit in the cache order.
   const withBody = new Set(
     [...files]
+      .filter(f => !isPhotoAsset(f.path) && !isRepoImage(f.path))
       .sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0))
       .reduce<{ keep: string[]; left: number }>(
         (acc, f) => {
@@ -698,9 +705,18 @@ function formatProjectFilesForPrompt(
 
   for (const file of files) {
     // Photo assets are base64 blobs — name them, never inline them
-    if (/^\/?assets\/[\w-]+\.js$/.test(file.path)) {
+    if (isPhotoAsset(file.path)) {
       const name = file.path.replace(/^\/?assets\//, '').replace(/\.js$/, '');
       sections.push(`- ${file.path} — the builder's own photo asset "${name}". React apps: just <img data-asset="${name}" alt="..."> anywhere (the builder wires it up). Plain HTML pages: <script src="./assets/${name}.js"></script> plus the same img tag. NEVER re-output or modify this file.`);
+      continue;
+    }
+    // So are images pulled from a connected repo — real files at real paths
+    if (isRepoImage(file.path)) {
+      const kb = Math.max(1, Math.round((file.content.length * 0.75) / 1024));
+      const hint = file.path.startsWith('/src/')
+        ? ` Reference it the Vite way: \`import img from '@${file.path.slice(4)}'\`.`
+        : '';
+      sections.push(`- ${file.path} — image from the connected repo (~${kb} KB), previewable.${hint} NEVER output, edit, or delete this file — the repo keeps the original.`);
       continue;
     }
     if (!withBody.has(file.path)) {

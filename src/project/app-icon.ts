@@ -28,6 +28,21 @@ export function isBinaryFilePath(path: string): boolean {
   return BINARY_EXT.test(path);
 }
 
+/** Best-guess MIME for a binary image path (see isBinaryFilePath). */
+export function imageMimeFor(path: string): string {
+  const ext = path.split('.').pop()?.toLowerCase() ?? '';
+  return (
+    {
+      png: 'image/png',
+      jpg: 'image/jpeg',
+      jpeg: 'image/jpeg',
+      gif: 'image/gif',
+      webp: 'image/webp',
+      ico: 'image/x-icon',
+    }[ext] ?? 'application/octet-stream'
+  );
+}
+
 const now = () => Date.now();
 
 function entryOf(path: string, content: string, language: string): FileEntry {
