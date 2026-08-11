@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -53,7 +53,13 @@ export function ImportRepoDialog({ open, onOpenChange }: DialogControl) {
         }
       }}
     >
-      <DialogContent className="sm:max-w-md">
+      {/* Bounded in both axes. Height: viewport-capped with the view area as
+          the shrinkable row, so on short screens the repo list gives up
+          height (and scrolls) instead of the dialog running off the bottom.
+          Width: the grid track is clamped to the popup — without minmax(0,1fr)
+          the track grows to the widest row's min-content and every child
+          (title, intro, list) silently overruns the dialog's right edge. */}
+      <DialogContent className="sm:max-w-md max-h-[calc(100dvh-2rem)] grid-rows-[auto_minmax(0,1fr)] grid-cols-[minmax(0,1fr)]">
         <DialogHeader>
           <DialogTitle>
             {view === 'connect' && forge
@@ -220,9 +226,19 @@ function ImportRepoList({
     ? repos.filter(r => r.fullName.toLowerCase().includes(filter.toLowerCase()))
     : repos;
 
+  // "More repos below" is a fact of the scroll position, not a guess: show
+  // the fade only while rows are actually hidden past the bottom edge.
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const [moreBelow, setMoreBelow] = useState(false);
+  const updateMoreBelow = useCallback(() => {
+    const el = listRef.current;
+    if (el) setMoreBelow(el.scrollTop + el.clientHeight < el.scrollHeight - 4);
+  }, []);
+  useEffect(updateMoreBelow, [loading, filtered.length, updateMoreBelow]);
+
   return (
-    <div className="space-y-3 pt-2">
-      <div className="flex items-center justify-between">
+    <div className="flex h-full min-h-0 flex-col gap-3 pt-2">
+      <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
         <p className="text-xs text-muted-foreground">
           {username ? (
             <>
@@ -264,34 +280,44 @@ function ImportRepoList({
 
       {error && <p className="text-xs text-destructive">{error}</p>}
 
-      {/* A visible box around the scroll area: rows clip at a border, not
-          mid-air — a half-visible row reads as "scroll for more" instead of
-          broken layout */}
-      <div className="max-h-56 overflow-y-auto rounded-lg border p-1 space-y-0.5">
-        {loading ? (
-          <div className="flex justify-center py-4">
-            <Loader2 className="size-4 animate-spin text-muted-foreground" />
-          </div>
-        ) : filtered.length === 0 ? (
-          <p className="text-xs text-muted-foreground text-center py-4">No repos found</p>
-        ) : (
-          filtered.map(repo => (
-            <button
-              key={repo.fullName}
-              onClick={() => onPickRepo(repo)}
-              className="w-full text-left px-2 py-1.5 rounded hover:bg-muted transition-colors"
-            >
-              <div className="flex items-center justify-between gap-2">
-                <div className="min-w-0">
-                  <div className="text-xs font-medium truncate">{repo.fullName}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {repo.private ? 'Private' : 'Public'} · {repo.defaultBranch}
+      {/* The scroll area lives in a visible box and shrinks with the dialog
+          on short screens (min-h keeps a few rows tappable). A thin scrollbar
+          plus a bottom fade — shown only while rows are actually hidden —
+          says "scroll for more" without a half-cut row doing the talking. */}
+      <div className="relative min-h-28 shrink overflow-hidden rounded-lg border">
+        <div
+          ref={listRef}
+          onScroll={updateMoreBelow}
+          className="max-h-72 h-full overflow-y-auto p-1 space-y-0.5 [scrollbar-width:thin]"
+        >
+          {loading ? (
+            <div className="flex justify-center py-4">
+              <Loader2 className="size-4 animate-spin text-muted-foreground" />
+            </div>
+          ) : filtered.length === 0 ? (
+            <p className="text-xs text-muted-foreground text-center py-4">No repos found</p>
+          ) : (
+            filtered.map(repo => (
+              <button
+                key={repo.fullName}
+                onClick={() => onPickRepo(repo)}
+                className="w-full text-left px-2 py-1.5 rounded hover:bg-muted transition-colors"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="text-xs font-medium truncate">{repo.fullName}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {repo.private ? 'Private' : 'Public'} · {repo.defaultBranch}
+                    </div>
                   </div>
+                  <ArrowDownToLine className="size-3.5 shrink-0 text-muted-foreground" />
                 </div>
-                <ArrowDownToLine className="size-3.5 shrink-0 text-muted-foreground" />
-              </div>
-            </button>
-          ))
+              </button>
+            ))
+          )}
+        </div>
+        {moreBelow && (
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 rounded-b-lg bg-gradient-to-t from-popover to-transparent" />
         )}
       </div>
 
