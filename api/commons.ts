@@ -26,6 +26,9 @@ export const config = { runtime: 'edge' };
 
 const GUESTBOOK_ORIGIN = 'https://texakzqqenzpxawktbgx.supabase.co/functions/v1/commons-guestbook';
 
+/** The commons in git — one markdown file per entry, mirrored nightly. */
+const MIRROR_REPO = 'https://github.com/The-Relational-Technology-Project/relational-commons';
+
 const CACHE_LONG = 'public, s-maxage=3600, stale-while-revalidate=86400';
 const CACHE_SHORT = 'public, s-maxage=300, stale-while-revalidate=3600';
 
@@ -556,6 +559,8 @@ ${related.length ? `<span class="eyebrow">Related by topic</span><ul class="grid
 <div class="attach">
 ${credit ? `<p>${credit}${licenseHtml ? ` · ${licenseHtml}` : ''}</p>` : licenseHtml ? `<p>${licenseHtml}</p>` : ''}
 ${entry.source_url ? `<p>Original source: <a href="${esc(entry.source_url)}" rel="noopener">${esc(entry.source_url)}</a></p>` : ''}
+<p>See something to fix or add? <a href="${MIRROR_REPO}/edit/main/content/${esc(entry.kind)}/${esc(entry.slug)}.md" rel="noopener">Suggest an edit on GitHub</a> —
+the commons <a href="${MIRROR_REPO}" rel="noopener">lives in git</a> too, and its history is the changelog.</p>
 <p>${tagPills}</p>
 <p style="margin-top:1rem"><a class="cta" href="/new">Remix this in Relational Builder</a>
 &nbsp;<a class="cta ghost" href="/commons">Browse the commons</a></p>
@@ -825,6 +830,8 @@ async function llmsTxt(): Promise<Response> {
     `> The shared library of the Relational Technology Project: ${all.length} community-building practices, remixable neighborhood tools, first-hand stories and references — contributed by neighbors, connected by stewards (${refs.length} confirmed connections), licensed for remix with attribution under the Reciprocal Commons License ([RCL-1.0](${SITE}/commons/license)).`,
     '',
     `Theme guides: [Community-Building on Your Block](${SITE}/commons/themes/on-your-block), [Civic Media for Your Neighborhood](${SITE}/commons/themes/civic-media). Map of the whole commons: [Map & timeline](${SITE}/commons/map).`,
+    '',
+    `The whole commons is also mirrored to git — one markdown file per entry plus machine-readable commons.json and connections.json: ${MIRROR_REPO}`,
     '',
     ...[...byKind].flatMap(([kind, entries]) => [
       `## ${kindLabel(kind, true)}`,
