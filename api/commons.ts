@@ -20,6 +20,7 @@ import {
   page, FooterStats, constellation, entryCard, truncate, breadcrumbs, breadcrumbLd, fmtMonth, sparkline,
 } from './_commons/render';
 import { THEMES } from './_commons/themes';
+import { LICENSE_INTRO, LICENSE_MD } from './_commons/license';
 
 export const config = { runtime: 'edge' };
 
@@ -54,6 +55,7 @@ export default async function handler(req: Request): Promise<Response> {
     if (seg[0] === 'sitemap.xml') return await sitemap();
     if (seg[0] === 'llms.txt') return await llmsTxt();
     if (seg[0] === 'map') return await mapPage();
+    if (seg[0] === 'license') return await licensePage();
     if (seg[0] === 'stories') return await storyWall();
     if (seg[0] === 'reading-room') return await readingRoom();
     if (seg[0] === 'themes' && seg[1]) return await themePage(seg[1], url);
@@ -239,6 +241,37 @@ ${sparkline(months)}
         path: '/commons/map',
         wide: true,
         jsonLd: [breadcrumbLd([['The RT Commons', '/commons'], ['Map & timeline', '/commons/map']])],
+      },
+      body,
+      footer,
+    ),
+  );
+}
+
+// --- License ---------------------------------------------------------------
+
+async function licensePage(): Promise<Response> {
+  const { footer } = await commonsData();
+  const trail: [string, string][] = [['The RT Commons', '/commons'], ['License', '/commons/license']];
+  const body = `
+${breadcrumbs(trail)}
+<h1>Reciprocal Commons License v1.0</h1>
+${LICENSE_INTRO.map((p, i) => `<p class="${i === 0 ? 'lede' : 'meta'}" style="max-width:44rem">${esc(p)}</p>`).join('')}
+<div class="prose">${renderMarkdown(LICENSE_MD)}</div>
+<div class="attach">
+<p>The canonical text of this license lives in the
+<a href="https://github.com/The-Relational-Technology-Project/neighboring-recipes/blob/main/LICENSE.md" rel="noopener">Neighboring Recipes repository</a>,
+where it was first published. Questions about whether your use needs permission:
+<a href="mailto:commons@relationaltechproject.org">commons@relationaltechproject.org</a>.</p>
+</div>`;
+
+  return html(
+    page(
+      {
+        title: 'Reciprocal Commons License (RCL-1.0) · The RT Commons',
+        description: 'The license the RT Commons is shared under: free for neighbors, communities and place-based organizations; commercial platforms, services and AI systems need permission. Credit travels with the work.',
+        path: '/commons/license',
+        jsonLd: [breadcrumbLd(trail)],
       },
       body,
       footer,
@@ -485,6 +518,13 @@ async function entryPage(kind: string, slug: string): Promise<Response> {
     .filter(Boolean)
     .join(' · ');
 
+  const licenseHtml =
+    entry.license === 'RCL-1.0'
+      ? `<a href="/commons/license" title="Reciprocal Commons License v1.0">RCL-1.0</a>`
+      : entry.license
+        ? esc(entry.license)
+        : '';
+
   const isCivicDerived =
     entry.source_studio_slug === 'civic-media' &&
     !!entry.source_url && entry.source_url.includes('newsfutures.org');
@@ -514,7 +554,7 @@ ${meta.length ? `<div class="prose"><h2>Details</h2><ul>${meta
 ${connectionItems.length ? `<span class="eyebrow">Connected in the commons</span><ul class="grid">${connectionItems.join('')}</ul>` : ''}
 ${related.length ? `<span class="eyebrow">Related by topic</span><ul class="grid">${related.map(e => entryCard(e)).join('')}</ul>` : ''}
 <div class="attach">
-${credit ? `<p>${credit}${entry.license ? ` · ${esc(entry.license)}` : ''}</p>` : entry.license ? `<p>${esc(entry.license)}</p>` : ''}
+${credit ? `<p>${credit}${licenseHtml ? ` · ${licenseHtml}` : ''}</p>` : licenseHtml ? `<p>${licenseHtml}</p>` : ''}
 ${entry.source_url ? `<p>Original source: <a href="${esc(entry.source_url)}" rel="noopener">${esc(entry.source_url)}</a></p>` : ''}
 <p>${tagPills}</p>
 <p style="margin-top:1rem"><a class="cta" href="/new">Remix this in Relational Builder</a>
@@ -531,6 +571,7 @@ ${entry.source_url ? `<p>Original source: <a href="${esc(entry.source_url)}" rel
       operatingSystem: 'Web',
       ...(typeof m.hosted_url === 'string' ? { installUrl: m.hosted_url } : {}),
       ...(entry.attribution?.name ? { author: { '@type': 'Person', name: entry.attribution.name } } : {}),
+      ...(entry.license === 'RCL-1.0' ? { license: `${SITE}/commons/license` } : {}),
     });
   } else {
     ld.push({
@@ -545,7 +586,9 @@ ${entry.source_url ? `<p>Original source: <a href="${esc(entry.source_url)}" rel
         : { '@type': 'Organization', name: 'Relational Technology Project', url: 'https://relationaltechproject.org' },
       publisher: { '@type': 'Organization', name: 'Relational Technology Project', url: 'https://relationaltechproject.org' },
       ...(entry.source_url ? { isBasedOn: entry.source_url } : {}),
-      ...(entry.license ? { license: entry.license } : {}),
+      ...(entry.license
+        ? { license: entry.license === 'RCL-1.0' ? `${SITE}/commons/license` : entry.license }
+        : {}),
     });
   }
 
@@ -750,7 +793,7 @@ async function sitemap(): Promise<Response> {
     fullStories.filter(e => e.kind === 'story' && hasOwnPage(e)).map(e => e.slug),
   );
   const staticPages = [
-    '/commons', '/commons/map', '/commons/stories', '/commons/reading-room',
+    '/commons', '/commons/map', '/commons/stories', '/commons/reading-room', '/commons/license',
     ...Object.keys(SHELVES).map(p => `/commons/${p}`),
     ...Object.keys(THEMES).map(t => `/commons/themes/${t}`),
   ];
@@ -779,7 +822,7 @@ async function llmsTxt(): Promise<Response> {
   const lines = [
     '# The RT Commons',
     '',
-    `> The shared library of the Relational Technology Project: ${all.length} community-building practices, remixable neighborhood tools, first-hand stories and references — contributed by neighbors, connected by stewards (${refs.length} confirmed connections), licensed for remix with attribution (RCL-1.0).`,
+    `> The shared library of the Relational Technology Project: ${all.length} community-building practices, remixable neighborhood tools, first-hand stories and references — contributed by neighbors, connected by stewards (${refs.length} confirmed connections), licensed for remix with attribution under the Reciprocal Commons License ([RCL-1.0](${SITE}/commons/license)).`,
     '',
     `Theme guides: [Community-Building on Your Block](${SITE}/commons/themes/on-your-block), [Civic Media for Your Neighborhood](${SITE}/commons/themes/civic-media). Map of the whole commons: [Map & timeline](${SITE}/commons/map).`,
     '',

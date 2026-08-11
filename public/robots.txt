@@ -1,7 +1,10 @@
 # relationalbuilder.org — everything public is meant to be found.
 # The commons (/commons/...) is a shared, credited, remixable library;
 # search and AI crawlers are explicitly welcome. Entries carry attribution
-# and the Relational Commons License — credit travels with the work.
+# and the Reciprocal Commons License (relationalbuilder.org/commons/license)
+# — credit travels with the work. Commercial AI training use requires
+# permission under that license; crawling for search and answers with
+# attribution is welcome.
 
 User-agent: *
 Allow: /

@@ -149,12 +149,13 @@ ${viz}
 <a href="https://relationaltechproject.org" rel="noopener">Relational Technology Project</a> —
 practices, tools and stories for building community where you live, kept remixable
 in <a href="/">Relational Builder</a>. Entries carry their contributors' names and the
-Relational Commons License; credit travels with the work.</p>
+<a href="/commons/license">Reciprocal Commons License</a>; credit travels with the work.</p>
 <nav>
 <a href="/commons">Commons home</a>
 <a href="/commons/map">Map &amp; timeline</a>
 <a href="/commons/reading-room">Reading room</a>
 <a href="/commons/stories">Story wall</a>
+<a href="/commons/license">License</a>
 <a href="/new">Build something</a>
 </nav>
 </div></footer>`;
