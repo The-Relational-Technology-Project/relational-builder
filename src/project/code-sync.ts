@@ -409,6 +409,23 @@ const ENV_REF_PATTERNS = [
 ];
 
 /**
+ * Env keys the given file contents reference that have no value in this
+ * workspace yet. Shared by the pull summary and the repo import flow —
+ * the same "this code expects settings" question comes up both times.
+ */
+export function missingEnvKeys(contents: (string | undefined)[]): string[] {
+  const known = new Set(useEnvStore.getState().vars.map(v => v.key));
+  const referenced = new Set<string>();
+  for (const content of contents) {
+    if (!content) continue;
+    for (const pattern of ENV_REF_PATTERNS) {
+      for (const m of content.matchAll(pattern)) referenced.add(m[1]);
+    }
+  }
+  return [...referenced].filter(k => !known.has(k) && !isCommonFalsePositive(k));
+}
+
+/**
  * The tricky part of building in two places: after code arrives from the
  * repo, is there anything the Builder can't do automatically? These are
  * deterministic checks — no AI, no guessing — for the known seams.
@@ -452,15 +469,7 @@ export function analyzeActionsNeeded(
   }
 
   // New settings the workspace doesn't have values for
-  const known = new Set(useEnvStore.getState().vars.map(v => v.key));
-  const referenced = new Set<string>();
-  for (const c of active) {
-    if (!c.content) continue;
-    for (const pattern of ENV_REF_PATTERNS) {
-      for (const m of c.content.matchAll(pattern)) referenced.add(m[1]);
-    }
-  }
-  const missing = [...referenced].filter(k => !known.has(k) && !isCommonFalsePositive(k));
+  const missing = missingEnvKeys(active.map(c => c.content));
   if (missing.length > 0 && missing.length <= 8) {
     actions.push(
       `**Add missing settings** — the new code references ` +

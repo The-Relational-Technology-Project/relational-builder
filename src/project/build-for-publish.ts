@@ -67,7 +67,11 @@ export async function buildStaticSite(
     );
   }
 
-  const result = await bundleProject({ files: vfs, entry });
+  const result = await bundleProject({
+    files: vfs,
+    entry,
+    env: Object.fromEntries(publicEnvVars.map(v => [v.key, v.value])),
+  });
   if (!result.ok) {
     throw new Error(`The app failed to build:\n${result.errors.join('\n')}`);
   }

@@ -30,6 +30,13 @@ export interface BundleInput {
   /** Development React in the import map (live preview only) — real error
    *  messages and component stacks instead of minified error codes */
   dev?: boolean;
+  /**
+   * Public env vars, compiled in as `import.meta.env.*` — the Vite
+   * convention imported apps (Lovable and friends) already use. RB's own
+   * generated apps import the env module instead, but a project moving in
+   * from elsewhere shouldn't crash the preview over the difference.
+   */
+  env?: Record<string, string>;
 }
 
 export interface BundleSuccess {
@@ -201,6 +208,19 @@ export async function bundleProject(input: BundleInput): Promise<BundleResult> {
       // keep it debuggable, don't minify.
       minify: false,
       logLevel: 'silent',
+      // The whole object, not per-key defines: `import.meta.env.ANYTHING`
+      // then reads a real object — unknown keys are undefined instead of a
+      // TypeError on `env` itself, matching how Vite behaves.
+      define: {
+        'import.meta.env': JSON.stringify({
+          ...(input.env ?? {}),
+          MODE: input.dev ? 'development' : 'production',
+          DEV: input.dev ?? false,
+          PROD: !(input.dev ?? false),
+          SSR: false,
+          BASE_URL: '/',
+        }),
+      },
       plugins: [vfsPlugin],
     });
 

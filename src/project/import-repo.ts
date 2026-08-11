@@ -19,6 +19,7 @@ import {
   connectedRepoForCurrentProject,
   filesForPush,
   fingerprintFiles,
+  missingEnvKeys,
 } from './code-sync';
 import { useProjectStore } from '@/store/project-store';
 import { useChatStore } from '@/store/chat-store';
@@ -75,6 +76,22 @@ export async function importRepoAsProject(
 
   const repoName = repo.fullName.split('/')[1] ?? repo.fullName;
   const skipped = files.length - kept.length;
+
+  // An app that lived elsewhere brought its expectations with it — say up
+  // front which settings it reads (import.meta.env.*, env.*) that have no
+  // value here yet, so the preview failing to start is a to-do, not a mystery.
+  const missing = missingEnvKeys(entries.map(e => e.content));
+  const settingsNote =
+    missing.length > 0 && missing.length <= 12
+      ? [
+          '',
+          `**One thing before the preview runs:** this app reads ${missing.map(k => `\`${k}\``).join(', ')} ` +
+            `and ${missing.length === 1 ? 'it has' : 'they have'} no value here yet. ` +
+            'Add ' + (missing.length === 1 ? 'it' : 'them') + ' under **Services → Environment** ' +
+            '(the same values the app already uses — public keys only; secrets stay out of the preview).',
+        ]
+      : [];
+
   useChatStore.getState().hydrateChat(
     [
       {
@@ -84,6 +101,10 @@ export async function importRepoAsProject(
           `Imported **${repo.fullName}** — ${kept.length} files are in your workspace, and the repo is connected for two-way sync.`,
           '',
           'From here it works like any Builder project: changes you make here push to the repo on their own, and commits from Claude Code, an editor, or a collaborator come back in with a summary in chat.',
+          ...settingsNote,
+          '',
+          `If this repo deploys to production, know that synced changes land on \`${repo.defaultBranch}\` — ` +
+            'you can switch off automatic sync in the repo panel (top right) to review and push by hand instead.',
           '',
           'Tell me what you want to change first — or just ask me to walk you through what this app does.',
         ].join('\n'),

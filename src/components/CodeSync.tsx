@@ -410,8 +410,9 @@ function RepoListView({ forge, onBack }: { forge: ForgeId; onBack: () => void })
 
       {error && !badToken && <p className="text-xs text-destructive">{error}</p>}
 
-      {/* Repo list */}
-      <div className="max-h-48 overflow-y-auto space-y-1 -mx-1">
+      {/* Repo list — bordered so a row clipped at the edge reads as "scroll
+          for more" rather than broken layout */}
+      <div className="max-h-48 overflow-y-auto rounded-lg border p-1 space-y-0.5">
         {loading ? (
           <div className="flex justify-center py-4">
             <Loader2 className="size-4 animate-spin text-muted-foreground" />

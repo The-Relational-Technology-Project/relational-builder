@@ -84,7 +84,12 @@ export function FrameworkPreview({
 
       // dev: development React in the preview — real error messages and
       // component stacks for the error→AI-fix loop. Publish stays production.
-      const result = await bundleProject({ files: vfs, entry, dev: true });
+      const result = await bundleProject({
+        files: vfs,
+        entry,
+        dev: true,
+        env: Object.fromEntries(publicEnvVars.map(v => [v.key, v.value])),
+      });
       if (runId.current !== id) return; // a newer bundle superseded this one
 
       setBundling(false);

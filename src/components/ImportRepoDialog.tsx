@@ -173,7 +173,10 @@ function ImportRepoList({
 
       {error && <p className="text-xs text-destructive">{error}</p>}
 
-      <div className="max-h-56 overflow-y-auto space-y-1 -mx-1">
+      {/* A visible box around the scroll area: rows clip at a border, not
+          mid-air — a half-visible row reads as "scroll for more" instead of
+          broken layout */}
+      <div className="max-h-56 overflow-y-auto rounded-lg border p-1 space-y-0.5">
         {loading ? (
           <div className="flex justify-center py-4">
             <Loader2 className="size-4 animate-spin text-muted-foreground" />
