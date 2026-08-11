@@ -1,0 +1,59 @@
+# Mirror the commons database into this repo, nightly and on demand.
+# Commits only when the commons actually changed, with a message that says
+# what moved — the commit log is the commons' public changelog.
+name: Mirror the commons
+
+on:
+  schedule:
+    - cron: '17 6 * * *' # nightly, 06:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Regenerate the mirror
+        run: node scripts/mirror.mjs
+
+      - name: Commit what changed
+        run: |
+          git config user.name 'commons-mirror'
+          git config user.email 'commons@relationaltechproject.org'
+          git add -A
+          if git diff --cached --quiet; then
+            echo 'The commons has not changed.'
+            exit 0
+          fi
+
+          # Human-readable summary: which entries were added/updated/removed.
+          summary() {
+            local status="$1" verb="$2"
+            local slugs count
+            slugs=$(git diff --cached --name-only --diff-filter="$status" -- content \
+              | sed 's#content/[^/]*/##; s#\.md$##')
+            count=$(printf '%s\n' "$slugs" | sed '/^$/d' | wc -l)
+            [ "$count" -eq 0 ] && return
+            local head
+            head=$(printf '%s\n' "$slugs" | sed '/^$/d' | head -3 | paste -sd ', ' -)
+            if [ "$count" -gt 3 ]; then
+              printf '%s %s (%s, +%s more)' "$verb" "$count" "$head" "$((count - 3))"
+            else
+              printf '%s %s (%s)' "$verb" "$count" "$head"
+            fi
+          }
+
+          parts=$(printf '%s\n%s\n%s\n' \
+            "$(summary A adds)" "$(summary M updates)" "$(summary D removes)" \
+            | sed '/^$/d' | paste -sd '; ' -)
+
+          git commit -m "Commons update: ${parts:-metadata refresh}"
+          git push
