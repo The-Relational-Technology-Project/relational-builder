@@ -48,6 +48,17 @@ export interface CompareResult {
   files: RemoteFileChange[];
 }
 
+/**
+ * How a server-side merge ended. A conflict is an OUTCOME here, not an
+ * error — safe-copy mode treats "these two versions collide" as a question
+ * for a person, and questions shouldn't arrive as exceptions.
+ */
+export interface MergeOutcome {
+  status: 'merged' | 'up-to-date' | 'conflict';
+  /** The base branch's new head after a merge; null otherwise */
+  sha: string | null;
+}
+
 export interface ForgeClient {
   readonly forge: ForgeId;
 
@@ -108,6 +119,19 @@ export interface ForgeClient {
     files: FileEntry[],
     message: string,
   ): Promise<SyncResult>;
+
+  /**
+   * Create a branch at a commit — or, if the branch already exists, move it
+   * there. Both callers mean "this branch starts here now": a fresh import
+   * minting its safe copy, or a reset back to the live version.
+   */
+  createBranch(token: string, fullName: string, branch: string, fromSha: string): Promise<void>;
+  /**
+   * Merge `head` into `base` on the server (no local git anywhere). Powers
+   * safe-copy mode in both directions: publishing the safe copy to the live
+   * branch, and folding live-branch commits back into the safe copy.
+   */
+  mergeBranch(token: string, fullName: string, base: string, head: string): Promise<MergeOutcome>;
 
   /** Tag the repo into the relational-tech commons (best-effort) */
   addReltechTopic(token: string, fullName: string): Promise<void>;

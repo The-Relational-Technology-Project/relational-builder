@@ -5,7 +5,7 @@
  */
 
 import type { FileEntry } from '../virtual-fs';
-import type { ForgeClient, ForgeRepo, CompareResult, RemoteCommit, RepoFile, SyncResult } from './types';
+import type { ForgeClient, ForgeRepo, CompareResult, MergeOutcome, RemoteCommit, RepoFile, SyncResult } from './types';
 import * as gh from '../github-api';
 
 function toForgeRepo(repo: gh.GitHubRepo): ForgeRepo {
@@ -80,6 +80,14 @@ export class GitHubClient implements ForgeClient {
     message: string,
   ): Promise<SyncResult> {
     return gh.pushFiles(token, fullName, branch, files, message);
+  }
+
+  createBranch(token: string, fullName: string, branch: string, fromSha: string): Promise<void> {
+    return gh.createBranch(token, fullName, branch, fromSha);
+  }
+
+  mergeBranch(token: string, fullName: string, base: string, head: string): Promise<MergeOutcome> {
+    return gh.mergeBranch(token, fullName, base, head);
   }
 
   addReltechTopic(token: string, fullName: string): Promise<void> {

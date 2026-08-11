@@ -13,6 +13,7 @@
 
 import { forgeClient, type ForgeId, type ForgeRepo } from './forge';
 import { usableRepoFiles } from './remix';
+import { SAFE_COPY_BRANCH } from './promote';
 import { stashAndStartFresh, saveCurrentLocally } from './local-projects';
 import {
   projectRepoKey,
@@ -40,6 +41,14 @@ export interface ImportResult {
 export async function importRepoAsProject(
   forge: ForgeId,
   repo: ForgeRepo,
+  options: {
+    /**
+     * The app is live for its community: sync through a safe-copy branch,
+     * and only the Publish button ever moves the branch the site deploys
+     * from. False = the original posture, straight onto the default branch.
+     */
+    safeCopy: boolean;
+  },
 ): Promise<ImportResult> {
   const sync = useSyncStore.getState();
   const token = sync.tokens[forge];
@@ -51,6 +60,14 @@ export async function importRepoAsProject(
   const kept = usableRepoFiles(files, MAX_FILES);
   if (kept.length === 0) {
     throw new Error("That repo doesn't contain web app files the Builder can work with");
+  }
+
+  // Mint the safe copy BEFORE touching the workspace: if the token can't
+  // create branches, the import fails whole rather than half-connected.
+  // (A leftover safe copy from an abandoned import is moved here — a fresh
+  // import means "start from the live version, now".)
+  if (options.safeCopy) {
+    await client.createBranch(token, repo.fullName, SAFE_COPY_BRANCH, commitSha);
   }
 
   const now = Date.now();
@@ -92,19 +109,25 @@ export async function importRepoAsProject(
         ]
       : [];
 
+  const modeNote = options.safeCopy
+    ? `**Your live site is protected.** It keeps following \`${repo.defaultBranch}\`, and nothing there changes by itself. ` +
+      'Your edits save to a separate safe copy, and when you like what you see, press ' +
+      '**Publish to your live site** in the repo panel (top right). Changes made elsewhere — Claude Code, a collaborator — still flow in here automatically.'
+    : `If this repo deploys to production, know that synced changes land on \`${repo.defaultBranch}\` — ` +
+      'you can switch off automatic sync in the repo panel (top right) to review and push by hand instead.';
+
   useChatStore.getState().hydrateChat(
     [
       {
         id: `msg-import-${now}`,
         role: 'assistant',
         content: [
-          `Imported **${repo.fullName}** — ${kept.length} files are in your workspace, and the repo is connected for two-way sync.`,
+          `Imported **${repo.fullName}** — ${kept.length} files are in your workspace, and the repo is connected for two-way sync${options.safeCopy ? ' through a safe copy' : ''}.`,
           '',
           'From here it works like any Builder project: changes you make here push to the repo on their own, and commits from Claude Code, an editor, or a collaborator come back in with a summary in chat.',
           ...settingsNote,
           '',
-          `If this repo deploys to production, know that synced changes land on \`${repo.defaultBranch}\` — ` +
-            'you can switch off automatic sync in the repo panel (top right) to review and push by hand instead.',
+          modeNote,
           '',
           'Tell me what you want to change first — or just ask me to walk you through what this app does.',
         ].join('\n'),
@@ -120,15 +143,20 @@ export async function importRepoAsProject(
   saveCurrentLocally(repoName);
 
   // Connected AND already synced: the pulled commit is the shared starting
-  // point, so the "where should this start?" question never needs asking
+  // point, so the "where should this start?" question never needs asking.
+  // In safe-copy mode sync reads and writes the safe copy; the live branch
+  // is recorded so publish and the fold check know where the site lives.
   const key = projectRepoKey();
   useSyncStore.getState().connectRepo(key, {
     forge,
     baseUrl: baseUrl || undefined,
     fullName: repo.fullName,
-    branch: repo.defaultBranch,
+    branch: options.safeCopy ? SAFE_COPY_BRANCH : repo.defaultBranch,
     htmlUrl: repo.htmlUrl,
     lastSyncSha: commitSha,
+    ...(options.safeCopy
+      ? { liveBranch: repo.defaultBranch, lastLiveSha: commitSha }
+      : {}),
   });
   const connected = connectedRepoForCurrentProject();
   if (connected) {

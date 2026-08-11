@@ -387,6 +387,59 @@ export async function pushFiles(
   };
 }
 
+// ── Branches & merges (safe-copy mode) ────────────────────────────────
+
+/** Create a branch at a commit; if it exists, move it there (force). */
+export async function createBranch(
+  token: string,
+  repoFullName: string,
+  branch: string,
+  fromSha: string,
+): Promise<void> {
+  const res = await fetch(`${API}/repos/${repoFullName}/git/refs`, {
+    method: 'POST',
+    headers: headers(token),
+    body: JSON.stringify({ ref: `refs/heads/${branch}`, sha: fromSha }),
+  });
+  if (res.ok) return;
+  if (res.status === 422) {
+    // Already exists — both callers mean "start here now", so move it
+    const patch = await fetch(`${API}/repos/${repoFullName}/git/refs/heads/${branch}`, {
+      method: 'PATCH',
+      headers: headers(token),
+      body: JSON.stringify({ sha: fromSha, force: true }),
+    });
+    if (patch.ok) return;
+  }
+  throw new Error(`Couldn't create the "${branch}" branch (${res.status}) — check that your token can push to this repo`);
+}
+
+export interface MergeOutcome {
+  status: 'merged' | 'up-to-date' | 'conflict';
+  sha: string | null;
+}
+
+/** Merge head into base server-side. Conflict is an outcome, not an error. */
+export async function mergeBranch(
+  token: string,
+  repoFullName: string,
+  base: string,
+  head: string,
+): Promise<MergeOutcome> {
+  const res = await fetch(`${API}/repos/${repoFullName}/merges`, {
+    method: 'POST',
+    headers: headers(token),
+    body: JSON.stringify({ base, head }),
+  });
+  if (res.status === 201) {
+    const data = await res.json();
+    return { status: 'merged', sha: data.sha ?? null };
+  }
+  if (res.status === 204) return { status: 'up-to-date', sha: null };
+  if (res.status === 409) return { status: 'conflict', sha: null };
+  throw new Error(`Merge failed (${res.status})`);
+}
+
 /** Add the relational-tech topic to a repo */
 export async function addReltechTopic(
   token: string,

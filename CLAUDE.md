@@ -54,6 +54,12 @@ Chat/Builder Panel  |  Preview Sandbox (iframe)  |  RTP Knowledge Base Panel
   the last push — checkpoint first, plain-language summary to chat. Unpushed
   local edits make it a person's call instead: `RemoteChangesBanner` asks.
   All pushes go through `pushToRepo` in `src/project/code-sync.ts`.
+  Imported repos that are LIVE for a community sync through a safe-copy
+  branch (`relational-builder`) instead: `src/project/promote.ts` owns the
+  three verbs — `publishToLive` (merge safe copy → live branch, the
+  "Publish to your live site" button), `foldLiveChanges` (merge live →
+  safe copy automatically when clean; collisions raise `liveConflict` and
+  wait for a person), and `resetSafeCopyToLive` (the escape hatch).
 - **Models:** Three-tier provider system
   - Tier 1: RTP-hosted open-source model (free default, no API key)
   - Tier 2: BYOK cloud models (Claude, OpenAI, OpenRouter)

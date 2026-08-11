@@ -7,7 +7,7 @@
  */
 
 import type { FileEntry } from '../virtual-fs';
-import type { ForgeClient, ForgeRepo, CompareResult, RemoteCommit, RemoteFileChange, RepoFile, SyncResult } from './types';
+import type { ForgeClient, ForgeRepo, CompareResult, MergeOutcome, RemoteCommit, RemoteFileChange, RepoFile, SyncResult } from './types';
 import { isBinaryPath } from './types';
 import { mapLimit, FORGE_FETCH_CONCURRENCY } from './concurrency';
 
@@ -249,6 +249,95 @@ export class GitLabClient implements ForgeClient {
       commitUrl: commit.web_url ?? `${this.webBase}/${fullName}/-/commit/${commit.id}`,
       filesChanged: files.length,
     };
+  }
+
+  async createBranch(token: string, fullName: string, branch: string, fromSha: string): Promise<void> {
+    const id = this.project(fullName);
+    const create = () =>
+      fetch(
+        `${this.api}/projects/${id}/repository/branches?branch=${encodeURIComponent(branch)}&ref=${fromSha}`,
+        { method: 'POST', headers: this.headers(token) },
+      );
+    let res = await create();
+    if (res.status === 400) {
+      // Already exists — GitLab has no force-move, so recreate at the new spot
+      await fetch(
+        `${this.api}/projects/${id}/repository/branches/${encodeURIComponent(branch)}`,
+        { method: 'DELETE', headers: this.headers(token) },
+      );
+      res = await create();
+    }
+    if (!res.ok) {
+      throw new Error(`Couldn't create the "${branch}" branch (${res.status}) — check that your token can push to this repo`);
+    }
+  }
+
+  async mergeBranch(token: string, fullName: string, base: string, head: string): Promise<MergeOutcome> {
+    const id = this.project(fullName);
+    // Nothing to merge? Then don't open (and instantly close) an MR for it.
+    const cmp = await fetch(
+      `${this.api}/projects/${id}/repository/compare?from=${encodeURIComponent(base)}&to=${encodeURIComponent(head)}`,
+      { headers: this.headers(token) },
+    );
+    if (cmp.ok && ((await cmp.json()).commits ?? []).length === 0) {
+      return { status: 'up-to-date', sha: null };
+    }
+
+    // GitLab merges through a merge request — open one, accept it, and if it
+    // can't merge (conflict), close it again so nothing dangles.
+    let mrRes = await fetch(`${this.api}/projects/${id}/merge_requests`, {
+      method: 'POST',
+      headers: this.headers(token),
+      body: JSON.stringify({
+        source_branch: head,
+        target_branch: base,
+        title: 'Publish from Relational Builder',
+      }),
+    });
+    if (mrRes.status === 409) {
+      // One already open for this pair — reuse it
+      mrRes = await fetch(
+        `${this.api}/projects/${id}/merge_requests?state=opened&source_branch=${encodeURIComponent(head)}&target_branch=${encodeURIComponent(base)}`,
+        { headers: this.headers(token) },
+      );
+      if (mrRes.ok) {
+        const list = await mrRes.json();
+        if (list[0]) return this.acceptMergeRequest(token, id, list[0].iid);
+      }
+      throw new Error('Merge failed (409)');
+    }
+    if (!mrRes.ok) throw new Error(`Merge failed (${mrRes.status})`);
+    const mr = await mrRes.json();
+    return this.acceptMergeRequest(token, id, mr.iid);
+  }
+
+  private async acceptMergeRequest(token: string, projectId: string, iid: number): Promise<MergeOutcome> {
+    // GitLab computes mergeability asynchronously — a 405 straight after MR
+    // creation can just mean "still checking", so give it one more chance.
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const res = await fetch(
+        `${this.api}/projects/${projectId}/merge_requests/${iid}/merge`,
+        { method: 'PUT', headers: this.headers(token), body: JSON.stringify({}) },
+      );
+      if (res.ok) {
+        const data = await res.json();
+        return { status: 'merged', sha: data.merge_commit_sha ?? data.sha ?? null };
+      }
+      if (res.status === 405 && attempt === 0) {
+        await new Promise(r => setTimeout(r, 1500));
+        continue;
+      }
+      if ([405, 406, 422].includes(res.status)) {
+        await fetch(`${this.api}/projects/${projectId}/merge_requests/${iid}`, {
+          method: 'PUT',
+          headers: this.headers(token),
+          body: JSON.stringify({ state_event: 'close' }),
+        }).catch(() => {});
+        return { status: 'conflict', sha: null };
+      }
+      throw new Error(`Merge failed (${res.status})`);
+    }
+    return { status: 'conflict', sha: null };
   }
 
   async addReltechTopic(token: string, fullName: string): Promise<void> {

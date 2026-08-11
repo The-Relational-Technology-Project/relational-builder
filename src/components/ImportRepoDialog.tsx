@@ -11,7 +11,7 @@ import { useUIStore } from '@/store/ui-store';
 import { FORGES, forgeClient, type ForgeId, type ForgeRepo } from '@/project/forge';
 import { importRepoAsProject } from '@/project/import-repo';
 import { ForgePickerView, ConnectView } from '@/components/CodeSync';
-import { Loader2, ArrowLeft, ArrowDownToLine } from 'lucide-react';
+import { Loader2, ArrowLeft, ArrowDownToLine, ShieldCheck } from 'lucide-react';
 
 /**
  * Bring an existing repo you control into the Builder as its own project —
@@ -30,6 +30,7 @@ interface DialogControl {
 
 export function ImportRepoDialog({ open, onOpenChange }: DialogControl) {
   const [forge, setForge] = useState<ForgeId | null>(null);
+  const [pendingRepo, setPendingRepo] = useState<ForgeRepo | null>(null);
   const tokens = useSyncStore(s => s.tokens);
   const instanceUrls = useSyncStore(s => s.instanceUrls);
 
@@ -37,14 +38,19 @@ export function ImportRepoDialog({ open, onOpenChange }: DialogControl) {
     ? 'pick'
     : !tokens[forge] || (FORGES[forge].needsInstanceUrl && !instanceUrls[forge])
       ? 'connect'
-      : 'repos';
+      : pendingRepo
+        ? 'live-question'
+        : 'repos';
 
   return (
     <Dialog
       open={open}
       onOpenChange={v => {
         onOpenChange(v);
-        if (!v) setForge(null);
+        if (!v) {
+          setForge(null);
+          setPendingRepo(null);
+        }
       }}
     >
       <DialogContent className="sm:max-w-md">
@@ -52,7 +58,9 @@ export function ImportRepoDialog({ open, onOpenChange }: DialogControl) {
           <DialogTitle>
             {view === 'connect' && forge
               ? `Connect to ${FORGES[forge].name}`
-              : 'Import your own project'}
+              : view === 'live-question'
+                ? 'One question first'
+                : 'Import your own project'}
           </DialogTitle>
         </DialogHeader>
         {view === 'pick' && (
@@ -72,6 +80,14 @@ export function ImportRepoDialog({ open, onOpenChange }: DialogControl) {
           <ImportRepoList
             forge={forge}
             onBack={() => setForge(null)}
+            onPickRepo={setPendingRepo}
+          />
+        )}
+        {view === 'live-question' && forge && pendingRepo && (
+          <LiveQuestionView
+            forge={forge}
+            repo={pendingRepo}
+            onBack={() => setPendingRepo(null)}
             onDone={() => onOpenChange(false)}
           />
         )}
@@ -80,19 +96,109 @@ export function ImportRepoDialog({ open, onOpenChange }: DialogControl) {
   );
 }
 
-function ImportRepoList({
+/**
+ * The one question that decides the import's posture, asked in the
+ * builder's language ("is it live?") rather than git's ("which branch?").
+ * A live app gets a safe copy and a Publish button; anything else syncs
+ * straight to the default branch like before.
+ */
+function LiveQuestionView({
   forge,
+  repo,
   onBack,
   onDone,
 }: {
   forge: ForgeId;
+  repo: ForgeRepo;
   onBack: () => void;
   onDone: () => void;
+}) {
+  const setView = useUIStore(s => s.setView);
+  const [busy, setBusy] = useState<'safe' | 'direct' | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const runImport = async (safeCopy: boolean) => {
+    setBusy(safeCopy ? 'safe' : 'direct');
+    setError(null);
+    try {
+      await importRepoAsProject(forge, repo, { safeCopy });
+      onDone();
+      setView('builder');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Import failed');
+      setBusy(null);
+    }
+  };
+
+  return (
+    <div className="space-y-3 pt-2">
+      <p className="text-sm">
+        Is <span className="font-medium">{repo.fullName.split('/')[1]}</span>{' '}
+        live for your community right now?
+      </p>
+      <div className="space-y-1.5">
+        <button
+          onClick={() => runImport(true)}
+          disabled={busy !== null}
+          className="w-full text-left rounded-lg border-2 border-primary/40 px-3 py-2.5 hover:bg-muted transition-colors disabled:opacity-60"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-sm font-medium">
+              Yes, people use it — keep my live site safe
+            </span>
+            {busy === 'safe' ? (
+              <Loader2 className="size-3.5 shrink-0 animate-spin text-muted-foreground" />
+            ) : (
+              <ShieldCheck className="size-4 shrink-0 text-primary" />
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Your edits stay on a separate safe copy. Nothing reaches the live
+            site until you press <strong>Publish</strong> — recommended for
+            anything with real visitors.
+          </p>
+        </button>
+        <button
+          onClick={() => runImport(false)}
+          disabled={busy !== null}
+          className="w-full text-left rounded-lg border px-3 py-2.5 hover:bg-muted transition-colors disabled:opacity-60"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-sm font-medium">Not live yet — keep it simple</span>
+            {busy === 'direct' && (
+              <Loader2 className="size-3.5 shrink-0 animate-spin text-muted-foreground" />
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Changes sync straight to <code>{repo.defaultBranch}</code>, the
+            same way Builder-born projects work.
+          </p>
+        </button>
+      </div>
+      {error && <p className="text-xs text-destructive">{error}</p>}
+      <button
+        onClick={onBack}
+        disabled={busy !== null}
+        className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="size-3" /> Different repo
+      </button>
+    </div>
+  );
+}
+
+function ImportRepoList({
+  forge,
+  onBack,
+  onPickRepo,
+}: {
+  forge: ForgeId;
+  onBack: () => void;
+  onPickRepo: (repo: ForgeRepo) => void;
 }) {
   const token = useSyncStore(s => s.tokens[forge]) ?? '';
   const username = useSyncStore(s => s.usernames[forge]) ?? null;
   const signOut = useSyncStore(s => s.signOut);
-  const setView = useUIStore(s => s.setView);
   const baseUrl =
     useSyncStore.getState().instanceUrls[forge] ?? FORGES[forge].defaultBaseUrl ?? '';
   const meta = FORGES[forge];
@@ -100,7 +206,6 @@ function ImportRepoList({
   const [repos, setRepos] = useState<ForgeRepo[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
-  const [busyRepo, setBusyRepo] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -110,20 +215,6 @@ function ImportRepoList({
       .catch(() => setError("Couldn't list your repos — the saved token may have expired."))
       .finally(() => setLoading(false));
   }, [forge, token]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleImport = async (repo: ForgeRepo) => {
-    setBusyRepo(repo.fullName);
-    setError(null);
-    try {
-      await importRepoAsProject(forge, repo);
-      onDone();
-      // Land in the builder with the imported project open
-      setView('builder');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Import failed');
-      setBusyRepo(null);
-    }
-  };
 
   const filtered = filter
     ? repos.filter(r => r.fullName.toLowerCase().includes(filter.toLowerCase()))
@@ -187,9 +278,8 @@ function ImportRepoList({
           filtered.map(repo => (
             <button
               key={repo.fullName}
-              onClick={() => handleImport(repo)}
-              disabled={busyRepo !== null}
-              className="w-full text-left px-2 py-1.5 rounded hover:bg-muted transition-colors disabled:opacity-60"
+              onClick={() => onPickRepo(repo)}
+              className="w-full text-left px-2 py-1.5 rounded hover:bg-muted transition-colors"
             >
               <div className="flex items-center justify-between gap-2">
                 <div className="min-w-0">
@@ -198,11 +288,7 @@ function ImportRepoList({
                     {repo.private ? 'Private' : 'Public'} · {repo.defaultBranch}
                   </div>
                 </div>
-                {busyRepo === repo.fullName ? (
-                  <Loader2 className="size-3.5 shrink-0 animate-spin text-muted-foreground" />
-                ) : (
-                  <ArrowDownToLine className="size-3.5 shrink-0 text-muted-foreground" />
-                )}
+                <ArrowDownToLine className="size-3.5 shrink-0 text-muted-foreground" />
               </div>
             </button>
           ))

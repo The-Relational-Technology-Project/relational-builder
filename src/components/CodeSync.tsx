@@ -21,6 +21,7 @@ import {
 } from '@/project/code-sync';
 import { checkRemoteNow, syncNow } from '@/project/auto-sync';
 import { ensureRepoReadme } from '@/project/repo-readme';
+import { publishToLive, resetSafeCopyToLive } from '@/project/promote';
 import {
   GitBranch,
   ArrowUpFromLine,
@@ -33,6 +34,7 @@ import {
   Unplug,
   AlertTriangle,
   RefreshCw,
+  Rocket,
 } from 'lucide-react';
 
 /** The instance URL a forge connection should use */
@@ -53,11 +55,19 @@ export function CodeSync() {
   const connectedRepo = repos[repoKey] ?? null;
   const autoOn = useSyncStore(s => s.autoPush[repoKey] !== false);
 
+  const liveConflict = useSyncStore(s => s.liveConflict);
+  const unpublished = useSyncStore(s => s.unpublished[repoKey] === true);
+
   // The trigger carries the sync's state, so nobody has to open a panel to
   // find out whether their work is safely on the repo
   const attention =
-    !!connectedRepo && (pushStatus === 'held' || pushStatus === 'error');
+    !!connectedRepo &&
+    (pushStatus === 'held' || pushStatus === 'error' || (liveConflict && !!connectedRepo.liveBranch));
   const syncing = !!connectedRepo && pushStatus === 'pushing';
+  // Safe-copy mode's headline state: work is saved, but the live site
+  // doesn't have it yet — the one thing worth announcing in the header
+  const publishReady =
+    !!connectedRepo?.liveBranch && unpublished && !attention && !syncing;
 
   // A saved token alone means "connected" to that forge — the username is
   // cosmetic and gets backfilled in the repo list. Each project still picks
@@ -103,6 +113,13 @@ export function CodeSync() {
         <span className="max-w-[9rem] truncate">
           {connectedRepo ? connectedRepo.fullName.split('/')[1] : 'Sync'}
         </span>
+        {/* Safe-copy mode: saved-but-not-live is the state a builder most
+            needs to see without opening anything */}
+        {publishReady && (
+          <span className="ml-0.5 rounded-full bg-primary/15 text-primary px-1.5 py-px text-[10px] font-medium">
+            ready to publish
+          </span>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
@@ -474,13 +491,51 @@ function ConnectedView() {
   const pushError = useSyncStore(s => s.pushError);
   const lastPushedAt = useSyncStore(s => s.lastPushedAt[repoKey]);
   const autoOn = useSyncStore(s => s.autoPush[repoKey] !== false);
+  const liveConflict = useSyncStore(s => s.liveConflict);
+  const unpublished = useSyncStore(s => s.unpublished[repoKey] === true);
   const forgeName = forgeNameForRepo(connectedRepo);
+  const safeCopy = !!connectedRepo.liveBranch;
 
   const fileCount = useProjectStore(s => s.getFileCount());
 
-  const [busy, setBusy] = useState<'push' | 'pull' | null>(null);
+  const [busy, setBusy] = useState<'push' | 'pull' | 'publish' | 'reset' | null>(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  const handlePublish = useCallback(async () => {
+    setBusy('publish');
+    setError(null);
+    setMessage('');
+    try {
+      const outcome = await publishToLive();
+      if (outcome.status === 'published') {
+        setMessage('Your live site has your changes — if it deploys automatically, give it a minute to rebuild.');
+      } else if (outcome.status === 'up-to-date') {
+        setMessage('Your live site already has everything.');
+      } else if (outcome.status === 'held') {
+        setError('The safe copy has changes the Builder hasn\'t pulled yet — pull first, then publish.');
+      }
+      // conflict: the conflict box below takes over via the store flag
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Publish failed');
+    } finally {
+      setBusy(null);
+    }
+  }, []);
+
+  const handleResetToLive = useCallback(async () => {
+    setBusy('reset');
+    setError(null);
+    setMessage('');
+    try {
+      await resetSafeCopyToLive();
+      setMessage('Back in step with your live site — everything from before is saved as a checkpoint.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not reset to the live version');
+    } finally {
+      setBusy(null);
+    }
+  }, []);
 
   // Never synced with this repo: which side is the starting point is a real
   // question with no safe default, so it gets asked once — and never again.
@@ -540,9 +595,15 @@ function ConnectedView() {
             {connectedRepo.fullName} <ExternalLink className="size-2.5" />
           </a>
           <p className="text-xs text-muted-foreground">
-            {forgeName} · Branch: {connectedRepo.branch}
-            {connectedRepo.lastSyncSha && (
-              <> · Last sync: {connectedRepo.lastSyncSha.slice(0, 7)}</>
+            {safeCopy ? (
+              <>{forgeName} · Safe copy: {connectedRepo.branch} · Live: {connectedRepo.liveBranch}</>
+            ) : (
+              <>
+                {forgeName} · Branch: {connectedRepo.branch}
+                {connectedRepo.lastSyncSha && (
+                  <> · Last sync: {connectedRepo.lastSyncSha.slice(0, 7)}</>
+                )}
+              </>
             )}
           </p>
         </div>
@@ -654,6 +715,78 @@ function ConnectedView() {
               </span>
             </label>
           </div>
+
+          {/* Safe-copy mode: the live site moves only when a person says so.
+              This is that moment. */}
+          {safeCopy && liveConflict && (
+            <div className="rounded-lg border border-amber-500/50 bg-amber-500/10 p-3 space-y-2">
+              <p className="text-xs leading-relaxed">
+                <span className="font-medium">Your live site changed in ways that
+                collide with your safe copy.</span>{' '}
+                Nothing is lost — your work here is safe, and the live site is
+                untouched. Starting again from the live version keeps everything
+                from before as a checkpoint.
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  className="h-8 gap-1.5 text-xs"
+                  onClick={handleResetToLive}
+                  disabled={busy !== null}
+                >
+                  {busy === 'reset' ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <ArrowDownToLine className="size-3.5" />
+                  )}
+                  Use the live version
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-8 text-xs"
+                  onClick={() => {
+                    useSyncStore.getState().setLiveConflict(false);
+                    checkRemoteNow();
+                  }}
+                  disabled={busy !== null}
+                  title="If you've sorted it out in git yourself, check again"
+                >
+                  I fixed it elsewhere — check again
+                </Button>
+              </div>
+            </div>
+          )}
+          {safeCopy && !liveConflict && (
+            <div className="rounded-lg border p-3 space-y-2">
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                {unpublished ? (
+                  <>
+                    <span className="font-medium text-foreground">Your live site
+                    doesn't have your latest changes yet.</span>{' '}
+                    They're saved on the safe copy — publish when you're happy
+                    with the preview.
+                  </>
+                ) : (
+                  <>Your live site and safe copy are in step. New changes wait
+                  on the safe copy until you publish them.</>
+                )}
+              </p>
+              <Button
+                className="w-full gap-1.5"
+                onClick={handlePublish}
+                disabled={busy !== null}
+                variant={unpublished ? 'default' : 'outline'}
+              >
+                {busy === 'publish' ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Rocket className="size-4" />
+                )}
+                Publish to your live site
+              </Button>
+            </div>
+          )}
 
           <p className="text-xs text-muted-foreground leading-relaxed">
             Edit this project anywhere — Claude Code, your own editor — and the

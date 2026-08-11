@@ -371,6 +371,9 @@ export async function pushToRepo(
     options.message?.trim() || autoCommitMessage(),
   );
   useSyncStore.getState().recordPush(key, result.commitSha, fingerprint);
+  // Safe-copy mode: this landed on the safe copy, not the live site — the
+  // Publish button has something to do now
+  if (repo.liveBranch) useSyncStore.getState().setUnpublished(key, true);
   return {
     status: 'pushed',
     filesChanged: result.filesChanged,

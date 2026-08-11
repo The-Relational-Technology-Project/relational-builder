@@ -7,9 +7,20 @@ export interface ConnectedRepo {
   /** Instance base URL for self-hosted forges; unset for the hosted default */
   baseUrl?: string;
   fullName: string;
+  /** The branch sync reads and writes. In safe-copy mode this is the safe
+   *  copy, and `liveBranch` names the branch the live site follows. */
   branch: string;
   htmlUrl: string;
   lastSyncSha: string | null;
+  /**
+   * Safe-copy mode (imported live apps): the branch the live site deploys
+   * from. Present = everything syncs to `branch`, and only "Publish to your
+   * live site" merges it here.
+   */
+  liveBranch?: string;
+  /** Last live-branch commit we've folded in or published — the fold check's
+   *  "anything new over there?" baseline */
+  lastLiveSha?: string | null;
 }
 
 /** What's sitting on the repo that the Builder hasn't seen yet */
@@ -42,6 +53,8 @@ interface SyncState {
   pushedFingerprint: Record<string, string>;
   /** When the last successful push landed, per project */
   lastPushedAt: Record<string, number>;
+  /** Safe-copy mode: pushes landed on the safe copy since the last publish */
+  unpublished: Record<string, boolean>;
 
   // Transient remote awareness (never persisted)
   remote: RemoteChanges | null;
@@ -62,6 +75,11 @@ interface SyncState {
   /** Where the current (or last) push got to */
   pushStatus: PushStatus;
   pushError: string | null;
+  /**
+   * Safe-copy mode: the live branch has changes that COLLIDE with the safe
+   * copy — a person has to choose. Pauses folding until resolved.
+   */
+  liveConflict: boolean;
 
   setToken: (forge: ForgeId, token: string) => void;
   setUsername: (forge: ForgeId, username: string) => void;
@@ -75,6 +93,10 @@ interface SyncState {
   /** Remember what a successful push sent, so an unchanged project stays quiet */
   recordPush: (key: string, sha: string, fingerprint: string) => void;
   setPushStatus: (status: PushStatus, error?: string | null) => void;
+  /** Safe-copy mode: record the live-branch commit last folded/published */
+  updateLastLive: (key: string, sha: string) => void;
+  setUnpublished: (key: string, on: boolean) => void;
+  setLiveConflict: (on: boolean) => void;
   /** Move a repo connection when a local project becomes a cloud project */
   moveRepo: (fromKey: string, toKey: string) => void;
   setRemote: (remote: RemoteChanges | null) => void;
@@ -95,6 +117,7 @@ export const useSyncStore = create<SyncState>()(
       autoPush: {},
       pushedFingerprint: {},
       lastPushedAt: {},
+      unpublished: {},
 
       remote: null,
       checkingRemote: false,
@@ -105,6 +128,7 @@ export const useSyncStore = create<SyncState>()(
       pullError: null,
       pushStatus: 'idle',
       pushError: null,
+      liveConflict: false,
 
       setToken: (forge, token) =>
         set((s) => ({ tokens: { ...s.tokens, [forge]: token } })),
@@ -165,6 +189,16 @@ export const useSyncStore = create<SyncState>()(
 
       setPushStatus: (pushStatus, pushError = null) => set({ pushStatus, pushError }),
 
+      updateLastLive: (key, sha) =>
+        set((s) =>
+          s.repos[key]
+            ? { repos: { ...s.repos, [key]: { ...s.repos[key], lastLiveSha: sha } } }
+            : s,
+        ),
+      setUnpublished: (key, on) =>
+        set((s) => ({ unpublished: { ...s.unpublished, [key]: on } })),
+      setLiveConflict: (liveConflict) => set({ liveConflict }),
+
       moveRepo: (fromKey, toKey) =>
         set((s) => {
           const repo = s.repos[fromKey];
@@ -177,6 +211,7 @@ export const useSyncStore = create<SyncState>()(
           const autoPush = { ...s.autoPush };
           const pushedFingerprint = { ...s.pushedFingerprint };
           const lastPushedAt = { ...s.lastPushedAt };
+          const unpublished = { ...s.unpublished };
           if (fromKey in autoPush) {
             autoPush[toKey] = autoPush[fromKey];
             delete autoPush[fromKey];
@@ -189,7 +224,11 @@ export const useSyncStore = create<SyncState>()(
             lastPushedAt[toKey] = lastPushedAt[fromKey];
             delete lastPushedAt[fromKey];
           }
-          return { repos, autoPush, pushedFingerprint, lastPushedAt };
+          if (fromKey in unpublished) {
+            unpublished[toKey] = unpublished[fromKey];
+            delete unpublished[fromKey];
+          }
+          return { repos, autoPush, pushedFingerprint, lastPushedAt, unpublished };
         }),
 
       setRemote: (remote) => set({ remote, lastCheckedAt: Date.now() }),
@@ -233,6 +272,7 @@ export const useSyncStore = create<SyncState>()(
         autoPush: state.autoPush,
         pushedFingerprint: state.pushedFingerprint,
         lastPushedAt: state.lastPushedAt,
+        unpublished: state.unpublished,
       } as unknown as SyncState),
     },
   ),

@@ -42,6 +42,7 @@ import {
   pushToRepo,
   tokenForRepo,
 } from './code-sync';
+import { foldLiveChanges } from './promote';
 
 /** How long a change has to settle before it's pushed */
 const SETTLE_MS = 6_000;
@@ -181,6 +182,11 @@ async function checkRemote(force = false): Promise<void> {
   remoteInFlight = true;
   if (canAutoPull()) useSyncStore.getState().setAutoPulling(true);
   try {
+    // Safe-copy mode: first fold anything new on the live branch into the
+    // safe copy (clean merges only — collisions raise a flag and wait).
+    // Whatever folded in is then ordinary remote change on our branch, and
+    // the check below brings it into the workspace the usual way.
+    await foldLiveChanges();
     const remote = await checkRemoteChanges();
     if (!remote) return;
     // Decided on conditions *now*, not on the snapshot from before the round

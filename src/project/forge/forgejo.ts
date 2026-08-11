@@ -8,7 +8,7 @@
  */
 
 import type { FileEntry } from '../virtual-fs';
-import type { ForgeClient, ForgeRepo, CompareResult, RemoteCommit, RemoteFileChange, RepoFile, SyncResult } from './types';
+import type { ForgeClient, ForgeRepo, CompareResult, MergeOutcome, RemoteCommit, RemoteFileChange, RepoFile, SyncResult } from './types';
 import { isBinaryPath, toBase64 } from './types';
 import { mapLimit, FORGE_FETCH_CONCURRENCY } from './concurrency';
 
@@ -247,6 +247,78 @@ export class ForgejoClient implements ForgeClient {
       commitUrl: data.commit?.html_url ?? `${this.webBase}/${fullName}/commit/${sha}`,
       filesChanged: files.length,
     };
+  }
+
+  async createBranch(token: string, fullName: string, branch: string, fromSha: string): Promise<void> {
+    const create = () =>
+      fetch(`${this.api}/repos/${fullName}/branches`, {
+        method: 'POST',
+        headers: this.headers(token),
+        body: JSON.stringify({ new_branch_name: branch, old_ref_name: fromSha }),
+      });
+    let res = await create();
+    if (res.status === 409) {
+      // Already exists — no force-move in this API, so recreate at the new spot
+      await fetch(`${this.api}/repos/${fullName}/branches/${encodeURIComponent(branch)}`, {
+        method: 'DELETE',
+        headers: this.headers(token),
+      });
+      res = await create();
+    }
+    if (!res.ok) {
+      throw new Error(`Couldn't create the "${branch}" branch (${res.status}) — check that your token can push to this repo`);
+    }
+  }
+
+  async mergeBranch(token: string, fullName: string, base: string, head: string): Promise<MergeOutcome> {
+    // Nothing to merge? Skip the pull-request dance entirely.
+    const cmp = await this.compareCommits(token, fullName, base, head).catch(() => null);
+    if (cmp && cmp.commits.length === 0) return { status: 'up-to-date', sha: null };
+
+    // Forgejo/Gitea merge through a pull request — open, merge, and close it
+    // again if the merge can't happen (conflict).
+    const prRes = await fetch(`${this.api}/repos/${fullName}/pulls`, {
+      method: 'POST',
+      headers: this.headers(token),
+      body: JSON.stringify({ base, head, title: 'Publish from Relational Builder' }),
+    });
+    let index: number | null = null;
+    if (prRes.status === 409) {
+      // Either "already exists" (reuse it) or "no changes" (up to date)
+      const listRes = await fetch(
+        `${this.api}/repos/${fullName}/pulls?state=open&limit=50`,
+        { headers: this.headers(token) },
+      );
+      if (listRes.ok) {
+        const open: { number: number; base?: { ref?: string }; head?: { ref?: string } }[] =
+          await listRes.json();
+        index = open.find(p => p.base?.ref === base && p.head?.ref === head)?.number ?? null;
+      }
+      if (index === null) return { status: 'up-to-date', sha: null };
+    } else if (prRes.ok) {
+      index = (await prRes.json()).number;
+    } else {
+      throw new Error(`Merge failed (${prRes.status})`);
+    }
+
+    const merge = await fetch(`${this.api}/repos/${fullName}/pulls/${index}/merge`, {
+      method: 'POST',
+      headers: this.headers(token),
+      body: JSON.stringify({ Do: 'merge' }),
+    });
+    if (merge.ok) {
+      const sha = await this.getBranchHead(token, fullName, base).catch(() => null);
+      return { status: 'merged', sha };
+    }
+    if (merge.status === 405 || merge.status === 409) {
+      await fetch(`${this.api}/repos/${fullName}/pulls/${index}`, {
+        method: 'PATCH',
+        headers: this.headers(token),
+        body: JSON.stringify({ state: 'closed' }),
+      }).catch(() => {});
+      return { status: 'conflict', sha: null };
+    }
+    throw new Error(`Merge failed (${merge.status})`);
   }
 
   async addReltechTopic(token: string, fullName: string): Promise<void> {
