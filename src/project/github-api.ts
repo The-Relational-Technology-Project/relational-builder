@@ -12,6 +12,24 @@ import { isBinaryFilePath } from './app-icon';
 
 const API = 'https://api.github.com';
 
+/**
+ * GitHub's base64 file content → text, decoded as UTF-8. Bare atob() maps
+ * bytes to Latin-1 characters, which silently mangles every emoji, accent,
+ * and typographic mark — a real import turned a site's 🎉 and • into
+ * mojibake, and auto-push then committed the damage back to the repo.
+ * fatal:true keeps the old contract: bytes that aren't text return null.
+ */
+function base64ToUtf8(b64: string): string | null {
+  try {
+    const bin = atob(b64.replace(/\n/g, ''));
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+  } catch {
+    return null;
+  }
+}
+
 function headers(token: string): HeadersInit {
   const base: Record<string, string> = {
     Accept: 'application/vnd.github+json',
@@ -148,11 +166,7 @@ export async function getFileAtRef(
   if (!res.ok) throw new Error(`Failed to fetch ${clean} (${res.status})`);
   const data = await res.json();
   if (data.encoding !== 'base64' || typeof data.content !== 'string') return null;
-  try {
-    return atob(data.content.replace(/\n/g, ''));
-  } catch {
-    return null; // not valid text
-  }
+  return base64ToUtf8(data.content);
 }
 
 /** Get a public repo's metadata (works unauthenticated, for remixing) */
@@ -271,11 +285,10 @@ export async function pullFiles(
     // silently dropping the file from the pulled tree
     if (!blobRes.ok) throw new Error(`Failed to fetch ${blob.path} (${blobRes.status})`);
     const blobData = await blobRes.json();
-    try {
-      return { path: '/' + blob.path, content: atob(blobData.content.replace(/\n/g, '')), sha: blob.sha };
-    } catch {
-      return null; // not valid text after all
-    }
+    const content = base64ToUtf8(String(blobData.content));
+    return content === null
+      ? null // not valid text after all
+      : { path: '/' + blob.path, content, sha: blob.sha };
   });
 
   return {
