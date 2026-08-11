@@ -1,6 +1,6 @@
 import * as esbuild from 'esbuild-wasm';
 import wasmURL from 'esbuild-wasm/esbuild.wasm?url';
-import { buildImportMap } from './versions';
+import { buildImportMap, cdnUrl } from './versions';
 import { imageMimeFor } from '@/project/app-icon';
 
 /**
@@ -210,9 +210,35 @@ export async function bundleProject(input: BundleInput): Promise<BundleResult> {
         // URL imports pass straight through to the browser
         if (/^https?:\/\//.test(path)) return { path, external: true };
 
+        // Live preview only: route by hash, whatever router the app asks
+        // for. The preview runs in a blob: iframe whose URL path matches no
+        // app route, so a BrowserRouter mounts, matches nothing, and renders
+        // a blank page with no error — the classic imported-app mystery
+        // (every Lovable app ships BrowserRouter). The preview toolbar
+        // already navigates by hash (NAV_BRIDGE), so hash routing is the
+        // native dialect here. Publish builds keep the app's own router and
+        // its real URLs.
+        if (input.dev && path === 'react-router-dom') {
+          return { path, namespace: 'rb-router-preview' };
+        }
+
         // Bare import → external, satisfied by the shell's import map
         bareImports.add(path);
         return { path, external: true };
+      });
+
+      build.onLoad({ filter: /.*/, namespace: 'rb-router-preview' }, () => {
+        // Same URL the import map would use, so the module instance is
+        // shared with anything else that reaches react-router-dom
+        const real = cdnUrl('react-router-dom');
+        return {
+          contents: [
+            `export * from ${JSON.stringify(real)};`,
+            // Explicit exports win over the star per ESM semantics
+            `export { HashRouter as BrowserRouter, createHashRouter as createBrowserRouter } from ${JSON.stringify(real)};`,
+          ].join('\n'),
+          loader: 'js',
+        };
       });
 
       build.onLoad({ filter: /.*/, namespace: 'rb-missing-image' }, () => ({

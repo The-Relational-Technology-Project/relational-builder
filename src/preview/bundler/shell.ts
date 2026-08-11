@@ -149,6 +149,43 @@ export const ERROR_RELAY = `<script>
 </script>`;
 
 /**
+ * Script injected into live previews (never published): notices the one
+ * failure the error relay can't — an app that loads cleanly and renders
+ * NOTHING. No exception, empty console, blank iframe; two real debugging
+ * sessions burned on exactly this. If the mount point is still empty a
+ * moment after load (and no error was thrown), tell the builder so the
+ * preview can say "empty page" instead of silently showing one.
+ */
+export const EMPTY_RENDER_SENTRY = `<script>
+(function () {
+  var errored = false;
+  window.addEventListener('error', function () { errored = true; });
+  window.addEventListener('load', function () {
+    setTimeout(function () {
+      if (errored) return;
+      var root = document.getElementById('root') || document.body;
+      if (!root) return;
+      var hasContent =
+        root.childElementCount > 0 &&
+        (root.innerText.trim() !== '' || root.querySelector('img,svg,canvas,video,iframe,input,textarea,button'));
+      if (!hasContent) {
+        try { parent.postMessage({ type: 'rb-empty-render' }, '*'); } catch (e) {}
+        // Content can still arrive (slow data, late navigation) — clear the
+        // notice the moment something real shows up, then stand down.
+        var mo = new MutationObserver(function () {
+          if (root.childElementCount > 0 && (root.innerText.trim() !== '' || root.querySelector('img,svg,canvas,video,iframe,input,textarea,button'))) {
+            try { parent.postMessage({ type: 'rb-empty-render-clear' }, '*'); } catch (e) {}
+            mo.disconnect();
+          }
+        });
+        mo.observe(root, { childList: true, subtree: true, characterData: true });
+      }
+    }, 2500);
+  });
+})();
+</script>`;
+
+/**
  * Applies the builder's photo assets (window.ASSETS, set by assets/<name>.js
  * modules) to every `<img data-asset="...">` — including ones React renders
  * after load, via a MutationObserver. This is what makes the documented

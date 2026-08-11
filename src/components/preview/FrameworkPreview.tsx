@@ -5,7 +5,7 @@ import type { EnvVar } from '@/store/env-store';
 import { useChatStore } from '@/store/chat-store';
 import { buildEnvJs, buildEnvTs } from '@/project/env-module';
 import { bundleProject, findFrameworkEntry } from '@/preview/bundler/bundle';
-import { ASSET_APPLIER, buildShellHtml, ERROR_RELAY, NAV_BRIDGE } from '@/preview/bundler/shell';
+import { ASSET_APPLIER, buildShellHtml, EMPTY_RENDER_SENTRY, ERROR_RELAY, NAV_BRIDGE } from '@/preview/bundler/shell';
 import { isPhotoAssetPath } from '@/project/assets';
 import { KIT_FILES } from '@/kit';
 import { INSPECT_SOURCE } from '@/preview/inspect-source';
@@ -46,6 +46,9 @@ export function FrameworkPreview({
   const [html, setHtml] = useState<string | null>(null);
   const [buildError, setBuildError] = useState<string | null>(null);
   const [runtimeError, setRuntimeError] = useState<string | null>(null);
+  // The quiet failure: app loads clean but paints nothing (see
+  // EMPTY_RENDER_SENTRY). A notice, not an error — nothing crashed.
+  const [emptyRender, setEmptyRender] = useState(false);
   const [bundling, setBundling] = useState(true);
   const runId = useRef(0);
   // While a reply is streaming, files land in bursts — a version bump per
@@ -106,6 +109,7 @@ export function FrameworkPreview({
 
       setBuildError(null);
       setRuntimeError(null);
+      setEmptyRender(false);
       setHtml(
         buildShellHtml({
           bundle: result,
@@ -116,6 +120,7 @@ export function FrameworkPreview({
             `<script>\n${INSPECT_SOURCE}\n</script>`,
             `<script>\n${SCREENSHOT_SOURCE}\n</script>`,
             ERROR_RELAY,
+            EMPTY_RENDER_SENTRY,
             NAV_BRIDGE,
           ],
         }),
@@ -126,12 +131,15 @@ export function FrameworkPreview({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- version is the VFS change signal
   }, [version, publicEnvVars, isGenerating]);
 
-  // Runtime errors surface through the shell's relay script
+  // Runtime errors surface through the shell's relay script; the empty-render
+  // sentry reports the blank-but-no-error case the relay can't see
   useEffect(() => {
     function onMessage(e: MessageEvent) {
       if (e.data?.type === 'rb-runtime-error' && typeof e.data.message === 'string') {
         setRuntimeError(e.data.message);
       }
+      if (e.data?.type === 'rb-empty-render') setEmptyRender(true);
+      if (e.data?.type === 'rb-empty-render-clear') setEmptyRender(false);
     }
     window.addEventListener('message', onMessage);
     return () => window.removeEventListener('message', onMessage);
@@ -209,6 +217,14 @@ export function FrameworkPreview({
           </div>
         )}
       </PointAtIt>
+      {emptyRender && !buildError && !runtimeError && (
+        <div className="shrink-0 border-t bg-amber-50 px-3 py-2 text-xs text-amber-900">
+          The app loaded without errors, but the page came up empty. That
+          usually means it's waiting on data it can't reach, or its router
+          found no page to show. If this doesn't look right, tell the AI what
+          you expected to see here.
+        </div>
+      )}
       <FixBanner error={buildError ?? runtimeError} />
     </div>
   );
