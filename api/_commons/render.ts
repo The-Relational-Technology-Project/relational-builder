@@ -156,6 +156,7 @@ in <a href="/">Relational Builder</a>. Entries carry their contributors' names a
 <a href="/commons/reading-room">Reading room</a>
 <a href="/commons/stories">Story wall</a>
 <a href="/commons/license">License</a>
+<a href="https://github.com/The-Relational-Technology-Project/relational-commons" rel="noopener">Commons in git</a>
 <a href="/new">Build something</a>
 </nav>
 </div></footer>`;
