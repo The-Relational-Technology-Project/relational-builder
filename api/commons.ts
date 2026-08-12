@@ -12,12 +12,12 @@
  */
 
 import {
-  SITE, Entry, esc, kindLabel, KIND_COLOR, entryPath, hasOwnPage, resolveSlugTarget,
+  SITE, Entry, esc, kindLabel, kindInk, KIND_COLOR, entryPath, hasOwnPage, resolveSlugTarget,
   fetchAllSlim, fetchAllRefs, fetchEntry, fetchBySlugs, fetchRefsFor, renderMarkdown,
   qualifyAsset, monthKey, searchCommonsHybrid,
 } from './_commons/shared';
 import {
-  page, FooterStats, constellation, entryCard, truncate, breadcrumbs, breadcrumbLd, fmtMonth, sparkline,
+  page, FooterStats, constellation, entryCard, kindChip, kindAccent, truncate, breadcrumbs, breadcrumbLd, fmtMonth, sparkline,
 } from './_commons/render';
 import { THEMES } from './_commons/themes';
 import { LICENSE_INTRO, LICENSE_MD } from './_commons/license';
@@ -138,12 +138,16 @@ async function homePage(): Promise<Response> {
     ['reference', 'The wider library: books, essays and projects we learn from.'],
   ]
     .filter(([k]) => counts.get(k as string))
-    .map(
-      ([k, blurb]) => `<li class="card">
-<div class="k"><span class="kind-dot" style="background:${KIND_COLOR[k as string]}"></span>${counts.get(k as string)}</div>
-<h3><a href="${shelfPath(k as string)}">${esc(kindLabel(k as string, true))}</a></h3>
-<p>${esc(blurb as string)}</p></li>`,
-    )
+    .map(([k, blurb]) => {
+      // Each shelf wears its kind's color — a wash of it, not just a dot —
+      // so the shelves read as different kinds of thing at a glance.
+      const c = KIND_COLOR[k as string] ?? '#999';
+      const n = counts.get(k as string)!;
+      return `<li class="card" style="border-color:${c}55;border-top:3px solid ${c};background:linear-gradient(${c}12,${c}05) var(--card)">
+<div class="k" style="color:${kindInk(k as string)}">${n} ${n === 1 ? 'entry' : 'entries'}</div>
+<h3><a href="${shelfPath(k as string)}" style="color:${kindInk(k as string)}">${esc(kindLabel(k as string, true))}</a></h3>
+<p>${esc(blurb as string)}</p></li>`;
+    })
     .join('');
 
   const body = `
@@ -283,10 +287,9 @@ async function searchPage(url: URL): Promise<Response> {
   }
 
   const resultCard = (e: Entry): string => {
-    const c = KIND_COLOR[e.kind] ?? '#999';
     const who = [e.attribution?.name, e.attribution?.neighborhood].filter(Boolean).join(', ');
-    return `<li class="card">
-<div class="k"><span class="kind-dot" style="background:${c}"></span>${esc(kindLabel(e.kind))}${who ? ` · ${esc(who)}` : ''}</div>
+    return `<li class="card" style="${kindAccent(e.kind)}">
+<div class="k">${kindChip(e.kind)}${who ? ` · ${esc(who)}` : ''}</div>
 <h3><a href="${resultHref(e)}">${highlight(e.title, terms)}</a></h3>
 ${e.summary ? `<p>${highlight(truncate(e.summary, 160), terms)}</p>` : ''}
 </li>`;
@@ -678,7 +681,7 @@ async function entryPage(kind: string, slug: string): Promise<Response> {
 
   const body = `
 ${breadcrumbs(trail)}
-<div class="k" style="color:var(--soft);font-size:.85rem"><span class="kind-dot" style="background:${KIND_COLOR[entry.kind] ?? '#999'}"></span>${esc(kindLabel(entry.kind))}${entry.source_studio_slug ? ` · ${esc(entry.source_studio_slug)} shelf` : ''}</div>
+<div class="k" style="color:var(--soft);font-size:.85rem">${kindChip(entry.kind)}${entry.source_studio_slug ? ` · ${esc(entry.source_studio_slug)} shelf` : ''}</div>
 <h1>${esc(entry.title)}</h1>
 ${entry.summary ? `<p class="lede">${esc(entry.summary)}</p>` : ''}
 ${links.length ? `<p>${links.join(' ')}</p>` : ''}
@@ -803,12 +806,12 @@ async function themePage(slug: string, url: URL): Promise<Response> {
       if (!e) return '';
       const n = guestbook.votes[s] ?? 0;
       const pct = voteTotal ? Math.round((n / voteTotal) * 100) : 0;
-      return `<li style="display:flex;align-items:center;gap:.7rem;padding:.35rem 0">
+      return `<li style="display:flex;flex-wrap:wrap;align-items:center;gap:.35rem .7rem;padding:.35rem 0">
 <form class="vote" method="post" action="/commons/themes/${esc(slug)}">
 <input type="hidden" name="action" value="vote"><input type="hidden" name="item" value="${esc(s)}">
 <button class="vote-btn" type="submit">+1</button></form>
-<a href="${entryPath(e)}" style="text-decoration:none">${esc(e.title)}</a>
-<span class="meta" style="margin-left:auto">${n ? `${n} vote${n === 1 ? '' : 's'} · ${pct}%` : 'no votes yet'}</span>
+<a href="${entryPath(e)}" style="text-decoration:none;flex:1 1 10rem;min-width:0">${esc(e.title)}</a>
+<span class="meta" style="margin-left:auto;white-space:nowrap">${n ? `${n} vote${n === 1 ? '' : 's'} · ${pct}%` : 'no votes yet'}</span>
 </li>`;
     })
     .join('');

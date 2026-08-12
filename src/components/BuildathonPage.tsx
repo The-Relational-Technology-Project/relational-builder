@@ -146,8 +146,8 @@ function Moment({
         >
           {n}
         </span>
-        <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight">
-          <Icon className="size-4.5" style={{ color: C.orangeDeep }} />
+        <h2 className="flex items-center gap-2 text-lg sm:text-xl font-semibold tracking-tight">
+          <Icon className="size-4.5 shrink-0" style={{ color: C.orangeDeep }} />
           {title}
         </h2>
       </div>
@@ -167,7 +167,7 @@ export function BuildathonPage() {
         className="sticky top-0 z-10 border-b backdrop-blur"
         style={{ borderColor: C.border, background: 'rgba(250,247,242,.92)' }}
       >
-        <div className="mx-auto flex max-w-4xl items-center gap-3 px-6 py-3">
+        <div className="mx-auto flex max-w-4xl items-center gap-3 px-4 py-3 sm:px-6">
           <a href="/" className="flex items-center gap-2 transition-opacity hover:opacity-80">
             <RBMark className="size-5" />
             <span className="text-sm font-semibold tracking-tight">Relational Builder</span>
@@ -187,11 +187,11 @@ export function BuildathonPage() {
         </div>
       </header>
 
-      <div className="mx-auto max-w-4xl px-6 py-12 sm:py-16 space-y-16">
+      <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 sm:py-16 space-y-12 sm:space-y-16">
         {/* Hero */}
         <header className="space-y-4 text-center">
           <Kicker>For build-a-thons &amp; group build days</Kicker>
-          <h1 className="text-3xl sm:text-5xl font-semibold tracking-tight leading-tight">
+          <h1 className="text-[1.7rem] leading-[1.15] sm:text-5xl font-semibold tracking-tight sm:leading-tight">
             A room full of neighbors.
             <br />
             An afternoon of working tools.
@@ -230,7 +230,7 @@ export function BuildathonPage() {
         <section className="space-y-5">
           <div className="text-center space-y-2">
             <Kicker>Why it runs well in a room</Kicker>
-            <h2 className="text-2xl font-semibold tracking-tight">Built for exactly this</h2>
+            <h2 className="text-xl sm:text-2xl font-semibold tracking-tight">Built for exactly this</h2>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <WhyCard icon={Sparkles} title="Free to build, host, and run">
@@ -263,10 +263,10 @@ export function BuildathonPage() {
         </section>
 
         {/* The day, hour by hour */}
-        <div className="space-y-14">
+        <div className="space-y-10 sm:space-y-14">
           <div className="text-center space-y-2">
             <Kicker>The day, hour by hour</Kicker>
-            <h2 className="text-2xl font-semibold tracking-tight">Door to demo</h2>
+            <h2 className="text-xl sm:text-2xl font-semibold tracking-tight">Door to demo</h2>
           </div>
 
           <Moment n="1" icon={Printer} title="Welcome — the room lets itself in">
@@ -347,7 +347,7 @@ export function BuildathonPage() {
 
         {/* CTA */}
         <section
-          className="rounded-2xl border p-8 text-center space-y-4"
+          className="rounded-2xl border p-6 sm:p-8 text-center space-y-4"
           style={{ borderColor: C.border, background: C.card }}
         >
           <h2 className="text-xl font-semibold tracking-tight">Planning a build-a-thon?</h2>

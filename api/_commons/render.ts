@@ -5,7 +5,7 @@
  */
 
 import {
-  SITE, Entry, GalleryRef, esc, kindLabel, KIND_COLOR, entryPath, hash, monthKey, hasOwnPage,
+  SITE, Entry, GalleryRef, esc, kindLabel, kindInk, KIND_COLOR, entryPath, hash, hasOwnPage,
 } from './shared';
 
 const CSS = `
@@ -25,7 +25,7 @@ header.site .wrap{display:flex;align-items:baseline;gap:1rem;padding:.9rem 1.25r
 .brand{font-weight:700;letter-spacing:-.01em;color:var(--ink);text-decoration:none;font-size:1.05rem}
 .brand span{color:var(--accent)}
 header.site nav{margin-left:auto;display:flex;gap:1rem;font-size:.92rem}
-header.site nav a{text-decoration:none;color:var(--soft)}
+header.site nav a{text-decoration:none;color:var(--soft);white-space:nowrap}
 header.site nav a:hover{color:var(--accent)}
 header.site form.search{flex:0 1 12rem;min-width:8rem}
 header.site input[type=search]{width:100%;font:inherit;font-size:.85rem;padding:.32rem .7rem;
@@ -43,6 +43,8 @@ h1{font-size:2.1rem;line-height:1.15;letter-spacing:-.015em;margin:.2rem 0 .6rem
 .eyebrow{display:inline-block;font-size:.78rem;font-weight:600;letter-spacing:.08em;
 text-transform:uppercase;color:var(--accent);margin-top:1.8rem;font-family:ui-sans-serif,system-ui,sans-serif}
 .kind-dot{display:inline-block;width:.6em;height:.6em;border-radius:50%;margin-right:.4em}
+.chip{display:inline-block;border-radius:999px;padding:.08rem .55rem;font-size:.7rem;font-weight:650;
+letter-spacing:.05em;text-transform:uppercase;font-family:ui-sans-serif,system-ui,sans-serif;line-height:1.5}
 .prose{max-width:44rem}
 .prose h2{font-size:1.35rem;margin:1.8rem 0 .5rem;letter-spacing:-.01em}
 .prose h3{font-size:1.1rem;margin:1.4rem 0 .4rem}
@@ -83,7 +85,21 @@ footer.site{border-top:1px solid var(--line);margin-top:3.5rem;background:var(--
 footer.site .wrap{padding:1.4rem 1.25rem 2rem;font-size:.88rem;color:var(--soft)}
 footer.site .stats{display:flex;gap:.6rem 1.4rem;align-items:center;flex-wrap:wrap;margin-bottom:.5rem}
 footer.site nav{display:flex;gap:1rem;flex-wrap:wrap;margin-top:.4rem}
-@media(max-width:640px){h1{font-size:1.7rem}body{font-size:16px}}
+@media(max-width:640px){
+body{font-size:16px}
+h1{font-size:1.65rem}
+.lede{font-size:1.05rem}
+.wrap{padding:0 1rem}
+header.site .wrap{padding:.65rem 1rem .55rem;align-items:center;column-gap:.75rem;row-gap:.35rem}
+header.site form.search{flex:1 1 7rem;margin-left:auto}
+header.site nav{order:3;flex-basis:100%;margin-left:0;overflow-x:auto;gap:1.1rem;
+padding:.15rem 0 .3rem;scrollbar-width:none}
+header.site nav::-webkit-scrollbar{display:none}
+form.search-hero button.cta{padding:.55rem .85rem}
+.night{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.night svg{min-width:34rem}
+.eyebrow{margin-top:1.4rem}
+}
 `;
 
 export interface PageMeta {
@@ -302,10 +318,19 @@ ${legend}
 
 // --- Shared fragments ------------------------------------------------------
 
+/** The kind, worn as a small colored chip — how a card says what it is. */
+export function kindChip(kind: string): string {
+  const c = KIND_COLOR[kind] ?? '#999';
+  return `<span class="chip" style="background:${c}1c;color:${kindInk(kind)}">${esc(kindLabel(kind))}</span>`;
+}
+
+/** Top accent in the kind's color, so mixed lists scan by type at a glance. */
+export const kindAccent = (kind: string): string =>
+  `border-top:3px solid ${KIND_COLOR[kind] ?? '#999'}`;
+
 export function entryCard(e: Entry, note?: string): string {
-  const c = KIND_COLOR[e.kind] ?? '#999';
-  return `<li class="card">
-<div class="k"><span class="kind-dot" style="background:${c}"></span>${esc(kindLabel(e.kind))}${e.attribution?.neighborhood ? ` · ${esc(e.attribution.neighborhood)}` : ''}</div>
+  return `<li class="card" style="${kindAccent(e.kind)}">
+<div class="k">${kindChip(e.kind)}${e.attribution?.neighborhood ? ` · ${esc(e.attribution.neighborhood)}` : ''}</div>
 <h3><a href="${entryPath(e)}">${esc(e.title)}</a></h3>
 ${note ? `<p>${esc(note)}</p>` : e.summary ? `<p>${esc(truncate(e.summary, 140))}</p>` : ''}
 </li>`;
