@@ -104,7 +104,7 @@ export function StewardPage() {
             <TabsList className="w-max">
               <TabsTrigger value="accounts" className="text-xs px-3 sm:px-4">Accounts</TabsTrigger>
               <TabsTrigger value="door" className="text-xs px-3 sm:px-4">Account requests</TabsTrigger>
-              <TabsTrigger value="events" className="text-xs px-3 sm:px-4">Events</TabsTrigger>
+              <TabsTrigger value="events" className="text-xs px-3 sm:px-4">Codes</TabsTrigger>
               <TabsTrigger value="commons" className="text-xs px-3 sm:px-4">Commons review</TabsTrigger>
               <TabsTrigger value="gallery" className="text-xs px-3 sm:px-4">Studio gallery</TabsTrigger>
               <TabsTrigger value="connections" className="text-xs px-3 sm:px-4">Connections</TabsTrigger>

@@ -163,9 +163,11 @@ async function eventByCode(code: string): Promise<{ code: string; name: string }
  * Approval side effects, mirroring admin-requests' approve block and
  * signin-gate's invite auto-join (keep all three in sync): the auth user must
  * exist before anything says "just sign in", because sign-in OTPs are sent
- * with shouldCreateUser: false. Runs BEFORE the account_requests row is
- * written, so a failure here leaves nothing half-approved — the person just
- * tries again.
+ * with shouldCreateUser: false. Creating the auth user also creates the
+ * profiles row (handle_new_user fires on auth.users insert), and the profile
+ * trigger reads account_requests to stamp referred_by_code / event_code —
+ * so the request row must already carry the code when this runs. A failure
+ * here leaves at most a pending request, never a half-approved account.
  */
 async function performApprove(email: string, note: string): Promise<string | null> {
   const userRes = await fetch(`${Deno.env.get('SUPABASE_URL')}/auth/v1/admin/users`, {
@@ -268,7 +270,7 @@ async function sendEventEmails(
       subject: `New builder via ${event.name}: ${name ?? email}`,
       html: [
         `<p><strong>${esc(name ?? 'Someone')}</strong> (${esc(email)}) just joined with the <strong>${esc(event.name)}</strong> event code (<code>${esc(event.code)}</code>) — no approval needed, their welcome email is on its way.</p>`,
-        `<p style="font-size:13px;color:#93806F;">FYI only. The running count for each event code is in your <a href="${appUrl}">steward dashboard</a> under Events.</p>`,
+        `<p style="font-size:13px;color:#93806F;">FYI only. The running count for each event code is in your <a href="${appUrl}">steward dashboard</a> under Codes.</p>`,
       ].join('\n'),
     }),
   }).catch(() => {});
@@ -358,6 +360,14 @@ Deno.serve(async (req: Request) => {
 
     if (existing.length > 0) {
       if (codeFields && existing[0].status === 'pending') {
+        // The code goes on the request row FIRST: performApprove creates the
+        // auth user, which creates the profile, whose trigger reads this row
+        // to stamp referred_by_code / event_code. If approval fails, the
+        // request just stays pending with the code recorded.
+        await fetch(
+          rest(`/account_requests?id=eq.${encodeURIComponent(existing[0].id)}&status=eq.pending`),
+          { method: 'PATCH', headers: svc(), body: JSON.stringify(codeFields.requestPatch) },
+        ).catch(() => {});
         const failure = await performApprove(email, codeFields.approveNote);
         if (failure) return json({ error: failure }, 500);
         await fetch(
@@ -367,7 +377,6 @@ Deno.serve(async (req: Request) => {
             headers: svc(),
             body: JSON.stringify({
               status: 'approved',
-              ...codeFields.requestPatch,
               decided_at: new Date().toISOString(),
               decided_by: codeFields.decidedBy,
             }),
@@ -389,12 +398,13 @@ Deno.serve(async (req: Request) => {
       return json({ ok: true, status: existing[0].status === 'approved' ? 'already-member' : 'pending' });
     }
 
-    // A valid invite code approves on the spot: account + membership first
-    // (so a failure leaves nothing half-done), then the request row lands
-    // already-decided in the steward's history, then the emails go out.
+    // A valid invite code approves on the spot. The request row is written
+    // FIRST (still pending, carrying the code): performApprove creates the
+    // auth user → profiles row, and the profile trigger reads this row to
+    // stamp referred_by_code / event_code (and claim any studio intent). If
+    // approval fails, a pending request with the code remains — a retry hits
+    // the rescue path above; nothing is ever half-approved.
     if (codeFields) {
-      const failure = await performApprove(email, codeFields.approveNote);
-      if (failure) return json({ error: failure }, 500);
       await fetch(rest('/account_requests'), {
         method: 'POST',
         headers: svc(),
@@ -402,6 +412,14 @@ Deno.serve(async (req: Request) => {
           email, name, neighborhood, reason,
           studio_slug: studioSlug, studio_label: studioLabel,
           ...codeFields.requestPatch,
+        }),
+      }).catch(() => {});
+      const failure = await performApprove(email, codeFields.approveNote);
+      if (failure) return json({ error: failure }, 500);
+      await fetch(rest(`/account_requests?email=eq.${encodeURIComponent(email)}&status=eq.pending`), {
+        method: 'PATCH',
+        headers: svc(),
+        body: JSON.stringify({
           status: 'approved',
           decided_at: new Date().toISOString(),
           decided_by: codeFields.decidedBy,
