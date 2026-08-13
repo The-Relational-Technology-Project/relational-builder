@@ -27,6 +27,873 @@
       "sort_order": 10
     },
     {
+      "slug": "ushahidi",
+      "kind": "tool",
+      "title": "Ushahidi",
+      "summary": "The Nairobi-born, open-source crowdsourced mapping platform — reports arrive by SMS, web, or email and land on a shared map. Built for crises, remixable for anything a neighborhood wants to see together.",
+      "body": "Ushahidi ('testimony' in Swahili) was built in 2008 by Ory Okolloh, Erik Hersman, Juliana Rotich, and David Kobia to map eyewitness reports of violence after Kenya's disputed 2007 election. It became the template for crowdsourced civic mapping: people submit reports by SMS, web form, or email; stewards triage, categorize, and publish them to a shared map with workflows for response.\n\nIts famous deployments are large — the 2010 Haiti earthquake response processed ~30,000 text messages, and Kenya's Uchaguzi election monitoring runs on it — but the platform scales *down* beautifully: during Washington DC's 2010 'Snowmageddon,' one resident stood up a neighborhood dig-out map in a day (a story on this shelf).\n\nThe nonprofit behind it is headquartered in Nairobi and led by Angela Oduor Lungati, who rose from within its own developer community. The platform is AGPL-3.0 open source with a hosted cloud service, and free accounts for qualifying grassroots groups.\n\n**Neighborhood remix:** any question of the form 'what's where, according to us?' — third places, accessibility barriers, heat refuges, little free pantries, memory sites. One steward, one map, reports by text message so no one needs an app.",
+      "attribution": {
+        "name": "Ushahidi (Ory Okolloh, Erik Hersman, Juliana Rotich & David Kobia, founders)",
+        "source": "ushahidi.com"
+      },
+      "source_url": "https://www.ushahidi.com/",
+      "tags": ["local-civic-tech", "civic-tech-tool", "mapping", "crowdsourcing", "open-source"],
+      "metadata": {
+        "maker": "Ushahidi Inc. (nonprofit, Nairobi)",
+        "license": "AGPL-3.0",
+        "repo_url": "https://github.com/ushahidi/platform",
+        "hosted": "cloud service with free grassroots tier; self-hostable",
+        "ctfg_url": "https://civictech.guide/listing/ushahidi",
+        "remix_idea": "A local Ushahidi map of a neighborhood's third places, with SMS submissions and a neighbor-steward.",
+        "practice_kind": "tool"
+      },
+      "sort_order": 100
+    },
+    {
+      "slug": "fixmystreet-platform",
+      "kind": "tool",
+      "title": "FixMyStreet Platform",
+      "summary": "mySociety's 'stick a pin in a map' issue-reporting pattern, running since 2007 and forked worldwide — every report public, every fix visible. The grandparent of civic reporting done in the open.",
+      "body": "FixMyStreet launched in the UK in 2007 with a radical simplicity: put a pin in a map, describe the broken thing, and the site figures out which authority is responsible and emails them — publishing the report, the response, and the fix (or the silence) for everyone to see. The public ledger is the point: it converts individual complaints into shared civic memory. The UK site passed its millionth report in 2017 and now carries roughly 12,000 reports a month.\n\nThe FixMyStreet Platform is AGPL-3.0 open source with 20+ installations worldwide — Zurich's 'Züri wie neu,' Sweden's FixaMinGata, Uruguay's PorMiBarrio (run by DATA Uruguay). mySociety, the UK charity behind it, sells a hosted version to councils, which funds the commons code.\n\nOne honest design lesson rides with it: reporting tools inherit the biases of who reports (research on 311-style systems finds reporting skews toward homeowners and wealthier blocks) and what gets reported *about* — the pattern is at its best pointed at conditions and infrastructure, and at its worst pointed at people.\n\n**Neighborhood remix:** a 'FixMyBlock' where reports route not to the council but to the block's own repair crew — whoever owns the ladder, the drill, or the relationship with the alderperson — with the same public see-it-through ledger.",
+      "attribution": {
+        "name": "mySociety",
+        "source": "fixmystreet.org"
+      },
+      "source_url": "https://fixmystreet.org/",
+      "tags": ["local-civic-tech", "civic-tech-tool", "issue-reporting", "open-source"],
+      "metadata": {
+        "maker": "mySociety (UK charity)",
+        "license": "AGPL-3.0",
+        "repo_url": "https://github.com/mysociety/fixmystreet",
+        "hosted": "self-host free; paid hosting for councils (SocietyWorks)",
+        "ctfg_url": "https://civictech.guide/listing/fixmystreet",
+        "remix_idea": "FixMyBlock: the public repair ledger, routed to neighbors instead of (or alongside) city hall.",
+        "practice_kind": "tool"
+      },
+      "sort_order": 105
+    },
+    {
+      "slug": "decidim",
+      "kind": "tool",
+      "title": "Decidim",
+      "summary": "Barcelona's open-source participatory democracy framework — proposals, assemblies, participatory budgets — governed by its own community under a social contract. The current standard for serious digital participation.",
+      "body": "Decidim ('we decide' in Catalan) was born at Barcelona City Council in 2016 to run the city's participatory action plan, and was rebuilt as a general framework: modular pieces for proposals, assemblies, participatory budgeting, consultations, and strategic planning. It now runs Barcelona, Helsinki's OmaStadi, New York's Participate NYC, Brasil Participativo, and the European Commission's citizen-engagement platform, and spread through Japan from the small city of Kakogawa to dozens of municipalities.\n\nTwo things make it more than software. First, its governance: Decidim is stewarded by a free-software association through its own participatory community (Metadecidim) under a published Social Contract — the tool for democracy is itself governed democratically. Second, its hybrid DNA: the best Decidim deployments pair the platform with physical assemblies and street-corner support points (see the Barcelona neighborhood-budget story on this shelf).\n\nAGPL-3.0, Ruby on Rails, very active. Self-hosting is real work — a neighborhood would borrow a hosted instance or an ecosystem provider — but the *patterns* (proposals with thresholds, assemblies with minutes, budgets with ballots) remix at any scale.\n\n**Neighborhood remix:** a single-neighborhood Decidim with one assembly (the block association), one budget (the yard-sale fund), and proposals capped at what's buildable in a weekend.",
+      "attribution": {
+        "name": "Decidim Free Software Association (born at Barcelona City Council; Xabier Barandiaran & Arnau Monterde among the founders)",
+        "source": "decidim.org"
+      },
+      "source_url": "https://decidim.org/",
+      "tags": ["local-civic-tech", "civic-tech-tool", "participatory-democracy", "participatory-budgeting", "open-source"],
+      "metadata": {
+        "maker": "Associació de Software Lliure Decidim (Barcelona)",
+        "license": "AGPL-3.0",
+        "repo_url": "https://github.com/decidim/decidim",
+        "hosted": "self-host or ecosystem providers; no official free tier",
+        "ctfg_url": "https://civictech.guide/listing/decidim",
+        "remix_idea": "One assembly, one small budget, weekend-sized proposals.",
+        "practice_kind": "tool"
+      },
+      "sort_order": 110
+    },
+    {
+      "slug": "consul-democracy",
+      "kind": "tool",
+      "title": "CONSUL Democracy",
+      "summary": "Madrid's open-source citizen participation suite — debates, proposals with signature thresholds, participatory budgets — used by hundreds of cities and now stewarded by an independent foundation.",
+      "body": "CONSUL was built inside Madrid's city hall in 2015 to run decide.madrid.es, and grew into the most widely deployed open-source participation suite: citizen debates, proposals that advance when they clear signature thresholds, consultations, collaborative legislation, and participatory budgeting. Madrid's own participatory budget grew from €60M to €100M a year with tens of thousands of participants; the platform is used by 250+ cities and organizations from Munich to Montevideo, and is now stewarded by the CONSUL Democracy Foundation.\n\nIt's AGPL-3.0, accessibility-badged, and verified as a Digital Public Good. Like Decidim, self-hosting is an institution-sized job — but the mechanics are the remixable part.\n\nOne honest note from Madrid's record: researchers found final city outcomes only partly reflected what citizens voted for. The tool creates the channel; keeping institutions accountable to its results is organizing work, not software work — which is exactly why this shelf ships alongside the Community Organizing one.\n\n**Neighborhood remix:** CONSUL's proposal-plus-threshold mechanic at porch scale — any neighbor's idea that collects ten door-knock endorsements automatically goes on the next potluck agenda for a yes/no decision.",
+      "attribution": {
+        "name": "CONSUL Democracy Foundation (born at Madrid City Council)",
+        "source": "consuldemocracy.org"
+      },
+      "source_url": "https://consuldemocracy.org/",
+      "tags": ["local-civic-tech", "civic-tech-tool", "participatory-democracy", "open-source"],
+      "metadata": {
+        "maker": "CONSUL Democracy Foundation",
+        "license": "AGPL-3.0",
+        "repo_url": "https://github.com/consuldemocracy/consuldemocracy",
+        "hosted": "self-host; demo available",
+        "ctfg_url": "https://civictech.guide/listing/consul-democracy",
+        "remix_idea": "Proposal thresholds at porch scale: ten endorsements puts it on the potluck agenda.",
+        "practice_kind": "tool"
+      },
+      "sort_order": 115
+    },
+    {
+      "slug": "polis",
+      "kind": "tool",
+      "title": "Pol.is",
+      "summary": "The wiki-survey that maps a group's actual opinion landscape: everyone writes short statements and votes on each other's; clustering surfaces what bridges the camps. Famous from vTaiwan, sized for a street.",
+      "body": "Pol.is asks participants to do two tiny things: write short statements about the question at hand, and vote agree / disagree / pass on everyone else's. Statistical clustering then reveals the real opinion groups — and, crucially, surfaces the statements that *bridge* them. No replies, no threads, no dunking; the interface simply has no button for a flame war.\n\nIts famous outing was vTaiwan's 2015–16 Uber deliberation, where a few hundred citizens converged on near-unanimous recommendations that became regulation. But the more shelf-relevant story is Bowling Green, Kentucky: in 2018 the local civic assembly ran Pol.is with the daily newspaper, drew 2,000+ residents casting 225,000 votes, and found a town that agreed with itself about traffic and accountability far more than its Facebook comments suggested; a 2025 follow-up engaged roughly a tenth of the city.\n\nMaintained by the Computational Democracy Project (a US nonprofit), AGPL-3.0, free hosted conversations at pol.is, fully self-hostable.\n\n**Neighborhood remix:** a forty-person Polis for one street — 'what should happen to the empty lot?' — QR code taped to the lot's fence, results read aloud at the block party. The bridging statements become the agenda.",
+      "attribution": {
+        "name": "The Computational Democracy Project (Colin Megill et al.)",
+        "source": "compdemocracy.org"
+      },
+      "source_url": "https://compdemocracy.org/polis/",
+      "tags": ["local-civic-tech", "civic-tech-tool", "deliberation", "open-source"],
+      "metadata": {
+        "maker": "Computational Democracy Project (US 501c3)",
+        "license": "AGPL-3.0 (with additional permission)",
+        "repo_url": "https://github.com/compdemocracy/polis",
+        "hosted": "free hosted conversations; self-hostable",
+        "remix_idea": "A one-street Polis about one shared question, with results read aloud in person.",
+        "practice_kind": "tool"
+      },
+      "sort_order": 120
+    },
+    {
+      "slug": "localwiki",
+      "kind": "tool",
+      "title": "LocalWiki",
+      "summary": "Dead-simple editable pages and maps for one place's collective knowledge — born as DavisWiki, where one in seven residents contributed. The software is dormant; the model is undefeated.",
+      "body": "LocalWiki grew out of DavisWiki (2004), where founders Philip Neustrom and Mike Ivanov built an openly editable encyclopedia of one California college town — and watched it become core infrastructure, with roughly one in seven residents contributing (the full story is on this shelf). A Knight Foundation grant generalized the software; at its 2015 peak the hosted platform served 300+ communities and ~400,000 monthly readers, all content under Creative Commons Attribution.\n\nHonest status: the sites are online, but development has been largely dormant for years — the code (GPLv2, Python/Django) is old, and the nonprofit's energy has dispersed. It sits on this shelf anyway, for two reasons. First, the model — *every* local thing deserves a page a neighbor can edit: the history, the third places, the characters, the how-things-work — has never been beaten. Second, it's a graveyard-adjacent lesson in what actually made Davis work: not features, but resident habit and a decade of care.\n\n**Neighborhood remix:** don't necessarily run the old software — rebuild the idea at block scale. A 'living field guide' to one neighborhood: every porch, mural, tree, elder, and unwritten rule gets a page neighbors can edit from their phones, licensed openly so it outlives any one steward.",
+      "attribution": {
+        "name": "Philip Neustrom & Mike Ivanov (DavisWiki); LocalWiki.org",
+        "source": "localwiki.org"
+      },
+      "source_url": "https://localwiki.org/about/",
+      "tags": ["local-civic-tech", "civic-tech-tool", "local-knowledge", "wiki", "open-source"],
+      "metadata": {
+        "maker": "LocalWiki (nonprofit, born from DavisWiki)",
+        "license": "GPL-2.0 (backend); content CC BY",
+        "repo_url": "https://github.com/localwiki/localwiki-backend-server",
+        "hosted": "localwiki.org (maintenance mode)",
+        "status_note": "Sites online; development largely dormant — a proven model awaiting its next builder.",
+        "remix_idea": "A block-scale living field guide: every place and unwritten rule gets an editable page.",
+        "practice_kind": "tool"
+      },
+      "sort_order": 125
+    },
+    {
+      "slug": "loomio",
+      "kind": "tool",
+      "title": "Loomio",
+      "summary": "Deliberation and formal decisions for small groups — proposals, consent rounds, time polls — from a Wellington worker co-op born out of Occupy. The decision log is the institutional memory.",
+      "body": "Loomio came out of Occupy Wellington in 2011, when activists who'd experienced consensus in a plaza met the Enspiral network and asked how a group could decide things well *between* meetings. The answer: threaded discussion attached to formal proposals — consent, consensus, dot votes, time polls — each closing on a deadline and leaving a permanent record of what was decided, by whom, and why.\n\nThat decision log is the underrated feature for neighborhood groups: when the garden coordinators rotate, the log *is* the institutional memory. No more 'I think we agreed in some email thread.'\n\nLoomio is built and run by a worker-owned cooperative in Aotearoa New Zealand — the tool for group governance is itself governed by its workers — AGPL-3.0, with paid hosting that sustains the co-op and Docker self-hosting for the determined. Groups range from the 13,000-member NYC Democratic Socialists chapter to open-source projects and co-ops in 66 countries.\n\n**Neighborhood remix:** a community-garden Loomio where the compost proposal closes in 72 hours, quiet members vote without attending a meeting, and next year's coordinators inherit every decision ever made.",
+      "attribution": {
+        "name": "Loomio Cooperative (Wellington, Aotearoa NZ)",
+        "source": "loomio.com"
+      },
+      "source_url": "https://www.loomio.com/",
+      "tags": ["local-civic-tech", "civic-tech-tool", "decision-making", "cooperative", "open-source"],
+      "metadata": {
+        "maker": "Loomio Cooperative (worker-owned)",
+        "license": "AGPL-3.0",
+        "repo_url": "https://github.com/loomio/loomio",
+        "hosted": "paid hosting funds the co-op; self-host via Docker",
+        "ctfg_url": "https://civictech.guide/listing/loomio",
+        "remix_idea": "Garden governance with 72-hour consent rounds and a permanent decision log.",
+        "practice_kind": "tool"
+      },
+      "sort_order": 130
+    },
+    {
+      "slug": "cobudget",
+      "kind": "tool",
+      "title": "Cobudget",
+      "summary": "Collaborative budgeting for real shared money: members propose 'buckets,' everyone allocates their share, projects get funded in the open. Dream, fund, realize.",
+      "body": "Cobudget emerged in 2014 from the Enspiral network and The Borderland's experiments in collaborative funding: give every member a slice of the group's shared money and let them allocate it across member-proposed 'buckets' (projects), in three visible stages — dream, fund, realize. It's participatory budgeting stripped of municipal ceremony: no ballots, just continuous, transparent allocation.\n\nDeployments range from Stockholm's Blivande creative hub (members deciding together which workshop tools to buy) to WWF Switzerland's climate funding rounds in six figures. The software is AGPL-3.0-or-later, with a free hosted tier for small groups and self-hosting for the rest.\n\nFor neighborhoods, the fit is exact: block associations, garden clubs, and mutual aid funds all hold small shared money with no legible way to decide on it. Cobudget's real product is legitimacy — everyone can see every idea, every allocation, and every receipt.\n\n**Neighborhood remix:** the block's yard-sale $500 lives in Cobudget; anyone can propose a bucket — mulch, a projector for movie night, gas money for the neighbor who drives elders to appointments — and the funding *is* the vote.",
+      "attribution": {
+        "name": "Cobudget (Enspiral network lineage)",
+        "source": "cobudget.com"
+      },
+      "source_url": "https://cobudget.com/",
+      "tags": ["local-civic-tech", "civic-tech-tool", "participatory-budgeting", "money", "open-source"],
+      "metadata": {
+        "maker": "Cobudget contributors (Enspiral/Greaterthan lineage)",
+        "license": "AGPL-3.0-or-later",
+        "repo_url": "https://github.com/cobudget/cobudget",
+        "hosted": "free tier to 10 users; self-hostable",
+        "remix_idea": "The block's shared $500, allocated in the open.",
+        "practice_kind": "tool"
+      },
+      "sort_order": 135
+    },
+    {
+      "slug": "mobilizon",
+      "kind": "tool",
+      "title": "Mobilizon",
+      "summary": "Framasoft's federated events-and-groups platform — the de-Facebooked neighborhood events board, where RSVPs don't require accounts and nobody's attention is being farmed.",
+      "body": "Mobilizon was built by Framasoft, the French free-software association, as a deliberate answer to 'all our neighborhood events live on Facebook': a federated (ActivityPub) platform for events and groups, where a group gets a page, discussions, and event listings, and attendees can RSVP without creating an account. No algorithmic feed, no data extraction, no 'people also viewed.'\n\nSince 2024 it's been maintained by the Kaihuri association — a handoff with Framasoft's blessing, not a fork — with Framasoft still running the flagship mobilizon.fr instance for the French associative world. AGPL-3.0-or-later, Elixir, with dozens of public instances to join instead of self-hosting.\n\nHonest status: maintained at small-association capacity — healthy, but a dependency to watch rather than bet a city on. For one neighborhood's repair cafés and porch concerts, that's plenty.\n\n**Neighborhood remix:** one Mobilizon group as the block's events board — seed swap, stoop concert, fix-it night — with the RSVP link on the paper flyer, and the paper flyer still on the mailboxes, because the stack includes paper.",
+      "attribution": {
+        "name": "Framasoft; maintained by Kaihuri",
+        "source": "joinmobilizon.org"
+      },
+      "source_url": "https://joinmobilizon.org/",
+      "tags": ["local-civic-tech", "civic-tech-tool", "events", "fediverse", "open-source"],
+      "metadata": {
+        "maker": "Framasoft → Kaihuri association (France)",
+        "license": "AGPL-3.0-or-later",
+        "repo_url": "https://framagit.org/framasoft/mobilizon",
+        "hosted": "public instances (mobilizon.fr and others); self-hostable",
+        "status_note": "Maintained at small-association capacity — healthy but watch.",
+        "remix_idea": "The anti-Facebook events board for one block.",
+        "practice_kind": "tool"
+      },
+      "sort_order": 140
+    },
+    {
+      "slug": "gathio",
+      "kind": "tool",
+      "title": "Gathio",
+      "summary": "No-signup event pages that delete themselves a week after the event. The potluck invite as ephemeral as the potluck.",
+      "body": "Gathio does one thing with unusual grace: create an event page with no account, share the public link, edit it with a private password link — and the whole page auto-deletes seven days after the event ends. It federates over ActivityPub for those who want it, and ignores that entirely for those who don't.\n\nIt's GPL-3.0, maintained by Raphael Kabo with community contributors, with a free flagship instance at gath.io and Docker docs for self-hosting. The honest caveat is the bus factor of a small solo-maintainer project — mitigated by the fact that there is nothing to lose: the pages were going to delete themselves anyway.\n\nGathio earns its shelf spot as a design statement: most neighborhood gatherings don't need a platform, a group, a feed, or a data trail. They need a page that exists for two weeks. Tools that know how small they are, stay healthy.\n\n**Neighborhood remix:** the potluck invite — link on a paper flyer taped to the mailboxes, gone a week after the last casserole dish goes home.",
+      "attribution": {
+        "name": "Raphael Kabo & contributors",
+        "source": "gath.io"
+      },
+      "source_url": "https://gath.io/",
+      "tags": ["local-civic-tech", "civic-tech-tool", "events", "ephemeral", "open-source"],
+      "metadata": {
+        "maker": "Raphael Kabo (community project)",
+        "license": "GPL-3.0",
+        "repo_url": "https://github.com/lowercasename/gathio",
+        "hosted": "free at gath.io; self-hostable",
+        "remix_idea": "Event pages as ephemeral as the gatherings they announce.",
+        "practice_kind": "tool"
+      },
+      "sort_order": 145
+    },
+    {
+      "slug": "open-referral-hsds",
+      "kind": "tool",
+      "title": "Open Referral / HSDS",
+      "summary": "Not an app — an open data standard for 'who provides what help, where' — so a community's resource directory can be maintained once and read by every tool, church, and hotline that needs it.",
+      "body": "Every neighborhood maintains the same list a dozen times: where the food pantry is, when the clinic's open, who has beds tonight. Open Referral, founded by Greg Bloom in 2013, attacks the duplication with a standard instead of a product: the **Human Services Data Specification (HSDS)** defines how to describe services, providers, and locations so any directory can be published once and consumed everywhere — by a website, a 211 line, a case worker's tool, or an AI assistant.\n\nIt's infrastructure with real adoption: piloted in Miami's county systems, adopted across UK local government as Open Referral UK, endorsed by the 211 sector's standards body. The spec and schemas are openly published on GitHub.\n\n**Neighborhood remix:** publish the block's mutual-aid inventory — who has a truck, a spare room, jumper cables, a Narcan kit — as a tiny HSDS-shaped dataset (with consent), so the church down the street and the next tool anyone builds can both read it without asking anyone to retype it.",
+      "attribution": {
+        "name": "Open Referral Initiative (Greg Bloom, founder)",
+        "source": "openreferral.org"
+      },
+      "source_url": "https://openreferral.org/",
+      "tags": ["local-civic-tech", "civic-tech-tool", "data-standard", "mutual-aid", "open-source"],
+      "metadata": {
+        "maker": "Open Referral Initiative",
+        "license": "Open specification (license to confirm on docs site)",
+        "repo_url": "https://github.com/openreferral",
+        "remix_idea": "The block's who-has-what inventory as a tiny, consented HSDS dataset.",
+        "practice_kind": "tool"
+      },
+      "sort_order": 150
+    },
+    {
+      "slug": "streetmix",
+      "kind": "tool",
+      "title": "Streetmix",
+      "summary": "Drag-and-drop cross-sections of your street — sidewalks, bike lanes, trees, parking — so a block can show the city what it wants instead of describing it. Born at a Code for America hackathon.",
+      "body": "Streetmix began at a January 2013 Code for America hackathon, inspired by something Lou Huang saw at a San Francisco community meeting: planners handing residents paper cutouts of street elements to arrange. The web version does exactly that — drag sidewalks, bike lanes, transit, trees, and parking into a street cross-section, sized to your street's real width, and share the picture.\n\nIt's been used both by governments (San Francisco's Public Works gathered feedback on the Second Street redesign with it) and against them (Sioux Center, Iowa residents mocked up alternatives to a highway widening; Wellington cycleway advocates drew the bike lanes the council hadn't). AGPL-3.0, free at streetmix.net, maintained by a small collective.\n\nWhat it teaches: giving neighbors a *drawing tool* changes the power dynamics of a planning meeting — the block arrives with twelve pictures of the same wish instead of three minutes of public comment.\n\n**Neighborhood remix:** before the traffic-calming petition, every household mocks up 'our street, fixed' and the gallery goes to the city as one visual voice.",
+      "attribution": {
+        "name": "Streetmix (Lou Huang & collaborators; Code for America lineage)",
+        "source": "streetmix.net"
+      },
+      "source_url": "https://streetmix.net/",
+      "tags": ["local-civic-tech", "civic-tech-tool", "streets", "planning", "open-source"],
+      "metadata": {
+        "maker": "Streetmix LLC / Bad Idea Factory collective",
+        "license": "AGPL-3.0",
+        "repo_url": "https://github.com/streetmix/streetmix",
+        "hosted": "free at streetmix.net",
+        "ctfg_url": "https://civictech.guide/listing/streetmix",
+        "remix_idea": "Every household draws 'our street, fixed' before the petition goes in.",
+        "practice_kind": "tool"
+      },
+      "sort_order": 155
+    },
+    {
+      "slug": "field-papers",
+      "kind": "tool",
+      "title": "Field Papers + OpenStreetMap",
+      "summary": "Print a paper atlas of your blocks, walk them with a pen, photograph the pages, and turn the annotations into open map data. Neighborhood mapping with no GPS, no GIS, no app.",
+      "body": "Field Papers — descended from Walking Papers, built for the OpenStreetMap community, and stewarded since 2023 by OpenStreetMap US — closes the loop between paper and the world's open map: print a multi-page atlas of anywhere, walk it and annotate with a pen, photograph the pages, upload, and transcribe what you marked into OpenStreetMap, where it becomes commons data anyone can use.\n\nIts lineage runs through the most famous community mapping story there is: Kibera in Nairobi was a blank spot on the world's maps until residents mapped it themselves in 2009 (Map Kibera), using exactly this paper-first pattern.\n\nThe tool's deeper insight is that **paper is a feature**: a printed atlas can be carried by kids, marked by elders, passed around a stoop — participation without devices. The transcription evening afterward is its own gathering.\n\n**Neighborhood remix:** a Saturday 'map our block' walk — benches, shade trees, little libraries, step-free entrances, water taps — and by Sunday the block has contributed its own commons layer to the map everyone's apps read.",
+      "attribution": {
+        "name": "OpenStreetMap US (Field Papers); Stamen Design & predecessors",
+        "source": "fieldpapers.org"
+      },
+      "source_url": "https://fieldpapers.org/about",
+      "tags": ["local-civic-tech", "civic-tech-tool", "mapping", "paper-first", "open-source"],
+      "metadata": {
+        "maker": "OpenStreetMap US",
+        "license": "Open source (see per-repo licenses at github.com/fieldpapers)",
+        "repo_url": "https://github.com/fieldpapers",
+        "hosted": "free at fieldpapers.org",
+        "remix_idea": "The Saturday block-mapping walk, kids carrying the atlas.",
+        "practice_kind": "tool"
+      },
+      "sort_order": 160
+    },
+    {
+      "slug": "terrastories",
+      "kind": "tool",
+      "title": "Terrastories",
+      "summary": "Place-based oral histories on a map the community controls — built with the Matawai Maroon communities of Suriname, offline-capable, and perfect for 'this corner used to be…' at block scale.",
+      "body": "Terrastories ties audio and video oral histories to places on an interactive map, with community-controlled access — stories can be public, restricted, or private, because not every story is for everyone. It shipped first in 2018 for the Matawai Maroon communities mapping histories along Suriname's Saramacca River, built by Awana Digital (formerly Digital Democracy) with a volunteer developer community, and now runs from Indigenous ranger networks in the Solomon Islands to youth documentation projects in Brazil.\n\nIt's MIT-licensed, actively maintained, and ships a fully offline 'Field Kit' — the whole application can run on a Raspberry Pi with no internet and no cloud, which is both an access feature and a sovereignty feature: the community's stories live on the community's hardware.\n\n**Neighborhood remix:** 'This corner used to be…' — elders record 90-second stories pinned to the laundromat, the old ballfield, the mural; the map runs at the branch library; the access controls mean the block decides which stories the whole internet gets.",
+      "attribution": {
+        "name": "Awana Digital (née Digital Democracy) & the Terrastories community",
+        "source": "terrastories.app"
+      },
+      "source_url": "https://terrastories.app/",
+      "tags": ["local-civic-tech", "civic-tech-tool", "oral-history", "mapping", "offline-first", "open-source"],
+      "metadata": {
+        "maker": "Awana Digital + volunteer community (Ruby for Good)",
+        "license": "MIT",
+        "repo_url": "https://github.com/Terrastories/terrastories",
+        "hosted": "self-host; offline Field Kit",
+        "ctfg_url": "https://civictech.guide/listing/terrastories",
+        "remix_idea": "'This corner used to be…' — elder stories pinned to places, running at the library.",
+        "practice_kind": "tool"
+      },
+      "sort_order": 165
+    },
+    {
+      "slug": "mapeo-comapeo",
+      "kind": "tool",
+      "title": "Mapeo / CoMapeo",
+      "summary": "Offline-first mapping and monitoring where data syncs phone-to-phone and never touches a server the community doesn't own. Built with Indigenous land defenders; evidence from it has won in court.",
+      "body": "Mapeo — and its next-generation rebuild CoMapeo — is Awana Digital's answer to a hard question: how does a community map and monitor its own territory when the internet is absent, unreliable, or unsafe? The tools run entirely on phones, sync peer-to-peer between devices, and keep the data owned by the community — there is no server unless the community wants one.\n\nThe proof is consequential: the Waorani of Pastaza, Ecuador mapped twenty villages' territory with Mapeo starting in 2015, and their maps entered evidence in the 2019 lawsuit in which Ecuador's courts blocked an oil concession on Waorani land. Awana counts hundreds of frontline communities using its tools across dozens of countries.\n\nGPL-3.0, actively developed. For neighborhoods, the offline-first, community-owned architecture matters most exactly when the cloud is the wrong place for the data.\n\n**Neighborhood remix:** tenants photo-documenting housing-code violations building by building, syncing phone-to-phone at the tenants' meeting, and sharing only what they decide to share, when they decide to share it.",
+      "attribution": {
+        "name": "Awana Digital (Emily Jacobi, founder)",
+        "source": "awana.digital"
+      },
+      "source_url": "https://awana.digital/",
+      "tags": ["local-civic-tech", "civic-tech-tool", "mapping", "offline-first", "data-sovereignty", "open-source"],
+      "metadata": {
+        "maker": "Awana Digital",
+        "license": "GPL-3.0 (CoMapeo Mobile)",
+        "repo_url": "https://github.com/digidem/comapeo-mobile",
+        "remix_idea": "Tenant documentation that syncs phone-to-phone and shares only on the tenants' terms.",
+        "practice_kind": "tool"
+      },
+      "sort_order": 170
+    },
+    {
+      "slug": "karrot",
+      "kind": "tool",
+      "title": "Karrot",
+      "summary": "Groups, places, recurring pickups, and trust-based membership — built by the food-saving movement, and arguably the most neighborhood-shaped open-source codebase in civic tech.",
+      "body": "Karrot came out of the European foodsaving movement: volunteers rescuing surplus food needed to coordinate recurring pickups at real places, with trust-based membership and no money involved. The result generalizes startlingly well: **groups** (a block), **places** (the community fridge, the garden, the corner store that donates), **recurring activities** (Tuesday fridge cleaning, Friday stoop-sit), applications and trust karma instead of admin fiat, and discussion where the coordination happens.\n\nIt's MIT-licensed, community-governed through its own forum, very actively maintained, free to use on the hosted karrot.world instance, and self-hostable with Docker. Food-saving groups across Europe run on it daily — Gothenburg's Solikyl is the best documented.\n\nWhere most civic platforms assume a city, Karrot assumes exactly what a neighborhood is: a smallish group of semi-strangers building trust through recurring shared work.\n\n**Neighborhood remix:** the general-purpose block engine — compost-hauling shifts, tool-library hours, fridge stewardship rotations — anywhere the unit of organizing is 'a recurring task at a real place, done by whoever signed up.'",
+      "attribution": {
+        "name": "The Karrot team & the foodsaving movement",
+        "source": "karrot.world"
+      },
+      "source_url": "https://karrot.world/",
+      "tags": ["local-civic-tech", "civic-tech-tool", "mutual-aid", "food", "coordination", "open-source"],
+      "metadata": {
+        "maker": "Karrot community (foodsaving worldwide lineage)",
+        "license": "MIT",
+        "repo_url": "https://codeberg.org/karrot/karrot-frontend",
+        "hosted": "free at karrot.world; self-hostable",
+        "remix_idea": "Recurring shared work at real places — the block as a Karrot group.",
+        "practice_kind": "tool"
+      },
+      "sort_order": 175
+    },
+    {
+      "slug": "human-essentials",
+      "kind": "tool",
+      "title": "Human Essentials",
+      "summary": "Free, open-source inventory and distribution software built by volunteers for diaper and essentials banks — 200+ banks run on it. The warehouse version of the community pantry ledger.",
+      "body": "Human Essentials is what happens when a volunteer developer community (Ruby for Good) adopts an unglamorous, essential problem: diaper banks and essentials banks running their inventory on paper and memory. Built with the PDX Diaper Bank in Portland, Oregon, it now serves 200+ registered banks across the US — inventory, distributions, partner agencies, barcode scanning, reporting — free, MIT-licensed, and recognized as a Digital Public Good.\n\nIt earns its shelf spot for two reasons. As a tool: any mutual aid operation that stores and distributes *things* (a community fridge network, a supply hub, a disaster cache) eventually needs exactly this shape of software, and this one is free and maintained. As a story: it's the standing proof that volunteer open-source labor, pointed at a real operator's real workflow and sustained for years, produces civic infrastructure — the opposite of the hackathon prototype that dies by Monday.\n\n**Neighborhood remix:** scale it down from warehouse to porch — a community fridge and pantry ledger tracking what came in, what's running low, and which partner households need a knock.",
+      "attribution": {
+        "name": "Ruby for Good & PDX Diaper Bank",
+        "source": "humanessentials.app"
+      },
+      "source_url": "https://humanessentials.app/",
+      "tags": ["local-civic-tech", "civic-tech-tool", "mutual-aid", "inventory", "open-source"],
+      "metadata": {
+        "maker": "Ruby for Good (volunteer nonprofit)",
+        "license": "MIT",
+        "repo_url": "https://github.com/rubyforgood/human-essentials",
+        "hosted": "free hosted service",
+        "remix_idea": "The community fridge ledger, scaled from warehouse to porch.",
+        "practice_kind": "tool"
+      },
+      "sort_order": 180
+    },
+    {
+      "slug": "open-food-network",
+      "kind": "tool",
+      "title": "Open Food Network",
+      "summary": "Open-source marketplace software for farmers, food hubs, and buying clubs — 2,500+ enterprises across 15+ countries. A block's buying club is a food hub that fits on one porch.",
+      "body": "Open Food Network began in Melbourne in 2012 as a nonprofit answer to a structural problem: the software that connects farms to eaters was owned by intermediaries whose margins were the point. OFN's AGPL-3.0 marketplace lets farmers, food hubs, and buying clubs run their own storefronts and distribution — 2,500+ enterprises now trade through a federation of national instances across Australia, the UK, France, Canada, the US, and beyond.\n\nThe governance is as instructive as the code: a foundation stewards the commons codebase while affiliated national organizations run their own instances — a working model of federated stewardship that neighborhood infrastructure keeps needing and rarely gets.\n\n**Neighborhood remix:** a single-block buying club — one OFN storefront where fifteen households pool a weekly order from the farm twenty minutes out and split the drop-off on one porch. Food is the oldest reason neighbors organize; this is that reason with an order form.",
+      "attribution": {
+        "name": "Open Food Foundation & the OFN federation",
+        "source": "openfoodnetwork.org"
+      },
+      "source_url": "https://openfoodnetwork.org/",
+      "tags": ["local-civic-tech", "civic-tech-tool", "food", "cooperative", "open-source"],
+      "metadata": {
+        "maker": "Open Food Foundation (Melbourne-born, global federation)",
+        "license": "AGPL-3.0",
+        "repo_url": "https://github.com/openfoodfoundation/openfoodnetwork",
+        "remix_idea": "Fifteen households, one storefront, one porch drop-off.",
+        "practice_kind": "tool"
+      },
+      "sort_order": 185
+    },
+    {
+      "slug": "littlesis-oligrapher",
+      "kind": "tool",
+      "title": "LittleSis + Oligrapher",
+      "summary": "'The opposite of Big Brother': a free who-knows-who database of business and government power, with an open-source relationship-mapping tool neighborhoods use to map their landlords and developers.",
+      "body": "LittleSis — run by the nonprofit Public Accountability Initiative — is a free, collaboratively edited database of the relationships among the people and institutions that hold power: boards, donors, lobbyists, landlords, development interests. Its embedded mapping tool, **Oligrapher**, turns that data (or your own) into clear network maps of who's connected to whom.\n\nFor the organizing arc, this is question four's power tool: where the 'Tracking Down the Power' exercise maps actors on a wall, LittleSis lets a tenants union or block association research the actual interlocks — which LLC owns the buildings, who sits on which board, who funds whom — and publish the map. Neighborhood groups have used it to map local landlords and development networks.\n\nEverything is GPL-3.0 open source, and the database itself is a commons anyone can contribute research to.\n\n**Neighborhood remix:** the block's landlord map — every LLC on the street resolved to its owners and their other holdings, built in an evening from public records, ready for the tenants' meeting.",
+      "attribution": {
+        "name": "Public Accountability Initiative",
+        "source": "littlesis.org"
+      },
+      "source_url": "https://littlesis.org/",
+      "tags": ["local-civic-tech", "civic-tech-tool", "power-analysis", "transparency", "open-source", "question:what-could-we-do-together"],
+      "metadata": {
+        "maker": "Public Accountability Initiative (nonprofit)",
+        "license": "GPL-3.0",
+        "repo_url": "https://github.com/public-accountability/oligrapher",
+        "cross_shelf": "community-organizing",
+        "remix_idea": "The block's landlord map, from public records to the tenants' meeting.",
+        "practice_kind": "tool"
+      },
+      "sort_order": 190
+    },
+    {
+      "slug": "stanford-pb-platform",
+      "kind": "tool",
+      "title": "Stanford Participatory Budgeting Platform",
+      "summary": "The free, open-source, multilingual digital ballot box for participatory budgeting — used in 150+ PB processes including New York City districts, where digital voting drove participation growth.",
+      "body": "The Stanford Participatory Budgeting Platform, from Stanford's Crowdsourced Democracy Team, does one democratic job extremely well: run the voting phase of a participatory budgeting process. It supports approval voting, knapsack voting (fit projects under the budget cap yourself — the most honest ballot design in civic tech), and ranked methods, in 13 languages, free and open source.\n\nIt has run digital voting for 150+ PB processes, including New York City council districts, where researchers observed that digital ballots accounted for participation growth while paper stayed flat — with the equity caveat that paper still reaches voters digital doesn't, so good deployments run both.\n\nFor a neighborhood, it's the missing piece between 'we should let everyone decide' and 'we counted hands at one meeting': a real ballot box that costs nothing and speaks your block's languages.\n\n**Neighborhood remix:** the ballot box for the block-scale PB cycle on this shelf — every household votes, digital or paper, same weight.",
+      "attribution": {
+        "name": "Stanford Crowdsourced Democracy Team",
+        "source": "pbstanford.org"
+      },
+      "source_url": "https://pbstanford.org/",
+      "tags": ["local-civic-tech", "civic-tech-tool", "participatory-budgeting", "voting", "open-source"],
+      "metadata": {
+        "maker": "Stanford Crowdsourced Democracy Team",
+        "license": "Open source (license to confirm on repo)",
+        "repo_url": "https://github.com/StanfordCDT/pb",
+        "remix_idea": "The free multilingual ballot box for very small budgets.",
+        "practice_kind": "tool"
+      },
+      "sort_order": 195
+    },
+    {
+      "slug": "learn-from-the-graveyard",
+      "kind": "framework",
+      "title": "Learn from the Graveyard",
+      "summary": "The Civic Tech Field Guide keeps a cemetery of dead projects, and hyperlocal tech fills a whole row. The patterns behind the headstones are the most useful design guidance this shelf has.",
+      "body": "The Civic Tech Field Guide's Graveyard commemorates hundreds of dead civic tech projects 'for research and field learning.' Its stewards name the uncomfortable patterns: most innovation projects fail; funding success doesn't guarantee project success; and social networks for local information fail *repeatedly*.\n\nThe hyperlocal row, with lessons attached:\n\n- **EveryBlock** (2007–2013): Adrian Holovaty's block-level news feeds — Knight-funded, widely admired, shut down by its corporate parent NBC with no notice. Data feeds about neighbors aren't community, and corporate parents kill hyperlocal on a whim.\n- **Neighborland** (2011–2019): a beloved participatory-planning platform used by 200+ agencies — acquired by Nextdoor and closed. Communities that don't own the platform lose the archive of their own participation.\n- **PledgeBank** (mySociety, 2005–2015): 'I'll do it if N others join me' — mutual commitment productized. It worked at small scale, repeatedly, and still couldn't sustain itself as a destination site. Commitment mechanics want to live *inside* an existing community, not on their own island.\n- **The sharing-site cluster** (StreetBank, OpenShed, Favabank, OurGoods): stand-alone borrow-a-ladder platforms die of empty-marketplace loneliness. Sharing thrives where a trusted forum already exists — Front Porch Forum's borrowed ladders outlived every dedicated sharing site.\n- **The disaster-born tools** (Red Hook Hub, Recovers.org): coordination tech born in crisis evaporates between crises unless it gets a peacetime job.\n\nThe survivors share a shape: owned by or accountable to their community (Front Porch Forum's public benefit corporation, Loomio's worker co-op, Decidim's association, Amsterdam's Gebiedonline cooperative), paid stewardship rather than pure volunteerism (Detroit's digital stewards, City Bureau's paid Documenters), and modesty of scope. Before building anything, visit the graveyard and find your idea's headstone — then design against its cause of death.",
+      "attribution": {
+        "name": "Relational Technology Project, drawing on the Civic Tech Field Guide's Graveyard (Micah Sifry & Matt Stempeck)",
+        "source": "civictech.guide/graveyard"
+      },
+      "source_url": "https://civictech.guide/graveyard/",
+      "tags": ["local-civic-tech", "civic-tech-framework", "graveyard", "sustainability"],
+      "metadata": {
+        "practice_kind": "framework",
+        "survivor_patterns": ["community ownership (PBC, co-op, association)", "paid local stewardship", "modest scope with a peacetime job", "embed in existing trust rather than build a destination"],
+        "source_note": "Graveyard framing and project fates per the Civic Tech Field Guide (CC BY-NC-SA); EveryBlock and Neighborland details per Holovaty's own post-mortem and CTFG's entries."
+      },
+      "sort_order": 20
+    },
+    {
+      "slug": "six-lessons-neighborhood-tech",
+      "kind": "framework",
+      "title": "Six Lessons from Neighborhood Civic Tech",
+      "summary": "Cross-cutting lessons from the documented wins: phone-first beats app-first, paper is part of the stack, pay local stewards, small apps remix best, subtract friction before adding features, and measure relational outcomes.",
+      "body": "Six patterns recur across this shelf's stories, each earned somewhere specific:\n\n1. **Phone-first beats app-first.** Bed-Stuy Strong's intake was a Google Voice number, deliberately — 'if we were depending on an app or online form submissions we would miss a huge swath of people in need,' as a fellow COVID network's engineer put it. The neighbors who most need the tool are least likely to install it.\n\n2. **Paper and doorsteps are part of the stack.** E-Democracy's Twin Cities forums became inclusive through 129 in-person outreach events, door-knocking in ten languages, and three thousand paper sign-ups. Front Porch Forum started as paper flyers. 596 Acres zip-tied signs to lot fences. If the stack has no offline layer, it has a class filter.\n\n3. **Pay local stewards.** Red Hook's mesh network and Detroit's Equitable Internet Initiative both survived because trained neighborhood residents were *paid* to build and maintain them. Infrastructure that must persist can't run on volunteer enthusiasm alone.\n\n4. **Small, single-relationship apps remix best.** Adopt-a-Hydrant encoded one relationship — 'this civic object is mine to care for' — and was re-skinned within months for sirens and storm drains. Big platforms spread only when a local institution adopts them.\n\n5. **Subtract friction from existing rights before adding features.** Chicago's Large Lots reduced a byzantine city land-purchase process to a one-page application — and blocks bought over a thousand lots. The highest-leverage build is often a deletion.\n\n6. **Measure relational outcomes.** Front Porch Forum's 13,000-user study (more informed, more likely to volunteer and talk with neighbors) and Large Lots' crime findings (biggest drops when *near neighbors* bought the lots) are the proof pattern: the question is never 'did people use the tool' — it's 'do neighbors know each other better because of it.'",
+      "attribution": {
+        "name": "Relational Technology Project",
+        "source": "Synthesized from the documented stories on this shelf"
+      },
+      "source_url": null,
+      "tags": ["local-civic-tech", "civic-tech-framework", "design-lessons", "equity"],
+      "metadata": {
+        "practice_kind": "framework",
+        "lessons": ["phone-first", "paper in the stack", "pay local stewards", "small apps remix best", "subtract friction", "measure relational outcomes"]
+      },
+      "sort_order": 30
+    },
+    {
+      "slug": "design-for-care-not-enforcement",
+      "kind": "framework",
+      "title": "Design for Care, Not Enforcement",
+      "summary": "Every 'report a problem' tool can become 'report a neighbor.' The design line that keeps neighborhood tech on the right side: point it at conditions and needs, never at people — and add friction where harm is easy.",
+      "body": "Neighborhood technology has a documented shadow. Nextdoor's early 'crime and safety' posts became a notorious channel for racial profiling — neighbors reporting people, not incidents — until organized pressure (notably from Oakland's Neighbors for Racial Justice) pushed the company to redesign the posting flow in 2016, forcing reporters to describe behavior rather than appearance; Nextdoor reported the added friction cut racial-profiling posts by roughly three quarters. Issue-reporting research shows 311-style tools over-represent homeowners and wealthier blocks, and 'report a problem' features aimed at encampments or 'suspicious activity' convert civic energy into enforcement against the most vulnerable neighbors. SeeClickFix's own record carries the critique that anonymous reporting can disproportionately target homeless residents.\n\nThe design responses, drawn from projects on this shelf:\n\n- **Report conditions and needs, never people.** A map can hold broken streetlights and icy ramps; it must not hold 'suspicious person.' (Taiwan's Disfactory went further: anonymity *protecting the reporter's village relationships*, for reports about land, not people.)\n- **Add friction where harm is easy.** Nextdoor's multi-step form is the proof that a well-placed speed bump changes behavior.\n- **Route reports to care first.** 'Ms. Ruth's ramp is icy' goes to the neighbor with the salt, not to code enforcement.\n- **Collect the minimum, and know who could subpoena it.** COVID mutual aid networks learned to treat neighbor data as a liability to minimize, not an asset to grow.\n- **Name a human steward.** Moderation is a relationship, not a filter.\n\nThe test for any build: imagine the tool in the hands of the block's most punitive resident, pointed at its most vulnerable one. If that picture worries you, redesign before you ship.",
+      "attribution": {
+        "name": "Relational Technology Project",
+        "source": "Drawing on reporting about Nextdoor's 2016 redesign, 311-equity research, and mutual aid data practices"
+      },
+      "source_url": null,
+      "tags": ["local-civic-tech", "civic-tech-framework", "equity", "safety", "guardrails"],
+      "metadata": {
+        "practice_kind": "framework",
+        "verification_note": "Nextdoor redesign figure (~75% reduction, company-reported) and 311-equity findings flagged for citation-hardening before public pages ship.",
+        "design_moves": ["conditions and needs, never people", "friction where harm is easy", "route to care first", "data minimization", "named human steward"]
+      },
+      "sort_order": 40
+    },
+    {
+      "slug": "bed-stuy-strong",
+      "kind": "story",
+      "title": "Bed-Stuy Strong: Slack, Airtable, and a Phone Number",
+      "summary": "A handmade sign invited Bedford-Stuyvesant neighbors into a Slack group as COVID hit. With Airtable, volunteer-written bots, and a deliberately phone-first hotline, ~28,000 neighbors got groceries — and the network stayed.",
+      "body": "In March 2020, Sarah Mathews posted a handmade sign in Bedford-Stuyvesant inviting neighbors into a Slack workspace. Within a week it held a thousand people; at its height, Bed-Stuy Strong moved about $1.2 million in grassroots donations into a week's groceries for roughly 28,000 neighbors, prioritizing elderly, disabled, and immunocompromised people in a historically Black neighborhood hit early and hard.\n\nThe stack was deliberately humble: Slack for coordination, Airtable for intake tickets split across the neighborhood's four quadrants, a Google Voice hotline for neighbors without internet, and a thin layer of volunteer-written bots (Alyssa Dizon and George Farcasiu among the engineers) routing tickets into channels where nearby volunteers claimed them. Farcasiu's design principle deserves engraving: 'We're looking at the social system we have and augmenting and enabling that.' The hotline wasn't a fallback — it was an equity decision.\n\nWhen the crisis ebbed, the network didn't: working groups turned to vaccine access, free public Wi-Fi, letters to incarcerated neighbors, and small-business preservation.\n\nWhat it teaches: off-the-shelf tools plus a little glue code can run a several-thousand-person neighborhood logistics operation — and a mutual aid moment, handled relationally, leaves behind exactly what the organizing shelf calls power: relationships, lists, practiced people, and infrastructure looking for its next job.",
+      "attribution": {
+        "name": "Bed-Stuy Strong (Sarah Mathews & thousands of neighbors)",
+        "source": "Vice; Rights CoLab case study; bedstuystrong.com",
+        "neighborhood": "Bedford-Stuyvesant, Brooklyn"
+      },
+      "source_url": "https://www.bedstuystrong.com/",
+      "tags": ["local-civic-tech", "civic-tech-story", "mutual-aid", "phone-first", "question:what-could-we-do-together"],
+      "metadata": {
+        "practice_kind": "story",
+        "place": "Bedford-Stuyvesant, Brooklyn",
+        "era": "2020–present",
+        "tech_stack": ["Slack", "Airtable", "Google Voice hotline", "volunteer glue code"],
+        "source_note": "Figures per Rights CoLab and Vice's April 2020 reporting; founder-story details vary across accounts (single founder vs. co-founders) — Mathews credited per Rights CoLab."
+      },
+      "sort_order": 300
+    },
+    {
+      "slug": "mamas-pods",
+      "kind": "story",
+      "title": "MAMAS: Pods, Phone Trees, and Spreadsheets",
+      "summary": "Mutual Aid Medford and Somerville ran a two-city COVID network on geographic pods, phone trees, Google Forms, and a multilingual hotline — the most remixable mutual aid architecture documented, with almost no tech at all.",
+      "body": "Mutual Aid Medford and Somerville (MAMAS) was started in March 2020 by a group of friends in their twenties — Hannah Freedman, Sophia Grogan, Miriam Priven, and Anna Kaplan — and became one of the Boston area's most effective COVID networks using a stack any block could copy by Friday: neighborhood **phone trees**; geographic **pods** mapping neighbors to nearby neighbors; a Google Form for help requests; shared offerings spreadsheets; and a multilingual Google Voice hotline. Grocery runs, prescription pickups, childcare, spare rooms, redistributed funds.\n\nThey published replication instructions — including how to draw pod boundaries — and open-sourced the small utilities they did write. The deliberate minimalism was the point: no accounts, no apps, nothing to install, nothing between a neighbor and help but a phone number and a nearby person. As the lead engineer of a fellow COVID network put it: 'If we were depending on an app or online form submissions we would miss a huge swath of people in need.'\n\nWhat it teaches: the pod-plus-phone-tree-plus-spreadsheet architecture is the mutual aid reference design. Technology's job in it is bookkeeping; the pods — nearby neighbors bound to nearby neighbors — are the actual system. Any builder adding features should first ask what the phone tree can't already do.",
+      "attribution": {
+        "name": "Mutual Aid Medford and Somerville (Hannah Freedman, Sophia Grogan, Miriam Priven & Anna Kaplan)",
+        "source": "Boston Magazine (March 2020); mutualaidmamas.com",
+        "neighborhood": "Medford & Somerville, Massachusetts"
+      },
+      "source_url": "https://mutualaidmamas.com/",
+      "tags": ["local-civic-tech", "civic-tech-story", "mutual-aid", "low-tech", "question:what-commitments-do-we-make"],
+      "metadata": {
+        "practice_kind": "story",
+        "place": "Medford & Somerville, Massachusetts",
+        "era": "2020–present",
+        "tech_stack": ["phone trees", "geographic pods", "Google Forms", "spreadsheets", "multilingual hotline"],
+        "source_note": "Founders and stack per Boston Magazine; the anti-solutionism quote is from Invisible Hands' lead engineer Matt Schaff (Vice), not a MAMAS slogan."
+      },
+      "sort_order": 305
+    },
+    {
+      "slug": "red-hook-wifi",
+      "kind": "story",
+      "title": "Red Hook WiFi: The Network That Held When Sandy Hit",
+      "summary": "A Brooklyn youth nonprofit started a rooftop mesh network in 2011. When Hurricane Sandy knocked out everything else, the neighborhood-owned WiFi stayed up — and FEMA plugged into it, not the other way around.",
+      "body": "The Red Hook Initiative — a youth nonprofit in a low-lying, geographically isolated Brooklyn neighborhood dominated by the Red Hook Houses — began building a small rooftop mesh network in November 2011 with the Open Technology Institute, running open-source firmware, maintained by local young people.\n\nEleven months later Hurricane Sandy drowned the neighborhood's power, phone, and internet. The little mesh stayed up. RHI's building became the hub where neighbors charged phones and reached relief — and FEMA connected its satellite links *into* the community's network to reach residents. In the aftermath, the improvised arrangement formalized into the **Digital Stewards** program: neighborhood young adults paid and trained to build, test, and maintain the network, which expanded with solar-powered rooftop nodes and still operates.\n\nDetroit's Community Technology Project scaled the same model citywide: its Equitable Internet Initiative trains and pays digital stewards — residents like Monique Tate in the North End and Nyasia Valdez in Southwest Detroit — to run neighborhood wireless networks anchored by trusted local institutions, with curricula published for anyone to reuse.\n\nWhat it teaches: resilience is a social outcome. The network mattered in disaster because a trusted neighborhood institution owned it and local people were paid stewards of it. The remixable unit is not the routers — it's the steward role.",
+      "attribution": {
+        "name": "Red Hook Initiative's Digital Stewards; Detroit Community Technology Project (Diana Nucera, director)",
+        "source": "Technical.ly; Hour Detroit; Wikipedia (Red Hook Wi-Fi)",
+        "neighborhood": "Red Hook, Brooklyn & Detroit neighborhoods"
+      },
+      "source_url": "https://redhookwifi.org/",
+      "tags": ["local-civic-tech", "civic-tech-story", "community-broadband", "resilience", "paid-stewards"],
+      "metadata": {
+        "practice_kind": "story",
+        "place": "Red Hook, Brooklyn; Detroit, Michigan",
+        "era": "2011–present",
+        "illustrates": ["learn-from-the-graveyard", "six-lessons-neighborhood-tech"],
+        "source_note": "Sandy events and FEMA connection per Wikipedia's sourced entry and Inverse; Detroit stewards named per Hour Detroit's profiles."
+      },
+      "sort_order": 310
+    },
+    {
+      "slug": "five-sisters-forum",
+      "kind": "story",
+      "title": "The Five Sisters Forum: Slow by Design",
+      "summary": "Front Porch Forum began as one Burlington neighborhood's hand-compiled nightly email digest. Twenty-five years on, half of Vermont's adults are members — and the studied effects are offline: more volunteering, more neighbors talking.",
+      "body": "In 2000, Michael and Valerie Wood-Lewis — new to Burlington, Vermont's Five Sisters neighborhood and wanting to meet neighbors — started an email list advertised with paper flyers slipped door to door. For six years Michael hand-compiled each day's five or six messages into one nightly digest. In 2006 the practice became Front Porch Forum, now covering every Vermont town.\n\nThe constitution barely changed: members verified to a real address; one forum per place; **one digest email a day**; a dozen paid human moderators; no algorithm, no comments, no infinite scroll. It's a Vermont public benefit corporation funded by local ads — and it deliberately refused to scale beyond one state, the exact trade the graveyard's dead hyperlocal networks refused to make.\n\nThe evidence is the strongest in neighborhood tech: with ~235,000 members (nearly half of Vermont's adults), a 13,000-user study by New_ Public and UT-Austin's Center for Media Engagement found 81% felt FPF made them more informed citizens (versus 26% for Facebook users and 32% for Nextdoor), and FPF members were significantly more likely to attend local events, talk with neighbors, and volunteer. When Tropical Storm Irene hit in 2011, arriving federal workers found towns already self-organized through their forums.\n\nWhat it teaches: the code was never the product — the *pace* was. You can't fork the software (it's proprietary), but any block can fork the constitution: real names, one geography, one send a day, a human moderator. That's buildable in an afternoon.",
+      "attribution": {
+        "name": "Michael & Valerie Wood-Lewis, Front Porch Forum",
+        "source": "Center for Media Engagement study; Seven Days; frontporchforum.com",
+        "neighborhood": "Five Sisters, Burlington, Vermont"
+      },
+      "source_url": "https://mediaengagement.org/research/front-porch-forum-civic-engagement/",
+      "tags": ["local-civic-tech", "civic-tech-story", "neighborhood-forums", "slow-tech", "question:are-we-stronger-now"],
+      "metadata": {
+        "practice_kind": "story",
+        "place": "Burlington, Vermont → statewide",
+        "era": "2000–present",
+        "illustrates": ["learn-from-the-graveyard", "six-lessons-neighborhood-tech"],
+        "source_note": "Membership ~235,000 per Seven Days (2024) — some 2025 accounts say ~250,000; study findings per the Center for Media Engagement report. CTFG notes a pivot toward employee ownership."
+      },
+      "sort_order": 315
+    },
+    {
+      "slug": "daviswiki",
+      "kind": "story",
+      "title": "DavisWiki: The Town That Wrote Itself Down",
+      "summary": "Three housemates sketched a wiki for their college town over burritos in 2004. It became Davis's most-used local resource — one in seven residents contributed — and the scarce ingredient turned out to be habit, not software.",
+      "body": "In June 2004, housemates Philip Neustrom, Mike Ivanov, and Paul Ivanov sketched an idea over burritos: an openly editable encyclopedia of Davis, California — everything local, from bike-route lore and burrito rankings to city council politics and neighborhood history. Within three weeks of launch it had a hundred users and six hundred pages; within months it was core infrastructure. Surveys found roughly one in seven residents had *contributed*, and nearly three-quarters of residents used it as their primary housing resource; the community famously crowd-exposed a serial con artist through it.\n\nA Knight News Challenge grant generalized the software into LocalWiki, and hundreds of communities started their own. Few reached Davis's density. The software was never the scarce ingredient — the habit was: a decade of residents reflexively writing down what they knew, tending pages the way other towns tend gardens.\n\nWhat it teaches: a town-scale knowledge commons is achievable by residents when editing is radically easy and the scope is *everything local*. And the honest corollary from the replication record: launch is nothing, habit is everything. A neighborhood remixing this should start with twenty pages neighbors actually need weekly — not an empty wiki and an announcement.",
+      "attribution": {
+        "name": "Philip Neustrom, Mike Ivanov, Paul Ivanov & the residents of Davis, California",
+        "source": "DavisWiki's own Wiki History; Nieman Lab",
+        "neighborhood": "Davis, California"
+      },
+      "source_url": "https://daviswiki.org/Wiki_History",
+      "tags": ["local-civic-tech", "civic-tech-story", "local-knowledge", "wiki", "commons"],
+      "metadata": {
+        "practice_kind": "story",
+        "place": "Davis, California",
+        "era": "2004–present",
+        "illustrates": ["localwiki"],
+        "source_note": "Founding story, usage figures, and LocalWiki arc per DavisWiki's Wiki History page and Nieman Lab's Encyclo entry."
+      },
+      "sort_order": 320
+    },
+    {
+      "slug": "e-democracy-doorsteps",
+      "kind": "story",
+      "title": "E-Democracy: The Forums Built by Door-Knocking",
+      "summary": "Minneapolis–St. Paul's neighborhood forums became genuinely inclusive the only way it happens: 129 in-person outreach events, organizers speaking ten languages, and three thousand paper sign-ups gathered on doorsteps.",
+      "body": "Steven Clift's E-Democracy.org — a pioneer of online civic space since 1994 — launched neighborhood Issues Forums across Minneapolis–St. Paul starting in 2007, including in Cedar-Riverside, a neighborhood of about 7,500 residents where thousands of Somali and Oromo neighbors lived alongside Latino, Korean, and Vietnamese communities.\n\nThe forums' real innovation wasn't software — it was the admission that inclusive online space is built offline. With Ford and Knight Foundation support, organizers ran **129 in-person outreach events**, door-knocked over two summers with a St. Paul team speaking **ten languages**, and gathered **three thousand sign-ups on paper**. The rules-based forums (real names, civility nudges, careful moderation) then had a membership that actually looked like the neighborhood.\n\nThe organization eventually wound down — founder-dependence and funding drought, the classic nonprofit causes — and its forums are archived. But its inclusion playbook is the permanent artifact, and the graveyard lesson is generous rather than grim: two decades of civility-by-design knowledge, free for the taking.\n\nWhat it teaches: this is the bridge between this shelf and the organizing one. The tool is the 10%; the door-knocking in ten languages is the 90%. Any neighborhood platform that launches without an offline recruitment plan has chosen its demographics already.",
+      "attribution": {
+        "name": "E-Democracy.org (Steven Clift) & its Twin Cities outreach organizers",
+        "source": "Knight Foundation; Twin Cities Daily Planet",
+        "neighborhood": "Cedar-Riverside & Frogtown, Minneapolis–St. Paul"
+      },
+      "source_url": "https://knightfoundation.org/articles/democracy-bringing-new-voices-civic-tech/",
+      "tags": ["local-civic-tech", "civic-tech-story", "inclusion", "neighborhood-forums", "question:who-are-my-people"],
+      "metadata": {
+        "practice_kind": "story",
+        "place": "Minneapolis–St. Paul, Minnesota",
+        "era": "2007–2010s",
+        "illustrates": ["six-lessons-neighborhood-tech"],
+        "source_note": "Outreach figures per the Knight Foundation's own account; forums now archived — the inclusion method is the durable artifact."
+      },
+      "sort_order": 325
+    },
+    {
+      "slug": "snowmageddon-cleanup",
+      "kind": "story",
+      "title": "Snowmageddon Cleanup: One Neighbor, One Weekend, One Map",
+      "summary": "During DC's 2010 blizzards, one Dupont Circle resident stood up an Ushahidi map to coordinate digging out. The Washington Post pointed the city at it — and the next winter, other cities launched their own in under an hour.",
+      "body": "When back-to-back blizzards dropped nearly three feet of snow on Washington DC in February 2010 and shut the federal government, Ryan Ozimek — a Dupont Circle resident who ran a nonprofit-sector web firm — stood up an Ushahidi deployment to coordinate his neighborhood's dig-out. 'I really thought it was going to be just a fun experiment with my friends.'\n\nWithin a day the Washington Post had adopted and promoted it as 'Snowmageddon Cleanup.' Ozimek watched the arc every mutual aid organizer knows: the first twenty-four hours were all requests — stuck cars, unplowed streets, elderly neighbors snowed in — and then neighbors began self-organizing to answer them, claiming requests the way Bed-Stuy Strong volunteers would claim Airtable tickets a decade later.\n\nThe remix proved the pattern: during December 2010's storm, versions launched for New York, Boston, Newark, and Point Pleasant Beach, New Jersey — a new city could stand one up **in under an hour**.\n\nWhat it teaches: the purest documented case of this shelf's thesis. Global open-source infrastructure (built for Kenyan election monitoring), deployed by one neighbor for one neighborhood in a weekend, made real by a trusted local channel pointing people at it. The map did the matching; the shovels were already on the block.",
+      "attribution": {
+        "name": "Ryan Ozimek & DC's snowbound neighbors",
+        "source": "PBS NewsHour",
+        "neighborhood": "Dupont Circle, Washington, DC"
+      },
+      "source_url": "https://www.pbs.org/newshour/world/snowmageddon-ny",
+      "tags": ["local-civic-tech", "civic-tech-story", "crisis-response", "ushahidi", "remix"],
+      "metadata": {
+        "practice_kind": "story",
+        "place": "Washington, DC",
+        "era": "2010",
+        "illustrates": ["ushahidi", "remix-at-neighborhood-scale"],
+        "source_note": "Quotes and remix timeline per PBS NewsHour's contemporaneous reporting."
+      },
+      "sort_order": 330
+    },
+    {
+      "slug": "adopt-a-hydrant-remixes",
+      "kind": "story",
+      "title": "Adopt-a-Hydrant and Its Descendants",
+      "summary": "A tiny Rails app let Bostonians claim a hydrant to shovel out — and got re-skinned within months for Honolulu's tsunami sirens and, later, San Francisco's named storm drains. Small apps encoding one relationship remix best.",
+      "body": "In 2011, Code for America fellow Erik Michaels-Ober built Adopt-a-Hydrant for Boston: a map of the city's fire hydrants where a resident could claim one and pledge to shovel it out after snowstorms. That's the whole app. It encoded exactly one civic relationship — *this piece of shared infrastructure is mine to care for* — and Code for America open-sourced it.\n\nThe remixes came fast. Honolulu's IT deputy director Forest Frizzell re-skinned it in 2012 as **Adopt-a-Siren** for tsunami sirens, with residents reporting failures during monthly tests. Chicago did sidewalks; multiple cities did storm drains. San Francisco's utility launched **Adopt-a-Drain** in 2016 with the crucial upgrade of *naming rights*: 25,000 drains with stewards and names like Drainy McDrainface and Drainmond Green — and the program nearly doubled in 2023, because whimsy is a retention mechanic, not decoration.\n\nOne honest caveat traveled with every remix: the code alone never spread it. Each city needed a champion — a fellow, an IT deputy, a utility program manager — proving again that the deployment is a relationship even when the app is twenty files.\n\nWhat it teaches: the adopt-a-thing pattern is the most reliably remixable shape in civic tech, and it's block-sized by nature: tree wells, benches, little libraries, community fridges — anything that needs a person gets one, by name.",
+      "attribution": {
+        "name": "Erik Michaels-Ober (Code for America); Forest Frizzell (Honolulu); SFPUC Adopt-a-Drain",
+        "source": "Boston.gov; Honolulu Civil Beat; KQED",
+        "neighborhood": "Boston → Honolulu → San Francisco"
+      },
+      "source_url": "https://www.boston.gov/public-safety/adopt-hydrant",
+      "tags": ["local-civic-tech", "civic-tech-story", "stewardship", "remix", "open-source"],
+      "metadata": {
+        "practice_kind": "story",
+        "place": "Boston; Honolulu; San Francisco; Chicago",
+        "era": "2011–present",
+        "repo_url": "https://github.com/codeforamerica/adopt-a-hydrant",
+        "illustrates": ["remix-at-neighborhood-scale", "six-lessons-neighborhood-tech"],
+        "source_note": "Lineage per Boston.gov, Honolulu's 2012 press materials, and KQED's Adopt-a-Drain coverage; repo license to confirm in the license pass."
+      },
+      "sort_order": 335
+    },
+    {
+      "slug": "596-acres",
+      "kind": "story",
+      "title": "596 Acres: Signs on Fences",
+      "summary": "A lawyer turned a city spreadsheet of vacant public land into maps — and zip-tied physical signs to lot fences saying who owned the land and how to organize for it. 143 lots became gardens, farms, and plazas.",
+      "body": "Paula Z. Segal obtained a New York City spreadsheet listing all publicly owned vacant land in Brooklyn — 596 acres of it — and did two things with it. The expected one: put it online as a map (which grew into Living Lots NYC). And the brilliant one: **zip-tied laminated signs to the chain-link fences of the lots themselves**, telling whoever walked past exactly who owned this land, that it was public, and how to organize with neighbors to get access.\n\nThe map found the data; the signs found the people. The online tool added a crucial social feature — strangers who cared about the *same lot* could find each other — and 596 Acres supported 143 neighbor-led campaigns that turned NYC vacant lots into community gardens, farms, and play spaces before the organization sunset. The model spread: Grounded in Philly mapped 32,000+ vacant Philadelphia lots with the Public Interest Law Center; Chicago's Large Lots program (a sibling story on this shelf) turned the same insight into $1 city lot sales.\n\nWhat it teaches: public data becomes neighborhood power through three moves — map it, **post it physically at the exact place it describes**, and wire it so people organizing the same place meet each other. The fence sign is the most underrated interface in civic tech.",
+      "attribution": {
+        "name": "Paula Z. Segal & 596 Acres",
+        "source": "596acres.org; Next City; Sunlight Foundation",
+        "neighborhood": "Brooklyn, New York"
+      },
+      "source_url": "https://596acres.org/mission-and-story/",
+      "tags": ["local-civic-tech", "civic-tech-story", "vacant-land", "open-data", "question:what-resources-do-we-have"],
+      "metadata": {
+        "practice_kind": "story",
+        "place": "New York City",
+        "era": "2011–2018",
+        "illustrates": ["six-lessons-neighborhood-tech", "remix-at-neighborhood-scale"],
+        "source_note": "143 campaigns per 596acres.org's own record; organizational sunset ~2018 with Living Lots continuing — succession details worth confirming for public pages."
+      },
+      "sort_order": 340
+    },
+    {
+      "slug": "large-lots-chicago",
+      "kind": "story",
+      "title": "Large Lots: The $1 Lot and the One-Page Form",
+      "summary": "Englewood residents and civic technologists reduced Chicago's byzantine land-purchase process to a one-page application for $1 lots. Over 1,240 lots sold — and crime dropped most where near neighbors became the owners.",
+      "body": "Chicago's Large Lots program began in Englewood, where Demond Drummer at Teamwork Englewood pushed a community-planning insight to its logical end: the city owned thousands of vacant lots on Black South and West Side blocks, residents wanted them, and the purchase process was a labyrinth. With civic-tech firm DataMade and funding through LISC Chicago, largelots.org reduced the process to a **one-page application a resident could complete on a phone in under five minutes**: property owners on a block could buy up to two city-owned lots on that block for **$1 each**.\n\nThe city formally adopted the program in December 2014; the Englewood pilot drew 414 applications, and by 2019 more than 1,240 lots had sold citywide. Then came the research: a peer-reviewed evaluation found block-level crime fell about 3.5% around sold lots — and **6.8% when the buyer lived in the neighborhood**. The relational variable did the work: near neighbors mowing, fencing, gardening, watching.\n\nWhat it teaches: civic tech's highest leverage is often *subtraction* — the app added nothing; it deleted friction from a right residents already had. And ownership by near neighbors, specifically, is what moved the needle — a finding the whole relational technology thesis can stand on.",
+      "attribution": {
+        "name": "Demond Drummer (Teamwork Englewood), DataMade & LISC Chicago",
+        "source": "Smart Chicago Collaborative; Journal of the American Planning Association (2021)",
+        "neighborhood": "Englewood, Chicago"
+      },
+      "source_url": "https://largelots.org/",
+      "tags": ["local-civic-tech", "civic-tech-story", "vacant-land", "friction", "evidence"],
+      "metadata": {
+        "practice_kind": "story",
+        "place": "Englewood → citywide, Chicago",
+        "era": "2014–present",
+        "illustrates": ["six-lessons-neighborhood-tech"],
+        "source_note": "Program history per Smart Chicago and DataMade; crime findings per JAPA 2021 (Univ. of Illinois research)."
+      },
+      "sort_order": 345
+    },
+    {
+      "slug": "pb-49th-ward",
+      "kind": "story",
+      "title": "The 49th Ward: America's First Participatory Budget",
+      "summary": "In 2009, a Chicago alderman handed his entire $1.3M infrastructure budget to residents: assemblies, resident committees, 36 proposals, 1,652 voters, 14 projects built. The ritual mattered more than the tech.",
+      "body": "In November 2009, Alderman Joe Moore of Chicago's 49th Ward (Rogers Park) did something no US elected official had done: he turned his entire $1.3 million annual 'menu money' infrastructure budget over to his constituents, working with the Participatory Budgeting Project to adapt the process born in Porto Alegre, Brazil.\n\nThe process was the technology: neighborhood assemblies where anyone could propose; six resident committees that spent the winter developing 36 proposals with cost estimates; then a public vote in April 2010 — 1,652 residents — funding fourteen projects: sidewalk repairs, bike lanes, community gardens, underpass murals, street lighting, dog-friendly park areas. The digital layer stayed thin, and the documented weakness was relational, not technical: outreach missed much of the ward's Latino population, the same inclusion lesson E-Democracy learned two states away.\n\nPB then scaled: New York City council districts have run it since 2012 — over $210 million allocated across 706 projects — with the free, open-source Stanford PB Platform (a tool on this shelf) providing multilingual digital ballots. The Participatory Budgeting Project publishes free toolkits, and People Powered maintains a global hub and atlas.\n\nWhat it teaches: PB is a repeatable neighborhood-scale democratic ritual with free tooling at every step — and its failure mode is always outreach, never software. Budget for door-knocking before ballots.",
+      "attribution": {
+        "name": "Alderman Joe Moore, the residents of Rogers Park & the Participatory Budgeting Project",
+        "source": "Participedia; NPR; the 49th Ward's own PB record",
+        "neighborhood": "Rogers Park, Chicago"
+      },
+      "source_url": "https://participedia.net/case/43",
+      "tags": ["local-civic-tech", "civic-tech-story", "participatory-budgeting", "democracy"],
+      "metadata": {
+        "practice_kind": "story",
+        "place": "49th Ward, Chicago",
+        "era": "2009–present",
+        "illustrates": ["stanford-pb-platform", "build-block-scale-pb"],
+        "toolkits": ["https://www.participatorybudgeting.org/toolkit/", "https://www.peoplepowered.org/global-pb-hub", "https://www.pbatlas.net/index.html"],
+        "source_note": "Vote counts and project list per Participedia case 43; PBNYC totals per People Powered/NYC Council."
+      },
+      "sort_order": 350
+    },
+    {
+      "slug": "decidim-barcelona-neighborhoods",
+      "kind": "story",
+      "title": "Barcelona's Neighborhood Budget: Hybrid by Design",
+      "summary": "Barcelona put €30M to the most-voted neighborhood proposals in every district on its own open-source platform — with street-corner support points feeding in the neighbors who would never participate online.",
+      "body": "Barcelona's 2020–2023 participatory budget dedicated €30 million to fund the most-voted neighborhood proposals in each of the city's districts, run on Decidim — the open-source platform the city itself birthed. Residents drafted geolocated proposals with budgets attached; 64,571 people participated digitally and 11,970 in person, through a pandemic.\n\nThe number worth studying is the second one. The process was hybrid *by design*: neighborhood meetings and street-level 'support points' — staffed tables where residents could learn, propose, and vote with help — fed in exactly the people a digital-only process filters out. The platform held the ledger; the folding tables held the democracy.\n\nWhat it teaches: a city can run neighborhood-grained democracy on commons-licensed software it governs with its citizens — and the transferable practice isn't the platform config, it's the support point. Any block remixing a digital decision process should budget for its equivalent: a card table, a laptop, and a patient neighbor at the farmers market.",
+      "attribution": {
+        "name": "Barcelona City Council & the Decidim community",
+        "source": "Decidim's own case study (2026)",
+        "neighborhood": "Barcelona's districts"
+      },
+      "source_url": "https://decidim.org/blog/2026-04-07-case-study-participatory-budget-2020-2023-in-barcelona/",
+      "tags": ["local-civic-tech", "civic-tech-story", "participatory-budgeting", "hybrid", "decidim"],
+      "metadata": {
+        "practice_kind": "story",
+        "place": "Barcelona, Catalonia",
+        "era": "2020–2023",
+        "illustrates": ["decidim", "six-lessons-neighborhood-tech"],
+        "source_note": "Participation figures per Decidim's published case study."
+      },
+      "sort_order": 355
+    },
+    {
+      "slug": "disfactory",
+      "kind": "story",
+      "title": "Disfactory: Anonymity as a Relational Design Choice",
+      "summary": "A small Taiwanese environmental group brought a problem to a g0v hackathon; civic hackers built a map where villagers could report illegal factories on farmland without rupturing village relationships. Seven factories down.",
+      "body": "Taiwan was losing roughly 1,500 hectares of farmland a year to illegal factory construction, and the official reporting process required citizens to attach their personal identification — which meant reporting the factory often meant reporting your neighbor, with your name on it. Reports didn't come.\n\nA staff member of Citizen of the Earth, Taiwan — a small crowdfunded environmental group with no developers — brought the problem to a **g0v hackathon** in 2019. Volunteer civic hackers built Disfactory: drop a pin and a photo of a suspect factory, anonymously; the organization files the official paperwork with its own name on it. MIT-licensed code, reports released as open data.\n\nIn ten months: 1,500+ reports, 200+ official filings, seven factories demolished, and a reporting pipeline that finally matched how villages actually work.\n\nWhat it teaches: anonymity here isn't anti-social — it's *relational* design, protecting the reporter's standing with neighbors while still protecting the farmland. (Contrast the design-for-care framework: anonymity aimed at land and buildings, never at people.) And the collaboration model is the cleanest on this shelf: the community group brings the problem and the legitimacy; the civic hackers bring the build; the institution files the paperwork.",
+      "attribution": {
+        "name": "Citizen of the Earth, Taiwan & g0v contributors",
+        "source": "CommonWealth Magazine; github.com/Disfactory",
+        "neighborhood": "Rural townships, Taiwan"
+      },
+      "source_url": "https://english.cw.com.tw/article/article.action?id=2982",
+      "tags": ["local-civic-tech", "civic-tech-story", "g0v", "anonymity", "environment"],
+      "metadata": {
+        "practice_kind": "story",
+        "place": "Taiwan",
+        "era": "2019–present",
+        "repo_url": "https://github.com/Disfactory/Disfactory",
+        "illustrates": ["design-for-care-not-enforcement"],
+        "source_note": "Figures per CommonWealth Magazine's English coverage and the project's TICTeC presentation."
+      },
+      "sort_order": 360
+    },
+    {
+      "slug": "civic-tech-field-guide",
+      "kind": "reference",
+      "title": "The Civic Tech Field Guide",
+      "summary": "The world's largest collection of tech-for-good projects — 12,000+ entries, 500+ categories, a famous graveyard, and an open API — explicitly licensed for remixing. This shelf's civic tech research starts here.",
+      "body": "The Civic Tech Field Guide (civictech.guide) is the field's collective memory: 12,370+ curated entries across a 506-category taxonomy, from participatory budgeting platforms to mesh networks to the craft of organizing. Conceived in 2016 by Micah Sifry, Matt Stempeck, and Erin Simpson at Civic Hall, built out by Stempeck, and now a project of Superbloom, it tracks not just what exists but what died — the Graveyard is its most-cited feature — and who's hiring, funding, and gathering.\n\nIt is deliberately a commons: content is licensed **CC BY-NC-SA** (remixable for non-commercial use with attribution), the site code is open source, and a free read API (documented at civictech.guide/build) invites exactly the kind of reuse this shelf represents.\n\nThe categories most useful at neighborhood scale, from this shelf's research sweep: neighborhood-forums, mutual-aid, resource-matching-and-sharing, issue-reporting, participatory-budgeting, deliberation, civic-maps, community-wifi and mesh-networks, relational-organizing, and the-craft-of-organizing. Notable gaps worth knowing: no timebanking category, and thin tenant-tech coverage — both places where RTP can contribute entries *back*.\n\nA pleasing loop: the Field Guide already lists the Relational Technology Project, RT Studio, and several RB remix cards. The commons reads us while we read it.",
+      "attribution": {
+        "name": "Matt Stempeck (curator), with Micah Sifry & Erin Simpson; a project of Superbloom",
+        "source": "civictech.guide"
+      },
+      "source_url": "https://civictech.guide/",
+      "tags": ["local-civic-tech", "civic-tech-reference", "directory", "commons"],
+      "metadata": {
+        "practice_kind": "reference",
+        "license_note": "Content CC BY-NC-SA; site code open source; public read API at civictech.guide/build.",
+        "neighborhood_categories": ["neighborhood-forums", "mutual-aid", "resource-matching-and-sharing", "issue-reporting", "participatory-budgeting", "deliberation", "civic-maps", "community-wifi", "mesh-networks", "relational-organizing", "the-craft-of-organizing"]
+      },
+      "sort_order": 500
+    },
+    {
+      "slug": "documenters-network",
+      "kind": "reference",
+      "title": "Documenters: Paying Neighbors to Witness",
+      "summary": "City Bureau's model trains and pays residents to attend and document public meetings — 'putting every public meeting on the record' — now a national network, with open-source meeting scrapers underneath.",
+      "body": "City Bureau, founded on Chicago's South Side in 2015, built the Documenters program around a simple exchange: train residents in note-taking and public-meeting procedure, then **pay them** to attend and document the school board, the zoning committee, the park district — the meetings where neighborhood decisions actually happen and no reporter sits anymore. The notes are published; the meetings enter the public record in practice, not just in law.\n\nThe model spread into a national Documenters Network across dozens of cities, and its technical substrate is open source: the City Scrapers project standardizes public-meeting schedules from dozens of fragmented government sites into one usable feed.\n\nFor this shelf it's the strongest working answer to a question every neighborhood has: who is watching the decisions that shape our block? The answer that works is not an app — it's paid, trained neighbors with a shared standard, plus scrapers so finding the meeting isn't the hard part. (It also models the 'pay local stewards' survivor pattern from the graveyard framework.)\n\n**Neighborhood remix:** one block's documenter — a rotating, honoraria-paid neighbor who attends the community board meeting and posts plain-language notes where the block actually reads.",
+      "attribution": {
+        "name": "City Bureau (Chicago)",
+        "source": "documenters.org; citybureau.org/city-scrapers"
+      },
+      "source_url": "https://www.documenters.org/",
+      "tags": ["local-civic-tech", "civic-tech-reference", "public-meetings", "paid-stewards", "civic-media"],
+      "metadata": {
+        "practice_kind": "reference",
+        "repo_url": "https://www.citybureau.org/city-scrapers",
+        "remix_idea": "A rotating, paid block documenter for the community board meeting.",
+        "practice_note": "Bridges to the Civic Media shelf's engagement-journalism recipes."
+      },
+      "sort_order": 510
+    },
+    {
+      "slug": "build-front-porch-digest",
+      "kind": "prompt",
+      "title": "Build: A Front-Porch Digest for One Block",
+      "summary": "A starter build: fork Front Porch Forum's constitution, not its code — real names, one geography, one email a day, a rotating neighbor-moderator.",
+      "body": "Front Porch Forum's software is proprietary, but its constitution is four rules, and the studied effects (members more likely to volunteer, attend local events, and talk to neighbors) flow from the rules, not the code. Build the rules:\n\n1. **Real names, real addresses.** Members are verified neighbors — by the moderator knowing them, which at block scale is the whole verification system.\n2. **One geography.** This digest serves these three blocks. There is no 'nearby areas' toggle. Growth means helping the next three blocks start their own.\n3. **One send a day.** Posts queue; the digest goes out at 6pm; nothing is urgent by design. (Actual emergencies have actual channels.)\n4. **A human moderator.** A neighbor — rotating quarterly so it stays a chore shared, not a fiefdom — reads everything before it ships, and knows the difference between a hard conversation and a harmful one.\n\nThe build: a submission form (email-in works too), a queue the moderator approves, a daily digest email, and a public archive page. Posts are the FPF genre mix: borrowed ladders, lost cats, contractor recommendations, meeting announcements, thanks.\n\nConstraint: resist every feature that makes it faster. The pace is the product. If a neighbor asks for push notifications, the correct response is a porch conversation.",
+      "attribution": {
+        "name": "Relational Technology Project, after Front Porch Forum",
+        "source": "Local Civic Tech shelf starter prompt"
+      },
+      "source_url": null,
+      "tags": ["local-civic-tech", "civic-tech-prompt", "starter", "neighborhood-forums", "slow-tech"],
+      "metadata": {
+        "practice_kind": "prompt",
+        "builds_on": ["five-sisters-forum"],
+        "guardrails": ["the pace is the product — one send a day", "moderation rotates", "growth means seeding new digests, not expanding this one"]
+      },
+      "sort_order": 440
+    },
+    {
+      "slug": "build-mutual-aid-intake",
+      "kind": "prompt",
+      "title": "Build: Phone-First Mutual Aid Intake",
+      "summary": "A starter build: the Bed-Stuy Strong pattern at pod scale — a phone number in front, a claimable ticket board behind, and data minimization as a founding principle.",
+      "body": "Build the intake-and-dispatch layer for a small mutual aid network, honoring the two hardest-won lessons of the COVID networks.\n\n**Phone-first.** The front door is a phone number (voice and text) plus a paper flyer that says so. A web form exists but is the secondary door. Every request — 'a week of groceries,' 'ride to the pharmacy,' 'someone to shovel' — becomes a ticket with a rough location (block, not address, until claimed), needs, and language preference.\n\n**A claimable board.** Volunteers see open tickets near them and claim one — the Bed-Stuy Strong mechanic that made 30 deliveries a day feel human: one neighbor takes responsibility for one neighbor, start to finish, with a check-in when it's done.\n\n**Data minimization as architecture, not policy.** Collect only what fulfillment needs; addresses visible only to the claiming volunteer; tickets auto-purge after completion; export is a decision two stewards make together, not a button. The COVID networks learned that a spreadsheet of vulnerable neighbors is a liability to protect, not an asset to grow — design as if the least trustworthy future volunteer will someday have the password.\n\nDashboard: open needs, average time-to-claim, and thanks — read aloud at the monthly meeting, because the ledger of care is also a story of us.",
+      "attribution": {
+        "name": "Relational Technology Project, after Bed-Stuy Strong & MAMAS",
+        "source": "Local Civic Tech shelf starter prompt"
+      },
+      "source_url": null,
+      "tags": ["local-civic-tech", "civic-tech-prompt", "starter", "mutual-aid", "phone-first"],
+      "metadata": {
+        "practice_kind": "prompt",
+        "builds_on": ["bed-stuy-strong", "mamas-pods", "design-for-care-not-enforcement"],
+        "guardrails": ["phone number in front, app in back", "block-level location until claimed", "auto-purge completed tickets", "two-steward rule for any export"]
+      },
+      "sort_order": 450
+    },
+    {
       "slug": "build-local-ushahidi-third-places",
       "kind": "prompt",
       "title": "Build: A Third-Places Map for Your Neighborhood",

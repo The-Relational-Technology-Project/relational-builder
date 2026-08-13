@@ -87,6 +87,34 @@
       "sort_order": 30
     },
     {
+      "slug": "the-house-meeting",
+      "kind": "recipe",
+      "title": "The House Meeting",
+      "summary": "Fred Ross's instrument: a small gathering in someone's living room, hosted by a resident who invites their own people. Cycles of house meetings build a base — and reveal who the real leaders are.",
+      "body": "*The need:* Rallies reach the already-convinced. Living rooms reach networks.\n\nThe house meeting, refined by Fred Ross Sr. organizing with the Community Service Organization in the 1940s–50s, is a small gathering — a living room's worth of people — convened by a **host who invites their own network**: family, coworkers, church friends, the neighbors they actually talk to. The organizer doesn't supply the guest list; the host's relationships are the meeting.\n\nThe shape: the host welcomes people they trust into a comfortable setting (food matters — it marks the gathering as hospitality, not procedure). The organizer or a developing leader shares story and purpose, listens hard to what these particular people care about, and closes with asks — including the ask that makes the method compound: *who here will host the next meeting, with their own people?* Ross ran roughly three-week cycles of house meetings building toward one large organizing meeting, then further cycles toward a founding convention of a real organization.\n\nThe house meeting does three jobs at once. It **recruits through trust** — people come because someone they know asked. It **surfaces what the community actually cares about**, in a setting where people speak freely. And above all it **reveals leaders**: watch who convenes people, who speaks with authority in their own kitchen, who follows through. That's how Ross found Cesar Chavez — at a house meeting in Chavez's own living room (the story is on this shelf) — and it's how the UFW and the 2008 neighborhood teams built bases that lists never could.\n\nA chain of house meetings is the six questions running on hospitality: who are my people, what do we care about, and who will commit to convening next.",
+      "attribution": {
+        "name": "Fred Ross Sr. & the CSO / UFW organizing tradition",
+        "source": "Gabriel Thompson, 'America's Social Arsonist' (2016); Zinn Education Project on Fred Ross"
+      },
+      "source_url": "https://www.zinnedproject.org/materials/ross-fred/",
+      "tags": ["community-organizing", "organizing-practice", "house-meetings", "question:who-are-my-people", "question:what-commitments-do-we-make"],
+      "metadata": {
+        "practice_kind": "recipe",
+        "ingredients": ["a host with real relationships", "their living room", "food", "a story, an ear, and an ask", "the next host"],
+        "how_it_works": [
+          "Find a host; the host invites their own people — the organizer never supplies the list.",
+          "Gather small: a living room's worth, with food.",
+          "Share story and purpose briefly; spend most of the time listening.",
+          "Close with commitments — including who will host the next meeting.",
+          "Run cycles of meetings toward one big founding gathering; watch for who convenes and follows through — those are your leaders."
+        ],
+        "success_signals": ["each meeting produces its next host", "the organizer hears concerns they didn't arrive with", "leaders emerge whom no sign-up sheet would have found"],
+        "min_resources": "Free. Someone's couch and a pot of coffee.",
+        "source_note": "Method and three-week cycle structure per the Zinn Education Project and Beyond Chron's history of the Ross house-meeting tradition; leader-spotting function per Thompson's biography."
+      },
+      "sort_order": 35
+    },
+    {
       "slug": "story-of-self-us-now",
       "kind": "recipe",
       "title": "Public Narrative: Self, Us, Now",
@@ -399,11 +427,120 @@
       "sort_order": 140
     },
     {
+      "slug": "to-for-with-by",
+      "kind": "framework",
+      "title": "To, For, With, By",
+      "summary": "Cormac Russell's four modes of change: things done TO communities, FOR them, WITH them, and BY them. Community power lives in 'by' — and the ordering of help matters more than the amount.",
+      "body": "A four-word audit for any community effort — including any tool you're about to build:\n\n- **To**: done to communities, without consent. Coercive, however well dressed.\n- **For**: done for communities — benevolent and well-intentioned, but professionals and outsiders stay in the driver's seat, and residents learn to be clients.\n- **With**: done alongside communities, in more equal and reciprocal relationships.\n- **By**: communities as the architects and drivers of their own change, with outside support playing a supplementary role.\n\nAsset-based community development's home is *by*. The discipline that keeps it there is an ordering rule from John McKnight and Cormac Russell: first ask what residents can do themselves; then what they can do with a little outside help; and only then what they need outside agencies to do for them. The order is critical — start with the third question and you preclude citizen power before the work begins.\n\nRussell's summary of the whole stance: if we want to help people in a way that does no harm to their capacities, start with what's strong, not with what's wrong.\n\nFor builders: every feature can be sorted with the same four words. A dashboard about a neighborhood is *to*; a service portal is *for*; a co-designed tool is *with*; a tool neighbors can run, change, and own is *by*.",
+      "attribution": {
+        "name": "Cormac Russell (Nurture Development / ABCD Institute)",
+        "source": "Russell, 'From What's Wrong to What's Strong' (TEDxExeter, 2016); McKnight & Russell, 'The Four Essential Elements of an ABCD Process' (ABCD Institute at DePaul, 2018, CC BY-NC 4.0)"
+      },
+      "source_url": "https://www.nurturedevelopment.org/wp-content/uploads/2018/09/4_Essential_Elements_of_ABCD_Process.pdf",
+      "tags": ["community-organizing", "organizing-framework", "abcd", "question:what-resources-do-we-have"],
+      "metadata": {
+        "practice_kind": "framework",
+        "ordering_questions": [
+          "What can communities do best themselves?",
+          "What do communities require help with?",
+          "What do communities need outside agencies to do for them?"
+        ],
+        "source_note": "The four modes per Russell's community-driven development framework; the ordering rule verbatim in spirit from 'The Four Essential Elements of an ABCD Process' (CC BY-NC 4.0)."
+      },
+      "sort_order": 25
+    },
+    {
+      "slug": "neighborhood-asset-map",
+      "kind": "recipe",
+      "title": "The Asset Map (Not the Needs Map)",
+      "summary": "Asset-based community development's core practice: before listing what your neighborhood lacks, inventory what it has — residents' gifts, associations, institutions, places, exchange, and stories — and connect them.",
+      "body": "*The need:* Neighborhoods described only by their deficits start believing the description.\n\nJohn Kretzmann and John McKnight's 'Building Communities from the Inside Out' (1993) opens with two maps of the same place. The **needs map** — poverty rates, crime stats, dropout numbers — is 'part of the truth' mistaken for the whole truth; taken as the map, it teaches residents 'to see themselves as people with special needs that can only be met by outsiders,' routes money to service providers instead of residents, and forces leaders to win funding by denigrating their neighbors. The **assets map** starts from what is present: it is asset-based, internally focused, and relationship-driven.\n\nWhat goes on the assets map (the tradition's six categories): the **gifts of residents** (skills, knowledge, passions); **associations** (block clubs, choirs, leagues, the domino table — 'an association is the collective word for citizen'); **institutions** (schools, libraries, parks, churches, businesses); **physical places**; **exchange** (barter, timebanks, buying clubs, money); and **stories** — 'treasure maps that help us discover the hidden bounty.'\n\nHow a neighborhood actually does it, per McKnight and Russell's sequence: **discover** the neighborhood's natural connectors → **welcome** everyone, especially people at the margins, through learning conversations and listening campaigns → **portray** what you've heard (this is the map — a byproduct of conversations, never a data-scrape) → **share** through skill swaps, repair cafés, seed exchanges → **celebrate** → **vision** together.\n\nTwo cautions from the source itself: an asset map does not mean the neighborhood needs nothing from outside — internal assets are 'absolutely necessary but usually not sufficient'; and ABCD is meant to complement and often precede organizing, not substitute for it. The map hands the organizing arc its answer to question three — and a gift list waiting for question four.",
+      "attribution": {
+        "name": "John P. Kretzmann & John L. McKnight",
+        "source": "'Building Communities from the Inside Out' (1993); McKnight & Russell, 'The Four Essential Elements of an ABCD Process' (2018, CC BY-NC 4.0)"
+      },
+      "source_url": "https://www.nurturedevelopment.org/wp-content/uploads/2018/09/4_Essential_Elements_of_ABCD_Process.pdf",
+      "tags": ["community-organizing", "organizing-practice", "abcd", "asset-mapping", "question:what-resources-do-we-have"],
+      "metadata": {
+        "practice_kind": "recipe",
+        "asset_categories": ["residents' gifts", "associations", "institutions", "physical places", "exchange", "stories"],
+        "ingredients": ["a few connectors", "learning conversations block by block", "an association inventory", "somewhere shared to portray it all"],
+        "how_it_works": [
+          "Discover the natural connectors and convene them.",
+          "Welcome: run gift conversations door by door, margins first.",
+          "Portray: compile a shared, evolving picture — the map is the byproduct, the relationships are the product.",
+          "Share: skill swaps, repair cafés, seed exchanges — on-ramps where gifts meet.",
+          "Celebrate, then vision together — and only then bridge to outside resources."
+        ],
+        "field_tips": ["inventory associations, not just individuals — McKnight's checklist runs from block clubs to stamp collectors", "the most powerful communities identify the gifts of people at the margins", "never let the map substitute for the conversations"],
+        "success_signals": ["neighbors are introduced to each other's gifts, not just listed", "an association does something beyond its founding purpose", "outside agencies respond to a community agenda instead of setting one"],
+        "min_resources": "Free. Clipboards.",
+        "source_note": "Needs-map/assets-map argument and quotes from the Green Book introduction (reprintable with attribution); six assets and discover→vision sequence from 'The Four Essential Elements of an ABCD Process' (CC BY-NC 4.0)."
+      },
+      "sort_order": 150
+    },
+    {
+      "slug": "gift-conversations",
+      "kind": "recipe",
+      "title": "Gift Conversations: Head, Hands, Heart",
+      "summary": "The ABCD interview: four questions that surface what a neighbor knows, can do, cares about, and belongs to — because 'a gift isn't a gift until it is given.'",
+      "body": "*The need:* Most neighborhoods have never once been asked what they're good at.\n\nThe gift conversation (ABCD's 'learning conversation') is a doorstep or kitchen-table interview whose only agenda is discovering capacities. John McKnight's four questions:\n\n1. **Gifts of the head** — What do you especially know about? Birds, mathematics, neighborhood history?\n2. **Gifts of the hands** — What do you know how to do? Carpentry, cooking, guitar, baseball?\n3. **Gifts of the heart** — What do you especially care about? Children, the environment, veterans, elders?\n4. **Belonging** — What clubs, groups, and associations do you and your family take part in?\n\nPastor Mike Mather's Indianapolis congregation added two of the best follow-ups in the tradition: 'What three things do you do well enough that you could teach others?' and 'Who, besides God and me, is going with you along the way?'\n\nThe craft is what happens after: **name** the gift back to the person (many have never heard their capacity named), **bless** it (say publicly that it matters), and **connect** it — to a neighbor who needs it, an association that could use it, a group of others with the same gift. Twenty-two solo musicians become a band; four mothers become a childcare swap; twenty-nine people with repair skills become the block's fix-it crew. The original Capacity Inventory campaigns in Chicago surfaced more than a hundred women with care experience who formed a home-care enterprise that connected over eighty of them to paid work.\n\nThe discipline: this is a conversation, not a survey. Consent, not collection. And it is pointless without connectors committed to acting on what they hear — 'a gift isn't a gift until it is given. Before the giving, it is only a beautifully wrapped box in a drawer.'",
+      "attribution": {
+        "name": "John McKnight; Mike Mather & De'Amon Harges (Broadway UMC)",
+        "source": "McKnight, 'A Basic Guide to ABCD Community Organizing'; Mather, 'Having Nothing, Possessing Everything' (Eerdmans, 2018)"
+      },
+      "source_url": "https://www.nurturedevelopment.org/wp-content/uploads/2016/01/A-Basic-Guide-to-ABCD-Community-Organizing-1.pdf",
+      "tags": ["community-organizing", "organizing-practice", "abcd", "gifts", "question:what-resources-do-we-have", "question:who-are-my-people"],
+      "metadata": {
+        "practice_kind": "recipe",
+        "ingredients": ["the four questions", "a porch or kitchen table", "a connector who will act on what's heard"],
+        "how_it_works": [
+          "Ask the four questions: head, hands, heart, belonging.",
+          "Listen for what they'd teach, not just what they'd take.",
+          "Name the gift back to them; bless it publicly.",
+          "Connect it: person to person, person to association, association to association.",
+          "Keep the inventory light and consented — the relationship is the record."
+        ],
+        "success_signals": ["a neighbor teaches something for the first time", "gifts get asked for within a month of being named", "people at the margins are interviewed first, not last"],
+        "min_resources": "Free.",
+        "source_note": "Four questions quoted from McKnight's 'A Basic Guide to ABCD Community Organizing' (Nurture Development); name/bless/connect and the follow-up questions from Broadway UMC's roving listener practice (Faith & Leadership; Mather 2018); Chicago home-care outcome from 'How to Use a Capacity Inventory' (Kretzmann & McKnight)."
+      },
+      "sort_order": 160
+    },
+    {
+      "slug": "connectors-table",
+      "kind": "recipe",
+      "title": "The Connectors Table",
+      "summary": "Find the people who are already at the center of the room — gift-centered, trusted, joyful about introducing neighbors — and convene them as the neighborhood's connective tissue.",
+      "body": "*The need:* Every neighborhood already has connectors. Almost none has ever put them in the same room.\n\nMcKnight's distinction: 'A leader is a person at the front of the room... A connector is in the center of the room, often unrecognized but always creating new relationships.' Connectors are gift-centered (they see the full half of everyone), well-connected (a practiced connector knows 80–100 neighbors), trusted, believers in their community, and people who get real joy from convening and inviting. Cormac Russell adds: they 'go guarantor' — they spend their own social capital vouching for the gifts of marginalized neighbors.\n\nThe practice is simple: identify a handful of them — ask 'who knows everyone around here?' and follow the answers — and invite them to a **Connectors Table**: a recurring, informal gathering whose work is (1) sharing what they're hearing in gift conversations, (2) making introductions on purpose (person to person, person to association, association to association), and (3) noticing what the neighborhood could do next with what it has.\n\nWhy associations are the table's real leverage: 'Voting is the power to give your power away... An association is a means to make power.' Associations decide what needs doing, decide how, and do it — no client role anywhere. They also stretch beyond their founding purpose (a motorcycle club becomes a child-protection network), and they can federate: an association of associations is, in McKnight's words, the most powerful tool a neighborhood has.\n\nThe Connectors Table is where 'who are my people?' and 'what resources do we have?' braid together — and it's the ABCD tradition's answer to the organizing tradition's leadership team.",
+      "attribution": {
+        "name": "John McKnight; Cormac Russell",
+        "source": "McKnight, 'A Basic Guide to ABCD Community Organizing'; Nurture Development, 'Touchstone One'"
+      },
+      "source_url": "https://www.nurturedevelopment.org/wp-content/uploads/2016/01/A-Basic-Guide-to-ABCD-Community-Organizing-1.pdf",
+      "tags": ["community-organizing", "organizing-practice", "abcd", "connectors", "associations", "question:who-are-my-people", "question:what-resources-do-we-have"],
+      "metadata": {
+        "practice_kind": "recipe",
+        "connector_traits": ["gift-centered", "well-connected", "trusted", "believes in the community", "joyful about convening", "goes guarantor for the marginalized"],
+        "how_it_works": [
+          "Ask around: who knows everyone? Who do people trust?",
+          "Invite four to eight of them to a recurring, informal table.",
+          "Share what gift conversations are surfacing.",
+          "Make introductions deliberately — and inventory the associations.",
+          "Let the table notice what the neighborhood could do next with what it has."
+        ],
+        "success_signals": ["introductions happen weekly, on purpose", "associations start collaborating with each other", "the table can name the gifts of the block's most overlooked residents"],
+        "min_resources": "Free. Coffee.",
+        "source_note": "Connector definition and traits from McKnight's Basic Guide and Russell's 'Touchstone One' (Nurture Development); association-of-associations argument from the same Basic Guide."
+      },
+      "sort_order": 170
+    },
+    {
       "slug": "montgomery-381-days",
       "kind": "story",
       "title": "Montgomery: 381 Days of Bus Fare",
       "summary": "The Montgomery bus boycott as a strategy story: a constituency turned its humblest resource — bus fare — into the power to desegregate a bus system, by organizing to withhold it together for 381 days.",
-      "body": "In December 1955, Black residents of Montgomery, Alabama — forced to sit at the back of segregated buses and surrender seats to white passengers — began refusing to ride. The boycott held for 381 days, deprived the bus system of the majority of its riders' fares, and ended with desegregated buses.\n\nOrganizers tell this story as the cleanest illustration of what strategy *is*: turning what you have into what you need to get what you want. What the constituency had looked like almost nothing — bus fare, feet, church basements, and one another. Organized collectively, the fare became economic leverage; the feet became a daily, visible act of commitment; the churches became coordination infrastructure (the carpool system moved tens of thousands of people); and the commitment renewed itself in weekly mass meetings for over a year.\n\nThe boycott's theory of change fits in a sentence: if Black residents boycott the buses, the system will desegregate, because segregation will cost more than it pays. And its deeper lessons are relational, not logistical: the boycott was possible because networks were already built — the Women's Political Council had been preparing for years, and the boycott's announcement moved through churches, schools, and clubs in a single weekend. The mass meetings weren't just information; they were where courage was collectively renewed.\n\nWhat it teaches the sixth question: Montgomery's people ended those 381 days with more than desegregated buses — they ended with proof of their own power, trained leaders, and the organizing muscle that carried the movement's next decade.",
+      "body": "In December 1955, Black residents of Montgomery, Alabama — forced to sit at the back of segregated buses and surrender seats to white passengers — began refusing to ride. The boycott held for 381 days, deprived the bus system of most of its riders' fares, and ended with desegregated buses.\n\nOrganizers tell this story as the cleanest illustration of what strategy *is*: turning what you have into what you need to get what you want. What the constituency had looked like almost nothing — bus fare, feet, church basements, and one another. Organized collectively, the fare became economic leverage; the feet became a daily, visible act of commitment; and weekly mass meetings renewed courage for over a year.\n\nThe theory of change fits in a sentence: if Black residents boycott the buses, the system will desegregate, because segregation will cost more than it pays.\n\nBut the boycott only looks spontaneous if you ignore the decade of organizing underneath it. The Women's Political Council — founded in 1946 by Mary Fair Burks — had documented bus abuse and threatened a boycott for years. The night of Rosa Parks's arrest, WPC president Jo Ann Robinson stayed up with two students mimeographing tens of thousands of handbills calling for the one-day boycott that became 381. E.D. Nixon — Pullman porter, union man, past NAACP president — bailed Parks out and phoned the ministers who met at Dexter Avenue Baptist Church, drafting a young Martin Luther King Jr. as spokesman. And the logistics were themselves power: a carpool of over 300 private cars running 43 dispatch and 42 pickup stations, run by the Montgomery Improvement Association's transportation committee.\n\nWhat it teaches: organizing precedes mobilizing. And Montgomery's people ended those 381 days with more than desegregated buses — proof of their own power, trained leaders, and the muscle that carried the movement's next decade.",
       "attribution": {
         "name": "The people of Montgomery, Alabama (1955–56)",
         "source": "Retold after 'Organizing: People, Power, Change' (2014) and Taylor Branch, 'Parting the Waters' (1988)"
@@ -415,9 +552,261 @@
         "place": "Montgomery, Alabama",
         "era": "1955–1956",
         "illustrates": ["theory-of-change-sentence", "campaign-timeline-peaks", "people-power-change"],
-        "source_note": "Used as the core strategy example in 'Organizing: People, Power, Change' (2014); historical details per the King Institute at Stanford."
+        "source_note": "Used as the core strategy example in 'Organizing: People, Power, Change' (2014); organizing-infrastructure details per the King Institute at Stanford (Montgomery Improvement Association; Montgomery Bus Boycott), the NMAAHC on Jo Ann Robinson, and Britannica on the Women's Political Council."
+      },
+      "sort_order": 310
+    },
+    {
+      "slug": "sal-si-puedes",
+      "kind": "story",
+      "title": "Sal Si Puedes: The House Meeting That Found Cesar Chavez",
+      "summary": "In 1952, organizer Fred Ross came to a San Jose barrio called 'Get Out If You Can.' A 25-year-old named Cesar Chavez arranged to have the house meeting in his own home interrupted so he'd have an excuse to leave. He stayed.",
+      "body": "Fred Ross Sr. spent the late 1940s organizing Mexican-American communities across Southern California for the Community Service Organization, refining a deceptively simple instrument: the **house meeting** — a small gathering in someone's living room, hosted by a resident who invites their own people. Cycles of house meetings built toward a big organizing meeting, then a founding convention. The living room did two things a rally never could: it let an organizer talk with people inside real trust networks, and it revealed leaders — you watched who convened people, who spoke with authority in their own kitchen. The CSO's proof of power came fast: roughly a thousand members and 15,000 newly registered voters in East L.A., and in 1949 Edward Roybal became the first Mexican-American on the Los Angeles City Council since the nineteenth century.\n\nIn spring 1952, Ross arrived in Sal Si Puedes — 'get out if you can' — a barrio of East San Jose, and a public-health nurse pointed him to Cesar Chavez, a 25-year-old Navy veteran. Chavez, assuming Ross was another patronizing outsider, arranged for the June 9 house meeting in his own home to be interrupted so he'd have an exit. Instead he was captivated — by an approach built on listening to people, engaging what they actually cared about, and moving them to act together. Ross wrote in his journal that night: *'I think I've found the guy I've been looking for.'*\n\nChavez became a CSO organizer; Ross soon recruited Dolores Huerta in Stockton, whose CSO lobbying won pensions for some fifty thousand non-citizen farmworkers. The lineage is literal: Ross trained Chavez and Huerta; the union they built trained Marshall Ganz; Ganz's framework trained a generation. One living room at a time.",
+      "attribution": {
+        "name": "Fred Ross Sr., Cesar Chavez & the Community Service Organization",
+        "source": "Cesar Chavez Foundation; Gabriel Thompson, 'America's Social Arsonist' (UC Press, 2016)"
+      },
+      "source_url": "https://chavezfoundation.org/tag/cso-organizer/",
+      "tags": ["community-organizing", "organizing-story", "house-meetings", "lineage", "question:who-are-my-people"],
+      "metadata": {
+        "practice_kind": "story",
+        "place": "Sal Si Puedes, East San Jose, California",
+        "era": "1947–1962",
+        "illustrates": ["one-to-one-relational-meeting", "snowflake-model"],
+        "source_note": "House-meeting method and Roybal registration figures per the Zinn Education Project and PBS SoCal; the June 9, 1952 meeting and Ross journal line per the Cesar Chavez Foundation and Beyond Chron; Huerta's pension win per the Dolores Huerta Foundation."
       },
       "sort_order": 300
+    },
+    {
+      "slug": "grape-boycott-boycott-houses",
+      "kind": "story",
+      "title": "The Grape Boycott: Farmworkers in Every City",
+      "summary": "When the strike alone couldn't win, the United Farm Workers sent farmworkers — many of whom had never left California's Central Valley — to run boycott houses in distant cities. Seventeen million Americans stopped buying grapes.",
+      "body": "On September 8, 1965, Filipino-American grape workers led by Larry Itliong's generation walked out at Delano, California; Cesar Chavez's largely Latino union voted to join them eight days later. The growers could outlast a strike in the fields. So the union moved the battlefield: it sent farmworkers themselves to cities across North America to run boycott houses — organizing local committees of students, clergy, unionists, and housewives to get California grapes out of the stores.\n\nEliseo Medina was sent to run the Chicago boycott office in his early twenties. Jessica Govea, a 21-year-old farmworker from Bakersfield, led the boycott in Toronto and Montreal and persuaded Canadian grocery chains to drop California grapes. Dolores Huerta directed New York and sharpened the strategy: target the chains, not just the fruit. Marshall Ganz — who had left Harvard for Mississippi Freedom Summer — joined the union in 1965 and spent sixteen years learning and building this machine.\n\nAt the boycott's height an estimated seventeen million Americans stopped buying grapes. On July 29, 1970, twenty-six Delano growers signed the first real union contracts in California field agriculture, covering roughly ten thousand workers.\n\nWhat it teaches: distributed organizing is what a poor constituency does when its only abundant resources are its people, their stories, and their courage. Every boycott house was a snowflake node — local leadership, real responsibility, accountable to the whole. The pattern reappeared four decades later in a presidential campaign, and it reappears any time a neighborhood realizes its people in other rooms are a resource, not a diaspora.",
+      "attribution": {
+        "name": "The United Farm Workers — Larry Itliong, Cesar Chavez, Dolores Huerta, Eliseo Medina, Jessica Govea & thousands more",
+        "source": "UFW history archives; Marshall Ganz, 'Why David Sometimes Wins' (Oxford, 2009)"
+      },
+      "source_url": "https://ufw.org/1965-1970-delano-grape-strike-boycott/",
+      "tags": ["community-organizing", "organizing-story", "distributed-organizing", "lineage", "question:what-could-we-do-together", "question:what-commitments-do-we-make"],
+      "metadata": {
+        "practice_kind": "story",
+        "place": "Delano, California — and boycott houses across North America",
+        "era": "1965–1970",
+        "illustrates": ["snowflake-model", "theory-of-change-sentence", "campaign-timeline-peaks"],
+        "source_note": "Strike and contract facts per UFW's own history pages and the National Park Service; named boycott organizers per the Walter P. Reuther Library and Facing History."
+      },
+      "sort_order": 305
+    },
+    {
+      "slug": "beautician-and-bus-driver",
+      "kind": "story",
+      "title": "The Beautician and the Bus Driver",
+      "summary": "Highlander Folk School's citizenship schools were taught by a beautician chosen precisely because she wasn't a credentialed teacher. Septima Clark's motto: 'I train the people to do their own talking.'",
+      "body": "Myles Horton founded Highlander Folk School in Monteagle, Tennessee in 1932 — by the 1950s one of the only places in the segregated South where Black and white activists lived, ate, and planned together. Rosa Parks attended a two-week Highlander workshop in the summer of 1955, four months before her arrest in Montgomery.\n\nHighlander's deepest invention was the **citizenship school**. Septima Clark — a Charleston teacher fired for her NAACP membership — built adult literacy-plus-civics classes so Black Southerners could pass the voter-registration tests designed to exclude them. Esau Jenkins, a bus driver on Johns Island, South Carolina, had been teaching neighbors to read the constitution on his bus route; the first school was built for his island. And to teach it, Clark chose her cousin **Bernice Robinson — a beautician, deliberately selected because she wasn't a credentialed teacher**. The point was the pedagogy: 'the answers come from the people.' Teachers who looked like school would teach like school; a neighbor taught like a neighbor.\n\nThe program spread through the South — by 1961, when the Southern Christian Leadership Conference took it over, it had helped tens of thousands register — and its teachers became the movement's local backbone.\n\nWhat it teaches the shelf: leadership development is not a credential pipeline. The people best positioned to teach a neighborhood are often the ones no institution would think to hire — and a movement that trains beauticians and bus drivers as teachers is answering 'are we stronger now?' every single week. Clark said it plainly: 'I train the people to do their own talking.'",
+      "attribution": {
+        "name": "Septima Clark, Bernice Robinson, Esau Jenkins & Highlander Folk School",
+        "source": "King Institute (Stanford); SNCC Digital Gateway; Southern Cultures on Septima Clark"
+      },
+      "source_url": "https://kinginstitute.stanford.edu/highlander-folk-school",
+      "tags": ["community-organizing", "organizing-story", "leadership-development", "popular-education", "question:are-we-stronger-now"],
+      "metadata": {
+        "practice_kind": "story",
+        "place": "Monteagle, Tennessee & Johns Island, South Carolina",
+        "era": "1932–1961",
+        "illustrates": ["coaching-five-steps", "beautician-teachers-pattern"],
+        "source_note": "Highlander history, Parks's 1955 workshop, and the citizenship schools per the King Institute at Stanford and the SNCC Digital Gateway; Highlander continues today as the Highlander Research and Education Center in New Market, TN."
+      },
+      "sort_order": 315
+    },
+    {
+      "slug": "cops-thousand-conversations",
+      "kind": "story",
+      "title": "COPS: A Thousand Conversations Before the First Meeting",
+      "summary": "Ernesto Cortés Jr. came home to San Antonio in 1974 and did over a thousand relational meetings before founding COPS — which then packed city hall, held the microphone, and won the west side its drainage, sidewalks, and two billion dollars of infrastructure.",
+      "body": "Communities Organized for Public Service was not founded at its founding convention. It was founded in more than a thousand one-on-one relational meetings that Ernesto Cortés Jr., freshly trained by the Industrial Areas Foundation, ran through the Catholic parishes of San Antonio's Mexican-American west and south sides in 1974. The IAF's Ed Chambers — who systematized Saul Alinsky's craft into teachable practice — called the relational meeting 'the most radical thing we teach': thirty to forty-five minutes, face to face, probing another person's interests, stories, anger, and talent.\n\nWhat the conversations surfaced wasn't an issue an organizer imported — it was flooding. West-side residents documented that drainage bonds had been approved for their neighborhoods for decades and never spent there. They built a 'counter-budget' of capital projects, and in August 1974 packed roughly five hundred members into City Council chambers, where leader Beatrice Gallego held the microphone until the council heard them out. First president Andy Sarabia — a civilian Air Force employee and parish leader — embodied the model: leadership from within the constituency, accountable to it.\n\nOver fifty years COPS/Metro has won drainage, paved streets, sidewalks, parks, libraries, a west-side natatorium, the shift to single-member council districts that ended minority-rule politics in a majority-Mexican-American city, the Project QUEST job-training program, and by its own accounting helped direct some two billion dollars in infrastructure bonds to neighborhoods that had been promised them for generations.\n\nWhat it teaches: the founding meeting is the last step of founding. Institutions people already trust — parishes, congregations, schools — are organizing infrastructure. And the IAF's iron rule rides through every practice on this shelf: never do for people what they can do for themselves.",
+      "attribution": {
+        "name": "Ernesto Cortés Jr., Andy Sarabia, Beatrice Gallego & COPS (Industrial Areas Foundation)",
+        "source": "COPS/Metro's own accomplishments record; Texas Monthly; San Antonio Report"
+      },
+      "source_url": "https://www.copsmetro.com/accomplishments",
+      "tags": ["community-organizing", "organizing-story", "relational-meetings", "iaf", "question:who-are-my-people", "question:what-could-we-do-together"],
+      "metadata": {
+        "practice_kind": "story",
+        "place": "West and south sides, San Antonio, Texas",
+        "era": "1974–present",
+        "illustrates": ["one-to-one-relational-meeting", "tracking-down-the-power", "people-power-change"],
+        "source_note": "Founding-year relational meetings, counter-budget, and council action per Texas Monthly and the Museo del Westside; fifty-year totals per COPS/Metro's own accounting (copsmetro.com). Chambers's 'most radical thing' from 'Roots for Radicals' (2003)."
+      },
+      "sort_order": 320
+    },
+    {
+      "slug": "neighborhood-teams-2008",
+      "kind": "story",
+      "title": "Neighborhood Teams: The Snowflake at National Scale",
+      "summary": "The 2008 Obama campaign trained volunteers in public narrative at 'Camp Obama,' structured them into neighborhood teams with real responsibility, and proved the Ganz model could hold millions of people.",
+      "body": "In 2007, Marshall Ganz and colleagues designed a volunteer architecture for the Obama campaign that ran directly on the practices of this shelf: multi-day 'Camp Obama' trainings where volunteers learned to tell a story of self, us, and now — then organized into **neighborhood leadership teams** with defined turf and real responsibility for voter contact.\n\nThe structure was the snowflake: a team coordinator at the center of interdependent roles — canvass, phone bank, volunteer, data — each leading others, rather than staff controlling a call list. Journalist Zack Exley, embedded that fall, counted 1,231 campaign-defined neighborhoods in Ohio alone, and named the operating principle: respect the volunteers by giving them real responsibility. By Ganz's account the campaign trained roughly three thousand organizers who built thousands of neighborhood teams engaging over a million and a half volunteers; the definitive study, 'Groundbreakers,' puts the volunteer total at 2.2 million.\n\nFor this shelf, the campaign matters less as politics than as proof at scale: the house meeting, the 1:1, public narrative, testing leaders before escalating them, teams with shared purpose and ground rules — the whole toolkit held together with millions of strangers, most of whom had never organized anything. The lineage was explicit: Ganz learned the craft in the UFW, which learned it from Fred Ross's living rooms.\n\nThe question it leaves for a neighborhood: if the model works with 2.2 million people who mostly never met, what could it do with forty households who see each other every day?",
+      "attribution": {
+        "name": "Marshall Ganz & the 2008 campaign's organizers and volunteers",
+        "source": "Ganz, 'Organizing Obama' (2009); Zack Exley, 'The New Organizers' (2008); McKenna & Han, 'Groundbreakers' (2014)"
+      },
+      "source_url": "https://dash.harvard.edu/bitstream/handle/1/27306258/Organizing-Obama-Final.pdf",
+      "tags": ["community-organizing", "organizing-story", "snowflake", "public-narrative", "question:what-commitments-do-we-make"],
+      "metadata": {
+        "practice_kind": "story",
+        "place": "United States (Ohio's 1,231 neighborhoods as the documented case)",
+        "era": "2007–2008",
+        "illustrates": ["snowflake-model", "story-of-self-us-now", "launch-a-team"],
+        "source_note": "Team counts and training figures per Ganz's 'Organizing Obama' and Exley's embedded reporting; 2.2M volunteer figure per 'Groundbreakers' (Oxford, 2014). Ohio figures use different units (teams vs. defined turfs) across sources."
+      },
+      "sort_order": 325
+    },
+    {
+      "slug": "dudley-street-how-many-of-you-live-here",
+      "kind": "story",
+      "title": "Dudley Street: 'How Many of You Live in This Neighborhood?'",
+      "summary": "One resident's question at a 1985 planning meeting forced a foundation-led initiative to hand its board to the neighborhood — which went on to win eminent domain over vacant land and build a community land trust with 225 permanently affordable homes.",
+      "body": "By the early 1980s, arson-for-insurance and disinvestment had left about 1,300 vacant parcels — a fifth of the land — in Boston's Dudley Street neighborhood, which outsiders used as an illegal dump. Foundations and agencies arrived with a revitalization plan. At an early meeting in 1985, resident Ché Madyun stood up and asked the planners: **'How many of you live in this neighborhood?'**\n\nThe question restructured the whole initiative. The Dudley Street Neighborhood Initiative rebuilt itself around a resident-majority board — 35 seats, elected every two years, with mandated parity across the neighborhood's four communities: African American, Cape Verdean, Latino, and white. Madyun became its president the next year. The first campaign was 'Don't Dump On Us' (1986): residents forced the city to close the illegal trash-transfer stations, tow the abandoned cars, and clean and fence the lots — a winnable first fight that proved the muscle.\n\nThen the structural move: in 1988 DSNI's land-holding arm, Dudley Neighbors Inc., became the first community group in the United States to win the **power of eminent domain** over vacant private land in the 62-acre Dudley Triangle. The land trust today holds about 30 acres: 225 permanently affordable homes, a community greenhouse, an urban farm, parks — the neighborhood's own phrase is 'development without displacement.'\n\nWhat it teaches: governance design is a power question, not a formality. A resident-majority board with ethnic parity wasn't process decoration — it was the difference between a plan for the neighborhood and a plan by it. And the sequence matters: dumpsters before land trusts; a visible win before a structural one.",
+      "attribution": {
+        "name": "Ché Madyun & the residents of the Dudley Street neighborhood",
+        "source": "National Park Service; DSNI's historic timeline; Medoff & Sklar, 'Streets of Hope' (1994)"
+      },
+      "source_url": "https://www.nps.gov/mabi/learn/historyculture/che-madyun.htm",
+      "tags": ["community-organizing", "organizing-story", "land", "governance", "question:what-commitments-do-we-make", "question:are-we-stronger-now"],
+      "metadata": {
+        "practice_kind": "story",
+        "place": "Roxbury / North Dorchester, Boston",
+        "era": "1984–present",
+        "illustrates": ["launch-a-team", "campaign-timeline-peaks", "tracking-down-the-power"],
+        "source_note": "Madyun's question and board structure per the National Park Service and DSNI's own timeline; eminent-domain date given as 1988 in DSNI's timeline (some sources date the redevelopment authority's final approval to 1989)."
+      },
+      "sort_order": 330
+    },
+    {
+      "slug": "parent-mentors-logan-square",
+      "kind": "story",
+      "title": "Parent Mentors: The Program Where the Win Is the People",
+      "summary": "Logan Square Neighborhood Association put parents — mostly Latina and Black mothers — into classrooms two hours a day, with organizing training on the side. Many became organizers, and 925 mentors across 117 schools won millions in state funding.",
+      "body": "In 1995, Chicago's Logan Square Neighborhood Association — schooled by years of anti-displacement fights — launched a program disarming in its simplicity: parents work two hours a day in their children's classrooms, a hundred-plus hours a semester, with a stipend, and weekly training that mixes instructional practice with community-organizing skills.\n\nThe classroom hours are real work. But the program's engine is the ladder underneath: parent mentors — mostly Latina and Black mothers, many of whom had never been asked to lead anything — went on to run campaigns for community learning centers, school annexes to relieve overcrowding, and immigrant-family protections. Many became LSNA organizers and staff; Leticia Barrera, a former parent mentor, rose to direct the program itself.\n\nThe model replicated the way good organizing does: the Southwest Organizing Project picked it up in 2004; the resulting Parent Engagement Institute won a million dollars in state funding its first year; and by spring 2019, 925 parent mentors in 117 schools across 30 organizations had won $3.5 million from the Illinois legislature to sustain the work.\n\nWhat it teaches: this is the ladder of engagement built as a program — supporter to team member to leader, with a paid, structured first rung. It answers 'are we stronger now?' with a roster: every cohort leaves the neighborhood with dozens more people who know how to run a meeting, make a hard ask, and move an institution. The schools got help; the neighborhood got organizers.",
+      "attribution": {
+        "name": "Logan Square Neighborhood Association's parent mentors — and Leticia Barrera's generation of leaders",
+        "source": "Parent Engagement Institute; Institute for Educational Leadership; Soo Hong, 'A Cord of Three Strands'"
+      },
+      "source_url": "https://www.parentengagement.institute/history",
+      "tags": ["community-organizing", "organizing-story", "leadership-development", "schools", "question:are-we-stronger-now"],
+      "metadata": {
+        "practice_kind": "story",
+        "place": "Logan Square, Chicago",
+        "era": "1995–present",
+        "illustrates": ["snowflake-model", "coaching-five-steps", "the-debrief"],
+        "source_note": "Program design and replication figures per the Parent Engagement Institute's own history and the Institute for Educational Leadership profile."
+      },
+      "sort_order": 335
+    },
+    {
+      "slug": "kc-tenants",
+      "kind": "story",
+      "title": "KC Tenants: Evicted People Run the Union",
+      "summary": "Founded through door-knocking and 1:1s with tenants like Tiana Caldwell — evicted while fighting cancer — KC Tenants won a Tenants' Bill of Rights within a year, then a citywide right to counsel in eviction court.",
+      "body": "In 2019, Tara Raghuveer came home to Kansas City after researching its eviction crisis and started doing what the research couldn't: meeting tenants. Among the first was Tiana Caldwell, who with her husband and son had been evicted in late 2018 while she fought a second round of ovarian cancer. Caldwell didn't become a case study; she became a founding leader — of KC Tenants and of a national homes-guarantee campaign.\n\nThe union built itself the way this shelf teaches: base-building through shared lived experience, leaders drawn from the constituency, escalation with a strategy. Within a year, the City Council passed a **Tenants' Bill of Rights** (December 2019): notice before entry, utility-cost disclosure, and the legal right to organize. During the pandemic the union fought evictions with direct action — including chaining courthouse doors shut in October 2020. And in June 2022 Kansas City launched a citywide **right to counsel**, putting a lawyer beside every tenant facing eviction, won by the union's sustained campaign.\n\nThe union — run by poor and working-class tenants across race and neighborhood — has since moved into electoral organizing and social-housing advocacy, and helped seed a national federation of tenant unions.\n\nWhat it teaches: Ganz's definition made flesh — the constituency's commitment is the decisive resource. The people with the problem ran the organization that solved it, and every campaign left the union bigger and its leaders more practiced. When the next fight comes, Kansas City's tenants won't be starting over.",
+      "attribution": {
+        "name": "KC Tenants — Tiana Caldwell, Tara Raghuveer & thousands of member-leaders",
+        "source": "Next City; Shelterforce; WBUR On Point (Caldwell's first-person account)"
+      },
+      "source_url": "https://nextcity.org/urbanist-news/kansas-city-adopts-a-tenants-bill-of-rights",
+      "tags": ["community-organizing", "organizing-story", "tenants", "question:what-commitments-do-we-make", "question:are-we-stronger-now"],
+      "metadata": {
+        "practice_kind": "story",
+        "place": "Kansas City, Missouri",
+        "era": "2019–present",
+        "illustrates": ["one-to-one-relational-meeting", "campaign-timeline-peaks", "people-power-change"],
+        "source_note": "Bill of Rights and right-to-counsel dates per Next City, Shelterforce, and the City of Kansas City; Caldwell's story in her own words via WBUR."
+      },
+      "sort_order": 340
+    },
+    {
+      "slug": "moms-4-housing",
+      "kind": "story",
+      "title": "Moms 4 Housing: The Vacant House on Magnolia Street",
+      "summary": "Homeless and marginally housed Black mothers occupied an investor-owned vacant house in West Oakland for 58 days — and came out with the house in a land trust and a new state law against bulk foreclosure-flipping.",
+      "body": "In November 2019, a group of homeless and marginally housed Black mothers — publicly led by Dominique Walker, with organizer Carroll Fife alongside — moved into a vacant house at 2928 Magnolia Street in West Oakland. The house belonged to Wedgewood Inc., a Southern California flipping firm that had bought it at foreclosure auction. The mothers' claim was a power analysis you could photograph: Oakland had more vacant homes than homeless people.\n\nThey held the house for 58 days, through an armed pre-dawn eviction in January 2020 that drew hundreds of neighbors into the street. Walker: 'We moved into that home and wanted to reclaim it back into the hands of the community.' Under public pressure brokered through the governor's office and the mayor, Wedgewood agreed to sell the house to the Oakland Community Land Trust, which renovated it for the mothers' return. The fight then scaled into law: California's SB 1079 (2020) blocked bulk purchases at foreclosure auctions and gave tenants and families a window to match investor bids. Fife was elected to Oakland's City Council that November.\n\nWhat it teaches: direct action works when it *dramatizes* a power analysis rather than substituting for one — the vacant-homes-versus-homeless-mothers frame did the arguing. And escalation has a shape: occupation → negotiation → institutional fix (the land trust) → structural fix (state law). Each rung converted the previous one's attention into something durable.",
+      "attribution": {
+        "name": "Moms 4 Housing — Dominique Walker, Carroll Fife & the mothers of Magnolia Street",
+        "source": "NPR; KTVU; CalMatters"
+      },
+      "source_url": "https://www.npr.org/2020/01/22/798392207/moms-4-housing-celebrate-win-in-battle-over-vacant-house",
+      "tags": ["community-organizing", "organizing-story", "housing", "direct-action", "question:what-could-we-do-together"],
+      "metadata": {
+        "practice_kind": "story",
+        "place": "West Oakland, California",
+        "era": "2019–2020",
+        "illustrates": ["tracking-down-the-power", "theory-of-change-sentence"],
+        "source_note": "Occupation, sale to the Oakland CLT, and SB 1079 per NPR, CBS, KTVU, and CalMatters coverage."
+      },
+      "sort_order": 345
+    },
+    {
+      "slug": "roving-listener",
+      "kind": "story",
+      "title": "The Roving Listener",
+      "summary": "Broadway UMC in Indianapolis shut down its food pantry, tutoring, and summer programs — and hired neighbor De'Amon Harges to walk the blocks discovering talents instead of needs. The neighborhood answered with restaurants, gardens, and a dance studio.",
+      "body": "Broadway United Methodist Church had run the programs a shrinking urban church is supposed to run — a summer program serving 250 kids a day among them. Then nine young men died violently within four blocks in nine months, some of them program alumni. Pastor Mike Mather's verdict on his own good works was blunt: 'We felt so good about it that I broke my arm patting myself on the back.' A parishioner pointed at the food pantry's intake form: it asked, in effect, *how poor are you?* — and never asked anyone what they were good at.\n\nSo the church inverted itself. It retired the pantry, the tutoring program, the summer program, and the thrift shop — thanked in worship with 'well done, good and faithful servants' — and in 2004 hired De'Amon Harges, a neighbor, as its first **roving listener**: paid not to deliver services but to walk block by block discovering what people could do. 'I was curious about what was good in people, and that was what I was going to find out.' The craft: **name** the gift, **bless** it, **connect** it.\n\nWhat the listening surfaced: Adele, a pantry regular, opened a restaurant within eighteen months. Forty-five backyard gardeners, convened over dinner with no agenda, started meeting monthly and planning a farmers market in a food desert. Sunday-school rooms became a dance studio, a pottery shop, and catering startups in the church's licensed kitchen. An 'Abundance Fund' paid neighbors for their gifts — a baker paid to bake for a sick neighbor, a woman paid to sing at a bus stop, until a funeral home hired her. Since 2008, the Jubilee summer program has hired neighborhood teenagers as junior roving listeners; Harges went on to co-found The Learning Tree, applying the practice across near-northwest Indianapolis.\n\nWhat it teaches: the deepest resource question isn't what a neighborhood needs — it's who has been waiting to be asked.",
+      "attribution": {
+        "name": "De'Amon Harges & Rev. Mike Mather, Broadway United Methodist Church",
+        "source": "Faith & Leadership, 'Death and resurrection of an urban church'; Mather, 'Having Nothing, Possessing Everything' (2018)"
+      },
+      "source_url": "https://faithandleadership.com/death-and-resurrection-urban-church",
+      "tags": ["community-organizing", "organizing-story", "abcd", "gifts", "question:what-resources-do-we-have"],
+      "metadata": {
+        "practice_kind": "story",
+        "place": "Fall Creek area, Indianapolis",
+        "era": "2003–present",
+        "illustrates": ["gift-conversations", "neighborhood-asset-map", "connectors-table"],
+        "source_note": "All named outcomes per Faith & Leadership's long profile and Mather's book excerpt; Harges is now ABCD Institute faculty."
+      },
+      "sort_order": 350
+    },
+    {
+      "slug": "grants-for-blocks",
+      "kind": "story",
+      "title": "Savannah's Grants for Blocks",
+      "summary": "A city hall practiced ABCD with $500 at a time: resident groups on a block apply for micro-grants for self-chosen projects, judged by a resident committee with names redacted. The projects mattered less than the collaboration they required.",
+      "body": "In 1993, Savannah's assistant city manager Henry Moore did something unusual with a $20,000 Ford Foundation grant: he asked residents what to do with it. The answer became **Grants for Blocks**: grants of up to $500 to groups of neighbors on a block, for improvement projects they chose and carried out themselves. Applications grew from 89 in the first year to more than 300; the city moved the program onto its own budget at $70,000 a year.\n\nThe governance details are the remixable part. A **resident review committee** — two representatives per applying neighborhood — scored applications with names, dollar amounts, and neighborhood identifiers redacted; members couldn't review their own neighborhood's bids. Early rounds skewed toward beautification, so the program learned to prefer projects that ran as ongoing community activity rather than one-day cleanups. The city's own administrator named the real product: 'the real benefit is not just in the projects themselves, it is in the collaboration they inspire.'\n\nA block that applies for a $500 grant has to do everything this shelf teaches at miniature scale: find its people, agree on what it cares about, inventory who can do what, commit to each other, and finish something visible together. Moore went on to co-write the standard manual on combining ABCD with organizing — Savannah was his proof.\n\nWhat it teaches: small money, seriously governed, is leadership development infrastructure. The grant is the excuse; the block meeting is the point.",
+      "attribution": {
+        "name": "Henry Moore & the block groups of Savannah, Georgia",
+        "source": "Project for Public Spaces, 'Savannah's Grants-For-Blocks Program'"
+      },
+      "source_url": "https://www.pps.org/article/savannasmall",
+      "tags": ["community-organizing", "organizing-story", "abcd", "micro-grants", "question:what-could-we-do-together", "question:what-resources-do-we-have"],
+      "metadata": {
+        "practice_kind": "story",
+        "place": "Savannah, Georgia",
+        "era": "1993–2000s",
+        "illustrates": ["neighborhood-asset-map", "launch-a-team", "the-debrief"],
+        "source_note": "Program design and quotes per Project for Public Spaces; whether the program still operates in this form today is unverified — the design is the durable artifact."
+      },
+      "sort_order": 355
+    },
+    {
+      "slug": "block-connectors-edmonton",
+      "kind": "story",
+      "title": "The Block Connectors of Edmonton",
+      "summary": "One neighbor in Edmonton's Highlands recruited fifty 'block connectors,' each visiting every household on their own block with six friendly questions. The model spread across the city as Abundant Community Edmonton.",
+      "body": "In January 2013, Howard Lawrence launched an experiment on his own street in Edmonton's Highlands neighbourhood, explicitly inspired by McKnight and Block's 'The Abundant Community.' The architecture is small enough to memorize: one **neighbourhood connector** recruits roughly fifty **block connectors**; each block connector visits every household on their own block — not with a survey, but with a conversation guide of six friendly topics: what makes a great neighbourhood, what would make ours better, what activities you'd join with neighbours, what interests you'd pursue together, what skills and gifts you'd share, and what life experience you'd offer.\n\nThe results get compiled into what the block actually wants: interest groups, a skills exchange, shared priorities — and, mostly, neighbors who know each other's names. Carmen Lawrence served as the Highlands' neighbourhood connector; the city's community services department picked the model up and spread it across Edmonton as **Abundant Community Edmonton**, and other Alberta municipalities followed.\n\nWhat it teaches: this is the gift conversation practice running at municipal scale with zero technology beyond a conversation guide — proof that the unit of neighborhood organizing is one person per block who agrees to knock on their own neighbors' doors. For builders, it's also the cleanest spec for what a tool should and shouldn't do: the conversations are irreplaceably human; what a tool can hold is the guide, the compiled interests, and the follow-through.",
+      "attribution": {
+        "name": "Howard Lawrence & the block connectors of Highlands, Edmonton",
+        "source": "Abundant Community Edmonton; Highlands Community League; Edify Edmonton"
+      },
+      "source_url": "https://www.abundantcommunity.com/the-abundant-community-initiative-edmonton/",
+      "tags": ["community-organizing", "organizing-story", "abcd", "block-connectors", "question:who-are-my-people", "question:what-resources-do-we-have"],
+      "metadata": {
+        "practice_kind": "story",
+        "place": "Highlands, Edmonton, Alberta",
+        "era": "2013–present",
+        "illustrates": ["gift-conversations", "connectors-table"],
+        "source_note": "Model architecture and six-topic guide per the Highlands Community League's Abundant Community pages and abundantcommunity.com."
+      },
+      "sort_order": 360
     },
     {
       "slug": "build-relational-map",
@@ -549,6 +938,60 @@
         "practice_kind": "reference"
       },
       "sort_order": 510
+    },
+    {
+      "slug": "axioms-for-organizers",
+      "kind": "reference",
+      "title": "Axioms for Organizers (Fred Ross Sr.)",
+      "summary": "The house-meeting master's aphorisms, distilled from forty years of organizing: 'Short-cuts usually end in detours, which lead to dead ends.'",
+      "body": "Fred Ross Sr. — the organizer who built the Community Service Organization's California chapters living room by living room, and who trained Cesar Chavez and Dolores Huerta — compressed four decades of craft into 'Axioms for Organizers' (1989), a few pages of aphorisms that circulate freely through the organizing world.\n\nThe axioms are the anti-shortcut tradition in miniature: organizing is one person at a time, follow-up is everything, and the organizer's job is to develop other people's capacity rather than display their own. They pair naturally with this shelf's practices — read them after the 1:1 recipe and the hard ask, and they sound like a veteran leaning over your shoulder.\n\nThe definitive account of Ross's life and method is Gabriel Thompson's biography 'America's Social Arsonist: Fred Ross and Grassroots Organizing in the Twentieth Century' (UC Press, 2016).",
+      "attribution": {
+        "name": "Fred Ross Sr.",
+        "source": "'Axioms for Organizers' (1989); Gabriel Thompson, 'America's Social Arsonist' (2016)"
+      },
+      "source_url": "https://coloradojobswithjustice.blogspot.com/2011/05/axioms-for-organizers-by-fred-ross-sr.html",
+      "tags": ["community-organizing", "organizing-reference", "house-meetings", "lineage"],
+      "metadata": {
+        "practice_kind": "reference",
+        "license_note": "The axioms circulate freely in the organizing world; formal license status unclear — link rather than republish in full."
+      },
+      "sort_order": 520
+    },
+    {
+      "slug": "building-communities-inside-out",
+      "kind": "reference",
+      "title": "Building Communities from the Inside Out (the Green Book)",
+      "summary": "Kretzmann & McKnight's 1993 classic — the founding text of asset-based community development, with the needs-map/assets-map argument and the original Capacity Inventory.",
+      "body": "The book behind this shelf's third question. 'Building Communities from the Inside Out: A Path Toward Finding and Mobilizing a Community's Assets' (Kretzmann & McKnight, 1993) — the 'Green Book,' over 100,000 copies sold — makes the case that neighborhoods described by their deficits learn dependence, while neighborhoods that inventory their gifts, associations, and institutions learn power. It includes the original **Capacity Inventory**: the four-part interview (skills, community work, enterprising interests, minimal personal info) that ABCD practitioners have adapted for thirty years.\n\nThe 11-page introduction — which carries the whole core argument — is freely reprintable with attribution and widely mirrored; the full book is sold through ACTA Publications. The 1990 precursor paper, 'Mapping Community Capacity' (McKnight & Kretzmann), is free online and contains the first asset maps and the association checklist.\n\nCompanions worth knowing: 'Discovering Community Power' (2005 workbook, free to download); McKnight & Russell's 'The Four Essential Elements of an ABCD Process' (2018, CC BY-NC 4.0 — the most openly licensed statement of the practice); Block & McKnight's 'The Abundant Community' (2010); and Russell & McKnight's 'The Connected Community' (2022). The ABCD Institute, founded by the authors at Northwestern in 1995, now lives at DePaul University's Steans Center.",
+      "attribution": {
+        "name": "John P. Kretzmann & John L. McKnight",
+        "source": "Institute for Policy Research, Northwestern University (1993); distributed by ACTA Publications"
+      },
+      "source_url": "https://mn.gov/mnddc/parallels2/pdf/90s/90/90-MCC-McKnight_Kretzmann.pdf",
+      "tags": ["community-organizing", "organizing-reference", "abcd", "question:what-resources-do-we-have"],
+      "metadata": {
+        "practice_kind": "reference",
+        "license_note": "Introduction reprintable with attribution; 'Four Essential Elements' (2018) is CC BY-NC 4.0; 'Mapping Community Capacity' (1990) is freely mirrored. Full Green Book is a sold publication.",
+        "companions": ["Mapping Community Capacity (1990)", "Discovering Community Power (2005)", "The Four Essential Elements of an ABCD Process (2018)", "The Abundant Community (2010)", "The Connected Community (2022)"]
+      },
+      "sort_order": 530
+    },
+    {
+      "slug": "abundant-community-book",
+      "kind": "reference",
+      "title": "The Abundant Community (McKnight & Block)",
+      "summary": "The 2010 book arguing that consumer society turned citizens into clients — and that neighborhoods hold three abundant powers: the giving of gifts, the power of association, and hospitality.",
+      "body": "John McKnight and Peter Block's 'The Abundant Community: Awakening the Power of Families and Neighborhoods' (Berrett-Koehler, 2010) is the ABCD tradition's most readable statement of *why*. Its argument: consumer society converted citizens into consumers and clients, outsourcing to systems the functions that only communities can actually perform — raising children, sustaining health, assuring safety, caring for the vulnerable. The way back runs through three powers every neighborhood already holds in abundance: **the giving of gifts**, **the power of association**, and **hospitality** — 'our doors are open; there are no strangers here, just friends we have not met.'\n\nThe book directly inspired the Abundant Community Edmonton block-connector model (a story on this shelf), and its companion site, abundantcommunity.com, is itself a large archive of neighborhood stories worth mining. Read it as the bridge between this shelf's resource question and its commitment question: gifts, associations, and hospitality are what neighbors commit *to each other* before any campaign gives them a target.",
+      "attribution": {
+        "name": "John McKnight & Peter Block",
+        "source": "Berrett-Koehler (2010)"
+      },
+      "source_url": "https://www.abundantcommunity.com/",
+      "tags": ["community-organizing", "organizing-reference", "abcd", "question:what-resources-do-we-have", "question:what-commitments-do-we-make"],
+      "metadata": {
+        "practice_kind": "reference"
+      },
+      "sort_order": 540
     }
   ]
 }
