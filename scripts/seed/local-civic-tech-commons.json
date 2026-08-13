@@ -1,0 +1,107 @@
+{
+  "studio": {
+    "slug": "local-civic-tech",
+    "display_name": "Local Civic Tech",
+    "home_url": null,
+    "steward_email": "humans@relationaltechproject.org",
+    "notes": "Tools, practices, and stories of civic technology remixable at the neighborhood level — global open-source platforms deployed at block scale, patterns proven in one place and adopted in another, and the lessons of what worked and what died. Researched substantially from the Civic Tech Field Guide (civictech.guide)."
+  },
+  "items": [
+    {
+      "slug": "remix-at-neighborhood-scale",
+      "kind": "framework",
+      "title": "Remix at Neighborhood Scale",
+      "summary": "The thesis of this shelf: civic tech doesn't have to be built for your neighborhood to work in your neighborhood. Global open-source platforms, proven civic patterns, and other places' stories are all remixable at block scale.",
+      "body": "Most civic technology is built for cities, countries, or the whole world. Almost all of it can be *used* smaller.\n\nUshahidi was built for crisis mapping across Kenya — and it can map the third places of one neighborhood. FixMyStreet was built for reporting potholes to councils across the UK — and its pattern (see something, report it, watch it get fixed in public) works for a block's broken streetlights or a park's maintenance backlog. Participatory budgeting was born across Porto Alegre — and it works on a single ward's discretionary fund, or a block association's $500.\n\nThree kinds of remixable material:\n\n1. **Open-source platforms** — software you can run for your own place (Ushahidi, Decidim, LocalWiki, Loomio). The license is the permission slip; the neighborhood use case is yours to invent.\n2. **Patterns** — designs proven somewhere and rebuildable anywhere, even in an afternoon with an AI builder: adopt-a-hydrant's 'civic objects with volunteer stewards', FixMyStreet's public issue ledger, a timebank's hour-for-hour exchange.\n3. **Stories** — what neighbors in other places actually did, which is where the judgment lives: what they built, what they skipped, why it worked.\n\nTwo disciplines keep the remix honest. First, the technology is the smallest part — the map is the 10%, the door-knocking is the 90%; every tool on this shelf assumes organizing around it (that's the other shelf). Second, learn from the graveyard: civic tech has a rich history of dead projects, and the Civic Tech Field Guide keeps the cemetery well-labeled. The pattern behind most headstones: tech that substituted for relationships instead of strengthening them, or maintenance nobody committed to. Remix accordingly.",
+      "attribution": {
+        "name": "Relational Technology Project",
+        "source": "Local Civic Tech shelf"
+      },
+      "source_url": "https://civictech.guide/",
+      "tags": ["local-civic-tech", "civic-tech-framework", "remix", "neighborhood-scale"],
+      "metadata": {
+        "practice_kind": "framework",
+        "remix_kinds": ["open-source platforms", "patterns", "stories"],
+        "disciplines": ["the tech is the 10% — organizing is the 90%", "learn from the graveyard"]
+      },
+      "sort_order": 10
+    },
+    {
+      "slug": "build-local-ushahidi-third-places",
+      "kind": "prompt",
+      "title": "Build: A Third-Places Map for Your Neighborhood",
+      "summary": "A starter build: a local Ushahidi — neighbors collectively map the porches, stoops, cafés, courts, and corners where the neighborhood actually happens, with stories attached to every pin.",
+      "body": "Ushahidi is a global open-source platform for crowdsourced mapping; this build borrows its soul at block scale. Make a map where neighbors pin the third places of one neighborhood — the spots that are neither home nor work where life actually happens: the good stoop, the café that lets you sit, the pickup court, the library steps, the taco truck corner, the community fridge.\n\nEach pin carries a neighbor's words: what happens here, when it's alive, who you'll meet, one story. Submissions are moderated by a named neighbor-steward (the Ushahidi lesson: every good deployment has one). Views: the map itself; a 'alive right now' filter by time of day; and a printable one-pager for the laundromat corkboard — because the neighbors who most need third places may not be on the map's own third place, the internet.\n\nExtra credit: a 'missing places' layer — where neighbors mark the third place that *should* exist ('this vacant lot wants to be a plaza') — which quietly becomes an organizing map: each cluster of wishes is a constituency waiting for a first meeting.\n\nConstraint: map conditions and places, never people — no 'suspicious activity' layers, ever. That road leads somewhere neighborhoods regret.",
+      "attribution": {
+        "name": "Relational Technology Project, after Ushahidi",
+        "source": "Local Civic Tech shelf starter prompt"
+      },
+      "source_url": "https://www.ushahidi.com/",
+      "tags": ["local-civic-tech", "civic-tech-prompt", "starter", "mapping", "third-places"],
+      "metadata": {
+        "practice_kind": "prompt",
+        "builds_on": ["ushahidi"],
+        "guardrails": ["map places and conditions, never people", "a named neighbor-steward moderates", "a printable path for offline neighbors"]
+      },
+      "sort_order": 400
+    },
+    {
+      "slug": "build-adopt-a-thing",
+      "kind": "prompt",
+      "title": "Build: Adopt-a-Thing for Your Block",
+      "summary": "A starter build: the Adopt-a-Hydrant pattern, remixed — a map of small civic objects (tree wells, storm drains, benches, little libraries) that neighbors claim, name, and care for.",
+      "body": "In 2011, Code for America fellow Erik Michaels-Ober built Adopt-a-Hydrant for Boston: a simple map where residents claimed a fire hydrant to shovel out after snowstorms — and named them. The pattern got remixed within months: storm drains, tsunami sirens in Honolulu. The insight wasn't hydrants; it was that *small civic objects + personal claim + a name* turns maintenance into relationship.\n\nBuild it for your block: a map of the things that need a person — tree wells that need summer watering, storm drains that need leaf-clearing before rain, a bench that needs paint, the little free library that needs restocking. A neighbor taps one, adopts it, names it ('Drainy McDrainface has a steward now'), and gets gentle seasonal nudges tied to real conditions (heat waves for trees, storm forecasts for drains).\n\nShow the whole block's care at a glance: every adopted thing, every steward first-name, every 'this thing needs a person' gap. Celebrate streaks at the block party.\n\nConstraint: adoption is an offer, not an enforcement — the tool never shames lapsed stewards, it just quietly reopens the adoption. And it works without an account for viewing; the barrier to seeing your block's care should be zero.",
+      "attribution": {
+        "name": "Relational Technology Project, after Erik Michaels-Ober / Code for America",
+        "source": "Local Civic Tech shelf starter prompt"
+      },
+      "source_url": null,
+      "tags": ["local-civic-tech", "civic-tech-prompt", "starter", "stewardship", "adopt-a-hydrant-pattern"],
+      "metadata": {
+        "practice_kind": "prompt",
+        "builds_on": ["adopt-a-hydrant-remixes"],
+        "guardrails": ["adoption is an offer, not an enforcement", "viewing requires no account", "names and delight are features, not decoration"]
+      },
+      "sort_order": 410
+    },
+    {
+      "slug": "build-block-scale-pb",
+      "kind": "prompt",
+      "title": "Build: Participatory Budgeting for a Very Small Budget",
+      "summary": "A starter build: run real participatory budgeting on a block association's actual money — propose, develop, vote, do — sized so the whole cycle fits in six weeks and $500.",
+      "body": "Participatory budgeting usually means cities and millions. The pattern shrinks beautifully: a block association's dues, a community garden's plot fees, a mutual aid fund's surplus — anywhere neighbors hold shared money, they can decide together how to spend it.\n\nBuild the cycle at block scale: (1) **Propose** — any neighbor submits an idea with a guess at cost ('paint the fire hydrant garden', 'bulk-buy sidewalk chalk', 'a proper coffee urn for meetings'). (2) **Develop** — ideas get budget-checked by two volunteer 'delegates' and merged where they overlap; every idea gets a real cost and a named doer before it reaches the ballot. (3) **Vote** — every household gets a ballot, digital or paper, same weight; a week to vote; results public the moment polls close. (4) **Do** — winners get done, with photos posted to the same tool, closing the loop that makes people believe the next cycle.\n\nThe tool's job is legibility: anyone can see every idea, every cost, every vote count, and every receipt. Trust in tiny democracy is built by boring transparency.\n\nConstraint: paper ballots count equally and are enterable by a steward — the neighbors with the strongest opinions about the coffee urn may never touch the app. And keep the cycle short: six weeks from first idea to finished project teaches more democracy than six months of process.",
+      "attribution": {
+        "name": "Relational Technology Project, after the participatory budgeting movement",
+        "source": "Local Civic Tech shelf starter prompt"
+      },
+      "source_url": null,
+      "tags": ["local-civic-tech", "civic-tech-prompt", "starter", "participatory-budgeting", "money"],
+      "metadata": {
+        "practice_kind": "prompt",
+        "builds_on": ["pb-49th-ward-chicago"],
+        "guardrails": ["paper ballots count equally", "every winner gets done and photographed — the loop must close", "six weeks, not six months"]
+      },
+      "sort_order": 420
+    },
+    {
+      "slug": "build-living-asset-map",
+      "kind": "prompt",
+      "title": "Build: A Living Asset Map",
+      "summary": "A starter build bridging both new shelves: an asset-based community development map where the assets are neighbors' own declared gifts, associations, and places — collected in conversations, not scraped.",
+      "body": "Asset-based community development starts from what a neighborhood has, not what it lacks: the gifts of individuals (head, hands, heart), the associations people already belong to, the institutions, the physical places, the local economy, the stories. This build gives that inventory a living home.\n\nThe map has layers: **people's gifts** (only ever self-declared or gathered in a real conversation with consent — 'Maria: sourdough, spreadsheet wizardry, listening'), **associations** (the block club, the domino regulars, the church choir — with a named connector for each), **places** (the community room nobody knows they can book, the church kitchen with the 40-quart pots), and **stories** (what this corner used to be; who to ask about it).\n\nIts most important view isn't the map — it's the match: someone plans a repair café and the tool surfaces 'four neighbors declared fixing gifts, the church has tables, the tool library is six blocks away.' Assets that never get asked for are assets the neighborhood still doesn't have.\n\nConstraint: this is the anti-directory. No scraping, no imports, no profiles anyone didn't write about themselves. An asset map is a gift exchange, and gifts are given, not taken. Track the asking: the map's success metric is connections made, not pins collected.",
+      "attribution": {
+        "name": "Relational Technology Project, after Kretzmann & McKnight",
+        "source": "Local Civic Tech shelf starter prompt"
+      },
+      "source_url": null,
+      "tags": ["local-civic-tech", "civic-tech-prompt", "starter", "abcd", "asset-mapping", "question:what-resources-do-we-have"],
+      "metadata": {
+        "practice_kind": "prompt",
+        "builds_on": ["neighborhood-asset-map"],
+        "cross_shelf": "community-organizing",
+        "guardrails": ["self-declared gifts only — no scraping, no involuntary profiles", "success metric is connections made, not pins collected", "every association gets a named human connector"]
+      },
+      "sort_order": 430
+    }
+  ]
+}

@@ -1,0 +1,554 @@
+{
+  "studio": {
+    "slug": "community-organizing",
+    "display_name": "Community Organizing",
+    "home_url": null,
+    "steward_email": "humans@relationaltechproject.org",
+    "notes": "Practices and stories of people building and recognizing power together, in the Marshall Ganz organizing tradition and the asset-based community development tradition. Framed by six questions: Who are my people? What do we care about? What resources do we have? What could we do together? What commitments do we make to each other? Are we stronger now?"
+  },
+  "items": [
+    {
+      "slug": "organizing-six-questions",
+      "kind": "framework",
+      "title": "The Six Questions",
+      "summary": "The arc of organizing at neighborhood scale, as six questions a group of neighbors can actually ask each other — from 'who are my people?' to 'are we stronger now?'",
+      "body": "Organizing is leadership that enables people to turn the resources they have into the power they need to make the change they want (Marshall Ganz). At neighborhood scale, that arc becomes six questions, asked roughly in order and then asked again:\n\n1. **Who are my people?** The first question an organizer asks — not \"what is my issue?\" This is expansive: in a place, your people are the people who live there with you, not just the ones who agree with you. You find them one conversation at a time.\n\n2. **What do we care about?** Values, not issues, come first. We find shared values by trading stories — especially the choice points in our lives — and weaving a story of self, us, and now.\n\n3. **What resources do we have?** Every neighborhood is built on the gifts of its people. Before asking what's missing, map what's there: skills, spaces, associations, institutions, stories (asset-based community development).\n\n4. **What could we do together?** Strategy is turning what you have into what you need to get what you want. Pick a goal that is concrete, winnable, and builds capacity — then say your theory of change out loud in one sentence.\n\n5. **What commitments do we make to each other?** Power comes from commitment, and commitment is made person to person: a hard ask, a clear role, a date on the calendar, mutual accountability.\n\n6. **After our collective action: how did it go? Are we stronger now?** Win or lose, debrief and celebrate. The test of an action is not just whether it worked — it's whether the community that took it is now larger, more skilled, and more connected than before.\n\nEach question has practices on this shelf that answer it, stories that show it, and tools you can build for it.",
+      "attribution": {
+        "name": "Relational Technology Project, after Marshall Ganz",
+        "source": "Organizing: People, Power, Change (2014), adapted from the work of Marshall Ganz, the Leading Change Network & the New Organizing Institute"
+      },
+      "source_url": null,
+      "tags": ["community-organizing", "organizing-framework", "six-questions", "question:who-are-my-people", "question:what-do-we-care-about", "question:what-resources-do-we-have", "question:what-could-we-do-together", "question:what-commitments-do-we-make", "question:are-we-stronger-now"],
+      "metadata": {
+        "practice_kind": "framework",
+        "questions": [
+          "Who are my people?",
+          "What do we care about?",
+          "What resources do we have?",
+          "What could we do together?",
+          "What commitments do we make to each other?",
+          "After our collective action: how did it go? Are we stronger now?"
+        ],
+        "source_note": "The six-question frame is RTP's arrangement for neighborhood-scale work; the underlying practices are from the Ganz organizing framework and asset-based community development."
+      },
+      "sort_order": 10
+    },
+    {
+      "slug": "people-power-change",
+      "kind": "framework",
+      "title": "People, Power, Change",
+      "summary": "The Ganz organizing framework in miniature: organizing starts with people (not issues), understands power as interests × resources, and aims at change that is specific, concrete, and significant.",
+      "body": "Three load-bearing definitions from the organizing tradition:\n\n**People.** The first question an organizer asks is \"who are my people?\" not \"what is my issue?\" Organizing is not solving a community's problems or advocating on its behalf — it is enabling the people with the problem to mobilize their own resources to solve it, and keep it solved. The organizer's job is to turn a *community* (people who share values or interests) into a *constituency* (people standing together, committed to act).\n\n**Power.** Martin Luther King Jr. described power as \"the ability to achieve purpose.\" In organizing, power is not a thing someone possesses — it is the influence created by the relationship between *interests* (what people need or want) and *resources* (what they hold: people, time, skills, money, relationships, votes). There are two kinds: **power with** — organizing our resources alongside others (a community credit union, a neighborhood childcare co-op); and **power over** — when others hold decisions or resources we need, and we must organize our power-with first to make a claim. Five questions when facing power-over: What change do we want? Who has the resources to make it? What do they want? What resources do we have that they need? How could we organize those resources into leverage?\n\n**Change.** In organizing, change must be specific, concrete, and significant — not awareness raised but a goal achieved, on a date, with a number. \"Stop the dam\" is a wish; \"get one-third of town residents to sign, and council to vote, within four months\" is a goal.\n\nFive practices turn these definitions into work: telling stories, building relationships, structuring teams, strategizing, and acting. The first three build power; the last two wield it.",
+      "attribution": {
+        "name": "Marshall Ganz",
+        "source": "Organizing: People, Power, Change (2014), adapted from the work of Marshall Ganz, the Leading Change Network & the New Organizing Institute"
+      },
+      "source_url": null,
+      "tags": ["community-organizing", "organizing-framework", "power", "question:who-are-my-people", "question:what-could-we-do-together"],
+      "metadata": {
+        "practice_kind": "framework",
+        "five_practices": ["telling stories", "building relationships", "structuring teams", "strategizing", "acting"],
+        "source_note": "Definitions from 'Organizing: People, Power, Change' (Dogwood Initiative, Leadnow, One Cowichan, David Suzuki Foundation, Stonehouse Institute, 2014), adapted from Marshall Ganz / Leading Change Network / New Organizing Institute. MLK quote from 'Where Do We Go From Here?' (SCLC, 1967)."
+      },
+      "sort_order": 20
+    },
+    {
+      "slug": "one-to-one-relational-meeting",
+      "kind": "recipe",
+      "title": "The One-to-One",
+      "summary": "A scheduled 30–60 minute conversation between two people, built on stories rather than small talk, that ends with a commitment. The basic unit of organizing.",
+      "body": "*The need:* You can't organize people you don't know, and you don't know people until you know why they care.\n\nThe one-to-one meeting is the foundational tool of relational organizing: a deliberate, scheduled conversation — usually 30 to 60 minutes, often over coffee — whose purpose is to build a public relationship, not to chat. Every 1:1 has four movements:\n\n1. **Purpose** — Be up front about why you're meeting. If you plan to ask for a commitment at the end, say so when you set it up.\n2. **Exploration** — Most of the meeting. Ask probing questions to learn the other person's story, values, and resources: \"Why is this important enough for you to act?\" \"Can you remember the first time you stood up for something you believed in?\"\n3. **Exchange** — Share your own story where it connects. A relationship forms when both people commit their most valuable resource — time — and leave with something: insight, support, a connection.\n4. **Commitment** — End with a specific next step together. Never leave without one.\n\nThe don'ts matter as much as the dos: don't try to persuade instead of listen; don't skip stories to \"get to the point\"; don't end without a plan; split the bill (paying makes it feel transactional).\n\nOrganizers use three types of 1:1s: **recruitment** (start a relationship), **maintenance** (every two weeks with the people you organize alongside — don't wait for a problem), and **escalation** (invite someone into more responsibility). And because relationships take real attention, each part-time organizer can genuinely maintain about five; a full-timer, about ten. In a neighborhood, the 1:1 is simpler and older than any of this: it's how neighbors become people to each other.",
+      "attribution": {
+        "name": "Marshall Ganz & the broad-based organizing tradition (IAF's 'relational meeting')",
+        "source": "Organizing: People, Power, Change (2014), adapted from the work of Marshall Ganz, the Leading Change Network & the New Organizing Institute"
+      },
+      "source_url": null,
+      "tags": ["community-organizing", "organizing-practice", "relationships", "question:who-are-my-people"],
+      "metadata": {
+        "practice_kind": "recipe",
+        "ingredients": ["two people", "30-60 scheduled minutes", "a public-ish place (coffee shop, park, porch)", "a real question and a real ask"],
+        "how_it_works": [
+          "Schedule it and name the purpose up front.",
+          "Spend most of the time exploring: their story, their values, what they'd bring.",
+          "Exchange — connect their story to yours; offer something back.",
+          "End with a specific commitment and a next date.",
+          "Log who you met and what you learned; follow up within 48 hours."
+        ],
+        "field_tips": [
+          "Listen 70%, talk 30%",
+          "Ask 'why?' more than 'what?'",
+          "Split the bill",
+          "Maintenance 1:1s every two weeks, before problems, not after"
+        ],
+        "success_signals": ["you can say what they care about and why", "they made a commitment", "a second meeting exists on a calendar"],
+        "min_resources": "Free. Two chairs.",
+        "source_note": "Structure (purpose / exploration / exchange / commitment), the three types of 1:1s, and sustainable relationship ratios from 'Organizing: People, Power, Change' (2014). The relational meeting as a named discipline descends from the Industrial Areas Foundation."
+      },
+      "sort_order": 30
+    },
+    {
+      "slug": "story-of-self-us-now",
+      "kind": "recipe",
+      "title": "Public Narrative: Self, Us, Now",
+      "summary": "Marshall Ganz's storytelling practice: a story of why you're called (self), what your community shares (us), and why action is urgent (now) — each built from a challenge, a choice, and an outcome.",
+      "body": "*The need:* Facts don't move neighbors to act together. Shared values do — and values are carried in stories.\n\nPublic narrative is the leadership practice of telling a story that communicates why you care (Story of Self), what \"we\" share (Story of Us), and why we must act now (Story of Now). Ganz built it on Rabbi Hillel's three questions: \"If I am not for myself, who will be for me? If I am only for myself, what am I? And if not now, when?\"\n\nEach story runs on the same engine: a character faces a **challenge**, makes a **choice**, and experiences an **outcome**. That structure is what makes a story a story instead of a list of events — and what lets a listener feel the lesson rather than just understand it.\n\n**Story of Self** — Find your choice points: When did I first care about being heard? When did I first experience injustice? What did I do? Pick one moment, and tell it with enough detail that listeners can see it.\n\n**Story of Us** — The character becomes the community. What have we faced together? What did we choose? Don't only tell challenge stories; lift up successes. \"Hope is one of the most precious gifts we can give each other.\"\n\n**Story of Now** — The urgent challenge to our shared values, the nightmare if we don't act, the dream if we do — ending with a specific, concrete ask someone can say yes to tonight.\n\nEmotion is the mechanism, not decoration: stories work when hope outweighs fear, urgency outweighs inertia, solidarity outweighs isolation, and people feel *you can make a difference*. And it's not speech-making — you practice public narrative in a kitchen, at a house meeting, in a 1:1, wherever someone asks \"so why do you do this?\"",
+      "attribution": {
+        "name": "Marshall Ganz",
+        "source": "Organizing: People, Power, Change (2014); Ganz, 'Why Stories Matter', Sojourners (2009)"
+      },
+      "source_url": "https://sojo.net/magazine/march-2009/why-stories-matter",
+      "tags": ["community-organizing", "organizing-practice", "storytelling", "question:what-do-we-care-about"],
+      "metadata": {
+        "practice_kind": "recipe",
+        "ingredients": ["a choice point from your own life", "your community's shared challenges and wins", "an urgent ask", "listeners"],
+        "how_it_works": [
+          "Story of Self: pick one choice point — challenge, choice, outcome — and tell it with sensory detail.",
+          "Story of Us: tell the community's choice points; include a success that gives hope.",
+          "Story of Now: name the urgent challenge, paint the fork in the road, end with a hard ask.",
+          "Weave them: here's who I am, here's what we share, here's what we're going to do about it.",
+          "Practice out loud and get coached — narrative is a practice, not a script."
+        ],
+        "coaching_questions": [
+          "What values did the story convey, and what details carried them?",
+          "What was the challenge, the choice, and the outcome?",
+          "What is the speaker moving people to do?"
+        ],
+        "success_signals": ["listeners retell your story to others", "people say 'me too' and share their own", "the ask gets a yes"],
+        "min_resources": "Free. A worksheet and a patient friend help.",
+        "source_note": "From 'Organizing: People, Power, Change' (2014), which includes full Self/Us/Now worksheets and a story-coaching guide, adapted from Marshall Ganz's Public Narrative framework."
+      },
+      "sort_order": 40
+    },
+    {
+      "slug": "tracking-down-the-power",
+      "kind": "recipe",
+      "title": "Tracking Down the Power",
+      "summary": "A wall-and-post-its exercise for recognizing power together: map the actors around your issue, place them on a field of play from 'wants change' to 'wants status quo', and decide who to move.",
+      "body": "*The need:* Groups burn out trying to persuade everyone, when the work is usually to move a few specific actors.\n\nPower is the relationship between interests and resources — so before acting, a team maps who holds what. This is a leadership-team exercise with markers, post-its, and two big sheets:\n\n**Step 1: Map the actors.** Write every individual and group with influence (actual or potential) over your effort on post-its. Sort them into five zones: your **constituency** (the people with the problem, standing together), your **leadership** (drawn from within that constituency, accountable to it), **supporters** (share your values, hold resources, aren't directly affected), **competitors** (share some interests, compete for the same people or money — can often be turned into allies), and **opposition** (their interests conflict with yours).\n\n**Step 2: The field of play.** Draw a spectrum from \"greatest interest in change\" to \"greatest interest in the status quo,\" with sidelines. Place every actor. Mark who is actively in play and who is watching from the sidelines.\n\n**Step 3: Debrief.** Are there key supporters on the sidelines — and what would pull them in? Which competitors could become allies? Which opposition efforts need to be neutralized, and which can be safely ignored? Don't try to address every actor; pick the few that matter most.\n\nFor each key actor, ask the power questions: what do they want, and what do we have that they need? A neighborhood group that runs this exercise usually discovers it has more leverage than it thought — votes, stories, relationships, attention, legitimacy — and a much shorter list of people to actually move.",
+      "attribution": {
+        "name": "Marshall Ganz organizing tradition",
+        "source": "Organizing: People, Power, Change (2014), 'Tracking down the power' worksheet"
+      },
+      "source_url": null,
+      "tags": ["community-organizing", "organizing-practice", "power-analysis", "question:what-could-we-do-together", "question:who-are-my-people"],
+      "metadata": {
+        "practice_kind": "recipe",
+        "ingredients": ["your leadership team", "post-it notes and markers", "two flipchart sheets or a whiteboard", "an hour"],
+        "how_it_works": [
+          "Map the actors: constituency, leadership, supporters, competitors, opposition.",
+          "Place every actor on the field of play, from 'wants change' to 'wants status quo', noting who's on the sidelines.",
+          "Debrief: who could we pull off the sidelines? Who could we convert? Who must we neutralize?",
+          "For the few actors who matter most, answer: what do they want, and what do we hold that they need?",
+          "Revisit the map at every campaign peak — power shifts as you build it."
+        ],
+        "success_signals": ["the team can name its three most important actors", "at least one 'competitor' becomes a supporter", "effort stops going to actors who don't matter"],
+        "min_resources": "Free. Post-its.",
+        "source_note": "The 'Map the Actors' and 'Field of Play' exercise from the appendix of 'Organizing: People, Power, Change' (2014). Kin to the Midwest Academy strategy chart tradition of power mapping."
+      },
+      "sort_order": 50
+    },
+    {
+      "slug": "theory-of-change-sentence",
+      "kind": "recipe",
+      "title": "A Strategy You Can Say Out Loud",
+      "summary": "If we do TACTICS, then CHANGE, because REASON. If your neighborhood campaign's theory of change doesn't fit in one honest sentence, it probably won't work.",
+      "body": "*The need:* Plans fail quietly when nobody can say how the work leads to the win.\n\nStrategy is turning what you *have* (your people's resources) into what you *need* (power) to get what you *want* (a clear goal). Strategizing starts with three questions in order: Who are our **people**? What is their **problem** — and why hasn't it been solved? What is our **goal**?\n\nThen compress your whole strategy into a theory of change statement:\n\n> **If we do** (tactics), **then** (strategic goal), **because** (reason).\n\nThe Montgomery bus boycott, stated this way: *If Black residents of Montgomery boycott the buses, then the bus company will desegregate them, because the lost fares will make segregation cost more than it pays.*\n\nA goal is strategic when it is measurable (a number with units — people, signatures, dollars, votes); focuses your limited resources on one outcome; builds your constituency's capacity; uses a real point of leverage (your strength or your opposition's weakness); is visible and motivating to your people; and can be repeated by others.\n\nBig goals nest: the \"mountaintop\" goal is reached through smaller goals that each build capacity for the next — a living-wage bylaw might start with electing two supportive councillors; a safer-streets campaign might start with one crosswalk. And remember strategy is a verb: you act your way into new thinking, adjusting the sentence as reality answers back. If the *because* clause is hand-waving, the sentence has already told you what you need to know.",
+      "attribution": {
+        "name": "Marshall Ganz",
+        "source": "Organizing: People, Power, Change (2014)"
+      },
+      "source_url": null,
+      "tags": ["community-organizing", "organizing-practice", "strategy", "question:what-could-we-do-together"],
+      "metadata": {
+        "practice_kind": "recipe",
+        "ingredients": ["your people, named", "their problem, analyzed (why hasn't it been solved?)", "a measurable goal", "one honest sentence"],
+        "how_it_works": [
+          "Answer in order: who are our people? what is the problem? what is our goal?",
+          "Draft: if we do X, then Y, because Z.",
+          "Test the goal: measurable, focused, capacity-building, leveraged, motivating, repeatable.",
+          "Nest it: what smaller goal builds the capacity to reach the mountaintop?",
+          "Say it out loud to someone outside the team. If the 'because' wobbles, rework it."
+        ],
+        "success_signals": ["every team member can recite the sentence", "the goal has a number and a date", "tactics that don't serve the sentence get cut"],
+        "min_resources": "Free.",
+        "source_note": "Strategy framework and theory-of-change format from 'Organizing: People, Power, Change' (2014); Montgomery example follows the guide's own treatment (see Taylor Branch, 'Parting the Waters')."
+      },
+      "sort_order": 60
+    },
+    {
+      "slug": "the-organizing-sentence",
+      "kind": "recipe",
+      "title": "The Organizing Sentence",
+      "summary": "We are organizing WHO to achieve WHAT through HOW by WHEN. One sentence every team writes for itself, so nobody is confused about the work.",
+      "body": "*The need:* Teams drift when the plan lives in a document nobody rereads.\n\nThe organizing sentence is the smallest complete container for a campaign plan:\n\n> **We are organizing** (our people) **to** (strategic goal) **through** (tactics) **by** (timeline).\n\nEvery team in an effort — the core team and each local team — writes its own. A neighborhood example: *We are organizing renters on the six blocks around Hart Park to win weekly repairs office hours with the property manager, through door-knocking all 214 units and a joint letter, by March 1.*\n\nThe sentence forces the four honest answers: who exactly are our people (not \"the community\" — which people?); what outcome, with a number where possible; which tactics we're actually committing to; and by when. It also makes nested strategy legible — a citywide effort's sentence and a single block's sentence should visibly add up.\n\nWrite it at the team launch, put it at the top of every agenda, and rewrite it when strategy changes. When someone new joins, the sentence is the fastest true answer to \"so what is this?\"",
+      "attribution": {
+        "name": "Marshall Ganz organizing tradition",
+        "source": "Organizing: People, Power, Change (2014)"
+      },
+      "source_url": null,
+      "tags": ["community-organizing", "organizing-practice", "strategy", "question:what-could-we-do-together", "question:what-commitments-do-we-make"],
+      "metadata": {
+        "practice_kind": "recipe",
+        "ingredients": ["a team", "a strategic goal", "ten minutes at the end of a planning meeting"],
+        "how_it_works": [
+          "Fill the frame: we are organizing WHO to WHAT through HOW by WHEN.",
+          "Make WHO specific people, WHAT a measurable outcome, HOW real tactics, WHEN a date.",
+          "Each team writes its own; check that local sentences add up to the shared one.",
+          "Put it at the top of every agenda; rewrite when strategy changes."
+        ],
+        "success_signals": ["new members can repeat it after one meeting", "agenda items visibly serve the sentence", "local and core sentences sum"],
+        "min_resources": "Free.",
+        "source_note": "From 'Organizing: People, Power, Change' (2014), Acting: Tactics & Timelines."
+      },
+      "sort_order": 70
+    },
+    {
+      "slug": "the-hard-ask",
+      "kind": "recipe",
+      "title": "The Hard Ask (and the Three Nos)",
+      "summary": "Ask for a specific commitment — a date, a time, a role — without apologizing. Organizing is an opportunity, not a favour. And learn to hear the difference between 'not now', 'not that', and 'not ever'.",
+      "body": "*The need:* Most people never join because nobody actually asked them.\n\nA hard ask is a request that results in a commitment to a specific action. \"Would you maybe be interested in getting involved sometime?\" is a soft ask; it protects the asker and loses the person. A hard ask sounds like: *\"Can you come to our team meeting Wednesday at 6pm at Alisha's?\"*\n\nThe practices:\n- **Be concise, plain, and specific.** If it's an event, include date, time, and place. If it's a role, name the role.\n- **Never apologize for asking.** You are not imposing a burden; you are offering someone a way to act on what they already care about. Organizing is an opportunity, not a favour.\n- **Convey urgency, and make them the solution:** \"We need one more canvass lead to hit our goal. Will you take it on?\"\n- **Then stop talking and let them answer.**\n\nWhen the answer is no, listen for which no it is. **\"Not now\"** — offer another time (\"we also meet Sunday at 1, can you make that?\"). **\"Not that\"** — offer another way in (\"no door-knocking? come help plan the welcome night instead\"). **\"Not ever\"** — thank them warmly and move on; no guilt, theirs or yours.\n\nAnd secure what you win: follow up within 48 hours, never let anyone leave without knowing the next time you'll see them, confirm commitments so people know you're counting on them — and plan for half your yeses to no-show (need four people? schedule eight). The deepest reason people don't return isn't overwork — it's that no one explained why their work mattered, or no one asked.",
+      "attribution": {
+        "name": "Marshall Ganz organizing tradition",
+        "source": "Organizing: People, Power, Change (2014)"
+      },
+      "source_url": null,
+      "tags": ["community-organizing", "organizing-practice", "commitment", "question:what-commitments-do-we-make"],
+      "metadata": {
+        "practice_kind": "recipe",
+        "ingredients": ["a specific action with a date, time, and place", "a person whose story you know", "the nerve to ask plainly"],
+        "how_it_works": [
+          "Name the urgent need in one sentence.",
+          "Make the specific ask: this role, this day, this time, this place.",
+          "Don't apologize; don't pad it; let them answer.",
+          "Sort the no: not now → new time; not that → new task; not ever → warm thanks.",
+          "Follow up within 48 hours and calendar the next touch."
+        ],
+        "success_signals": ["asks name dates and places", "half your asks get a yes of some kind", "no-shows stop surprising you because you planned for them"],
+        "min_resources": "Free.",
+        "source_note": "From 'Organizing: People, Power, Change' (2014), Building Relationships: hard asks, three types of no, and recruitment & retention best practices."
+      },
+      "sort_order": 80
+    },
+    {
+      "slug": "launch-a-team",
+      "kind": "recipe",
+      "title": "Launching a Team: Purpose, Roles, Norms",
+      "summary": "Effective teams share three things: a purpose members can recite, interdependent roles so nobody works alone, and explicit norms the team actually enforces on itself.",
+      "body": "*The need:* 'Everyone helps with everything' feels friendly and quietly kills groups.\n\nTeams matter in organizing because relationships deepen commitment — and because a team can hold more than the sum of its members. Effective teams share three elements:\n\n**Shared purpose.** A team must be able to say what it exists to do and with whom — clear, challenging, and significant to the members themselves. A compelling organizing purpose is a response to a real injustice, and it should be measurable so the team can see progress. (Your story of now is a good first draft of purpose.)\n\n**Interdependent roles.** Every member holds a real piece of work that the others depend on — canvass captain, welcome lead, data keeper — matched to their skills and stretching them slightly. No silos, and no ghosts: a role nobody depends on is a role nobody keeps.\n\n**Explicit norms.** Decide out loud: how often we meet, how we decide, how we communicate, what happens when someone drops a commitment — and how we correct norm violations so the norms stay real. Teams with explicit ground rules outperform teams running on vibes, because norms make it possible to talk about how things are going.\n\nIn the snowflake model, teams interconnect: a core team keeps the whole coherent while local teams adapt strategy to their ground and feed back what they learn. Accountability points both ways. Leadership is distributed — and every member shares the deepest norm of all: developing new leaders, so the team can grow without burning out its founders.",
+      "attribution": {
+        "name": "Marshall Ganz organizing tradition (after Ruth Wageman & J. Richard Hackman's team research)",
+        "source": "Organizing: People, Power, Change (2014)"
+      },
+      "source_url": null,
+      "tags": ["community-organizing", "organizing-practice", "teams", "question:what-commitments-do-we-make"],
+      "metadata": {
+        "practice_kind": "recipe",
+        "ingredients": ["3-8 people who've had 1:1s with each other", "a purpose worth saying out loud", "roles with names", "norms written where everyone can see them"],
+        "how_it_works": [
+          "Draft shared purpose together — who we are, what we're here to do, how we'll know.",
+          "Name interdependent roles; every member holds work others depend on.",
+          "Set explicit norms: meetings, decisions, communication, and how we repair dropped commitments.",
+          "Connect to the wider snowflake: what does this team adapt locally, and what does it feed back?",
+          "Revisit norms openly as the team grows — updating them is a sign of health, not failure."
+        ],
+        "success_signals": ["members can recite the purpose", "work continues when any one person is sick", "norm violations get named and repaired without drama"],
+        "min_resources": "Free.",
+        "source_note": "From 'Organizing: People, Power, Change' (2014), Structuring Teams. The shared purpose / interdependent roles / explicit norms triad follows team-effectiveness research by Wageman & Hackman cited in the Ganz tradition."
+      },
+      "sort_order": 90
+    },
+    {
+      "slug": "snowflake-model",
+      "kind": "recipe",
+      "title": "The Snowflake: Distributed Leadership",
+      "summary": "A structure where leadership is distributed into interconnected small teams, everyone maintains a sustainable number of relationships, and every leader's first job is developing more leaders.",
+      "body": "*The need:* Movements that depend on one heroic coordinator die when that person burns out — and most do.\n\nThe snowflake model is the organizational shape of the Ganz tradition: interconnected teams, with leadership distributed and mutual accountability instead of top-down management.\n\nIts working parts:\n- **Core and local teams.** A core leadership team keeps the whole coherent and holds long-term strategy; local teams deliver short-term goals, adapt strategy to their turf, and feed lessons back. Decision-making is decentralized whenever possible.\n- **Sustainable relationship ratios.** Nobody maintains more relationships than they truly can: about five if you're organizing part-time (most neighbors), about ten if full-time. The snowflake grows by adding *teams*, not by overloading *people*.\n- **Mutual accountability.** The arrows point both ways: a local team can task the core team just as the core team tasks locals. Commitments are agreed, not assigned.\n- **Clear roles.** Every task belongs to a named person; every person knows what others count on them for.\n- **Exponential growth through leadership development.** Everyone is responsible for identifying, recruiting, and developing new leaders. Leaders develop leaders who develop leaders — which is how five people become 25, then 125, without anyone holding 125 relationships.\n\nPeople step up the **ladder of engagement** — supporter, volunteer, team member, leadership prospect, organizer — through real tests: run the phone bank once before you're asked to captain it. Follow up within 48 hours at every rung; invest in the people who show up rather than chasing the ones who don't.",
+      "attribution": {
+        "name": "Marshall Ganz & the New Organizing Institute tradition",
+        "source": "Organizing: People, Power, Change (2014)"
+      },
+      "source_url": null,
+      "tags": ["community-organizing", "organizing-practice", "teams", "leadership-development", "question:what-commitments-do-we-make", "question:are-we-stronger-now"],
+      "metadata": {
+        "practice_kind": "recipe",
+        "ingredients": ["one team that works", "a norm of developing leaders", "patience for the math of small numbers"],
+        "how_it_works": [
+          "Start with one team: purpose, roles, norms.",
+          "Cap everyone's active relationships at what they can truly maintain (about five, part-time).",
+          "Test and escalate: give growing members real responsibility, then real leadership.",
+          "When the team is strong (4+ core organizers), split or seed a new team on new turf.",
+          "Keep core and local teams accountable to each other in both directions."
+        ],
+        "success_signals": ["no single point of failure", "new leaders run things founders used to run", "growth comes in teams, not in one person's overloaded contact list"],
+        "min_resources": "Free.",
+        "source_note": "From 'Organizing: People, Power, Change' (2014): the snowflake model, sustainable relationship ratios, ladder of engagement, and team stages."
+      },
+      "sort_order": 100
+    },
+    {
+      "slug": "campaign-timeline-peaks",
+      "kind": "recipe",
+      "title": "The Campaign Timeline: Foundation, Kickoff, Peaks",
+      "summary": "Campaigns have a rhythm: a quiet foundation of relationship-building, a kickoff that starts the clock, rising peaks that each build capacity, a mountaintop, and then — win or lose — evaluation and celebration.",
+      "body": "*The need:* Groups either simmer forever without ever starting, or sprint to a rally and collapse the week after.\n\nThe rhythm of organizing is the campaign: a focused burst of coordinated activity toward a goal, with a shape you can draw on a napkin — capacity rising through time like a snowball gathering size.\n\n**Foundation.** Before anything public: 1:1s, house meetings, small gatherings. Build the broadest base you can without letting things heat up too early. This is where leadership gets developed.\n\n**Kickoff.** The moment the campaign officially begins — a big meeting or gathering where the story is told, the plan is ratified, leadership is recognized, and commitments are collected. Its real purpose isn't media; it's people and commitment. Setting the date creates the urgency that gets everything else done.\n\n**Peaks.** The campaign climbs through preliminary peaks — each with a measurable goal (people at the meeting, signatures gathered, organizations pledged) that breaks through to a new level of capacity for the next climb.\n\n**The mountaintop.** Maximum mobilization, timed for when it matters most. Beware peaking at the kickoff.\n\n**Evaluation and next steps.** Campaigns are won or lost — and resolving one means being honest about which. Never claim a victory that isn't yours, and never pretend a loss is a win; it robs the effort of its value. Win: celebrate *and* learn why. Lose: contextualize, take responsibility, honor what people gave — and prepare, because there is always a next time.",
+      "attribution": {
+        "name": "Marshall Ganz organizing tradition",
+        "source": "Organizing: People, Power, Change (2014)"
+      },
+      "source_url": null,
+      "tags": ["community-organizing", "organizing-practice", "campaigns", "question:what-could-we-do-together", "question:are-we-stronger-now"],
+      "metadata": {
+        "practice_kind": "recipe",
+        "ingredients": ["a strategic goal", "a kickoff date", "measurable peak goals", "a debrief on the calendar before you start"],
+        "how_it_works": [
+          "Foundation: build relationships and leaders before going public.",
+          "Set a kickoff date — the deadline that focuses recruiting and planning.",
+          "Design each peak with a number attached, so success is observable.",
+          "Time the mountaintop for when power is needed most, not when enthusiasm is highest.",
+          "Close with evaluation AND celebration, win or lose."
+        ],
+        "success_signals": ["capacity is visibly higher after each peak", "the campaign peaks at the decision moment, not the kickoff", "the debrief happens even after a loss"],
+        "min_resources": "Free.",
+        "source_note": "From 'Organizing: People, Power, Change' (2014), Acting: Tactics & Timelines."
+      },
+      "sort_order": 110
+    },
+    {
+      "slug": "sweet-spot-tactics",
+      "kind": "recipe",
+      "title": "The Sweet Spot Test for Tactics",
+      "summary": "A good action does three things at once: makes measurable progress toward the goal, strengthens the organization, and develops the people who carry it out. Two out of three is a warning sign.",
+      "body": "*The need:* Busy groups mistake activity for progress and burn through volunteers doing tactics that build nothing.\n\nBefore committing to any action — a canvass, a petition, a community dinner, an app — run it through the sweet spot test. A tactic is worth doing when it is:\n\n1. **Strategic** — it produces concrete, measurable progress toward the campaign goal;\n2. **Organization-strengthening** — it attracts and engages new people and increases the community's capacity to work together;\n3. **Individual-developing** — the people who carry it out grow in skill, leadership, and confidence.\n\nThe sweet spot is where all three overlap. A tactic that hits the goal but chews people up costs you the next campaign. A tactic that's fun but strategically pointless spends trust. \n\nThe companion practice is **motivational engagement** — designing the work so people want to do it again. Motivational actions are *meaningful* (the person can see the difference it makes), grant *autonomy* (responsibility matched to skill, with room to make real choices), and build in *feedback and learning* (progress is visible; coaching is available). Five design checks: Does the person do a whole thing start to finish? Do they see its impact? Does it use varied skills — head, heart, hands? Do they own decisions? Can they see results as they work?\n\nNearly any task can be redesigned to meet these criteria — turning data entry into scoreboard-keeping, or a lone flyer route into a paired story-collecting walk. People don't leave because work is hard. They leave because it's meaningless, invisible, or lonely.",
+      "attribution": {
+        "name": "Marshall Ganz organizing tradition",
+        "source": "Organizing: People, Power, Change (2014)"
+      },
+      "source_url": null,
+      "tags": ["community-organizing", "organizing-practice", "tactics", "question:what-could-we-do-together", "question:are-we-stronger-now"],
+      "metadata": {
+        "practice_kind": "recipe",
+        "ingredients": ["a proposed tactic", "the three-circle test", "willingness to cut beloved-but-pointless activities"],
+        "how_it_works": [
+          "Score the tactic: strategic? strengthens the organization? develops individuals?",
+          "Redesign until it hits all three, or cut it.",
+          "Design for motivation: meaningful, autonomous, feedback-rich.",
+          "Check: whole task, visible impact, varied skills, real choices, visible results.",
+          "After the action, ask participants: would you do this again? Why?"
+        ],
+        "success_signals": ["volunteers return", "each action leaves the group measurably bigger or more skilled", "nobody can name a tactic the group does 'because we always have'"],
+        "min_resources": "Free.",
+        "source_note": "From 'Organizing: People, Power, Change' (2014): the tactics 'sweet spot' and motivational engagement criteria (after Hackman & Oldham's job-design research)."
+      },
+      "sort_order": 120
+    },
+    {
+      "slug": "coaching-five-steps",
+      "kind": "recipe",
+      "title": "Coaching: Enabling Others in Five Steps",
+      "summary": "The practice that makes 'are we stronger now?' come true: help people find their own solutions — inquire, diagnose (head, heart, or hands), intervene with questions, let them act, then check in.",
+      "body": "*The need:* Founders who solve every problem themselves produce groups that can't solve anything without them.\n\nIf organizing is enabling others, coaching is how. The coach's role is not to have answers — it is to ask questions that help people uncover answers in themselves, so they build the capacity to act, and to coach others in turn. That chain is what makes a community stronger after every campaign, not just older.\n\nThe five steps:\n1. **Inquire & observe.** Be present. Listen, watch, and backtrack — \"What I'm hearing you say is ___, is that right?\" — before drawing conclusions.\n2. **Diagnose.** Organizing challenges come in three kinds: **head** (strategy — they can't see a path), **heart** (motivation — they're discouraged or afraid), **hands** (skills — they don't know how yet). The diagnosis decides the intervention.\n3. **Intervene.** Push gently toward a plan that is theirs: \"If you knew you couldn't fail, what would you do?\" \"What's the very next step?\" \"What do you need, and by when?\"\n4. **Action.** Step back. Give them room to do it. Resist the urge to do it for them — that urge is the whole disease.\n5. **Check in.** Hold them accountable with warmth: debrief what happened, celebrate what worked, and re-diagnose what didn't.\n\nCoaching is not false praise, and it's not a performance review. It happens in maintenance 1:1s, after actions, and whenever someone says \"I don't know how.\" A team with a culture of coaching turns every difficulty into leadership development — which is the quiet answer to the sixth question.",
+      "attribution": {
+        "name": "Marshall Ganz organizing tradition",
+        "source": "Organizing: People, Power, Change (2014)"
+      },
+      "source_url": null,
+      "tags": ["community-organizing", "organizing-practice", "leadership-development", "coaching", "question:are-we-stronger-now"],
+      "metadata": {
+        "practice_kind": "recipe",
+        "ingredients": ["a coachee with a real challenge", "questions instead of answers", "restraint"],
+        "how_it_works": [
+          "Inquire & observe: listen and backtrack before concluding.",
+          "Diagnose: head (strategy), heart (motivation), or hands (skills)?",
+          "Intervene with questions until they own a plan with a date.",
+          "Let them act without rescue.",
+          "Check in: debrief, celebrate, re-diagnose, repeat."
+        ],
+        "success_signals": ["people bring you plans, not just problems", "the same challenge stops recurring", "your coachees start coaching others"],
+        "min_resources": "Free.",
+        "source_note": "From 'Organizing: People, Power, Change' (2014), Coaching: Enabling Others — including the head/heart/hands diagnostic and sample coaching questions."
+      },
+      "sort_order": 130
+    },
+    {
+      "slug": "the-debrief",
+      "kind": "recipe",
+      "title": "The Debrief: Did It Work, and Are We Stronger?",
+      "summary": "After every action, ask two different questions: did we move our goal, and did we grow — more people, more skills, deeper relationships? Celebrate honestly either way.",
+      "body": "*The need:* Groups that skip the debrief repeat their mistakes; groups that skip the celebration repeat their burnout.\n\nEvery action and every campaign closes with a debrief — and the debrief asks two distinct questions, because a group can win a fight and come out weaker, or lose one and come out stronger.\n\n**Question one: did it work?** Compare outcomes to the measurable goal you set. Be honest in both directions: never claim a victory that isn't yours, and never pretend a loss is a win — either lie robs the effort of its value. If you lost, contextualize the loss, interpret what happened, accept responsibility, and prepare for next time.\n\n**Question two: are we stronger now?** Count what capacity-building actually looks like: How many new people took action for the first time? Who took on a bigger role than last time? Which relationships deepened? What can the team now do that it couldn't before? What did we learn about our opposition and our own leverage? This is the sweet-spot test applied in the rear-view mirror — and it's the question that separates organizing from mere mobilizing.\n\n**Then celebrate.** Recognize specific contributions by name. When we win, we sometimes party without learning; when we lose, we sometimes analyze without honoring the courage and work people gave. Do both, every time.\n\nWrite down the three biggest lessons where the next campaign will find them. There is always a next time, and the debrief is where the next campaign quietly begins.",
+      "attribution": {
+        "name": "Marshall Ganz organizing tradition",
+        "source": "Organizing: People, Power, Change (2014)"
+      },
+      "source_url": null,
+      "tags": ["community-organizing", "organizing-practice", "evaluation", "question:are-we-stronger-now"],
+      "metadata": {
+        "practice_kind": "recipe",
+        "ingredients": ["the goal you set beforehand", "everyone who took part", "food helps", "somewhere to write lessons the next campaign will find"],
+        "how_it_works": [
+          "Reconstruct: what did we plan, what actually happened?",
+          "Score honestly against the measurable goal — no borrowed victories, no disguised losses.",
+          "Count strength: new people, new leaders, deeper relationships, new capabilities.",
+          "Celebrate specific contributions by name.",
+          "Record three lessons and the next step, then rest."
+        ],
+        "success_signals": ["losses produce lessons instead of departures", "people can say how the group is stronger than last season", "celebration happens even in defeat"],
+        "min_resources": "Free.",
+        "source_note": "From 'Organizing: People, Power, Change' (2014), Acting: evaluation and next steps, extended with the shelf's sixth question."
+      },
+      "sort_order": 140
+    },
+    {
+      "slug": "montgomery-381-days",
+      "kind": "story",
+      "title": "Montgomery: 381 Days of Bus Fare",
+      "summary": "The Montgomery bus boycott as a strategy story: a constituency turned its humblest resource — bus fare — into the power to desegregate a bus system, by organizing to withhold it together for 381 days.",
+      "body": "In December 1955, Black residents of Montgomery, Alabama — forced to sit at the back of segregated buses and surrender seats to white passengers — began refusing to ride. The boycott held for 381 days, deprived the bus system of the majority of its riders' fares, and ended with desegregated buses.\n\nOrganizers tell this story as the cleanest illustration of what strategy *is*: turning what you have into what you need to get what you want. What the constituency had looked like almost nothing — bus fare, feet, church basements, and one another. Organized collectively, the fare became economic leverage; the feet became a daily, visible act of commitment; the churches became coordination infrastructure (the carpool system moved tens of thousands of people); and the commitment renewed itself in weekly mass meetings for over a year.\n\nThe boycott's theory of change fits in a sentence: if Black residents boycott the buses, the system will desegregate, because segregation will cost more than it pays. And its deeper lessons are relational, not logistical: the boycott was possible because networks were already built — the Women's Political Council had been preparing for years, and the boycott's announcement moved through churches, schools, and clubs in a single weekend. The mass meetings weren't just information; they were where courage was collectively renewed.\n\nWhat it teaches the sixth question: Montgomery's people ended those 381 days with more than desegregated buses — they ended with proof of their own power, trained leaders, and the organizing muscle that carried the movement's next decade.",
+      "attribution": {
+        "name": "The people of Montgomery, Alabama (1955–56)",
+        "source": "Retold after 'Organizing: People, Power, Change' (2014) and Taylor Branch, 'Parting the Waters' (1988)"
+      },
+      "source_url": "https://kinginstitute.stanford.edu/montgomery-bus-boycott",
+      "tags": ["community-organizing", "organizing-story", "strategy", "question:what-could-we-do-together", "question:are-we-stronger-now"],
+      "metadata": {
+        "practice_kind": "story",
+        "place": "Montgomery, Alabama",
+        "era": "1955–1956",
+        "illustrates": ["theory-of-change-sentence", "campaign-timeline-peaks", "people-power-change"],
+        "source_note": "Used as the core strategy example in 'Organizing: People, Power, Change' (2014); historical details per the King Institute at Stanford."
+      },
+      "sort_order": 300
+    },
+    {
+      "slug": "build-relational-map",
+      "kind": "prompt",
+      "title": "Build: A Relational Map for Your Block",
+      "summary": "A starter build: a consent-respecting tool for answering 'who are my people?' — track your 1:1 conversations, what people care about, and whose follow-up is due.",
+      "body": "Build a small, private-first tool for the first question of organizing: who are my people?\n\nIt holds a card per neighbor you've actually talked with: their name, what you learned they care about (their words, not categories), gifts they mentioned, the date of your last real conversation, and the next commitment either of you made. It surfaces two lists: follow-ups due (nothing older than two weeks for your active five) and 'haven't met yet' — the doors, porches, and third places on your block where you haven't had a first conversation.\n\nConstraints that keep it relational: it tracks conversations you've had, not data you've scraped — every entry is something a neighbor told you face to face. Cap the active-relationship list at five (the handbook's part-time ratio) so the tool pushes depth, not collection. Include a gentle export so the map can be handed to a co-organizer when a team forms — with each neighbor's knowledge.\n\nStretch: let two organizers merge maps when they launch a team, and mark which conversations were recruitment, maintenance, or escalation 1:1s.",
+      "attribution": {
+        "name": "Relational Technology Project",
+        "source": "Community Organizing shelf starter prompt"
+      },
+      "source_url": null,
+      "tags": ["community-organizing", "organizing-prompt", "starter", "question:who-are-my-people"],
+      "metadata": {
+        "practice_kind": "prompt",
+        "builds_on": ["one-to-one-relational-meeting", "snowflake-model"],
+        "guardrails": ["consent-first: only what neighbors told you directly", "private by default", "depth over collection: active list capped at five"]
+      },
+      "sort_order": 400
+    },
+    {
+      "slug": "build-public-narrative-workshop",
+      "kind": "prompt",
+      "title": "Build: A Public Narrative Workshop",
+      "summary": "A starter build: walk a neighbor through the Story of Self / Us / Now worksheets — choice points, challenge-choice-outcome, and a hard ask — and end with a draft they can practice out loud.",
+      "body": "Build a tool that walks someone through crafting their public narrative, using the worksheet structure from the organizing handbook.\n\nFlow: (1) Story of Self — prompts for choice points ('When did you first care about being heard? When did you first experience injustice? What did you do?'), then a challenge / choice / outcome canvas for the one moment they pick. (2) Story of Us — the same canvas, but the character is the community: shared values, shared challenges, and at least one success that gives hope. (3) Story of Now — the urgent challenge, the fork between nightmare and dream, and a hard ask with a date, time, and place. (4) Weave — assemble the three into one draft, displayed for practicing out loud, with a timer (two minutes is a good discipline).\n\nInclude a coaching mode for a partner: the listener's questions from the handbook ('What values did the story convey? What was the challenge, the choice, the outcome? What is the speaker moving people to do?') and space for notes — questions, not verdicts.\n\nConstraint: the tool never generates the story. Neighbors write their own words; the tool only holds the structure, the prompts, and the practice clock. A narrative an AI wrote for you is exactly what public narrative is not.",
+      "attribution": {
+        "name": "Relational Technology Project",
+        "source": "Community Organizing shelf starter prompt"
+      },
+      "source_url": null,
+      "tags": ["community-organizing", "organizing-prompt", "starter", "storytelling", "question:what-do-we-care-about"],
+      "metadata": {
+        "practice_kind": "prompt",
+        "builds_on": ["story-of-self-us-now", "coaching-five-steps"],
+        "guardrails": ["the tool structures, the neighbor writes — no generated stories", "coaching mode asks questions, not verdicts"]
+      },
+      "sort_order": 410
+    },
+    {
+      "slug": "build-power-map-canvas",
+      "kind": "prompt",
+      "title": "Build: A Tracking-Down-the-Power Canvas",
+      "summary": "A starter build: a shared digital wall for the power-mapping exercise — map the actors around your issue, drag them across the field of play, and capture the debrief decisions.",
+      "body": "Build a collaborative canvas version of the 'Tracking Down the Power' exercise, for a leadership team meeting (in one room or remote).\n\nScreen one — Map the Actors: sticky notes sorted into five zones (constituency, leadership, supporters, competitors, opposition). Screen two — Field of Play: a spectrum from 'greatest interest in change' to 'greatest interest in the status quo', with sideline areas above and below; the team drags each actor into position and marks whether they're actively in play or watching. Screen three — Debrief: the handbook's questions, answered as decisions ('Which sideline supporter will we pull in, and who's having that 1:1? Which competitor could become an ally? Which opposition move must we neutralize — and which can we ignore?'). Each decision becomes a card with an owner and a date.\n\nFor each high-priority actor, prompt the two power questions: what do they want, and what do we hold that they need?\n\nConstraint: this maps public roles and institutional interests, not private lives — no dossiers on individuals, no data beyond what's publicly known about an actor's stated position. Include an export that drops straight into a team agenda.",
+      "attribution": {
+        "name": "Relational Technology Project",
+        "source": "Community Organizing shelf starter prompt"
+      },
+      "source_url": null,
+      "tags": ["community-organizing", "organizing-prompt", "starter", "power-analysis", "question:what-could-we-do-together"],
+      "metadata": {
+        "practice_kind": "prompt",
+        "builds_on": ["tracking-down-the-power", "theory-of-change-sentence"],
+        "guardrails": ["public roles and stated interests only — no dossiers", "every debrief answer becomes a commitment with an owner and a date"]
+      },
+      "sort_order": 420
+    },
+    {
+      "slug": "build-commitment-ledger",
+      "kind": "prompt",
+      "title": "Build: The Commitment Ledger",
+      "summary": "A starter build: a team tool where every commitment has a person, a date, and a follow-up — with the 48-hour rule and plan-for-half built in.",
+      "body": "Build the fifth question — what commitments do we make to each other? — into a tool a small team actually keeps open.\n\nThe core object is a commitment: who committed, to what specific action, by when, asked by whom, and its current state (asked / committed / done / renegotiated). Around that core, encode the handbook's retention discipline: a follow-up queue that flags any new commitment not confirmed within 48 hours; event planning that assumes half of yeses will no-show (need four? the tool tells you to schedule eight); and a 'nobody leaves without a next date' check on every gathering's attendee list.\n\nMake the mutual-accountability visible: the ledger shows commitments in both directions — including the ones leaders made to members ('find childcare for Thursday', 'get the flyers printed'). A team where only volunteers have rows is doing hierarchy, not organizing.\n\nDashboard: commitments kept rate over time (celebrate it at debriefs), and a gentle escalation view — who's followed through repeatedly and might be ready for an escalation 1:1 and a bigger role.\n\nConstraint: renegotiated is a first-class state, not a failure. The three nos — not now, not that, not ever — all deserve a graceful path.",
+      "attribution": {
+        "name": "Relational Technology Project",
+        "source": "Community Organizing shelf starter prompt"
+      },
+      "source_url": null,
+      "tags": ["community-organizing", "organizing-prompt", "starter", "commitment", "question:what-commitments-do-we-make"],
+      "metadata": {
+        "practice_kind": "prompt",
+        "builds_on": ["the-hard-ask", "launch-a-team", "snowflake-model"],
+        "guardrails": ["commitments run both directions — leaders' rows too", "renegotiation is a state, not a shame", "no-show math is planned, not punished"]
+      },
+      "sort_order": 430
+    },
+    {
+      "slug": "build-debrief-ritual",
+      "kind": "prompt",
+      "title": "Build: A Debrief That Asks Both Questions",
+      "summary": "A starter build: an after-action tool that scores the goal honestly AND counts whether the community got stronger — new people, new leaders, deeper relationships — then turns lessons into the next campaign's inputs.",
+      "body": "Build a debrief tool for the sixth question. It runs a team through the after-action ritual in one sitting, projected on a wall or passed around phones.\n\nSection one — Did it work? The measurable goal (pulled from the campaign's organizing sentence), what actually happened, and an honest verdict: won, lost, or mixed — with the handbook's guardrails displayed ('never claim a victory that's not yours; never pretend a loss is a win').\n\nSection two — Are we stronger? Structured counts: first-time participants; people who took a bigger role than last time; new 1:1 relationships formed; skills the team now has that it didn't; what we learned about our own leverage. Show these alongside the same counts from previous debriefs, so the group can see its own strength curve across campaigns.\n\nSection three — Celebration: specific contributions recognized by name, captured so they can be read aloud.\n\nSection four — Three lessons and one next step, saved where the next campaign's kickoff can pull them in automatically.\n\nConstraint: the tool works after losses. Its language never assumes victory, and the strength section renders first in the loss path — because that's when the second question matters most.",
+      "attribution": {
+        "name": "Relational Technology Project",
+        "source": "Community Organizing shelf starter prompt"
+      },
+      "source_url": null,
+      "tags": ["community-organizing", "organizing-prompt", "starter", "evaluation", "question:are-we-stronger-now"],
+      "metadata": {
+        "practice_kind": "prompt",
+        "builds_on": ["the-debrief", "sweet-spot-tactics", "campaign-timeline-peaks"],
+        "guardrails": ["works after losses — strength counts render first on the loss path", "celebration is named and specific", "lessons feed the next kickoff automatically"]
+      },
+      "sort_order": 440
+    },
+    {
+      "slug": "organizing-people-power-change-guide",
+      "kind": "reference",
+      "title": "Organizing: People, Power, Change (the Organizer's Handbook)",
+      "summary": "The 50-page guide to the Ganz organizing framework — five practices, public narrative, 1:1s, snowflake teams, strategy, tactics, and worksheets — adapted for community use and free to share and adapt with attribution.",
+      "body": "The core reference behind this shelf: a 50-page guide to community organizing in the Marshall Ganz tradition, originally adapted from the work of Dr. Marshall Ganz of Harvard University and resources from the Leading Change Network and the New Organizing Institute, revised collaboratively by organizers at the Dogwood Initiative, Leadnow, One Cowichan, the David Suzuki Foundation, Stonehouse Institute, and genius (Shea Sinnott and Peter Gibbs, eds., 2014).\n\nIt covers the whole arc in teachable form: what organizing is (people, power, change); public narrative (self / us / now, with full worksheets); building relationships (the 1:1, hard asks, the three nos, recruitment and retention); coaching (the five-step process, head/heart/hands); structuring teams (shared purpose, interdependent roles, explicit norms; the snowflake model; the ladder of engagement; team stages); strategizing (people/problem/goal, power-with and power-over, nested goals, theory of change); and acting (the tactics sweet spot, motivational engagement, campaign timelines, the organizing sentence). The appendix worksheets — developing your public narrative, coaching stories, and tracking down the power — are ready to run with any group.\n\nThe guide is free to reproduce, distribute, and adapt for your own training (attribution must stay; it may not be sold), which is why its practices could be carried onto this shelf in full. Most recipes on this shelf cite it as their source.",
+      "attribution": {
+        "name": "Shea Sinnott & Peter Gibbs (eds.), adapting Marshall Ganz / Leading Change Network / New Organizing Institute",
+        "source": "Dogwood Initiative, Leadnow, One Cowichan, David Suzuki Foundation, Stonehouse Institute & genius (2014)"
+      },
+      "source_url": null,
+      "tags": ["community-organizing", "organizing-reference", "handbook"],
+      "metadata": {
+        "practice_kind": "reference",
+        "license_note": "Free to reproduce, distribute, and adapt with attribution; may not be sold. Significant modifications to be shared with Dr. Marshall Ganz.",
+        "contents": ["introduction to organizing", "telling stories (public narrative)", "building relationships (1:1s)", "coaching", "structuring teams (snowflake)", "strategizing", "acting: tactics & timelines", "worksheets"]
+      },
+      "sort_order": 500
+    },
+    {
+      "slug": "why-stories-matter-ganz",
+      "kind": "reference",
+      "title": "Why Stories Matter (Marshall Ganz)",
+      "summary": "Ganz's short, canonical essay on the craft of public narrative — why social change runs on stories of self, us, and now, written for Sojourners in 2009.",
+      "body": "The most-shared single piece of writing on public narrative: Marshall Ganz's 2009 Sojourners essay 'Why Stories Matter: The Art and Craft of Social Change.' In a few pages it lays out the case that social movements move on narrative — that stories communicate values through emotion where facts cannot, that leaders have a responsibility to author a public account of themselves ('if we don't author our own story, others will'), and that the story of self, the story of us, and the story of now together turn values into agency.\n\nA good first send to a neighbor who asks what this storytelling business has to do with getting the crosswalk fixed. Pairs with the Public Narrative recipe on this shelf and the worksheets in the Organizer's Handbook.",
+      "attribution": {
+        "name": "Marshall Ganz",
+        "source": "Sojourners magazine, March 2009"
+      },
+      "source_url": "https://sojo.net/magazine/march-2009/why-stories-matter",
+      "tags": ["community-organizing", "organizing-reference", "storytelling", "question:what-do-we-care-about"],
+      "metadata": {
+        "practice_kind": "reference"
+      },
+      "sort_order": 510
+    }
+  ]
+}
