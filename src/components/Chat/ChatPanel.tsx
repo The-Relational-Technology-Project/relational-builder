@@ -34,6 +34,7 @@ import { retrieveCommonsContext, findMentionedResults } from '@/knowledge/retrie
 import { loadGalleryReferences } from '@/cloud/gallery-references';
 import { detectFrames, framesFromSlugs } from '@/knowledge/frames';
 import { buildMentionContext } from '@/knowledge/mentions';
+import { retrieveCivicDataContext } from '@/knowledge/civic-data';
 import { runQualityReview, messageProducedFiles } from '@/knowledge/review-pass';
 import { requestBuildNotifyPermission, notifyBuildReady } from '@/notify/build-ready';
 import { recordBuildEvent, useBuildLogStore } from '@/report/build-log';
@@ -422,7 +423,7 @@ export function ChatPanel() {
     // Context enriches the send; it must never break one. The person's
     // message is already on screen — a retrieval failure falls back to an
     // uninformed send instead of stranding the composer mid-generation.
-    const [retrieval, references, galleryReferences] = await Promise.all([
+    const [retrieval, references, galleryReferences, civicData] = await Promise.all([
       retrieveCommonsContext({
         message: content,
         mode: currentMode === 'plan' ? 'plan' : 'build',
@@ -433,7 +434,18 @@ export function ChatPanel() {
       // Connections between entries — cached for the session; lets the AI
       // say where else a surfaced tool or practice showed up
       loadGalleryReferences(),
+      // Live civic data endpoints (Responsive Cities Network): matched when
+      // the build's city shows up in the conversation or the builder's place
+      retrieveCivicDataContext([
+        content,
+        ...priorMessages.slice(-10).map(m => m.content.slice(0, 2000)),
+        useAuthStore.getState().profile?.neighborhood,
+        useAuthStore.getState().profile?.neighborhood_description,
+      ]),
     ]);
+    if (civicData.length > 0) {
+      recordBuildEvent('civic-data', `live city data in context: ${civicData.map(e => e.city).join(', ')}`);
+    }
     const commonsResults = retrieval.results;
     if (retrieval.query !== null) {
       // The eval trail: what was searched, what survived the floor. A
@@ -518,6 +530,7 @@ export function ChatPanel() {
       references,
       galleryReferences,
       webTools,
+      civicData,
     });
     setSystemPrompt(updatedPrompt);
 

@@ -44,9 +44,109 @@ function toContext(row: Record<string, unknown>): StudioContext {
 }
 
 /**
- * Studios ready to appear in the switcher. Thread and Bloom exist in the
- * network but aren't ready to share with builders yet — they stay reachable
- * by deep link (?studio=slug) for their own stewards, invisible otherwise.
+ * Studios the app knows natively — identity and appended principles that
+ * ride even before (or without) a row in the KB project's `studios` table.
+ * A DB row with richer fields wins field-by-field; the builtin fills gaps.
+ * Responsive Cities lives here because its principles were authored in the
+ * Builder repo's own studio work, and the KB's multi-tenant columns
+ * (tagline, appended_principles) haven't landed yet.
+ */
+const RESPONSIVE_CITIES_PRINCIPLES = `Builders in this studio work in and around city government: city managers,
+mayor's offices, IT and data teams, and the community partners alongside
+them. City staff are local relational technologists. The infrastructure
+they tend (service systems, open data, internal knowledge) is relational
+infrastructure, and every build here should strengthen the relationship
+between a city and its residents, not just the city's throughput.
+
+### Responsive Cities principles
+
+1. **Cities are made of neighborhoods.** Every build lands somewhere: a
+   block, a corridor, a district. Ground the build in the real place with
+   its real names, and let the builder's own neighborhood knowledge shape
+   it, not just their job title.
+
+2. **Build for the resident who never calls 311.** Efficiency gains for
+   the people already using a service can widen the gap for those who
+   don't. Before optimizing a channel, ask who isn't in it and why, and
+   make reaching them part of the build.
+
+3. **Community in the loop.** Wherever AI acts on the city's behalf,
+   design a checkpoint a resident could understand: what was decided,
+   by what, and where a person re-enters the loop.
+
+4. **Glass box, not black box.** A resident should be able to see what a
+   system does, what data it reads, and who answers for it. If a request
+   disappears into the machine, the build isn't done.
+
+5. **Detect conditions, not people.** Point cameras and models at
+   potholes, dumping, broken lights, and downed limbs. Never at faces,
+   plates, or patterns of individual behavior.
+
+6. **Public data flows both ways.** Read from the city's open data, and
+   treat community-generated knowledge (values, dreams, deliberation
+   outcomes) as a dataset worth contributing back to the commons.
+
+7. **Community organizations build here too.** The network commits to
+   equipping community groups with access and insights so they can
+   engage with and influence city decisions. Take that seriously: the
+   tools built in this studio should be usable, and remixable, by the
+   community organizations alongside each city, and the studio door
+   should be open to them as members, not just as subjects of
+   engagement.
+
+### Guardrails
+
+Every build in this studio should:
+- Name the neighborhood and the residents it serves before the first
+  screen is designed
+- Read from the city's live open data (MCP endpoint) rather than pasted
+  snapshots, and note what a resident would need to see to trust it
+- Keep a human path visible: a name, a desk, a number, a door
+- Work for the resident with no smartphone, no broadband, or a different
+  first language
+- Say which community voices shaped it and which are still missing
+
+No build in this studio may:
+- Simulate resident input or generate synthetic "community feedback" as
+  a stand-in for real engagement
+- Use detection or automation to identify, score, or track individual
+  people
+- Make eligibility, enforcement, or prioritization decisions about a
+  resident without human review
+- Ship anything resident-facing without a named steward in city hall who
+  answers for it
+- Collect more resident data than the tool needs, or move resident data
+  across city or network lines`;
+
+const BUILTIN_STUDIOS: Record<string, StudioContext> = {
+  'responsive-cities': {
+    slug: 'responsive-cities',
+    label: 'Responsive Cities Studio',
+    color: 'hsl(210 60% 45%)',
+    description:
+      'A studio for the Responsive Cities Network — city builders and community partners in ten cities, building with their residents, not just for them.',
+    tagline: 'Every city worker is a community builder.',
+    appendedPrinciples: RESPONSIVE_CITIES_PRINCIPLES,
+  },
+};
+
+/** Builtin fields fill whatever the DB row doesn't carry yet */
+function withBuiltin(ctx: StudioContext): StudioContext {
+  const base = BUILTIN_STUDIOS[ctx.slug];
+  if (!base) return ctx;
+  return {
+    ...ctx,
+    color: ctx.color ?? base.color,
+    description: ctx.description ?? base.description,
+    tagline: ctx.tagline ?? base.tagline,
+    appendedPrinciples: ctx.appendedPrinciples ?? base.appendedPrinciples,
+  };
+}
+
+/**
+ * Studios ready to appear in the switcher. Thread, Bloom, and Responsive
+ * Cities exist in the network but aren't listed for every builder — they
+ * stay reachable by deep link (?studio=slug), which is each studio's door.
  */
 export const PUBLIC_STUDIO_SLUGS = ['rt'];
 
@@ -70,8 +170,11 @@ export async function listAllStudios(): Promise<StudioContext[]> {
     .from('studios')
     .select('*')
     .order('sort_order', { ascending: true });
-  if (error || !data) return [];
-  return (data as Record<string, unknown>[]).map(toContext).filter(s => s.slug);
+  const fromDb = error || !data
+    ? []
+    : (data as Record<string, unknown>[]).map(toContext).filter(s => s.slug).map(withBuiltin);
+  const seen = new Set(fromDb.map(s => s.slug));
+  return [...fromDb, ...Object.values(BUILTIN_STUDIOS).filter(s => !seen.has(s.slug))];
 }
 
 export async function fetchStudio(slug: string): Promise<StudioContext | null> {
@@ -82,8 +185,8 @@ export async function fetchStudio(slug: string): Promise<StudioContext | null> {
     .select('*')
     .eq('slug', clean)
     .maybeSingle();
-  if (error || !data) return null;
-  return toContext(data as Record<string, unknown>);
+  if (error || !data) return BUILTIN_STUDIOS[clean] ?? null;
+  return withBuiltin(toContext(data as Record<string, unknown>));
 }
 
 /** Format the studio frame for the system prompt — appended, never replacing */

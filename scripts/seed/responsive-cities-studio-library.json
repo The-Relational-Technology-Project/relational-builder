@@ -1,0 +1,137 @@
+{
+  "studio_slug": "responsive-cities",
+  "items": [
+    {
+      "kind": "principle",
+      "title": "Cities are made of neighborhoods",
+      "summary": "Every build lands on a block. Ground it in the real place, with real names, drawing on the builder's neighborhood identity and not just their job title.",
+      "body": "A city is not a dashboard. It is a set of neighborhoods, each with its own histories, wounds, wisdom, and gifts. When a city staffer builds here, they build as a neighbor first: someone with a block, a corner store, a bus line, a school. Start every build by naming where it lands and who lives there. If the build is citywide, pick one neighborhood to design for first and let the rest follow.",
+      "attribution": "Responsive Cities Studio",
+      "tags": [
+        "responsive-cities",
+        "neighborhoods",
+        "place"
+      ],
+      "sort_order": 10
+    },
+    {
+      "kind": "principle",
+      "title": "Build for the resident who never calls 311",
+      "summary": "Efficiency gains for current users of a channel can widen the gap for residents who were never in it. Ask who is missing and make reaching them part of the build.",
+      "body": "Service request data shows who already knows how to ask, in the language the system speaks, on the devices the system assumes. The residents a city most needs to hear from are often absent from that data: no broadband, a different first language, a learned expectation that nothing happens when they ask. Before automating a channel, map its shadow. Who is not in this data, and what would this build look like if it were designed for them first?",
+      "attribution": "Responsive Cities Studio",
+      "tags": [
+        "responsive-cities",
+        "equity",
+        "311"
+      ],
+      "sort_order": 20
+    },
+    {
+      "kind": "principle",
+      "title": "Community in the loop",
+      "summary": "Wherever AI acts on the city's behalf, design a checkpoint a resident could understand: what was decided, by what, and where a person re-enters the loop.",
+      "body": "Human in the loop is table stakes for city AI. Community in the loop goes further: the people affected by an automated decision can see it, question it, and shape the rules it runs on. For every agentic step in a build, write down what happens when it fails, who notices, and how a resident who disagrees gets a human. If those answers take longer to design than the automation itself, that is the work going well.",
+      "attribution": "Kailash Pandey / Responsive Cities Studio",
+      "tags": [
+        "responsive-cities",
+        "ai",
+        "accountability"
+      ],
+      "sort_order": 30
+    },
+    {
+      "kind": "principle",
+      "title": "Glass box, not black box",
+      "summary": "A resident should be able to see what a system does, what data it reads, and who answers for it. If a request disappears into the machine, the build is not done.",
+      "body": "Residents describe 311 as a black box: a request goes in and silence comes out. Every build in this studio should be legible from the outside. Show status honestly, name the data sources, and put a person's name and role somewhere a resident can find it. Transparency is not a compliance page. It is the difference between a tool residents route around and one they lean on.",
+      "attribution": "Responsive Cities Studio",
+      "tags": [
+        "responsive-cities",
+        "transparency",
+        "trust"
+      ],
+      "sort_order": 40
+    },
+    {
+      "kind": "principle",
+      "title": "Detect conditions, not people",
+      "summary": "Point cameras and models at potholes, dumping, and broken lights. Never at faces, plates, or patterns of individual behavior.",
+      "body": "Object detection is one of the most requested city AI use cases, and one of the easiest to point in the wrong direction. The line in this studio: models detect the conditions of a place, never the identities or behaviors of the people in it. No face matching, no plate tracking, no scoring of individuals, no repurposing a conditions model for enforcement against a person. If a build cannot meet its goal without watching people, the goal needs a different design, probably a relational one.",
+      "attribution": "Responsive Cities Studio",
+      "tags": [
+        "responsive-cities",
+        "object-detection",
+        "surveillance"
+      ],
+      "sort_order": 50
+    },
+    {
+      "kind": "principle",
+      "title": "Public data flows both ways",
+      "summary": "Read from the city's open data, and contribute community-generated knowledge (values, dreams, deliberation outcomes) back to the commons.",
+      "body": "Most of the ten cities publish open data, and eight expose it through an MCP endpoint the Builder can read live. That is half the loop. The other half: builds that generate community knowledge, like the values and dreams surfaced by a deliberative tool, should treat that knowledge as a public dataset too, held with consent and contributed back where the next builder can find it. A city that only publishes what its departments produce is broadcasting. A city that also holds what its residents know is listening.",
+      "attribution": "Responsive Cities Studio",
+      "tags": [
+        "responsive-cities",
+        "open-data",
+        "mcp",
+        "commons"
+      ],
+      "sort_order": 60
+    },
+    {
+      "kind": "principle",
+      "title": "Community organizations build here too",
+      "summary": "The network commits to equipping community groups with AI-enabled access and insights. Tools built here should be usable and remixable by the community organizations alongside each city.",
+      "body": "One of the Responsive Cities Network's three core aims is providing community organizations with access and insights so they can better engage with and influence city decisions. In this studio that aim is structural, not aspirational: builds should assume a community org could pick them up and remix them, and the studio door is open to community partners as members. A city that builds a tool its community organizations cannot see, use, or question has solved a problem for its community, not with it.",
+      "attribution": "Responsive Cities Network / Responsive Cities Studio",
+      "tags": [
+        "responsive-cities",
+        "community-orgs",
+        "with-not-for"
+      ],
+      "sort_order": 65
+    },
+    {
+      "kind": "prompt",
+      "title": "The 311 shadow map",
+      "summary": "A starter build: read your city's service request data over MCP and map where requests are missing relative to need, then plan the conversations the map calls for.",
+      "body": "Connect to your city's open data MCP endpoint and pull service requests for the last year. Instead of mapping where requests come from, map where they don't: neighborhoods with high need signals (age of housing stock, income, language data) but low request volume. Build a simple view a mayor's office could read in two minutes. Then add the relational layer: for the three quietest neighborhoods, draft a plan for who from the city walks there, who they already know there, and what question they bring. The map is the 10%. The walk is the 90%.",
+      "attribution": "Responsive Cities Studio",
+      "tags": [
+        "responsive-cities",
+        "starter",
+        "311",
+        "mcp"
+      ],
+      "sort_order": 70
+    },
+    {
+      "kind": "prompt",
+      "title": "One question for your city",
+      "summary": "Turn your AI use case into a question residents would recognize, and sketch the deliberative tool that could hold their answers.",
+      "body": "Take the AI use case you brought to the summit (object detection, service request automation, an internal knowledge base, a chatbot for public inquiries, streamlined permitting) and translate it into one plain question a resident would care about. 'Automated pothole detection' might become: when the city can see every broken thing at once, how should it decide what gets fixed first? 'Faster small business permitting' might become: what should never be allowed to slow a neighbor's shop down? Use the deliberative layer to sketch a small, compostable tool for gathering answers: who is asked, how, and what dataset of community values comes out the other side. Bring the question home even if the tool waits.",
+      "attribution": "Responsive Cities Studio",
+      "tags": [
+        "responsive-cities",
+        "starter",
+        "deliberation"
+      ],
+      "sort_order": 80
+    },
+    {
+      "kind": "example",
+      "title": "Outer Sunset Today",
+      "summary": "A resident-built neighborhood dashboard pulling 20+ local sources into one calm daily view. What civic information looks like when a neighbor builds it for neighbors.",
+      "body": "outersunset.today gathers 20+ sources for one San Francisco neighborhood: an events calendar with flyer photo upload, tide charts, a daily ticker, and a hard cap of four news cards so it informs without doomscrolling. It was built by a resident, for free, and maintained as neighborhood infrastructure. For city teams it is a useful mirror: this is the scale and tone residents actually live at, and it is what city open data could feed if the pipes were open.",
+      "attribution": "Josh Nesbit, Outer Sunset, San Francisco",
+      "tags": [
+        "responsive-cities",
+        "example",
+        "neighborhood-dashboard"
+      ],
+      "sort_order": 90
+    }
+  ]
+}

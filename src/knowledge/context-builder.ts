@@ -1,6 +1,7 @@
 import { formatPrinciplesForPrompt } from './rtp-principles';
 import { INTEGRATIONS, GUIDED_SERVICES } from '@/integrations/catalog';
 import { formatStudioForPrompt, type StudioContext } from './studio-context';
+import { formatCivicDataForPrompt, type CityDataEndpoint } from './civic-data';
 import type { DomainFrame } from './frames';
 import { PINNED_VERSIONS } from '@/preview/bundler/versions';
 import { THEME_TEMPLATE } from '@/kit/theme';
@@ -457,6 +458,8 @@ export interface ContextOptions {
   /** Anthropic server-side web tools are attached to this chat (Claude
    *  provider) — tell the model it can read linked pages and search */
   webTools?: boolean;
+  /** Live civic data MCP endpoints matched to this build's city/cities */
+  civicData?: CityDataEndpoint[];
 }
 
 /**
@@ -622,6 +625,12 @@ export function buildSystemPrompt(options: ContextOptions = {}): string {
   // at the 2× write rate — the exact cost the segments exist to avoid.
   for (const frame of options.frames ?? []) {
     sections.push('', frame.principles);
+  }
+
+  // Live civic data endpoints matched to this build's city — volatile tail,
+  // since a city can enter the conversation on any turn
+  if (options.civicData && options.civicData.length > 0) {
+    sections.push('', formatCivicDataForPrompt(options.civicData));
   }
 
   if (options.references && options.references.length > 0) {

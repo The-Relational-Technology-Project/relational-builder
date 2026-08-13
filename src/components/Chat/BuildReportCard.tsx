@@ -48,6 +48,7 @@ const EVENT_LABELS: Record<BuildEventType, string> = {
   build_ready: 'Build ready',
   retrieval: 'Commons knowledge searched',
   commons_mentions: 'Reply drew on the commons',
+  'civic-data': 'Live city data in context',
 };
 
 function eventTime(e: BuildEvent, base: number): string {

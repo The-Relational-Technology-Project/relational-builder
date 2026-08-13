@@ -1,6 +1,6 @@
 # Two New Commons Shelves — Draft for Review
 
-*Drafted 2026-08-13. Status: awaiting Josh's approval before seeding. Nothing has been written to the commons database.*
+*Drafted 2026-08-13; approved by Josh and **seeded to the RT Commons the same day** (87 items live, embeddings generated, retrieval verified). The "open items before public pages" below remain the working list.*
 
 Two new shelves for the RT Commons (and, after approval, the RB gallery + public/theme pages):
 

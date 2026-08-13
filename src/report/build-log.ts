@@ -56,7 +56,10 @@ export type BuildEventType =
   /** A finished reply named surfaced commons entries — detail carries their
    *  slugs. Together with 'retrieval' this measures whether surfaced
    *  knowledge actually lands in plans and builds. */
-  | 'commons_mentions';
+  | 'commons_mentions'
+  /** Live civic data endpoints matched this send — detail carries the
+   *  cities whose MCP endpoints rode into context. */
+  | 'civic-data';
 
 export interface BuildEvent {
   /** Epoch ms */
