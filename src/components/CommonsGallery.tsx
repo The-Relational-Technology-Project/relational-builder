@@ -9,7 +9,8 @@ import { searchCommons } from '@/knowledge/commons-search';
 import { STUDIO_ITEM_KINDS, type StudioLibraryItem } from '@/cloud/studio-library';
 import { startFromStudioItem } from '@/project/start-from-studio-item';
 import {
-  fetchCivicMediaCards, fetchNeighboringRecipeCards, fetchCommonsItemDetail,
+  fetchCivicMediaCards, fetchNeighboringRecipeCards,
+  fetchCommunityOrganizingCards, fetchLocalCivicTechCards, fetchCommonsItemDetail,
   type CommonsCard, type CommonsItemDetail,
 } from '@/knowledge/commons-items';
 import { startFromStudioTool } from '@/project/start-from-tool';
@@ -38,18 +39,20 @@ import {
 import { useUIStore } from '@/store/ui-store';
 import {
   BookOpen, ExternalLink, GitBranch, GitFork, Globe, Hammer,
-  ImageOff, Loader2, Map as MapIcon, Newspaper, ScrollText, Sprout,
-  ChevronDown, ChevronRight, Library, Lock, KeyRound,
+  ImageOff, Landmark, Loader2, Map as MapIcon, Newspaper, ScrollText, Sprout,
+  ChevronDown, ChevronRight, Library, Lock, KeyRound, Users,
 } from 'lucide-react';
 
 /**
  * The Commons Gallery — the civic commons as a first-class space in the
- * Builder. Three shelves side by side: Relational Tech Tools (the Studio
+ * Builder. The shelves side by side: Relational Tech Tools (the Studio
  * KB's built software), Civic Media (the News Futures / Civic Media
- * Cookbook — recipes, worksheets, and the field-guide stories), and
- * Neighboring Recipes (the canonical neighboring practices) — every card
- * remixable for your place, with attribution and lineage kept front and
- * center.
+ * Cookbook — recipes, worksheets, and the field-guide stories),
+ * Neighboring Recipes (the canonical neighboring practices), Community
+ * Organizing (people building power together, in the Ganz tradition), and
+ * Local Civic Tech (open civic tech remixable at neighborhood scale) —
+ * every card remixable for your place, with attribution and lineage kept
+ * front and center.
  *
  * Tech-for-building entries stay out of the gallery: they serve as build
  * context in the AI's knowledge, not as things to remix.
@@ -60,6 +63,8 @@ const CATEGORIES = [
   { key: 'relational_tech', label: 'Relational tech tools' },
   { key: 'civic_media', label: 'Civic media' },
   { key: 'neighboring', label: 'Neighboring recipes' },
+  { key: 'organizing', label: 'Community organizing' },
+  { key: 'civic_tech', label: 'Local civic tech' },
   { key: 'stories', label: 'Local stories' },
 ] as const;
 
@@ -97,22 +102,33 @@ function galleryNameFor(studioLabel: string): string {
 }
 
 /** Shelf presentation for a commons card */
-function shelfFor(card: CommonsCard): { label: string; icon: 'newspaper' | 'sprout' } {
-  return card.source_studio_slug === 'civic-media'
-    ? { label: 'Civic Media', icon: 'newspaper' }
-    : { label: 'Neighboring', icon: 'sprout' };
+type ShelfIconKey = 'newspaper' | 'sprout' | 'users' | 'landmark';
+const SHELF_ICONS: Record<ShelfIconKey, typeof Newspaper> = {
+  newspaper: Newspaper, sprout: Sprout, users: Users, landmark: Landmark,
+};
+
+function shelfFor(card: CommonsCard): { label: string; icon: ShelfIconKey } {
+  switch (card.source_studio_slug) {
+    case 'civic-media': return { label: 'Civic Media', icon: 'newspaper' };
+    case 'community-organizing': return { label: 'Community Organizing', icon: 'users' };
+    case 'local-civic-tech': return { label: 'Local Civic Tech', icon: 'landmark' };
+    default: return { label: 'Neighboring', icon: 'sprout' };
+  }
 }
 
 function kindLabel(card: CommonsCard): string {
   if ((card.tags ?? []).includes('worksheet')) return 'worksheet';
   if (card.kind === 'prompt') return 'build prompt';
   if (card.kind === 'story') return 'field example';
+  if (card.kind === 'tool') return 'open tool';
   return card.kind;
 }
 
-/** Human-facing tags only — the namespaced enums are retrieval filters */
+/** Human-facing tags only — the namespaced enums are retrieval filters,
+ *  and each item's own shelf tag just repeats the card header */
+const SHELF_TAGS = new Set(['civic-media', 'community-organizing', 'local-civic-tech']);
 function readableTags(card: CommonsCard): string[] {
-  return [...new Set((card.tags ?? []).filter(t => !t.includes(':') && t !== 'civic-media'))].slice(0, 5);
+  return [...new Set((card.tags ?? []).filter(t => !t.includes(':') && !SHELF_TAGS.has(t)))].slice(0, 5);
 }
 
 export function CommonsGallery() {
@@ -138,6 +154,8 @@ export function CommonsGallery() {
   const [references, setReferences] = useState<GalleryReference[]>([]);
   const [civicCards, setCivicCards] = useState<CommonsCard[]>([]);
   const [neighboringCards, setNeighboringCards] = useState<CommonsCard[]>([]);
+  const [organizingCards, setOrganizingCards] = useState<CommonsCard[]>([]);
+  const [civicTechCards, setCivicTechCards] = useState<CommonsCard[]>([]);
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   // Semantic ranking from the commons' hybrid search: slug/title → rank
@@ -150,6 +168,8 @@ export function CommonsGallery() {
     fetchGalleryLinks().then(setLinks).catch(() => {});
     fetchCivicMediaCards().then(setCivicCards).catch(() => {});
     fetchNeighboringRecipeCards().then(setNeighboringCards).catch(() => {});
+    fetchCommunityOrganizingCards().then(setOrganizingCards).catch(() => {});
+    fetchLocalCivicTechCards().then(setCivicTechCards).catch(() => {});
     loadGalleryReferences().then(setReferences).catch(() => {});
   }, []);
 
@@ -303,6 +323,18 @@ export function CommonsGallery() {
       category === 'all' || category === 'neighboring'
         ? neighboringCards.map(c => ({ key: `commons-${c.slug}`, type: 'commons' as const, card: c }))
         : [];
+    // The organizing and civic tech shelves' stories are real people in real
+    // places — first-class Local Stories, same as the field-guide stories
+    const storyCut = (cards: CommonsCard[], own: string) =>
+      category === 'all' || category === own
+        ? cards
+        : category === 'stories'
+          ? cards.filter(c => c.kind === 'story')
+          : [];
+    const organizingEntries: GalleryEntry[] = storyCut(organizingCards, 'organizing')
+      .map(c => ({ key: `commons-${c.slug}`, type: 'commons' as const, card: c }));
+    const civicTechEntries: GalleryEntry[] = storyCut(civicTechCards, 'civic_tech')
+      .map(c => ({ key: `commons-${c.slug}`, type: 'commons' as const, card: c }));
     // Items studios have explicitly shared beyond their walls join the
     // commons view for every signed-in builder
     const sharedEntries: GalleryEntry[] =
@@ -328,7 +360,7 @@ export function CommonsGallery() {
             ? semanticRank.get(e.story.title.trim().toLowerCase())
             : undefined;
 
-    const all = [...toolEntries, ...civicEntries, ...neighboringEntries, ...sharedEntries, ...kbStoryEntries];
+    const all = [...toolEntries, ...civicEntries, ...neighboringEntries, ...organizingEntries, ...civicTechEntries, ...sharedEntries, ...kbStoryEntries];
 
     if (!q) {
       // Browsing order: your studios' tools lead, then each shelf in turn
@@ -346,7 +378,7 @@ export function CommonsGallery() {
       .filter(x => x.rank !== undefined || x.sub)
       .sort((a, b) => (a.rank ?? 999) - (b.rank ?? 999))
       .map(x => x.e);
-  }, [galleryTools, civicCards, neighboringCards, stories, category, query, badgesFor, semanticRank, scope, studioLibrary, links]);
+  }, [galleryTools, civicCards, neighboringCards, organizingCards, civicTechCards, stories, category, query, badgesFor, semanticRank, scope, studioLibrary, links]);
 
   const promptsFor = (tool: Tool) => prompts.filter(p => p.parent_tool_id === tool.id);
 
@@ -392,6 +424,12 @@ export function CommonsGallery() {
       ...neighboringCards.map(c => ({
         source: 'commons' as const, id: c.slug, title: c.title, kind: c.kind, group: 'Neighboring recipes',
       })),
+      ...organizingCards.map(c => ({
+        source: 'commons' as const, id: c.slug, title: c.title, kind: c.kind, group: 'Community organizing',
+      })),
+      ...civicTechCards.map(c => ({
+        source: 'commons' as const, id: c.slug, title: c.title, kind: c.kind, group: 'Local civic tech',
+      })),
       ...studioLibrary.map(i => ({
         source: 'studio' as const, id: i.id, title: i.title, kind: i.kind, group: 'Studio libraries',
       })),
@@ -401,7 +439,7 @@ export function CommonsGallery() {
       loadGalleryReferences().then(setReferences).catch(() => {});
     };
     return { options, onChanged };
-  }, [authUser, galleryTools, stories, civicCards, neighboringCards, studioLibrary]);
+  }, [authUser, galleryTools, stories, civicCards, neighboringCards, organizingCards, civicTechCards, studioLibrary]);
 
   /** Open a connection's other end, whichever shelf it lives on */
   function openRef(source: RefSource, id: string): boolean {
@@ -422,7 +460,7 @@ export function CommonsGallery() {
       return s ? open(() => setStoryDetail(s)) : false;
     }
     if (source === 'commons') {
-      const c = [...civicCards, ...neighboringCards].find(x => x.slug === id);
+      const c = [...civicCards, ...neighboringCards, ...organizingCards, ...civicTechCards].find(x => x.slug === id);
       return c ? open(() => setCommonsDetail(c)) : false;
     }
     const i = studioLibrary.find(x => x.id === id);
@@ -1024,7 +1062,7 @@ function RecipeCard({
   onOpen: () => void; onPlan: () => void;
 }) {
   const shelf = shelfFor(card);
-  const ShelfIcon = shelf.icon === 'newspaper' ? Newspaper : Sprout;
+  const ShelfIcon = SHELF_ICONS[shelf.icon];
   return (
     <div className="group border rounded-xl overflow-hidden flex flex-col bg-background hover:border-foreground/25 transition-colors">
       <div className="p-3.5 flex-1 flex flex-col gap-1.5">

@@ -52,7 +52,7 @@ Thesis (lead framework): civic tech doesn't have to be built for your neighborho
 
 ## After approval
 
-1. Seed both shelves (`--apply`).
-2. Wire gallery shelves in `src/knowledge/commons-items.ts` + `CommonsGallery.tsx` (same pattern as `fetchCivicMediaCards`).
+1. ~~Seed both shelves (`--apply`).~~ Done 2026-08-13.
+2. ~~Wire gallery shelves in `src/knowledge/commons-items.ts` + `CommonsGallery.tsx`.~~ Done — both shelves are filter chips in the Commons Gallery, with all 87 items as cards (frameworks lead, then recipes/tools, prompts, stories, references; shelf stories also surface under Local Stories).
 3. Public pages + six-question theme pages.
-4. Confirm `search-commons` retrieval picks the new rows up (embedding job).
+4. ~~Confirm `search-commons` retrieval picks the new rows up (embedding job).~~ Done — all 87 embedded, retrieval verified.

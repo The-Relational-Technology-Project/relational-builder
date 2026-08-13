@@ -75,6 +75,37 @@ export async function fetchNeighboringRecipeCards(): Promise<CommonsCard[]> {
   );
 }
 
+/**
+ * Community Organizing: people building power together, in the Ganz
+ * tradition. The frameworks (the six questions) lead, then the practices
+ * (1:1s, house meetings, public narrative, the debrief), starter prompts,
+ * the stories, and the source books last.
+ */
+const ORGANIZING_SHELF_ORDER: Record<string, number> = { framework: 0, recipe: 1, prompt: 2, story: 3, reference: 4 };
+
+export async function fetchCommunityOrganizingCards(): Promise<CommonsCard[]> {
+  const rows = await rest<CommonsCard[]>(
+    `commons_items?select=${CARD_COLUMNS}` +
+      `&source_studio_slug=eq.community-organizing&status=eq.canonical&order=title.asc`,
+  );
+  return rows.sort((a, b) => (ORGANIZING_SHELF_ORDER[a.kind] ?? 9) - (ORGANIZING_SHELF_ORDER[b.kind] ?? 9));
+}
+
+/**
+ * Local Civic Tech: civic tech remixable at neighborhood scale. The remix
+ * thesis leads, then the open tools (each with a neighborhood remix idea),
+ * starter prompts, the deployment stories, and references last.
+ */
+const CIVIC_TECH_SHELF_ORDER: Record<string, number> = { framework: 0, tool: 1, prompt: 2, story: 3, reference: 4 };
+
+export async function fetchLocalCivicTechCards(): Promise<CommonsCard[]> {
+  const rows = await rest<CommonsCard[]>(
+    `commons_items?select=${CARD_COLUMNS}` +
+      `&source_studio_slug=eq.local-civic-tech&status=eq.canonical&order=title.asc`,
+  );
+  return rows.sort((a, b) => (CIVIC_TECH_SHELF_ORDER[a.kind] ?? 9) - (CIVIC_TECH_SHELF_ORDER[b.kind] ?? 9));
+}
+
 /** Full entry (body + structured metadata) for a card's detail view / remix. */
 export async function fetchCommonsItemDetail(
   slug: string,

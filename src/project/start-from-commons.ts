@@ -7,14 +7,15 @@ import { fetchCommonsItemDetail, type CommonsCard } from '@/knowledge/commons-it
 import { frameSlugsForCommonsItem } from '@/knowledge/frames';
 
 /**
- * Remixing a commons practice — the gallery path for the Civic Media and
- * Neighboring Recipes shelves. Unlike Studio tools (which distill a repo
- * into a build prompt), a practice seeds Plan mode with the recipe itself:
- * the person adapts it to their place, and the plan decides together with
- * them whether the build is a program doc, printable materials, software,
- * or a mix. Field-guide stories work the same way, framed as remixing a
- * real project rather than following a recipe. The item's frame (civic
- * media / practice-first) is stamped into lineage at birth so its
+ * Remixing a commons practice — the gallery path for the commons shelves
+ * (Civic Media, Neighboring Recipes, Community Organizing, Local Civic
+ * Tech). Unlike Studio tools (which distill a repo into a build prompt), a
+ * practice seeds Plan mode with the recipe itself: the person adapts it to
+ * their place, and the plan decides together with them whether the build
+ * is a program doc, printable materials, software, or a mix. Stories work
+ * the same way, framed as remixing a real project rather than following a
+ * recipe; an open tool is remixed at neighborhood scale. The item's frame
+ * (civic media / practice-first) is stamped into lineage at birth so its
  * principles ride every turn of the project.
  */
 export async function startFromCommonsItem(card: CommonsCard): Promise<void> {
@@ -26,8 +27,12 @@ export async function startFromCommonsItem(card: CommonsCard): Promise<void> {
     card.kind === 'prompt'
       ? `I'd like to build from the commons prompt "${card.title}"${who}.`
       : card.kind === 'story'
-        ? `I'd like to remix "${card.title}"${who} — a real civic media project — for my neighborhood.`
-        : `I'd like to bring the practice "${card.title}"${who} to my neighborhood.`;
+        ? `I'd like to remix "${card.title}"${who} — a real project from the commons — for my neighborhood.`
+        : card.kind === 'tool'
+          ? `I'd like to build a neighborhood-scale remix of the open tool "${card.title}"${who}.`
+          : card.kind === 'reference'
+            ? `I'd like to plan something for my neighborhood grounded in "${card.title}"${who}.`
+            : `I'd like to bring the practice "${card.title}"${who} to my neighborhood.`;
   const draft = [
     opening,
     summary ? `\nWhat it is: ${summary}` : '',
