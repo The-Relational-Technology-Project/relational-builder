@@ -163,12 +163,16 @@ credited to the people they came from, and free to remix. This is the shared lib
 <button class="cta" type="submit">Search</button>
 </form>
 
-<span class="eyebrow">Two doors in</span>
+<span class="eyebrow">Four doors in</span>
 <ul class="grid">
 <li class="card"><h3><a href="/commons/themes/on-your-block">Community-Building on Your Block</a></h3>
 <p>Block parties, welcome wagons, tool libraries — the practices that make a block a neighborhood, and where to start.</p></li>
 <li class="card"><h3><a href="/commons/themes/civic-media">Civic Media for Your Neighborhood</a></h3>
 <p>How information becomes care work at neighborhood scale — ten recipes and the worksheets to plan yours.</p></li>
+<li class="card"><h3><a href="/commons/themes/organizing">Building Power with Your Neighbors</a></h3>
+<p>Organizing in the Ganz tradition, hung on six questions — who are my people, what do we care about, what could we do together?</p></li>
+<li class="card"><h3><a href="/commons/themes/neighborhood-civic-tech">Civic Tech at Neighborhood Scale</a></h3>
+<p>Open tools remixable for your block — maps, ballots, mutual-aid stacks — and the design lessons from a decade of neighborhood tech.</p></li>
 </ul>
 
 <span class="eyebrow">Or browse the shelves</span>
@@ -356,8 +360,9 @@ async function mapPage(): Promise<Response> {
 ${breadcrumbs([['The RT Commons', '/commons'], ['Map & timeline', '/commons/map']])}
 <h1>The shape of the commons</h1>
 <p class="lede">${all.length} entries, ${refs.length} steward-confirmed connections between them.
-Three shelves feed it: the RTP's canonical practices, the Civic Media Cookbook, and the
-RT Studio's tool gallery — one commons, many doors.</p>
+Five shelves feed it: the RTP's canonical practices, the Civic Media Cookbook, the
+RT Studio's tool gallery, the community organizing shelf, and local civic tech — one
+commons, many doors.</p>
 <div class="night">${constellation(all, refs, { width: 1000, height: 640, links: true })}</div>
 <p class="meta">Every dot links to its entry. Larger dots are connected to something —
 a lineage parent, a story that mentions them, a practice they pair with.</p>
@@ -965,7 +970,7 @@ async function llmsTxt(): Promise<Response> {
     '',
     `> The shared library of the Relational Technology Project: ${all.length} community-building practices, remixable neighborhood tools, first-hand stories and references — contributed by neighbors, connected by stewards (${refs.length} confirmed connections), licensed for remix with attribution under the Reciprocal Commons License ([RCL-1.0](${SITE}/commons/license)).`,
     '',
-    `Theme guides: [Community-Building on Your Block](${SITE}/commons/themes/on-your-block), [Civic Media for Your Neighborhood](${SITE}/commons/themes/civic-media). Map of the whole commons: [Map & timeline](${SITE}/commons/map).`,
+    `Theme guides: [Community-Building on Your Block](${SITE}/commons/themes/on-your-block), [Civic Media for Your Neighborhood](${SITE}/commons/themes/civic-media), [Building Power with Your Neighbors](${SITE}/commons/themes/organizing), [Civic Tech at Neighborhood Scale](${SITE}/commons/themes/neighborhood-civic-tech). Map of the whole commons: [Map & timeline](${SITE}/commons/map).`,
     '',
     `The whole commons is also mirrored to git — one markdown file per entry plus machine-readable commons.json and connections.json: ${MIRROR_REPO}`,
     '',

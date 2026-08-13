@@ -18,11 +18,23 @@
         "source": "Local Civic Tech shelf"
       },
       "source_url": "https://civictech.guide/",
-      "tags": ["local-civic-tech", "civic-tech-framework", "remix", "neighborhood-scale"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-framework",
+        "remix",
+        "neighborhood-scale"
+      ],
       "metadata": {
         "practice_kind": "framework",
-        "remix_kinds": ["open-source platforms", "patterns", "stories"],
-        "disciplines": ["the tech is the 10% — organizing is the 90%", "learn from the graveyard"]
+        "remix_kinds": [
+          "open-source platforms",
+          "patterns",
+          "stories"
+        ],
+        "disciplines": [
+          "the tech is the 10% — organizing is the 90%",
+          "learn from the graveyard"
+        ]
       },
       "sort_order": 10
     },
@@ -37,7 +49,13 @@
         "source": "ushahidi.com"
       },
       "source_url": "https://www.ushahidi.com/",
-      "tags": ["local-civic-tech", "civic-tech-tool", "mapping", "crowdsourcing", "open-source"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-tool",
+        "mapping",
+        "crowdsourcing",
+        "open-source"
+      ],
       "metadata": {
         "maker": "Ushahidi Inc. (nonprofit, Nairobi)",
         "license": "AGPL-3.0",
@@ -60,7 +78,12 @@
         "source": "fixmystreet.org"
       },
       "source_url": "https://fixmystreet.org/",
-      "tags": ["local-civic-tech", "civic-tech-tool", "issue-reporting", "open-source"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-tool",
+        "issue-reporting",
+        "open-source"
+      ],
       "metadata": {
         "maker": "mySociety (UK charity)",
         "license": "AGPL-3.0",
@@ -83,7 +106,13 @@
         "source": "decidim.org"
       },
       "source_url": "https://decidim.org/",
-      "tags": ["local-civic-tech", "civic-tech-tool", "participatory-democracy", "participatory-budgeting", "open-source"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-tool",
+        "participatory-democracy",
+        "participatory-budgeting",
+        "open-source"
+      ],
       "metadata": {
         "maker": "Associació de Software Lliure Decidim (Barcelona)",
         "license": "AGPL-3.0",
@@ -106,7 +135,12 @@
         "source": "consuldemocracy.org"
       },
       "source_url": "https://consuldemocracy.org/",
-      "tags": ["local-civic-tech", "civic-tech-tool", "participatory-democracy", "open-source"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-tool",
+        "participatory-democracy",
+        "open-source"
+      ],
       "metadata": {
         "maker": "CONSUL Democracy Foundation",
         "license": "AGPL-3.0",
@@ -129,7 +163,12 @@
         "source": "compdemocracy.org"
       },
       "source_url": "https://compdemocracy.org/polis/",
-      "tags": ["local-civic-tech", "civic-tech-tool", "deliberation", "open-source"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-tool",
+        "deliberation",
+        "open-source"
+      ],
       "metadata": {
         "maker": "Computational Democracy Project (US 501c3)",
         "license": "AGPL-3.0 (with additional permission)",
@@ -151,7 +190,13 @@
         "source": "localwiki.org"
       },
       "source_url": "https://localwiki.org/about/",
-      "tags": ["local-civic-tech", "civic-tech-tool", "local-knowledge", "wiki", "open-source"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-tool",
+        "local-knowledge",
+        "wiki",
+        "open-source"
+      ],
       "metadata": {
         "maker": "LocalWiki (nonprofit, born from DavisWiki)",
         "license": "GPL-2.0 (backend); content CC BY",
@@ -174,7 +219,13 @@
         "source": "loomio.com"
       },
       "source_url": "https://www.loomio.com/",
-      "tags": ["local-civic-tech", "civic-tech-tool", "decision-making", "cooperative", "open-source"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-tool",
+        "decision-making",
+        "cooperative",
+        "open-source"
+      ],
       "metadata": {
         "maker": "Loomio Cooperative (worker-owned)",
         "license": "AGPL-3.0",
@@ -197,7 +248,13 @@
         "source": "cobudget.com"
       },
       "source_url": "https://cobudget.com/",
-      "tags": ["local-civic-tech", "civic-tech-tool", "participatory-budgeting", "money", "open-source"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-tool",
+        "participatory-budgeting",
+        "money",
+        "open-source"
+      ],
       "metadata": {
         "maker": "Cobudget contributors (Enspiral/Greaterthan lineage)",
         "license": "AGPL-3.0-or-later",
@@ -219,7 +276,13 @@
         "source": "joinmobilizon.org"
       },
       "source_url": "https://joinmobilizon.org/",
-      "tags": ["local-civic-tech", "civic-tech-tool", "events", "fediverse", "open-source"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-tool",
+        "events",
+        "fediverse",
+        "open-source"
+      ],
       "metadata": {
         "maker": "Framasoft → Kaihuri association (France)",
         "license": "AGPL-3.0-or-later",
@@ -242,7 +305,13 @@
         "source": "gath.io"
       },
       "source_url": "https://gath.io/",
-      "tags": ["local-civic-tech", "civic-tech-tool", "events", "ephemeral", "open-source"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-tool",
+        "events",
+        "ephemeral",
+        "open-source"
+      ],
       "metadata": {
         "maker": "Raphael Kabo (community project)",
         "license": "GPL-3.0",
@@ -264,10 +333,16 @@
         "source": "openreferral.org"
       },
       "source_url": "https://openreferral.org/",
-      "tags": ["local-civic-tech", "civic-tech-tool", "data-standard", "mutual-aid", "open-source"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-tool",
+        "data-standard",
+        "mutual-aid",
+        "open-source"
+      ],
       "metadata": {
         "maker": "Open Referral Initiative",
-        "license": "Open specification (license to confirm on docs site)",
+        "license": "CC BY-SA 4.0 (specification)",
         "repo_url": "https://github.com/openreferral",
         "remix_idea": "The block's who-has-what inventory as a tiny, consented HSDS dataset.",
         "practice_kind": "tool"
@@ -285,7 +360,13 @@
         "source": "streetmix.net"
       },
       "source_url": "https://streetmix.net/",
-      "tags": ["local-civic-tech", "civic-tech-tool", "streets", "planning", "open-source"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-tool",
+        "streets",
+        "planning",
+        "open-source"
+      ],
       "metadata": {
         "maker": "Streetmix LLC / Bad Idea Factory collective",
         "license": "AGPL-3.0",
@@ -308,10 +389,16 @@
         "source": "fieldpapers.org"
       },
       "source_url": "https://fieldpapers.org/about",
-      "tags": ["local-civic-tech", "civic-tech-tool", "mapping", "paper-first", "open-source"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-tool",
+        "mapping",
+        "paper-first",
+        "open-source"
+      ],
       "metadata": {
         "maker": "OpenStreetMap US",
-        "license": "Open source (see per-repo licenses at github.com/fieldpapers)",
+        "license": "ISC (fp-web, fp-tiler; the umbrella fieldpapers/fieldpapers repo carries no license file)",
         "repo_url": "https://github.com/fieldpapers",
         "hosted": "free at fieldpapers.org",
         "remix_idea": "The Saturday block-mapping walk, kids carrying the atlas.",
@@ -330,7 +417,14 @@
         "source": "terrastories.app"
       },
       "source_url": "https://terrastories.app/",
-      "tags": ["local-civic-tech", "civic-tech-tool", "oral-history", "mapping", "offline-first", "open-source"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-tool",
+        "oral-history",
+        "mapping",
+        "offline-first",
+        "open-source"
+      ],
       "metadata": {
         "maker": "Awana Digital + volunteer community (Ruby for Good)",
         "license": "MIT",
@@ -353,7 +447,14 @@
         "source": "awana.digital"
       },
       "source_url": "https://awana.digital/",
-      "tags": ["local-civic-tech", "civic-tech-tool", "mapping", "offline-first", "data-sovereignty", "open-source"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-tool",
+        "mapping",
+        "offline-first",
+        "data-sovereignty",
+        "open-source"
+      ],
       "metadata": {
         "maker": "Awana Digital",
         "license": "GPL-3.0 (CoMapeo Mobile)",
@@ -374,7 +475,14 @@
         "source": "karrot.world"
       },
       "source_url": "https://karrot.world/",
-      "tags": ["local-civic-tech", "civic-tech-tool", "mutual-aid", "food", "coordination", "open-source"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-tool",
+        "mutual-aid",
+        "food",
+        "coordination",
+        "open-source"
+      ],
       "metadata": {
         "maker": "Karrot community (foodsaving worldwide lineage)",
         "license": "MIT",
@@ -396,7 +504,13 @@
         "source": "humanessentials.app"
       },
       "source_url": "https://humanessentials.app/",
-      "tags": ["local-civic-tech", "civic-tech-tool", "mutual-aid", "inventory", "open-source"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-tool",
+        "mutual-aid",
+        "inventory",
+        "open-source"
+      ],
       "metadata": {
         "maker": "Ruby for Good (volunteer nonprofit)",
         "license": "MIT",
@@ -418,7 +532,13 @@
         "source": "openfoodnetwork.org"
       },
       "source_url": "https://openfoodnetwork.org/",
-      "tags": ["local-civic-tech", "civic-tech-tool", "food", "cooperative", "open-source"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-tool",
+        "food",
+        "cooperative",
+        "open-source"
+      ],
       "metadata": {
         "maker": "Open Food Foundation (Melbourne-born, global federation)",
         "license": "AGPL-3.0",
@@ -439,7 +559,14 @@
         "source": "littlesis.org"
       },
       "source_url": "https://littlesis.org/",
-      "tags": ["local-civic-tech", "civic-tech-tool", "power-analysis", "transparency", "open-source", "question:what-could-we-do-together"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-tool",
+        "power-analysis",
+        "transparency",
+        "open-source",
+        "question:what-could-we-do-together"
+      ],
       "metadata": {
         "maker": "Public Accountability Initiative (nonprofit)",
         "license": "GPL-3.0",
@@ -461,10 +588,16 @@
         "source": "pbstanford.org"
       },
       "source_url": "https://pbstanford.org/",
-      "tags": ["local-civic-tech", "civic-tech-tool", "participatory-budgeting", "voting", "open-source"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-tool",
+        "participatory-budgeting",
+        "voting",
+        "open-source"
+      ],
       "metadata": {
         "maker": "Stanford Crowdsourced Democracy Team",
-        "license": "Open source (license to confirm on repo)",
+        "license": "GPL-3.0",
         "repo_url": "https://github.com/StanfordCDT/pb",
         "remix_idea": "The free multilingual ballot box for very small budgets.",
         "practice_kind": "tool"
@@ -482,10 +615,20 @@
         "source": "civictech.guide/graveyard"
       },
       "source_url": "https://civictech.guide/graveyard/",
-      "tags": ["local-civic-tech", "civic-tech-framework", "graveyard", "sustainability"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-framework",
+        "graveyard",
+        "sustainability"
+      ],
       "metadata": {
         "practice_kind": "framework",
-        "survivor_patterns": ["community ownership (PBC, co-op, association)", "paid local stewardship", "modest scope with a peacetime job", "embed in existing trust rather than build a destination"],
+        "survivor_patterns": [
+          "community ownership (PBC, co-op, association)",
+          "paid local stewardship",
+          "modest scope with a peacetime job",
+          "embed in existing trust rather than build a destination"
+        ],
         "source_note": "Graveyard framing and project fates per the Civic Tech Field Guide (CC BY-NC-SA); EveryBlock and Neighborland details per Holovaty's own post-mortem and CTFG's entries."
       },
       "sort_order": 20
@@ -501,10 +644,22 @@
         "source": "Synthesized from the documented stories on this shelf"
       },
       "source_url": null,
-      "tags": ["local-civic-tech", "civic-tech-framework", "design-lessons", "equity"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-framework",
+        "design-lessons",
+        "equity"
+      ],
       "metadata": {
         "practice_kind": "framework",
-        "lessons": ["phone-first", "paper in the stack", "pay local stewards", "small apps remix best", "subtract friction", "measure relational outcomes"]
+        "lessons": [
+          "phone-first",
+          "paper in the stack",
+          "pay local stewards",
+          "small apps remix best",
+          "subtract friction",
+          "measure relational outcomes"
+        ]
       },
       "sort_order": 30
     },
@@ -519,11 +674,23 @@
         "source": "Drawing on reporting about Nextdoor's 2016 redesign, 311-equity research, and mutual aid data practices"
       },
       "source_url": null,
-      "tags": ["local-civic-tech", "civic-tech-framework", "equity", "safety", "guardrails"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-framework",
+        "equity",
+        "safety",
+        "guardrails"
+      ],
       "metadata": {
         "practice_kind": "framework",
         "verification_note": "Nextdoor redesign figure (~75% reduction, company-reported) and 311-equity findings flagged for citation-hardening before public pages ship.",
-        "design_moves": ["conditions and needs, never people", "friction where harm is easy", "route to care first", "data minimization", "named human steward"]
+        "design_moves": [
+          "conditions and needs, never people",
+          "friction where harm is easy",
+          "route to care first",
+          "data minimization",
+          "named human steward"
+        ]
       },
       "sort_order": 40
     },
@@ -539,12 +706,23 @@
         "neighborhood": "Bedford-Stuyvesant, Brooklyn"
       },
       "source_url": "https://www.bedstuystrong.com/",
-      "tags": ["local-civic-tech", "civic-tech-story", "mutual-aid", "phone-first", "question:what-could-we-do-together"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-story",
+        "mutual-aid",
+        "phone-first",
+        "question:what-could-we-do-together"
+      ],
       "metadata": {
         "practice_kind": "story",
         "place": "Bedford-Stuyvesant, Brooklyn",
         "era": "2020–present",
-        "tech_stack": ["Slack", "Airtable", "Google Voice hotline", "volunteer glue code"],
+        "tech_stack": [
+          "Slack",
+          "Airtable",
+          "Google Voice hotline",
+          "volunteer glue code"
+        ],
         "source_note": "Figures per Rights CoLab and Vice's April 2020 reporting; founder-story details vary across accounts (single founder vs. co-founders) — Mathews credited per Rights CoLab."
       },
       "sort_order": 300
@@ -561,12 +739,24 @@
         "neighborhood": "Medford & Somerville, Massachusetts"
       },
       "source_url": "https://mutualaidmamas.com/",
-      "tags": ["local-civic-tech", "civic-tech-story", "mutual-aid", "low-tech", "question:what-commitments-do-we-make"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-story",
+        "mutual-aid",
+        "low-tech",
+        "question:what-commitments-do-we-make"
+      ],
       "metadata": {
         "practice_kind": "story",
         "place": "Medford & Somerville, Massachusetts",
         "era": "2020–present",
-        "tech_stack": ["phone trees", "geographic pods", "Google Forms", "spreadsheets", "multilingual hotline"],
+        "tech_stack": [
+          "phone trees",
+          "geographic pods",
+          "Google Forms",
+          "spreadsheets",
+          "multilingual hotline"
+        ],
         "source_note": "Founders and stack per Boston Magazine; the anti-solutionism quote is from Invisible Hands' lead engineer Matt Schaff (Vice), not a MAMAS slogan."
       },
       "sort_order": 305
@@ -583,12 +773,21 @@
         "neighborhood": "Red Hook, Brooklyn & Detroit neighborhoods"
       },
       "source_url": "https://redhookwifi.org/",
-      "tags": ["local-civic-tech", "civic-tech-story", "community-broadband", "resilience", "paid-stewards"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-story",
+        "community-broadband",
+        "resilience",
+        "paid-stewards"
+      ],
       "metadata": {
         "practice_kind": "story",
         "place": "Red Hook, Brooklyn; Detroit, Michigan",
         "era": "2011–present",
-        "illustrates": ["learn-from-the-graveyard", "six-lessons-neighborhood-tech"],
+        "illustrates": [
+          "learn-from-the-graveyard",
+          "six-lessons-neighborhood-tech"
+        ],
         "source_note": "Sandy events and FEMA connection per Wikipedia's sourced entry and Inverse; Detroit stewards named per Hour Detroit's profiles."
       },
       "sort_order": 310
@@ -605,12 +804,21 @@
         "neighborhood": "Five Sisters, Burlington, Vermont"
       },
       "source_url": "https://mediaengagement.org/research/front-porch-forum-civic-engagement/",
-      "tags": ["local-civic-tech", "civic-tech-story", "neighborhood-forums", "slow-tech", "question:are-we-stronger-now"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-story",
+        "neighborhood-forums",
+        "slow-tech",
+        "question:are-we-stronger-now"
+      ],
       "metadata": {
         "practice_kind": "story",
         "place": "Burlington, Vermont → statewide",
         "era": "2000–present",
-        "illustrates": ["learn-from-the-graveyard", "six-lessons-neighborhood-tech"],
+        "illustrates": [
+          "learn-from-the-graveyard",
+          "six-lessons-neighborhood-tech"
+        ],
         "source_note": "Membership ~235,000 per Seven Days (2024) — some 2025 accounts say ~250,000; study findings per the Center for Media Engagement report. CTFG notes a pivot toward employee ownership."
       },
       "sort_order": 315
@@ -627,12 +835,20 @@
         "neighborhood": "Davis, California"
       },
       "source_url": "https://daviswiki.org/Wiki_History",
-      "tags": ["local-civic-tech", "civic-tech-story", "local-knowledge", "wiki", "commons"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-story",
+        "local-knowledge",
+        "wiki",
+        "commons"
+      ],
       "metadata": {
         "practice_kind": "story",
         "place": "Davis, California",
         "era": "2004–present",
-        "illustrates": ["localwiki"],
+        "illustrates": [
+          "localwiki"
+        ],
         "source_note": "Founding story, usage figures, and LocalWiki arc per DavisWiki's Wiki History page and Nieman Lab's Encyclo entry."
       },
       "sort_order": 320
@@ -649,12 +865,20 @@
         "neighborhood": "Cedar-Riverside & Frogtown, Minneapolis–St. Paul"
       },
       "source_url": "https://knightfoundation.org/articles/democracy-bringing-new-voices-civic-tech/",
-      "tags": ["local-civic-tech", "civic-tech-story", "inclusion", "neighborhood-forums", "question:who-are-my-people"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-story",
+        "inclusion",
+        "neighborhood-forums",
+        "question:who-are-my-people"
+      ],
       "metadata": {
         "practice_kind": "story",
         "place": "Minneapolis–St. Paul, Minnesota",
         "era": "2007–2010s",
-        "illustrates": ["six-lessons-neighborhood-tech"],
+        "illustrates": [
+          "six-lessons-neighborhood-tech"
+        ],
         "source_note": "Outreach figures per the Knight Foundation's own account; forums now archived — the inclusion method is the durable artifact."
       },
       "sort_order": 325
@@ -671,12 +895,21 @@
         "neighborhood": "Dupont Circle, Washington, DC"
       },
       "source_url": "https://www.pbs.org/newshour/world/snowmageddon-ny",
-      "tags": ["local-civic-tech", "civic-tech-story", "crisis-response", "ushahidi", "remix"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-story",
+        "crisis-response",
+        "ushahidi",
+        "remix"
+      ],
       "metadata": {
         "practice_kind": "story",
         "place": "Washington, DC",
         "era": "2010",
-        "illustrates": ["ushahidi", "remix-at-neighborhood-scale"],
+        "illustrates": [
+          "ushahidi",
+          "remix-at-neighborhood-scale"
+        ],
         "source_note": "Quotes and remix timeline per PBS NewsHour's contemporaneous reporting."
       },
       "sort_order": 330
@@ -693,14 +926,23 @@
         "neighborhood": "Boston → Honolulu → San Francisco"
       },
       "source_url": "https://www.boston.gov/public-safety/adopt-hydrant",
-      "tags": ["local-civic-tech", "civic-tech-story", "stewardship", "remix", "open-source"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-story",
+        "stewardship",
+        "remix",
+        "open-source"
+      ],
       "metadata": {
         "practice_kind": "story",
         "place": "Boston; Honolulu; San Francisco; Chicago",
         "era": "2011–present",
         "repo_url": "https://github.com/codeforamerica/adopt-a-hydrant",
-        "illustrates": ["remix-at-neighborhood-scale", "six-lessons-neighborhood-tech"],
-        "source_note": "Lineage per Boston.gov, Honolulu's 2012 press materials, and KQED's Adopt-a-Drain coverage; repo license to confirm in the license pass."
+        "illustrates": [
+          "remix-at-neighborhood-scale",
+          "six-lessons-neighborhood-tech"
+        ],
+        "source_note": "Lineage per Boston.gov, Honolulu's 2012 press materials, and KQED's Adopt-a-Drain coverage; repo is BSD-3-Clause (Code for America, 2011)."
       },
       "sort_order": 335
     },
@@ -716,13 +958,22 @@
         "neighborhood": "Brooklyn, New York"
       },
       "source_url": "https://596acres.org/mission-and-story/",
-      "tags": ["local-civic-tech", "civic-tech-story", "vacant-land", "open-data", "question:what-resources-do-we-have"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-story",
+        "vacant-land",
+        "open-data",
+        "question:what-resources-do-we-have"
+      ],
       "metadata": {
         "practice_kind": "story",
         "place": "New York City",
         "era": "2011–2018",
-        "illustrates": ["six-lessons-neighborhood-tech", "remix-at-neighborhood-scale"],
-        "source_note": "143 campaigns per 596acres.org's own record; organizational sunset ~2018 with Living Lots continuing — succession details worth confirming for public pages."
+        "illustrates": [
+          "six-lessons-neighborhood-tech",
+          "remix-at-neighborhood-scale"
+        ],
+        "source_note": "143 campaigns per 596acres.org's own record; organizational sunset ~2018 with Living Lots continuing — Living Lots platform code: django-livinglots core is BSD-3-Clause, the NYC deployment AGPL-3.0."
       },
       "sort_order": 340
     },
@@ -738,12 +989,20 @@
         "neighborhood": "Englewood, Chicago"
       },
       "source_url": "https://largelots.org/",
-      "tags": ["local-civic-tech", "civic-tech-story", "vacant-land", "friction", "evidence"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-story",
+        "vacant-land",
+        "friction",
+        "evidence"
+      ],
       "metadata": {
         "practice_kind": "story",
         "place": "Englewood → citywide, Chicago",
         "era": "2014–present",
-        "illustrates": ["six-lessons-neighborhood-tech"],
+        "illustrates": [
+          "six-lessons-neighborhood-tech"
+        ],
         "source_note": "Program history per Smart Chicago and DataMade; crime findings per JAPA 2021 (Univ. of Illinois research)."
       },
       "sort_order": 345
@@ -760,13 +1019,25 @@
         "neighborhood": "Rogers Park, Chicago"
       },
       "source_url": "https://participedia.net/case/43",
-      "tags": ["local-civic-tech", "civic-tech-story", "participatory-budgeting", "democracy"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-story",
+        "participatory-budgeting",
+        "democracy"
+      ],
       "metadata": {
         "practice_kind": "story",
         "place": "49th Ward, Chicago",
         "era": "2009–present",
-        "illustrates": ["stanford-pb-platform", "build-block-scale-pb"],
-        "toolkits": ["https://www.participatorybudgeting.org/toolkit/", "https://www.peoplepowered.org/global-pb-hub", "https://www.pbatlas.net/index.html"],
+        "illustrates": [
+          "stanford-pb-platform",
+          "build-block-scale-pb"
+        ],
+        "toolkits": [
+          "https://www.participatorybudgeting.org/toolkit/",
+          "https://www.peoplepowered.org/global-pb-hub",
+          "https://www.pbatlas.net/index.html"
+        ],
         "source_note": "Vote counts and project list per Participedia case 43; PBNYC totals per People Powered/NYC Council."
       },
       "sort_order": 350
@@ -783,12 +1054,21 @@
         "neighborhood": "Barcelona's districts"
       },
       "source_url": "https://decidim.org/blog/2026-04-07-case-study-participatory-budget-2020-2023-in-barcelona/",
-      "tags": ["local-civic-tech", "civic-tech-story", "participatory-budgeting", "hybrid", "decidim"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-story",
+        "participatory-budgeting",
+        "hybrid",
+        "decidim"
+      ],
       "metadata": {
         "practice_kind": "story",
         "place": "Barcelona, Catalonia",
         "era": "2020–2023",
-        "illustrates": ["decidim", "six-lessons-neighborhood-tech"],
+        "illustrates": [
+          "decidim",
+          "six-lessons-neighborhood-tech"
+        ],
         "source_note": "Participation figures per Decidim's published case study."
       },
       "sort_order": 355
@@ -805,13 +1085,21 @@
         "neighborhood": "Rural townships, Taiwan"
       },
       "source_url": "https://english.cw.com.tw/article/article.action?id=2982",
-      "tags": ["local-civic-tech", "civic-tech-story", "g0v", "anonymity", "environment"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-story",
+        "g0v",
+        "anonymity",
+        "environment"
+      ],
       "metadata": {
         "practice_kind": "story",
         "place": "Taiwan",
         "era": "2019–present",
         "repo_url": "https://github.com/Disfactory/Disfactory",
-        "illustrates": ["design-for-care-not-enforcement"],
+        "illustrates": [
+          "design-for-care-not-enforcement"
+        ],
         "source_note": "Figures per CommonWealth Magazine's English coverage and the project's TICTeC presentation."
       },
       "sort_order": 360
@@ -827,11 +1115,28 @@
         "source": "civictech.guide"
       },
       "source_url": "https://civictech.guide/",
-      "tags": ["local-civic-tech", "civic-tech-reference", "directory", "commons"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-reference",
+        "directory",
+        "commons"
+      ],
       "metadata": {
         "practice_kind": "reference",
         "license_note": "Content CC BY-NC-SA; site code open source; public read API at civictech.guide/build.",
-        "neighborhood_categories": ["neighborhood-forums", "mutual-aid", "resource-matching-and-sharing", "issue-reporting", "participatory-budgeting", "deliberation", "civic-maps", "community-wifi", "mesh-networks", "relational-organizing", "the-craft-of-organizing"]
+        "neighborhood_categories": [
+          "neighborhood-forums",
+          "mutual-aid",
+          "resource-matching-and-sharing",
+          "issue-reporting",
+          "participatory-budgeting",
+          "deliberation",
+          "civic-maps",
+          "community-wifi",
+          "mesh-networks",
+          "relational-organizing",
+          "the-craft-of-organizing"
+        ]
       },
       "sort_order": 500
     },
@@ -846,7 +1151,13 @@
         "source": "documenters.org; citybureau.org/city-scrapers"
       },
       "source_url": "https://www.documenters.org/",
-      "tags": ["local-civic-tech", "civic-tech-reference", "public-meetings", "paid-stewards", "civic-media"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-reference",
+        "public-meetings",
+        "paid-stewards",
+        "civic-media"
+      ],
       "metadata": {
         "practice_kind": "reference",
         "repo_url": "https://www.citybureau.org/city-scrapers",
@@ -866,11 +1177,23 @@
         "source": "Local Civic Tech shelf starter prompt"
       },
       "source_url": null,
-      "tags": ["local-civic-tech", "civic-tech-prompt", "starter", "neighborhood-forums", "slow-tech"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-prompt",
+        "starter",
+        "neighborhood-forums",
+        "slow-tech"
+      ],
       "metadata": {
         "practice_kind": "prompt",
-        "builds_on": ["five-sisters-forum"],
-        "guardrails": ["the pace is the product — one send a day", "moderation rotates", "growth means seeding new digests, not expanding this one"]
+        "builds_on": [
+          "five-sisters-forum"
+        ],
+        "guardrails": [
+          "the pace is the product — one send a day",
+          "moderation rotates",
+          "growth means seeding new digests, not expanding this one"
+        ]
       },
       "sort_order": 440
     },
@@ -885,11 +1208,26 @@
         "source": "Local Civic Tech shelf starter prompt"
       },
       "source_url": null,
-      "tags": ["local-civic-tech", "civic-tech-prompt", "starter", "mutual-aid", "phone-first"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-prompt",
+        "starter",
+        "mutual-aid",
+        "phone-first"
+      ],
       "metadata": {
         "practice_kind": "prompt",
-        "builds_on": ["bed-stuy-strong", "mamas-pods", "design-for-care-not-enforcement"],
-        "guardrails": ["phone number in front, app in back", "block-level location until claimed", "auto-purge completed tickets", "two-steward rule for any export"]
+        "builds_on": [
+          "bed-stuy-strong",
+          "mamas-pods",
+          "design-for-care-not-enforcement"
+        ],
+        "guardrails": [
+          "phone number in front, app in back",
+          "block-level location until claimed",
+          "auto-purge completed tickets",
+          "two-steward rule for any export"
+        ]
       },
       "sort_order": 450
     },
@@ -904,11 +1242,23 @@
         "source": "Local Civic Tech shelf starter prompt"
       },
       "source_url": "https://www.ushahidi.com/",
-      "tags": ["local-civic-tech", "civic-tech-prompt", "starter", "mapping", "third-places"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-prompt",
+        "starter",
+        "mapping",
+        "third-places"
+      ],
       "metadata": {
         "practice_kind": "prompt",
-        "builds_on": ["ushahidi"],
-        "guardrails": ["map places and conditions, never people", "a named neighbor-steward moderates", "a printable path for offline neighbors"]
+        "builds_on": [
+          "ushahidi"
+        ],
+        "guardrails": [
+          "map places and conditions, never people",
+          "a named neighbor-steward moderates",
+          "a printable path for offline neighbors"
+        ]
       },
       "sort_order": 400
     },
@@ -923,11 +1273,23 @@
         "source": "Local Civic Tech shelf starter prompt"
       },
       "source_url": null,
-      "tags": ["local-civic-tech", "civic-tech-prompt", "starter", "stewardship", "adopt-a-hydrant-pattern"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-prompt",
+        "starter",
+        "stewardship",
+        "adopt-a-hydrant-pattern"
+      ],
       "metadata": {
         "practice_kind": "prompt",
-        "builds_on": ["adopt-a-hydrant-remixes"],
-        "guardrails": ["adoption is an offer, not an enforcement", "viewing requires no account", "names and delight are features, not decoration"]
+        "builds_on": [
+          "adopt-a-hydrant-remixes"
+        ],
+        "guardrails": [
+          "adoption is an offer, not an enforcement",
+          "viewing requires no account",
+          "names and delight are features, not decoration"
+        ]
       },
       "sort_order": 410
     },
@@ -942,11 +1304,23 @@
         "source": "Local Civic Tech shelf starter prompt"
       },
       "source_url": null,
-      "tags": ["local-civic-tech", "civic-tech-prompt", "starter", "participatory-budgeting", "money"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-prompt",
+        "starter",
+        "participatory-budgeting",
+        "money"
+      ],
       "metadata": {
         "practice_kind": "prompt",
-        "builds_on": ["pb-49th-ward-chicago"],
-        "guardrails": ["paper ballots count equally", "every winner gets done and photographed — the loop must close", "six weeks, not six months"]
+        "builds_on": [
+          "pb-49th-ward-chicago"
+        ],
+        "guardrails": [
+          "paper ballots count equally",
+          "every winner gets done and photographed — the loop must close",
+          "six weeks, not six months"
+        ]
       },
       "sort_order": 420
     },
@@ -961,12 +1335,25 @@
         "source": "Local Civic Tech shelf starter prompt"
       },
       "source_url": null,
-      "tags": ["local-civic-tech", "civic-tech-prompt", "starter", "abcd", "asset-mapping", "question:what-resources-do-we-have"],
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-prompt",
+        "starter",
+        "abcd",
+        "asset-mapping",
+        "question:what-resources-do-we-have"
+      ],
       "metadata": {
         "practice_kind": "prompt",
-        "builds_on": ["neighborhood-asset-map"],
+        "builds_on": [
+          "neighborhood-asset-map"
+        ],
         "cross_shelf": "community-organizing",
-        "guardrails": ["self-declared gifts only — no scraping, no involuntary profiles", "success metric is connections made, not pins collected", "every association gets a named human connector"]
+        "guardrails": [
+          "self-declared gifts only — no scraping, no involuntary profiles",
+          "success metric is connections made, not pins collected",
+          "every association gets a named human connector"
+        ]
       },
       "sort_order": 430
     }
