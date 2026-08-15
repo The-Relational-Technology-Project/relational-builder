@@ -28,10 +28,37 @@ event records each match.
 
 The same prompt section teaches the wiring: these MCP servers answer plain
 HTTP JSON-RPC (`tools/list`, `tools/call`) with no auth and no SDK, so a
-generated app can `fetch` them directly (verified: a bare `tools/list`
-POST answers 200 with the city's dataset tools). Guardrails ride with it:
-name the data source and freshness in the UI, design the
-endpoint-unreachable state, conditions-not-people, keep a human path.
+generated app can `fetch` them directly. Guardrails ride with it: name the
+data source and freshness in the UI, design the endpoint-unreachable
+state, conditions-not-people, keep a human path.
+
+**Verified 2026-08-15** (all 12 endpoints, plus a generated app driven in
+Chromium against St. Paul): every endpoint answers `tools/list` 200, and
+they send `access-control-allow-origin: *` with a preflight allowing
+`POST` + `content-type`, so browser apps can call them from the page.
+
+Four things about the response shape are load-bearing enough that the
+prompt now names them explicitly — each one produced a wrong build before
+it did:
+
+- **The payload is prose, not JSON.** `result.content[0].text` is a
+  human-readable listing (`Record 1:` then `FIELD: value`); there is no
+  `structuredContent`. Apps must parse text.
+- **Rows are oldest-first and capped** (~1000, no sort parameter). So a
+  returned slice is never the newest data. A first pass at a ward view
+  computed "newest record" from its own 200-row result and displayed
+  *January 2025* when the true edge was *June 2025* — six months off,
+  rendered as a confident freshness claim. Recency has to come from a
+  date-filtered `where`, narrowed until it stops returning rows.
+- **`get_aggregations` aggregates the catalog, not records** — dataset
+  counts by tag, not service requests by ward. Rollups are client-side
+  within the cap.
+- **A city can expose more than one endpoint** with different catalogs
+  (Philadelphia has two; they answer the same query differently).
+
+A live endpoint is not live data: St. Paul's Resident Service Requests
+ends 2025-06-30. Freshness per city is the partner network's to fix, but
+builds must state the period they actually cover rather than "live".
 
 ## (c) RB tools as hyperlocal data sources — roadmap
 

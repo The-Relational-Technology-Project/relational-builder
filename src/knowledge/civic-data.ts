@@ -40,11 +40,19 @@ export async function loadCityEndpoints(): Promise<CityDataEndpoint[]> {
   return cache;
 }
 
-/** Lowercased name variants a city can be recognized by in free text */
+/**
+ * Lowercase and strip diacritics, so the city's own styling still matches:
+ * people write "San José" (as the city does) far more often than "San Jose".
+ */
+function fold(s: string): string {
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+/** Folded name variants a city can be recognized by in free text */
 function aliases(e: CityDataEndpoint): string[] {
   const out = new Set<string>();
   // "St. Paul, MN" → "st. paul"; "Philadelphia, PA (OpenDataPhilly)" → "philadelphia"
-  const base = e.city.split(',')[0].replace(/\(.*\)/, '').trim().toLowerCase();
+  const base = fold(e.city.split(',')[0].replace(/\(.*\)/, '').trim());
   if (base) out.add(base);
   if (base.startsWith('st. ')) {
     out.add(base.replace('st. ', 'st '));
@@ -68,7 +76,7 @@ export function matchCityEndpoints(
   signalText: string,
   endpoints: CityDataEndpoint[],
 ): CityDataEndpoint[] {
-  const text = ` ${signalText.toLowerCase().replace(/\s+/g, ' ')} `;
+  const text = ` ${fold(signalText).replace(/\s+/g, ' ')} `;
   return endpoints.filter(e =>
     aliases(e).some(a => new RegExp(`[^a-z]${a.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[^a-z]`).test(text)),
   );
@@ -99,7 +107,7 @@ export function formatCivicDataForPrompt(matches: CityDataEndpoint[]): string {
     '',
     'How to use this:',
     '- **In plans and conversation:** treat the city\'s open data as a first-class ingredient. Name the real datasets a build could stand on (service requests, permits, capital projects, facilities…) and prefer "read it live from the city endpoint" over pasted snapshots or invented sample data.',
-    '- **In live builds:** these endpoints speak MCP over plain HTTP JSON-RPC, so a generated app can call them directly with `fetch` — no SDK needed. Discover what a city offers with `tools/list`, then read data with `tools/call`:',
+    '- **In live builds:** these endpoints speak MCP over plain HTTP JSON-RPC, so a generated app can call them directly with `fetch` — no SDK, no key, and they send permissive CORS headers, so a browser app can call them straight from the page. Discover what a city offers with `tools/list` (tool names differ by portal — `arcgis__*`, `ckan__*`, and others), then read data with `tools/call`:',
     '',
     '```ts',
     "// list available data tools",
@@ -112,6 +120,13 @@ export function formatCivicDataForPrompt(matches: CityDataEndpoint[]): string {
     "const tools = await rpc('tools/list');",
     "const result = await rpc('tools/call', { name: '<tool>', arguments: { /* … */ } });",
     '```',
+    '',
+    'What comes back, and the traps in it (each of these has bitten a real build):',
+    '- **The payload is prose, not JSON.** A `tools/call` reply carries `result.content[0].text` — a human-readable listing (`Record 1:` followed by `FIELD: value` lines). There is no `structuredContent`. An app has to parse that text into objects itself, so write the parser defensively and keep working if a field is missing or the shape shifts.',
+    '- **Rows come back oldest-first and capped** (roughly 1000; these tools take no sort parameter). A returned slice is therefore *not* the newest data. Never compute "last updated", "recent requests", or any freshness label from whatever a query happened to return — it will read as current and be silently, confidently wrong. Get recency from a date-filtered `where` instead (e.g. `DATE_FIELD > timestamp \'2026-01-01 00:00:00\'`), narrowing until you find the real edge of the data.',
+    '- **Check the data\'s true age before you promise anything about it.** Some city datasets lag by a year or more even though the endpoint answers instantly — a live endpoint is not the same as live data. Probe for the newest record first, then state the period plainly in the UI ("service requests through June 2025"), never a bare "live".',
+    '- **Aggregation tools aggregate the catalog, not the records.** `get_aggregations` counts *datasets* by tag or type; it will not count service requests by ward. Record-level rollups mean pulling rows within the cap and counting client-side — and saying so when the count covers only part of the data.',
+    '- **A city may expose more than one endpoint** (different portals behind the same name). Run `tools/list` on each and use whichever actually carries the dataset the build needs, rather than assuming the first one listed.',
     '',
     'Ground rules when civic data is in play:',
     '- Show data honestly: name the source and its freshness in the UI, and design a graceful state for when the endpoint is unreachable — a civic tool that silently shows stale data breaks trust.',
