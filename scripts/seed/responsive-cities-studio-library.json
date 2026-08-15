@@ -132,6 +132,186 @@
         "neighborhood-dashboard"
       ],
       "sort_order": 90
+    },
+    {
+      "kind": "recipe",
+      "title": "Design for Care, Not Enforcement",
+      "summary": "Every 'report a problem' tool can become 'report a neighbor.' The design line that keeps neighborhood tech on the right side: point it at conditions and needs, never at people — and add friction where harm is easy.",
+      "url": "https://relationalbuilder.org/commons/framework/design-for-care-not-enforcement",
+      "attribution": "Relational Technology Project · RT Commons, Local Civic Tech shelf",
+      "tags": [
+        "responsive-cities",
+        "commons:local-civic-tech",
+        "design",
+        "311"
+      ],
+      "sort_order": 100
+    },
+    {
+      "kind": "recipe",
+      "title": "Learn from the Graveyard",
+      "summary": "The Civic Tech Field Guide keeps a cemetery of dead projects, and hyperlocal tech fills a whole row. The patterns behind the headstones are the most useful design guidance this shelf has.",
+      "url": "https://relationalbuilder.org/commons/framework/learn-from-the-graveyard",
+      "attribution": "Relational Technology Project / Civic Tech Field Guide · RT Commons, Local Civic Tech shelf",
+      "tags": [
+        "responsive-cities",
+        "commons:local-civic-tech",
+        "design"
+      ],
+      "sort_order": 110
+    },
+    {
+      "kind": "tool",
+      "title": "Decidim",
+      "summary": "Barcelona's open-source participatory democracy framework — proposals, assemblies, participatory budgets — governed by its own community under a social contract. The current standard for serious digital participation.",
+      "url": "https://relationalbuilder.org/commons/tool/decidim",
+      "attribution": "Decidim Free Software Association (AGPL-3.0) · RT Commons, Local Civic Tech shelf",
+      "tags": [
+        "responsive-cities",
+        "commons:local-civic-tech",
+        "deliberation",
+        "participation"
+      ],
+      "sort_order": 120
+    },
+    {
+      "kind": "tool",
+      "title": "CONSUL Democracy",
+      "summary": "Madrid's open-source citizen participation suite — debates, proposals with signature thresholds, participatory budgets — used by hundreds of cities and now stewarded by an independent foundation.",
+      "url": "https://relationalbuilder.org/commons/tool/consul-democracy",
+      "attribution": "CONSUL Democracy Foundation (AGPL-3.0) · RT Commons, Local Civic Tech shelf",
+      "tags": [
+        "responsive-cities",
+        "commons:local-civic-tech",
+        "deliberation",
+        "participation"
+      ],
+      "sort_order": 130
+    },
+    {
+      "kind": "tool",
+      "title": "Pol.is",
+      "summary": "The wiki-survey that maps a group's actual opinion landscape: everyone writes short statements and votes on each other's; clustering surfaces what bridges the camps. Famous from vTaiwan, sized for a street.",
+      "url": "https://relationalbuilder.org/commons/tool/polis",
+      "attribution": "The Computational Democracy Project (AGPL-3.0) · RT Commons, Local Civic Tech shelf",
+      "tags": [
+        "responsive-cities",
+        "commons:local-civic-tech",
+        "deliberation"
+      ],
+      "sort_order": 140
+    },
+    {
+      "kind": "tool",
+      "title": "Stanford Participatory Budgeting Platform",
+      "summary": "The free, open-source, multilingual digital ballot box for participatory budgeting — used in 150+ PB processes including New York City districts, where digital voting drove participation growth.",
+      "url": "https://relationalbuilder.org/commons/tool/stanford-pb-platform",
+      "attribution": "Stanford Crowdsourced Democracy Team (GPL-3.0) · RT Commons, Local Civic Tech shelf",
+      "tags": [
+        "responsive-cities",
+        "commons:local-civic-tech",
+        "deliberation",
+        "participatory-budgeting"
+      ],
+      "sort_order": 150
+    },
+    {
+      "kind": "tool",
+      "title": "FixMyStreet Platform",
+      "summary": "mySociety's 'stick a pin in a map' issue-reporting pattern, running since 2007 and forked worldwide — every report public, every fix visible. The grandparent of civic reporting done in the open.",
+      "url": "https://relationalbuilder.org/commons/tool/fixmystreet-platform",
+      "attribution": "mySociety (AGPL-3.0) · RT Commons, Local Civic Tech shelf",
+      "tags": [
+        "responsive-cities",
+        "commons:local-civic-tech",
+        "311",
+        "conditions"
+      ],
+      "sort_order": 160
+    },
+    {
+      "kind": "tool",
+      "title": "Ushahidi",
+      "summary": "The Nairobi-born, open-source crowdsourced mapping platform — reports arrive by SMS, web, or email and land on a shared map. Built for crises, remixable for anything a neighborhood wants to see together.",
+      "url": "https://relationalbuilder.org/commons/tool/ushahidi",
+      "attribution": "Ushahidi (AGPL-3.0) · RT Commons, Local Civic Tech shelf",
+      "tags": [
+        "responsive-cities",
+        "commons:local-civic-tech",
+        "conditions",
+        "mapping"
+      ],
+      "sort_order": 170
+    },
+    {
+      "kind": "story",
+      "title": "Barcelona's Neighborhood Budget: Hybrid by Design",
+      "summary": "Barcelona put €30M to the most-voted neighborhood proposals in every district on its own open-source platform — with street-corner support points feeding in the neighbors who would never participate online.",
+      "url": "https://relationalbuilder.org/commons/story/decidim-barcelona-neighborhoods",
+      "attribution": "Barcelona City Council & the Decidim community · RT Commons, Local Civic Tech shelf",
+      "tags": [
+        "responsive-cities",
+        "commons:local-civic-tech",
+        "deliberation",
+        "story"
+      ],
+      "sort_order": 180
+    },
+    {
+      "kind": "story",
+      "title": "The 49th Ward: America's First Participatory Budget",
+      "summary": "In 2009, a Chicago alderman handed his entire $1.3M infrastructure budget to residents: assemblies, resident committees, 36 proposals, 1,652 voters, 14 projects built. The ritual mattered more than the tech.",
+      "url": "https://relationalbuilder.org/commons/story/pb-49th-ward",
+      "attribution": "Rogers Park, Chicago · RT Commons, Local Civic Tech shelf",
+      "tags": [
+        "responsive-cities",
+        "commons:local-civic-tech",
+        "deliberation",
+        "participatory-budgeting"
+      ],
+      "sort_order": 190
+    },
+    {
+      "kind": "story",
+      "title": "E-Democracy: The Forums Built by Door-Knocking",
+      "summary": "Minneapolis–St. Paul's neighborhood forums became genuinely inclusive the only way it happens: 129 in-person outreach events, organizers speaking ten languages, and three thousand paper sign-ups gathered on doorsteps.",
+      "url": "https://relationalbuilder.org/commons/story/e-democracy-doorsteps",
+      "attribution": "E-Democracy.org, Twin Cities · RT Commons, Local Civic Tech shelf",
+      "tags": [
+        "responsive-cities",
+        "commons:local-civic-tech",
+        "deliberation",
+        "equity"
+      ],
+      "sort_order": 200
+    },
+    {
+      "kind": "story",
+      "title": "Disfactory: Anonymity as a Relational Design Choice",
+      "summary": "A small Taiwanese environmental group brought a problem to a g0v hackathon; civic hackers built a map where villagers could report illegal factories on farmland without rupturing village relationships. Seven factories down.",
+      "url": "https://relationalbuilder.org/commons/story/disfactory",
+      "attribution": "Citizen of the Earth Taiwan & g0v · RT Commons, Local Civic Tech shelf",
+      "tags": [
+        "responsive-cities",
+        "commons:local-civic-tech",
+        "glass-box",
+        "reporting"
+      ],
+      "sort_order": 210
+    },
+    {
+      "kind": "example",
+      "title": "Documenters: Paying Neighbors to Witness",
+      "summary": "City Bureau's model trains and pays residents to attend and document public meetings — 'putting every public meeting on the record' — now a national network, with open-source meeting scrapers underneath.",
+      "url": "https://relationalbuilder.org/commons/reading-room#documenters-network",
+      "attribution": "City Bureau, Chicago · RT Commons, Local Civic Tech shelf",
+      "tags": [
+        "responsive-cities",
+        "commons:local-civic-tech",
+        "glass-box",
+        "public-meetings"
+      ],
+      "sort_order": 220
     }
   ]
 }
