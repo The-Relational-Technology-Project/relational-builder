@@ -93,11 +93,49 @@ export async function retrieveCivicDataContext(signals: (string | null | undefin
   }
 }
 
+/**
+ * Portal-specific reading guidance. The three portal kinds behind these
+ * endpoints expose genuinely different tool surfaces, and advice that fits
+ * one produces wrong builds on another: ArcGIS `query_data` takes no sort
+ * parameter (so recency has to come from a date-filtered `where`), while
+ * CKAN and OpenDataPhilly can sort and aggregate server-side. Only the
+ * kinds actually matched ride into the prompt.
+ */
+const PORTAL_NOTES: Record<string, string[]> = {
+  arcgis: [
+    '### ArcGIS-backed endpoints (`arcgis__*`)',
+    'Tools: `search_datasets`, `get_dataset`, `query_data` (`dataset_id`, `where`, `out_fields`, `limit`), `get_aggregations` — note there is no schema tool here, so field names come from `get_dataset` or from a sample row.',
+    '- **Rows come back oldest-first and capped** (roughly 1000; `query_data` takes no sort parameter). A returned slice is therefore *not* the newest data. Never compute "last updated", "recent requests", or any freshness label from whatever a query happened to return — it will read as current and be silently, confidently wrong. Get recency from a date-filtered `where` instead (e.g. `DATE_FIELD > timestamp \'2026-01-01 00:00:00\'`), narrowing until you find the real edge of the data.',
+    '- **`get_aggregations` aggregates the catalog, not the records** — it counts *datasets* by tag or type; it will not count service requests by ward. Record-level rollups mean pulling rows within the cap and counting client-side — and saying so when the count covers only part of the data.',
+  ],
+  ckan: [
+    '### CKAN-backed endpoints (`ckan__*`)',
+    'Tools: `search_datasets`, `get_dataset`, `get_schema`, `query_data` (`resource_id`, `filters`, `limit`), `execute_sql`, `aggregate_data`.',
+    '- **A dataset is a bag of resources, and the resource is what you query.** `get_dataset` returns a list of resources — large series are usually split one per year ("2024 Service Requests", "2025…", "2026…"), each with its own `resource_id`. Pick the resource that actually covers the period the build is about; querying last year\'s resource is the quiet way to ship stale data.',
+    '- **`execute_sql` is real SQL — use it.** It takes full `SELECT` with `ORDER BY`, `WHERE`, and aggregates, so recency and rollups are server-side questions here, not client-side guesses over a capped slice.',
+    '- **Quote every identifier in `execute_sql`.** Resource IDs must be double-quoted (`FROM "uuid"`), and so must any column that isn\'t lowercase — civic exports are full of `"Date Created"`, `"Service Type"`, `"Category"`.',
+    '- **`aggregate_data` does not quote the identifiers it is given**, so it fails with a 409 `UndefinedColumn` on any capitalized or spaced field name — which is most of them. Prefer `execute_sql` with quoted identifiers for grouped counts.',
+    '- **Dates are often stored as text**, so ordering and filtering by them means parsing first (e.g. `ORDER BY to_timestamp("Date Created", \'MM/DD/YYYY HH12:MI:SS AM\') DESC`). Check the format in a sample row before relying on it; sorting the raw string sorts alphabetically and lies.',
+  ],
+  philly: [
+    '### OpenDataPhilly endpoints (`philly__*`)',
+    'Tools: `search_datasets`, `get_dataset`, `get_schema`, `query_data` (`dataset_id`, `where`, `fields`, `order_by`, `table`, `limit`), `aggregate_data`, `get_aggregations`, `execute_sql`.',
+    '- **`query_data` takes `order_by`**, so recency comes from sorting descending on the date field rather than from narrowing a `where` window.',
+    '- **Two different aggregation tools:** `aggregate_data` groups *records* (what a ward rollup needs), while `get_aggregations` counts *datasets* in the catalog by field. Reaching for the wrong one produces a confident answer to a question nobody asked.',
+  ],
+};
+
 /** The system-prompt section for matched endpoints */
 export function formatCivicDataForPrompt(matches: CityDataEndpoint[]): string {
   const list = matches
     .map(e => `- **${e.city}** — MCP endpoint: \`${e.mcp_url}\` (${e.kind}-backed open data)`)
     .join('\n');
+  // Only the portal kinds in play, in the order the cities were matched —
+  // an unknown kind contributes nothing rather than borrowing another
+  // portal's rules.
+  const portalNotes = [...new Set(matches.map(e => e.kind))]
+    .filter(kind => kind in PORTAL_NOTES)
+    .flatMap(kind => ['', ...PORTAL_NOTES[kind]]);
   return [
     '## Live Civic Data Available',
     '',
@@ -123,10 +161,12 @@ export function formatCivicDataForPrompt(matches: CityDataEndpoint[]): string {
     '',
     'What comes back, and the traps in it (each of these has bitten a real build):',
     '- **The payload is prose, not JSON.** A `tools/call` reply carries `result.content[0].text` — a human-readable listing (`Record 1:` followed by `FIELD: value` lines). There is no `structuredContent`. An app has to parse that text into objects itself, so write the parser defensively and keep working if a field is missing or the shape shifts.',
-    '- **Rows come back oldest-first and capped** (roughly 1000; these tools take no sort parameter). A returned slice is therefore *not* the newest data. Never compute "last updated", "recent requests", or any freshness label from whatever a query happened to return — it will read as current and be silently, confidently wrong. Get recency from a date-filtered `where` instead (e.g. `DATE_FIELD > timestamp \'2026-01-01 00:00:00\'`), narrowing until you find the real edge of the data.',
     '- **Check the data\'s true age before you promise anything about it.** Some city datasets lag by a year or more even though the endpoint answers instantly — a live endpoint is not the same as live data. Probe for the newest record first, then state the period plainly in the UI ("service requests through June 2025"), never a bare "live".',
-    '- **Aggregation tools aggregate the catalog, not the records.** `get_aggregations` counts *datasets* by tag or type; it will not count service requests by ward. Record-level rollups mean pulling rows within the cap and counting client-side — and saying so when the count covers only part of the data.',
+    '- **A returned slice is not the whole dataset.** Every one of these tools caps its rows (often ~1000), so counts and "most common" claims computed from one call describe that slice, not the city. Aggregate server-side where the portal allows it, and say what the number covers where it doesn\'t.',
+    '- **Check the geography before mapping anything.** Civic exports routinely carry blank or `0` coordinates for a large share of rows — half is not unusual. Filter to plausible coordinates, and tell the reader how many records the map is not showing rather than letting them read a partial map as the full picture.',
     '- **A city may expose more than one endpoint** (different portals behind the same name). Run `tools/list` on each and use whichever actually carries the dataset the build needs, rather than assuming the first one listed.',
+    '- **Verify the tool surface with `tools/list` before writing queries against it** — the notes below describe each portal kind, but the portal itself is the authority.',
+    ...portalNotes,
     '',
     'Ground rules when civic data is in play:',
     '- Show data honestly: name the source and its freshness in the UI, and design a graceful state for when the endpoint is unreachable — a civic tool that silently shows stale data breaks trust.',
