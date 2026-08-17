@@ -82,15 +82,34 @@ export type ReportOfferState = 'armed' | 'pending' | 'declined' | 'sent' | null;
 
 /** Enough for any real build's story; a pathological error loop stops adding */
 const MAX_EVENTS = 200;
-const MAX_DETAIL_CHARS = 240;
+/** Roomy enough to name every entry retrieval kept, not just the top few */
+const MAX_DETAIL_CHARS = 400;
+
+/**
+ * The provenance events — what knowledge was offered, what the reply used,
+ * which cities' data rode along. Unlike the generation timeline these belong
+ * to the whole project, planning included: the commons does most of its work
+ * shaping the *plan*, and wiping that at build start left reports unable to
+ * show the influence a reader can plainly see in the conversation.
+ */
+export const KNOWLEDGE_EVENTS: ReadonlySet<BuildEventType> = new Set<BuildEventType>([
+  'retrieval',
+  'commons_mentions',
+  'civic-data',
+]);
 
 interface BuildLogState {
   events: BuildEvent[];
   offer: ReportOfferState;
   record: (type: BuildEventType, detail?: string) => void;
   setOffer: (offer: ReportOfferState) => void;
-  /** A fresh project (or a fresh first build) starts a fresh story */
+  /** A fresh project starts a fresh story */
   reset: () => void;
+  /**
+   * The initial build starts a fresh *timeline* while keeping the knowledge
+   * this project already gathered while planning.
+   */
+  startFirstBuild: () => void;
 }
 
 export const useBuildLogStore = create<BuildLogState>()(persist((set) => ({
@@ -112,6 +131,12 @@ export const useBuildLogStore = create<BuildLogState>()(persist((set) => ({
   setOffer: (offer) => set({ offer }),
 
   reset: () => set({ events: [], offer: null }),
+
+  startFirstBuild: () =>
+    set(state => ({
+      events: state.events.filter(e => KNOWLEDGE_EVENTS.has(e.type)),
+      offer: null,
+    })),
 }), {
   name: 'rb-build-log',
 }));

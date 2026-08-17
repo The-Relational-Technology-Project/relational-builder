@@ -394,12 +394,15 @@ export function ChatPanel() {
     }
 
     // A project's initial build starts a fresh build log — the timeline that
-    // becomes a shareable report if the builder opts in when it's done
+    // becomes a shareable report if the builder opts in when it's done. The
+    // knowledge already gathered while planning carries over: the commons
+    // shapes the plan more than the build, so wiping it here would erase the
+    // influence from the very report meant to show it.
     if (isFirstBuild && !wasFix) {
       // Fresh project: the previous one's last submit must not read as a
       // duplicate here.
       resetSubmitTracking();
-      useBuildLogStore.getState().reset();
+      useBuildLogStore.getState().startFirstBuild();
       recordBuildEvent(
         'build_start',
         `${useProviderStore.getState().activeProviderId} · ${modelForSend}`,
@@ -450,11 +453,13 @@ export function ChatPanel() {
     if (retrieval.query !== null) {
       // The eval trail: what was searched, what survived the floor. A
       // deliberate empty ("kept 0/8") is a finding, not a failure.
+      // Every kept entry, not just the top few — the report's provenance
+      // section can only credit what the log names.
       recordBuildEvent(
         'retrieval',
-        `"${retrieval.query.replace(/\s+/g, ' ').slice(0, 80)}" · kept ${commonsResults.length}/${commonsResults.length + retrieval.dropped}` +
+        `"${retrieval.query.replace(/\s+/g, ' ').slice(0, 60)}" · kept ${commonsResults.length}/${commonsResults.length + retrieval.dropped}` +
           (commonsResults.length > 0
-            ? ` (${commonsResults.slice(0, 3).map(r => `${r.slug}${r.similarity ? ` ${r.similarity.toFixed(2)}` : ''}`).join(', ')})`
+            ? ` (${commonsResults.map(r => `${r.slug}${r.similarity ? ` ${r.similarity.toFixed(2)}` : ''}`).join(', ')})`
             : ''),
       );
     }

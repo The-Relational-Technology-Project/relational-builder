@@ -83,7 +83,77 @@ const EVENT_LABELS: Record<string, string> = {
   manual_error_fix: 'Fix requested by hand',
   quality_review_fix: 'Quality review queued a fix',
   build_ready: 'Build ready',
+  retrieval: 'Commons knowledge searched',
+  commons_mentions: 'Reply drew on the commons',
+  'civic-data': 'Live city data in context',
 };
+
+/**
+ * Provenance, not chronology. These answer "what shaped this build" and get
+ * their own section; leaving them in the timeline buried the commons story in
+ * the middle of generation churn, spelled as raw event names. They also span
+ * the planning conversation, so their timestamps predate the build clock and
+ * would skew every offset in the timeline.
+ */
+const KNOWLEDGE_TYPES = new Set(['retrieval', 'commons_mentions', 'civic-data']);
+
+interface CommonsEntry { slug: string; score: number | null; drawnOn: boolean }
+
+/**
+ * Pull the commons story out of the log: which entries retrieval offered
+ * (best similarity each reached), which ones a reply actually drew on, how
+ * many searches ran, and which cities' live data rode into context.
+ *
+ * Details are parsed leniently — an older client's shorter format yields
+ * fewer entries rather than breaking the section.
+ */
+function knowledgeStory(events: LogEvent[]): {
+  entries: CommonsEntry[];
+  searches: { kept: number; offered: number }[];
+  cities: string[];
+} {
+  const byslug = new Map<string, CommonsEntry>();
+  const searches: { kept: number; offered: number }[] = [];
+  const cities = new Set<string>();
+
+  for (const e of events) {
+    const detail = e.detail ?? '';
+    if (e.type === 'retrieval') {
+      const counts = detail.match(/kept (\d+)\/(\d+)/);
+      if (counts) searches.push({ kept: Number(counts[1]), offered: Number(counts[2]) });
+      // The kept entries live in the trailing "(slug 0.61, slug 0.60)" group
+      const tail = detail.match(/\(([^)]*)\)\s*$/);
+      for (const part of tail?.[1].split(',') ?? []) {
+        const m = part.trim().match(/^([a-z0-9][a-z0-9-]*)(?:\s+([\d.]+))?$/);
+        if (!m) continue;
+        const score = m[2] ? Number(m[2]) : null;
+        const prev = byslug.get(m[1]);
+        if (prev) {
+          if (score !== null && (prev.score === null || score > prev.score)) prev.score = score;
+        } else {
+          byslug.set(m[1], { slug: m[1], score, drawnOn: false });
+        }
+      }
+    } else if (e.type === 'commons_mentions') {
+      for (const raw of detail.split(',')) {
+        const slug = raw.trim();
+        if (!/^[a-z0-9][a-z0-9-]*$/.test(slug)) continue;
+        const prev = byslug.get(slug);
+        if (prev) prev.drawnOn = true;
+        else byslug.set(slug, { slug, score: null, drawnOn: true });
+      }
+    } else if (e.type === 'civic-data') {
+      const named = detail.replace(/^.*?in context:\s*/, '').trim();
+      if (named) cities.add(named);
+    }
+  }
+
+  // Drawn-on first — the entries that actually landed are the story
+  const entries = [...byslug.values()].sort((a, b) =>
+    a.drawnOn !== b.drawnOn ? (a.drawnOn ? -1 : 1) : (b.score ?? 0) - (a.score ?? 0),
+  );
+  return { entries, searches, cities: [...cities] };
+}
 
 /**
  * Collapse fenced code blocks to one-line placeholders. The chat's story is
@@ -144,7 +214,11 @@ function renderEmail(r: {
   reportId: string | null;
 }): string {
   const name = r.projectName ?? 'an unnamed project';
-  const base = r.events[0]?.at ?? 0;
+  // The timeline is the build's clock. Knowledge events reach back into the
+  // planning conversation, so basing offsets on the first event of any kind
+  // would start every build at +14:00.
+  const timeline = r.events.filter(e => !KNOWLEDGE_TYPES.has(e.type));
+  const base = timeline[0]?.at ?? r.events[0]?.at ?? 0;
   const start = r.events.find(e => e.type === 'build_start');
   const ready = r.events.find(e => e.type === 'build_ready');
   const continuations = r.events.filter(e => e.type === 'auto_continuation').length;
@@ -215,10 +289,43 @@ function renderEmail(r: {
     parts.push(`<p><strong>Okay to follow up:</strong> ${esc(r.followUpEmail)}</p>`);
   }
 
-  if (r.events.length > 0) {
+  // What shaped this build — the commons loop, made legible. Before this the
+  // only trace was two raw event lines mid-timeline, while the influence was
+  // plainly visible in the plan text; a steward had to read the whole
+  // conversation to see which entries had actually done the work.
+  const { entries, searches, cities } = knowledgeStory(r.events);
+  if (entries.length > 0 || cities.length > 0) {
+    parts.push('<h3 style="margin:16px 0 4px">What shaped this build</h3>');
+    if (entries.length > 0) {
+      const drawn = entries.filter(e => e.drawnOn).length;
+      parts.push(
+        `<p style="color:#666;font-size:13px;margin:0 0 6px">${entries.length} commons ${entries.length === 1 ? 'entry' : 'entries'} rode into context` +
+        (drawn > 0
+          ? ` — <strong>${drawn}</strong> named in a plan or build reply (marked ★)`
+          : ' — none were named in a reply') +
+        `${searches.length > 0 ? ` · ${searches.length} ${searches.length === 1 ? 'search' : 'searches'} (${searches.map(s => `kept ${s.kept}/${s.offered}`).join(', ')})` : ''}.</p>`,
+      );
+      parts.push('<table style="border-collapse:collapse;font-size:13px">');
+      for (const e of entries) {
+        parts.push(
+          `<tr><td style="padding:2px 8px 2px 0;vertical-align:top">${e.drawnOn ? '★' : '&nbsp;'}</td>` +
+          `<td style="padding:2px 10px 2px 0">${e.drawnOn ? `<strong>${esc(e.slug)}</strong>` : esc(e.slug)}</td>` +
+          `<td style="padding:2px 0;color:#666;font-family:monospace">${e.score === null ? '' : e.score.toFixed(2)}</td></tr>`,
+        );
+      }
+      parts.push('</table>');
+    }
+    if (cities.length > 0) {
+      parts.push(
+        `<p style="font-size:13px;margin:8px 0 0">🏙 <strong>Live civic data in context:</strong> ${cities.map(esc).join(' · ')}</p>`,
+      );
+    }
+  }
+
+  if (timeline.length > 0) {
     parts.push('<h3 style="margin:16px 0 4px">How it went</h3>');
     parts.push('<table style="border-collapse:collapse;font-size:13px">');
-    for (const e of r.events) {
+    for (const e of timeline) {
       parts.push(
         `<tr><td style="padding:2px 10px 2px 0;font-family:monospace;vertical-align:top">${relTime(e.at, base)}</td>` +
         `<td style="padding:2px 0"><strong>${esc(EVENT_LABELS[e.type] ?? e.type)}</strong>${e.detail ? ` — ${esc(e.detail)}` : ''}</td></tr>`,
@@ -302,7 +409,8 @@ Deno.serve(async (req: Request) => {
       .map((e: Record<string, unknown>) => ({
         at: e.at as number,
         type: String(e.type).slice(0, 40),
-        ...(e.detail ? { detail: String(e.detail).slice(0, 240) } : {}),
+        // Roomy enough for a retrieval event naming every entry it kept
+        ...(e.detail ? { detail: String(e.detail).slice(0, 400) } : {}),
       }));
 
     const files: FileEntry[] = (Array.isArray(body.files) ? body.files : [])

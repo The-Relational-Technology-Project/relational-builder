@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ChevronDown, ChevronRight, HeartHandshake, Loader2, Undo2, X } from 'lucide-react';
 import { useChatStore } from '@/store/chat-store';
 import { useProjectStore } from '@/store/project-store';
-import { useBuildLogStore, type BuildEvent, type BuildEventType } from '@/report/build-log';
+import { useBuildLogStore, KNOWLEDGE_EVENTS, type BuildEvent, type BuildEventType } from '@/report/build-log';
 import {
   assembleReport,
   generateBuildSummary,
@@ -203,7 +203,12 @@ export function BuildReportCard() {
     );
   }
 
-  const timelineBase = events[0]?.at ?? Date.now();
+  // The preview must show what the report shows: provenance (what shaped the
+  // build, gathered from planning onward) sits apart from the build's own
+  // clock, which starts at the first generation event.
+  const knowledge = events.filter(e => KNOWLEDGE_EVENTS.has(e.type));
+  const timeline = events.filter(e => !KNOWLEDGE_EVENTS.has(e.type));
+  const timelineBase = timeline[0]?.at ?? events[0]?.at ?? Date.now();
 
   return (
     <div className="mx-4 mb-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-3 space-y-2.5">
@@ -312,12 +317,26 @@ export function BuildReportCard() {
             })}
           </div>
 
-          {events.length > 0 && (
+          {knowledge.length > 0 && (
+            <div className="space-y-1">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                What shaped this build
+              </p>
+              {knowledge.map((e, i) => (
+                <p key={i} className="text-xs text-muted-foreground break-words">
+                  {EVENT_LABELS[e.type] ?? e.type}
+                  {e.detail ? ` — ${e.detail}` : ''}
+                </p>
+              ))}
+            </div>
+          )}
+
+          {timeline.length > 0 && (
             <div className="space-y-1">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                 Build timeline
               </p>
-              {events.map((e, i) => (
+              {timeline.map((e, i) => (
                 <p key={i} className="text-xs text-muted-foreground">
                   <span className="font-mono">{eventTime(e, timelineBase)}</span>{' '}
                   {EVENT_LABELS[e.type] ?? e.type}

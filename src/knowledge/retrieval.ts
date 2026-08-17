@@ -212,9 +212,54 @@ export async function retrieveCommonsContext(input: RetrievalInput): Promise<Ret
 }
 
 /**
- * Which surfaced entries a finished reply actually drew on, by title match —
- * feeds the "Drew on the commons" chips and the build log, closing the loop
+ * Words too common in this domain to attribute anything: every neighborhood
+ * build says "community" and "block", so their presence proves nothing about
+ * which entry a reply leaned on.
+ */
+const GENERIC_TERMS = new Set([
+  'build', 'builder', 'building', 'local', 'block', 'blocks', 'neighbor', 'neighbors',
+  'neighborhood', 'neighborhoods', 'community', 'communities', 'people', 'project',
+  'projects', 'platform', 'toolkit', 'guide', 'story', 'stories', 'prompt', 'recipe',
+  'simple', 'small', 'first', 'your', 'their', 'about', 'where', 'without', 'living',
+]);
+
+/**
+ * Names a reply could plausibly use to refer to an entry: the whole title, any
+ * hyphenated compound in its title or slug ("adopt-a-thing", "third-places"),
+ * and long distinctive words that belong to this entry alone within the
+ * surfaced set ("ushahidi", "participatory"). The uniqueness test is what
+ * makes single words safe — a word shared by two offered entries can't
+ * attribute a mention to either.
+ */
+function mentionTerms(r: CommonsSearchResult, wordOwners: Map<string, number>): string[] {
+  const terms = new Set<string>();
+  const title = r.title.trim().toLowerCase();
+  if (title.length >= 5) terms.add(title);
+  // Drop a leading kind prefix — entries are titled "Build: A Third-Places Map…"
+  const bare = title.replace(/^[a-z]+:\s*/, '');
+  if (bare.length >= 8 && bare !== title) terms.add(bare);
+  for (const source of [title, r.slug.toLowerCase().replace(/-/g, ' ')]) {
+    for (const compound of source.matchAll(/[a-z0-9]+(?:-[a-z0-9]+)+/g)) {
+      if (compound[0].length >= 8) terms.add(compound[0]);
+    }
+  }
+  for (const word of r.slug.toLowerCase().split('-').concat(title.split(/[^a-z0-9]+/))) {
+    if (word.length >= 6 && !GENERIC_TERMS.has(word) && wordOwners.get(word) === 1) {
+      terms.add(word);
+    }
+  }
+  return [...terms];
+}
+
+/**
+ * Which surfaced entries a finished reply actually drew on — feeds the "Drew
+ * on the commons" chips and the build log's provenance, closing the loop
  * between what retrieval offered and what the model used.
+ *
+ * Verbatim titles alone missed almost everything real: plans credit entries
+ * the way a person would ("the Ushahidi lesson", "the *Adopt-a-Thing* rule"),
+ * never by reciting "Build: A Third-Places Map for Your Neighborhood". So a
+ * distinctive name for the entry counts too — see mentionTerms.
  */
 export function findMentionedResults(
   replyText: string,
@@ -222,8 +267,16 @@ export function findMentionedResults(
 ): CommonsSearchResult[] {
   if (!replyText || surfaced.length === 0) return [];
   const haystack = replyText.toLowerCase();
-  return surfaced.filter(r => {
-    const title = r.title.trim().toLowerCase();
-    return title.length >= 5 && haystack.includes(title);
-  });
+  // How many of the surfaced entries claim each word — only sole owners can
+  // stand in for their entry
+  const wordOwners = new Map<string, number>();
+  for (const r of surfaced) {
+    const own = new Set(
+      r.slug.toLowerCase().split('-').concat(r.title.toLowerCase().split(/[^a-z0-9]+/)),
+    );
+    for (const w of own) wordOwners.set(w, (wordOwners.get(w) ?? 0) + 1);
+  }
+  return surfaced.filter(r =>
+    mentionTerms(r, wordOwners).some(t => haystack.includes(t)),
+  );
 }
