@@ -37,6 +37,12 @@ export async function startFromCommonsItem(card: CommonsCard): Promise<void> {
     opening,
     summary ? `\nWhat it is: ${summary}` : '',
     '\nHelp me plan this for my place — where would we start?',
+    // The original's screenshot rides along as a visible attachment, same as
+    // the relational tech tools' remix flow: the model sees what the original
+    // actually looks like, and the person sees what context travels
+    card.image_url
+      ? '\nThe attached screenshot shows the original. Use it as the visual reference: keep the parts that transfer close to the original, and adapt the look and details to my place.'
+      : '',
   ].join('\n').trim();
 
   // Never destructive: open work goes to the local shelf first
@@ -55,4 +61,5 @@ export async function startFromCommonsItem(card: CommonsCard): Promise<void> {
     frames: frameSlugsForCommonsItem(card),
   });
   useChatStore.getState().setDraftMessage(draft);
+  useChatStore.getState().setDraftAttachments(card.image_url ? [card.image_url] : null);
 }

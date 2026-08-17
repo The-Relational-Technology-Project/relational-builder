@@ -27,6 +27,10 @@ export interface CommonsCard {
   source_url: string | null;
   license: string | null;
   tags: string[] | null;
+  /** Screenshot of the original's core UI, when one exists. Lives in
+   *  metadata.image_url (the shared commons schema stays column-stable);
+   *  the card select aliases it out so lists stay light. */
+  image_url: string | null;
 }
 
 export interface CommonsItemDetail extends CommonsCard {
@@ -34,7 +38,7 @@ export interface CommonsItemDetail extends CommonsCard {
   metadata: Record<string, unknown> | null;
 }
 
-const CARD_COLUMNS = 'id,slug,kind,title,summary,attribution,source_studio_slug,source_url,license,tags';
+const CARD_COLUMNS = 'id,slug,kind,title,summary,attribution,source_studio_slug,source_url,license,tags,image_url:metadata->>image_url';
 
 async function rest<T>(path: string, signal?: AbortSignal): Promise<T> {
   const res = await fetch(`${COMMONS_URL}/rest/v1/${path}`, {

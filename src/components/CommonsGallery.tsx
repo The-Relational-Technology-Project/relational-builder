@@ -1055,7 +1055,9 @@ function ToolCard({
   );
 }
 
-/** A commons practice card — attribution up front, no screenshot to hide behind */
+/** A commons practice card — attribution up front. Practices carry no
+ *  screenshot; an open tool shows its real interface when the commons
+ *  holds one. */
 function RecipeCard({
   card, busy, anyBusy, onOpen, onPlan,
 }: {
@@ -1064,8 +1066,20 @@ function RecipeCard({
 }) {
   const shelf = shelfFor(card);
   const ShelfIcon = SHELF_ICONS[shelf.icon];
+  const [imgBroken, setImgBroken] = useState(false);
   return (
     <div className="group border rounded-xl overflow-hidden flex flex-col bg-background hover:border-foreground/25 transition-colors">
+      {card.image_url && !imgBroken && (
+        <button onClick={onOpen} className="block w-full aspect-[16/10] bg-muted overflow-hidden">
+          <img
+            src={card.image_url}
+            alt={card.title}
+            loading="lazy"
+            onError={() => setImgBroken(true)}
+            className="w-full h-full object-cover object-top group-hover:scale-[1.02] transition-transform"
+          />
+        </button>
+      )}
       <div className="p-3.5 flex-1 flex flex-col gap-1.5">
         <div className="flex items-center gap-1.5">
           <ShelfIcon className="size-3.5 shrink-0 text-muted-foreground" />
@@ -1146,6 +1160,12 @@ function RecipeDetailDialog({
           </DialogTitle>
         </DialogHeader>
 
+        {card.image_url && (
+          <div className="rounded-lg overflow-hidden border bg-muted">
+            <img src={card.image_url} alt={card.title} className="w-full object-contain max-h-80" />
+          </div>
+        )}
+
         {card.summary && <p className="text-sm leading-relaxed">{card.summary}</p>}
 
         {/* Attribution and lineage lead — the commons credits its contributors */}
@@ -1217,9 +1237,10 @@ function RecipeDetailDialog({
           )}
         </div>
         <p className="text-xs text-muted-foreground">
-          "Plan this" opens the recipe in Plan mode — you adapt it to your neighborhood, and
-          together you decide whether the build is a program plan, printable materials,
-          software, or a mix. Attribution travels with it.
+          "Plan this" opens the recipe in Plan mode
+          {card.image_url ? ', with the screenshot attached as visual reference' : ''} — you
+          adapt it to your neighborhood, and together you decide whether the build is a
+          program plan, printable materials, software, or a mix. Attribution travels with it.
         </p>
       </DialogContent>
     </Dialog>
