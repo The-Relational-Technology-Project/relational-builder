@@ -896,8 +896,9 @@ function StudioItemDetailDialog({
           </Button>
         </div>
         <p className="text-xs text-muted-foreground">
-          "Build with this" opens it in Plan mode — the whole {studioLabel} library
-          already travels with your builds as an approved member.
+          "Build with this" opens it in Plan mode
+          {item.image_url ? ', with the screenshot attached as visual reference' : ''} — the
+          whole {studioLabel} library already travels with your builds as an approved member.
         </p>
       </DialogContent>
     </Dialog>
