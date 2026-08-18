@@ -493,7 +493,7 @@ function ShareStoryCard() {
         className="flex items-center gap-1.5 text-xs font-medium w-full text-left"
       >
         <Sprout className="size-3.5 text-green-600" />
-        Contribute this story to the RT Commons
+        Contribute this story to the Civic Commons
         <span className="text-muted-foreground font-normal ml-auto">
           {expanded ? 'close' : 'optional'}
         </span>

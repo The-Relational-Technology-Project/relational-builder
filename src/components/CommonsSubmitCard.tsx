@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Check, Loader2, Map as MapIcon, Sprout, Wrench } from 'lucide-react';
 
 /**
- * "Share it to the RT Commons" — shown after a successful publish.
+ * "Share it to the Civic Commons" — shown after a successful publish.
  * Consent-first: the builder sees exactly what will be shared and must
  * check the box before anything is sent. Submissions are reviewed by a
  * steward before becoming public.
@@ -105,7 +105,7 @@ export function CommonsSubmitCard({
         className="flex items-center gap-1.5 text-xs font-medium w-full text-left"
       >
         <Sprout className="size-3.5 text-green-600" />
-        Share it to the RT Commons
+        Share it to the Civic Commons
         <span className="text-muted-foreground font-normal ml-auto">
           {expanded ? 'close' : 'optional'}
         </span>

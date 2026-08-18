@@ -1,5 +1,5 @@
 /**
- * The public face of the RT Commons: /commons/... — server-rendered pages
+ * The public face of the Civic Commons: /commons/... — server-rendered pages
  * for every substantial commons entry, theme pages to jam on with
  * colleagues, a story wall, a reading room, a search page over the whole
  * commons, and a map of how the whole thing connects. Built for the crawlers that don't run JavaScript (which
@@ -12,12 +12,12 @@
  */
 
 import {
-  SITE, Entry, esc, kindLabel, kindInk, KIND_COLOR, entryPath, hasOwnPage, resolveSlugTarget,
+  SITE, Entry, esc, kindLabel, entryPath, hasOwnPage, resolveSlugTarget,
   fetchAllSlim, fetchAllRefs, fetchEntry, fetchBySlugs, fetchRefsFor, renderMarkdown,
   qualifyAsset, monthKey, searchCommonsHybrid,
 } from './_commons/shared';
 import {
-  page, FooterStats, constellation, entryCard, kindChip, kindAccent, truncate, breadcrumbs, breadcrumbLd, fmtMonth, sparkline,
+  page, FooterStats, constellation, entryCard, kindChip, kindClass, truncate, breadcrumbs, breadcrumbLd, fmtMonth, sparkline,
 } from './_commons/render';
 import { THEMES } from './_commons/themes';
 import { LICENSE_INTRO, LICENSE_MD } from './_commons/license';
@@ -36,6 +36,35 @@ const SHELVES: Record<string, string> = {
   recipes: 'recipe', tools: 'tool', prompts: 'prompt',
   frameworks: 'framework', methodologies: 'methodology',
 };
+
+/** The four guides — shown as themselves, no metaphor needed. */
+const GUIDES: [slug: string, title: string, blurb: string][] = [
+  ['on-your-block', 'Community-Building on Your Block',
+    'Block parties, welcome wagons, tool libraries — the practices that make a block a neighborhood, and where to start.'],
+  ['civic-media', 'Civic Media for Your Neighborhood',
+    'How information becomes care work at neighborhood scale — ten recipes and the worksheets to plan yours.'],
+  ['organizing', 'Building Power with Your Neighbors',
+    'Organizing in the Ganz tradition, hung on six questions — who are my people, what do we care about, what could we do together?'],
+  ['neighborhood-civic-tech', 'Civic Tech at Neighborhood Scale',
+    'Open tools remixable for your block — maps, ballots, mutual-aid stacks — and the design lessons from a decade of neighborhood tech.'],
+];
+
+const guideCards = (): string =>
+  GUIDES.map(
+    ([slug, title, blurb]) => `<li class="card"><h3><a href="/commons/themes/${slug}">${esc(title)}</a></h3>
+<p>${esc(blurb)}</p></li>`,
+  ).join('');
+/** Human names for the source collections — internal slugs stay internal. */
+const COLLECTION_LABEL: Record<string, string> = {
+  'rtp-canonical': 'neighboring practices',
+  'civic-media': 'civic media',
+  'rt-studio': 'tool gallery',
+  'community-organizing': 'community organizing',
+  'local-civic-tech': 'local civic tech',
+};
+const collectionLabel = (slug: string): string =>
+  COLLECTION_LABEL[slug] ?? slug.replace(/-/g, ' ');
+
 const shelfPath = (kind: string): string =>
   kind === 'story' ? '/commons/stories'
   : kind === 'reference' ? '/commons/reading-room'
@@ -61,6 +90,7 @@ export default async function handler(req: Request): Promise<Response> {
     if (seg[0] === 'map') return await mapPage();
     if (seg[0] === 'license') return await licensePage();
     if (seg[0] === 'stories') return await storyWall();
+    if (seg[0] === 'guides') return await guidesPage();
     if (seg[0] === 'reading-room') return await readingRoom();
     if (seg[0] === 'themes' && seg[1]) return await themePage(seg[1], url);
     if (seg[0] === 'e' && seg[1]) return await slugRedirect(seg[1]);
@@ -105,7 +135,7 @@ const redirect = (to: string) =>
 function notFound(): Response {
   return html(
     page(
-      { title: 'Not found · The RT Commons', description: 'No such page.', path: '/commons', noindex: true },
+      { title: 'Not found · The Civic Commons', description: 'No such page.', path: '/commons', noindex: true },
       `<h1>Not found</h1><p class="lede">Nothing lives at this address. Try the <a href="/commons">commons home</a> or the <a href="/commons/map">map</a>.</p>`,
       null,
     ),
@@ -128,34 +158,33 @@ async function homePage(): Promise<Response> {
     .map(e => entryCard(e))
     .join('');
 
-  const shelfCards = [
+  const kindCards = [
     ['recipe', 'Practices with steps — follow one on your block this month.'],
     ['tool', 'Working software from real neighborhoods, remixable in the Builder.'],
     ['story', 'What happened when real people tried this, in their words.'],
     ['prompt', 'Starting points for building your own version.'],
     ['framework', 'The thinking behind the practices, worksheets included.'],
-    ['methodology', 'How the RTP builds — the process itself, documented.'],
+    ['methodology', 'How the commons gets built — the process itself, documented.'],
     ['reference', 'The wider library: books, essays and projects we learn from.'],
   ]
     .filter(([k]) => counts.get(k as string))
     .map(([k, blurb]) => {
-      // Each shelf wears its kind's color — a wash of it, not just a dot —
-      // so the shelves read as different kinds of thing at a glance.
-      const c = KIND_COLOR[k as string] ?? '#999';
+      // Each kind wears its color — accent bar and title ink — so the
+      // catalog sections read as different kinds of thing at a glance.
       const n = counts.get(k as string)!;
-      return `<li class="card" style="border-color:${c}55;border-top:3px solid ${c};background:linear-gradient(${c}12,${c}05) var(--card)">
-<div class="k" style="color:${kindInk(k as string)}">${n} ${n === 1 ? 'entry' : 'entries'}</div>
-<h3><a href="${shelfPath(k as string)}" style="color:${kindInk(k as string)}">${esc(kindLabel(k as string, true))}</a></h3>
+      return `<li class="card ${kindClass(k as string)}">
+<div class="k">${n} ${n === 1 ? 'entry' : 'entries'}</div>
+<h3><a class="kc-title" href="${shelfPath(k as string)}">${esc(kindLabel(k as string, true))}</a></h3>
 <p>${esc(blurb as string)}</p></li>`;
     })
     .join('');
 
   const body = `
-${breadcrumbs([['The RT Commons', '/commons']])}
+${breadcrumbs([['The Civic Commons', '/commons']])}
 <h1>A commons of ways to build community where you live</h1>
 <p class="lede">${footer.entries} practices, tools, stories and ideas for strengthening the place
 you live — contributed by neighbors and community builders, connected to each other,
-credited to the people they came from, and free to remix. This is the shared library behind
+credited to the people they came from, and free to remix in
 <a href="/">Relational Builder</a>.</p>
 
 <form class="search-hero" action="/commons/search" method="get" role="search">
@@ -163,20 +192,13 @@ credited to the people they came from, and free to remix. This is the shared lib
 <button class="cta" type="submit">Search</button>
 </form>
 
-<span class="eyebrow">Four doors in</span>
-<ul class="grid">
-<li class="card"><h3><a href="/commons/themes/on-your-block">Community-Building on Your Block</a></h3>
-<p>Block parties, welcome wagons, tool libraries — the practices that make a block a neighborhood, and where to start.</p></li>
-<li class="card"><h3><a href="/commons/themes/civic-media">Civic Media for Your Neighborhood</a></h3>
-<p>How information becomes care work at neighborhood scale — ten recipes and the worksheets to plan yours.</p></li>
-<li class="card"><h3><a href="/commons/themes/organizing">Building Power with Your Neighbors</a></h3>
-<p>Organizing in the Ganz tradition, hung on six questions — who are my people, what do we care about, what could we do together?</p></li>
-<li class="card"><h3><a href="/commons/themes/neighborhood-civic-tech">Civic Tech at Neighborhood Scale</a></h3>
-<p>Open tools remixable for your block — maps, ballots, mutual-aid stacks — and the design lessons from a decade of neighborhood tech.</p></li>
-</ul>
+<span class="eyebrow">Start with a guide</span>
+<p class="meta" style="max-width:44rem">Each guide gathers the practices, tools and stories for one kind of
+work — pick the one closest to what you're trying to do.</p>
+<ul class="grid">${guideCards()}</ul>
 
-<span class="eyebrow">Or browse the shelves</span>
-<ul class="grid">${shelfCards}</ul>
+<span class="eyebrow">Browse the whole catalog</span>
+<ul class="grid">${kindCards}</ul>
 
 <span class="eyebrow">Good first reads</span>
 <ul class="grid">${featuredCards}</ul>
@@ -198,17 +220,59 @@ contributor's name attached.</p>
   return html(
     page(
       {
-        title: 'The RT Commons — practices, tools & stories for building community',
-        description: `${footer.entries} community-building practices, remixable neighborhood tools, and stories from real blocks — the shared, credited, remixable library of the Relational Technology Project.`,
+        title: 'The Civic Commons — practices, tools & stories for building community',
+        description: `${footer.entries} community-building practices, remixable neighborhood tools, and stories from real blocks — a shared, credited, remixable library stewarded by the Relational Technology Project.`,
         path: '/commons',
         jsonLd: [
           {
             '@context': 'https://schema.org',
             '@type': 'CollectionPage',
-            name: 'The RT Commons',
-            description: 'The shared library of the Relational Technology Project.',
+            name: 'The Civic Commons',
+            description: 'A shared library of practices, tools and stories for building community where you live, stewarded by the Relational Technology Project.',
             url: `${SITE}/commons`,
             isPartOf: { '@type': 'WebSite', name: 'Relational Builder', url: SITE },
+          },
+        ],
+      },
+      body,
+      footer,
+    ),
+  );
+}
+
+// --- Guides ----------------------------------------------------------------
+
+/** The four guides on one page — the nav's front door to the themes. */
+async function guidesPage(): Promise<Response> {
+  const { footer } = await commonsData();
+  const trail: [string, string][] = [['The Civic Commons', '/commons'], ['Guides', '/commons/guides']];
+  const body = `
+${breadcrumbs(trail)}
+<h1>Guides</h1>
+<p class="lede">Four guides into the commons, each written around one kind of work: an editorial
+point of view, the practices and tools that fit it, stories of real blocks that tried them, and
+prompts to build your own. Start with the one closest to what you're trying to do.</p>
+<ul class="grid" style="grid-template-columns:repeat(auto-fill,minmax(19rem,1fr))">${guideCards()}</ul>
+<div class="attach">
+<p>Not sure where to start? <a href="/commons/search">Search the whole commons</a>, browse the
+<a href="/commons/map">map of everything</a>, or begin from the <a href="/commons">commons home</a>.</p>
+</div>`;
+
+  return html(
+    page(
+      {
+        title: 'Guides · The Civic Commons',
+        description:
+          'Four guides for building community where you live: community-building on your block, civic media for your neighborhood, building power with your neighbors, and civic tech at neighborhood scale.',
+        path: '/commons/guides',
+        jsonLd: [
+          breadcrumbLd(trail),
+          {
+            '@context': 'https://schema.org', '@type': 'CollectionPage',
+            name: 'Guides · The Civic Commons', url: `${SITE}/commons/guides`,
+            hasPart: GUIDES.map(([slug, title]) => ({
+              '@type': 'CreativeWork', name: title, url: `${SITE}/commons/themes/${slug}`,
+            })),
           },
         ],
       },
@@ -292,7 +356,7 @@ async function searchPage(url: URL): Promise<Response> {
 
   const resultCard = (e: Entry): string => {
     const who = [e.attribution?.name, e.attribution?.neighborhood].filter(Boolean).join(', ');
-    return `<li class="card" style="${kindAccent(e.kind)}">
+    return `<li class="card ${kindClass(e.kind)}">
 <div class="k">${kindChip(e.kind)}${who ? ` · ${esc(who)}` : ''}</div>
 <h3><a href="${resultHref(e)}">${highlight(e.title, terms)}</a></h3>
 ${e.summary ? `<p>${highlight(truncate(e.summary, 160), terms)}</p>` : ''}
@@ -308,18 +372,18 @@ practices that fit, even when no entry uses your exact words. Or start from the
 <a href="/commons/reading-room">reading room</a>.</p>`
     : results.length === 0
       ? `<p class="meta" style="max-width:44rem">Nothing in the commons matches “${esc(q)}”. Try fewer or
-different words, or browse the <a href="/commons/map">map of everything</a> and the shelves on the
-<a href="/commons">commons home</a>.</p>`
+different words, or browse the <a href="/commons/map">map of everything</a> and the collections on
+the <a href="/commons">commons home</a>.</p>`
       : `<p class="meta">${results.length} ${results.length === 1 ? 'entry matches' : 'entries match'} “${esc(q)}”${
           results.length > SHOWN ? ` — showing the first ${SHOWN}` : ''
         }.</p>
 <ul class="grid">${results.slice(0, SHOWN).map(resultCard).join('')}</ul>`;
 
-  const trail: [string, string][] = [['The RT Commons', '/commons'], ['Search', '/commons/search']];
+  const trail: [string, string][] = [['The Civic Commons', '/commons'], ['Search', '/commons/search']];
   const body = `
 ${breadcrumbs(trail)}
 <h1>Search the commons</h1>
-<p class="lede">One search across every shelf — recipes, tools, stories, prompts, frameworks,
+<p class="lede">One search across the whole catalog — recipes, tools, stories, prompts, frameworks,
 methodologies and the reading room. ${footer.entries} entries, all of them.</p>
 <form class="search-hero" action="/commons/search" method="get" role="search">
 <input type="search" name="q" value="${esc(q)}" placeholder="Try &quot;block party&quot;, &quot;tool library&quot;, or describe what you want to do…" aria-label="Search the commons" autofocus>
@@ -330,7 +394,7 @@ ${resultsHtml}`;
   return html(
     page(
       {
-        title: q ? `“${q}” · Search · The RT Commons` : 'Search · The RT Commons',
+        title: q ? `“${q}” · Search · The Civic Commons` : 'Search · The Civic Commons',
         description:
           'Search the whole RT Commons — community-building practices, remixable neighborhood tools, stories, prompts and references — by keyword or by meaning.',
         path: '/commons/search',
@@ -357,12 +421,12 @@ async function mapPage(): Promise<Response> {
     .join('');
 
   const body = `
-${breadcrumbs([['The RT Commons', '/commons'], ['Map & timeline', '/commons/map']])}
+${breadcrumbs([['The Civic Commons', '/commons'], ['Map & timeline', '/commons/map']])}
 <h1>The shape of the commons</h1>
 <p class="lede">${all.length} entries, ${refs.length} steward-confirmed connections between them.
-Five shelves feed it: the RTP's canonical practices, the Civic Media Cookbook, the
-RT Studio's tool gallery, the community organizing shelf, and local civic tech — one
-commons, many doors.</p>
+Five collections feed it: canonical neighboring practices, the Civic Media Cookbook,
+the tool gallery, community organizing, and local civic tech — one commons, woven
+together.</p>
 <div class="night">${constellation(all, refs, { width: 1000, height: 640, links: true })}</div>
 <p class="meta">Every dot links to its entry. Larger dots are connected to something —
 a lineage parent, a story that mentions them, a practice they pair with.</p>
@@ -380,11 +444,11 @@ ${sparkline(months)}
   return html(
     page(
       {
-        title: 'Map & timeline · The RT Commons',
-        description: `A living map of the RT Commons: ${all.length} entries and ${refs.length} connections between practices, tools and stories — and how the ecosystem has grown.`,
+        title: 'Map & timeline · The Civic Commons',
+        description: `A living map of the Civic Commons: ${all.length} entries and ${refs.length} connections between practices, tools and stories — and how the ecosystem has grown.`,
         path: '/commons/map',
         wide: true,
-        jsonLd: [breadcrumbLd([['The RT Commons', '/commons'], ['Map & timeline', '/commons/map']])],
+        jsonLd: [breadcrumbLd([['The Civic Commons', '/commons'], ['Map & timeline', '/commons/map']])],
       },
       body,
       footer,
@@ -396,7 +460,7 @@ ${sparkline(months)}
 
 async function licensePage(): Promise<Response> {
   const { footer } = await commonsData();
-  const trail: [string, string][] = [['The RT Commons', '/commons'], ['License', '/commons/license']];
+  const trail: [string, string][] = [['The Civic Commons', '/commons'], ['License', '/commons/license']];
   const body = `
 ${breadcrumbs(trail)}
 <h1>Reciprocal Commons License v1.0</h1>
@@ -412,8 +476,8 @@ where it was first published. Questions about whether your use needs permission:
   return html(
     page(
       {
-        title: 'Reciprocal Commons License (RCL-1.0) · The RT Commons',
-        description: 'The license the RT Commons is shared under: free for neighbors, communities and place-based organizations; commercial platforms, services and AI systems need permission. Credit travels with the work.',
+        title: 'Reciprocal Commons License (RCL-1.0) · The Civic Commons',
+        description: 'The license the Civic Commons is shared under: free for neighbors, communities and place-based organizations; commercial platforms, services and AI systems need permission. Credit travels with the work.',
         path: '/commons/license',
         jsonLd: [breadcrumbLd(trail)],
       },
@@ -441,24 +505,24 @@ async function shelfPage(plural: string): Promise<Response> {
   };
 
   const cards = entries.map(e => entryCard(e)).join('');
-  const trail: [string, string][] = [['The RT Commons', '/commons'], [label, `/commons/${plural}`]];
+  const trail: [string, string][] = [['The Civic Commons', '/commons'], [label, `/commons/${plural}`]];
   const body = `
 ${breadcrumbs(trail)}
 <h1>${esc(label)}</h1>
-<p class="lede">${esc(blurbs[kind] ?? '')} ${entries.length} on this shelf.</p>
+<p class="lede">${esc(blurbs[kind] ?? '')} ${entries.length} in this collection.</p>
 <ul class="grid">${cards}</ul>`;
 
   return html(
     page(
       {
-        title: `${label} · The RT Commons`,
-        description: `${entries.length} ${label.toLowerCase()} in the RT Commons. ${blurbs[kind] ?? ''}`,
+        title: `${label} · The Civic Commons`,
+        description: `${entries.length} ${label.toLowerCase()} in the Civic Commons. ${blurbs[kind] ?? ''}`,
         path: `/commons/${plural}`,
         jsonLd: [
           breadcrumbLd(trail),
           {
             '@context': 'https://schema.org', '@type': 'CollectionPage',
-            name: `${label} · The RT Commons`, url: `${SITE}/commons/${plural}`,
+            name: `${label} · The Civic Commons`, url: `${SITE}/commons/${plural}`,
             hasPart: entries.slice(0, 50).map(e => ({
               '@type': 'CreativeWork', name: e.title, url: `${SITE}${entryPath(e)}`,
             })),
@@ -494,7 +558,7 @@ ${own ? `<p class="meta"><a href="${entryPath(e)}">Read the whole story →</a><
     })
     .join('');
 
-  const trail: [string, string][] = [['The RT Commons', '/commons'], ['Stories', '/commons/stories']];
+  const trail: [string, string][] = [['The Civic Commons', '/commons'], ['Stories', '/commons/stories']];
   const body = `
 ${breadcrumbs(trail)}
 <h1>Stories from the field</h1>
@@ -506,7 +570,7 @@ open into their own pages.</p>
   return html(
     page(
       {
-        title: 'Stories from the field · The RT Commons',
+        title: 'Stories from the field · The Civic Commons',
         description: `${stories.length} first-hand stories of community-building practices tried on real blocks — from block parties to care webs, told by the people who did them.`,
         path: '/commons/stories',
         jsonLd: [breadcrumbLd(trail)],
@@ -549,7 +613,7 @@ ${r.summary ? `<p style="margin:.2rem 0 0">${esc(truncate(r.summary, 200))}</p>`
     )
     .join('');
 
-  const trail: [string, string][] = [['The RT Commons', '/commons'], ['Reading room', '/commons/reading-room']];
+  const trail: [string, string][] = [['The Civic Commons', '/commons'], ['Reading room', '/commons/reading-room']];
   const body = `
 ${breadcrumbs(trail)}
 <h1>The reading room</h1>
@@ -561,8 +625,8 @@ ${sections}`;
   return html(
     page(
       {
-        title: 'The reading room · The RT Commons',
-        description: `${refs.length} curated references on neighboring, mutual aid, civic media and community resilience — the library behind the RT Commons, linked to the originals.`,
+        title: 'The reading room · The Civic Commons',
+        description: `${refs.length} curated references on neighboring, mutual aid, civic media and community resilience — the library behind the Civic Commons, linked to the originals.`,
         path: '/commons/reading-room',
         jsonLd: [breadcrumbLd(trail)],
       },
@@ -675,7 +739,7 @@ async function entryPage(kind: string, slug: string): Promise<Response> {
 
   const shelfLabel = kindLabel(entry.kind, true);
   const trail: [string, string][] = [
-    ['The RT Commons', '/commons'],
+    ['The Civic Commons', '/commons'],
     [shelfLabel, shelfPath(entry.kind)],
     [entry.title, entryPath(entry)],
   ];
@@ -686,7 +750,7 @@ async function entryPage(kind: string, slug: string): Promise<Response> {
 
   const body = `
 ${breadcrumbs(trail)}
-<div class="k" style="color:var(--soft);font-size:.85rem">${kindChip(entry.kind)}${entry.source_studio_slug ? ` · ${esc(entry.source_studio_slug)} shelf` : ''}</div>
+<div class="k" style="color:var(--soft);font-size:.85rem">${kindChip(entry.kind)}${entry.source_studio_slug ? ` · from the ${esc(collectionLabel(entry.source_studio_slug))} collection` : ''}</div>
 <h1>${esc(entry.title)}</h1>
 ${entry.summary ? `<p class="lede">${esc(entry.summary)}</p>` : ''}
 ${links.length ? `<p>${links.join(' ')}</p>` : ''}
@@ -741,7 +805,7 @@ the commons <a href="${MIRROR_REPO}" rel="noopener">lives in git</a> too, and it
   return html(
     page(
       {
-        title: `${entry.title} · ${kindLabel(entry.kind)} · The RT Commons`,
+        title: `${entry.title} · ${kindLabel(entry.kind)} · The Civic Commons`,
         description: truncate(
           entry.summary ?? (entry.body ?? '').replace(/\s+/g, ' ').trim(),
           158,
@@ -837,7 +901,7 @@ async function themePage(slug: string, url: URL): Promise<Response> {
     .join('');
 
   const trail: [string, string][] = [
-    ['The RT Commons', '/commons'],
+    ['The Civic Commons', '/commons'],
     [theme.title, `/commons/themes/${slug}`],
   ];
 
@@ -872,7 +936,7 @@ ${theme.related?.length ? `<div class="attach"><p><strong>Keep going:</strong> $
   return html(
     page(
       {
-        title: `${theme.title} · The RT Commons`,
+        title: `${theme.title} · The Civic Commons`,
         description: theme.description,
         path: `/commons/themes/${slug}`,
         jsonLd: [
@@ -939,7 +1003,7 @@ async function sitemap(): Promise<Response> {
     fullStories.filter(e => e.kind === 'story' && hasOwnPage(e)).map(e => e.slug),
   );
   const staticPages = [
-    '/commons', '/commons/search', '/commons/map', '/commons/stories', '/commons/reading-room', '/commons/license',
+    '/commons', '/commons/guides', '/commons/search', '/commons/map', '/commons/stories', '/commons/reading-room', '/commons/license',
     ...Object.keys(SHELVES).map(p => `/commons/${p}`),
     ...Object.keys(THEMES).map(t => `/commons/themes/${t}`),
   ];
@@ -966,11 +1030,11 @@ async function llmsTxt(): Promise<Response> {
     byKind.get(e.kind)!.push(e);
   }
   const lines = [
-    '# The RT Commons',
+    '# The Civic Commons',
     '',
-    `> The shared library of the Relational Technology Project: ${all.length} community-building practices, remixable neighborhood tools, first-hand stories and references — contributed by neighbors, connected by stewards (${refs.length} confirmed connections), licensed for remix with attribution under the Reciprocal Commons License ([RCL-1.0](${SITE}/commons/license)).`,
+    `> A shared library of practices, tools and stories for building community where you live, stewarded by the Relational Technology Project: ${all.length} community-building practices, remixable neighborhood tools, first-hand stories and references — contributed by neighbors, connected by stewards (${refs.length} confirmed connections), licensed for remix with attribution under the Reciprocal Commons License ([RCL-1.0](${SITE}/commons/license)).`,
     '',
-    `Theme guides: [Community-Building on Your Block](${SITE}/commons/themes/on-your-block), [Civic Media for Your Neighborhood](${SITE}/commons/themes/civic-media), [Building Power with Your Neighbors](${SITE}/commons/themes/organizing), [Civic Tech at Neighborhood Scale](${SITE}/commons/themes/neighborhood-civic-tech). Map of the whole commons: [Map & timeline](${SITE}/commons/map).`,
+    `Guides ([index](${SITE}/commons/guides)): [Community-Building on Your Block](${SITE}/commons/themes/on-your-block), [Civic Media for Your Neighborhood](${SITE}/commons/themes/civic-media), [Building Power with Your Neighbors](${SITE}/commons/themes/organizing), [Civic Tech at Neighborhood Scale](${SITE}/commons/themes/neighborhood-civic-tech). Map of the whole commons: [Map & timeline](${SITE}/commons/map).`,
     '',
     `The whole commons is also mirrored to git — one markdown file per entry plus machine-readable commons.json and connections.json: ${MIRROR_REPO}`,
     '',

@@ -1,5 +1,5 @@
 /**
- * Theme pages — the big-picture doors into the commons. Each one is an
+ * Theme pages — the guides into the commons. Each one is an
  * editorial page: a point of view, featured entries pulled live from the
  * commons, real projects from the network, a vote ("which would you try?"),
  * and a notes wall anyone can sign. Content lives here in code so themes
@@ -45,7 +45,7 @@ export const THEMES: Record<string, Theme> = {
       'Practical, proven ways to build community on your own block — block parties, welcome wagons, tool libraries, block stewards — with recipes you can follow and tools you can remix for your neighborhood.',
     intro: [
       `Most of what makes a block feel like a neighborhood isn't an app or a program — it's a repeatable practice. Someone welcomes new neighbors on purpose. Someone keeps a list of who has a ladder. Someone throws the party. These practices travel: what worked on a block in Ithaca or the Outer Sunset can work on yours, adjusted for your people and your place.`,
-      `This page collects the practices we keep seeing work, from the RT Commons — a shared library where every entry carries the name of who contributed it and stays free to remix. Start with one. The recipes below are small enough to try this month and structured enough that you won't be starting from scratch.`,
+      `This page collects the practices we keep seeing work, from the Civic Commons — a shared library where every entry carries the name of who contributed it and stays free to remix. Start with one. The recipes below are small enough to try this month and structured enough that you won't be starting from scratch.`,
     ],
     sections: [
       {
@@ -95,7 +95,7 @@ export const THEMES: Record<string, Theme> = {
       'Recipes for neighborhood-scale civic media — community-stewarded stories, navigation networks, crisis activation — from the Civic Media Cookbook, with worksheets to plan your own and tools to build it.',
     intro: [
       `Every neighborhood runs on information: who's organizing what, where to get help, what's changing on the corridor, what happened at the meeting nobody could attend. When that information moves well, a place can take care of itself. Civic media is the practice of building that flow on purpose — closer to care work than to journalism, and small enough for a few neighbors to run.`,
-      `These recipes come from the Civic Media Cookbook by News Futures, kept in the RT Commons alongside the neighboring practices they pair with. Each one names the need it serves, the ingredients, and the steps — and each can become a working tool in Relational Builder.`,
+      `These recipes come from the Civic Media Cookbook by News Futures, kept in the Civic Commons alongside the neighboring practices they pair with. Each one names the need it serves, the ingredients, and the steps — and each can become a working tool in Relational Builder.`,
     ],
     sections: [
       {
@@ -146,12 +146,12 @@ export const THEMES: Record<string, Theme> = {
       'Community organizing in the Marshall Ganz tradition, framed by six questions — who are my people, what do we care about, what resources do we have, what could we do together, what commitments do we make, and are we stronger now — with practices, stories and build prompts for each.',
     intro: [
       `Organizing is people building the power to change things together — not a mood, a craft. The tradition that runs from Fred Ross's house meetings through Cesar Chavez to Marshall Ganz's public narrative has a repeatable core: relationships built one conversation at a time, stories that turn values into action, strategy that turns what you have into what you need, and commitments people actually keep to each other.`,
-      `This shelf hangs the whole craft on six questions. Ask them in order, with your neighbors, and you're organizing: Who are my people? What do we care about? What resources do we have? Given all that, what could we do together? What commitments do we make to each other? And after we act — how did it go, and are we stronger now? Every practice, story and build prompt below sits under the question it answers.`,
+      `This guide hangs the whole craft on six questions. Ask them in order, with your neighbors, and you're organizing: Who are my people? What do we care about? What resources do we have? Given all that, what could we do together? What commitments do we make to each other? And after we act — how did it go, and are we stronger now? Every practice, story and build prompt below sits under the question it answers.`,
     ],
     sections: [
       {
         heading: 'Start with the frame',
-        blurb: `The six questions in one place, and the handbook this shelf is grounded in.`,
+        blurb: `The six questions in one place, and the handbook this guide is grounded in.`,
         slugs: ['organizing-six-questions', 'organizing-people-power-change-guide'],
         notes: {
           'organizing-six-questions': 'The whole craft as six questions a block can actually ask.',
@@ -294,7 +294,7 @@ export const THEMES: Record<string, Theme> = {
       'Open-source civic tech remixable at neighborhood scale — mapping, deciding, sharing and caring together — with the design lessons from a decade of neighborhood tech, stories from real blocks, and prompts to build your own.',
     intro: [
       `Civic tech doesn't have to be built for your neighborhood to work in your neighborhood. Ushahidi was built for crisis mapping in Kenya; it also makes a lovely map of the third places on your block. The pattern repeats across a decade of open-source civic software: the platforms are global, the deployments that matter are local — and small. What travels isn't the app, it's the remix: platforms (open source, self-hostable), patterns (adopt-a-thing, signs on fences), and stories of what real blocks did.`,
-      `This shelf was researched through the Civic Tech Field Guide's directory of thousands of projects — including its graveyard, which teaches as much as the survivors do. The tools below are all open source with real deployments behind them; each carries a one-line neighborhood remix idea, and each can be planned and built in Relational Builder. The design lessons come first, because the graveyard is full of tools that skipped them.`,
+      `This guide was researched through the Civic Tech Field Guide's directory of thousands of projects — including its graveyard, which teaches as much as the survivors do. The tools below are all open source with real deployments behind them; each carries a one-line neighborhood remix idea, and each can be planned and built in Relational Builder. The design lessons come first, because the graveyard is full of tools that skipped them.`,
     ],
     sections: [
       {
@@ -305,7 +305,7 @@ export const THEMES: Record<string, Theme> = {
           'six-lessons-neighborhood-tech', 'design-for-care-not-enforcement',
         ],
         notes: {
-          'remix-at-neighborhood-scale': 'The shelf’s thesis: remix platforms, patterns and stories for your place.',
+          'remix-at-neighborhood-scale': 'The guide’s thesis: remix platforms, patterns and stories for your place.',
           'learn-from-the-graveyard': 'EveryBlock, Neighborland, PledgeBank — what the dead teach the living.',
           'six-lessons-neighborhood-tech': 'Phone-first, paper in the stack, pay stewards, small apps remix best.',
           'design-for-care-not-enforcement': 'Neighborhood tech’s documented shadow, and the design moves against it.',
@@ -381,7 +381,7 @@ export const THEMES: Record<string, Theme> = {
           'build-local-ushahidi-third-places': 'The local Ushahidi: a community-sourced map of your neighborhood’s third places.',
           'build-adopt-a-thing': 'Adopt-a-hydrant for whatever your block has: trees, drains, benches, bus stops.',
           'build-block-scale-pb': 'Participatory budgeting for a block party budget — real ballots, tiny stakes.',
-          'build-living-asset-map': 'The organizing shelf’s asset map as a living, neighbor-updated tool.',
+          'build-living-asset-map': 'The organizing guide’s asset map as a living, neighbor-updated tool.',
           'build-front-porch-digest': 'One calm email a day for your block, human-moderated.',
           'build-mutual-aid-intake': 'Phone-first intake for a mutual-aid pod — paper stays in the stack.',
         },
@@ -392,7 +392,7 @@ export const THEMES: Record<string, Theme> = {
         name: 'Civic Tech Field Guide',
         place: 'Global',
         url: 'https://civictech.guide',
-        note: 'The directory this shelf was researched from — thousands of projects, graveyard included.',
+        note: 'The directory this guide was researched from — thousands of projects, graveyard included.',
       },
       {
         name: 'Front Porch Forum',

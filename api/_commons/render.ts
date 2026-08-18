@@ -2,103 +2,150 @@
  * Page shell + visualizations for the public commons pages. Everything is
  * server-rendered HTML with inline CSS and zero JavaScript — the pages work
  * (forms included) with JS disabled, which is also what crawlers see.
+ *
+ * The look is Whole Earth Catalog: aged paper, ink-black rules, a big serif
+ * masthead, squared-off cards — tuned for readability first, in both light
+ * and dark (prefers-color-scheme drives the palette; every color is a token).
  */
 
 import {
-  SITE, Entry, GalleryRef, esc, kindLabel, kindInk, KIND_COLOR, entryPath, hash, hasOwnPage,
+  SITE, Entry, GalleryRef, esc, kindLabel, KIND_COLOR, entryPath, hash, hasOwnPage,
 } from './shared';
 
 const CSS = `
-:root{--bg:#faf6f0;--card:#fffdf9;--ink:#221b14;--soft:#6f6353;--line:#e8dfd2;
---accent:#d95f1e;--accent-ink:#8a3a10;--night:#171320;--maxw:52rem}
+:root{color-scheme:light dark;
+--bg:#f4eee0;--card:#fbf7eb;--ink:#1c1710;--ink2:#42392a;--soft:#6b6150;
+--line:#d9cdb4;--rule:#1c1710;--accent:#bd4a12;--accent-ink:#8f380d;
+--mark:#f3dfa4;--night:#171320;--night-line:#2c2438;--maxw:52rem}
+@media(prefers-color-scheme:dark){:root{
+--bg:#17130e;--card:#211b13;--ink:#ede5d2;--ink2:#d6cbb2;--soft:#a5997f;
+--line:#3c3325;--rule:#ede5d2;--accent:#e57e3c;--accent-ink:#efa16b;
+--mark:#6b541f;--night-line:#3a3050}}
+/* Kind palette: --kc is the mark color, --kc-text stays readable as text on
+   the paper in either mode. */
+.kc-recipe{--kc:#e0662f;--kc-text:#a3400f}
+.kc-tool{--kc:#2f6fe0;--kc-text:#1d4fb0}
+.kc-story{--kc:#c2452f;--kc-text:#96301d}
+.kc-prompt{--kc:#0f8a7a;--kc-text:#0b6b5e}
+.kc-framework{--kc:#4a8f3c;--kc-text:#376b2b}
+.kc-methodology{--kc:#7a4fc2;--kc-text:#5d3a9e}
+.kc-reference{--kc:#8a7f72;--kc-text:#6f6353}
+.kc-program{--kc:#b0812f;--kc-text:#7d5a1d}
+@media(prefers-color-scheme:dark){
+.kc-recipe{--kc-text:#f39d6d}.kc-tool{--kc-text:#93b4f2}.kc-story{--kc-text:#ee9784}
+.kc-prompt{--kc-text:#6fd2c3}.kc-framework{--kc-text:#a0d18e}.kc-methodology{--kc-text:#c6a9f2}
+.kc-reference{--kc-text:#b6ab95}.kc-program{--kc-text:#deb46c}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);
-font:17px/1.65 ui-serif,Georgia,'Times New Roman',serif}
+font:17px/1.68 ui-serif,Georgia,'Times New Roman',serif}
 header.site,footer.site,nav,main{font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif}
 main .prose{font-family:ui-serif,Georgia,serif}
-a{color:var(--accent-ink);text-decoration-color:#e7b391}
+h1,h2,h3,.brand{font-family:'Fraunces',ui-serif,Georgia,serif}
+a{color:var(--accent-ink);text-decoration-color:color-mix(in srgb,var(--accent) 45%,transparent)}
 a:hover{color:var(--accent)}
 .wrap{max-width:var(--maxw);margin:0 auto;padding:0 1.25rem}
 .wide{max-width:66rem}
-header.site{border-bottom:1px solid var(--line);background:var(--card)}
-header.site .wrap{display:flex;align-items:baseline;gap:1rem;padding:.9rem 1.25rem;flex-wrap:wrap}
-.brand{font-weight:700;letter-spacing:-.01em;color:var(--ink);text-decoration:none;font-size:1.05rem}
-.brand span{color:var(--accent)}
-header.site nav{margin-left:auto;display:flex;gap:1rem;font-size:.92rem}
-header.site nav a{text-decoration:none;color:var(--soft);white-space:nowrap}
+/* Masthead: name big, tagline beside it, nav on its own ruled row. */
+header.site{background:var(--card);border-bottom:1px solid var(--line)}
+header.site .mast{display:flex;align-items:baseline;gap:.35rem 1rem;flex-wrap:wrap;
+padding:1rem 1.25rem .55rem}
+.brand{font-weight:900;letter-spacing:-.01em;color:var(--ink);text-decoration:none;
+font-size:1.55rem;line-height:1.1}
+.brand:hover{color:var(--ink)}
+.tagline{font-family:ui-serif,Georgia,serif;font-style:italic;color:var(--soft);font-size:.95rem}
+header.site .navbar{border-top:2px solid var(--rule)}
+header.site .navrow{display:flex;align-items:center;gap:.4rem 1.15rem;flex-wrap:wrap;
+padding:.5rem 1.25rem}
+header.site nav{display:flex;gap:1.15rem;font-size:.8rem;letter-spacing:.07em;
+text-transform:uppercase;font-weight:700}
+header.site nav a{text-decoration:none;color:var(--ink);white-space:nowrap}
 header.site nav a:hover{color:var(--accent)}
-header.site form.search{flex:0 1 12rem;min-width:8rem}
-header.site input[type=search]{width:100%;font:inherit;font-size:.85rem;padding:.32rem .7rem;
-border:1px solid var(--line);border-radius:999px;background:var(--bg);color:var(--ink)}
+header.site form.search{flex:0 1 12rem;min-width:8rem;margin-left:auto}
+header.site input[type=search]{width:100%;font:inherit;font-size:.85rem;padding:.3rem .7rem;
+border:1px solid var(--line);border-radius:3px;background:var(--bg);color:var(--ink)}
 header.site input[type=search]:focus{outline:none;border-color:var(--accent)}
 form.search-hero{display:flex;gap:.6rem;max-width:34rem;margin:0 0 .5rem}
 form.search-hero input{flex:1;min-width:0;font:inherit;font-size:.95rem;padding:.55rem .85rem;
-border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
-form.search-hero input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px #d95f1e33}
-mark{background:#f6dfb2;color:inherit;border-radius:3px;padding:0 .08em}
+border:1px solid var(--soft);border-radius:3px;background:var(--card);color:var(--ink)}
+form.search-hero input:focus{outline:none;border-color:var(--accent);
+box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 25%,transparent)}
+mark{background:var(--mark);color:inherit;border-radius:2px;padding:0 .08em}
 .crumbs{font-size:.85rem;color:var(--soft);margin:1.6rem 0 .4rem;font-family:ui-sans-serif,system-ui,sans-serif}
 .crumbs a{color:var(--soft)}
-h1{font-size:2.1rem;line-height:1.15;letter-spacing:-.015em;margin:.2rem 0 .6rem}
-.lede{font-size:1.15rem;color:#4b4030;margin:0 0 1.4rem;max-width:44rem}
-.eyebrow{display:inline-block;font-size:.78rem;font-weight:600;letter-spacing:.08em;
-text-transform:uppercase;color:var(--accent);margin-top:1.8rem;font-family:ui-sans-serif,system-ui,sans-serif}
+h1{font-size:2.25rem;line-height:1.12;letter-spacing:-.015em;margin:.2rem 0 .7rem;
+font-weight:900;border-bottom:4px solid var(--rule);padding-bottom:.45rem}
+.lede{font-size:1.15rem;color:var(--ink2);margin:0 0 1.4rem;max-width:44rem}
+/* Section headers wear a heavy catalog rule; black ink, not accent color. */
+.eyebrow{display:block;border-top:3px solid var(--rule);padding-top:.5rem;
+font-size:.82rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+color:var(--ink);margin-top:2.6rem;font-family:ui-sans-serif,system-ui,sans-serif}
 .kind-dot{display:inline-block;width:.6em;height:.6em;border-radius:50%;margin-right:.4em}
-.chip{display:inline-block;border-radius:999px;padding:.08rem .55rem;font-size:.7rem;font-weight:650;
-letter-spacing:.05em;text-transform:uppercase;font-family:ui-sans-serif,system-ui,sans-serif;line-height:1.5}
+.chip{display:inline-block;border-radius:2px;padding:.08rem .5rem;font-size:.7rem;font-weight:750;
+letter-spacing:.06em;text-transform:uppercase;font-family:ui-sans-serif,system-ui,sans-serif;
+line-height:1.5;color:var(--kc-text,var(--soft));
+background:color-mix(in srgb,var(--kc,#8a7f72) 13%,transparent)}
+.kc-title{color:var(--kc-text)}
 .prose{max-width:44rem}
-.prose h2{font-size:1.35rem;margin:1.8rem 0 .5rem;letter-spacing:-.01em}
-.prose h3{font-size:1.1rem;margin:1.4rem 0 .4rem}
-.prose img{max-width:100%;border-radius:10px;border:1px solid var(--line)}
-.prose blockquote{margin:1rem 0;padding:.2rem 1.1rem;border-left:3px solid var(--accent);
-background:var(--card);border-radius:0 8px 8px 0;color:#4b4030}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:1.1rem 1.25rem}
+.prose h2{font-size:1.4rem;margin:1.9rem 0 .5rem;letter-spacing:-.01em;font-weight:700;
+border-bottom:1px solid var(--line);padding-bottom:.25rem}
+.prose h3{font-size:1.12rem;margin:1.4rem 0 .4rem;font-weight:700}
+.prose img{max-width:100%;border-radius:3px;border:1px solid var(--line)}
+.prose blockquote{margin:1rem 0;padding:.2rem 1.1rem;border-left:4px solid var(--rule);
+background:var(--card);color:var(--ink2)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:3px;padding:1.05rem 1.2rem}
+.card.kc{border-top:3px solid var(--kc)}
 .grid{display:grid;gap:.9rem;grid-template-columns:repeat(auto-fill,minmax(15rem,1fr));padding:0;list-style:none}
 .grid .card{margin:0}
-.card h3{margin:.1rem 0 .3rem;font-size:1.02rem;line-height:1.3}
+.card h3{margin:.15rem 0 .3rem;font-size:1.06rem;line-height:1.3;font-weight:700}
 .card h3 a{text-decoration:none;color:var(--ink)}
 .card h3 a:hover{color:var(--accent)}
+.card h3 a.kc-title{color:var(--kc-text)}
+.card h3 a.kc-title:hover{color:var(--accent)}
 .card .k{font-size:.75rem;color:var(--soft);text-transform:uppercase;letter-spacing:.06em}
 .card p{margin:.3rem 0 0;font-size:.9rem;color:var(--soft);line-height:1.5}
 .meta{font-size:.88rem;color:var(--soft)}
-.pill{display:inline-block;border:1px solid var(--line);background:var(--card);border-radius:999px;
-padding:.1rem .6rem;font-size:.78rem;color:var(--soft);margin:.15rem .2rem 0 0;text-decoration:none}
-.cta{display:inline-block;background:var(--accent);color:#fff;border-radius:10px;
-padding:.55rem 1rem;font-weight:600;text-decoration:none;font-size:.95rem;border:0;cursor:pointer}
-.cta:hover{background:#c25317;color:#fff}
+.pill{display:inline-block;border:1px solid var(--line);background:var(--card);border-radius:2px;
+padding:.1rem .55rem;font-size:.78rem;color:var(--soft);margin:.15rem .2rem 0 0;text-decoration:none}
+.cta{display:inline-block;background:var(--accent);color:#fff;border-radius:3px;
+padding:.55rem 1rem;font-weight:700;text-decoration:none;font-size:.95rem;border:0;cursor:pointer}
+.cta:hover{background:color-mix(in srgb,var(--accent) 88%,#000);color:#fff}
 .cta.ghost{background:transparent;color:var(--accent-ink);border:1.5px solid var(--accent)}
-.night{background:var(--night);border-radius:14px;padding:1rem;border:1px solid #2c2438}
+.night{background:var(--night);border-radius:4px;padding:1rem;border:1px solid var(--night-line)}
 .night a:hover circle{fill:#fff}
-.attach{border-top:1px solid var(--line);margin-top:2.2rem;padding-top:1rem;font-size:.88rem;color:var(--soft)}
+.attach{border-top:3px solid var(--rule);margin-top:2.4rem;padding-top:1rem;font-size:.88rem;color:var(--soft)}
 .notes{list-style:none;padding:0;display:grid;gap:.7rem}
-.notes li{background:var(--card);border:1px solid var(--line);border-radius:4px 14px 14px 14px;padding:.7rem .95rem}
+.notes li{background:var(--card);border:1px solid var(--line);border-radius:2px 10px 10px 10px;padding:.7rem .95rem}
 .notes .who{font-size:.8rem;color:var(--soft);font-family:ui-sans-serif,system-ui,sans-serif}
 .notes .txt{margin:.15rem 0 0;font-size:.95rem}
 form.note-form{display:grid;gap:.6rem;max-width:30rem}
 form.note-form input[type=text],form.note-form textarea{font:inherit;padding:.55rem .7rem;
-border:1px solid var(--line);border-radius:8px;background:#fff;width:100%}
+border:1px solid var(--soft);border-radius:3px;background:var(--card);color:var(--ink);width:100%}
 form.vote{display:inline}
 button.vote-btn{font:inherit;font-size:.85rem;border:1.5px solid var(--line);background:var(--card);
-border-radius:999px;padding:.25rem .75rem;cursor:pointer;color:var(--soft)}
+border-radius:3px;padding:.25rem .75rem;cursor:pointer;color:var(--soft)}
 button.vote-btn:hover{border-color:var(--accent);color:var(--accent-ink)}
 .hp{position:absolute;left:-6000px}
-footer.site{border-top:1px solid var(--line);margin-top:3.5rem;background:var(--card)}
+footer.site{border-top:4px solid var(--rule);margin-top:3.5rem;background:var(--card)}
 footer.site .wrap{padding:1.4rem 1.25rem 2rem;font-size:.88rem;color:var(--soft)}
 footer.site .stats{display:flex;gap:.6rem 1.4rem;align-items:center;flex-wrap:wrap;margin-bottom:.5rem}
-footer.site nav{display:flex;gap:1rem;flex-wrap:wrap;margin-top:.4rem}
+footer.site nav{display:flex;gap:.5rem 1rem;flex-wrap:wrap;margin-top:.4rem}
 @media(max-width:640px){
 body{font-size:16px}
-h1{font-size:1.65rem}
+h1{font-size:1.75rem}
 .lede{font-size:1.05rem}
 .wrap{padding:0 1rem}
-header.site .wrap{padding:.65rem 1rem .55rem;align-items:center;column-gap:.75rem;row-gap:.35rem}
-header.site form.search{flex:1 1 7rem;margin-left:auto}
-header.site nav{order:3;flex-basis:100%;margin-left:0;overflow-x:auto;gap:1.1rem;
-padding:.15rem 0 .3rem;scrollbar-width:none}
+header.site .mast{padding:.8rem 1rem .45rem}
+.brand{font-size:1.3rem}
+.tagline{display:none}
+header.site .navrow{padding:.45rem 1rem;row-gap:.3rem}
+header.site nav{overflow-x:auto;gap:1rem;padding-bottom:.15rem;scrollbar-width:none;
+flex:1 1 100%}
 header.site nav::-webkit-scrollbar{display:none}
+header.site form.search{flex:1 1 100%;margin-left:0}
 form.search-hero button.cta{padding:.55rem .85rem}
 .night{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .night svg{min-width:34rem}
-.eyebrow{margin-top:1.4rem}
+.eyebrow{margin-top:1.9rem}
 }
 `;
 
@@ -128,6 +175,9 @@ export function page(meta: PageMeta, body: string, footer: FooterStats | null): 
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#fbf7eb">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#211b13">
 <title>${esc(meta.title)}</title>
 <meta name="description" content="${esc(meta.description)}">
 <link rel="canonical" href="${esc(canonical)}">
@@ -138,15 +188,23 @@ ${meta.noindex ? '<meta name="robots" content="noindex,follow">' : ''}
 <meta property="og:image" content="${SITE}/og.png">
 <meta property="og:type" content="article">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&display=swap" rel="stylesheet">
 ${ld}
 <style>${CSS}</style>
 </head>
 <body>
-<header class="site"><div class="wrap${meta.wide ? ' wide' : ''}">
-<a class="brand" href="/commons">The RT Commons <span>🧡</span></a>
+<header class="site">
+<div class="wrap${meta.wide ? ' wide' : ''} mast">
+<a class="brand" href="/commons">The Civic Commons</a>
+<span class="tagline">Access to tools for building community where you live</span>
+</div>
+<div class="navbar"><div class="wrap${meta.wide ? ' wide' : ''} navrow">
 <nav>
-<a href="/commons/themes/on-your-block">On your block</a>
-<a href="/commons/themes/civic-media">Civic media</a>
+<a href="/commons/guides">Guides</a>
+<a href="/commons/recipes">Recipes</a>
+<a href="/commons/tools">Tools</a>
 <a href="/commons/stories">Stories</a>
 <a href="/commons/map">Map</a>
 <a href="/">Builder</a>
@@ -154,7 +212,8 @@ ${ld}
 <form class="search" action="/commons/search" method="get" role="search">
 <input type="search" name="q" placeholder="Search the commons…" aria-label="Search the commons">
 </form>
-</div></header>
+</div></div>
+</header>
 <main><div class="wrap${meta.wide ? ' wide' : ''}">
 ${body}
 </div></main>
@@ -173,17 +232,18 @@ ${sparkline(stats.months)}
     : '';
   return `<footer class="site"><div class="wrap">
 ${viz}
-<p>The RT Commons is the shared library of the
-<a href="https://relationaltechproject.org" rel="noopener">Relational Technology Project</a> —
-practices, tools and stories for building community where you live, kept remixable
-in <a href="/">Relational Builder</a>. Entries carry their contributors' names and the
-<a href="/commons/license">Reciprocal Commons License</a>; credit travels with the work.</p>
+<p>The Civic Commons is a shared library of practices, tools and stories for building
+community where you live — stewarded by the
+<a href="https://relationaltechproject.org" rel="noopener">Relational Technology Project</a>
+and kept remixable in <a href="/">Relational Builder</a>. Entries carry their contributors'
+names and the <a href="/commons/license">Reciprocal Commons License</a>; credit travels with the work.</p>
 <nav>
 <a href="/commons">Commons home</a>
+<a href="/commons/guides">Guides</a>
 <a href="/commons/search">Search</a>
 <a href="/commons/map">Map &amp; timeline</a>
 <a href="/commons/reading-room">Reading room</a>
-<a href="/commons/stories">Story wall</a>
+<a href="/commons/stories">Stories</a>
 <a href="/commons/license">License</a>
 <a href="https://github.com/The-Relational-Technology-Project/relational-commons" rel="noopener">Commons in git</a>
 <a href="/new">Build something</a>
@@ -221,7 +281,7 @@ export function sparkline(months: [string, number][]): string {
 
 /**
  * The commons as a night sky: every entry a dot (colored by kind, clustered
- * by shelf), every steward-confirmed connection a thin line. Deterministic —
+ * by collection), every steward-confirmed connection a thin line. Deterministic —
  * a slug always lands in the same place — so the map is stable across
  * renders. In link mode each dot is an <a>, which makes the map page one
  * big crawlable index of the commons.
@@ -320,16 +380,14 @@ ${legend}
 
 /** The kind, worn as a small colored chip — how a card says what it is. */
 export function kindChip(kind: string): string {
-  const c = KIND_COLOR[kind] ?? '#999';
-  return `<span class="chip" style="background:${c}1c;color:${kindInk(kind)}">${esc(kindLabel(kind))}</span>`;
+  return `<span class="chip kc-${esc(kind)}">${esc(kindLabel(kind))}</span>`;
 }
 
-/** Top accent in the kind's color, so mixed lists scan by type at a glance. */
-export const kindAccent = (kind: string): string =>
-  `border-top:3px solid ${KIND_COLOR[kind] ?? '#999'}`;
+/** Class hook that gives a card its kind's top accent + text color tokens. */
+export const kindClass = (kind: string): string => `kc kc-${kind}`;
 
 export function entryCard(e: Entry, note?: string): string {
-  return `<li class="card" style="${kindAccent(e.kind)}">
+  return `<li class="card ${kindClass(e.kind)}">
 <div class="k">${kindChip(e.kind)}${e.attribution?.neighborhood ? ` · ${esc(e.attribution.neighborhood)}` : ''}</div>
 <h3><a href="${entryPath(e)}">${esc(e.title)}</a></h3>
 ${note ? `<p>${esc(note)}</p>` : e.summary ? `<p>${esc(truncate(e.summary, 140))}</p>` : ''}

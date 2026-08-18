@@ -8,9 +8,9 @@
  */
 
 export const LICENSE_INTRO = [
-  'Most entries in the RT Commons — every entry marked RCL-1.0 — are shared under the Reciprocal Commons License v1.0, published by the Relational Technology Project. It protects the commons as a commons: freely available to neighbors, communities, and place-based organizations, with restrictions on commercial extraction by platforms, professional services, and AI systems.',
+  'Most entries in the Civic Commons — every entry marked RCL-1.0 — are shared under the Reciprocal Commons License v1.0, published by the Relational Technology Project. It protects the commons as a commons: freely available to neighbors, communities, and place-based organizations, with restrictions on commercial extraction by platforms, professional services, and AI systems.',
   'This is not a standard open-source or Creative Commons license. Read it carefully.',
-  'Entries from the civic-media shelf that derive from the Civic Media Cookbook remain the work of their original publishers — each of those pages names and links its original source, which governs its terms.',
+  'Entries from the civic-media collection that derive from the Civic Media Cookbook remain the work of their original publishers — each of those pages names and links its original source, which governs its terms.',
 ];
 
 export const LICENSE_MD = `## 1. Intent

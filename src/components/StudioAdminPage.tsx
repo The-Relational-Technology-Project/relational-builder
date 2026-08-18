@@ -681,7 +681,7 @@ function ShareDialog({
             className="mt-0.5"
           />
           <span>
-            Also submit it to the <strong>RT Commons</strong> review queue, so
+            Also submit it to the <strong>Civic Commons</strong> review queue, so
             it can join the canonical commons with {label}'s attribution.
           </span>
         </label>

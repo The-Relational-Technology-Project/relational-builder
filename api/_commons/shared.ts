@@ -268,19 +268,8 @@ export const KIND_COLOR: Record<string, string> = {
   program: '#b0812f',
 };
 
-/** Darker companions to KIND_COLOR — legible as text on the paper background. */
-export const KIND_INK: Record<string, string> = {
-  recipe: '#a3400f',
-  tool: '#1d4fb0',
-  story: '#96301d',
-  prompt: '#0b6b5e',
-  framework: '#376b2b',
-  methodology: '#5d3a9e',
-  reference: '#6f6353',
-  program: '#7d5a1d',
-};
-
-export const kindInk = (k: string): string => KIND_INK[k] ?? '#6f6353';
+// Per-kind text inks live in the stylesheet now (.kc-* classes in render.ts),
+// where they can differ between light and dark mode.
 
 // --- Small utilities -------------------------------------------------------
 
