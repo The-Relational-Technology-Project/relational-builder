@@ -30,25 +30,32 @@ const NOTEPAD_INTRO_AFTER_S = 20;
  * somewhere on purpose; see panel-store).
  */
 function useNotepadIntro() {
-  const isGenerating = useChatStore(s => s.isGenerating);
-  const mode = useChatStore(s => s.mode);
-  const startedAt = useChatStore(s => s.progress?.startedAt);
-  const firstBuild = useProjectStore(s => s.getFileCount() === 0);
+  // The chat's cooking state IS "a first build is underway" — it spans the
+  // whole chain (continuations, auto-fixes, the final bundle), so the pane
+  // no longer flips back to a half-built preview between passes.
+  const cookingSince = useChatStore(s => s.cookingSince);
 
   useEffect(() => {
-    if (!isGenerating || mode !== 'build' || !firstBuild || !startedAt) return;
+    if (!cookingSince) return;
     if (localStorage.getItem(NOTEPAD_INTRO_SEEN_KEY)) return;
     const fire = () => {
       localStorage.setItem(NOTEPAD_INTRO_SEEN_KEY, new Date().toISOString());
       usePanelStore.getState().autoFlip('notepad');
     };
-    const wait = Math.max(0, NOTEPAD_INTRO_AFTER_S * 1000 - (Date.now() - startedAt));
+    const wait = Math.max(0, NOTEPAD_INTRO_AFTER_S * 1000 - (Date.now() - cookingSince));
     const t = setTimeout(fire, wait);
     return () => clearTimeout(t);
-  }, [isGenerating, mode, firstBuild, startedAt]);
+  }, [cookingSince]);
 
-  // Generation ended with files in the project → the Preview gets the pane
-  // back (a no-op unless the app was the one who flipped it away)
+  // Generation ended with files in the project and nothing else queued → the
+  // Preview gets the pane back (a no-op unless the app was the one who
+  // flipped it away). This fires at the END of the chain, not between its
+  // passes — a queued continuation or fix means the build isn't done, and a
+  // half-built preview shouldn't flash up mid-chain. It also deliberately
+  // fires while the chat may still be "cooking": the preview must be mounted
+  // for the bundle to run — and to report the health signal that lets the
+  // cooking end.
+  const isGenerating = useChatStore(s => s.isGenerating);
   const wasGenerating = useRef(false);
   useEffect(() => {
     if (isGenerating) {
@@ -56,6 +63,8 @@ function useNotepadIntro() {
       return;
     }
     if (!wasGenerating.current) return;
+    const chat = useChatStore.getState();
+    if (chat.queuedMessage || chat.pendingFixSend) return;
     wasGenerating.current = false;
     if (useProjectStore.getState().getFileCount() > 0) {
       usePanelStore.getState().autoRestore('preview');

@@ -93,6 +93,24 @@ function CollapsedCode({
   );
 }
 
+/** Markdown headings that aren't the question section — the tell of a
+ *  drafted document rather than a conversational reply */
+function docHeadingCount(content: string): number {
+  const headings = content.match(/^#{1,3}\s+.+$/gm) ?? [];
+  return headings.filter(h => !QUESTION_HEADING_RE.test(h)).length;
+}
+
+/**
+ * Plan-mode replies come in two registers. Conversation — exploring an idea,
+ * asking the shaping questions as one-tap cards — renders like any chat
+ * message, streaming live. The drafted plan document (sections under
+ * markdown headings) gets the plan dress: it lands whole, wears the "Build
+ * plan" chip, and carries the Build/Approve action.
+ */
+function isPlanDocument(content: string): boolean {
+  return docHeadingCount(content) >= 2;
+}
+
 /** Three quiet dots taking turns — says "still working" without a spinner */
 function WorkingDots() {
   return (
@@ -124,6 +142,14 @@ function GenerationStatus() {
   const writingAt = useChatStore(s => s.progress?.writingAt);
   const notice = useChatStore(s => s.progress?.notice);
   const mode = useChatStore(s => s.mode);
+  // Plan mode writes in two registers: conversation streams live (the label
+  // stays light), while a plan document hides until it lands whole — the
+  // first document heading in the stream is the earliest reliable tell.
+  const draftingPlanDoc = useChatStore(s => {
+    if (s.mode !== 'plan') return false;
+    const last = s.messages[s.messages.length - 1];
+    return !!last?.isPlan && !!last.isStreaming && docHeadingCount(last.content) >= 1;
+  });
   const [, tick] = useState(0);
   useEffect(() => {
     if (!startedAt) return;
@@ -140,7 +166,9 @@ function GenerationStatus() {
       : phase === 'thinking'
         ? 'Thinking it through'
         : mode === 'plan'
-          ? 'Writing your plan — it appears here once it’s finished'
+          ? draftingPlanDoc
+            ? 'Drafting your plan — it appears here once it’s finished'
+            : 'Writing'
           : 'Writing — files land in the chat and Files tab as they finish');
   // Thinking wrapped up → it settles into a quiet done line above the writing
   const thoughtSecs =
@@ -165,6 +193,42 @@ function GenerationStatus() {
   );
 }
 
+/**
+ * The whole first build behind one calm line: something's on the stove, and
+ * nothing about it needs the person's attention until it's served. Persists
+ * across the chain's quiet gaps (between continuations, while the preview
+ * bundles) so the wait never flickers between states.
+ */
+function CookingStatus() {
+  const since = useChatStore(s => s.cookingSince);
+  const [secs, setSecs] = useState(0);
+  useEffect(() => {
+    if (!since) return;
+    const update = () => setSecs(Math.max(0, Math.floor((Date.now() - since) / 1000)));
+    update();
+    const t = setInterval(update, 1000);
+    return () => {
+      clearInterval(t);
+      setSecs(0);
+    };
+  }, [since]);
+  if (!since) return null;
+
+  return (
+    <div className="pl-1 space-y-1">
+      <p className="flex items-center gap-2 text-sm text-muted-foreground">
+        <span className="rb-cooking-pot text-base leading-none" aria-hidden="true">🍲</span>
+        <span>It’s cooking</span>
+        <WorkingDots />
+        {secs >= 3 && <span className="text-muted-foreground/60 tabular-nums">{formatSecs(secs)}</span>}
+      </p>
+      <p className="text-xs text-muted-foreground/60">
+        Your first version appears here — and in the preview — once it’s fully ready.
+      </p>
+    </div>
+  );
+}
+
 /** Show the wait pointer once a first build has clearly become a wait */
 const WAIT_ACTIVITY_AFTER_S = 20;
 
@@ -176,27 +240,23 @@ const WAIT_ACTIVITY_AFTER_S = 20;
  * throwaway draft that had to be copied into the conversation to survive.
  */
 function WaitActivity() {
-  const isGenerating = useChatStore(s => s.isGenerating);
-  const mode = useChatStore(s => s.mode);
-  const startedAt = useChatStore(s => s.progress?.startedAt);
-  const firstBuild = useProjectStore(s => s.getFileCount() === 0);
+  const cookingSince = useChatStore(s => s.cookingSince);
   const [elapsed, setElapsed] = useState(0);
 
-  // One-second heartbeat while waiting, to cross the show threshold
+  // One-second heartbeat while cooking, to cross the show threshold
   useEffect(() => {
-    if (!startedAt) return;
+    if (!cookingSince) return;
     const t = setInterval(
-      () => setElapsed(Math.floor((Date.now() - startedAt) / 1000)),
+      () => setElapsed(Math.floor((Date.now() - cookingSince) / 1000)),
       1000,
     );
     return () => {
       clearInterval(t);
       setElapsed(0);
     };
-  }, [startedAt]);
+  }, [cookingSince]);
 
-  const show =
-    isGenerating && mode === 'build' && firstBuild && elapsed >= WAIT_ACTIVITY_AFTER_S;
+  const show = cookingSince !== null && elapsed >= WAIT_ACTIVITY_AFTER_S;
   if (!show) return null;
 
   return (
@@ -226,6 +286,9 @@ export function MessageList({ messages, onBuildPlan, isGenerating }: MessageList
   const bottomRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const reviewing = useChatStore(s => s.reviewing);
+  // A first build in progress: hide its churn behind the cooking line
+  const cookingSince = useChatStore(s => s.cookingSince);
+  const cooking = cookingSince !== null;
   // On an existing project a plan is a change to something built — the action
   // reads as approval of that change, not a first build
   const hasProject = useProjectStore(s => s.getFileCount() > 0);
@@ -263,14 +326,17 @@ export function MessageList({ messages, onBuildPlan, isGenerating }: MessageList
         follow();
       }, 150 - since);
     }
-  }, [messages, lastContent, nearBottom]);
+    // `cooking` rides the deps so the reveal (hidden chain → visible result)
+    // also follows to the bottom, where the summary and next step land
+  }, [messages, lastContent, nearBottom, cooking]);
   useEffect(() => () => {
     if (followTimer.current !== null) clearTimeout(followTimer.current);
   }, []);
 
-  // A plan stays hidden while it's written and lands in one piece — when it
-  // does, start the reader at its top instead of letting the bottom-follow
-  // drop them at the end of a document they haven't read yet.
+  // A plan document stays hidden while it's written and lands in one piece —
+  // when it does, start the reader at its top instead of letting the
+  // bottom-follow drop them at the end of a document they haven't read yet.
+  // Conversational plan-mode replies stream live and never jump the scroll.
   const lastMessage = messages[messages.length - 1];
   const streamingPlanId = useRef<string | null>(null);
   useEffect(() => {
@@ -280,6 +346,7 @@ export function MessageList({ messages, onBuildPlan, isGenerating }: MessageList
     }
     if (lastMessage && streamingPlanId.current === lastMessage.id && !lastMessage.isStreaming) {
       streamingPlanId.current = null;
+      if (!isPlanDocument(lastMessage.content)) return;
       const el = scrollRef.current?.querySelector(`[data-msg-id="${lastMessage.id}"]`);
       // After the bottom-follow above has had its say — this jump wins
       requestAnimationFrame(() => {
@@ -293,18 +360,38 @@ export function MessageList({ messages, onBuildPlan, isGenerating }: MessageList
     return null;
   }
 
+  // The Build/Approve action belongs to a reply with something to approve.
+  // From scratch that means the drafted plan document — a conversational
+  // reply (exploring, questions) has nothing to build yet. On an existing
+  // project even a two-sentence change IS the plan, so any settled reply
+  // qualifies — except one that just asked questions, which wants answers,
+  // not approval.
   const showBuildAction =
     !isGenerating &&
     !!onBuildPlan &&
     lastMessage?.role === 'assistant' &&
     lastMessage.isPlan &&
-    !lastMessage.isStreaming;
+    !lastMessage.isStreaming &&
+    (hasProject
+      ? extractPlanQuestions(lastMessage.content).length === 0
+      : isPlanDocument(lastMessage.content));
 
   return (
     <div className="flex-1 relative min-h-0">
       <div ref={scrollRef} className="h-full overflow-y-auto">
         <div className="max-w-3xl mx-auto py-4 px-4 space-y-4">
         {messages.map((msg, i) => {
+          // While a first build cooks, its churn stays off screen — the
+          // streaming build reply, the Builder's continuation and fix notes —
+          // and everything lands at once when the pot comes off the stove.
+          // The person's own messages and model notes (isSync) stay visible.
+          if (
+            cookingSince !== null &&
+            msg.timestamp >= cookingSince &&
+            (msg.isAuto || (msg.role === 'assistant' && !msg.isSync))
+          ) {
+            return null;
+          }
           const prev = messages[i - 1];
           const newSitting = !prev || msg.timestamp - prev.timestamp > SITTING_GAP_MS;
           return (
@@ -318,9 +405,9 @@ export function MessageList({ messages, onBuildPlan, isGenerating }: MessageList
             </div>
           );
         })}
-        {isGenerating && <GenerationStatus />}
+        {cooking ? <CookingStatus /> : isGenerating && <GenerationStatus />}
         <WaitActivity />
-        {reviewing && (
+        {reviewing && !cooking && (
           <p className="text-sm text-muted-foreground pl-1 animate-pulse">
             Giving the build a quick once-over…
           </p>
@@ -344,7 +431,7 @@ export function MessageList({ messages, onBuildPlan, isGenerating }: MessageList
         )}
         {/* When the conversation overlaps with what another builder is up
             for, offer the connection — only after the reply settles */}
-        {!isGenerating && lastMessage?.role === 'assistant' && !lastMessage.isStreaming && (
+        {!isGenerating && !cooking && lastMessage?.role === 'assistant' && !lastMessage.isStreaming && (
           <ConnectionSuggestion
             conversationText={messages.slice(-3).map(m => (typeof m.content === 'string' ? m.content : '')).join('\n')}
           />
@@ -461,10 +548,18 @@ const MessageBubble = memo(function MessageBubble({ message }: { message: Displa
   // never saw it, and it must not read as anyone's ask to the Builder
   if (message.isCollabNote) return <CollabNote message={message} />;
 
-  // A plan being written stays out of view until it's done — watching a
-  // document assemble line by line is disorienting. The status line says
-  // it's coming; it lands whole, and MessageList starts the reader at its top.
-  if (message.isPlan && message.isStreaming) return null;
+  // A plan DOCUMENT being written stays out of view until it's done —
+  // watching a document assemble line by line is disorienting. The status
+  // line says it's coming; it lands whole, and MessageList starts the reader
+  // at its top. Conversational plan-mode replies (exploring, questions)
+  // stream live like any other message; the first document heading is the
+  // earliest reliable tell that a reply is turning into a plan.
+  if (message.isPlan && message.isStreaming && docHeadingCount(message.content) >= 1) {
+    return null;
+  }
+  // The plan dress — chip, dashed border — belongs to the drafted document,
+  // not to every plan-mode reply
+  const planDoc = !!message.isPlan && isPlanDocument(message.content);
 
   const checkpoint = !isUser ? checkpoints.find(c => c.msgId === message.id) : undefined;
   const isLatest = checkpoint &&
@@ -477,14 +572,14 @@ const MessageBubble = memo(function MessageBubble({ message }: { message: Displa
         className={`text-[0.9375rem] ${
           isUser
             ? 'max-w-[85%] rounded-xl px-4 py-2.5 bg-primary text-primary-foreground'
-            : message.isPlan
+            : planDoc
               ? 'w-full rounded-xl px-4 py-3 bg-muted/60 border border-dashed border-primary/40'
               : message.isSync
                 ? 'w-full rounded-xl px-4 py-3 bg-primary/5 border border-primary/20'
                 : 'w-full px-1'
         }`}
       >
-        {message.isPlan && (
+        {planDoc && (
           <div className="text-xs uppercase tracking-wide text-muted-foreground mb-1.5">
             Build plan
           </div>
@@ -545,9 +640,10 @@ const MessageBubble = memo(function MessageBubble({ message }: { message: Displa
                 },
               }}
             >
-              {message.isPlan && !message.isStreaming
-                ? stripPlanQuestions(message.content)
-                : message.content}
+              {/* The question section renders as answer cards, never as raw
+                  markdown — stripped even mid-stream, so a conversational
+                  reply's questions don't flash as text before carding up */}
+              {message.isPlan ? stripPlanQuestions(message.content) : message.content}
             </ReactMarkdown>
             {message.isStreaming && (
               <span className="inline-block w-1.5 h-4 bg-foreground/70 animate-pulse ml-0.5" />

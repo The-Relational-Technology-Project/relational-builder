@@ -12,6 +12,7 @@ import type { FileEntry } from '@/project/virtual-fs';
 import { useProjectStore } from '@/store/project-store';
 import { useEnvStore } from '@/store/env-store';
 import { useChatStore } from '@/store/chat-store';
+import { usePreviewHealthStore } from '@/store/preview-health-store';
 import { buildEnvJs, buildEnvTs } from '@/project/env-module';
 import { INSPECT_SOURCE } from '@/preview/inspect-source';
 import {
@@ -380,6 +381,14 @@ function SandpackErrorBridge() {
   const { sandpack } = useSandpack();
   const error = sandpack.error;
   const errorText = error ? [error.title, error.message].filter(Boolean).join('\n') : null;
+  // Report to the shared preview-health signal (the chat's first-build
+  // "cooking" state waits on it). Sandpack has no clean "bundling" phase to
+  // relay, so this engine only distinguishes standing/broken.
+  const setHealth = usePreviewHealthStore(s => s.setHealth);
+  useEffect(() => {
+    setHealth(errorText ? 'error' : 'ok');
+    return () => setHealth('idle');
+  }, [errorText, setHealth]);
   return <FixBanner error={errorText} />;
 }
 

@@ -167,3 +167,17 @@
 .rb-working-dot {
     animation: rb-working-dot 1.3s ease-in-out infinite;
 }
+
+/* The first-build "It's cooking" pot — a slow, gentle simmer-bob. Subtle on
+   purpose: it should read as alive, not busy. */
+@keyframes rb-cooking-pot {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
+}
+.rb-cooking-pot {
+    display: inline-block;
+    animation: rb-cooking-pot 2.2s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+    .rb-cooking-pot { animation: none; }
+}

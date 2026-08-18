@@ -91,7 +91,8 @@ export function BuildReportCard() {
     [fileCount, offer],
   );
 
-  const busy = isGenerating || reviewing || pendingFixSend || Boolean(queuedMessage);
+  const cooking = useChatStore(s => s.cookingSince !== null);
+  const busy = isGenerating || reviewing || pendingFixSend || Boolean(queuedMessage) || cooking;
   // Started feedback, struck a message, or is mid-send — the ask stays alive
   const engaged =
     phase !== 'ask' ||
@@ -108,7 +109,9 @@ export function BuildReportCard() {
     if (offer !== 'armed' || busy) return;
     const t = setTimeout(() => {
       const chat = useChatStore.getState();
-      const quiet = !chat.isGenerating && !chat.reviewing && !chat.pendingFixSend && !chat.queuedMessage;
+      const quiet =
+        !chat.isGenerating && !chat.reviewing && !chat.pendingFixSend &&
+        !chat.queuedMessage && !chat.cookingSince;
       if (quiet && useBuildLogStore.getState().offer === 'armed') {
         useBuildLogStore.getState().setOffer('pending');
       }

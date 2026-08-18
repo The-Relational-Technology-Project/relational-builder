@@ -105,6 +105,15 @@ interface ChatState {
   queueContinuation: (content: string, label?: string) => void;
   /** True while the background quality review reads the build */
   reviewing: boolean;
+  /** When the current first build started "cooking" — from the initial build
+   * send until the whole chain (continuations, auto-fixes) lands AND the
+   * preview builds cleanly. While set, the chat hides the build's churn
+   * (streaming files, cut-off notes, fix sends) behind one calm status line
+   * and reveals the finished result all at once. Transient: never persisted —
+   * a reload mid-build falls back to the normal message view. */
+  cookingSince: number | null;
+  startCooking: () => void;
+  endCooking: () => void;
   /** Live generation progress — what's happening during the wait
    *  (transient: never persisted, cleared when generation ends) */
   progress: GenerationProgress | null;
@@ -220,6 +229,10 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
       continuationCount: state.continuationCount + 1,
     })),
   reviewing: false,
+
+  cookingSince: null,
+  startCooking: () => set({ cookingSince: Date.now() }),
+  endCooking: () => set(state => (state.cookingSince ? { cookingSince: null } : state)),
 
   progress: null,
   beginProgress: () =>

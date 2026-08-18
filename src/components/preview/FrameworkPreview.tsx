@@ -3,6 +3,7 @@ import { Loader2 } from 'lucide-react';
 import type { FileEntry } from '@/project/virtual-fs';
 import type { EnvVar } from '@/store/env-store';
 import { useChatStore } from '@/store/chat-store';
+import { usePreviewHealthStore } from '@/store/preview-health-store';
 import { buildEnvJs, buildEnvTs } from '@/project/env-module';
 import { bundleProject, findFrameworkEntry } from '@/preview/bundler/bundle';
 import { ASSET_APPLIER, buildShellHtml, EMPTY_RENDER_SENTRY, ERROR_RELAY, NAV_BRIDGE } from '@/preview/bundler/shell';
@@ -57,9 +58,15 @@ export function FrameworkPreview({
   // 250ms debounce alone ran ~20 of them for a 20-file build.
   const isGenerating = useChatStore(s => s.isGenerating);
 
+  // The chat's first-build "cooking" state waits on this signal before
+  // revealing the finished build — keep it honest through the whole pass
+  const setHealth = usePreviewHealthStore(s => s.setHealth);
+  useEffect(() => () => setHealth('idle'), [setHealth]);
+
   useEffect(() => {
     const id = ++runId.current;
     setBundling(true);
+    setHealth('building');
 
     // Small debounce: streaming builds write several files back-to-back
     const timer = setTimeout(async () => {
@@ -79,6 +86,7 @@ export function FrameworkPreview({
       if (!entry) {
         if (runId.current !== id) return;
         setBundling(false);
+        setHealth('error');
         setBuildError(
           'No entry module found — expected an index.html pointing at a module script, or /src/main.tsx.',
         );
@@ -97,9 +105,11 @@ export function FrameworkPreview({
 
       setBundling(false);
       if (!result.ok) {
+        setHealth('error');
         setBuildError(result.errors.join('\n'));
         return;
       }
+      setHealth('ok');
 
       // Photo assets can't load by relative URL from a blob: document —
       // inline their modules so `<img data-asset>` works in framework apps.
@@ -129,7 +139,7 @@ export function FrameworkPreview({
 
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- version is the VFS change signal
-  }, [version, publicEnvVars, isGenerating]);
+  }, [version, publicEnvVars, isGenerating, setHealth]);
 
   // Runtime errors surface through the shell's relay script; the empty-render
   // sentry reports the blank-but-no-error case the relay can't see
@@ -137,13 +147,14 @@ export function FrameworkPreview({
     function onMessage(e: MessageEvent) {
       if (e.data?.type === 'rb-runtime-error' && typeof e.data.message === 'string') {
         setRuntimeError(e.data.message);
+        setHealth('error');
       }
       if (e.data?.type === 'rb-empty-render') setEmptyRender(true);
       if (e.data?.type === 'rb-empty-render-clear') setEmptyRender(false);
     }
     window.addEventListener('message', onMessage);
     return () => window.removeEventListener('message', onMessage);
-  }, []);
+  }, [setHealth]);
 
   // Blob URL (not srcdoc) so hash routing and history work inside the app.
   // Old URLs are revoked on a delay: immediate revocation races the iframe's

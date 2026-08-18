@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { extractOperations } from '@/project/code-extractor';
 import { RotateCcw, X, Undo2, Check } from 'lucide-react';
 import { useChatStore } from '@/store/chat-store';
+import { usePreviewHealthStore } from '@/store/preview-health-store';
 import { useProviderStore } from '@/store/provider-store';
 import { useProjectStore } from '@/store/project-store';
 import { useKnowledgeStore } from '@/store/knowledge-store';
@@ -371,6 +372,16 @@ export function ChatPanel() {
       currentMode === 'build' && useProjectStore.getState().getFileCount() === 0;
     if (isFirstBuild) requestBuildNotifyPermission();
 
+    // A first build "cooks": the chat hides its churn (streaming files,
+    // cut-off notes, continuation and fix sends) behind one calm status line
+    // until the whole chain lands and the preview stands. A person's own
+    // fresh ask mid-cook opts back into the normal live view — their reply
+    // must not vanish into the pot.
+    if (!wasFix) {
+      if (isFirstBuild) useChatStore.getState().startCooking();
+      else useChatStore.getState().endCooking();
+    }
+
     // Free community building: Opus 5 does builds and edits — unless the
     // person picked a model themselves. Fix sends stay on whatever model is
     // active (a continuation must finish what it started).
@@ -631,6 +642,7 @@ export function ChatPanel() {
             // never came through): say so instead of leaving an empty bubble
             // the person has to ask about.
             if (done && !done.content.trim()) {
+              useChatStore.getState().endCooking();
               appendToMessage(
                 msgId,
                 "**The reply didn't come through** — the stream ended without content. This is usually a hiccup upstream; please send that message again.",
@@ -795,6 +807,9 @@ export function ChatPanel() {
           },
           onError: (error) => {
             useChatStore.getState().endProgress();
+            // An errored reply must surface right away — with its retry offer
+            // — not sit hidden behind the cooking line
+            useChatStore.getState().endCooking();
             endGen(`error — ${error.message.slice(0, 120)}`);
             appendToMessage(msgId, `\n\n**Error:** ${error.message}`);
             finalizeMessage(msgId);
@@ -811,6 +826,7 @@ export function ChatPanel() {
       useChatStore.getState().endProgress();
       if (!controller.signal.aborted) {
         const msg = err instanceof Error ? err.message : String(err);
+        useChatStore.getState().endCooking();
         endGen(`error — ${msg.slice(0, 120)}`);
         appendToMessage(msgId, `\n\n**Error:** ${msg}`);
         finalizeMessage(msgId);
@@ -873,6 +889,29 @@ export function ChatPanel() {
     getRelevantContext, setSystemPrompt,
   ]);
 
+  // While a first build cooks, the chat shows one calm line instead of the
+  // build's churn. This watcher ends the cooking — revealing the finished
+  // result all at once — when everything has settled: nothing generating,
+  // nothing queued, and the preview standing rather than mid-bundle. The
+  // quiet must hold for a few seconds so the deferred machinery (the
+  // FixBanner's 2.5s auto-fix, the bundler's debounce) gets its claim in
+  // first — and so a standing error that nothing is going to fix reveals the
+  // build anyway instead of cooking forever.
+  const cooking = useChatStore(s => s.cookingSince !== null);
+  useEffect(() => {
+    if (!cooking) return;
+    let quietFor = 0;
+    const t = setInterval(() => {
+      const chat = useChatStore.getState();
+      const health = usePreviewHealthStore.getState().health;
+      const quiet =
+        !chat.isGenerating && !chat.queuedMessage && !chat.pendingFixSend && health !== 'building';
+      quietFor = quiet ? quietFor + 1 : 0;
+      if (quietFor >= 4) chat.endCooking();
+    }, 1000);
+    return () => clearInterval(t);
+  }, [cooking]);
+
   // Messages queued while the AI was busy: error fixes always run in build
   // mode; a person's queued follow-up keeps whatever mode they were in.
   const queuedMessage = useChatStore(s => s.queuedMessage);
@@ -906,6 +945,8 @@ export function ChatPanel() {
     const controller = useChatStore.getState().abortController;
     controller?.abort();
     useChatStore.getState().endProgress();
+    // Stopping is opting out of the wait — show whatever has landed
+    useChatStore.getState().endCooking();
     setIsGenerating(false);
     setAbortController(null);
     // Finalize any streaming message
@@ -949,14 +990,16 @@ export function ChatPanel() {
   return (
     <div className="flex flex-col h-full">
       <MessageList messages={messages} onBuildPlan={handleBuildPlan} isGenerating={isGenerating} />
-      {!isGenerating && <RemoteChangesBanner />}
-      {!isGenerating && <BuildRecovery />}
-      {!isGenerating && <RetryBanner onRetry={handleSend} />}
+      {/* While a first build cooks, the quiet gaps between its passes must
+          not flash banners — the cooking line is the only thing happening */}
+      {!isGenerating && !cooking && <RemoteChangesBanner />}
+      {!isGenerating && !cooking && <BuildRecovery />}
+      {!isGenerating && !cooking && <RetryBanner onRetry={handleSend} />}
       {/* Always mounted: the card itself picks its calm moment to appear
           (and retires the ask if the person builds on past it) */}
       <BuildReportCard />
-      {!isGenerating && <CommunityBudgetBanner />}
-      {!isGenerating && <UndoLastChange />}
+      {!isGenerating && !cooking && <CommunityBudgetBanner />}
+      {!isGenerating && !cooking && <UndoLastChange />}
       {needsKey && (
         <div className="px-4 py-2 text-xs text-center bg-muted/50 border-t">
           <NeedsKeyHint needsKey={needsKey} />
