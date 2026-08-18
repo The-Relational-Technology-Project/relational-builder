@@ -3,9 +3,9 @@
  * server-rendered HTML with inline CSS and zero JavaScript — the pages work
  * (forms included) with JS disabled, which is also what crawlers see.
  *
- * The look is Whole Earth Catalog: aged paper, ink-black rules, a big serif
- * masthead, squared-off cards — tuned for readability first, in both light
- * and dark (prefers-color-scheme drives the palette; every color is a token).
+ * The look is Whole Earth Catalog: aged paper, ink-black rules, a bold
+ * masthead, squared-off cards — tuned for readability first. Light mode
+ * only, deliberately; every color is still a token in case that changes.
  */
 
 import {
@@ -13,16 +13,11 @@ import {
 } from './shared';
 
 const CSS = `
-:root{color-scheme:light dark;
+:root{color-scheme:light;
 --bg:#f4eee0;--card:#fbf7eb;--ink:#1c1710;--ink2:#42392a;--soft:#6b6150;
 --line:#d9cdb4;--rule:#1c1710;--accent:#bd4a12;--accent-ink:#8f380d;
 --mark:#f3dfa4;--night:#171320;--night-line:#2c2438;--maxw:52rem}
-@media(prefers-color-scheme:dark){:root{
---bg:#17130e;--card:#211b13;--ink:#ede5d2;--ink2:#d6cbb2;--soft:#a5997f;
---line:#3c3325;--rule:#ede5d2;--accent:#e57e3c;--accent-ink:#efa16b;
---mark:#6b541f;--night-line:#3a3050}}
-/* Kind palette: --kc is the mark color, --kc-text stays readable as text on
-   the paper in either mode. */
+/* Kind palette: --kc is the mark color, --kc-text its readable text ink. */
 .kc-recipe{--kc:#e0662f;--kc-text:#a3400f}
 .kc-tool{--kc:#2f6fe0;--kc-text:#1d4fb0}
 .kc-story{--kc:#c2452f;--kc-text:#96301d}
@@ -31,16 +26,11 @@ const CSS = `
 .kc-methodology{--kc:#7a4fc2;--kc-text:#5d3a9e}
 .kc-reference{--kc:#8a7f72;--kc-text:#6f6353}
 .kc-program{--kc:#b0812f;--kc-text:#7d5a1d}
-@media(prefers-color-scheme:dark){
-.kc-recipe{--kc-text:#f39d6d}.kc-tool{--kc-text:#93b4f2}.kc-story{--kc-text:#ee9784}
-.kc-prompt{--kc-text:#6fd2c3}.kc-framework{--kc-text:#a0d18e}.kc-methodology{--kc-text:#c6a9f2}
-.kc-reference{--kc-text:#b6ab95}.kc-program{--kc-text:#deb46c}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);
 font:17px/1.68 ui-serif,Georgia,'Times New Roman',serif}
 header.site,footer.site,nav,main{font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif}
 main .prose{font-family:ui-serif,Georgia,serif}
-h1,h2,h3,.brand{font-family:'Fraunces',ui-serif,Georgia,serif}
 a{color:var(--accent-ink);text-decoration-color:color-mix(in srgb,var(--accent) 45%,transparent)}
 a:hover{color:var(--accent)}
 .wrap{max-width:var(--maxw);margin:0 auto;padding:0 1.25rem}
@@ -49,10 +39,10 @@ a:hover{color:var(--accent)}
 header.site{background:var(--card);border-bottom:1px solid var(--line)}
 header.site .mast{display:flex;align-items:baseline;gap:.35rem 1rem;flex-wrap:wrap;
 padding:1rem 1.25rem .55rem}
-.brand{font-weight:900;letter-spacing:-.01em;color:var(--ink);text-decoration:none;
-font-size:1.55rem;line-height:1.1}
+.brand{font-weight:800;letter-spacing:-.015em;color:var(--ink);text-decoration:none;
+font-size:1.5rem;line-height:1.1}
 .brand:hover{color:var(--ink)}
-.tagline{font-family:ui-serif,Georgia,serif;font-style:italic;color:var(--soft);font-size:.95rem}
+.tagline{color:var(--ink2);font-size:.95rem}
 header.site .navbar{border-top:2px solid var(--rule)}
 header.site .navrow{display:flex;align-items:center;gap:.4rem 1.15rem;flex-wrap:wrap;
 padding:.5rem 1.25rem}
@@ -72,8 +62,8 @@ box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 25%,transparent)}
 mark{background:var(--mark);color:inherit;border-radius:2px;padding:0 .08em}
 .crumbs{font-size:.85rem;color:var(--soft);margin:1.6rem 0 .4rem;font-family:ui-sans-serif,system-ui,sans-serif}
 .crumbs a{color:var(--soft)}
-h1{font-size:2.25rem;line-height:1.12;letter-spacing:-.015em;margin:.2rem 0 .7rem;
-font-weight:900;border-bottom:4px solid var(--rule);padding-bottom:.45rem}
+h1{font-size:2.15rem;line-height:1.15;letter-spacing:-.02em;margin:.2rem 0 .7rem;
+font-weight:800;border-bottom:4px solid var(--rule);padding-bottom:.45rem}
 .lede{font-size:1.15rem;color:var(--ink2);margin:0 0 1.4rem;max-width:44rem}
 /* Section headers wear a heavy catalog rule; black ink, not accent color. */
 .eyebrow{display:block;border-top:3px solid var(--rule);padding-top:.5rem;
@@ -175,9 +165,8 @@ export function page(meta: PageMeta, body: string, footer: FooterStats | null): 
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="color-scheme" content="light dark">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#fbf7eb">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#211b13">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#fbf7eb">
 <title>${esc(meta.title)}</title>
 <meta name="description" content="${esc(meta.description)}">
 <link rel="canonical" href="${esc(canonical)}">
@@ -188,9 +177,6 @@ ${meta.noindex ? '<meta name="robots" content="noindex,follow">' : ''}
 <meta property="og:image" content="${SITE}/og.png">
 <meta property="og:type" content="article">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&display=swap" rel="stylesheet">
 ${ld}
 <style>${CSS}</style>
 </head>
