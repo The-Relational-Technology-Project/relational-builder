@@ -3,8 +3,9 @@
  * server-rendered HTML with inline CSS and zero JavaScript — the pages work
  * (forms included) with JS disabled, which is also what crawlers see.
  *
- * The look is Whole Earth Catalog: aged paper, ink-black rules, a bold
- * masthead, squared-off cards — tuned for readability first. Light mode
+ * The look is Whole Earth Catalog: aged paper, ink-black rules, squared-off
+ * cards, and one serif family (Georgia/ui-serif) everywhere — bold for
+ * titles, uppercase for labels — tuned for readability first. Light mode
  * only, deliberately; every color is still a token in case that changes.
  */
 
@@ -29,8 +30,7 @@ const CSS = `
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);
 font:17px/1.68 ui-serif,Georgia,'Times New Roman',serif}
-header.site,footer.site,nav,main{font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif}
-main .prose{font-family:ui-serif,Georgia,serif}
+input,textarea,button{font-family:inherit}
 a{color:var(--accent-ink);text-decoration-color:color-mix(in srgb,var(--accent) 45%,transparent)}
 a:hover{color:var(--accent)}
 .wrap{max-width:var(--maxw);margin:0 auto;padding:0 1.25rem}
@@ -39,14 +39,14 @@ a:hover{color:var(--accent)}
 header.site{background:var(--card);border-bottom:1px solid var(--line)}
 header.site .mast{display:flex;align-items:baseline;gap:.35rem 1rem;flex-wrap:wrap;
 padding:1rem 1.25rem .55rem}
-.brand{font-weight:800;letter-spacing:-.015em;color:var(--ink);text-decoration:none;
+.brand{font-weight:800;color:var(--ink);text-decoration:none;
 font-size:1.5rem;line-height:1.1}
 .brand:hover{color:var(--ink)}
 .tagline{color:var(--ink2);font-size:.95rem}
 header.site .navbar{border-top:2px solid var(--rule)}
 header.site .navrow{display:flex;align-items:center;gap:.4rem 1.15rem;flex-wrap:wrap;
 padding:.5rem 1.25rem}
-header.site nav{display:flex;gap:1.15rem;font-size:.8rem;letter-spacing:.07em;
+header.site nav{display:flex;gap:1.15rem;font-size:.84rem;letter-spacing:.08em;
 text-transform:uppercase;font-weight:700}
 header.site nav a{text-decoration:none;color:var(--ink);white-space:nowrap}
 header.site nav a:hover{color:var(--accent)}
@@ -60,18 +60,18 @@ border:1px solid var(--soft);border-radius:3px;background:var(--card);color:var(
 form.search-hero input:focus{outline:none;border-color:var(--accent);
 box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 25%,transparent)}
 mark{background:var(--mark);color:inherit;border-radius:2px;padding:0 .08em}
-.crumbs{font-size:.85rem;color:var(--soft);margin:1.6rem 0 .4rem;font-family:ui-sans-serif,system-ui,sans-serif}
+.crumbs{font-size:.85rem;color:var(--soft);margin:1.6rem 0 .4rem}
 .crumbs a{color:var(--soft)}
-h1{font-size:2.15rem;line-height:1.15;letter-spacing:-.02em;margin:.2rem 0 .7rem;
+h1{font-size:2.15rem;line-height:1.15;letter-spacing:-.01em;margin:.2rem 0 .7rem;
 font-weight:800;border-bottom:4px solid var(--rule);padding-bottom:.45rem}
 .lede{font-size:1.15rem;color:var(--ink2);margin:0 0 1.4rem;max-width:44rem}
 /* Section headers wear a heavy catalog rule; black ink, not accent color. */
 .eyebrow{display:block;border-top:3px solid var(--rule);padding-top:.5rem;
-font-size:.82rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
-color:var(--ink);margin-top:2.6rem;font-family:ui-sans-serif,system-ui,sans-serif}
+font-size:.85rem;font-weight:800;letter-spacing:.13em;text-transform:uppercase;
+color:var(--ink);margin-top:2.6rem}
 .kind-dot{display:inline-block;width:.6em;height:.6em;border-radius:50%;margin-right:.4em}
-.chip{display:inline-block;border-radius:2px;padding:.08rem .5rem;font-size:.7rem;font-weight:750;
-letter-spacing:.06em;text-transform:uppercase;font-family:ui-sans-serif,system-ui,sans-serif;
+.chip{display:inline-block;border-radius:2px;padding:.08rem .5rem;font-size:.72rem;font-weight:700;
+letter-spacing:.07em;text-transform:uppercase;
 line-height:1.5;color:var(--kc-text,var(--soft));
 background:color-mix(in srgb,var(--kc,#8a7f72) 13%,transparent)}
 .kc-title{color:var(--kc-text)}
@@ -105,7 +105,7 @@ padding:.55rem 1rem;font-weight:700;text-decoration:none;font-size:.95rem;border
 .attach{border-top:3px solid var(--rule);margin-top:2.4rem;padding-top:1rem;font-size:.88rem;color:var(--soft)}
 .notes{list-style:none;padding:0;display:grid;gap:.7rem}
 .notes li{background:var(--card);border:1px solid var(--line);border-radius:2px 10px 10px 10px;padding:.7rem .95rem}
-.notes .who{font-size:.8rem;color:var(--soft);font-family:ui-sans-serif,system-ui,sans-serif}
+.notes .who{font-size:.8rem;color:var(--soft)}
 .notes .txt{margin:.15rem 0 0;font-size:.95rem}
 form.note-form{display:grid;gap:.6rem;max-width:30rem}
 form.note-form input[type=text],form.note-form textarea{font:inherit;padding:.55rem .7rem;
@@ -351,7 +351,7 @@ export function constellation(
     .map(
       ([k, c], i) =>
         `<circle cx="${18 + i * 108}" cy="${H - 16}" r="3.4" fill="${c}"/>` +
-        `<text x="${26 + i * 108}" y="${H - 12}" fill="#b7aec6" font-size="11" font-family="ui-sans-serif,system-ui">${esc(kindLabel(k, true))}</text>`,
+        `<text x="${26 + i * 108}" y="${H - 12}" fill="#b7aec6" font-size="11" font-family="ui-serif,Georgia,serif">${esc(kindLabel(k, true))}</text>`,
     )
     .join('');
 
