@@ -211,7 +211,9 @@ export function ContributeDialog({
               <label className="text-xs font-medium">Type of contribution</label>
               <Select value={category} onValueChange={v => setCategory(v as Category)}>
                 <SelectTrigger className="w-full h-9 text-sm">
-                  <SelectValue placeholder="Choose a category" />
+                  {/* Explicit label: the trigger otherwise echoes the raw
+                      value ("story"), not the display name */}
+                  <SelectValue placeholder="Choose a category">{active?.label}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {CATEGORIES.map(c => (
