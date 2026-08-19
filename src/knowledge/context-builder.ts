@@ -455,7 +455,8 @@ export interface ContextOptions {
   projectFiles?: { path: string; content: string; updatedAt?: number }[];
   /** Active studio frame — its principles layer onto the base */
   studio?: StudioContext | null;
-  /** The active studio's private library, for approved members only */
+  /** The active studio's library — RLS decides who sees it (approved
+   *  members; the default studio's shelf reaches every builder) */
   studioLibraryItems?: StudioLibraryPromptItem[];
   /** Domain frames (civic media, practice-first, …) — from lineage or sensed from retrieval */
   frames?: DomainFrame[];
@@ -748,7 +749,7 @@ function formatStudioLibraryForPrompt(
   const lines = [
     `## ${studioLabel}'s Library`,
     '',
-    `This builder is an approved member of ${studioLabel}, and these are the studio's own principles, examples, and materials. They are studio-private: draw on them freely in conversation and in what you build for this member, but treat them as ${studioLabel}'s knowledge — grounded in its community — rather than public commons content.`,
+    `This builder builds within ${studioLabel}, and these are the studio's own principles, examples, and materials. Draw on them freely in conversation and in what you build for this builder, but treat them as ${studioLabel}'s knowledge — grounded in its community — rather than public commons content.`,
   ];
 
   const principles = items.filter(i => i.kind === 'principle');

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuthStore, type BuilderProfile } from '@/store/auth-store';
 import { ReferralCard } from '@/components/ReferralCard';
 import { useStudioStore, approvedMemberships } from '@/store/studio-store';
-import type { StudioContext } from '@/knowledge/studio-context';
+import { DEFAULT_STUDIO_SLUG, type StudioContext } from '@/knowledge/studio-context';
 import { useUIStore } from '@/store/ui-store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -314,7 +314,11 @@ function StudioSection() {
       ? [activeStudio, ...studios]
       : studios;
 
-  if (options.length === 0) return null;
+  // The default Relational Tech frame is standard — every build carries it
+  // out of the box, no affiliation needed. The section only appears once a
+  // second studio is genuinely in the picture (invite link or membership),
+  // because that's when there's an actual choice to make.
+  if (!options.some(s => s.slug !== DEFAULT_STUDIO_SLUG)) return null;
 
   const approved = new Set(approvedMemberships(memberships).map(m => m.studio_slug));
   const pending = new Set(

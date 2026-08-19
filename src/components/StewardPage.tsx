@@ -19,19 +19,11 @@ import {
   type GalleryLink,
 } from '@/cloud/gallery-links';
 import {
-  fetchGalleryReferences,
-  invalidateGalleryReferences,
-  adminAddReference,
-  adminConfirmReference,
-  adminRemoveReference,
-} from '@/cloud/gallery-references';
-import { RELATION_LABELS, type GalleryReference, type RefRelation, type RefSource } from '@/knowledge/gallery-references';
-import {
-  fetchCivicMediaCards,
-  fetchNeighboringRecipeCards,
-} from '@/knowledge/commons-items';
-import { fetchVisibleStudioItems } from '@/cloud/studio-library';
-import { listAllStudios, type StudioContext } from '@/knowledge/studio-context';
+  adminCommunityUsage,
+  type CommunityUsageReport,
+  type MemberUsage,
+} from '@/cloud/community-usage';
+import { listAllStudios, DEFAULT_STUDIO_SLUG, type StudioContext } from '@/knowledge/studio-context';
 import {
   fetchStudioAccessMap,
   listStudioMembers,
@@ -55,12 +47,14 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Check, X, Loader2, ChevronDown, ChevronRight, ShieldCheck, KeyRound, Link2, Lock, LockOpen, Ticket, Copy, Printer } from 'lucide-react';
+import { Check, X, Loader2, ChevronDown, ChevronRight, ShieldCheck, KeyRound, Lock, LockOpen, Ticket, Copy, Printer, Trophy } from 'lucide-react';
 
 /**
  * The Steward page — every steward task in one full-width space (these
  * queues outgrew a dialog):
  *  - Accounts: every builder, their place, and their cloud project count
+ *  - Plan usage: the community plan cost leaderboard — who's building on the
+ *    subsidized plan and what it's costing, today and all-time
  *  - Account requests: pending requests, one-tap approve/decline
  *  - Commons review: the RT Commons contribution review queue (absorbed
  *    from RT Studio; decisions flow through the commons' review function)
@@ -103,16 +97,19 @@ export function StewardPage() {
           <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <TabsList className="w-max">
               <TabsTrigger value="accounts" className="text-xs px-3 sm:px-4">Accounts</TabsTrigger>
+              <TabsTrigger value="usage" className="text-xs px-3 sm:px-4">Plan usage</TabsTrigger>
               <TabsTrigger value="door" className="text-xs px-3 sm:px-4">Account requests</TabsTrigger>
               <TabsTrigger value="events" className="text-xs px-3 sm:px-4">Codes</TabsTrigger>
               <TabsTrigger value="commons" className="text-xs px-3 sm:px-4">Commons review</TabsTrigger>
               <TabsTrigger value="gallery" className="text-xs px-3 sm:px-4">Studio gallery</TabsTrigger>
-              <TabsTrigger value="connections" className="text-xs px-3 sm:px-4">Connections</TabsTrigger>
               <TabsTrigger value="access" className="text-xs px-3 sm:px-4">Studio access</TabsTrigger>
             </TabsList>
           </div>
           <TabsContent value="accounts" className="pt-4">
             <AccountsTab />
+          </TabsContent>
+          <TabsContent value="usage" className="pt-4">
+            <UsageTab />
           </TabsContent>
           <TabsContent value="door" className="pt-4">
             <RequestsTab active />
@@ -125,9 +122,6 @@ export function StewardPage() {
           </TabsContent>
           <TabsContent value="gallery" className="pt-4">
             <GalleryTab />
-          </TabsContent>
-          <TabsContent value="connections" className="pt-4">
-            <ConnectionsTab />
           </TabsContent>
           <TabsContent value="access" className="pt-4">
             <StudioAccessTab />
@@ -199,6 +193,175 @@ function AccountsTab() {
           <p className="text-sm text-muted-foreground">No accounts yet.</p>
         )}
       </div>
+    </div>
+  );
+}
+
+// --- Plan usage: the community plan cost leaderboard ---
+
+/** 1_234_567 → "1.2M", 45_600 → "46k" — tokens at a glance */
+function fmtTokens(n: number): string {
+  if (n >= 1e6) return `${(n / 1e6).toFixed(n >= 10e6 ? 0 : 1)}M`;
+  if (n >= 1e3) return `${Math.round(n / 1e3)}k`;
+  return String(n);
+}
+
+function fmtUsd(n: number): string {
+  return n >= 100 ? `$${Math.round(n)}` : `$${n.toFixed(2)}`;
+}
+
+/** "claude-fable-5 $6.10 · claude-opus-5 $3.20" → "fable-5 $6.10 · opus-5 $3.20" */
+function modelMix(models: MemberUsage['models']): string {
+  return models
+    .filter(m => m.usd >= 0.005)
+    .slice(0, 3)
+    .map(m => `${m.model.replace(/^claude-/, '')} ${fmtUsd(m.usd)}`)
+    .join(' · ');
+}
+
+function UsageTab() {
+  const [report, setReport] = useState<CommunityUsageReport | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [view, setView] = useState<'today' | 'all'>('today');
+
+  useEffect(() => {
+    adminCommunityUsage()
+      .then(setReport)
+      .catch(e => setError(e instanceof Error ? e.message : 'Could not load plan usage'))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const ranked = useMemo(() => {
+    if (!report) return [];
+    const list =
+      view === 'today'
+        ? report.members.filter(m => m.today.tokens > 0)
+        : report.members.filter(m => m.all_time.tokens > 0);
+    return [...list].sort((a, b) =>
+      view === 'today' ? b.today.usd - a.today.usd : b.all_time.usd - a.all_time.usd,
+    );
+  }, [report, view]);
+
+  if (loading) {
+    return (
+      <p className="text-sm text-muted-foreground flex items-center gap-2">
+        <Loader2 className="size-3.5 animate-spin" /> Loading plan usage…
+      </p>
+    );
+  }
+  if (error || !report) {
+    return <p className="text-xs text-destructive">{error ?? 'Could not load plan usage'}</p>;
+  }
+
+  const maxDayUsd = Math.max(...report.recent_days.map(d => d.usd), 0.01);
+  const medals = ['🥇', '🥈', '🥉'];
+
+  return (
+    <div className="space-y-4">
+      <p className="text-xs text-muted-foreground">
+        Estimated subsidized spend on the community plan, priced per model at
+        the same rates as the monitor's alerts (cache traffic included). Days
+        roll over at midnight UTC.
+      </p>
+
+      {/* The headline numbers */}
+      <div className="grid grid-cols-2 gap-2">
+        <div className="rounded-lg border px-3 py-2.5">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Today</p>
+          <p className="text-xl font-semibold tabular-nums">{fmtUsd(report.totals.today.usd)}</p>
+          <p className="text-xs text-muted-foreground tabular-nums">
+            {fmtTokens(report.totals.today.tokens)} tokens ·{' '}
+            {report.members.filter(m => m.today.tokens > 0).length} building
+          </p>
+        </div>
+        <div className="rounded-lg border px-3 py-2.5">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">All time</p>
+          <p className="text-xl font-semibold tabular-nums">{fmtUsd(report.totals.all_time.usd)}</p>
+          <p className="text-xs text-muted-foreground tabular-nums">
+            {fmtTokens(report.totals.all_time.tokens)} tokens · {report.members.length} {report.members.length === 1 ? 'builder' : 'builders'}
+          </p>
+        </div>
+      </div>
+
+      {/* Two weeks of daily spend, oldest first — the pulse */}
+      <div className="rounded-lg border px-3 py-2.5 space-y-1.5">
+        <p className="text-xs uppercase tracking-wide text-muted-foreground">Last 14 days</p>
+        <div className="flex items-end gap-1 h-12">
+          {report.recent_days.map(d => (
+            <div
+              key={d.day}
+              className="flex-1 rounded-sm bg-primary/70 min-h-[2px]"
+              style={{ height: `${Math.max(4, (d.usd / maxDayUsd) * 100)}%` }}
+              title={`${d.day}: ${fmtUsd(d.usd)} · ${fmtTokens(d.tokens)} tokens`}
+            />
+          ))}
+        </div>
+        <div className="flex justify-between text-[10px] text-muted-foreground/70 tabular-nums">
+          <span>{report.recent_days[0]?.day.slice(5)}</span>
+          <span>today</span>
+        </div>
+      </div>
+
+      {/* The leaderboard */}
+      <div className="flex items-center gap-1.5">
+        <Trophy className="size-3.5 text-muted-foreground" />
+        {(['today', 'all'] as const).map(v => (
+          <button
+            key={v}
+            onClick={() => setView(v)}
+            className={`inline-flex items-center rounded-full border px-3 py-1 text-xs transition-colors ${
+              view === v
+                ? 'bg-foreground text-background border-foreground'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {v === 'today' ? 'Today' : 'All time'}
+          </button>
+        ))}
+      </div>
+
+      {ranked.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          {view === 'today'
+            ? 'Nobody has built on the plan yet today.'
+            : 'No plan usage recorded yet.'}
+        </p>
+      ) : (
+        <div className="space-y-1.5">
+          {ranked.map((m, i) => {
+            const t = view === 'today' ? m.today : m.all_time;
+            const budgetShare =
+              view === 'today' && m.daily_budget
+                ? Math.round((t.tokens / m.daily_budget) * 100)
+                : null;
+            return (
+              <div key={m.email} className="rounded-lg border px-3 py-2 flex items-center gap-2.5">
+                <span className="w-6 text-center shrink-0 text-sm tabular-nums text-muted-foreground">
+                  {i < 3 ? medals[i] : i + 1}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-baseline gap-2 min-w-0">
+                    <span className="text-sm font-medium truncate">{m.name || m.email}</span>
+                    {m.name && (
+                      <span className="text-xs text-muted-foreground truncate">{m.email}</span>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground truncate tabular-nums">
+                    {fmtTokens(t.tokens)} tokens · {t.requests} {t.requests === 1 ? 'request' : 'requests'}
+                    {view === 'all' && ` · ${m.all_time.days_active} ${m.all_time.days_active === 1 ? 'day' : 'days'}`}
+                    {budgetShare !== null && ` · ${budgetShare}% of today's budget`}
+                    {view === 'all' && m.models.length > 0 && ` — ${modelMix(m.models)}`}
+                  </p>
+                </div>
+                <Badge variant="outline" className="shrink-0 tabular-nums">
+                  {fmtUsd(t.usd)}
+                </Badge>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -635,264 +798,6 @@ function GalleryTab() {
   );
 }
 
-// --- Gallery connections: cross-references between entries ---
-
-interface RefOption {
-  source: RefSource;
-  id: string;
-  title: string;
-  kind: string | null;
-  group: string;
-}
-
-const optionKey = (o: { source: RefSource; id: string }) => `${o.source}:${o.id}`;
-
-function ConnectionsTab() {
-  const tools = useKnowledgeStore(s => s.tools);
-  const stories = useKnowledgeStore(s => s.stories);
-  const loadAll = useKnowledgeStore(s => s.loadAll);
-  const [refs, setRefs] = useState<GalleryReference[]>([]);
-  const [remoteOptions, setRemoteOptions] = useState<RefOption[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [busyId, setBusyId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [fromKey, setFromKey] = useState('');
-  const [toKey, setToKey] = useState('');
-  const [relation, setRelation] = useState<RefRelation>('mentions');
-  const [note, setNote] = useState('');
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    void loadAll();
-    Promise.all([
-      fetchGalleryReferences(),
-      fetchCivicMediaCards().catch(() => []),
-      fetchNeighboringRecipeCards().catch(() => []),
-      fetchVisibleStudioItems().catch(() => []),
-    ])
-      .then(([allRefs, civic, neighboring, studioItems]) => {
-        setRefs(allRefs);
-        setRemoteOptions([
-          ...civic.map(c => ({
-            source: 'commons' as const, id: c.slug, title: c.title, kind: c.kind, group: 'Civic media',
-          })),
-          ...neighboring.map(c => ({
-            source: 'commons' as const, id: c.slug, title: c.title, kind: c.kind, group: 'Neighboring recipes',
-          })),
-          ...studioItems.map(i => ({
-            source: 'studio' as const, id: i.id, title: i.title, kind: i.kind, group: 'Studio libraries',
-          })),
-        ]);
-      })
-      .catch(() => setError('Could not load connections'))
-      .finally(() => setLoading(false));
-  }, [loadAll]);
-
-  const refresh = useCallback(async () => {
-    invalidateGalleryReferences();
-    setRefs(await fetchGalleryReferences());
-  }, []);
-
-  const allOptions = useMemo<RefOption[]>(
-    () => [
-      ...tools.map(t => ({
-        source: 'kb_tool' as const, id: t.id, title: t.name, kind: 'tool', group: 'Relational tech tools',
-      })),
-      ...stories.map(s => ({
-        source: 'kb_story' as const, id: s.id, title: s.title ?? 'Community story', kind: 'story', group: 'Community stories',
-      })),
-      ...remoteOptions,
-    ],
-    [tools, stories, remoteOptions],
-  );
-
-  const groups = useMemo(() => {
-    const map = new Map<string, RefOption[]>();
-    for (const o of allOptions) map.set(o.group, [...(map.get(o.group) ?? []), o]);
-    return [...map.entries()];
-  }, [allOptions]);
-
-  const byKey = useMemo(
-    () => new Map(allOptions.map(o => [optionKey(o), o])),
-    [allOptions],
-  );
-
-  // Suggested links lead — they're the queue; confirmed follow as the record
-  const sorted = useMemo(
-    () => [...refs].sort((a, b) =>
-      (a.status === 'suggested' ? 0 : 1) - (b.status === 'suggested' ? 0 : 1)),
-    [refs],
-  );
-
-  async function add() {
-    const from = byKey.get(fromKey);
-    const to = byKey.get(toKey);
-    if (!from || !to || optionKey(from) === optionKey(to)) return;
-    setSaving(true);
-    setError(null);
-    try {
-      await adminAddReference({
-        from_source: from.source, from_id: from.id, from_title: from.title, from_kind: from.kind,
-        to_source: to.source, to_id: to.id, to_title: to.title, to_kind: to.kind,
-        relation, note: note.trim() || null,
-      });
-      setFromKey(''); setToKey(''); setNote('');
-      await refresh();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not add the connection');
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function act(id: string, action: 'confirm' | 'remove') {
-    setBusyId(id);
-    setError(null);
-    try {
-      if (action === 'confirm') await adminConfirmReference(id);
-      else await adminRemoveReference(id);
-      await refresh();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'That change did not save');
-    } finally {
-      setBusyId(null);
-    }
-  }
-
-  if (loading) {
-    return (
-      <p className="text-sm text-muted-foreground flex items-center gap-2">
-        <Loader2 className="size-3.5 animate-spin" /> Loading connections…
-      </p>
-    );
-  }
-
-  const selectClass =
-    'h-8 rounded-md border bg-background px-2 text-xs min-w-0 flex-1';
-
-  return (
-    <div className="space-y-4">
-      <p className="text-xs text-muted-foreground">
-        Connections link gallery entries across the shelves — a story that
-        features a tool, a recipe that pairs with a neighboring practice. They
-        show in every entry's detail dialog and travel into the AI's context, so
-        it can say where else something was used. Suggested links come from the
-        scan script (<code>scripts/suggest-gallery-references.mjs</code>) and
-        wait here for your eye.
-      </p>
-      {error && <p className="text-xs text-destructive">{error}</p>}
-
-      <div className="rounded-lg border px-3 py-2.5 space-y-2">
-        <p className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted-foreground">
-          <Link2 className="size-3" /> Add a connection
-        </p>
-        <div className="flex flex-wrap items-center gap-1.5">
-          <select value={fromKey} onChange={e => setFromKey(e.target.value)} className={selectClass}>
-            <option value="">This entry…</option>
-            {groups.map(([group, opts]) => (
-              <optgroup key={group} label={group}>
-                {opts.map(o => (
-                  <option key={optionKey(o)} value={optionKey(o)}>{o.title}</option>
-                ))}
-              </optgroup>
-            ))}
-          </select>
-          <select
-            value={relation}
-            onChange={e => setRelation(e.target.value as RefRelation)}
-            className="h-8 rounded-md border bg-background px-2 text-xs shrink-0"
-          >
-            {RELATION_LABELS.map(r => (
-              <option key={r.key} value={r.key}>{r.label}</option>
-            ))}
-          </select>
-          <select value={toKey} onChange={e => setToKey(e.target.value)} className={selectClass}>
-            <option value="">…this entry</option>
-            {groups.map(([group, opts]) => (
-              <optgroup key={group} label={group}>
-                {opts.map(o => (
-                  <option key={optionKey(o)} value={optionKey(o)}>{o.title}</option>
-                ))}
-              </optgroup>
-            ))}
-          </select>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <Input
-            value={note}
-            onChange={e => setNote(e.target.value)}
-            placeholder="Why the pairing mattered (optional) — “worked well for listening sessions”"
-            className="h-8 text-xs flex-1"
-          />
-          <Button
-            size="sm"
-            className="h-8 text-xs shrink-0"
-            disabled={saving || !byKey.get(fromKey) || !byKey.get(toKey) || fromKey === toKey}
-            onClick={add}
-          >
-            {saving ? <Loader2 className="size-3 animate-spin mr-1" /> : <Link2 className="size-3 mr-1" />}
-            Connect
-          </Button>
-        </div>
-      </div>
-
-      {sorted.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          No connections yet — add one above, or run the scan script to suggest
-          links from what entries already say about each other.
-        </p>
-      ) : (
-        <div className="space-y-1 max-h-96 overflow-y-auto pr-1">
-          {sorted.map(r => (
-            <div
-              key={r.id}
-              className="flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs"
-            >
-              <div className="min-w-0 flex-1">
-                <p className="truncate">
-                  <span className="font-medium">{r.from_title}</span>
-                  {r.from_kind && <span className="text-muted-foreground/60"> ({r.from_kind})</span>}
-                  <span className="text-muted-foreground">
-                    {' '}{RELATION_LABELS.find(o => o.key === r.relation)?.label ?? r.relation}{' '}
-                  </span>
-                  <span className="font-medium">{r.to_title}</span>
-                  {r.to_kind && <span className="text-muted-foreground/60"> ({r.to_kind})</span>}
-                </p>
-                {r.note && <p className="text-muted-foreground truncate">{r.note}</p>}
-              </div>
-              {r.status === 'suggested' && (
-                <>
-                  <Badge variant="outline" className="text-[9px] text-amber-600 border-amber-600/40 shrink-0">
-                    suggested
-                  </Badge>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-6 text-[11px] shrink-0"
-                    disabled={busyId !== null}
-                    onClick={() => act(r.id, 'confirm')}
-                  >
-                    {busyId === r.id ? <Loader2 className="size-3 animate-spin" /> : <Check className="size-3" />}
-                    Confirm
-                  </Button>
-                </>
-              )}
-              <button
-                disabled={busyId !== null}
-                onClick={() => act(r.id, 'remove')}
-                className="text-muted-foreground hover:text-destructive shrink-0"
-                title="Remove connection"
-              >
-                <X className="size-3.5" />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 // --- Events: room keys + who's opening the door ---
 
 function EventsTab() {
@@ -1146,7 +1051,12 @@ function StudioAccessTab() {
   const refresh = useCallback(async () => {
     setError(null);
     try {
-      const [allStudios, access] = await Promise.all([listAllStudios(), fetchStudioAccessMap()]);
+      // The default Relational Tech studio isn't a door anyone stands at —
+      // its frame and principles are standard for every builder out of the
+      // box, so there's nothing to gate and no admins to grant. Only real
+      // studios (a distinct community with its own shelf) are managed here.
+      const [fetched, access] = await Promise.all([listAllStudios(), fetchStudioAccessMap()]);
+      const allStudios = fetched.filter(s => s.slug !== DEFAULT_STUDIO_SLUG);
       setStudios(allStudios);
       setAccessMap(access);
       const adminLists = await Promise.all(

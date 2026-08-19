@@ -44,6 +44,12 @@
  * view can only exist here, behind the service role):
  *   { action: "accounts" }                 → { accounts: [...] }
  *
+ * POST JSON — community plan utilization (community_usage rows are
+ * RLS-locked to each member, so the steward's leaderboard reads them here;
+ * costs price per model, in lockstep with the community-monitor alerts):
+ *   { action: "community_usage" }          → { usage: { day, members: [...],
+ *                                              totals, recent_days } }
+ *
  * POST JSON — event codes (steward-minted room keys: a ?ref=CODE that
  * auto-joins like a builder's referral code and tags each joiner's profile
  * as an event participant) + join counts per code:
@@ -99,6 +105,57 @@ function superAdmins(): string[] {
 
 function esc(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// ── Community plan pricing ───────────────────────────────────────────────
+// Kept in lockstep with the community-monitor function's MODEL_RATES — the
+// spend alerts and the steward's utilization dashboard must tell the same
+// story. Cache writes price at the 1-hour rate (2x input, the TTL the
+// llm-proxy actually sets), cache reads at 0.1x input. Usage recorded with
+// no model (older proxy deploys) prices at Opus-class default rates.
+
+const USAGE_DEFAULT_RATES = { input: 5, output: 25, cacheWrite: 10, cacheRead: 0.5 };
+
+const USAGE_MODEL_RATES: { match: RegExp; input: number; output: number }[] = [
+  { match: /fable|mythos/i, input: 10, output: 50 },
+  { match: /opus/i, input: 5, output: 25 },
+  { match: /sonnet/i, input: 3, output: 15 },
+  { match: /haiku/i, input: 1, output: 5 },
+];
+
+interface UsageTokens {
+  input: number;
+  output: number;
+  cacheWrite: number;
+  cacheRead: number;
+}
+
+function usageRatesFor(model: string): typeof USAGE_DEFAULT_RATES {
+  const hit = USAGE_MODEL_RATES.find(r => r.match.test(model));
+  if (!hit) return USAGE_DEFAULT_RATES;
+  return { input: hit.input, output: hit.output, cacheWrite: hit.input * 2, cacheRead: hit.input * 0.1 };
+}
+
+function priceUsage(t: UsageTokens, r: typeof USAGE_DEFAULT_RATES): number {
+  return (
+    (t.input / 1e6) * r.input +
+    (t.output / 1e6) * r.output +
+    (t.cacheWrite / 1e6) * r.cacheWrite +
+    (t.cacheRead / 1e6) * r.cacheRead
+  );
+}
+
+function usageCounts(row: Record<string, unknown>): UsageTokens {
+  return {
+    input: Number(row.input_tokens ?? 0),
+    output: Number(row.output_tokens ?? 0),
+    cacheWrite: Number(row.cache_creation_tokens ?? 0),
+    cacheRead: Number(row.cache_read_tokens ?? 0),
+  };
+}
+
+function totalTokens(t: UsageTokens): number {
+  return t.input + t.output + t.cacheWrite + t.cacheRead;
 }
 
 Deno.serve(async (req: Request) => {
@@ -461,6 +518,152 @@ Deno.serve(async (req: Request) => {
         project_count: counts.get(String(p.id)) ?? 0,
       }));
       return json({ accounts });
+    }
+
+    // --- Community plan utilization: who's building on the plan, how much ---
+    if (action === 'community_usage') {
+      const usageSelect =
+        'select=email,day,requests,input_tokens,output_tokens,cache_creation_tokens,cache_read_tokens';
+      const [usageRes, modelRes, membersRes, profilesRes] = await Promise.all([
+        fetch(rest(`/community_usage?${usageSelect}&limit=50000`), { headers: svc() }),
+        fetch(
+          rest(
+            '/community_usage_models?select=email,day,model,input_tokens,output_tokens,cache_creation_tokens,cache_read_tokens&limit=50000',
+          ),
+          { headers: svc() },
+        ),
+        fetch(rest('/community_members?select=email,daily_token_budget&limit=5000'), {
+          headers: svc(),
+        }),
+        fetch(rest('/profiles?select=email,display_name,full_name&limit=5000'), {
+          headers: svc(),
+        }),
+      ]);
+      if (!usageRes.ok) return json({ error: 'Could not load community usage' }, 500);
+      const usageRows: Array<Record<string, unknown>> = await usageRes.json();
+      const modelRows: Array<Record<string, unknown>> = modelRes.ok ? await modelRes.json() : [];
+      const memberRows: Array<Record<string, unknown>> = membersRes.ok ? await membersRes.json() : [];
+      const profileRows: Array<Record<string, unknown>> = profilesRes.ok ? await profilesRes.json() : [];
+
+      const names = new Map<string, string>();
+      for (const p of profileRows) {
+        const email = String(p.email ?? '').toLowerCase();
+        const name = String(p.full_name ?? p.display_name ?? '').trim();
+        if (email && name) names.set(email, name);
+      }
+      const budgets = new Map<string, number>();
+      for (const m of memberRows) {
+        budgets.set(String(m.email ?? '').toLowerCase(), Number(m.daily_token_budget ?? 0));
+      }
+
+      // Per-(email, day) model rows, so each day's aggregate prices its
+      // recorded models at their own rates and only the residual falls back
+      // to the Opus-class default — mirrors the community-monitor estimate.
+      const modelsByEmailDay = new Map<string, Array<Record<string, unknown>>>();
+      for (const r of modelRows) {
+        const key = `${String(r.email ?? '').toLowerCase()}|${String(r.day ?? '')}`;
+        const list = modelsByEmailDay.get(key) ?? [];
+        list.push(r);
+        modelsByEmailDay.set(key, list);
+      }
+
+      const today = new Date().toISOString().slice(0, 10);
+      interface Acc {
+        requests: number;
+        tokens: number;
+        usd: number;
+      }
+      const blank = (): Acc => ({ requests: 0, tokens: 0, usd: 0 });
+      const members = new Map<
+        string,
+        { today: Acc; all_time: Acc; days: Set<string>; models: Map<string, number> }
+      >();
+      const byDay = new Map<string, { tokens: number; usd: number }>();
+
+      for (const row of usageRows) {
+        const email = String(row.email ?? '').toLowerCase();
+        const day = String(row.day ?? '');
+        const total = usageCounts(row);
+        const residual = { ...total };
+        let usd = 0;
+        const entry =
+          members.get(email) ??
+          { today: blank(), all_time: blank(), days: new Set<string>(), models: new Map<string, number>() };
+        for (const m of modelsByEmailDay.get(`${email}|${day}`) ?? []) {
+          const t = usageCounts(m);
+          residual.input = Math.max(0, residual.input - t.input);
+          residual.output = Math.max(0, residual.output - t.output);
+          residual.cacheWrite = Math.max(0, residual.cacheWrite - t.cacheWrite);
+          residual.cacheRead = Math.max(0, residual.cacheRead - t.cacheRead);
+          const model = String(m.model ?? '');
+          const modelUsd = priceUsage(t, usageRatesFor(model));
+          usd += modelUsd;
+          entry.models.set(model, (entry.models.get(model) ?? 0) + modelUsd);
+        }
+        if (totalTokens(residual) > 0) {
+          const residualUsd = priceUsage(residual, USAGE_DEFAULT_RATES);
+          usd += residualUsd;
+          entry.models.set('untracked', (entry.models.get('untracked') ?? 0) + residualUsd);
+        }
+
+        const requests = Number(row.requests ?? 0);
+        const tokens = totalTokens(total);
+        entry.all_time.requests += requests;
+        entry.all_time.tokens += tokens;
+        entry.all_time.usd += usd;
+        entry.days.add(day);
+        if (day === today) {
+          entry.today.requests += requests;
+          entry.today.tokens += tokens;
+          entry.today.usd += usd;
+        }
+        members.set(email, entry);
+
+        const d = byDay.get(day) ?? { tokens: 0, usd: 0 };
+        d.tokens += tokens;
+        d.usd += usd;
+        byDay.set(day, d);
+      }
+
+      const round = (n: number) => Number(n.toFixed(4));
+      const memberList = [...members.entries()]
+        .map(([email, m]) => ({
+          email,
+          name: names.get(email) ?? null,
+          daily_budget: budgets.get(email) ?? null,
+          today: { ...m.today, usd: round(m.today.usd) },
+          all_time: { ...m.all_time, usd: round(m.all_time.usd), days_active: m.days.size },
+          models: [...m.models.entries()]
+            .map(([model, usd]) => ({ model, usd: round(usd) }))
+            .sort((a, b) => b.usd - a.usd),
+        }))
+        .sort((a, b) => b.all_time.usd - a.all_time.usd);
+
+      // The last 14 days, zeros filled, oldest first — the daily pulse
+      const recentDays: { day: string; tokens: number; usd: number }[] = [];
+      for (let i = 13; i >= 0; i--) {
+        const day = new Date(Date.now() - i * 86400_000).toISOString().slice(0, 10);
+        const d = byDay.get(day);
+        recentDays.push({ day, tokens: d?.tokens ?? 0, usd: round(d?.usd ?? 0) });
+      }
+
+      const sum = (pick: (m: (typeof memberList)[number]) => Acc): Acc =>
+        memberList.reduce(
+          (acc, m) => {
+            const t = pick(m);
+            return { requests: acc.requests + t.requests, tokens: acc.tokens + t.tokens, usd: round(acc.usd + t.usd) };
+          },
+          blank(),
+        );
+
+      return json({
+        usage: {
+          day: today,
+          members: memberList,
+          totals: { today: sum(m => m.today), all_time: sum(m => m.all_time) },
+          recent_days: recentDays,
+        },
+      });
     }
 
     if (action === 'list') {

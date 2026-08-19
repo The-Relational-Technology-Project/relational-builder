@@ -52,8 +52,6 @@ writes go through the `admin-requests` edge function (`reference_add`,
   detail dialog, with click-through to the other entry. For the steward the
   block is also the curation surface: remove a wrong link or add a missing
   one (with relation + note) right where the connection is seen in context.
-- `src/components/StewardPage.tsx` → Connections tab — the bulk view: the
-  full list with suggested links sorted first, confirm/remove, manual add.
 - `scripts/suggest-gallery-references.mjs` — scans entry bodies (and the
   civic-media `metadata.building_from` lists) for other entries' titles and
   writes `suggested` rows. Idempotent; `--dry-run` prints without writing.
@@ -83,4 +81,7 @@ Ongoing care:
   `BUILDER_SUPABASE_URL=… BUILDER_SERVICE_ROLE_KEY=… node scripts/suggest-gallery-references.mjs`
   (`--dry-run` first to eyeball). New matches arrive as `suggested` — they
   show in the gallery and AI context immediately, marked "suggested", and
-  queue at the top of **Steward → Connections** for confirm/remove.
+  get confirmed or removed in context via each entry's Connections block.
+  (The Steward page's bulk Connections tab was removed 2026-08-19 — the
+  in-context controls cover the real workflow; the `reference_*` actions in
+  `admin-requests` still back them.)
