@@ -8,16 +8,20 @@ import { Button } from '@/components/ui/button';
  * any element in the running app prefills the chat input with a description
  * of that element — no selectors, no code-speak, just point.
  *
- * Copy elements get a faster door first: when the pointed-at wording
- * appears at exactly one place in the source, a small editor opens and the
- * change lands as a plain string replacement — instant, no model call,
- * checkpointed like any AI change. Ambiguous text (data-rendered, repeated,
- * assembled) falls back to the AI prefill, which handles everything.
+ * Copy elements get a faster door first: when the pointed-at wording maps
+ * to exactly one place in the source, the text is edited without a model
+ * call — retyped right in the page for plain text elements (the inspector
+ * script makes it contenteditable and posts the result back), or in a small
+ * overlay editor for copy with structure inside. Either way the change
+ * lands as a plain source replacement: instant, free, checkpointed like any
+ * AI change. Ambiguous text (data-rendered, repeated, assembled) falls back
+ * to the AI prefill, which handles everything.
  *
  * The wrapper is pure plumbing — the visible toggle lives in the preview
  * toolbar (builder chrome), never floating over the previewed app. It finds
- * the iframe among its children and speaks the rb-inspect/rb-selected
- * postMessage protocol that the injected inspector script implements.
+ * the iframe among its children and speaks the rb-inspect/rb-selected/
+ * rb-edit-text/rb-edit-save postMessage protocol that the injected
+ * inspector script implements.
  */
 export function PointAtIt({
   selecting,
@@ -30,9 +34,9 @@ export function PointAtIt({
 }) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const setDraftMessage = useChatStore(s => s.setDraftMessage);
-  // A pointed-at piece of copy that source-matches exactly once — editable
-  // in place, no model call
-  const [directEdit, setDirectEdit] = useState<{ path: string; original: string; value: string } | null>(null);
+  // A pointed-at piece of copy that source-matches exactly once but has
+  // structure inside — editable in an overlay, no model call
+  const [directEdit, setDirectEdit] = useState<{ original: string; value: string } | null>(null);
 
   // Tell the preview iframe to enter/leave select mode. The injected
   // script's state dies with every rebuild (fresh document), so re-arm on
@@ -49,21 +53,44 @@ export function PointAtIt({
 
   // Receive the clicked element and hand it to the chat
   useEffect(() => {
+    function aiPrefillForCopy(original: string, replacement?: string) {
+      setDraftMessage([
+        'Copy change — this text in the preview:',
+        `"${original}"`,
+        '',
+        `Replace it with: ${replacement ?? ''}`,
+      ].join('\n'));
+    }
+
     function onMessage(e: MessageEvent) {
       const d = e.data;
-      if (!d || d.type !== 'rb-selected' || !d.el) return;
+      if (!d) return;
+      // The builder retyped copy right in the page — land it in source.
+      // When the source moved under us (a build landed mid-edit), the AI
+      // path still works, with the retyped wording carried along.
+      if (d.type === 'rb-edit-save' && typeof d.original === 'string' && typeof d.edited === 'string') {
+        if (!applyDirectTextEdit(d.original, d.edited)) {
+          aiPrefillForCopy(d.original, d.edited);
+        }
+        return;
+      }
+      if (d.type !== 'rb-selected' || !d.el) return;
       const el = d.el as {
         tag: string; text: string; fullText?: string; isCopy?: boolean;
-        path: string; html: string;
+        plain?: boolean; path: string; html: string;
       };
-      // Unambiguous copy edits skip the AI entirely: open the in-place editor
-      if (el.isCopy && el.fullText) {
-        const located = locateExactText(el.fullText);
-        if (located) {
-          setDirectEdit({ path: located.path, original: el.fullText, value: el.fullText });
-          onSelectingChange(false);
-          return;
+      // Unambiguous copy edits skip the AI entirely
+      if (el.isCopy && el.fullText && locateExactText(el.fullText)) {
+        onSelectingChange(false);
+        if (el.plain) {
+          // Plain text: edit it right where it sits in the page
+          const iframe = wrapperRef.current?.querySelector('iframe');
+          iframe?.contentWindow?.postMessage({ type: 'rb-edit-text' }, '*');
+        } else {
+          // Copy with structure inside — the overlay editor handles it
+          setDirectEdit({ original: el.fullText, value: el.fullText });
         }
+        return;
       }
       // Text elements get a rewrite-friendly prefill: the current wording is
       // quoted so the AI changes exactly that copy, verbatim, nothing else.
@@ -103,7 +130,7 @@ export function PointAtIt({
 
   function saveDirectEdit() {
     if (!directEdit) return;
-    const applied = applyDirectTextEdit(directEdit.path, directEdit.original, directEdit.value);
+    const applied = applyDirectTextEdit(directEdit.original, directEdit.value);
     if (!applied) {
       // The file moved under us (a build landed) — the AI path still works
       askAiInstead();

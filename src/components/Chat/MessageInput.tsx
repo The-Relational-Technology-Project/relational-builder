@@ -39,6 +39,8 @@ export function MessageInput({
 }: MessageInputProps) {
   const [input, setInput] = useState('');
   const [attachments, setAttachments] = useState<string[]>([]);
+  const [dragOver, setDragOver] = useState(false);
+  const dragDepth = useRef(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -208,8 +210,51 @@ export function MessageInput({
     }
   }
 
+  // Drag a photo anywhere onto the composer and it attaches — the same
+  // door the picker and paste use. dragenter/dragleave fire for every
+  // child crossed, so a depth counter tells "left the composer" from
+  // "moved over the textarea".
+  const draggingFiles = (e: React.DragEvent) => e.dataTransfer.types.includes('Files');
+
+  function handleDragEnter(e: React.DragEvent) {
+    if (!draggingFiles(e) || disabled) return;
+    e.preventDefault();
+    dragDepth.current++;
+    setDragOver(true);
+  }
+  function handleDragOver(e: React.DragEvent) {
+    if (!draggingFiles(e) || disabled) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+  }
+  function handleDragLeave(e: React.DragEvent) {
+    if (!draggingFiles(e)) return;
+    dragDepth.current = Math.max(0, dragDepth.current - 1);
+    if (dragDepth.current === 0) setDragOver(false);
+  }
+  function handleDrop(e: React.DragEvent) {
+    dragDepth.current = 0;
+    setDragOver(false);
+    if (!draggingFiles(e) || disabled) return;
+    e.preventDefault();
+    addFiles(e.dataTransfer.files);
+  }
+
   return (
-    <div className={hero ? 'w-full min-w-0' : 'border-t bg-background px-3 pb-3 pt-2 md:px-4'}>
+    <div
+      className={`relative ${hero ? 'w-full min-w-0' : 'border-t bg-background px-3 pb-3 pt-2 md:px-4'}`}
+      onDragEnter={handleDragEnter}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {dragOver && (
+        <div className={`pointer-events-none absolute inset-0 z-10 flex items-center justify-center border-2 border-dashed border-primary bg-primary/10 ${hero ? 'rounded-2xl' : 'rounded-lg'}`}>
+          <p className="rounded-full bg-background/95 border px-3 py-1.5 text-xs font-medium text-foreground shadow-sm">
+            Drop images to attach
+          </p>
+        </div>
+      )}
       {attachments.length > 0 && (
         <div className="flex gap-2 mb-2">
           {attachments.map((url, i) => (

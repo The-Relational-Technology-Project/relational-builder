@@ -110,6 +110,25 @@ function App() {
     void handlePromptDeepLink();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // A file dropped anywhere but a real drop target (the chat composer)
+  // must never navigate the whole builder away to the image. Real targets
+  // claim their events first (preventDefault marks them), so this only
+  // catches the misses.
+  useEffect(() => {
+    function guard(e: DragEvent) {
+      if (e.defaultPrevented) return;
+      if (!e.dataTransfer?.types.includes('Files')) return;
+      e.preventDefault();
+      if (e.type === 'dragover') e.dataTransfer.dropEffect = 'none';
+    }
+    window.addEventListener('dragover', guard);
+    window.addEventListener('drop', guard);
+    return () => {
+      window.removeEventListener('dragover', guard);
+      window.removeEventListener('drop', guard);
+    };
+  }, []);
+
   const setView = useUIStore(s => s.setView);
 
   // Focused building mode: start-from actions live on the home state,
