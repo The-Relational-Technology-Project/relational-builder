@@ -164,12 +164,14 @@ function contributeBox(backPath: string, posted: boolean): string {
 here. RTP Stewards will tag it to the appropriate Commons collection, gallery or studio. Then, your
 contribution shapes the journey of other neighborhood stewards around the world!</p>
 ${posted ? `<p class="meta" style="color:var(--accent-ink)"><strong>Thank you — it's on its way to the stewards. 🧡</strong> A human reads every contribution before it joins the commons.</p>` : `
-<form class="note-form" method="post" action="/commons/contribute">
+<form class="note-form" method="post" action="/commons/contribute" enctype="multipart/form-data">
 <input type="hidden" name="back" value="${esc(backPath)}">
 <input type="text" name="link" placeholder="https:// — the link or doc" maxlength="500">
 <textarea name="note" rows="3" placeholder="What is it, and what did your neighborhood learn? (a sentence or two)" maxlength="1000"></textarea>
 <input type="text" name="name" placeholder="Your name (credited in the commons)" maxlength="120" required>
 <input type="text" name="email" placeholder="Email (optional — so a steward can reach you)" maxlength="200">
+<label style="font-size:.85rem;color:var(--soft)">Photos <span style="opacity:.8">(optional — up to 4 images, 3MB total)</span><br>
+<input type="file" name="images" accept="image/png,image/jpeg,image/webp,image/gif" multiple style="font:inherit;font-size:.85rem;margin-top:.25rem"></label>
 <input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
 <div><button class="cta" type="submit">Offer it to the commons</button></div>
 </form>`}`;
@@ -192,13 +194,34 @@ async function handleContributePost(req: Request): Promise<Response> {
   const link = String(form.get('link') ?? '').slice(0, 500).trim();
   const note = String(form.get('note') ?? '').slice(0, 1000).trim();
   const email = String(form.get('email') ?? '').slice(0, 200).trim();
-  if (!name || (!link && !note)) return thanks; // nothing to offer — just bounce
+
+  // Photos ride along as data URLs — submit-contribution hosts them and the
+  // approved entry shows them. No client JS means no downscaling, so caps
+  // are enforced here (and the platform's request-size limit above us).
+  const IMAGE_TYPES = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gif']);
+  const images: string[] = [];
+  let imageBytes = 0;
+  for (const f of form.getAll('images')) {
+    if (images.length >= 4) break;
+    if (!(f instanceof File) || f.size === 0 || !IMAGE_TYPES.has(f.type)) continue;
+    if (f.size > 2.5 * 1024 * 1024 || imageBytes + f.size > 3.5 * 1024 * 1024) continue;
+    imageBytes += f.size;
+    const bytes = new Uint8Array(await f.arrayBuffer());
+    let bin = '';
+    for (let i = 0; i < bytes.length; i += 0x8000) {
+      bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+    }
+    images.push(`data:${f.type};base64,${btoa(bin)}`);
+  }
+
+  if (!name || (!link && !note && !images.length)) return thanks; // nothing to offer — just bounce
 
   let host = '';
   try { host = link ? new URL(link).hostname : ''; } catch { /* not a URL — travels in the note */ }
   const title = note
     ? note.split(/[.!?\n]/)[0].split(/\s+/).slice(0, 8).join(' ').slice(0, 150)
-    : host ? `Neighborhood link: ${host}` : `A gift from ${name}`;
+    : host ? `Neighborhood link: ${host}`
+    : images.length ? `Photos from ${name}` : `A gift from ${name}`;
 
   await fetch(SUBMIT_ORIGIN, {
     method: 'POST',
@@ -206,8 +229,9 @@ async function handleContributePost(req: Request): Promise<Response> {
     body: JSON.stringify({
       contribution_type: 'story',
       title: title.length >= 3 ? title : `A gift from ${name}`,
-      summary: note || `Shared through the commons page: ${link}`,
+      summary: note || (link ? `Shared through the commons page: ${link}` : `Photos shared through the commons page by ${name}.`),
       builder_name: name,
+      images: images.length ? images : undefined,
       contact_email: email || undefined,
       source_url: link && host ? link : undefined,
       tags: ['commons-page', 'neighborhood-link'],

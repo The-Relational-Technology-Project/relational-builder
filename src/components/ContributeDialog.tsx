@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -17,7 +17,8 @@ import { Input } from '@/components/ui/input';
 import { useAuthStore } from '@/store/auth-store';
 import { submitToCommons } from '@/project/commons-submit';
 import { sendContactMessage } from '@/cloud/contact';
-import { Check, Loader2, Plus, Sprout, X } from 'lucide-react';
+import { fileToDataUrl, isImageFile } from '@/lib/image';
+import { Check, ImagePlus, Loader2, Plus, Sprout, X } from 'lucide-react';
 
 /**
  * The front door for giving to the commons — reachable from the header
@@ -100,6 +101,9 @@ export function ContributeDialog({
   const [name, setName] = useState(profile?.display_name ?? '');
   const [neighborhood, setNeighborhood] = useState(profile?.neighborhood ?? '');
   const [email, setEmail] = useState('');
+  const [images, setImages] = useState<string[]>([]);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -119,6 +123,27 @@ export function ContributeDialog({
       setSubmitting(false);
     }
   };
+
+  async function addImages(files: FileList | null) {
+    if (!files) return;
+    setImageError(null);
+    const room = 4 - images.length;
+    const picked = [...files].filter(isImageFile).slice(0, room);
+    if (picked.length < files.length) {
+      setImageError(
+        [...files].some(f => !isImageFile(f))
+          ? 'Only png, jpeg, webp or gif images'
+          : 'Up to 4 images per contribution',
+      );
+    }
+    try {
+      // Downscaled client-side (1600px long edge) so uploads stay light
+      const urls = await Promise.all(picked.map(f => fileToDataUrl(f, 1600, 0.82)));
+      setImages(prev => [...prev, ...urls].slice(0, 4));
+    } catch {
+      setImageError('Could not read an image — try a different file');
+    }
+  }
 
   async function handleSubmit() {
     if (!category) return;
@@ -162,6 +187,7 @@ export function ContributeDialog({
       sourceUrl: cleanLinks[0],
       contributionType: KIND_FOR[category],
       tags: ['relational-builder', `contributed-${category}`],
+      images,
     });
     setSubmitting(false);
     if (result.ok) setDone(true);
@@ -286,6 +312,56 @@ export function ContributeDialog({
                 </button>
               )}
             </div>
+
+            {/* Images — hosted by the commons, shown on the approved entry.
+                Feedback is a note to the stewards, not an entry, so no
+                gallery to put images on. */}
+            {category !== 'feedback' && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium">
+                  Images{' '}
+                  <span className="text-muted-foreground font-normal">(optional, up to 4)</span>
+                </label>
+                {images.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {images.map((src, i) => (
+                      <div key={i} className="relative">
+                        <img
+                          src={src}
+                          alt={`Attached image ${i + 1}`}
+                          className="h-16 w-16 rounded-md border object-cover"
+                        />
+                        <button
+                          onClick={() => setImages(images.filter((_, j) => j !== i))}
+                          className="absolute -top-1.5 -right-1.5 rounded-full bg-foreground text-background p-0.5 shadow"
+                          aria-label="Remove image"
+                        >
+                          <X className="size-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {images.length < 4 && (
+                  <button
+                    onClick={() => fileInput.current?.click()}
+                    className="flex items-center gap-1.5 rounded-md border border-dashed px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:border-foreground/50 transition-colors"
+                  >
+                    <ImagePlus className="size-3.5" />
+                    Add images
+                  </button>
+                )}
+                <input
+                  ref={fileInput}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  multiple
+                  className="hidden"
+                  onChange={e => { void addImages(e.target.files); e.target.value = ''; }}
+                />
+                {imageError && <p className="text-xs text-destructive">{imageError}</p>}
+              </div>
+            )}
 
             {/* Who it's from */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">

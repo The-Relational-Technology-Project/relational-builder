@@ -29,6 +29,11 @@
 //
 // Abuse limits: max 5 submissions/hour per IP, max 30/hour globally.
 //
+// Images: contributions may carry up to 4 images as data URLs. They're
+// uploaded (service role) to the public `contribution-images` bucket and
+// land in proposed_image_urls — review-contribution already copies that
+// onto the published item, so approved entries show their images.
+//
 // Environment (auto-provisioned): SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY,
 // RESEND_API_KEY (steward notification, best-effort). Optional overrides:
 // STEWARD_EMAIL (default deborah@…), STEWARD_CC_EMAILS (comma-separated,
@@ -61,6 +66,18 @@ const ALLOWED_TYPES = [
 ];
 const PER_IP_HOURLY_LIMIT = 5;
 const GLOBAL_HOURLY_LIMIT = 30;
+// Image limits: the Builder downscales client-side (well under these); the
+// no-JS commons-page form can't, so originals up to a few MB still fit.
+const IMAGES_BUCKET = "contribution-images";
+const MAX_IMAGES = 4;
+const MAX_IMAGE_BYTES = 2.5 * 1024 * 1024;
+const MAX_TOTAL_IMAGE_BYTES = 8 * 1024 * 1024;
+const IMAGE_EXT = {
+  "image/png": "png",
+  "image/jpeg": "jpg",
+  "image/webp": "webp",
+  "image/gif": "gif"
+};
 function kebab(s) {
   return s.toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
 }
@@ -117,6 +134,62 @@ serve(async (req)=>{
   const studioSlug = kebab(cap(body.studio_slug, 80) ?? "") || null;
   const studioLabel = cap(body.studio_label, 120);
   const submittedVia = (cap(body.submitted_via, 40) ?? "mcp").replace(/[^a-z0-9-]/g, "") || "mcp";
+  // Images arrive as data URLs; validate and decode before anything is
+  // written so a bad attachment fails the whole request cleanly.
+  const rawImages = Array.isArray(body.images) ? body.images : [];
+  if (rawImages.length > MAX_IMAGES) {
+    return new Response(JSON.stringify({
+      error: `At most ${MAX_IMAGES} images per contribution`
+    }), {
+      status: 400,
+      headers: jsonHeaders
+    });
+  }
+  const decodedImages = [];
+  let totalImageBytes = 0;
+  for (const img of rawImages) {
+    const m = /^data:(image\/(?:png|jpeg|webp|gif));base64,(.+)$/.exec(String(img ?? ""));
+    if (!m) {
+      return new Response(JSON.stringify({
+        error: "Images must be png/jpeg/webp/gif data URLs"
+      }), {
+        status: 400,
+        headers: jsonHeaders
+      });
+    }
+    let bytes;
+    try {
+      bytes = Uint8Array.from(atob(m[2]), (c)=>c.charCodeAt(0));
+    } catch  {
+      return new Response(JSON.stringify({
+        error: "Unreadable image data"
+      }), {
+        status: 400,
+        headers: jsonHeaders
+      });
+    }
+    if (bytes.length > MAX_IMAGE_BYTES) {
+      return new Response(JSON.stringify({
+        error: "An image is too large (max 2.5MB each)"
+      }), {
+        status: 413,
+        headers: jsonHeaders
+      });
+    }
+    totalImageBytes += bytes.length;
+    decodedImages.push({
+      bytes,
+      mime: m[1]
+    });
+  }
+  if (totalImageBytes > MAX_TOTAL_IMAGE_BYTES) {
+    return new Response(JSON.stringify({
+      error: "Images too large altogether (max 8MB)"
+    }), {
+      status: 413,
+      headers: jsonHeaders
+    });
+  }
   if (!ALLOWED_TYPES.includes(contributionType)) {
     return new Response(JSON.stringify({
       error: `contribution_type must be one of: ${ALLOWED_TYPES.join(", ")}`
@@ -207,6 +280,28 @@ serve(async (req)=>{
       });
     }
   }
+  // Host the images (after the rate-limit gates so uploads can't be used to
+  // fill storage without also passing submission limits). Best-effort per
+  // image: the contribution matters more than any one attachment.
+  const imageUrls = [];
+  for (const { bytes, mime } of decodedImages) {
+    const path = `contribution/${crypto.randomUUID()}.${IMAGE_EXT[mime]}`;
+    try {
+      const upRes = await fetch(`${supabaseUrl}/storage/v1/object/${IMAGES_BUCKET}/${path}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${serviceKey}`,
+          apikey: serviceKey,
+          "Content-Type": mime,
+          "cache-control": "max-age=31536000, immutable"
+        },
+        body: bytes
+      });
+      if (upRes.ok) imageUrls.push(`${supabaseUrl}/storage/v1/object/public/${IMAGES_BUCKET}/${path}`);
+    } catch  {
+    // skip this image — the submission continues without it
+    }
+  }
   const localId = `${submittedVia}-${crypto.randomUUID()}`;
   const { data: inserted, error: insertErr } = await supabase.from("commons_contributions").insert({
     source_studio_slug: sourceSlug,
@@ -223,6 +318,7 @@ serve(async (req)=>{
       } : {}
     },
     proposed_tags: tags,
+    proposed_image_urls: imageUrls,
     proposed_metadata: {
       submitted_via: submittedVia,
       submit_ip: ip,
@@ -286,6 +382,7 @@ serve(async (req)=>{
           ${summary ? `<p><strong>Summary:</strong> ${esc(summary)}</p>` : ""}
           ${content ? `<div style="background:#f5f5f5;padding:16px;border-radius:8px;white-space:pre-wrap;">${esc(content)}</div>` : ""}
           ${sourceUrl ? `<p><strong>URL:</strong> ${esc(sourceUrl)}</p>` : ""}
+          ${imageUrls.map((u)=>`<p><a href="${esc(u)}"><img src="${esc(u)}" alt="attached image" width="280" style="max-width:280px;border-radius:8px;"></a></p>`).join("")}
           ${tags.length ? `<p><strong>Tags:</strong> ${esc(tags.join(", "))}</p>` : ""}
           ${relatedItemSlug ? `<p><strong>Related item:</strong> ${esc(relatedItemSlug)}</p>` : ""}
           <hr>
@@ -301,6 +398,7 @@ serve(async (req)=>{
     ok: true,
     contribution_id: inserted.id,
     status: "pending",
+    image_urls: imageUrls,
     steward_notified: stewardNotified,
     message: "Thank you — your contribution is in the steward review queue. A human steward reads every submission before it joins the commons. If you shared an email, you'll hear back."
   }), {

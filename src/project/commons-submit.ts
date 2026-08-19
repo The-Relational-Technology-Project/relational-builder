@@ -28,6 +28,9 @@ export interface CommonsSubmission {
    *  materials), the story of how a project came to be, a reference worth
    *  adding to the reading room, or a prompt/idea for the next builder */
   contributionType?: 'tool' | 'program' | 'story' | 'reference' | 'prompt';
+  /** Up to 4 images as data URLs (downscaled client-side) — hosted by the
+   *  commons and shown on the entry once a steward approves it */
+  images?: string[];
 }
 
 export interface SubmitResult {
@@ -59,6 +62,7 @@ export async function submitToCommons(submission: CommonsSubmission): Promise<Su
         contact_email: submission.contactEmail || undefined,
         source_url: submission.sourceUrl || undefined,
         tags: submission.tags?.slice(0, 8),
+        images: submission.images?.slice(0, 4),
         submitted_via: 'relational-builder',
         ...(activeStudio
           ? { studio_slug: activeStudio.slug, studio_label: activeStudio.label }
