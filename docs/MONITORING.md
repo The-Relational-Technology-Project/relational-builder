@@ -13,16 +13,21 @@ Estimated subsidized spend for the current UTC day is computed from
 `community_usage` token counts. As each threshold is crossed
 (`MONITOR_SPEND_THRESHOLDS`, default `5,10` USD), one email goes out —
 once per threshold per day, deduped in `monitor_alerts` — with the
-per-member breakdown (requests, tokens, estimated cost).
+per-member breakdown (requests, tokens, model mix, estimated cost).
 
-**How the estimate works.** Usage isn't recorded per model, so everything
-is priced at Opus-class rates (the community default): $5/MTok input,
-$25/MTok output, cache writes at 1.25×, cache reads at 0.1×. Sessions on
-Sonnet/Haiku cost less than the estimate shows — it errs on the safe
-side. The llm-proxy now records cache-creation and cache-read tokens
-separately (`community_usage.cache_creation_tokens` / `cache_read_tokens`),
-so prompt caching — most of a build conversation's input — is priced at
-its real ~0.1× rate rather than inflating the estimate 3–5×.
+**How the estimate works.** Since 2026-08-19 the llm-proxy records a
+per-(email, day, model) breakdown in `community_usage_models`, and the
+estimate prices each model at its own rates (`MODEL_RATES` in the
+function): Fable $10/$50 per MTok, Opus $5/$25, Sonnet $3/$15, Haiku
+$1/$5 — so a builder who picks Fable 5 projects at Fable prices instead
+of understating by half. Cache writes price at the 1-hour rate (2×
+input; the proxy sets `ttl: '1h'` on every breakpoint) and cache reads
+at 0.1×, using the separately-recorded `cache_creation_tokens` /
+`cache_read_tokens` — so prompt caching, most of a build conversation's
+input, is priced at its real rate rather than inflating the estimate
+3–5×. Any usage the aggregate holds beyond the model rows (recorded
+before the breakdown existed, or via outage-fallback providers) prices
+at Opus-class fallback rates and shows as "untracked" in the alert.
 
 ## 2. Supabase tier recommendation
 
@@ -70,5 +75,7 @@ curl -X POST "https://$REF.supabase.co/functions/v1/community-monitor" \
 
 If the tier email arrives repeatedly after an upgrade, thresholds live in
 `pressureSignals()` in `supabase/functions/community-monitor/index.ts`.
-If the spend estimate drifts from the real Anthropic invoice, adjust the
-`MONITOR_RATE_*` secrets rather than editing code.
+If the spend estimate drifts from the real Anthropic invoice: per-model
+rates live in `MODEL_RATES` in the function (edit + redeploy); the
+`MONITOR_RATE_*` secrets only override the fallback rates used for
+usage with no recorded model.

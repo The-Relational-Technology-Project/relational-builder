@@ -309,6 +309,9 @@ async function fallbackResponse(
       communityEmail,
       Number(data.usage?.prompt_tokens ?? 0),
       Number(data.usage?.completion_tokens ?? 0),
+      0,
+      0,
+      fb.model,
     );
     return new Response(JSON.stringify(data), {
       headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
@@ -362,7 +365,7 @@ async function fallbackResponse(
         controller.error(err);
       } finally {
         if (promptTokens > 0 || completionTokens > 0) {
-          recordCommunityUsage(communityEmail, promptTokens, completionTokens);
+          recordCommunityUsage(communityEmail, promptTokens, completionTokens, 0, 0, fb.model);
         }
       }
     },
@@ -451,11 +454,15 @@ function recordCommunityUsage(
   outputTokens: number,
   cacheWriteTokens = 0,
   cacheReadTokens = 0,
+  model = '',
 ): void {
   const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
   if (!supabaseUrl || !serviceKey) return;
-  // Fire and forget — metering must not block or fail the response
+  // Fire and forget — metering must not block or fail the response.
+  // The model is the one that actually served (which can differ from the
+  // request on a retirement or outage fallback) — community-monitor prices
+  // each model at its own rates, so Fable sessions project at Fable prices.
   fetch(`${supabaseUrl}/rest/v1/rpc/increment_community_usage`, {
     method: 'POST',
     headers: {
@@ -469,6 +476,7 @@ function recordCommunityUsage(
       p_output: outputTokens,
       p_cache_write: cacheWriteTokens,
       p_cache_read: cacheReadTokens,
+      p_model: model || null,
     }),
   }).catch(() => {});
 }
@@ -559,6 +567,9 @@ async function proxyGeminiImage(
       communityEmail,
       Number(usage.promptTokenCount ?? 0),
       Number(usage.candidatesTokenCount ?? 1290),
+      0,
+      0,
+      IMAGE_MODEL,
     );
   }
 
@@ -834,6 +845,7 @@ async function proxyAnthropic(
         Number(data.usage?.output_tokens ?? 0),
         Number(data.usage?.cache_creation_input_tokens ?? 0),
         Number(data.usage?.cache_read_input_tokens ?? 0),
+        String(data.model ?? anthropicBody.model ?? ''),
       );
     }
     const openaiResponse = {
@@ -861,6 +873,10 @@ async function proxyAnthropic(
       let outputTokens = 0;
       let cacheWriteTokens = 0;
       let cacheReadTokens = 0;
+      // The model that actually serves (message_start reports it) — after a
+      // retirement fallback this differs from the client's request, and the
+      // metering row should price at the serving model's rates.
+      let servedModel = String(anthropicBody.model ?? '');
       // Streamed server_tool_use blocks (web search / fetch): accumulate the
       // tool input as it arrives so a human progress line ("Searching the
       // web: …") can ride the reasoning channel when the call fires.
@@ -886,6 +902,7 @@ async function proxyAnthropic(
                 inputTokens = Number(parsed.message.usage.input_tokens ?? 0);
                 cacheWriteTokens = Number(parsed.message.usage.cache_creation_input_tokens ?? 0);
                 cacheReadTokens = Number(parsed.message.usage.cache_read_input_tokens ?? 0);
+                if (parsed.message.model) servedModel = String(parsed.message.model);
               } else if (parsed.type === 'message_delta') {
                 if (parsed.usage) {
                   outputTokens = Number(parsed.usage.output_tokens ?? outputTokens);
@@ -965,6 +982,7 @@ async function proxyAnthropic(
             outputTokens,
             cacheWriteTokens,
             cacheReadTokens,
+            servedModel,
           );
         }
       }

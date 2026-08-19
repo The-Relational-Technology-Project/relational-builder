@@ -4,8 +4,10 @@
  * Watches two things and emails the steward when either needs attention:
  *
  *   1. Community plan spend — estimates today's (UTC) subsidized spend from
- *      community_usage token counts and sends one email per day as each
- *      threshold is crossed ($5/day and $10/day by default).
+ *      community_usage token counts, priced per model where the llm-proxy
+ *      recorded one (community_usage_models — Fable at Fable rates, Sonnet
+ *      at Sonnet rates), and sends one email per day as each threshold is
+ *      crossed ($5/day and $10/day by default).
  *   2. Supabase instance health — reads database stats (via the
  *      monitor_db_stats RPC) and the instance's Prometheus metrics endpoint,
  *      derives pressure signals, and recommends bumping compute past Micro
@@ -23,7 +25,9 @@
  *   RESEND_API_KEY           — email delivery (already set for notify-invite)
  *   MONITOR_ALERT_EMAIL      — default josh@relationaltechproject.org
  *   MONITOR_SPEND_THRESHOLDS — default "5,10" (USD/day)
- *   MONITOR_RATE_*           — pricing overrides per MTok (see DEFAULT_RATES)
+ *   MONITOR_RATE_*           — overrides for the untracked-usage fallback
+ *                              rates per MTok (see DEFAULT_RATES); per-model
+ *                              rates live in MODEL_RATES in this file
  */
 
 const CORS = {
@@ -32,24 +36,73 @@ const CORS = {
   'Access-Control-Allow-Headers': 'Content-Type, x-monitor-secret',
 };
 
-// Estimate basis: Claude Opus 4.8, the community default model
-// ($5 in / $25 out per MTok; cache reads 0.1x).
-// Usage isn't recorded per-model, so cheaper models (Sonnet/Haiku) make the
-// real bill lower than this estimate — the estimate errs on the safe side.
+// Since 2026-08-19 the llm-proxy records a per-(email, day, model) breakdown
+// in community_usage_models, and each model prices at its own rates below —
+// so a builder who picks Fable 5 ($10/$50 per MTok, double Opus) projects at
+// Fable prices instead of quietly understating by half. Usage with no model
+// row (recorded before the breakdown existed, or by an older proxy deploy)
+// falls back to DEFAULT_RATES — Opus-class, the community default — which
+// still errs on the safe side for Sonnet/Haiku sessions.
 //
-// Cache writes are priced at the 1-HOUR rate (2x base), not the 5-minute one
-// (1.25x): the llm-proxy sets ttl '1h' on every breakpoint, because builders
-// think for longer than five minutes between turns and the short TTL had us
-// re-writing the whole prompt every turn and never reading it back. The rows
-// only carry a cache_creation_tokens total with no TTL attached, so pricing
-// it at 1.25x here would quietly understate the bill on the one number these
-// alerts exist to watch.
+// Cache writes are priced at the 1-HOUR rate (2x base input), not the
+// 5-minute one (1.25x): the llm-proxy sets ttl '1h' on every breakpoint,
+// because builders think for longer than five minutes between turns and the
+// short TTL had us re-writing the whole prompt every turn and never reading
+// it back. The rows only carry a cache_creation_tokens total with no TTL
+// attached, so pricing it at 1.25x here would quietly understate the bill on
+// the one number these alerts exist to watch. Cache reads price at 0.1x.
 const DEFAULT_RATES = {
   input: 5,
   output: 25,
   cacheWrite: 10,
   cacheRead: 0.5,
 };
+
+// Matched against the recorded model id, first hit wins (fable before opus
+// etc. doesn't matter — the ids never overlap). Cache rates derive from the
+// input rate per the 1h-write/0.1x-read reasoning above. Fallback-provider
+// models (GPT/Gemini outage runs, Gemini image) match nothing and price at
+// DEFAULT_RATES — safe-side, and rare enough not to matter.
+const MODEL_RATES: { match: RegExp; input: number; output: number }[] = [
+  { match: /fable|mythos/i, input: 10, output: 50 },
+  { match: /opus/i, input: 5, output: 25 },
+  { match: /sonnet/i, input: 3, output: 15 },
+  { match: /haiku/i, input: 1, output: 5 },
+];
+
+interface Rates {
+  input: number;
+  output: number;
+  cacheWrite: number;
+  cacheRead: number;
+}
+
+function ratesForModel(model: string, fallback: Rates): Rates {
+  const hit = MODEL_RATES.find((r) => r.match.test(model));
+  if (!hit) return fallback;
+  return {
+    input: hit.input,
+    output: hit.output,
+    cacheWrite: hit.input * 2,
+    cacheRead: hit.input * 0.1,
+  };
+}
+
+interface TokenCounts {
+  input: number;
+  output: number;
+  cacheWrite: number;
+  cacheRead: number;
+}
+
+function priceTokens(t: TokenCounts, r: Rates): number {
+  return (
+    (t.input / 1e6) * r.input +
+    (t.output / 1e6) * r.output +
+    (t.cacheWrite / 1e6) * r.cacheWrite +
+    (t.cacheRead / 1e6) * r.cacheRead
+  );
+}
 
 // What "Micro" means, for signal thresholds and the email copy.
 const MICRO = { ramGb: 1, cores: '2 (shared)' };
@@ -61,6 +114,10 @@ interface UsageRow {
   output_tokens: number;
   cache_creation_tokens: number;
   cache_read_tokens: number;
+}
+
+interface ModelUsageRow extends UsageRow {
+  model: string;
 }
 
 function json(body: unknown, status = 200): Response {
@@ -138,21 +195,62 @@ Deno.serve(async (req: Request) => {
     errors.push(`usage query failed: ${err instanceof Error ? err.message : String(err)}`);
   }
 
+  // Per-model breakdown — lets the estimate price Fable at Fable rates.
+  // Missing table / empty rows degrade to the aggregate at DEFAULT_RATES.
+  let modelRows: ModelUsageRow[] = [];
+  try {
+    const res = await fetch(
+      `${supabaseUrl}/rest/v1/community_usage_models?day=eq.${today}` +
+        `&select=email,model,requests,input_tokens,output_tokens,cache_creation_tokens,cache_read_tokens`,
+      { headers: svc },
+    );
+    if (res.ok) modelRows = await res.json();
+    else errors.push(`model usage query failed (${res.status})`);
+  } catch (err) {
+    errors.push(`model usage query failed: ${err instanceof Error ? err.message : String(err)}`);
+  }
+  const modelRowsByEmail = new Map<string, ModelUsageRow[]>();
+  for (const r of modelRows) {
+    const list = modelRowsByEmail.get(r.email) ?? [];
+    list.push(r);
+    modelRowsByEmail.set(r.email, list);
+  }
+
+  const counts = (r: UsageRow): TokenCounts => ({
+    input: Number(r.input_tokens ?? 0),
+    output: Number(r.output_tokens ?? 0),
+    cacheWrite: Number(r.cache_creation_tokens ?? 0),
+    cacheRead: Number(r.cache_read_tokens ?? 0),
+  });
+
   const memberSpend = rows
-    .map((r) => ({
-      email: r.email,
-      requests: Number(r.requests ?? 0),
-      tokens:
-        Number(r.input_tokens ?? 0) +
-        Number(r.output_tokens ?? 0) +
-        Number(r.cache_creation_tokens ?? 0) +
-        Number(r.cache_read_tokens ?? 0),
-      usd:
-        (Number(r.input_tokens ?? 0) / 1e6) * rates.input +
-        (Number(r.output_tokens ?? 0) / 1e6) * rates.output +
-        (Number(r.cache_creation_tokens ?? 0) / 1e6) * rates.cacheWrite +
-        (Number(r.cache_read_tokens ?? 0) / 1e6) * rates.cacheRead,
-    }))
+    .map((r) => {
+      const total = counts(r);
+      // Price each recorded model at its own rates; whatever the aggregate
+      // holds beyond the model rows (older proxy deploys, pre-migration
+      // usage) prices at the default Opus-class rates.
+      const models: { model: string; usd: number }[] = [];
+      const residual = { ...total };
+      for (const m of modelRowsByEmail.get(r.email) ?? []) {
+        const t = counts(m);
+        residual.input = Math.max(0, residual.input - t.input);
+        residual.output = Math.max(0, residual.output - t.output);
+        residual.cacheWrite = Math.max(0, residual.cacheWrite - t.cacheWrite);
+        residual.cacheRead = Math.max(0, residual.cacheRead - t.cacheRead);
+        models.push({ model: m.model, usd: priceTokens(t, ratesForModel(m.model, rates)) });
+      }
+      if (residual.input + residual.output + residual.cacheWrite + residual.cacheRead > 0) {
+        models.push({ model: 'untracked', usd: priceTokens(residual, rates) });
+      }
+      models.sort((a, b) => b.usd - a.usd);
+      return {
+        email: r.email,
+        requests: Number(r.requests ?? 0),
+        tokens: total.input + total.output + total.cacheWrite + total.cacheRead,
+        usd: models.reduce((sum, m) => sum + m.usd, 0),
+        models,
+      };
+    })
     .sort((a, b) => b.usd - a.usd);
   const totalSpend = memberSpend.reduce((sum, m) => sum + m.usd, 0);
 
@@ -306,7 +404,11 @@ Deno.serve(async (req: Request) => {
     thresholds,
     thresholds_crossed: crossed,
     site_alerts: siteAlerts,
-    members: memberSpend.map((m) => ({ ...m, usd: Number(m.usd.toFixed(4)) })),
+    members: memberSpend.map((m) => ({
+      ...m,
+      usd: Number(m.usd.toFixed(4)),
+      models: m.models.map((mm) => ({ ...mm, usd: Number(mm.usd.toFixed(4)) })),
+    })),
     infra: { stats, metrics, signals: signals.map((s) => s.key), sustained },
     alerts_sent: sent,
     errors,
@@ -565,10 +667,25 @@ function emailShell(title: string, inner: string): string {
 </html>`;
 }
 
+/** "claude-fable-5 $6.10 · claude-opus-5 $3.20" → "fable-5 $6.10 · opus-5 $3.20" */
+function modelMixLabel(models: Array<{ model: string; usd: number }>): string {
+  if (models.length === 0) return '—';
+  return models
+    .slice(0, 3)
+    .map((m) => `${m.model.replace(/^claude-/, '')} $${m.usd.toFixed(2)}`)
+    .join(' · ');
+}
+
 function renderSpendEmail(
   threshold: number,
   total: number,
-  members: Array<{ email: string; requests: number; tokens: number; usd: number }>,
+  members: Array<{
+    email: string;
+    requests: number;
+    tokens: number;
+    usd: number;
+    models: Array<{ model: string; usd: number }>;
+  }>,
   day: string,
   rates: { input: number; output: number; cacheWrite: number; cacheRead: number },
 ): string {
@@ -579,6 +696,7 @@ function renderSpendEmail(
         <td style="padding:6px 8px;border-bottom:1px solid #E7E5E4;font-size:13px;">${escapeHtml(m.email)}</td>
         <td style="padding:6px 8px;border-bottom:1px solid #E7E5E4;font-size:13px;text-align:right;">${m.requests}</td>
         <td style="padding:6px 8px;border-bottom:1px solid #E7E5E4;font-size:13px;text-align:right;">${(m.tokens / 1e6).toFixed(2)}M</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #E7E5E4;font-size:12px;text-align:right;color:#78716C;">${escapeHtml(modelMixLabel(m.models))}</td>
         <td style="padding:6px 8px;border-bottom:1px solid #E7E5E4;font-size:13px;text-align:right;">$${m.usd.toFixed(2)}</td>
       </tr>`,
     )
@@ -594,15 +712,18 @@ function renderSpendEmail(
         <th style="text-align:left;padding:6px 8px;font-size:12px;color:#78716C;border-bottom:2px solid #E7E5E4;">Member</th>
         <th style="text-align:right;padding:6px 8px;font-size:12px;color:#78716C;border-bottom:2px solid #E7E5E4;">Requests</th>
         <th style="text-align:right;padding:6px 8px;font-size:12px;color:#78716C;border-bottom:2px solid #E7E5E4;">Tokens</th>
+        <th style="text-align:right;padding:6px 8px;font-size:12px;color:#78716C;border-bottom:2px solid #E7E5E4;">Models</th>
         <th style="text-align:right;padding:6px 8px;font-size:12px;color:#78716C;border-bottom:2px solid #E7E5E4;">Est. cost</th>
       </tr>
       ${rowsHtml}
     </table>
     <p style="font-size:13px;color:#78716C;line-height:1.6;margin:0;">
-      Estimate prices all usage at Opus-class rates ($${rates.input}/$${rates.output} per MTok,
-      cache writes $${rates.cacheWrite}, cache reads $${rates.cacheRead}) — sessions on cheaper
-      models cost less than shown. Daily budgets reset at midnight UTC. This alert sends once
-      per threshold per day.
+      Each model prices at its own rates: Fable $10/$50 per MTok, Opus $5/$25, Sonnet $3/$15,
+      Haiku $1/$5, with 1-hour cache writes at 2&times; input and cache reads at 0.1&times;.
+      Usage without a recorded model prices at Opus-class rates
+      ($${rates.input}/$${rates.output}, cache writes $${rates.cacheWrite}, reads $${rates.cacheRead})
+      and shows as "untracked". Daily budgets reset at midnight UTC. This alert sends once per
+      threshold per day.
     </p>`,
   );
 }
