@@ -60,6 +60,38 @@ export function cdnUrl(spec: string, dev = false): string {
 }
 
 /**
+ * The attribute preview builds stamp on every host element: where this
+ * element lives in the project source ("file:line:col"). It's what lets
+ * "point at it" resolve a click straight to code — swap a photo, edit
+ * repeated text — with no searching and no model call. Preview-only:
+ * publish builds compile with the production jsx-runtime and never carry it.
+ */
+export const SOURCE_TAG_ATTR = 'data-rb-source';
+
+/**
+ * A drop-in jsx-dev-runtime that stamps SOURCE_TAG_ATTR on host elements
+ * (plain tags — components pass through untouched) and then defers to the
+ * real React dev runtime. Served as a data: URL through the import map, so
+ * the dev bundle's `import { jsxDEV } from "react/jsx-dev-runtime"` lands
+ * here without touching the bundle itself.
+ */
+function taggingJsxDevRuntimeUrl(): string {
+  const real = `${ESM_CDN}/react@${REACT_VERSION}/jsx-dev-runtime?dev`;
+  const src = [
+    `import * as R from ${JSON.stringify(real)};`,
+    'export const Fragment = R.Fragment;',
+    'export function jsxDEV(type, props, key, isStatic, source, self) {',
+    "  if (typeof type === 'string' && source && source.fileName) {",
+    `    props = Object.assign({}, props, { '${SOURCE_TAG_ATTR}':`,
+    "      source.fileName.replace(/^[a-z-]+:/, '') + ':' + source.lineNumber + ':' + source.columnNumber });",
+    '  }',
+    '  return R.jsxDEV(type, props, key, isStatic, source, self);',
+    '}',
+  ].join('\n');
+  return 'data:text/javascript;charset=utf-8,' + encodeURIComponent(src);
+}
+
+/**
  * Build the import map for the preview/publish shell from the set of bare
  * specifiers the bundle actually imports. React entries are always present
  * (the synthesized entry and jsx-runtime need them). `dev` = development
@@ -70,7 +102,11 @@ export function buildImportMap(bareImports: Iterable<string>, dev = false): stri
   const imports: Record<string, string> = {
     'react': cdnUrl('react', dev),
     'react/jsx-runtime': `${ESM_CDN}/react@${REACT_VERSION}/jsx-runtime${devQuery}`,
-    'react/jsx-dev-runtime': `${ESM_CDN}/react@${REACT_VERSION}/jsx-dev-runtime${devQuery}`,
+    // Live previews compile with jsxDev, so this entry is what they actually
+    // import — the tagging wrapper routes through the real dev runtime
+    'react/jsx-dev-runtime': dev
+      ? taggingJsxDevRuntimeUrl()
+      : `${ESM_CDN}/react@${REACT_VERSION}/jsx-dev-runtime${devQuery}`,
     'react-dom': cdnUrl('react-dom', dev),
     'react-dom/client': `${ESM_CDN}/react-dom@${REACT_VERSION}/client?external=react${dev ? '&dev' : ''}`,
   };

@@ -71,6 +71,7 @@ export const INSPECT_SOURCE = `(function () {
 
   function describe(el) {
     var raw = (el.innerText || el.value || '').trim();
+    var isImg = el.tagName === 'IMG';
     return {
       tag: tagOf(el),
       text: raw.slice(0, 80),
@@ -80,6 +81,16 @@ export const INSPECT_SOURCE = `(function () {
       isCopy: raw.length > 0 && raw.length <= 400 && el.childElementCount <= 2,
       // No element children at all: safe to retype in place as plain text
       plain: el.childElementCount === 0,
+      // Where this element lives in source — framework previews stamp
+      // data-rb-source="file:line:col" on every element they render
+      source: el.getAttribute('data-rb-source') || '',
+      // Images carry enough to be swapped without a model call
+      img: isImg ? {
+        src: el.getAttribute('src') || '',
+        current: (el.currentSrc || '').slice(0, 1000000),
+        asset: el.getAttribute('data-asset') || '',
+        alt: el.getAttribute('alt') || ''
+      } : null,
       path: cssPath(el),
       html: (el.outerHTML || '').slice(0, 500)
     };

@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useChatStore } from '@/store/chat-store';
 import { locateExactText, applyDirectTextEdit } from '@/project/direct-text-edit';
+import { planImageSwap, applyImageSwap, type ClickedImage } from '@/project/direct-image-swap';
+import { fileToDataUrl } from '@/lib/image';
+import { SwapPhotoOverlay } from './SwapPhoto';
 import { Button } from '@/components/ui/button';
 
 /**
@@ -37,6 +40,8 @@ export function PointAtIt({
   // A pointed-at piece of copy that source-matches exactly once but has
   // structure inside — editable in an overlay, no model call
   const [directEdit, setDirectEdit] = useState<{ original: string; value: string } | null>(null);
+  // A pointed-at photo the project can swap directly — same overlay idea
+  const [swapPhoto, setSwapPhoto] = useState<(ClickedImage & { current: string }) | null>(null);
 
   // Tell the preview iframe to enter/leave select mode. The injected
   // script's state dies with every rebuild (fresh document), so re-arm on
@@ -77,8 +82,23 @@ export function PointAtIt({
       if (d.type !== 'rb-selected' || !d.el) return;
       const el = d.el as {
         tag: string; text: string; fullText?: string; isCopy?: boolean;
-        plain?: boolean; path: string; html: string;
+        plain?: boolean; source?: string; path: string; html: string;
+        img?: { src: string; current: string; asset: string; alt: string } | null;
       };
+      // A photo the project can place without the AI → the swap overlay
+      if (el.img) {
+        const clicked: ClickedImage = {
+          src: el.img.src,
+          asset: el.img.asset || undefined,
+          alt: el.img.alt || undefined,
+          source: el.source || undefined,
+        };
+        if (planImageSwap(clicked)) {
+          setSwapPhoto({ ...clicked, current: el.img.current || el.img.src });
+          onSelectingChange(false);
+          return;
+        }
+      }
       // Unambiguous copy edits skip the AI entirely
       if (el.isCopy && el.fullText && locateExactText(el.fullText)) {
         onSelectingChange(false);
@@ -139,9 +159,49 @@ export function PointAtIt({
     setDirectEdit(null);
   }
 
+  // Hand the photo to the AI — with the chosen picture attached, so the
+  // builder never uploads it twice
+  async function askAiAboutPhoto(file: File | null) {
+    if (!swapPhoto) return;
+    setDraftMessage([
+      `Swap this photo in the preview${swapPhoto.alt ? ` ("${swapPhoto.alt}")` : ''}:`,
+      ...(swapPhoto.src && !swapPhoto.src.startsWith('data:') ? [`Current image: ${swapPhoto.src.slice(0, 200)}`] : []),
+      '',
+      file ? 'Replace it with the attached image.' : 'Replace it with: ',
+    ].join('\n'));
+    if (file) {
+      try {
+        useChatStore.getState().setDraftAttachments([await fileToDataUrl(file)]);
+      } catch {
+        // unsupported image — the words still carry the ask
+      }
+    }
+    setSwapPhoto(null);
+  }
+
+  async function saveSwapPhoto(file: File) {
+    if (!swapPhoto) return;
+    const applied = await applyImageSwap(swapPhoto, file);
+    if (!applied) {
+      // The source moved under us (a build landed) — the AI path still works
+      await askAiAboutPhoto(file);
+      return;
+    }
+    setSwapPhoto(null);
+  }
+
   return (
     <div ref={wrapperRef} className="relative" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
       {children}
+      {swapPhoto && (
+        <SwapPhotoOverlay
+          currentUrl={swapPhoto.current}
+          alt={swapPhoto.alt}
+          onSave={saveSwapPhoto}
+          onAskAi={askAiAboutPhoto}
+          onClose={() => setSwapPhoto(null)}
+        />
+      )}
       {directEdit && (
         <div
           className="absolute inset-0 z-20 bg-black/20 flex items-start justify-center pt-10"

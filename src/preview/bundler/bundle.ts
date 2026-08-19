@@ -282,6 +282,12 @@ export async function bundleProject(input: BundleInput): Promise<BundleResult> {
       format: 'esm',
       target: 'es2020',
       jsx: 'automatic',
+      // Live preview: compile through the jsx-dev-runtime so every element
+      // carries its source location — the import map serves a wrapper that
+      // stamps data-rb-source="file:line:col" onto host elements, which is
+      // how "point at it" maps a click straight to code. Publish builds
+      // stay on the production runtime and carry no tags.
+      jsxDev: input.dev ?? false,
       // Generated code is read by the browser JIT and by humans remixing —
       // keep it debuggable, don't minify.
       minify: false,

@@ -58,19 +58,32 @@ function assetModule(name: string, dataUrl: string): string {
   ].join('\n');
 }
 
-/** Compress and add a photo to the project as assets/<name>.js */
-export async function addPhotoAsset(file: File): Promise<AddedAsset> {
-  let dataUrl: string | null = null;
+/** Compress a photo down the ladder to a data URL that fits the asset cap. */
+export async function compressToDataUrl(file: File): Promise<string> {
   for (const [maxEdge, quality] of COMPRESSION_LADDER) {
     const candidate = await fileToDataUrl(file, maxEdge, quality);
-    if (candidate.length <= MAX_ASSET_BYTES) {
-      dataUrl = candidate;
-      break;
-    }
+    if (candidate.length <= MAX_ASSET_BYTES) return candidate;
   }
-  if (!dataUrl) {
-    throw new Error('That image is too large even after compression — try a smaller crop');
-  }
+  throw new Error('That image is too large even after compression — try a smaller crop');
+}
+
+/**
+ * Swap the photo behind an existing asset name — same name, same
+ * references, new picture. Callers checkpoint first.
+ */
+export function replacePhotoAsset(name: string, dataUrl: string): boolean {
+  const store = useProjectStore.getState();
+  const existing = store
+    .getAllFiles()
+    .find(f => f.path.replace(/^\//, '') === `assets/${name}.js`);
+  if (!existing) return false;
+  store.writeFile(existing.path, assetModule(name, dataUrl), 'js');
+  return true;
+}
+
+/** Compress and add a photo to the project as assets/<name>.js */
+export async function addPhotoAsset(file: File): Promise<AddedAsset> {
+  const dataUrl = await compressToDataUrl(file);
 
   const store = useProjectStore.getState();
   let name = slugify(file.name);
