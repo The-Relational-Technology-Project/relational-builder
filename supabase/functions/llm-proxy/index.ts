@@ -429,14 +429,24 @@ async function checkCommunityAccess(
   // can still lower (or raise) any individual member's budget.
   const budget = Number(members[0].daily_token_budget ?? 5000000);
 
+  // The gate counts ALL token traffic — input, output, and cache writes/reads
+  // (Aug 19 2026; previously input+output only). Cache tokens were ~78% of
+  // the heaviest observed day's traffic, so a gate that ignored them capped
+  // dollars only in theory (~$187/day at Opus rates vs ~$42 all-inclusive).
+  // Cache reads bill at just 0.1x but count fully here — the cap is a blunt
+  // token meter, and the community-monitor's per-model estimate stays the
+  // honest dollar picture.
   const today = new Date().toISOString().slice(0, 10);
   const usageRes = await fetch(
-    `${supabaseUrl}/rest/v1/community_usage?email=eq.${encodeURIComponent(email)}&day=eq.${today}&select=input_tokens,output_tokens`,
+    `${supabaseUrl}/rest/v1/community_usage?email=eq.${encodeURIComponent(email)}&day=eq.${today}&select=input_tokens,output_tokens,cache_creation_tokens,cache_read_tokens`,
     { headers: svc },
   );
   const usage = usageRes.ok ? await usageRes.json() : [];
   const used = Array.isArray(usage) && usage.length > 0
-    ? Number(usage[0].input_tokens) + Number(usage[0].output_tokens)
+    ? Number(usage[0].input_tokens) +
+      Number(usage[0].output_tokens) +
+      Number(usage[0].cache_creation_tokens ?? 0) +
+      Number(usage[0].cache_read_tokens ?? 0)
     : 0;
   if (used >= budget) {
     return {

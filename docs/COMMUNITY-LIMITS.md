@@ -5,9 +5,13 @@
 
 ## Where limits live today
 
-- Every community member gets **5,000,000 tokens/day** (input + output
-  combined), enforced server-side in the `llm-proxy` edge function.
-  Per-member overrides live in `community_members.daily_token_budget`.
+- Every community member gets **5,000,000 tokens/day**, enforced
+  server-side in the `llm-proxy` edge function. Since 2026-08-19 this
+  counts **all** token traffic — input, output, cache writes, and cache
+  reads. (It was input+output only, but cache traffic turned out to be
+  ~78% of a heavy day's tokens, so the old gate capped dollars only in
+  theory: ~$187/day at Opus rates vs ~$42 all-inclusive.) Per-member
+  overrides live in `community_members.daily_token_budget`.
 - The client shows a banner at **80% used** (dismissible per day) and a
   persistent one at 100%, both with an "Add your own key" path.
 - Usage refreshes after every generation, so the picture is honest.

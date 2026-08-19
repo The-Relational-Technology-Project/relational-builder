@@ -54,17 +54,25 @@ export const useCommunityStore = create<CommunityState>()((set) => ({
       return;
     }
 
+    // Mirrors the llm-proxy gate: ALL token traffic counts against the daily
+    // budget — input, output, and cache writes/reads — so the banner's meter
+    // and the server's 429 agree.
     const today = new Date().toISOString().slice(0, 10);
     const { data: usage } = await builderClient
       .from('community_usage')
-      .select('input_tokens, output_tokens')
+      .select('input_tokens, output_tokens, cache_creation_tokens, cache_read_tokens')
       .eq('day', today)
       .maybeSingle();
 
     set({
       active: true,
       dailyBudget: Number(member.daily_token_budget ?? 0),
-      usedToday: usage ? Number(usage.input_tokens) + Number(usage.output_tokens) : 0,
+      usedToday: usage
+        ? Number(usage.input_tokens) +
+          Number(usage.output_tokens) +
+          Number(usage.cache_creation_tokens ?? 0) +
+          Number(usage.cache_read_tokens ?? 0)
+        : 0,
       checked: true,
     });
 
