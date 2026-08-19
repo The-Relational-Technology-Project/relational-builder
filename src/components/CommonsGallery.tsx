@@ -830,7 +830,7 @@ function StudioItemDetailDialog({
 }) {
   return (
     <Dialog open onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl lg:max-w-4xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="pr-6 flex items-center gap-2">
             <span>{item.title}</span>
@@ -842,7 +842,7 @@ function StudioItemDetailDialog({
 
         {item.image_url && (
           <div className="rounded-lg overflow-hidden border bg-muted">
-            <img src={item.image_url} alt={item.title} className="w-full object-contain max-h-80" />
+            <img src={item.image_url} alt={item.title} className="w-full object-contain max-h-[30rem]" />
           </div>
         )}
 
@@ -946,7 +946,7 @@ function KBStoryDetailDialog({
 }) {
   return (
     <Dialog open onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl lg:max-w-4xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="pr-6 flex items-center gap-2">
             <span>{story.title ?? 'Community story'}</span>
@@ -1157,7 +1157,7 @@ function RecipeDetailDialog({
 
   return (
     <Dialog open onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl lg:max-w-4xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="pr-6 flex items-center gap-2">
             <span>{card.title}</span>
@@ -1167,7 +1167,7 @@ function RecipeDetailDialog({
 
         {card.image_url && (
           <div className="rounded-lg overflow-hidden border bg-muted">
-            <img src={card.image_url} alt={card.title} className="w-full object-contain max-h-80" />
+            <img src={card.image_url} alt={card.title} className="w-full object-contain max-h-[30rem]" />
           </div>
         )}
 
@@ -1270,7 +1270,7 @@ function ToolDetailDialog({
 
   return (
     <Dialog open onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl lg:max-w-4xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="pr-6">{tool.name}</DialogTitle>
         </DialogHeader>
@@ -1281,7 +1281,7 @@ function ToolDetailDialog({
               <img
                 src={screenshots[Math.min(shot, screenshots.length - 1)]}
                 alt={tool.name}
-                className="w-full object-contain max-h-80"
+                className="w-full object-contain max-h-[30rem]"
               />
             </div>
             {screenshots.length > 1 && (
