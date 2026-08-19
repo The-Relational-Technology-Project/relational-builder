@@ -25,6 +25,7 @@ export function CommonsSubmitCard({
   const version = useProjectStore(s => s.version);
   const getAllFiles = useProjectStore(s => s.getAllFiles);
   const user = useAuthStore(s => s.user);
+  const profile = useAuthStore(s => s.profile);
 
   // What this project actually holds decides what can be offered: a working
   // tool, a program (plan docs + printable materials), or either
@@ -38,8 +39,9 @@ export function CommonsSubmitCard({
     shareAs ?? (hasProgram && (!outputs.hasApp || outputs.docs.length > 0) ? 'program' : 'tool');
 
   const [expanded, setExpanded] = useState(false);
-  const [builderName, setBuilderName] = useState('');
-  const [neighborhood, setNeighborhood] = useState('');
+  // The profile already knows who this is — don't make them retype it
+  const [builderName, setBuilderName] = useState(profile?.display_name ?? '');
+  const [neighborhood, setNeighborhood] = useState(profile?.neighborhood ?? '');
   const [summary, setSummary] = useState('');
   const [manualUrl, setManualUrl] = useState('');
   const [consented, setConsented] = useState(false);
@@ -99,24 +101,32 @@ export function CommonsSubmitCard({
   }
 
   return (
-    <div className="rounded-lg border border-dashed p-3 space-y-2">
+    <div className="rounded-lg border border-dashed border-green-600/40 bg-green-600/5 p-3 space-y-2">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="flex items-center gap-1.5 text-xs font-medium w-full text-left"
+        className="w-full text-left space-y-0.5"
       >
-        <Sprout className="size-3.5 text-green-600" />
-        Share it to the Civic Commons
-        <span className="text-muted-foreground font-normal ml-auto">
-          {expanded ? 'close' : 'optional'}
+        <span className="flex items-center gap-1.5 text-xs font-medium">
+          <Sprout className="size-3.5 text-green-600" />
+          Share it to the Civic Commons
+          <span className="text-muted-foreground font-normal ml-auto">
+            {expanded ? 'close' : 'optional'}
+          </span>
         </span>
+        {!expanded && (
+          <span className="block text-xs text-muted-foreground pl-5">
+            Offer this build back so other neighborhoods can find and remix it.
+          </span>
+        )}
       </button>
 
       {expanded && (
         <div className="space-y-2">
           <p className="text-xs text-muted-foreground leading-relaxed">
             Offer this build back to the network so other neighborhoods can
-            find and remix it. A steward reviews every contribution before it
-            becomes public. You'll be credited by name.
+            find and remix it. We'll send it to Deborah Tien, one of the RTP
+            stewards — she'll review it, tag it into the right Commons
+            collection, and be in touch. You'll be credited by name.
           </p>
           {hasProgram && outputs.hasApp && (
             <div className="flex items-center gap-1.5">

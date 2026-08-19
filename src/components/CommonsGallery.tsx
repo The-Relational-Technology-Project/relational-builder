@@ -24,6 +24,7 @@ import {
 } from './GalleryConnections';
 import { isSuperAdmin } from '@/cloud/account-requests';
 import { GalleryToolBuilders } from '@/components/GalleryToolBuilders';
+import { ContributeCallout } from '@/components/ContributeDialog';
 import { EventShowcaseSection } from '@/components/EventShowcase';
 import { useAuthStore } from '@/store/auth-store';
 import type { Tool, Prompt, Story } from '@/knowledge/types';
@@ -494,6 +495,10 @@ export function CommonsGallery() {
               : 'Your studio’s own examples, prompts, and materials — for approved members to build from and remix, with the studio’s principles live in every build.'}
           </p>
         </div>
+
+        {/* Giving to the commons, right where people browse it — the same
+            Contribute door as the header, with Deb's invitation. */}
+        {scope === 'commons' && <ContributeCallout />}
 
         {/* Which library you're browsing — the commons, or a studio you've
             been approved into. The switch only appears once you belong

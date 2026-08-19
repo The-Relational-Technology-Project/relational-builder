@@ -4,6 +4,7 @@ import { ProviderSettings } from '@/components/ProviderSettings';
 import { ChatPanel } from '@/components/Chat/ChatPanel';
 import { ResizableLayout } from '@/components/ResizableLayout';
 import { ShareMenu } from '@/components/ShareMenu';
+import { ContributeButton } from '@/components/ContributeDialog';
 import { CodeSync } from '@/components/CodeSync';
 import { useProviderStore } from '@/store/provider-store';
 import { useProjectStore } from '@/store/project-store';
@@ -194,6 +195,10 @@ function App() {
               one Share door — the header's single primary action.
               (Connections moved to the account menu.) */}
           {inProject && <ShareMenu />}
+          {/* Giving back is always in reach — a story, a tool, an idea —
+              not just at the end of a publish. Same front door as the
+              Studio's Contribute button. */}
+          <ContributeButton />
           <Separator orientation="vertical" className="h-5" />
           {showStandaloneSettings && <ThemeToggle />}
           <AccountMenu />
@@ -267,6 +272,7 @@ function App() {
               <LayoutGrid className="size-3" />
               Gallery
             </Button>
+            <ContributeButton mobile />
             {inProject && <ShareMenu mobile />}
             {inProject && <CodeSync />}
           </div>

@@ -51,12 +51,17 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
   const publishNameKey = cloudProjectId ?? localProjectId ?? 'local';
   const savedPublishName = useDeployStore(s => s.publishNames[publishNameKey]);
   const setPublishName = useDeployStore(s => s.setPublishName);
+  const cloudProjectName = useCloudStore(s => s.currentProjectName);
+  const localProjectName = useLocalProjects(s => s.currentName);
 
   // The name this project already published under wins — re-publishing is a
-  // "save", not a "save as". Otherwise offer one drawn from the conversation.
+  // "save", not a "save as". Next comes the name the project is saved under
+  // (renames included) — the builder already chose it, so don't fall back to
+  // guessing from the first prompt. Only a nameless workspace gets a guess.
   // (Lazy init is enough: the dialog mounts fresh on each open.)
+  const savedProjectName = ((cloudProjectId ? cloudProjectName : localProjectName) ?? '').trim();
   const [projectName, setProjectName] = useState(
-    () => savedPublishName ?? suggestProjectName() ?? 'my-community-app',
+    () => savedPublishName ?? (savedProjectName || null) ?? suggestProjectName() ?? 'my-community-app',
   );
   const [activeTarget, setActiveTarget] = useState<DeployTarget>('community');
   const [deploying, setDeploying] = useState(false);

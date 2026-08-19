@@ -26,6 +26,9 @@ export const config = { runtime: 'edge' };
 
 const GUESTBOOK_ORIGIN = 'https://texakzqqenzpxawktbgx.supabase.co/functions/v1/commons-guestbook';
 
+/** The commons review queue — contributions land pending, stewards get an email. */
+const SUBMIT_ORIGIN = 'https://odowkowcinyoxejyzhwl.supabase.co/functions/v1/submit-contribution';
+
 /** The commons in git — one markdown file per entry, mirrored nightly. */
 const MIRROR_REPO = 'https://github.com/The-Relational-Technology-Project/relational-commons';
 
@@ -79,17 +82,20 @@ export default async function handler(req: Request): Promise<Response> {
     if (req.method === 'POST' && seg[0] === 'themes' && seg[1]) {
       return await handleGuestbookPost(req, seg[1]);
     }
+    if (req.method === 'POST' && seg[0] === 'contribute') {
+      return await handleContributePost(req);
+    }
     if (req.method !== 'GET' && req.method !== 'HEAD') {
       return new Response('Method not allowed', { status: 405 });
     }
 
-    if (seg.length === 0) return await homePage();
+    if (seg.length === 0) return await homePage(url);
     if (seg[0] === 'search') return await searchPage(url);
     if (seg[0] === 'sitemap.xml') return await sitemap();
     if (seg[0] === 'llms.txt') return await llmsTxt();
     if (seg[0] === 'map') return await mapPage();
     if (seg[0] === 'license') return await licensePage();
-    if (seg[0] === 'stories') return await storyWall();
+    if (seg[0] === 'stories') return await storyWall(url);
     if (seg[0] === 'guides') return await guidesPage();
     if (seg[0] === 'reading-room') return await readingRoom();
     if (seg[0] === 'themes' && seg[1]) return await themePage(seg[1], url);
@@ -143,9 +149,78 @@ function notFound(): Response {
   );
 }
 
+// --- Contribute ------------------------------------------------------------
+
+/**
+ * Deb's invitation, on the pages themselves: a no-JS form that drops a link,
+ * doc, or story from your neighborhood into the steward review queue. Same
+ * queue the Builder's Contribute dialog feeds — stewards get an email and
+ * tag it into the right collection; nothing goes public unreviewed.
+ */
+function contributeBox(backPath: string, posted: boolean): string {
+  return `
+<span class="eyebrow" id="contribute">Want to share a link or doc that highlights a story from your neighborhood?</span>
+<p class="meta" style="max-width:44rem">Add your insights and learnings (and mistakes!) from your neighborhood
+here. RTP Stewards will tag it to the appropriate Commons collection, gallery or studio. Then, your
+contribution shapes the journey of other neighborhood stewards around the world!</p>
+${posted ? `<p class="meta" style="color:var(--accent-ink)"><strong>Thank you — it's on its way to the stewards. 🧡</strong> A human reads every contribution before it joins the commons.</p>` : `
+<form class="note-form" method="post" action="/commons/contribute">
+<input type="hidden" name="back" value="${esc(backPath)}">
+<input type="text" name="link" placeholder="https:// — the link or doc" maxlength="500">
+<textarea name="note" rows="3" placeholder="What is it, and what did your neighborhood learn? (a sentence or two)" maxlength="1000"></textarea>
+<input type="text" name="name" placeholder="Your name (credited in the commons)" maxlength="120" required>
+<input type="text" name="email" placeholder="Email (optional — so a steward can reach you)" maxlength="200">
+<input class="hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+<div><button class="cta" type="submit">Offer it to the commons</button></div>
+</form>`}`;
+}
+
+async function handleContributePost(req: Request): Promise<Response> {
+  const form = await req.formData();
+  const back = String(form.get('back') ?? '/commons');
+  // Only bounce back to our own commons pages
+  const safeBack = back.startsWith('/commons') && !back.includes('//') ? back : '/commons';
+  const thanks = new Response(null, {
+    status: 303,
+    headers: { location: `${safeBack}?contributed=1#contribute` },
+  });
+
+  // Honeypot filled → a bot; thank it politely and save the stewards' time
+  if (String(form.get('website') ?? '').trim()) return thanks;
+
+  const name = String(form.get('name') ?? '').slice(0, 120).trim();
+  const link = String(form.get('link') ?? '').slice(0, 500).trim();
+  const note = String(form.get('note') ?? '').slice(0, 1000).trim();
+  const email = String(form.get('email') ?? '').slice(0, 200).trim();
+  if (!name || (!link && !note)) return thanks; // nothing to offer — just bounce
+
+  let host = '';
+  try { host = link ? new URL(link).hostname : ''; } catch { /* not a URL — travels in the note */ }
+  const title = note
+    ? note.split(/[.!?\n]/)[0].split(/\s+/).slice(0, 8).join(' ').slice(0, 150)
+    : host ? `Neighborhood link: ${host}` : `A gift from ${name}`;
+
+  await fetch(SUBMIT_ORIGIN, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      contribution_type: 'story',
+      title: title.length >= 3 ? title : `A gift from ${name}`,
+      summary: note || `Shared through the commons page: ${link}`,
+      builder_name: name,
+      contact_email: email || undefined,
+      source_url: link && host ? link : undefined,
+      tags: ['commons-page', 'neighborhood-link'],
+      submitted_via: 'commons-page',
+    }),
+  }).catch(() => null);
+
+  return thanks;
+}
+
 // --- Home ------------------------------------------------------------------
 
-async function homePage(): Promise<Response> {
+async function homePage(url: URL): Promise<Response> {
   const { all, refs, footer } = await commonsData();
   const kinds = [...new Set(all.map(e => e.kind))];
   const counts = new Map(kinds.map(k => [k, all.filter(e => e.kind === k).length]));
@@ -210,6 +285,8 @@ connection, not just addition.</p>
 <div class="night">${constellation(all, refs, { width: 900, height: 420, links: true })}</div>
 <p class="meta"><a href="/commons/map">Explore the full map and timeline →</a></p>
 
+${contributeBox('/commons', url.searchParams.get('contributed') === '1')}
+
 <div class="attach">
 <p><strong>Want to add to the commons?</strong> Build something for your neighborhood in
 <a href="/new">Relational Builder</a> and publish it back, or share a practice that works where you live —
@@ -237,6 +314,7 @@ contributor's name attached.</p>
       body,
       footer,
     ),
+    url.searchParams.get('contributed') === '1' ? 'no-store' : CACHE_LONG,
   );
 }
 
@@ -537,7 +615,7 @@ ${breadcrumbs(trail)}
 
 // --- Story wall ------------------------------------------------------------
 
-async function storyWall(): Promise<Response> {
+async function storyWall(url: URL): Promise<Response> {
   const { all, footer } = await commonsData();
   const stories = (await fetchBySlugs(
     all.filter(e => e.kind === 'story').map(e => e.slug),
@@ -565,7 +643,9 @@ ${breadcrumbs(trail)}
 <p class="lede">${stories.length} accounts of what actually happened when people tried these practices —
 in their own words, with their names on them. The short ones live here whole; the longer ones
 open into their own pages.</p>
-<ul class="grid">${items}</ul>`;
+<ul class="grid">${items}</ul>
+
+${contributeBox('/commons/stories', url.searchParams.get('contributed') === '1')}`;
 
   return html(
     page(
@@ -578,6 +658,7 @@ open into their own pages.</p>
       body,
       footer,
     ),
+    url.searchParams.get('contributed') === '1' ? 'no-store' : CACHE_LONG,
   );
 }
 
