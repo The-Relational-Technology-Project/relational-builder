@@ -94,13 +94,20 @@ export class OpenAICompatibleProvider implements LLMProvider {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (this.apiKey) headers['Authorization'] = `Bearer ${this.apiKey}`;
 
-    // The system prompt carries Anthropic cache-boundary markers (see
-    // context-builder's CACHE_BREAK) — meaningless here, so strip them
-    const cleaned = messages.map(m =>
-      m.role === 'system' && typeof m.content === 'string'
-        ? { ...m, content: m.content.replaceAll('<<<RB_CACHE_BREAK>>>', '\n') }
-        : m,
-    );
+    // The prompt carries Anthropic cache-boundary markers (context-builder's
+    // CACHE_BREAK in the system prompt, TURN_BREAK at the end of the final
+    // user message) — meaningless here, so strip them everywhere
+    const stripMarkers = (t: string) =>
+      t.replaceAll('<<<RB_CACHE_BREAK>>>', '\n').replaceAll('<<<RB_TURN_BREAK>>>', '\n');
+    const cleaned = messages.map(m => {
+      if (typeof m.content === 'string') return { ...m, content: stripMarkers(m.content) };
+      return {
+        ...m,
+        content: m.content.map(p =>
+          p.type === 'text' ? { ...p, text: stripMarkers(p.text) } : p,
+        ),
+      };
+    });
 
     const res = await fetch(`${this.baseUrl}${this.apiPath}/chat/completions`, {
       method: 'POST',

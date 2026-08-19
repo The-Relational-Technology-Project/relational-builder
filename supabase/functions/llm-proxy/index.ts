@@ -247,12 +247,26 @@ function fallbackChatBody(
   model: string,
   provider: string,
 ): Record<string, unknown> {
+  // Both Anthropic cache markers: the system-segment boundaries and the
+  // turn-context boundary at the end of the final user message.
+  const stripMarkers = (t: string) =>
+    t.replaceAll('<<<RB_CACHE_BREAK>>>', '\n').replaceAll('<<<RB_TURN_BREAK>>>', '\n');
+  type Part = { type?: string; text?: string };
   type Msg = { role: string; content: unknown };
-  const messages = ((body.messages as Msg[]) ?? []).map((m) =>
-    m.role === 'system' && typeof m.content === 'string'
-      ? { ...m, content: m.content.replaceAll('<<<RB_CACHE_BREAK>>>', '\n') }
-      : m,
-  );
+  const messages = ((body.messages as Msg[]) ?? []).map((m) => {
+    if (typeof m.content === 'string') return { ...m, content: stripMarkers(m.content) };
+    if (Array.isArray(m.content)) {
+      return {
+        ...m,
+        content: (m.content as Part[]).map((p) =>
+          p?.type === 'text' && typeof p.text === 'string'
+            ? { ...p, text: stripMarkers(p.text) }
+            : p,
+        ),
+      };
+    }
+    return m;
+  });
   const stream = body.stream ?? true;
   return {
     model,
@@ -734,35 +748,91 @@ async function proxyAnthropic(
   if (REFUSAL_FALLBACK_RE.test(model)) {
     anthropicBody.fallbacks = 'default';
   }
+  // The Builder marks stability boundaries in its system prompt; each
+  // boundary becomes a prompt-cache breakpoint (stable instructions and
+  // the project-files snapshot base cache at ~0.1× on repeat sends, which
+  // is most of a build conversation's input). Max 4 breakpoints per
+  // request; the client uses at most 3 (two system + the history one).
+  //
+  // 1-hour TTL, not the 5-minute default. A builder reads the reply, looks
+  // at the preview, thinks, and types — the gap between turns is routinely
+  // longer than five minutes, so every turn was expiring and re-writing the
+  // whole prompt at 1.25× and never reading it back. One real editing day
+  // ran 15 requests for 1.8M tokens at a $6.06/MTok blended rate, which is
+  // above the plain input rate and just under the cache-WRITE rate: the
+  // signature of a cache that is written every turn and read never. A 1h
+  // write costs 2× instead of 1.25×, so this is a loss on a one-shot
+  // conversation and a large win from the third turn on.
+  const CACHE_BREAK = '<<<RB_CACHE_BREAK>>>';
+  const cachedBlock = (p: string) => ({
+    type: 'text',
+    text: p,
+    cache_control: { type: 'ephemeral', ttl: '1h' },
+  });
+  // Fully-cacheable protocol (clients since 2026-08-19): a TRAILING marker
+  // says every system segment — including the last — is stable, because the
+  // volatile per-turn context moved to the end of the user message (see
+  // TURN_BREAK below). Older clients (no trailing marker) still carry the
+  // volatile tail as the last system segment: all-but-last cached, and no
+  // history breakpoint — their system changes every turn, so caching the
+  // history would write at 2× and never read.
+  let fullyCacheableSystem = false;
   if (systemMsg) {
-    // The Builder marks stability boundaries in its system prompt; each
-    // boundary becomes a prompt-cache breakpoint (stable instructions and
-    // the project-files snapshot cache at ~0.1× on repeat sends, which is
-    // most of a build conversation's input). Max 4 breakpoints per request;
-    // the client sends at most 2.
-    //
-    // 1-hour TTL, not the 5-minute default. A builder reads the reply, looks
-    // at the preview, thinks, and types — the gap between turns is routinely
-    // longer than five minutes, so every turn was expiring and re-writing the
-    // whole prompt at 1.25× and never reading it back. One real editing day
-    // ran 15 requests for 1.8M tokens at a $6.06/MTok blended rate, which is
-    // above the plain input rate and just under the cache-WRITE rate: the
-    // signature of a cache that is written every turn and read never. A 1h
-    // write costs 2× instead of 1.25×, so this is a loss on a one-shot
-    // conversation and a large win from the third turn on.
-    const CACHE_BREAK = '<<<RB_CACHE_BREAK>>>';
-    const systemText = contentText(systemMsg.content);
-    const parts = systemText
+    const rawParts = contentText(systemMsg.content)
       .split(CACHE_BREAK)
-      .map((p) => p.trim())
-      .filter(Boolean);
-    anthropicBody.system = parts.length > 1
-      ? parts.map((p, i) =>
-          i < parts.length - 1
-            ? { type: 'text', text: p, cache_control: { type: 'ephemeral', ttl: '1h' } }
-            : { type: 'text', text: p },
-        )
-      : parts[0] ?? '';
+      .map((p) => p.trim());
+    fullyCacheableSystem = rawParts.length > 1 && rawParts[rawParts.length - 1] === '';
+    const parts = rawParts.filter(Boolean);
+    anthropicBody.system =
+      parts.length === 0
+        ? ''
+        : fullyCacheableSystem
+          ? parts.map(cachedBlock)
+          : parts.length > 1
+            ? parts.map((p, i) => (i < parts.length - 1 ? cachedBlock(p) : { type: 'text', text: p }))
+            : parts[0];
+  }
+
+  // The volatile per-turn context (changed files, retrieval results) arrives
+  // after TURN_BREAK at the end of the final user message. Split it out: the
+  // text BEFORE the marker is the persistent message — the exact bytes that
+  // reappear in history next turn — so the history cache breakpoint lands on
+  // its last block, and the context after the marker rides as a final
+  // uncached block. Next turn reads the whole conversation back at ~0.1×.
+  const TURN_BREAK = '<<<RB_TURN_BREAK>>>';
+  const lastMsg = conversationMsgs[conversationMsgs.length - 1];
+  if (lastMsg && lastMsg.role === 'user') {
+    type Block = { type: string; text?: string; cache_control?: unknown };
+    let blocks: Block[] =
+      typeof lastMsg.content === 'string'
+        ? [{ type: 'text', text: lastMsg.content }]
+        : [...(lastMsg.content as Block[])];
+    let turnContext: string | null = null;
+    for (let i = 0; i < blocks.length; i++) {
+      const b = blocks[i];
+      if (b.type === 'text' && typeof b.text === 'string' && b.text.includes(TURN_BREAK)) {
+        const at = b.text.indexOf(TURN_BREAK);
+        // Strip exactly the one '\n' the client added before the marker —
+        // never more. The same message reappears verbatim in history next
+        // turn, and any byte difference here would miss the cache forever.
+        let pre = b.text.slice(0, at);
+        if (pre.endsWith('\n')) pre = pre.slice(0, -1);
+        turnContext = b.text.slice(at + TURN_BREAK.length).trim();
+        if (pre) blocks[i] = { ...b, text: pre };
+        else blocks.splice(i, 1);
+        break;
+      }
+    }
+    if (fullyCacheableSystem || turnContext !== null) {
+      if (fullyCacheableSystem && blocks.length > 0) {
+        blocks = [
+          ...blocks.slice(0, -1),
+          { ...blocks[blocks.length - 1], cache_control: { type: 'ephemeral', ttl: '1h' } },
+        ];
+      }
+      if (turnContext) blocks.push({ type: 'text', text: turnContext });
+      lastMsg.content = blocks;
+    }
   }
 
   const callAnthropic = (payload: Record<string, unknown>) =>

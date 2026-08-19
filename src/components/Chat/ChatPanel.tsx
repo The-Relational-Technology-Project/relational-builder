@@ -6,7 +6,7 @@ import { usePreviewHealthStore } from '@/store/preview-health-store';
 import { useProviderStore } from '@/store/provider-store';
 import { useProjectStore } from '@/store/project-store';
 import { useKnowledgeStore } from '@/store/knowledge-store';
-import { buildSystemPrompt } from '@/knowledge/context-builder';
+import { buildPromptContext, TURN_BREAK } from '@/knowledge/context-builder';
 import { registry } from '@/providers/registry';
 import { CLAUDE_MODELS } from '@/providers/claude';
 import { shortModelName } from '@/providers/model-label';
@@ -531,7 +531,12 @@ export function ChatPanel() {
     // read pages the person links and search for current info
     const webTools = useProviderStore.getState().activeProviderId === 'claude';
 
-    const updatedPrompt = buildSystemPrompt({
+    // Two halves: the system prompt is fully cacheable (stable instructions +
+    // the frozen snapshot base), while this turn's volatile context (files
+    // changed since the snapshot fold, retrieval, frames, civic data) rides
+    // at the end of the outgoing user message after TURN_BREAK — past every
+    // cache breakpoint, and never stored in history. See context-builder.
+    const { system: updatedPrompt, turnContext } = buildPromptContext({
       commonsResults,
       tools: relevant?.tools,
       stories: relevant?.stories,
@@ -568,6 +573,22 @@ export function ChatPanel() {
     // The provider payload: fresh system prompt plus the window of history —
     // which already ends with the user message (and attachments) added above
     const chatMessages = toChatMessages();
+
+    // Attach the volatile turn context to the OUTGOING copy of the final user
+    // message only — chat history in the store never carries it, so the
+    // cached conversation prefix stays byte-stable across turns. With
+    // attachments it goes as a trailing text part, keeping the marker after
+    // the image blocks (the breakpoint lands on the last persistent block).
+    if (turnContext) {
+      const last = chatMessages[chatMessages.length - 1];
+      if (last?.role === 'user') {
+        if (typeof last.content === 'string') {
+          last.content = `${last.content}\n${TURN_BREAK}\n${turnContext}`;
+        } else {
+          last.content = [...last.content, { type: 'text', text: `${TURN_BREAK}\n${turnContext}` }];
+        }
+      }
+    }
 
     const msgId = startAssistantMessage(currentMode === 'plan');
     const controller = new AbortController();

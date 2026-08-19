@@ -59,6 +59,13 @@ Assumptions: Claude Opus 4.8 default ($5 input / $25 output per MTok),
    base instructions are re-sent every message; cache reads bill at
    ~0.1×. Realistic input savings of 60–80% → total bill roughly
    **halves**. Highest-leverage engineering task on this list.
+   *(Shipped, then upgraded 2026-08-19: the snapshot is now generational —
+   a frozen, byte-stable base caches while files edited since its fold
+   ride uncached in the per-turn context, so edit turns stop re-writing
+   the whole snapshot at the 2× cache-write rate. The conversation
+   history carries its own cache breakpoint too. See
+   `src/knowledge/snapshot-split.ts` and the llm-proxy's TURN_BREAK
+   handling.)*
 2. **Sonnet 5 for edits** — first build on Opus 4.8, then steer small
    edits to Sonnet 5 ($3/$15, intro $2/$10 through 2026-08-31): ~40–60%
    cheaper on the long tail of tweaks. Could be a soft default rather

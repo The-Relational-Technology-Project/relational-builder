@@ -12,6 +12,7 @@ import {
   connectionIndex, refKey,
   type EntryConnection, type GalleryReference,
 } from './gallery-references';
+import { splitProjectSnapshot, formatChangedFilesForPrompt } from './snapshot-split';
 
 /**
  * Builds the system prompt by combining the base instructions,
@@ -539,25 +540,39 @@ function formatEcosystemForPrompt(ecosystem: string): string {
   ].join('\n');
 }
 
-// Keep the file snapshot bounded: big files get truncated, and past the total
-// budget only paths are listed. Generous on purpose — a complex app the model
-// can't fully see becomes a complex app it silently breaks. Community budgets
-// are sized for this (5M tokens/day).
-const MAX_FILE_CHARS = 16000;
-const MAX_TOTAL_FILE_CHARS = 120000;
-
-/** Build the full system prompt with RTP context */
 /**
  * Cache-boundary marker inside the system prompt. It never reaches a model:
  * the llm-proxy (and the Claude direct path) split the prompt on it into
- * system blocks with `cache_control` breakpoints — stable instructions and
- * the project-files snapshot get cached; retrieval results stay volatile.
- * Other providers strip it. Anthropic cache reads bill at ~0.1×, which is
- * the single biggest lever on community-plan cost.
+ * system blocks with `cache_control` breakpoints. A TRAILING marker means
+ * every segment is cacheable — the volatile per-turn context no longer lives
+ * in the system prompt at all (see TURN_BREAK). Other providers strip it.
+ * Anthropic cache reads bill at ~0.1×, which is the single biggest lever on
+ * community-plan cost.
  */
 export const CACHE_BREAK = '<<<RB_CACHE_BREAK>>>';
 
-export function buildSystemPrompt(options: ContextOptions = {}): string {
+/**
+ * Boundary between the person's message and the volatile per-turn context
+ * (changed files, retrieval results, frames) appended to the OUTGOING copy of
+ * the final user message. It never reaches a model either: the llm-proxy (and
+ * the Claude direct path) split on it — the text before it ends the cached
+ * conversation prefix (a cache breakpoint goes there), the text after rides
+ * uncached. The context after the marker is added at send time only and never
+ * stored in chat history, so the cached history prefix stays byte-stable from
+ * turn to turn. Other providers strip the marker.
+ */
+export const TURN_BREAK = '<<<RB_TURN_BREAK>>>';
+
+/**
+ * The prompt in two halves: `system` is fully cacheable (stable instructions,
+ * then the frozen project-snapshot base — trailing CACHE_BREAK marks every
+ * segment cache-worthy), and `turnContext` is this turn's volatile context
+ * (files changed since the snapshot fold, retrieval, frames, civic data),
+ * which the send path appends to the outgoing user message after TURN_BREAK.
+ */
+export function buildPromptContext(
+  options: ContextOptions = {},
+): { system: string; turnContext: string } {
   const hasProject = (options.projectFiles?.length ?? 0) > 0;
   const base =
     options.mode === 'plan'
@@ -621,33 +636,55 @@ export function buildSystemPrompt(options: ContextOptions = {}): string {
 
   // Plan mode gets the snapshot too: on an existing project the plan must be
   // scoped against what's actually built, not a remembered version of it.
+  // The snapshot base is FROZEN at its fold point and reused byte-identically
+  // (see snapshot-split): its cache segment gets read every turn instead of
+  // re-written at 2× on every edit. Files changed since the fold ride in the
+  // volatile turn context below.
+  let changedFiles: { path: string; content: string; updatedAt?: number }[] = [];
   if (options.projectFiles && options.projectFiles.length > 0) {
-    sections.push('', formatProjectFilesForPrompt(options.projectFiles));
-    // Files change once per build, not per message — their own cache segment.
-    sections.push(CACHE_BREAK);
+    const snapshot = splitProjectSnapshot(options.projectFiles);
+    changedFiles = snapshot.changedFiles;
+    sections.push('', snapshot.baseText);
+  }
+  // Trailing marker: every system segment (including the last) is cacheable.
+  // The proxy and the Claude direct path read this as the fully-cacheable
+  // protocol — it also enables the conversation-history breakpoint.
+  sections.push(CACHE_BREAK);
+
+  // ── Volatile per-turn context ─────────────────────────────────────────
+  // Everything from here changes per turn (or can), so none of it may sit in
+  // the system prompt: system renders before messages, and one changed byte
+  // there would invalidate the cached conversation history every turn. It
+  // rides at the very end of the outgoing user message instead, after the
+  // TURN_BREAK marker — past every cache breakpoint, and dropped from
+  // history on later turns.
+  const turn: string[] = [];
+
+  // Files edited since the snapshot fold — their current contents override
+  // the (stale) copies in the cached base above.
+  if (changedFiles.length > 0) {
+    turn.push('', formatChangedFilesForPrompt(changedFiles));
   }
 
   // Domain frames layer like studio principles but travel with the project
-  // (lineage) or the moment (retrieval sensing), not with membership. They
-  // live in the volatile tail on purpose: a frame sensed mid-conversation
-  // used to land BEFORE the cache breaks and rewrite both cached segments
-  // at the 2× write rate — the exact cost the segments exist to avoid.
+  // (lineage) or the moment (retrieval sensing), not with membership. A
+  // frame sensed mid-conversation must not rewrite the cached segments.
   for (const frame of options.frames ?? []) {
-    sections.push('', frame.principles);
+    turn.push('', frame.principles);
   }
 
-  // Live civic data endpoints matched to this build's city — volatile tail,
+  // Live civic data endpoints matched to this build's city — volatile,
   // since a city can enter the conversation on any turn
   if (options.civicData && options.civicData.length > 0) {
-    sections.push('', formatCivicDataForPrompt(options.civicData));
+    turn.push('', formatCivicDataForPrompt(options.civicData));
   }
 
   if (options.references && options.references.length > 0) {
-    sections.push('', ...options.references);
+    turn.push('', ...options.references);
   }
 
   if (options.connectedServiceGuidance && options.connectedServiceGuidance.length > 0) {
-    sections.push(
+    turn.push(
       '',
       '## Connected Services',
       '',
@@ -664,93 +701,36 @@ export function buildSystemPrompt(options: ContextOptions = {}): string {
 
   if (options.commonsResults && options.commonsResults.length > 0) {
     // Hybrid commons search supersedes the local tool/story scoring
-    sections.push('', formatCommonsForPrompt(options.commonsResults, connections));
+    turn.push('', formatCommonsForPrompt(options.commonsResults, connections));
   } else {
     if (options.tools && options.tools.length > 0) {
-      sections.push('', formatToolsForPrompt(options.tools, connections));
+      turn.push('', formatToolsForPrompt(options.tools, connections));
     }
 
     if (options.stories && options.stories.length > 0) {
-      sections.push('', formatStoriesForPrompt(options.stories, connections));
+      turn.push('', formatStoriesForPrompt(options.stories, connections));
     }
   }
 
   if (options.networkEntries && options.networkEntries.length > 0) {
-    sections.push('', formatNetworkForPrompt(options.networkEntries));
+    turn.push('', formatNetworkForPrompt(options.networkEntries));
   }
 
-  return sections.join('\n');
+  // The turn context arrives inside the user turn (after TURN_BREAK), so it
+  // opens by saying whose words it is — the model must treat it as Builder
+  // machinery, not something the person typed.
+  const turnBody = turn.join('\n').trim();
+  return {
+    system: sections.join('\n'),
+    turnContext: turnBody
+      ? `---\n[Automatic context from the Builder for this turn — the person did not write this. It is current project state and reference material.]\n\n${turnBody}`
+      : '',
+  };
 }
 
-function formatProjectFilesForPrompt(
-  files: { path: string; content: string; updatedAt?: number }[],
-): string {
-  const sections: string[] = [
-    '## Current Project Files',
-    '',
-    'These are the files as they exist RIGHT NOW. Edit blocks must match this content exactly. Files may differ from earlier messages (restores, GitHub pulls, imports).',
-    '',
-    'Earlier replies in this chat show their code blocks collapsed to `⟨file /path — N lines, already applied⟩` placeholders — that content is not lost, it is right here, current. This section is the only source of truth for what a file contains.',
-    '',
-  ];
-
-  // Base64 payloads (builder photo assets, images pulled from a connected
-  // repo) are named in one line each, never inlined — so they must not eat
-  // the content budget either.
-  const isPhotoAsset = (p: string) => /^\/?assets\/[\w-]+\.js$/.test(p);
-  const isRepoImage = (p: string) => /\.(png|jpe?g|gif|webp|avif|ico)$/i.test(p);
-
-  // Files arrive least-recently-touched first, so the cached prefix survives
-  // (see getFilesForPrompt). That is the wrong order to spend the content
-  // budget in — it would drop the file they are working on right now. Pick
-  // what gets full content by recency FIRST, then emit in the cache order.
-  const withBody = new Set(
-    [...files]
-      .filter(f => !isPhotoAsset(f.path) && !isRepoImage(f.path))
-      .sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0))
-      .reduce<{ keep: string[]; left: number }>(
-        (acc, f) => {
-          const cost = Math.min(f.content.length, MAX_FILE_CHARS);
-          if (acc.left > 0) {
-            acc.keep.push(f.path);
-            acc.left -= cost;
-          }
-          return acc;
-        },
-        { keep: [], left: MAX_TOTAL_FILE_CHARS },
-      ).keep,
-  );
-
-  for (const file of files) {
-    // Photo assets are base64 blobs — name them, never inline them
-    if (isPhotoAsset(file.path)) {
-      const name = file.path.replace(/^\/?assets\//, '').replace(/\.js$/, '');
-      sections.push(`- ${file.path} — the builder's own photo asset "${name}". React apps: just <img data-asset="${name}" alt="..."> anywhere (the builder wires it up). Plain HTML pages: <script src="./assets/${name}.js"></script> plus the same img tag. NEVER re-output or modify this file.`);
-      continue;
-    }
-    // So are images pulled from a connected repo — real files at real paths
-    if (isRepoImage(file.path)) {
-      const kb = Math.max(1, Math.round((file.content.length * 0.75) / 1024));
-      const hint = file.path.startsWith('/src/')
-        ? ` Reference it the Vite way: \`import img from '@${file.path.slice(4)}'\`.`
-        : '';
-      sections.push(`- ${file.path} — image from the connected repo (~${kb} KB), previewable.${hint} NEVER output, edit, or delete this file — the repo keeps the original.`);
-      continue;
-    }
-    if (!withBody.has(file.path)) {
-      sections.push(`- ${file.path} (contents omitted — re-output this file in full if you need to change it)`);
-      continue;
-    }
-    let body = file.content;
-    let note = '';
-    if (body.length > MAX_FILE_CHARS) {
-      body = body.slice(0, MAX_FILE_CHARS);
-      note = '\n... (truncated — re-output this file in full if you need to change the truncated part)';
-    }
-    sections.push(`### ${file.path}`, '```', body + note, '```', '');
-  }
-
-  return sections.join('\n');
+/** Legacy single-string form — the fully-cacheable system prompt only. */
+export function buildSystemPrompt(options: ContextOptions = {}): string {
+  return buildPromptContext(options).system;
 }
 
 // Principles carry their full text (they steer every decision); other kinds

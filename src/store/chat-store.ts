@@ -416,11 +416,25 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
     // Context discipline: long chats don't need full history — the Current
     // Project Files snapshot in the system prompt is authoritative for state.
     // Keep the recent window plus the original ask, and stay role-alternating.
+    //
+    // The window start moves in ERA_STEP jumps, not one message per turn: the
+    // conversation history is a prompt-cache prefix (the proxy puts a cache
+    // breakpoint on the latest user message), and a window that slides every
+    // send would change the first cached byte every turn — writing history at
+    // the 2× cache rate and never reading it. Stepped trimming keeps the
+    // prefix byte-stable for ERA_STEP/2 turns at a time; the window breathes
+    // between HISTORY_LIMIT and HISTORY_LIMIT + ERA_STEP − 1 messages, and
+    // the extra breadth is mostly 0.1× cache reads.
     const HISTORY_LIMIT = 14;
+    const ERA_STEP = 8;
     let window = messages;
     let omittedNote: string | null = null;
-    if (messages.length > HISTORY_LIMIT) {
-      window = messages.slice(-HISTORY_LIMIT);
+    const start =
+      messages.length > HISTORY_LIMIT
+        ? Math.floor((messages.length - HISTORY_LIMIT) / ERA_STEP) * ERA_STEP
+        : 0;
+    if (start > 0) {
+      window = messages.slice(start);
       while (window.length > 0 && window[0].role !== 'user') {
         window = window.slice(1);
       }

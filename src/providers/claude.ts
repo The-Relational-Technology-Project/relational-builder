@@ -218,7 +218,7 @@ export class ClaudeProvider implements LLMProvider {
     opts?: ChatOptions,
   ): Promise<void> {
     const systemMsg = messages.find(m => m.role === 'system');
-    const conversationMsgs = messages
+    const conversationMsgs: { role: string; content: unknown }[] = messages
       .filter(m => m.role !== 'system')
       .map(m => ({ role: m.role, content: toAnthropicContent(m.content) }));
 
@@ -239,21 +239,70 @@ export class ClaudeProvider implements LLMProvider {
       const tools = webToolsFor(model);
       if (tools) body.tools = tools;
     }
+    // Same cache segmentation the proxy applies (see llm-proxy): CACHE_BREAK
+    // markers become cache_control breakpoints at the 1-hour TTL. A TRAILING
+    // marker (clients since 2026-08-19) means every system segment is stable
+    // and cacheable — the volatile per-turn context rides after TURN_BREAK at
+    // the end of the user message instead — and enables the history breakpoint.
+    const cachedBlock = (p: string) => ({
+      type: 'text',
+      text: p,
+      cache_control: { type: 'ephemeral', ttl: '1h' },
+    });
+    let fullyCacheableSystem = false;
     if (systemMsg) {
-      // Same cache segmentation the proxy applies (see llm-proxy): the
-      // CACHE_BREAK markers become cache_control breakpoints, at the 1-hour
-      // TTL because builders think between turns (see CACHE_TTL)
-      const parts = contentToText(systemMsg.content)
+      const rawParts = contentToText(systemMsg.content)
         .split('<<<RB_CACHE_BREAK>>>')
-        .map(p => p.trim())
-        .filter(Boolean);
-      body.system = parts.length > 1
-        ? parts.map((p, i) =>
-            i < parts.length - 1
-              ? { type: 'text', text: p, cache_control: { type: 'ephemeral', ttl: '1h' } }
-              : { type: 'text', text: p },
-          )
-        : parts[0] ?? '';
+        .map(p => p.trim());
+      fullyCacheableSystem = rawParts.length > 1 && rawParts[rawParts.length - 1] === '';
+      const parts = rawParts.filter(Boolean);
+      body.system =
+        parts.length === 0
+          ? ''
+          : fullyCacheableSystem
+            ? parts.map(cachedBlock)
+            : parts.length > 1
+              ? parts.map((p, i) => (i < parts.length - 1 ? cachedBlock(p) : { type: 'text', text: p }))
+              : parts[0];
+    }
+
+    // Split the volatile turn context off the final user message (after
+    // TURN_BREAK): the persistent part ends with the history cache
+    // breakpoint, the context rides as a final uncached block. Mirrors the
+    // llm-proxy exactly so the dev-direct path exercises the same caching.
+    const lastMsg = conversationMsgs[conversationMsgs.length - 1];
+    if (lastMsg && lastMsg.role === 'user') {
+      type Block = { type: string; text?: string; cache_control?: unknown };
+      let blocks: Block[] =
+        typeof lastMsg.content === 'string'
+          ? [{ type: 'text', text: lastMsg.content }]
+          : [...(lastMsg.content as Block[])];
+      let turnContext: string | null = null;
+      for (let i = 0; i < blocks.length; i++) {
+        const b = blocks[i];
+        if (b.type === 'text' && typeof b.text === 'string' && b.text.includes('<<<RB_TURN_BREAK>>>')) {
+          const at = b.text.indexOf('<<<RB_TURN_BREAK>>>');
+          // Strip exactly the one '\n' the client added before the marker —
+          // the same message reappears verbatim in history next turn, and any
+          // byte difference here would miss the cache forever.
+          let pre = b.text.slice(0, at);
+          if (pre.endsWith('\n')) pre = pre.slice(0, -1);
+          turnContext = b.text.slice(at + '<<<RB_TURN_BREAK>>>'.length).trim();
+          if (pre) blocks[i] = { ...b, text: pre };
+          else blocks.splice(i, 1);
+          break;
+        }
+      }
+      if (fullyCacheableSystem || turnContext !== null) {
+        if (fullyCacheableSystem && blocks.length > 0) {
+          blocks = [
+            ...blocks.slice(0, -1),
+            { ...blocks[blocks.length - 1], cache_control: { type: 'ephemeral', ttl: '1h' } },
+          ];
+        }
+        if (turnContext) blocks.push({ type: 'text', text: turnContext });
+        lastMsg.content = blocks;
+      }
     }
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {
