@@ -409,8 +409,8 @@ export function DreamRecorderPage() {
           </div>
           <p className="text-[11px] text-muted-foreground -mt-2">
             {engine === 'instant'
-              ? 'Live and free, but speech is processed by your browser vendor. For sensitive conversations, use Private.'
-              : 'Nothing leaves this device. The model downloads once (~100 MB) and is cached; transcription trails the conversation by a few seconds.'}
+              ? 'Hears the microphone only — people in the room, not a call playing through speakers. Live and free, but speech is processed by your browser vendor; for sensitive conversations, use Private.'
+              : 'Nothing leaves this device. The model downloads once (~100 MB) and is cached; transcription trails the conversation by a few seconds. This engine can also hear a call: share the Meet/Zoom tab while recording.'}
           </p>
 
           <div className="flex flex-wrap items-center gap-3">
@@ -428,9 +428,15 @@ export function DreamRecorderPage() {
               {fmt(elapsed)}
             </span>
             {recording && engine === 'private' && (
-              <Button variant="outline" size="sm" onClick={() => void shareTab()} disabled={tabOn}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => void shareTab()}
+                disabled={tabOn}
+                title='Works for a call in a browser tab (Meet, Zoom web) — tick "Also share tab audio". The Zoom desktop app isn&apos;t capturable on a Mac; join from the browser or paste its transcript instead.'
+              >
                 <MonitorUp className="size-3.5" />
-                {tabOn ? 'Hearing the call' : 'Add a Zoom tab'}
+                {tabOn ? 'Hearing the call' : 'Add a Meet/Zoom tab'}
               </Button>
             )}
             {whisperState && engine === 'private' && whisperState.text !== 'Ready' && (
