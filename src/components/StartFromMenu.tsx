@@ -3,7 +3,7 @@ import { useUIStore } from '@/store/ui-store';
 import { ImportPlanDialog } from '@/components/ImportPlanDialog';
 import { RemixDialog } from '@/components/RemixDialog';
 import { ImportRepoDialog } from '@/components/ImportRepoDialog';
-import { LayoutGrid, FileDown, Shuffle, GitBranch } from 'lucide-react';
+import { LayoutGrid, FileDown, Shuffle, GitBranch, Mic } from 'lucide-react';
 
 /**
  * The other ways a build can start, offered right where builds start — under
@@ -30,6 +30,10 @@ export function StartFromOptions() {
         <button className={optionClass} onClick={() => setView('gallery')}>
           <LayoutGrid className="size-3" />
           the Gallery
+        </button>
+        <button className={optionClass} onClick={() => setView('dream')}>
+          <Mic className="size-3" />
+          a conversation
         </button>
         <button className={optionClass} onClick={() => setImportOpen(true)}>
           <FileDown className="size-3" />

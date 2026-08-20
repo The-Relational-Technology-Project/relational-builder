@@ -54,7 +54,9 @@ export function generateManifest(
             ? 'Grown from a shared build prompt'
             : lineage.source === 'repo-import'
               ? 'Imported from its own existing repo'
-              : 'Remixed from a relational tech commons project';
+              : lineage.source === 'dream'
+                ? 'Began as a spoken conversation, distilled by Dream Recorder'
+                : 'Remixed from a relational tech commons project';
       const dateBit = lineage.importedAt ? ` on ${lineage.importedAt.slice(0, 10)}` : '';
       lines.push(`  note: "${yamlEscape(`${noteBits}${dateBit}, built with Relational Builder.`)}"`);
     } else if (lineage.studioLabel) {

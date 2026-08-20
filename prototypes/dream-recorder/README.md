@@ -1,5 +1,11 @@
 # Dream Recorder (prototype)
 
+> **This graduated.** Dream Recorder now lives inside Relational Builder at `/dream` —
+> with an on-device Whisper engine, Zoom tab-audio capture, room/call attribution, and a
+> "Plant it in the Builder" handoff that seeds the composer directly. It runs on the same
+> provider layer as the chat (community access included), so no separate API key is needed.
+> This standalone file remains as the original spike and still works on its own.
+
 A standalone, single-file prototype testing an idea: **the front door of a Relational Builder
 project might be a conversation, not a text box.**
 

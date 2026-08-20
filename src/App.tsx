@@ -44,6 +44,7 @@ const ProfilePage = lazy(() => import('@/components/ProfilePage').then(m => ({ d
 const StewardPage = lazy(() => import('@/components/StewardPage').then(m => ({ default: m.StewardPage })));
 const StudioAdminPage = lazy(() => import('@/components/StudioAdminPage').then(m => ({ default: m.StudioAdminPage })));
 const CommonsGallery = lazy(() => import('@/components/CommonsGallery').then(m => ({ default: m.CommonsGallery })));
+const DreamRecorderPage = lazy(() => import('@/components/DreamRecorderPage').then(m => ({ default: m.DreamRecorderPage })));
 
 /** Calm centered loader for a lazy page or panel arriving */
 function LazyFallback() {
@@ -326,6 +327,8 @@ function App() {
           <ProjectsPage />
         ) : view === 'gallery' ? (
           <CommonsGallery />
+        ) : view === 'dream' ? (
+          <DreamRecorderPage />
         ) : !hasProject ? (
           <div className="h-full flex flex-col">
             <div className="flex-1 min-h-0">

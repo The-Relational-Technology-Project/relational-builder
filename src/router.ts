@@ -26,6 +26,7 @@ const VIEW_PATHS: Record<AppView, string> = {
   // at '/' — two addresses, one screen, no project lost either way.
   home: '/home',
   gallery: '/gallery',
+  dream: '/dream',
   projects: '/projects',
   connections: '/connections',
   profile: '/profile',

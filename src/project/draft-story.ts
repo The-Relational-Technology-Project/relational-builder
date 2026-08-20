@@ -110,6 +110,8 @@ export function composeStoryRecord(): string {
           ? `Remixed from an existing project${lineage.sourceUrl ? ` (${lineage.sourceUrl})` : ''}`
           : lineage.source === 'repo-import'
             ? `Imported from its own repo${lineage.sourceUrl ? ` (${lineage.sourceUrl})` : ''} and kept in sync`
+            : lineage.source === 'dream'
+            ? 'Began as a conversation — a group dreamed it out loud and Dream Recorder distilled the first prompt'
             : lineage.promptTitle
             ? `Grown from the shared prompt "${lineage.promptTitle}"`
             : 'Started from a fresh idea';

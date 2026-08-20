@@ -23,6 +23,7 @@ export type AppView =
   | 'builder'
   | 'home'
   | 'gallery'
+  | 'dream'
   | 'projects'
   | 'connections'
   | 'profile'
