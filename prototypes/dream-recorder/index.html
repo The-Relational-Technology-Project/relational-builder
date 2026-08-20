@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dream Recorder — a Relational Builder prototype</title>
+<style>
+  :root {
+    --paper: #faf6ef;
+    --card: #ffffff;
+    --ink: #2c2620;
+    --ink-soft: #6b6156;
+    --accent: #b4552d;       /* warm clay */
+    --accent-soft: #f3e2d7;
+    --green: #4a6b4f;
+    --green-soft: #e4ece5;
+    --line: #e8e0d4;
+    --danger: #a33b3b;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; padding: 32px 20px 80px; }
+
+  header { text-align: center; margin-bottom: 28px; }
+  header .moon { font-size: 44px; }
+  header h1 { margin: 6px 0 4px; font-size: 30px; letter-spacing: -0.5px; }
+  header .tagline { color: var(--ink-soft); font-size: 16px; margin: 0; }
+  header .privacy {
+    display: inline-block; margin-top: 12px; padding: 6px 14px;
+    background: var(--green-soft); color: var(--green);
+    border-radius: 999px; font-size: 13px;
+  }
+
+  .card {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 20px 22px; margin-bottom: 18px;
+  }
+  .card h2 { margin: 0 0 4px; font-size: 17px; }
+  .card .hint { color: var(--ink-soft); font-size: 13.5px; margin: 0 0 14px; }
+
+  /* Setup */
+  details.setup summary {
+    cursor: pointer; font-weight: 600; font-size: 15px; outline: none;
+  }
+  details.setup summary .status { font-weight: 400; font-size: 13px; margin-left: 8px; }
+  details.setup .fields { margin-top: 14px; display: grid; gap: 10px; }
+  label { font-size: 13px; font-weight: 600; color: var(--ink-soft); display: block; margin-bottom: 3px; }
+  input[type="password"], input[type="text"], select {
+    width: 100%; padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px;
+    font-size: 14px; background: #fff; color: var(--ink);
+  }
+  input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+
+  /* Record */
+  .record-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  button {
+    font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
+    border: none; border-radius: 999px; padding: 12px 22px;
+    transition: transform 0.06s ease, background 0.15s ease;
+  }
+  button:active { transform: scale(0.98); }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btn-record { background: var(--accent); color: #fff; font-size: 16px; padding: 14px 28px; }
+  .btn-record.recording { background: var(--danger); }
+  .btn-secondary { background: #f0ebe2; color: var(--ink); }
+  .btn-primary { background: var(--green); color: #fff; font-size: 16px; padding: 14px 28px; }
+  .btn-small { font-size: 13px; padding: 7px 14px; }
+
+  .timer { font-variant-numeric: tabular-nums; font-size: 20px; font-weight: 600; color: var(--ink-soft); }
+  .timer.live { color: var(--danger); }
+  .pulse {
+    display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+    background: var(--danger); margin-right: 7px; animation: pulse 1.2s infinite;
+    vertical-align: baseline;
+  }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.25; } }
+
+  .lang-row { display: flex; gap: 10px; align-items: center; margin-top: 12px; font-size: 13px; color: var(--ink-soft); }
+  .lang-row select { width: auto; padding: 5px 8px; font-size: 13px; }
+
+  textarea {
+    width: 100%; min-height: 190px; resize: vertical;
+    padding: 14px; border: 1px solid var(--line); border-radius: 10px;
+    font-family: inherit; font-size: 14.5px; line-height: 1.6; color: var(--ink);
+    background: #fffdf9;
+  }
+  .interim {
+    color: var(--ink-soft); font-style: italic; font-size: 14px;
+    min-height: 22px; padding: 4px 2px;
+  }
+  .transcript-tools { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; align-items: center; }
+  .audio-backup { font-size: 13px; }
+  .audio-backup a { color: var(--green); font-weight: 600; }
+
+  .guidance-row { margin: 14px 0; }
+
+  /* Output */
+  #outputCard { display: none; }
+  .output {
+    background: #fffdf9; border: 1px solid var(--line); border-radius: 10px;
+    padding: 20px 24px; font-size: 15px;
+  }
+  .output h1 { font-size: 22px; margin: 0 0 10px; }
+  .output h2 { font-size: 15px; margin: 18px 0 6px; color: var(--accent); text-transform: none; }
+  .output ul { margin: 4px 0; padding-left: 22px; }
+  .output p { margin: 6px 0; }
+  .working { color: var(--ink-soft); font-size: 14px; display: none; }
+  .working .pulse { background: var(--green); }
+  .output-tools { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .refine-row { display: flex; gap: 8px; margin-top: 14px; }
+  .refine-row input { flex: 1; }
+
+  .error {
+    display: none; background: #fbecec; color: var(--danger);
+    border-radius: 8px; padding: 10px 14px; font-size: 13.5px; margin-top: 10px;
+    white-space: pre-wrap;
+  }
+
+  footer { text-align: center; color: var(--ink-soft); font-size: 12.5px; margin-top: 36px; }
+  footer p { margin: 4px 0; }
+
+  .unsupported {
+    display: none; background: #fff6e0; border: 1px solid #ecd9a0; color: #7a5c14;
+    border-radius: 8px; padding: 10px 14px; font-size: 13.5px; margin-top: 10px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="moon">🌙</div>
+    <h1>Dream Recorder</h1>
+    <p class="tagline">Talk through the dream together. Leave with a project description ready for Relational Builder.</p>
+    <div class="privacy">🎙 Audio is recorded on this device only. Nothing is uploaded until you press Distill.</div>
+  </header>
+
+  <div class="card">
+    <details class="setup" id="setupDetails">
+      <summary>Setup <span class="status" id="setupStatus"></span></summary>
+      <div class="fields">
+        <div>
+          <label for="apiKey">Claude API key (stored only in this browser)</label>
+          <input type="password" id="apiKey" placeholder="sk-ant-...">
+        </div>
+        <div>
+          <label for="model">Model</label>
+          <select id="model">
+            <option value="claude-opus-5" selected>Claude Opus 5 (recommended)</option>
+            <option value="claude-sonnet-5">Claude Sonnet 5</option>
+            <option value="claude-haiku-4-5">Claude Haiku 4.5 (fastest)</option>
+          </select>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <div class="card">
+    <h2>1 · Capture the conversation</h2>
+    <p class="hint">One person thinking out loud, or a whole table at a build-a-thon — put the laptop where it can hear everyone. On a Zoom call, either let the mic pick up the room or paste a transcript straight into the box below.</p>
+
+    <div class="record-row">
+      <button class="btn-record" id="recordBtn">● Start recording</button>
+      <span class="timer" id="timer">0:00</span>
+    </div>
+
+    <div class="lang-row">
+      <span>Spoken language:</span>
+      <select id="lang">
+        <option value="">Browser default</option>
+        <option value="en-US">English</option>
+        <option value="es-ES">Español</option>
+        <option value="fr-FR">Français</option>
+        <option value="pt-BR">Português</option>
+        <option value="zh-CN">中文</option>
+      </select>
+    </div>
+
+    <div class="unsupported" id="unsupported">
+      This browser doesn't support live transcription (try Chrome or Edge) — but you can still paste a transcript below and distill it.
+    </div>
+
+    <div class="interim" id="interim"></div>
+
+    <textarea id="transcript" placeholder="The transcript builds here as people talk — or paste one from Zoom, Otter, or anywhere else. Edit freely; it's just text."></textarea>
+
+    <div class="transcript-tools">
+      <button class="btn-secondary btn-small" id="clearBtn">Clear</button>
+      <span class="audio-backup" id="audioBackup"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>2 · Distill the dream</h2>
+    <p class="hint">The transcript (and only the transcript) goes to Claude, which follows the arc of the conversation — where ideas merged, what got cut, and where the group landed — and writes a project description you can paste into Relational Builder.</p>
+
+    <div class="guidance-row">
+      <label for="guidance">Anything to emphasize? (optional)</label>
+      <input type="text" id="guidance" placeholder='e.g. "go with the tree-planting idea" or "we decided against the app"'>
+    </div>
+
+    <button class="btn-primary" id="distillBtn">✨ Distill the dream</button>
+    <span class="working" id="working"><span class="pulse"></span>Listening back through the conversation…</span>
+    <div class="error" id="error"></div>
+  </div>
+
+  <div class="card" id="outputCard">
+    <h2>3 · Your project description</h2>
+    <p class="hint">Ready to copy into Relational Builder — or hand to whoever's building next.</p>
+    <div class="output" id="output"></div>
+    <div class="output-tools">
+      <button class="btn-secondary btn-small" id="copyBtn">Copy text</button>
+      <button class="btn-secondary btn-small" id="downloadBtn">Download .txt</button>
+    </div>
+    <div class="refine-row">
+      <input type="text" id="refineInput" placeholder='Nudge it: "shorter", "focus on the flyer", "we called it Root Party"…'>
+      <button class="btn-secondary" id="refineBtn">Refine</button>
+    </div>
+  </div>
+
+  <footer>
+    <p><strong>Consent first:</strong> recording a conversation needs everyone's okay — ask the room before you press record.</p>
+    <p>Live transcription uses your browser's built-in speech engine (in Chrome that's processed by the browser vendor). A fully-local transcription mode is on the roadmap; meanwhile you can paste a transcript from any tool you trust.</p>
+    <p>A prototype from the <a href="https://github.com/the-relational-technology-project/relational-builder">Relational Builder</a> project.</p>
+  </footer>
+</div>
+
+<script>
+"use strict";
+
+/* ---------- The heart of it: how the transcript gets read ---------- */
+const SYSTEM_PROMPT = `You are Dream Recorder, the listening front door of Relational Builder — an open, community-oriented builder from the Relational Technology Project. People use Relational Builder to strengthen real-world relationships: neighbors organizing, mutual aid, shared projects. Software is one possible outcome, not the assumption.
+
+You have been handed the transcript of people dreaming out loud — maybe one person at a laptop, maybe a group around a build-a-thon table or in a Zoom breakout. Timestamps like [12:40] mark elapsed time. Your job is to distill the conversation into a single Project Description someone can paste into Relational Builder to start building.
+
+HOW TO READ THE TRANSCRIPT
+- Follow the arc, not just the content. Early ideas get refined, merged, or dropped. When the group cuts an idea, prioritizes, or catches fire about one direction near the end, honor that: build the description around where they LANDED, not an average of everything said.
+- Late-conversation energy outweighs early brainstorming. If the final stretch converges on one idea, center it, and fold in earlier material only where it genuinely serves that idea.
+- Ideas the group explicitly set aside do not belong in the description. Keep them alive in one line each under "Set aside for now" so they aren't lost.
+- Keep the group's own words when they're vivid. Names, phrases, and metaphors people invented belong in the description.
+- If the conversation never converges, say so honestly: write the description around the strongest thread and name the top alternatives in "Open questions".
+
+WHAT TO PRODUCE (markdown, in this order)
+# A working title — drawn from the group's own words when possible
+## The dream
+2–4 sentences, plain and warm, "we" where it fits.
+## Who it's for, who's involved
+## What to make first
+The right starting artifact or small set of artifacts. NOT always an app: a one-page site, a flyer, a sign-up sheet, a plan for the first gathering, a map, a phone tree — choose what actually serves the first step, and say why in a sentence. If software IS the right start, describe the smallest genuinely useful version.
+## How we'll know it's working
+2–3 human-scale signs of life, not metrics for their own sake.
+## Open questions
+The few things the group still needs to decide.
+## Set aside for now
+One line each — only include this section if things were genuinely dropped.
+
+RULES
+- Write in the group's language and energy. No startup-speak, no feature laundry lists.
+- The output must stand alone: no references to "the transcript", "the meeting", or these instructions.
+- The whole thing fits on one screen — roughly 250–400 words.`;
+
+/* ---------- State ---------- */
+const $ = (id) => document.getElementById(id);
+let recognizing = false;
+let recognition = null;
+let mediaRecorder = null;
+let audioChunks = [];
+let startTime = null;
+let elapsedBase = 0;        // seconds accumulated across recording stints
+let timerInterval = null;
+let conversation = [];      // messages sent to Claude (for refinement turns)
+
+/* ---------- Setup persistence ---------- */
+const store = {
+  get key() { return localStorage.getItem("dr_api_key") || ""; },
+  set key(v) { localStorage.setItem("dr_api_key", v); },
+  get model() { return localStorage.getItem("dr_model") || "claude-opus-5"; },
+  set model(v) { localStorage.setItem("dr_model", v); },
+};
+$("apiKey").value = store.key;
+$("model").value = store.model;
+$("apiKey").addEventListener("change", () => { store.key = $("apiKey").value.trim(); refreshSetupStatus(); });
+$("model").addEventListener("change", () => { store.model = $("model").value; });
+
+function refreshSetupStatus() {
+  const ok = !!store.key;
+  $("setupStatus").textContent = ok ? "✓ key saved in this browser" : "→ add your Claude API key to enable distilling";
+  $("setupStatus").style.color = ok ? "var(--green)" : "var(--accent)";
+  if (!ok) $("setupDetails").open = true;
+}
+refreshSetupStatus();
+
+/* ---------- Timer ---------- */
+function fmt(secs) {
+  const m = Math.floor(secs / 60), s = Math.floor(secs % 60);
+  return m + ":" + String(s).padStart(2, "0");
+}
+function currentElapsed() {
+  return elapsedBase + (startTime ? (Date.now() - startTime) / 1000 : 0);
+}
+function startTimer() {
+  startTime = Date.now();
+  $("timer").classList.add("live");
+  timerInterval = setInterval(() => { $("timer").textContent = fmt(currentElapsed()); }, 500);
+}
+function stopTimer() {
+  elapsedBase = currentElapsed();
+  startTime = null;
+  clearInterval(timerInterval);
+  $("timer").classList.remove("live");
+}
+
+/* ---------- Live transcription (Web Speech API) ---------- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (!SR) {
+  $("unsupported").style.display = "block";
+  $("recordBtn").disabled = true;
+}
+
+function appendFinal(text) {
+  const stamp = "[" + fmt(currentElapsed()) + "] ";
+  const ta = $("transcript");
+  ta.value += (ta.value && !ta.value.endsWith("\n") ? "\n" : "") + stamp + text.trim() + "\n";
+  ta.scrollTop = ta.scrollHeight;
+}
+
+function startRecognition() {
+  recognition = new SR();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  const lang = $("lang").value;
+  if (lang) recognition.lang = lang;
+  recognition.onresult = (event) => {
+    let interim = "";
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const r = event.results[i];
+      if (r.isFinal) appendFinal(r[0].transcript);
+      else interim += r[0].transcript;
+    }
+    $("interim").textContent = interim;
+  };
+  recognition.onend = () => {
+    // Chrome stops recognition after silence/timeouts — restart while recording.
+    if (recognizing) { try { recognition.start(); } catch (e) { /* already started */ } }
+  };
+  recognition.onerror = (event) => {
+    if (event.error === "not-allowed" || event.error === "service-not-allowed") {
+      showError("Microphone access was blocked. Allow the mic for this page and try again.");
+      stopRecording();
+    }
+    // "no-speech" and "aborted" are routine; onend handles the restart.
+  };
+  recognition.start();
+}
+
+/* ---------- Local audio backup (MediaRecorder) ---------- */
+async function startAudioBackup() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioChunks = [];
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.ondataavailable = (e) => { if (e.data.size) audioChunks.push(e.data); };
+    mediaRecorder.onstop = () => {
+      stream.getTracks().forEach((t) => t.stop());
+      if (!audioChunks.length) return;
+      const blob = new Blob(audioChunks, { type: mediaRecorder.mimeType || "audio/webm" });
+      const url = URL.createObjectURL(blob);
+      $("audioBackup").innerHTML =
+        '<a href="' + url + '" download="dream-recording.webm">⤓ Save audio backup</a> (stays on this device)';
+    };
+    mediaRecorder.start();
+  } catch (e) {
+    // If the mic is denied, recognition.onerror already surfaces it.
+  }
+}
+
+/* ---------- Record button ---------- */
+$("recordBtn").addEventListener("click", () => {
+  if (recognizing) stopRecording(); else startRecording();
+});
+
+function startRecording() {
+  recognizing = true;
+  hideError();
+  $("recordBtn").textContent = "■ Stop recording";
+  $("recordBtn").classList.add("recording");
+  startTimer();
+  startRecognition();
+  startAudioBackup();
+}
+
+function stopRecording() {
+  recognizing = false;
+  $("recordBtn").textContent = "● Resume recording";
+  $("recordBtn").classList.remove("recording");
+  $("interim").textContent = "";
+  stopTimer();
+  if (recognition) { try { recognition.stop(); } catch (e) {} recognition = null; }
+  if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
+}
+
+$("clearBtn").addEventListener("click", () => {
+  if ($("transcript").value && !confirm("Clear the transcript?")) return;
+  $("transcript").value = "";
+  $("audioBackup").textContent = "";
+  elapsedBase = 0;
+  $("timer").textContent = "0:00";
+  conversation = [];
+});
+
+/* ---------- Distilling with Claude ---------- */
+function showError(msg) { $("error").textContent = msg; $("error").style.display = "block"; }
+function hideError() { $("error").style.display = "none"; }
+
+async function callClaude(messages, onText) {
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-api-key": store.key,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true",
+    },
+    body: JSON.stringify({
+      model: store.model,
+      max_tokens: 8000,
+      stream: true,
+      system: SYSTEM_PROMPT,
+      messages: messages,
+    }),
+  });
+
+  if (!res.ok) {
+    let detail = "";
+    try { detail = (await res.json()).error?.message || ""; } catch (e) {}
+    if (res.status === 401) throw new Error("That API key was rejected — double-check it in Setup.");
+    if (res.status === 429) throw new Error("Rate limited — wait a moment and try again.");
+    throw new Error("Claude returned an error (" + res.status + "). " + detail);
+  }
+
+  // Parse the SSE stream, collecting text deltas.
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "", full = "";
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop();
+    for (const line of lines) {
+      if (!line.startsWith("data: ")) continue;
+      let evt;
+      try { evt = JSON.parse(line.slice(6)); } catch (e) { continue; }
+      if (evt.type === "content_block_delta" && evt.delta?.type === "text_delta") {
+        full += evt.delta.text;
+        onText(full);
+      }
+      if (evt.type === "error") throw new Error(evt.error?.message || "Stream error");
+      if (evt.type === "message_delta" && evt.delta?.stop_reason === "refusal") {
+        throw new Error("Claude declined to process this transcript.");
+      }
+    }
+  }
+  return full;
+}
+
+/* Minimal markdown → HTML for the output panel */
+function renderMarkdown(md) {
+  const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const lines = esc(md).split("\n");
+  let html = "", inList = false;
+  const inline = (s) => s.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\*(.+?)\*/g, "<em>$1</em>");
+  for (const raw of lines) {
+    const line = raw.trimEnd();
+    if (/^#\s/.test(line))       { if (inList) { html += "</ul>"; inList = false; } html += "<h1>" + inline(line.slice(2)) + "</h1>"; }
+    else if (/^##\s/.test(line)) { if (inList) { html += "</ul>"; inList = false; } html += "<h2>" + inline(line.slice(3)) + "</h2>"; }
+    else if (/^[-*]\s/.test(line)) { if (!inList) { html += "<ul>"; inList = true; } html += "<li>" + inline(line.slice(2)) + "</li>"; }
+    else if (line === "")        { if (inList) { html += "</ul>"; inList = false; } }
+    else                         { if (inList) { html += "</ul>"; inList = false; } html += "<p>" + inline(line) + "</p>"; }
+  }
+  if (inList) html += "</ul>";
+  return html;
+}
+
+let lastOutput = "";
+
+async function distill(messages) {
+  hideError();
+  $("distillBtn").disabled = true;
+  $("refineBtn").disabled = true;
+  $("working").style.display = "inline";
+  try {
+    const text = await callClaude(messages, (partial) => {
+      $("outputCard").style.display = "block";
+      $("output").innerHTML = renderMarkdown(partial);
+    });
+    lastOutput = text;
+    conversation = [...messages, { role: "assistant", content: text }];
+    $("outputCard").scrollIntoView({ behavior: "smooth", block: "start" });
+  } catch (e) {
+    showError(e.message);
+  } finally {
+    $("distillBtn").disabled = false;
+    $("refineBtn").disabled = false;
+    $("working").style.display = "none";
+  }
+}
+
+$("distillBtn").addEventListener("click", () => {
+  const transcript = $("transcript").value.trim();
+  if (!transcript) { showError("There's no transcript yet — record something or paste one in."); return; }
+  if (!store.key) { showError("Add your Claude API key in Setup first."); $("setupDetails").open = true; return; }
+  if (recognizing) stopRecording();
+
+  let userMsg = "Here is the transcript:\n\n" + transcript;
+  const guidance = $("guidance").value.trim();
+  if (guidance) userMsg += "\n\nA note from the group after the conversation: " + guidance;
+
+  distill([{ role: "user", content: userMsg }]);
+});
+
+$("refineBtn").addEventListener("click", () => {
+  const nudge = $("refineInput").value.trim();
+  if (!nudge || !conversation.length) return;
+  $("refineInput").value = "";
+  distill([...conversation, { role: "user", content: "Please revise the project description: " + nudge + "\nReturn the full revised description in the same format." }]);
+});
+$("refineInput").addEventListener("keydown", (e) => { if (e.key === "Enter") $("refineBtn").click(); });
+
+/* ---------- Copy & download ---------- */
+$("copyBtn").addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText(lastOutput);
+    $("copyBtn").textContent = "Copied ✓";
+  } catch (e) {
+    // Fallback: select the output so the user can copy manually
+    const range = document.createRange();
+    range.selectNodeContents($("output"));
+    const sel = window.getSelection();
+    sel.removeAllRanges(); sel.addRange(range);
+    $("copyBtn").textContent = "Press Ctrl/Cmd+C";
+  }
+  setTimeout(() => { $("copyBtn").textContent = "Copy text"; }, 2000);
+});
+
+$("downloadBtn").addEventListener("click", () => {
+  const blob = new Blob([lastOutput], { type: "text/plain" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "project-description.txt";
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+/* Warn before closing with an unsaved transcript mid-recording */
+window.addEventListener("beforeunload", (e) => {
+  if (recognizing) { e.preventDefault(); e.returnValue = ""; }
+});
+</script>
+</body>
+</html>
