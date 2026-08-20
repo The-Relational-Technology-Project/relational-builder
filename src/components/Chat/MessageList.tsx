@@ -261,7 +261,7 @@ function WaitActivity() {
 
   return (
     <div className="rounded-xl border border-dashed border-primary/40 bg-primary/5 px-4 py-3 space-y-1.5">
-      <p className="text-sm font-medium">While this builds — a good moment for your Notepad</p>
+      <p className="text-sm font-medium">Initial builds can take ten minutes or so — a great time to try your Notepad</p>
       <p className="text-sm text-muted-foreground">
         It's in the right pane: jot who else cares about what you're building,
         who might have good ideas, how you'd introduce it to neighbors. Notes

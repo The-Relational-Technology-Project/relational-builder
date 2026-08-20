@@ -118,6 +118,13 @@ function queueFixForError(error: string): void {
 export function FixBanner({ error }: { error: string | null }) {
   const isGenerating = useChatStore(s => s.isGenerating);
   const autoFixArmed = useChatStore(s => s.autoFixArmed);
+  // A first build's errors are churn, not news: continuations and the auto
+  // fix pass below resolve them without the person doing anything, so the
+  // banner stays hidden while the cooking line covers the wait. Only the
+  // visuals hide — the effects keep running — and an error nothing fixes
+  // still surfaces, because a standing error ends cooking within seconds
+  // (ChatPanel's quiet check) and the banner appears then.
+  const cooking = useChatStore(s => s.cookingSince !== null);
 
   // Each distinct error joins the build log (it never leaves the device
   // unless the builder shares a build report) — and so does the moment the
@@ -156,7 +163,7 @@ export function FixBanner({ error }: { error: string | null }) {
     return () => clearTimeout(timer);
   }, [error, autoFixArmed, isGenerating]);
 
-  if (!error) return null;
+  if (!error || cooking) return null;
 
   const autoFixing = isGenerating;
 
