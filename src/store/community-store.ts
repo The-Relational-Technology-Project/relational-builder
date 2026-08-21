@@ -5,10 +5,11 @@ import { useProviderStore } from '@/store/provider-store';
 
 /**
  * Models covered by the RTP community key (mirror of the proxy's allowlist).
- * Opus 5 is the default for first builds AND edits (July 27 launch check:
- * completest mutual-aid-board build the bench has produced, at Opus 4.8's
- * price — half Fable's). Fable 5 and Opus 4.8 stay covered as manual picks;
- * Sonnet 5 as the lighter pick.
+ * Fable 5 is the default for planning (project strategy, commons work); Opus
+ * 5 for first builds AND edits (July 27 launch check: completest
+ * mutual-aid-board build the bench has produced, at Opus 4.8's price — half
+ * Fable's). Opus 4.8 stays covered as a manual pick; Sonnet 5 as the
+ * lighter pick.
  */
 export const COMMUNITY_MODELS = ['claude-opus-5', 'claude-fable-5', 'claude-opus-4-8', 'claude-sonnet-5', 'claude-haiku-4-5'];
 
@@ -77,19 +78,23 @@ export const useCommunityStore = create<CommunityState>()((set) => ({
     });
 
     // Community default: a member with no personal Claude key gets steered off
-    // a model that would 403 — onto the stage-appropriate default (Opus 5 for
-    // both stages today; the constants can diverge again on a future bench).
+    // a model that would 403 — onto the stage-appropriate default (Fable 5
+    // while planning, Opus 5 for builds and edits).
     const providers = useProviderStore.getState();
     if (
       providers.activeProviderId === 'claude' &&
       !providers.apiKeys['claude'] &&
       !COMMUNITY_MODELS.includes(providers.activeModelId)
     ) {
-      const { useProjectStore } = await import('@/store/project-store');
+      const [{ useProjectStore }, { useChatStore }] = await Promise.all([
+        import('@/store/project-store'),
+        import('@/store/chat-store'),
+      ]);
       providers.setActiveModel(
-        useProjectStore.getState().getFileCount() === 0
-          ? COMMUNITY_FIRST_BUILD_MODEL
-          : COMMUNITY_EDIT_MODEL,
+        communityDefaultModelFor(
+          useChatStore.getState().mode,
+          useProjectStore.getState().getFileCount(),
+        ).model,
       );
     }
   },
@@ -121,10 +126,16 @@ export function communityAccessActive(): boolean {
 }
 
 /**
- * Smart model defaults for free community building. Both slots are Opus 5
- * today — the slots stay separate because they have diverged before and will
- * again, not because they differ right now.
+ * Smart model defaults for free community building — one slot per stage of a
+ * project's life.
  *
+ * - **Planning — Fable 5.** The strategy phase: exploring the project,
+ *   drawing on the commons, and drafting the build plan. Owner decision
+ *   (2026-08-21, project-first shift): the plan shapes everything downstream
+ *   of it, and plan turns are short prose — so the strongest reasoning model
+ *   costs little here ($10/$50 per MTok vs Opus 5's $5/$25, on a fraction of
+ *   a build's output tokens) while its judgment leverages the whole project.
+ *   Not yet benched as a stage; revisit if a plan bench lands.
  * - **First build — Opus 5.** The moment the tool has to feel like magic.
  *   July 2026: matched-or-beat Fable 5 on completeness at half the cost, and
  *   clearly beat Opus 4.8 at the same cost (bench/results/2026-07-27T17-23-28db9a8).
@@ -158,13 +169,34 @@ export function communityAccessActive(): boolean {
  * showed an "edits and fixes" note to someone whose first build hadn't even
  * started).
  */
+export const COMMUNITY_PLAN_MODEL = 'claude-fable-5';
 export const COMMUNITY_FIRST_BUILD_MODEL = 'claude-opus-5';
 export const COMMUNITY_EDIT_MODEL = 'claude-opus-5';
 
-export type CommunityModelStage = 'first-build' | 'edit';
+export type CommunityModelStage = 'plan' | 'first-build' | 'edit';
+
+/** Stage → model, from what the person is doing right now. Plan mode is the
+ *  plan stage whatever the file count — a rethink on a built project is
+ *  still strategy work. 'message' never reaches a model, but typing the
+ *  union here lets callers pass the chat mode straight through. */
+export function communityDefaultModelFor(
+  chatMode: 'plan' | 'build' | 'message',
+  projectFileCount: number,
+): { model: string; stage: CommunityModelStage } {
+  const stage: CommunityModelStage =
+    chatMode === 'plan' ? 'plan' : projectFileCount === 0 ? 'first-build' : 'edit';
+  const model =
+    stage === 'plan'
+      ? COMMUNITY_PLAN_MODEL
+      : stage === 'first-build'
+        ? COMMUNITY_FIRST_BUILD_MODEL
+        : COMMUNITY_EDIT_MODEL;
+  return { model, stage };
+}
 
 export function resolveCommunityModelDefault(
   projectFileCount: number,
+  chatMode: 'plan' | 'build' | 'message' = 'build',
 ): { model: string; stage: CommunityModelStage } | null {
   const providers = useProviderStore.getState();
   const autoManaged =
@@ -174,9 +206,6 @@ export function resolveCommunityModelDefault(
     !providers.modelPinned;
   if (!autoManaged) return null;
 
-  const stage: CommunityModelStage =
-    projectFileCount === 0 ? 'first-build' : 'edit';
-  const desired =
-    stage === 'first-build' ? COMMUNITY_FIRST_BUILD_MODEL : COMMUNITY_EDIT_MODEL;
+  const { model: desired, stage } = communityDefaultModelFor(chatMode, projectFileCount);
   return providers.activeModelId === desired ? null : { model: desired, stage };
 }

@@ -339,7 +339,7 @@ export function MessageInput({
           onPaste={handlePaste}
           placeholder={
             hero
-              ? 'What does your neighborhood need? Describe it in your own words…'
+              ? 'A neighborhood project, a dream, or a tool to build — describe it in your own words…'
               : messageMode
                 ? 'A note for your collaborators — the AI stays out of this one…'
                 : isGenerating

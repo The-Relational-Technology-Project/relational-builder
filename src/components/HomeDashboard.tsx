@@ -57,8 +57,11 @@ function SignedInDashboard({ composer }: HomeDashboardProps) {
           <div className="space-y-6">
             <div className="text-center space-y-2">
               <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-balance">
-                What are we building, {displayName}?
+                What are we starting, {displayName}?
               </h2>
+              <p className="text-muted-foreground text-[15px] leading-relaxed max-w-md mx-auto">
+                Bring a neighborhood project, a dream, or a tool to build.
+              </p>
               {communityActive && (
                 <div className="inline-flex items-center gap-1.5 text-xs text-green-700 dark:text-green-400 bg-green-600/10 border border-green-600/30 rounded-full px-3 py-1">
                   <Sparkles className="size-3" />
@@ -237,10 +240,11 @@ export function WelcomeScreen({ composer }: HomeDashboardProps) {
         <div className="w-full max-w-2xl space-y-6">
           <div className="text-center space-y-3">
             <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-balance">
-              Let's build what you need.
+              Let's start what your neighborhood needs.
             </h2>
             <p className="text-muted-foreground text-[15px] leading-relaxed max-w-md mx-auto">
-              You co-create with your neighbors, AI helps implement your vision.
+              Bring a neighborhood project, a dream, or a tool to build — you
+              co-create with your neighbors, AI helps implement the vision.
             </p>
           </div>
           {composer}

@@ -26,6 +26,7 @@ import {
   resolveCommunityModelDefault,
   COMMUNITY_EDIT_MODEL,
   COMMUNITY_FIRST_BUILD_MODEL,
+  COMMUNITY_PLAN_MODEL,
   type CommunityModelStage,
 } from '@/store/community-store';
 import { useStudioStore } from '@/store/studio-store';
@@ -89,10 +90,11 @@ const CHUNK_MARKER = /^NEXT-FILES:\s*(\S.*)$/m;
 
 /** Shown whenever free community building changes the model automatically —
  *  the model picker must never change behind anyone's back. The copy has to
- *  match what actually happened: a first-build switch means the community
- *  default took over from an unpinned leftover model (so it names that model
- *  and the way back to it), while an edit switch is the step-down after a
- *  finished build. The "pick the bigger model" suggestion only appears when
+ *  match what actually happened: a plan switch means the strategy default
+ *  (Fable) took over for plan-mode turns, a first-build switch means the
+ *  community default took over from an unpinned leftover model (so it names
+ *  that model and the way back to it), while an edit switch is the step-down
+ *  after a finished build. The "pick the bigger model" suggestion only appears when
  *  the two stage models actually differ — with both slots on Opus 5 it once
  *  told people "edits run on Opus 5 — making a bigger change? Pick Opus 5."
  *
@@ -104,6 +106,9 @@ function communityModelNote(stage: CommunityModelStage, movedOff: string): strin
   // Named the way the model menu names them — "Opus 5", not "Claude Opus 5"
   const name = (id: string) =>
     shortModelName(CLAUDE_MODELS.find(m => m.id === id)?.name ?? id);
+  if (stage === 'plan') {
+    return `Planning runs on **${name(COMMUNITY_PLAN_MODEL)}** — the community default for shaping a project: exploring the idea, drawing on the commons, and drafting the plan. Builds themselves run on ${name(COMMUNITY_FIRST_BUILD_MODEL)}. Rather plan with ${name(movedOff)}? Pick it in the model menu and it will stick for this project.`;
+  }
   if (stage === 'first-build') {
     return `This build runs on **${name(COMMUNITY_FIRST_BUILD_MODEL)}** — the community default for first builds, chosen for the most complete first version. Rather build with ${name(movedOff)}? Pick it in the model menu and it will stick for this project.`;
   }
@@ -382,13 +387,15 @@ export function ChatPanel() {
       else useChatStore.getState().endCooking();
     }
 
-    // Free community building: Opus 5 does builds and edits — unless the
-    // person picked a model themselves. Fix sends stay on whatever model is
-    // active (a continuation must finish what it started).
+    // Free community building: Fable 5 does the plan-mode strategy work,
+    // Opus 5 does builds and edits — unless the person picked a model
+    // themselves. Fix sends stay on whatever model is active (a continuation
+    // must finish what it started).
     let modelForSend = activeModelId;
     if (!wasFix) {
       const autoDefault = resolveCommunityModelDefault(
         useProjectStore.getState().getFileCount(),
+        currentMode,
       );
       if (autoDefault) {
         modelForSend = autoDefault.model;
@@ -809,6 +816,7 @@ export function ChatPanel() {
                     // are the same, since there's nothing to step down to.)
                     const autoDefault = resolveCommunityModelDefault(
                       useProjectStore.getState().getFileCount(),
+                      useChatStore.getState().mode,
                     );
                     if (autoDefault?.stage === 'edit') {
                       const movedOff = useProviderStore.getState().activeModelId;

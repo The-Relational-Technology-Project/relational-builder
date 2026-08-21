@@ -152,9 +152,10 @@ function LandingPage({ onUnlock }: { onUnlock: () => void }) {
             </p>
           </div>
           <p className="text-sm max-w-md mx-auto leading-relaxed" style={{ color: C.muted }}>
-            Describe what your community needs in plain language and shape it
-            together — a working tool, a program plan, printable flyers, or all
-            three — starting from the commons of the{' '}
+            Bring a neighborhood project, a dream, or a tool to build. Describe
+            it in plain language and shape it together — a landing page, a
+            flyer, an outreach plan, a working tool, or all of them — starting
+            from the commons of the{' '}
             <a href="https://relationaltechproject.org" className="underline underline-offset-2" style={{ textDecorationColor: C.border, color: C.body }}>
               Relational Technology Project
             </a>
