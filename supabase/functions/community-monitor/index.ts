@@ -331,6 +331,14 @@ Deno.serve(async (req: Request) => {
   // so a broken tool nudges rather than nags.
 
   const siteErrorMin = rate('MONITOR_SITE_ERROR_MIN', 3);
+  // Backstop for the beacon's client-side noise filter (site function):
+  // errors from visitors' browser extensions — wallet injections, redacted
+  // cross-origin "Script error." — recorded before that filter shipped (or
+  // by a cached page) must neither count toward an alert nor appear in one.
+  // Keep this list in sync with NOISE in the site function's ERROR_BEACON.
+  const NOISE =
+    /metamask|ethereum|walletconnect|coinbase|phantom|solana|extension context invalidated|resizeobserver loop/i;
+  const isNoise = (m: string) => NOISE.test(m) || /^script error\.?$/i.test(m.trim());
   const siteAlerts: string[] = [];
   if (!dryRun) {
     try {
@@ -348,6 +356,7 @@ Deno.serve(async (req: Request) => {
       for (const r of errRows) {
         const site = r.community_sites;
         if (!site || site.kind !== 'site' || !site.owner_email) continue;
+        if (isNoise(r.message)) continue;
         const cur = bySite.get(r.site_id) ?? { slug: site.slug, name: site.name, owner: site.owner_email, total: 0, messages: [] };
         cur.total += Number(r.count);
         cur.messages.push({ message: r.message, count: Number(r.count) });

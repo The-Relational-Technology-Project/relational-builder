@@ -90,7 +90,10 @@ function feedbackWidget(siteName: string): string {
 /**
  * The injected error beacon. Sends each distinct message once per page
  * load, at most 3 per load — enough to know the tool is hurting without
- * turning a render loop into traffic.
+ * turning a render loop into traffic. Errors from the visitor's own
+ * browser extensions (wallet injections, redacted cross-origin "Script
+ * error.") are dropped before they're ever sent — see NOISE below, and
+ * the matching backstop in community-monitor.
  */
 const ERROR_BEACON = `
 <script>
@@ -101,9 +104,19 @@ const ERROR_BEACON = `
   var url = base + '__error';
   var seen = {};
   var sent = 0;
+  // Visitors' browser extensions — crypto wallets above all — inject scripts
+  // into every page and throw errors the builder can't do anything about.
+  // Drop those here so they never leave the visitor's browser: a builder's
+  // "your site hit errors" email must only ever be about their own code.
+  var NOISE = /metamask|ethereum|walletconnect|coinbase|phantom|solana|extension context invalidated|resizeobserver loop/i;
+  function noisy(message) {
+    // Bare "Script error." is a cross-origin error the browser redacted —
+    // nearly always an extension, and unactionable either way.
+    return NOISE.test(message) || /^script error\\.?$/i.test(message.trim());
+  }
   function report(message) {
     message = String(message || '').slice(0, 500);
-    if (!message || seen[message] || sent >= 3) return;
+    if (!message || noisy(message) || seen[message] || sent >= 3) return;
     seen[message] = 1;
     sent++;
     try {
@@ -112,6 +125,9 @@ const ERROR_BEACON = `
     } catch (e) {}
   }
   window.addEventListener('error', function (e) {
+    // Extension-origin errors are only identifiable here, before the path is
+    // stripped to a basename for the report.
+    if (e.filename && /^(chrome|moz|safari-web)-extension:/.test(e.filename)) return;
     report(e.message + (e.filename ? ' (' + e.filename.split('/').pop() + ':' + e.lineno + ')' : ''));
   });
   window.addEventListener('unhandledrejection', function (e) {

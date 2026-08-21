@@ -5,7 +5,8 @@
 The `community-monitor` edge function runs every 15 minutes (pg_cron →
 pg_net → function, shared secret held in Vault) and emails
 **josh@relationaltechproject.org** when either of two things needs
-attention. No dashboard to check — quiet until it matters.
+attention — plus site-health emails to builders (§3). No dashboard to
+check — quiet until it matters.
 
 ## 1. Daily spend alerts ($5, then $10)
 
@@ -45,6 +46,25 @@ disk > 80% full. A single hot sample never alerts — pressured samples are
 recorded in `monitor_infra_samples`, and the "consider bumping past
 Micro" email sends only when **≥3 pressured samples land within 2 hours**,
 with a 72-hour cooldown between recommendations.
+
+## 3. Site health emails (to builders, not the steward)
+
+The error beacon injected into every served community site posts runtime
+errors back to the `site` function, deduplicated into `site_errors`. When
+a site accumulates ≥3 errors in a day (`MONITOR_SITE_ERROR_MIN`), its
+**builder** gets one plain-language "your site hit some errors today"
+email, at most once per 72 hours per site.
+
+**Noise filtering (added 2026-08-21).** Errors thrown by a *visitor's*
+browser extensions — crypto-wallet injections (MetaMask etc.), redacted
+cross-origin `Script error.`, `ResizeObserver loop` chatter — are not the
+builder's to fix and used to trigger false alarms. The beacon drops them
+client-side (including anything originating from a
+`chrome-extension://`-style URL), so they never leave the visitor's
+browser; `community-monitor` applies the same message denylist as a
+backstop for rows recorded before the filter (or by cached pages). The
+two lists live in `ERROR_BEACON` (`supabase/functions/site/index.ts`) and
+§3 of `community-monitor/index.ts` — keep them in sync.
 
 ## Operating it
 
