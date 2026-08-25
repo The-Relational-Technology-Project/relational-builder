@@ -39,6 +39,7 @@ import { buildMentionContext } from '@/knowledge/mentions';
 import { retrieveCivicDataContext } from '@/knowledge/civic-data';
 import { runQualityReview, messageProducedFiles } from '@/knowledge/review-pass';
 import { requestBuildNotifyPermission, notifyBuildReady } from '@/notify/build-ready';
+import { adoptDraftedProjectName } from '@/project/drafted-name';
 import { recordBuildEvent, useBuildLogStore } from '@/report/build-log';
 import { resetSubmitTracking } from '@/report/friction';
 import { BuildReportCard } from './BuildReportCard';
@@ -682,6 +683,10 @@ export function ChatPanel() {
               if (useCommunityStore.getState().active) void useCommunityStore.getState().check();
               return;
             }
+            // The model drafts the project's name in its first build or plan
+            // reply (PROJECT-NAME marker) — adopt it here, where the reply is
+            // final. Guarded inside: a name a person typed is never replaced.
+            if (done) adoptDraftedProjectName(done.content);
             // Close the commons loop: which surfaced entries did this reply
             // actually draw on? Chips make it visible; the log makes it
             // measurable alongside the 'retrieval' event that offered them.

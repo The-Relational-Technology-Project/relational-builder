@@ -4,6 +4,7 @@ import { useProviderStore } from '@/store/provider-store';
 import { useProjectStore } from '@/store/project-store';
 import { useChatStore } from '@/store/chat-store';
 import { useCloudStore } from '@/store/cloud-store';
+import { useLocalProjects } from '@/project/local-projects';
 import { useCommunityStore } from '@/store/community-store';
 import { useBuildLogStore, type BuildEvent } from '@/report/build-log';
 
@@ -160,7 +161,9 @@ export function assembleReport(input: {
   const { provider, model } = buildModelAttribution();
   return {
     projectId: cloud.currentProjectId ?? null,
-    projectName: cloud.currentProjectName ?? null,
+    // Signed-out projects are named on the local shelf — without the
+    // fallback their reports arrived nameless
+    projectName: cloud.currentProjectName || useLocalProjects.getState().currentName || null,
     summary: input.summary,
     chat: assembleReportChat(input.excludedIds),
     events: useBuildLogStore.getState().events,

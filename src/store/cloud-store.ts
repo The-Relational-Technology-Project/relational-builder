@@ -401,8 +401,10 @@ export const useCloudStore = create<CloudState>()((set, get) => ({
   renameProject: async (name: string) => {
     const { currentProjectId } = get();
     if (!builderClient || !currentProjectId) return;
-    await builderClient.from('projects').update({ name }).eq('id', currentProjectId);
+    // Locally first: same-tick readers (the build-ready notification, a
+    // report assembled right after) see the new name without racing the write
     set({ currentProjectName: name });
+    await builderClient.from('projects').update({ name }).eq('id', currentProjectId);
     const att = readCloudAttachment();
     if (att?.id === currentProjectId) writeAttachment({ ...att, name });
     await get().refreshProjects();

@@ -2,6 +2,28 @@ import { useChatStore } from '@/store/chat-store';
 import { useProjectStore } from '@/store/project-store';
 
 /**
+ * The model drafts the project's name in its first build or plan reply, on
+ * one marker line (the system prompt teaches it, same mechanism as
+ * NEXT-FILES). Adoption lives in drafted-name.ts; this regex is shared with
+ * the chat renderer, which hides the line from the person.
+ */
+export const PROJECT_NAME_MARKER = /^PROJECT-NAME:\s*(\S.*)$/m;
+
+/** The drafted name out of a reply, cleaned and bounded — or null. */
+export function extractDraftedName(markdown: string): string | null {
+  const raw = markdown.match(PROJECT_NAME_MARKER)?.[1];
+  if (!raw) return null;
+  const name = raw.replace(/["“”*_`]/g, '').replace(/\s+/g, ' ').trim().slice(0, 60);
+  return name.length >= 3 ? name : null;
+}
+
+/** Remove the marker line from a reply for display — the name shows in the
+ *  project header, not as a stray machine line in the conversation. */
+export function stripProjectNameMarker(content: string): string {
+  return content.replace(/^PROJECT-NAME:[^\n]*\n?/gm, '');
+}
+
+/**
  * Suggest a human name for the current project so builders don't stare at
  * a blank "Project name..." field. Best signal first: an imported plan's
  * title, then a quoted phrase in the first ask ("Fog Line Phone Tree"),

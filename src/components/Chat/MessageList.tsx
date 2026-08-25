@@ -4,6 +4,7 @@ import remarkGfm from 'remark-gfm';
 import { buildNotifyGranted } from '@/notify/build-ready';
 import { useChatStore, type DisplayMessage } from '@/store/chat-store';
 import { useProjectStore } from '@/store/project-store';
+import { stripProjectNameMarker } from '@/project/suggest-name';
 import { useUIStore } from '@/store/ui-store';
 import { CodeBlock } from './CodeBlock';
 import { ConnectionSuggestion } from './ConnectionSuggestion';
@@ -642,8 +643,12 @@ const MessageBubble = memo(function MessageBubble({ message }: { message: Displa
             >
               {/* The question section renders as answer cards, never as raw
                   markdown — stripped even mid-stream, so a conversational
-                  reply's questions don't flash as text before carding up */}
-              {message.isPlan ? stripPlanQuestions(message.content) : message.content}
+                  reply's questions don't flash as text before carding up.
+                  The PROJECT-NAME marker is machinery too: it lands in the
+                  project header, not as a line in the conversation */}
+              {stripProjectNameMarker(
+                message.isPlan ? stripPlanQuestions(message.content) : message.content,
+              )}
             </ReactMarkdown>
             {message.isStreaming && (
               <span className="inline-block w-1.5 h-4 bg-foreground/70 animate-pulse ml-0.5" />
