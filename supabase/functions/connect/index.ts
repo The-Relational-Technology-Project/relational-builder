@@ -123,7 +123,7 @@ async function sendEmail(
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
     body: JSON.stringify({
-      from: 'Relational Builder <hello@relationalbuilder.org>',
+      from: 'Relational Builder <hello@relationaltechproject.org>',
       to: Array.isArray(to) ? to : [to],
       subject,
       text,
