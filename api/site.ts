@@ -24,11 +24,19 @@ export default async function handler(req: Request): Promise<Response> {
       ...(req.headers.get('content-type')
         ? { 'content-type': req.headers.get('content-type') as string }
         : {}),
+      // Private sites: the unlock cookie must reach the site function
+      ...(req.headers.get('cookie') ? { cookie: req.headers.get('cookie') as string } : {}),
     },
     body: req.method === 'POST' ? await req.text() : undefined,
   });
 
   const headers = new Headers();
+  // ...and its Set-Cookie must reach the browser (fetch folds repeated
+  // Set-Cookie headers; getSetCookie keeps them separate where available)
+  const setCookies =
+    (res.headers as Headers & { getSetCookie?: () => string[] }).getSetCookie?.() ??
+    (res.headers.get('set-cookie') ? [res.headers.get('set-cookie') as string] : []);
+  for (const cookie of setCookies) headers.append('set-cookie', cookie);
   const upstreamType = res.headers.get('content-type') ?? 'text/plain';
   headers.set(
     'content-type',

@@ -12,12 +12,21 @@ export interface CommunityPublishResult {
   slug: string;
   url: string;
   total_views: number;
+  has_passphrase?: boolean;
 }
 
+/**
+ * `passphrase` makes the site private: visitors get an unlock page until
+ * they enter it (checked server-side — the passphrase never ships in page
+ * source). Empty/omitted keeps whatever the site already has; removal is an
+ * explicit dashboard action (setSitePassphrase in community-sites.ts), so a
+ * plain republish can never silently open a private site.
+ */
 export async function publishToCommunityHosting(
   files: FileEntry[],
   projectName: string,
   publicEnvVars: PublicEnvVar[],
+  passphrase?: string,
 ): Promise<CommunityPublishResult> {
   if (!builderClient) {
     throw new Error('Community hosting needs the cloud backend configured');
@@ -37,7 +46,11 @@ export async function publishToCommunityHosting(
   const res = await fetch(`${url}/functions/v1/publish-site`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ name: projectName, files: payloadFiles }),
+    body: JSON.stringify({
+      name: projectName,
+      files: payloadFiles,
+      ...(passphrase?.trim() ? { passphrase: passphrase.trim() } : {}),
+    }),
   });
   const result = await res.json().catch(() => ({}));
   if (!res.ok) {

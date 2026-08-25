@@ -21,7 +21,7 @@ import { useLocalProjects } from '@/project/local-projects';
 import { getPromptForProject } from '@/cloud/prompts';
 import { deployToNetlify } from '@/project/deploy-netlify';
 import { deployToVercel } from '@/project/deploy-vercel';
-import { Download, ExternalLink, Globe, Check, Loader2 } from 'lucide-react';
+import { Download, ExternalLink, Globe, Check, Loader2, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CommonsSubmitCard } from './CommonsSubmitCard';
 import { StudioSubmitCard } from './StudioSubmitCard';
@@ -42,6 +42,7 @@ interface DeployResult {
   adminUrl?: string;
   dnsInstructions?: DnsInstruction[];
   totalViews?: number;
+  hasPassphrase?: boolean;
 }
 
 export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
@@ -64,6 +65,9 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
     () => savedPublishName ?? (savedProjectName || null) ?? suggestProjectName() ?? 'my-community-app',
   );
   const [activeTarget, setActiveTarget] = useState<DeployTarget>('community');
+  // Community hosting only: non-empty sets/changes the site's passphrase;
+  // empty means "no change" (removal lives in the Your Sites dashboard)
+  const [passphrase, setPassphrase] = useState('');
   const [deploying, setDeploying] = useState(false);
   const [result, setResult] = useState<DeployResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -133,8 +137,8 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
       const siteFiles = withAppIcons(builtFiles, projectName);
 
       if (activeTarget === 'community') {
-        const res = await publishToCommunityHosting(siteFiles, projectName, publicEnvVars);
-        setResult({ url: res.url, totalViews: res.total_views });
+        const res = await publishToCommunityHosting(siteFiles, projectName, publicEnvVars, passphrase);
+        setResult({ url: res.url, totalViews: res.total_views, hasPassphrase: res.has_passphrase });
       } else if (activeTarget === 'download') {
         const sourceFiles = isFramework ? materializeSource(files) : files;
         const blob = await exportProjectZip(sourceFiles, projectName, lineage, publicEnvVars, buildPrompt);
@@ -233,6 +237,29 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
                 link with simple visit counts. Every builder gets 3 sites
                 (republish anytime by using the same name).
                 {!cloudEnabled ? ' Community hosting needs the cloud backend configured.' : !user ? ' Sign in (top right) to publish.' : ''}
+              </p>
+            </div>
+          )}
+
+          {/* Private site (community hosting only) */}
+          {activeTarget === 'community' && (
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium flex items-center gap-1">
+                <Lock className="size-3" />
+                Passphrase{' '}
+                <span className="text-muted-foreground font-normal">(optional — makes the site private)</span>
+              </label>
+              <Input
+                value={passphrase}
+                onChange={e => { setPassphrase(e.target.value); resetState(); }}
+                placeholder="Leave empty for a public site"
+                className="h-8 text-sm"
+              />
+              <p className="text-xs text-muted-foreground">
+                Visitors unlock the site once with this passphrase and stay in for
+                30 days — checked on the server, never in your page's code. When
+                republishing, leaving this empty keeps the current passphrase;
+                remove or change it anytime from Your Sites.
               </p>
             </div>
           )}
@@ -391,6 +418,12 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
               {result.totalViews !== undefined && result.totalViews > 0 && (
                 <p className="text-xs text-muted-foreground">
                   {result.totalViews.toLocaleString()} visit{result.totalViews === 1 ? '' : 's'} so far
+                </p>
+              )}
+              {result.hasPassphrase && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Lock className="size-3 shrink-0" />
+                  Private site — share the passphrase alongside the link.
                 </p>
               )}
 

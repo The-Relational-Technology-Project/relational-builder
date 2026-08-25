@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import {
-  listCommunitySites, deleteCommunitySite, listSiteVersions, restoreSiteVersion,
+  listCommunitySites, deleteCommunitySite, listSiteVersions, restoreSiteVersion, setSitePassphrase,
   type CommunitySite, type SiteVersion,
 } from '@/project/community-sites';
 import { Button } from '@/components/ui/button';
-import { Globe, Eye, MessageCircle, Trash2, ExternalLink, Loader2, ChevronDown, ChevronUp, History, AlertTriangle } from 'lucide-react';
+import { Globe, Eye, MessageCircle, Trash2, ExternalLink, Loader2, ChevronDown, ChevronUp, History, AlertTriangle, Lock } from 'lucide-react';
 
 /**
  * Two weeks of daily views as a quiet inline sparkline — enough to answer
@@ -115,6 +115,26 @@ export function YourSites() {
     }
   }
 
+  async function handlePassphrase(site: CommunitySite) {
+    const input = window.prompt(
+      site.has_passphrase
+        ? `New passphrase for "${site.name}" — or leave empty to remove it and make the site public. Changing it signs everyone out; they get back in with the new one.`
+        : `Set a passphrase for "${site.name}" — visitors will need it before anything is served.`,
+    );
+    if (input === null) return;
+    const pass = input.trim();
+    if (!pass) {
+      if (!site.has_passphrase) return;
+      if (!window.confirm(`Remove the passphrase? "${site.name}" becomes public again.`)) return;
+    }
+    try {
+      await setSitePassphrase(site.slug, pass || null);
+      setSites(s => (s ?? []).map(x => (x.slug === site.slug ? { ...x, has_passphrase: Boolean(pass) } : x)));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not update the passphrase');
+    }
+  }
+
   async function handleDelete(slug: string) {
     setDeleting(slug);
     try {
@@ -152,6 +172,9 @@ export function YourSites() {
                   {site.name}
                   <ExternalLink className="size-3 text-muted-foreground" />
                 </a>
+                {site.has_passphrase && (
+                  <Lock className="size-3 text-muted-foreground shrink-0" aria-label="Private site — passphrase-protected" />
+                )}
                 <div className="ml-auto flex items-center gap-3 text-xs text-muted-foreground shrink-0">
                   {site.daily && site.daily.length > 0 && <ViewSparkline daily={site.daily} />}
                   <span className="inline-flex items-center gap-1" title={`${site.week_views} this week`}>
@@ -179,6 +202,13 @@ export function YourSites() {
                       {site.week_errors}
                     </button>
                   )}
+                  <button
+                    className="hover:text-foreground"
+                    onClick={() => handlePassphrase(site)}
+                    title={site.has_passphrase ? 'Change or remove the passphrase' : 'Make this site private with a passphrase'}
+                  >
+                    <Lock className="size-3" />
+                  </button>
                   <button
                     className="hover:text-foreground"
                     onClick={() => toggleVersions(site.slug)}

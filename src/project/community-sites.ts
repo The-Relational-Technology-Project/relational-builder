@@ -25,6 +25,8 @@ export interface CommunitySite {
   url: string;
   created_at: string;
   updated_at: string;
+  /** Private site — visitors need the passphrase before anything is served */
+  has_passphrase?: boolean;
   total_views: number;
   week_views: number;
   /** Daily view counts, oldest → newest (up to 30 days) */
@@ -59,6 +61,12 @@ export async function listCommunitySites(): Promise<CommunitySite[]> {
 
 export async function deleteCommunitySite(slug: string): Promise<void> {
   await call({ action: 'delete', slug });
+}
+
+/** Set or change (a string) or remove (null) a site's passphrase. Changing
+ *  it signs every visitor out; they unlock again with the new one. */
+export async function setSitePassphrase(slug: string, passphrase: string | null): Promise<void> {
+  await call({ action: 'set_passphrase', slug, passphrase });
 }
 
 // ── Versions: every republish keeps the outgoing site, restorable ──

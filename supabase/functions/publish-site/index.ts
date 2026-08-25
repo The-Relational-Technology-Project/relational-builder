@@ -5,10 +5,14 @@
  * hosting: up to MAX_SITES_PER_BUILDER live sites each, replaced atomically
  * on republish. Sites are served by the `site` function.
  *
- * POST JSON: { name, slug?, files: [{path, content}] }
+ * POST JSON: { name, slug?, files: [{path, content}], passphrase? }
  *   - Requires a Builder session (Authorization: Bearer <token>)
  *   - slug is derived from name when omitted; republishing an owned slug
  *     replaces the site
+ *   - passphrase (private sites): a string sets/replaces the site's
+ *     passphrase, null removes it, absent keeps whatever is set. Only the
+ *     PBKDF2 hash is stored; the `site` function does the gating. Previews
+ *     ignore it (unlisted + expiring already).
  *
  * Preview links: { preview: true, name, files } creates an UNLISTED preview
  * site under a random slug — outside the per-builder site cap, invisible on
@@ -24,6 +28,9 @@
  *                                         every republish and restore)
  *   { action: 'restore_version', slug, version_id }
  *                                       → roll the live site back to a snapshot
+ *   { action: 'set_passphrase', slug, passphrase }
+ *                                       → set (string) or remove (null) the
+ *                                         site's passphrase without republishing
  *
  * File replacement is ATOMIC: publishes and restores go through the
  * publish_site_files / restore_site_version SQL functions, so a failure
@@ -85,6 +92,40 @@ function rest(path: string): string {
   return `${Deno.env.get('SUPABASE_URL')}/rest/v1${path}`;
 }
 
+// Passphrase hashing — PBKDF2 keeps offline guessing slow if the table ever
+// leaks; the format is self-describing so iterations can grow later.
+// Verification lives in the `site` function (same format).
+const PBKDF2_ITERATIONS = 100_000;
+const MIN_PASSPHRASE = 4;
+const MAX_PASSPHRASE = 200;
+
+async function hashPassphrase(passphrase: string): Promise<string> {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const key = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(passphrase), 'PBKDF2', false, ['deriveBits'],
+  );
+  const bits = new Uint8Array(await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', hash: 'SHA-256', salt, iterations: PBKDF2_ITERATIONS }, key, 256,
+  ));
+  const b64 = (u: Uint8Array) => btoa(String.fromCharCode(...u));
+  return `v1$${PBKDF2_ITERATIONS}$${b64(salt)}$${b64(bits)}`;
+}
+
+/**
+ * Read the passphrase intent from a request body:
+ * a string → set (hashed), null → remove, absent → keep (returns undefined).
+ * Throws a message meant for the builder when the string is unusable.
+ */
+async function passphraseHashFromBody(body: { passphrase?: unknown }): Promise<string | null | undefined> {
+  if (body.passphrase === null) return null;
+  if (typeof body.passphrase !== 'string') return undefined;
+  const pass = body.passphrase.trim();
+  if (pass.length === 0) return undefined; // an empty field means "no change", never "remove"
+  if (pass.length < MIN_PASSPHRASE) throw new Error(`Passphrases need at least ${MIN_PASSPHRASE} characters`);
+  if (pass.length > MAX_PASSPHRASE) throw new Error('That passphrase is too long');
+  return await hashPassphrase(pass);
+}
+
 function slugify(name: string): string {
   return name
     .toLowerCase()
@@ -116,13 +157,13 @@ Deno.serve(async (req: Request) => {
     if (body.action === 'list') {
       // Previews are unlisted — the dashboard shows real sites only
       const sitesRes = await fetch(
-        rest(`/community_sites?owner_email=eq.${encodeURIComponent(email)}&kind=eq.site&select=id,slug,name,created_at,updated_at&order=updated_at.desc`),
+        rest(`/community_sites?owner_email=eq.${encodeURIComponent(email)}&kind=eq.site&select=id,slug,name,created_at,updated_at,passphrase_hash&order=updated_at.desc`),
         { headers: svc() },
       );
       const sites = sitesRes.ok ? await sitesRes.json() : [];
       const appUrl = Deno.env.get('APP_URL') ?? 'https://relationalbuilder.org';
 
-      const enriched = await Promise.all(sites.map(async (s: { id: string; slug: string; name: string; created_at: string; updated_at: string }) => {
+      const enriched = await Promise.all(sites.map(async (s: { id: string; slug: string; name: string; created_at: string; updated_at: string; passphrase_hash: string | null }) => {
         const weekAgo = new Date(Date.now() - 7 * 86400_000).toISOString().slice(0, 10);
         const [statsRes, feedbackRes, errorsRes] = await Promise.all([
           fetch(rest(`/site_stats?site_id=eq.${s.id}&select=day,views&order=day.desc&limit=30`), { headers: svc() }),
@@ -141,6 +182,7 @@ Deno.serve(async (req: Request) => {
           url: `${appUrl}/s/${s.slug}/`,
           created_at: s.created_at,
           updated_at: s.updated_at,
+          has_passphrase: Boolean(s.passphrase_hash),
           total_views: totalViews,
           week_views: weekViews,
           // Oldest → newest, for the dashboard's activity sparkline
@@ -154,7 +196,7 @@ Deno.serve(async (req: Request) => {
       return json({ ok: true, sites: enriched });
     }
 
-    if (body.action === 'delete' || body.action === 'versions' || body.action === 'restore_version') {
+    if (body.action === 'delete' || body.action === 'versions' || body.action === 'restore_version' || body.action === 'set_passphrase') {
       const slug = slugify(String(body.slug ?? ''));
       if (!slug) return json({ error: 'Which site?' }, 400);
       const siteRes = await fetch(
@@ -166,6 +208,23 @@ Deno.serve(async (req: Request) => {
         return json({ error: 'No site of yours with that name' }, 404);
       }
       const ownedSiteId = found[0].id;
+
+      if (body.action === 'set_passphrase') {
+        let hash: string | null | undefined;
+        try {
+          hash = await passphraseHashFromBody(body);
+        } catch (e) {
+          return json({ error: e instanceof Error ? e.message : 'Bad passphrase' }, 400);
+        }
+        if (hash === undefined) return json({ error: 'Send a passphrase to set, or null to remove it' }, 400);
+        const patchRes = await fetch(rest(`/community_sites?id=eq.${ownedSiteId}`), {
+          method: 'PATCH',
+          headers: svc(),
+          body: JSON.stringify({ passphrase_hash: hash }),
+        });
+        if (!patchRes.ok) return json({ error: 'Could not update the passphrase' }, 500);
+        return json({ ok: true, has_passphrase: hash !== null });
+      }
 
       if (body.action === 'versions') {
         const res = await fetch(
@@ -218,10 +277,21 @@ Deno.serve(async (req: Request) => {
     }
     if (total > MAX_TOTAL_BYTES) return json({ error: 'Site too large (max 4MB total)' }, 413);
 
+    // Private-site intent — parsed up front so a bad passphrase fails before
+    // anything is created or replaced. string → set, null → remove,
+    // absent/empty → keep whatever the site already has.
+    let passphraseHash: string | null | undefined;
+    try {
+      passphraseHash = await passphraseHashFromBody(body);
+    } catch (e) {
+      return json({ error: e instanceof Error ? e.message : 'Bad passphrase' }, 400);
+    }
+
     const isPreview = body.preview === true;
     let slug = requestedSlug;
     let siteId: string | null = null;
     let expiresAt: string | null = null;
+    let existingHash: string | null = null;
 
     if (isPreview) {
       // Previews: always a fresh unlisted site under a random slug, outside
@@ -253,13 +323,14 @@ Deno.serve(async (req: Request) => {
     } else {
       // Existing site with this slug? Owned → republish. Someone else's → suffix.
       const existingRes = await fetch(
-        rest(`/community_sites?slug=eq.${encodeURIComponent(slug)}&select=id,owner_email`),
+        rest(`/community_sites?slug=eq.${encodeURIComponent(slug)}&select=id,owner_email,passphrase_hash`),
         { headers: svc() },
       );
       const existing = existingRes.ok ? await existingRes.json() : [];
       if (existing.length > 0) {
         if (existing[0].owner_email === email) {
           siteId = existing[0].id;
+          existingHash = existing[0].passphrase_hash ?? null;
         } else {
           slug = `${slug}-${crypto.randomUUID().slice(0, 6)}`;
         }
@@ -286,7 +357,10 @@ Deno.serve(async (req: Request) => {
       const createRes = await fetch(rest('/community_sites'), {
         method: 'POST',
         headers: { ...svc(), Prefer: 'return=representation' },
-        body: JSON.stringify({ slug, name, owner_email: email }),
+        body: JSON.stringify({
+          slug, name, owner_email: email,
+          ...(typeof passphraseHash === 'string' ? { passphrase_hash: passphraseHash } : {}),
+        }),
       });
       if (!createRes.ok) return json({ error: 'Could not create site' }, 500);
       siteId = (await createRes.json())[0].id;
@@ -294,7 +368,10 @@ Deno.serve(async (req: Request) => {
       await fetch(rest(`/community_sites?id=eq.${siteId}`), {
         method: 'PATCH',
         headers: svc(),
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({
+          name,
+          ...(passphraseHash !== undefined ? { passphrase_hash: passphraseHash } : {}),
+        }),
       });
     }
 
@@ -336,6 +413,9 @@ Deno.serve(async (req: Request) => {
       slug,
       url: `${appUrl}/s/${slug}/`,
       total_views: totalViews,
+      has_passphrase: passphraseHash !== undefined
+        ? passphraseHash !== null
+        : existingHash !== null,
     });
   } catch (err) {
     return json({ error: err instanceof Error ? err.message : 'Internal error' }, 500);

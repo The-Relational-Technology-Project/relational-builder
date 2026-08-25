@@ -5,6 +5,16 @@
  * GET /site/{slug}/{filepath}  → that file with its content type
  * POST /site/{slug}/__feedback → a neighbor's note for the builder
  * POST /site/{slug}/__error    → a runtime error the page caught (beacon)
+ * POST /site/{slug}/__unlock   → check a private site's passphrase
+ *
+ * Private sites: a site with a passphrase (set at publish time, stored as a
+ * PBKDF2 hash by publish-site) serves a built-in unlock page instead of its
+ * files until the visitor presents the passphrase. A correct guess sets a
+ * signed cookie good for UNLOCK_DAYS; the signature covers the stored hash,
+ * so changing or removing the passphrase signs everyone out. This is a
+ * closed door, not a vault — but the passphrase itself never ships in page
+ * source, and the files never leave the server for a visitor without it.
+ * Gated responses are never cached (no-store).
  *
  * Views of index.html increment the site's daily counter (simple,
  * privacy-friendly analytics — no cookies, no per-visitor tracking).
@@ -28,6 +38,7 @@
 
 const CACHE_TTL_SECONDS = 60;
 const MAX_FEEDBACK_PER_DAY = 100;
+const UNLOCK_DAYS = 30;
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, HEAD, POST, OPTIONS',
@@ -41,6 +52,151 @@ function svc(): Record<string, string> {
 
 function rest(path: string): string {
   return `${Deno.env.get('SUPABASE_URL')}/rest/v1${path}`;
+}
+
+// ---- Private sites: passphrase verification + unlock cookies ----
+
+/** Verify against publish-site's stored format: v1$iterations$saltB64$hashB64 */
+async function verifyPassphrase(passphrase: string, stored: string): Promise<boolean> {
+  const parts = stored.split('$');
+  if (parts.length !== 4 || parts[0] !== 'v1') return false;
+  const iterations = Number(parts[1]);
+  if (!Number.isFinite(iterations) || iterations < 1) return false;
+  let salt: Uint8Array, expected: Uint8Array;
+  try {
+    salt = Uint8Array.from(atob(parts[2]), c => c.charCodeAt(0));
+    expected = Uint8Array.from(atob(parts[3]), c => c.charCodeAt(0));
+  } catch {
+    return false;
+  }
+  const key = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(passphrase), 'PBKDF2', false, ['deriveBits'],
+  );
+  const bits = new Uint8Array(await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', hash: 'SHA-256', salt, iterations }, key, expected.length * 8,
+  ));
+  let diff = bits.length ^ expected.length;
+  for (let i = 0; i < bits.length; i++) diff |= bits[i] ^ expected[i];
+  return diff === 0;
+}
+
+async function hmacSign(msg: string): Promise<string> {
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? 'rb-unlock'),
+    { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'],
+  );
+  const sig = new Uint8Array(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(msg)));
+  return btoa(String.fromCharCode(...sig)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+/** Token = `${expiry}.${sig}`; the sig covers the stored hash, so rotating
+ *  or removing the passphrase invalidates every outstanding cookie. */
+async function mintUnlockToken(siteId: string, passphraseHash: string): Promise<string> {
+  const exp = Math.floor(Date.now() / 1000) + UNLOCK_DAYS * 86400;
+  return `${exp}.${await hmacSign(`${siteId}:${passphraseHash}:${exp}`)}`;
+}
+
+async function unlockTokenValid(token: string, siteId: string, passphraseHash: string): Promise<boolean> {
+  const dot = token.indexOf('.');
+  if (dot <= 0) return false;
+  const exp = Number(token.slice(0, dot));
+  const sig = token.slice(dot + 1);
+  if (!Number.isFinite(exp) || exp * 1000 < Date.now() || !sig) return false;
+  const expected = await hmacSign(`${siteId}:${passphraseHash}:${exp}`);
+  if (sig.length !== expected.length) return false;
+  let diff = 0;
+  for (let i = 0; i < sig.length; i++) diff |= sig.charCodeAt(i) ^ expected.charCodeAt(i);
+  return diff === 0;
+}
+
+function unlockCookieName(slug: string): string {
+  return `rb_gate_${slug.replace(/[^a-z0-9-]/gi, '')}`;
+}
+
+function readCookie(req: Request, name: string): string | null {
+  for (const part of (req.headers.get('cookie') ?? '').split(/;\s*/)) {
+    const eq = part.indexOf('=');
+    if (eq > 0 && part.slice(0, eq).trim() === name) return part.slice(eq + 1);
+  }
+  return null;
+}
+
+/**
+ * The unlock page a private site serves in place of its files. Neutral on
+ * purpose — the site's own design begins once the door opens. Posts to
+ * `__unlock` resolved against the current page (same trick as the feedback
+ * widget) so it works behind the /s/{slug}/ rewrite and the direct
+ * function URL alike, then reloads into the real site.
+ */
+function unlockPage(siteName: string): string {
+  const safeName = siteName.replace(/[<>&"']/g, '');
+  return `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>${safeName}</title>
+<style>
+  body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+         font-family: system-ui, sans-serif; background: #f6f5f2; color: #1f2937; }
+  .card { width: min(320px, 86vw); text-align: center; padding: 24px; }
+  h1 { font-size: 20px; font-weight: 600; margin: 0 0 4px; }
+  p { font-size: 13px; color: #6b7280; margin: 0 0 20px; }
+  input { width: 100%; box-sizing: border-box; font-size: 15px; padding: 10px 12px; text-align: center;
+          border: 1px solid #d1d5db; border-radius: 8px; background: #fff; color: inherit; }
+  input:focus { outline: 2px solid #1f2937; outline-offset: 1px; border-color: #1f2937; }
+  button { width: 100%; margin-top: 10px; font-size: 14px; font-weight: 500; padding: 10px 12px;
+           border: none; border-radius: 8px; background: #1f2937; color: #fff; cursor: pointer; }
+  button:disabled { opacity: .6; cursor: default; }
+  .err { font-size: 13px; color: #b91c1c; min-height: 18px; margin-top: 10px; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #17181b; color: #e5e7eb; }
+    input { background: #232529; border-color: #3f4147; }
+    input:focus { outline-color: #e5e7eb; border-color: #e5e7eb; }
+    button { background: #e5e7eb; color: #17181b; }
+    .err { color: #f87171; }
+  }
+</style>
+</head>
+<body>
+<form class="card" id="gate">
+  <h1>${safeName}</h1>
+  <p>This site is just for its group — enter the passphrase you were given.</p>
+  <input id="pass" type="password" autocomplete="current-password" autofocus aria-label="Passphrase">
+  <button id="go" type="submit">Open</button>
+  <div class="err" id="err" role="alert"></div>
+</form>
+<script>
+(function () {
+  var base = location.href.split(/[?#]/)[0];
+  if (!base.endsWith('/')) base += '/';
+  var form = document.getElementById('gate'), pass = document.getElementById('pass'),
+      go = document.getElementById('go'), err = document.getElementById('err');
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!pass.value) return;
+    go.disabled = true;
+    err.textContent = '';
+    fetch(base + '__unlock', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ passphrase: pass.value }) })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (b) { return { ok: r.ok, body: b }; }); })
+      .then(function (r) {
+        if (r.ok) { location.reload(); return; }
+        err.textContent = r.body.error || 'That did not open it — check the passphrase and try again.';
+        go.disabled = false;
+        pass.select();
+      })
+      .catch(function () {
+        err.textContent = 'Could not reach the site — try again in a moment.';
+        go.disabled = false;
+      });
+  });
+})();
+</script>
+</body>
+</html>`;
 }
 
 /**
@@ -155,7 +311,7 @@ Deno.serve(async (req: Request) => {
     if (!filePath) filePath = 'index.html';
 
     const siteRes = await fetch(
-      rest(`/community_sites?slug=eq.${encodeURIComponent(slug)}&select=id,name,kind,expires_at`),
+      rest(`/community_sites?slug=eq.${encodeURIComponent(slug)}&select=id,name,kind,expires_at,passphrase_hash`),
       { headers: svc() },
     );
     const sites = siteRes.ok ? await siteRes.json() : [];
@@ -167,6 +323,7 @@ Deno.serve(async (req: Request) => {
     }
     const siteId = sites[0].id;
     const siteName = sites[0].name ?? slug;
+    const passphraseHash: string | null = sites[0].passphrase_hash ?? null;
     // Preview links are lighter-weight sites: unlisted, no analytics or
     // feedback widget, and they lapse on their own
     const isPreview = sites[0].kind === 'preview';
@@ -174,6 +331,35 @@ Deno.serve(async (req: Request) => {
       return new Response('This preview link has expired — ask the builder for a fresh one.', {
         status: 410,
         headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+      });
+    }
+
+    // ---- Unlock (the private-site cover page POSTs here) ----
+    if (req.method === 'POST' && filePath.split('/').pop() === '__unlock') {
+      // No passphrase (anymore) — a stale cover page's submit just opens
+      if (!passphraseHash) {
+        return new Response(JSON.stringify({ ok: true }), {
+          headers: { ...CORS, 'Content-Type': 'application/json' },
+        });
+      }
+      const body = await req.json().catch(() => ({}));
+      const passphrase = String(body.passphrase ?? '');
+      if (!passphrase || !(await verifyPassphrase(passphrase, passphraseHash))) {
+        // A beat of delay keeps scripted guessing slow without hurting people
+        await new Promise(resolve => setTimeout(resolve, 400));
+        return new Response(JSON.stringify({ error: 'That did not open it — check the passphrase and try again.' }), {
+          status: 401, headers: { ...CORS, 'Content-Type': 'application/json' },
+        });
+      }
+      const token = await mintUnlockToken(siteId, passphraseHash);
+      // Path=/ so one cookie works behind /s/{slug}/ and the direct function
+      // URL alike; the slug in the name keeps sites from colliding
+      return new Response(JSON.stringify({ ok: true }), {
+        headers: {
+          ...CORS,
+          'Content-Type': 'application/json',
+          'Set-Cookie': `${unlockCookieName(slug)}=${token}; Path=/; Max-Age=${UNLOCK_DAYS * 86400}; HttpOnly; Secure; SameSite=Lax`,
+        },
       });
     }
 
@@ -241,6 +427,36 @@ Deno.serve(async (req: Request) => {
       return new Response(JSON.stringify({ ok: true }), {
         headers: { ...CORS, 'Content-Type': 'application/json' },
       });
+    }
+
+    // ---- The gate: a private site serves its unlock page, not its files ----
+    if (passphraseHash) {
+      const token = readCookie(req, unlockCookieName(slug));
+      const unlocked = token ? await unlockTokenValid(token, siteId, passphraseHash) : false;
+      if (!unlocked) {
+        // Pages get the cover; stray asset requests (no unlocked page asked
+        // for them) get a plain refusal
+        const wantsPage = filePath === 'index.html' || filePath.endsWith('.html') || !filePath.includes('.');
+        if (!wantsPage) {
+          return new Response('This site is passphrase-protected.', {
+            status: 401,
+            headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
+          });
+        }
+        // Same gateway workaround as below: trusted fronts get HTML
+        // disguised as text/x-rb-html and translate it back
+        const coverType = req.headers.get('x-rb-raw') === '1'
+          ? 'text/x-rb-html; charset=utf-8'
+          : 'text/html; charset=utf-8';
+        return new Response(req.method === 'HEAD' ? null : unlockPage(siteName), {
+          status: 401,
+          headers: {
+            'Content-Type': coverType,
+            'Cache-Control': 'no-store',
+            'X-Hosted-By': 'Relational Builder Community Hosting',
+          },
+        });
+      }
     }
 
     const fileRes = await fetch(
@@ -314,7 +530,8 @@ Deno.serve(async (req: Request) => {
     return new Response(req.method === 'HEAD' ? null : body, {
       headers: {
         'Content-Type': contentType,
-        'Cache-Control': `public, max-age=${CACHE_TTL_SECONDS}`,
+        // Unlocked private content must never land in a shared cache
+        'Cache-Control': passphraseHash ? 'private, no-store' : `public, max-age=${CACHE_TTL_SECONDS}`,
         'X-Hosted-By': 'Relational Builder Community Hosting',
       },
     });
