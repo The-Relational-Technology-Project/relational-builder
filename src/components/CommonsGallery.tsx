@@ -10,7 +10,7 @@ import { STUDIO_ITEM_KINDS, type StudioLibraryItem } from '@/cloud/studio-librar
 import { startFromStudioItem } from '@/project/start-from-studio-item';
 import {
   fetchCivicMediaCards, fetchNeighboringRecipeCards,
-  fetchCommunityOrganizingCards, fetchLocalCivicTechCards, fetchCommonsItemDetail,
+  fetchCommunityOrganizingCards, fetchLocalCivicTechCards, fetchMicrograntCards, fetchCommonsItemDetail,
   type CommonsCard, type CommonsItemDetail,
 } from '@/knowledge/commons-items';
 import { startFromStudioTool } from '@/project/start-from-tool';
@@ -40,7 +40,7 @@ import {
 import { useUIStore } from '@/store/ui-store';
 import {
   BookOpen, ExternalLink, GitBranch, GitFork, Globe, Hammer,
-  ImageOff, Landmark, Loader2, Map as MapIcon, Newspaper, ScrollText, Sprout,
+  HandCoins, ImageOff, Landmark, Loader2, Map as MapIcon, Newspaper, ScrollText, Sprout,
   ChevronDown, ChevronRight, Library, Lock, KeyRound, Users,
 } from 'lucide-react';
 
@@ -66,6 +66,7 @@ const CATEGORIES = [
   { key: 'neighboring', label: 'Neighboring recipes' },
   { key: 'organizing', label: 'Community organizing' },
   { key: 'civic_tech', label: 'Local civic tech' },
+  { key: 'microgrants', label: 'Microgrants' },
   { key: 'stories', label: 'Local stories' },
 ] as const;
 
@@ -103,9 +104,9 @@ function galleryNameFor(studioLabel: string): string {
 }
 
 /** Shelf presentation for a commons card */
-type ShelfIconKey = 'newspaper' | 'sprout' | 'users' | 'landmark';
+type ShelfIconKey = 'newspaper' | 'sprout' | 'users' | 'landmark' | 'coins';
 const SHELF_ICONS: Record<ShelfIconKey, typeof Newspaper> = {
-  newspaper: Newspaper, sprout: Sprout, users: Users, landmark: Landmark,
+  newspaper: Newspaper, sprout: Sprout, users: Users, landmark: Landmark, coins: HandCoins,
 };
 
 function shelfFor(card: CommonsCard): { label: string; icon: ShelfIconKey } {
@@ -113,6 +114,7 @@ function shelfFor(card: CommonsCard): { label: string; icon: ShelfIconKey } {
     case 'civic-media': return { label: 'Civic Media', icon: 'newspaper' };
     case 'community-organizing': return { label: 'Community Organizing', icon: 'users' };
     case 'local-civic-tech': return { label: 'Local Civic Tech', icon: 'landmark' };
+    case 'microgrants': return { label: 'Microgrants', icon: 'coins' };
     default: return { label: 'Neighboring', icon: 'sprout' };
   }
 }
@@ -127,7 +129,7 @@ function kindLabel(card: CommonsCard): string {
 
 /** Human-facing tags only — the namespaced enums are retrieval filters,
  *  and each item's own shelf tag just repeats the card header */
-const SHELF_TAGS = new Set(['civic-media', 'community-organizing', 'local-civic-tech']);
+const SHELF_TAGS = new Set(['civic-media', 'community-organizing', 'local-civic-tech', 'microgrants']);
 function readableTags(card: CommonsCard): string[] {
   return [...new Set((card.tags ?? []).filter(t => !t.includes(':') && !SHELF_TAGS.has(t)))].slice(0, 5);
 }
@@ -157,6 +159,7 @@ export function CommonsGallery() {
   const [neighboringCards, setNeighboringCards] = useState<CommonsCard[]>([]);
   const [organizingCards, setOrganizingCards] = useState<CommonsCard[]>([]);
   const [civicTechCards, setCivicTechCards] = useState<CommonsCard[]>([]);
+  const [micrograntCards, setMicrograntCards] = useState<CommonsCard[]>([]);
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   // Semantic ranking from the commons' hybrid search: slug/title → rank
@@ -171,6 +174,7 @@ export function CommonsGallery() {
     fetchNeighboringRecipeCards().then(setNeighboringCards).catch(() => {});
     fetchCommunityOrganizingCards().then(setOrganizingCards).catch(() => {});
     fetchLocalCivicTechCards().then(setCivicTechCards).catch(() => {});
+    fetchMicrograntCards().then(setMicrograntCards).catch(() => {});
     loadGalleryReferences().then(setReferences).catch(() => {});
   }, []);
 
@@ -336,6 +340,8 @@ export function CommonsGallery() {
       .map(c => ({ key: `commons-${c.slug}`, type: 'commons' as const, card: c }));
     const civicTechEntries: GalleryEntry[] = storyCut(civicTechCards, 'civic_tech')
       .map(c => ({ key: `commons-${c.slug}`, type: 'commons' as const, card: c }));
+    const micrograntEntries: GalleryEntry[] = storyCut(micrograntCards, 'microgrants')
+      .map(c => ({ key: `commons-${c.slug}`, type: 'commons' as const, card: c }));
     // Items studios have explicitly shared beyond their walls join the
     // commons view for every signed-in builder
     const sharedEntries: GalleryEntry[] =
@@ -361,7 +367,7 @@ export function CommonsGallery() {
             ? semanticRank.get(e.story.title.trim().toLowerCase())
             : undefined;
 
-    const all = [...toolEntries, ...civicEntries, ...neighboringEntries, ...organizingEntries, ...civicTechEntries, ...sharedEntries, ...kbStoryEntries];
+    const all = [...toolEntries, ...civicEntries, ...neighboringEntries, ...organizingEntries, ...civicTechEntries, ...micrograntEntries, ...sharedEntries, ...kbStoryEntries];
 
     if (!q) {
       // Browsing order: your studios' tools lead, then each shelf in turn
@@ -379,7 +385,7 @@ export function CommonsGallery() {
       .filter(x => x.rank !== undefined || x.sub)
       .sort((a, b) => (a.rank ?? 999) - (b.rank ?? 999))
       .map(x => x.e);
-  }, [galleryTools, civicCards, neighboringCards, organizingCards, civicTechCards, stories, category, query, badgesFor, semanticRank, scope, studioLibrary, links]);
+  }, [galleryTools, civicCards, neighboringCards, organizingCards, civicTechCards, micrograntCards, stories, category, query, badgesFor, semanticRank, scope, studioLibrary, links]);
 
   const promptsFor = (tool: Tool) => prompts.filter(p => p.parent_tool_id === tool.id);
 
@@ -431,6 +437,9 @@ export function CommonsGallery() {
       ...civicTechCards.map(c => ({
         source: 'commons' as const, id: c.slug, title: c.title, kind: c.kind, group: 'Local civic tech',
       })),
+      ...micrograntCards.map(c => ({
+        source: 'commons' as const, id: c.slug, title: c.title, kind: c.kind, group: 'Microgrants',
+      })),
       ...studioLibrary.map(i => ({
         source: 'studio' as const, id: i.id, title: i.title, kind: i.kind, group: 'Studio libraries',
       })),
@@ -440,7 +449,7 @@ export function CommonsGallery() {
       loadGalleryReferences().then(setReferences).catch(() => {});
     };
     return { options, onChanged };
-  }, [authUser, galleryTools, stories, civicCards, neighboringCards, organizingCards, civicTechCards, studioLibrary]);
+  }, [authUser, galleryTools, stories, civicCards, neighboringCards, organizingCards, civicTechCards, micrograntCards, studioLibrary]);
 
   /** Open a connection's other end, whichever shelf it lives on */
   function openRef(source: RefSource, id: string): boolean {
@@ -461,7 +470,7 @@ export function CommonsGallery() {
       return s ? open(() => setStoryDetail(s)) : false;
     }
     if (source === 'commons') {
-      const c = [...civicCards, ...neighboringCards, ...organizingCards, ...civicTechCards].find(x => x.slug === id);
+      const c = [...civicCards, ...neighboringCards, ...organizingCards, ...civicTechCards, ...micrograntCards].find(x => x.slug === id);
       return c ? open(() => setCommonsDetail(c)) : false;
     }
     const i = studioLibrary.find(x => x.id === id);

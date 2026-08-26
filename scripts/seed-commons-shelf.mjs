@@ -18,7 +18,8 @@
  *   {
  *     "studio": { "slug": "...", "display_name": "...", "home_url": null, "notes": "..." },
  *     "items": [ { "slug", "kind", "title", "summary", "body", "attribution": {},
- *                  "source_url", "tags": [], "metadata": {}, "license", "sort_order" } ]
+ *                  "source_url", "tags": [], "image_urls": [], "metadata": {},
+ *                  "license", "sort_order" } ]
  *   }
  */
 
@@ -76,12 +77,12 @@ statements.push(
 for (const [i, it] of items.entries()) {
   const sort = Number.isFinite(it.sort_order) ? it.sort_order : (i + 1) * 10;
   statements.push(
-    `INSERT INTO commons_items (slug, kind, title, summary, body, attribution, source_studio_slug, source_url, tags, metadata, license, status, sort_order, published_at)\n` +
+    `INSERT INTO commons_items (slug, kind, title, summary, body, attribution, source_studio_slug, source_url, tags, image_urls, metadata, license, status, sort_order, published_at)\n` +
       `VALUES (${q(it.slug)}, ${q(it.kind)}, ${q(it.title)}, ${qn(it.summary)}, ${qn(it.body)}, ${jb(it.attribution)}, ` +
-      `${q(slug)}, ${qn(it.source_url)}, ${arr(it.tags)}, ${jb(it.metadata)}, ${qn(it.license)}, 'canonical', ${sort}, now())\n` +
+      `${q(slug)}, ${qn(it.source_url)}, ${arr(it.tags)}, ${arr(it.image_urls)}, ${jb(it.metadata)}, ${qn(it.license)}, 'canonical', ${sort}, now())\n` +
       `ON CONFLICT (slug, kind) DO UPDATE SET title = EXCLUDED.title, summary = EXCLUDED.summary, body = EXCLUDED.body, ` +
       `attribution = EXCLUDED.attribution, source_studio_slug = EXCLUDED.source_studio_slug, source_url = EXCLUDED.source_url, ` +
-      `tags = EXCLUDED.tags, metadata = EXCLUDED.metadata, license = EXCLUDED.license, sort_order = EXCLUDED.sort_order, updated_at = now();`,
+      `tags = EXCLUDED.tags, image_urls = EXCLUDED.image_urls, metadata = EXCLUDED.metadata, license = EXCLUDED.license, sort_order = EXCLUDED.sort_order, updated_at = now();`,
   );
 }
 

@@ -110,6 +110,22 @@ export async function fetchLocalCivicTechCards(): Promise<CommonsCard[]> {
   return rows.sort((a, b) => (CIVIC_TECH_SHELF_ORDER[a.kind] ?? 9) - (CIVIC_TECH_SHELF_ORDER[b.kind] ?? 9));
 }
 
+/**
+ * Microgrants: the neighborhood microgrant program shelf — the end-to-end
+ * program system (described feature-by-feature, remixable without code) and
+ * the With Neighbors organizer toolkit. The tool leads, the practice guide
+ * follows; programs remixed from this shelf contribute back to it.
+ */
+const MICROGRANT_SHELF_ORDER: Record<string, number> = { tool: 0, framework: 1, recipe: 2, prompt: 3, story: 4 };
+
+export async function fetchMicrograntCards(): Promise<CommonsCard[]> {
+  const rows = await rest<CommonsCard[]>(
+    `commons_items?select=${CARD_COLUMNS}` +
+      `&source_studio_slug=eq.microgrants&status=eq.canonical&order=title.asc`,
+  );
+  return rows.sort((a, b) => (MICROGRANT_SHELF_ORDER[a.kind] ?? 9) - (MICROGRANT_SHELF_ORDER[b.kind] ?? 9));
+}
+
 /** Full entry (body + structured metadata) for a card's detail view / remix. */
 export async function fetchCommonsItemDetail(
   slug: string,

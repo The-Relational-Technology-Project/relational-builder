@@ -64,6 +64,7 @@ const COLLECTION_LABEL: Record<string, string> = {
   'rt-studio': 'tool gallery',
   'community-organizing': 'community organizing',
   'local-civic-tech': 'local civic tech',
+  'microgrants': 'neighborhood microgrants',
 };
 const collectionLabel = (slug: string): string =>
   COLLECTION_LABEL[slug] ?? slug.replace(/-/g, ' ');
