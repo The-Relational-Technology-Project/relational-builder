@@ -161,13 +161,16 @@ function App() {
     if (needsOnboarding) setOnboardingOpen(true);
   }, [needsOnboarding]);
 
+  // Preview-forward split: the artifact being shaped gets the room, the
+  // conversation keeps a comfortable reading column. A dragged split
+  // persists (see ResizableLayout's storageKey) and wins over these.
   const panels = useMemo(() => [
-    { content: <ChatPanel />, defaultSize: 45, minSize: 300 },
+    { content: <ChatPanel />, defaultSize: 38, minSize: 300 },
     // Its own Suspense boundary: the panel chunk arriving must not blank
     // the conversation next to it
     {
       content: <Suspense fallback={<LazyFallback />}><RightPanel /></Suspense>,
-      defaultSize: 55,
+      defaultSize: 62,
       minSize: 350,
     },
   ], []);
@@ -371,7 +374,7 @@ function App() {
             </nav>
           </div>
         ) : (
-          <ResizableLayout panels={panels} />
+          <ResizableLayout panels={panels} storageKey="rb-workspace-split" />
         )}
         </Suspense>
       </main>

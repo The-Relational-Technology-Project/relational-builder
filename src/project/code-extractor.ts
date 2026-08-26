@@ -313,6 +313,69 @@ export function collapseFileBlocks(markdown: string): string {
   return out.join('\n');
 }
 
+/**
+ * Rewrite fences for DISPLAY ONLY: fold a preceding-line filename into fence
+ * meta (```tsx filename="src/App.tsx") and drop the bare label line above it,
+ * so the chat card gets a real name instead of "tsx code" and the stray
+ * `src/App.tsx`: line stops rendering as prose. Uses the same filename
+ * resolution as extraction, so display and extraction can never disagree.
+ *
+ * Never applied to stored message content or anything sent to a model —
+ * chunk continuation and history collapse read the raw content.
+ */
+export function normalizeFenceFilenames(markdown: string): string {
+  if (!markdown.includes('```')) return markdown;
+
+  const lines = markdown.split('\n');
+  const dropped = new Set<number>();
+  let i = 0;
+
+  while (i < lines.length) {
+    const fenceMatch = lines[i].match(/^```(\w*)\s*(.*)?$/);
+    if (!fenceMatch) {
+      i++;
+      continue;
+    }
+
+    const openIndex = i;
+    i++;
+    while (i < lines.length && !lines[i].startsWith('```')) i++;
+    i++; // past the closing fence (or end of input, mid-stream — only the opener is touched)
+
+    if (parseFilenameFromFenceArgs(fenceMatch[2] || '')) continue;
+    const filename = parseFilenameFromPrecedingLines(lines, openIndex);
+    if (!filename) continue;
+
+    // A bare language keeps remark's lang/meta split intact: with no lang,
+    // filename="…" would be parsed as the language and the card would lose it
+    lines[openIndex] = `\`\`\`${fenceMatch[1] || 'text'} filename="${filename}"`;
+
+    // Drop the contributing line only when it's nothing BUT a label —
+    // "Here's `src/App.tsx`:" keeps its sentence, only the fence is annotated
+    for (let offset = 1; offset <= 2 && openIndex - offset >= 0; offset++) {
+      const trimmed = lines[openIndex - offset].trim();
+      if (!trimmed) continue;
+      if (isBareLabelLine(trimmed, filename)) dropped.add(openIndex - offset);
+      break;
+    }
+  }
+
+  return dropped.size === 0
+    ? lines.join('\n')
+    : lines.filter((_, idx) => !dropped.has(idx)).join('\n');
+}
+
+/** The whole line is just the filename — plain, backticked, or bolded,
+ *  with an optional trailing colon. */
+function isBareLabelLine(trimmed: string, filename: string): boolean {
+  const f = escapeRegExp(filename);
+  return new RegExp(`^(?:\`${f}\`|\\*\\*${f}\\*\\*|${f})\\s*:?\\s*$`).test(trimmed);
+}
+
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 // --- Internal helpers ---
 
 /** Parse filename from fence info string: ```tsx filename="src/App.tsx" */

@@ -45,6 +45,7 @@ import { resetSubmitTracking } from '@/report/friction';
 import { BuildReportCard } from './BuildReportCard';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
+import { CHUNK_MARKER } from './display';
 import { useNeedsKey, NeedsKeyHint } from './composer-gate';
 import { Button } from '@/components/ui/button';
 import { HomeDashboard } from '@/components/HomeDashboard';
@@ -82,12 +83,6 @@ function continuePrompt(planned = false): string {
   return `${base}\n\nThese files are already complete in the project (do not re-output them): ${applied.join(', ')}. Every other file your plan calls for${planned ? '' : ' — including the one that was cut off —'} is NOT in the project yet and must be written now.`;
 }
 
-/** A deliberately chunked build reply ends with this marker line (the system
- *  prompt teaches it). Streams through the community proxy get killed by a
- *  ~400s wall clock — two real builds died mid-file at exactly +6:42 — so
- *  large builds now stop cleanly between files and continue on purpose,
- *  instead of streaming into the wall and paying a mid-file recovery. */
-const CHUNK_MARKER = /^NEXT-FILES:\s*(\S.*)$/m;
 
 /** Shown whenever free community building changes the model automatically —
  *  the model picker must never change behind anyone's back. The copy has to
@@ -845,7 +840,7 @@ export function ChatPanel() {
             // — not sit hidden behind the cooking line
             useChatStore.getState().endCooking();
             endGen(`error — ${error.message.slice(0, 120)}`);
-            appendToMessage(msgId, `\n\n**Error:** ${error.message}`);
+            appendToMessage(msgId, `\n\n**Hit a snag** — ${error.message}`);
             finalizeMessage(msgId);
             useChatStore.getState().markErrored(msgId);
             setIsGenerating(false);
@@ -862,7 +857,7 @@ export function ChatPanel() {
         const msg = err instanceof Error ? err.message : String(err);
         useChatStore.getState().endCooking();
         endGen(`error — ${msg.slice(0, 120)}`);
-        appendToMessage(msgId, `\n\n**Error:** ${msg}`);
+        appendToMessage(msgId, `\n\n**Hit a snag** — ${msg}`);
         finalizeMessage(msgId);
         useChatStore.getState().markErrored(msgId);
         setIsGenerating(false);

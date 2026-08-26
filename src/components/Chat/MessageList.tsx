@@ -4,12 +4,14 @@ import remarkGfm from 'remark-gfm';
 import { buildNotifyGranted } from '@/notify/build-ready';
 import { useChatStore, type DisplayMessage } from '@/store/chat-store';
 import { useProjectStore } from '@/store/project-store';
-import { stripProjectNameMarker } from '@/project/suggest-name';
+import { usePanelStore } from '@/store/panel-store';
+import { artifactDisplay } from '@/project/display-name';
 import { useUIStore } from '@/store/ui-store';
+import { renderableContent } from './display';
 import { CodeBlock } from './CodeBlock';
 import { ConnectionSuggestion } from './ConnectionSuggestion';
 import { Button } from '@/components/ui/button';
-import { Hammer, History, FileCode, ChevronDown, ChevronRight, Loader2, Copy, Check, ArrowDown, ArrowRight, GitBranch, Sparkles, MessagesSquare, BookOpen } from 'lucide-react';
+import { Hammer, History, FileCode, ChevronDown, ChevronRight, Loader2, Copy, Check, ArrowDown, ArrowRight, Code2, GitBranch, Sparkles, MessagesSquare, BookOpen } from 'lucide-react';
 
 /** "Today at 4:26 PM" / "Tuesday at 9:12 AM" — calm dividers between sittings */
 function formatSitting(ts: number): string {
@@ -68,28 +70,87 @@ function CollapsedCode({
   const filename = meta?.match(/(?:filename|title|file)\s*=\s*"?([^"\s]+)"?/)?.[1];
   const isEdit = language === 'edit';
   const lines = code.split('\n').length;
-  const title = filename ?? (language && language !== 'text' ? `${language} code` : 'code');
+
+  // Plain-language identity for real project files; snippets keep the
+  // technical fallback. An edit block's body is a SEARCH/REPLACE diff,
+  // never file content — its title comes from the path alone.
+  const display = filename ? artifactDisplay(filename, isEdit ? undefined : code) : null;
+
+  // Whether the card can open in the preview: the file must actually be in
+  // the project. Snapshot read, no subscription — bubbles stay memoized;
+  // the click handler re-checks, so a stale answer degrades to expand.
+  const inProject = useMemo(
+    () => !!filename && !streaming && !!useProjectStore.getState().getFile(filename),
+    [filename, streaming],
+  );
+
+  function onRowClick() {
+    if (filename && !streaming && useProjectStore.getState().getFile(filename)) {
+      usePanelStore.getState().openArtifact(filename);
+    } else {
+      setExpanded(e => !e);
+    }
+  }
 
   return (
     <div className="not-prose my-2 rounded-md border bg-background/60 overflow-hidden">
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs hover:bg-muted/60 transition-colors"
-      >
-        {streaming ? (
-          <Loader2 className="size-3 animate-spin text-muted-foreground shrink-0" />
-        ) : (
-          <FileCode className="size-3 text-muted-foreground shrink-0" />
+      <div className="flex items-center text-xs">
+        <button
+          onClick={onRowClick}
+          title={inProject ? 'See it in the preview' : undefined}
+          className="flex-1 min-w-0 flex items-center gap-2 px-2.5 py-1.5 text-left hover:bg-muted/60 transition-colors"
+        >
+          {streaming ? (
+            <Loader2 className="size-3 animate-spin text-muted-foreground shrink-0" />
+          ) : (
+            <FileCode className="size-3 text-muted-foreground shrink-0" />
+          )}
+          {display ? (
+            <>
+              <span className="font-medium truncate">{display.name}</span>
+              <span className="text-muted-foreground shrink-0">
+                {streaming ? 'writing…' : isEdit ? 'updated' : display.kindLabel}
+              </span>
+            </>
+          ) : (
+            <>
+              <span className="font-mono truncate">
+                {language && language !== 'text' ? `${language} code` : 'code'}
+              </span>
+              <span className="text-muted-foreground shrink-0">
+                {streaming ? 'writing…' : `${lines} lines`}
+              </span>
+            </>
+          )}
+          {!inProject && (
+            <span className="ml-auto text-muted-foreground shrink-0">
+              {expanded ? <ChevronDown className="size-3" /> : <ChevronRight className="size-3" />}
+            </span>
+          )}
+        </button>
+        {inProject && (
+          <button
+            onClick={() => setExpanded(e => !e)}
+            title="View the code"
+            className="px-2.5 py-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors shrink-0"
+          >
+            <Code2 className="size-3" />
+          </button>
         )}
-        <span className="font-mono truncate">{title}</span>
-        <span className="text-muted-foreground shrink-0">
-          {streaming ? 'writing…' : isEdit ? `edited (${lines} lines)` : `${lines} lines`}
-        </span>
-        <span className="ml-auto text-muted-foreground shrink-0">
-          {expanded ? <ChevronDown className="size-3" /> : <ChevronRight className="size-3" />}
-        </span>
-      </button>
-      {expanded && <CodeBlock code={code} language={language === 'edit' ? 'diff' : language} />}
+      </div>
+      {expanded && (
+        <>
+          {filename && (
+            <div className="flex items-center gap-2 border-t px-2.5 py-1 text-[11px] font-mono text-muted-foreground">
+              <span className="truncate">{filename}</span>
+              <span className="shrink-0 ml-auto">
+                {isEdit ? `edited (${lines} lines)` : `${lines} lines`}
+              </span>
+            </div>
+          )}
+          <CodeBlock code={code} language={language === 'edit' ? 'diff' : language} />
+        </>
+      )}
     </div>
   );
 }
@@ -541,6 +602,14 @@ const MessageBubble = memo(function MessageBubble({ message }: { message: Displa
   const activeCheckpointId = useProjectStore(s => s.activeCheckpointId);
   const restoreCheckpoint = useProjectStore(s => s.restoreCheckpoint);
 
+  // Display-only strips and fence folding (see ./display.ts). Memoized so
+  // settled bubbles never re-run it; the streaming bubble re-parses per
+  // token anyway, and this pre-pass is small next to the markdown parse.
+  const rendered = useMemo(
+    () => renderableContent(message.isPlan ? stripPlanQuestions(message.content) : message.content),
+    [message.content, message.isPlan],
+  );
+
   // Auto sends (quality review, error fix, length continue) render as a
   // distinct Builder note — after the hooks above, to keep hook order stable.
   if (message.isAuto) return <AutoMessage message={message} />;
@@ -644,11 +713,10 @@ const MessageBubble = memo(function MessageBubble({ message }: { message: Displa
               {/* The question section renders as answer cards, never as raw
                   markdown — stripped even mid-stream, so a conversational
                   reply's questions don't flash as text before carding up.
-                  The PROJECT-NAME marker is machinery too: it lands in the
-                  project header, not as a line in the conversation */}
-              {stripProjectNameMarker(
-                message.isPlan ? stripPlanQuestions(message.content) : message.content,
-              )}
+                  PROJECT-NAME and NEXT-FILES are machinery too: one lands in
+                  the project header, the other drives chunk continuation —
+                  neither is a line to read (see renderableContent) */}
+              {rendered}
             </ReactMarkdown>
             {message.isStreaming && (
               <span className="inline-block w-1.5 h-4 bg-foreground/70 animate-pulse ml-0.5" />

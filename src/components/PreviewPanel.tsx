@@ -10,6 +10,8 @@ import {
 } from '@codesandbox/sandpack-react';
 import type { FileEntry } from '@/project/virtual-fs';
 import { useProjectStore } from '@/store/project-store';
+import { usePanelStore } from '@/store/panel-store';
+import { artifactName } from '@/project/display-name';
 import { useEnvStore } from '@/store/env-store';
 import { useChatStore } from '@/store/chat-store';
 import { usePreviewHealthStore } from '@/store/preview-health-store';
@@ -103,13 +105,33 @@ export function PreviewPanel() {
   const outputTabs = useMemo(() => {
     if (kind !== 'framework' && kind !== 'sandpack') return [];
     const tabs = hasApp ? [{ id: 'app', label: 'App' }] : [];
-    for (const m of materials) tabs.push({ id: `file:${m.path}`, label: m.path.replace(/^\//, '') });
+    for (const m of materials) tabs.push({ id: `file:${m.path}`, label: artifactName(m.path, m.content) });
     if (docs.length > 0) tabs.push({ id: 'docs', label: 'Docs' });
     return tabs;
   }, [kind, materials, docs, hasApp]);
   useEffect(() => {
     if (!outputTabs.some(t => t.id === output)) setOutput(outputTabs[0]?.id ?? 'app');
   }, [outputTabs, output]);
+
+  // A click on a chat file card asks to see that artifact here. One-shot:
+  // consumed and cleared, so a remount (tab away and back) never replays it.
+  const previewRequest = usePanelStore(s => s.previewRequest);
+  const [docFocus, setDocFocus] = useState<{ path: string; nonce: number } | null>(null);
+  useEffect(() => {
+    if (!previewRequest) return;
+    const p = previewRequest.path.startsWith('/') ? previewRequest.path : `/${previewRequest.path}`;
+    if (/\.md$/i.test(p) && docs.some(d => d.path === p)) {
+      setOutput('docs');
+      setDocFocus({ path: p, nonce: previewRequest.nonce });
+    } else if (materials.some(m => m.path === p)) {
+      setOutput(`file:${p}`);
+    } else {
+      // Part of the running app (a page, a component, styles) — the app
+      // itself is the closest thing to "seeing" it
+      setOutput('app');
+    }
+    usePanelStore.getState().clearPreviewRequest();
+  }, [previewRequest, docs, materials]);
 
   // Controls for the Sandpack engine, owned here (remount = refresh; a
   // static app opens in a tab as one self-contained document)
@@ -142,7 +164,7 @@ export function PreviewPanel() {
   }
 
   if (kind === 'document') {
-    return <DocumentPreview files={files} />;
+    return <DocumentPreview files={files} focusDoc={docFocus} />;
   }
 
   const tabsRow = outputTabs.length > 1 || (outputTabs.length === 1 && outputTabs[0].id !== 'app') ? (
@@ -168,7 +190,7 @@ export function PreviewPanel() {
       <div className="h-full flex flex-col">
         {tabsRow}
         <div className="flex-1 min-h-0">
-          <DocumentPreview files={files} />
+          <DocumentPreview files={files} focusDoc={docFocus} />
         </div>
       </div>
     );
@@ -506,8 +528,7 @@ function DocActions({ doc }: { doc: FileEntry }) {
     const body = renderToStaticMarkup(
       <ReactMarkdown remarkPlugins={[remarkGfm]}>{doc.content}</ReactMarkdown>,
     );
-    const title =
-      doc.content.match(/^#\s+(.+)$/m)?.[1]?.trim() || doc.path.replace(/^\//, '');
+    const title = artifactName(doc.path, doc.content);
     printHtml(
       `<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(title)}</title>` +
       `<style>${DOC_PRINT_CSS}</style></head><body>${body}</body></html>`,
@@ -540,12 +561,28 @@ function DocActions({ doc }: { doc: FileEntry }) {
  * Program builds — plans, program docs, materials — read like pages, they
  * don't run. Markdown files render directly; multiple docs get tabs.
  */
-function DocumentPreview({ files }: { files: FileEntry[] }) {
+function DocumentPreview({
+  files,
+  focusDoc,
+}: {
+  files: FileEntry[];
+  /** A chat card's ask to land on one doc; fresh object per ask, so a
+   *  repeat click re-fires even after the person browsed elsewhere */
+  focusDoc?: { path: string; nonce: number } | null;
+}) {
   const docs = useMemo(
     () => files.filter(f => /\.md$/i.test(f.path)),
     [files],
   );
   const [active, setActive] = useState<string | null>(null);
+  // A new focus ask adjusts state during render (React's documented pattern
+  // for reacting to a prop change) — each ask is a fresh object, so this
+  // fires once per click and never fights the person's own pill choices
+  const [seenFocus, setSeenFocus] = useState(focusDoc);
+  if (focusDoc !== seenFocus) {
+    setSeenFocus(focusDoc);
+    if (focusDoc) setActive(focusDoc.path);
+  }
   const activePath = active && docs.some(d => d.path === active) ? active : docs[0]?.path;
   const doc = docs.find(d => d.path === activePath);
 
@@ -563,7 +600,7 @@ function DocumentPreview({ files }: { files: FileEntry[] }) {
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              {d.path.replace(/^\//, '')}
+              {artifactName(d.path, d.content)}
             </button>
           ))}
         </div>
