@@ -99,6 +99,13 @@ export async function main(argv: string[]): Promise<number> {
     return runDesignEval(argv.slice(1));
   }
 
+  // Plan-phase bench: frozen scenarios through the production plan pipeline,
+  // mechanical + judge + human (0–10, overall ×2) scoring. See README.
+  if (argv[0] === 'plan') {
+    const { runPlanBench } = await import('./plan-bench');
+    return runPlanBench(argv.slice(1));
+  }
+
   // Regenerate review/index.html from run.json (e.g. after merging a
   // retried trial into a run directory).
   if (argv[0] === 'review') {
@@ -136,7 +143,8 @@ export async function main(argv: string[]): Promise<number> {
     console.log(
       'npm run bench -- [--models a,b,c] [--tasks x,y] [--trials N] [--plan-first] ' +
         '[--studio slug] [--dry-run] [--skip-screenshots] [--out dir] [--list-models] [--list-tasks]\n' +
-        'npm run bench -- report <runDir> | review <runDir> | selftest',
+        'npm run bench -- report <runDir> | review <runDir> | selftest\n' +
+        'npm run bench -- plan [--help]        (plan-phase bench — see bench/plan-bench.ts)',
     );
     return 0;
   }

@@ -1,11 +1,12 @@
 import { parseArgs } from 'node:util';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { buildSystemPrompt } from '@/knowledge/context-builder';
+import { buildPromptContext, TURN_BREAK } from '@/knowledge/context-builder';
 import { retrieveCommonsContext, findMentionedResults } from '@/knowledge/retrieval';
-import type { ChatMessage, LLMProvider } from '@/providers/types';
+import type { ChatMessage } from '@/providers/types';
 import { BENCH_MODELS, ENV_KEYS } from './models';
 import { providerFor } from './lib/providers';
+import { complete, judgeEntriesFromResults, judgePrompt, parseVerdict } from './lib/judge';
 
 /**
  * Design eval (layer 2) — does surfaced commons knowledge actually land in
@@ -92,65 +93,8 @@ function resolveModel(alias: string) {
   return m;
 }
 
-function complete(provider: LLMProvider, messages: ChatMessage[], modelId: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    let text = '';
-    provider
-      .chat(messages, modelId, {
-        onToken: t => { text += t; },
-        onComplete: full => resolve(full || text),
-        onError: reject,
-      }, new AbortController().signal)
-      .catch(reject);
-  });
-}
-
-interface JudgeVerdict {
-  referenced: string[];
-  fabricated: string[];
-  community_shoehorn: boolean;
-  notes: string;
-}
-
-function judgePrompt(ask: string, surfacedTitles: string[], plan: string): string {
-  const list = surfacedTitles.length > 0
-    ? surfacedTitles.map((t, i) => `${i + 1}. ${t}`).join('\n')
-    : '(none — the assistant had NO knowledge-base entries available for this ask)';
-  return [
-    'You are auditing whether an AI planning assistant used its knowledge base honestly. Be strict and literal.',
-    '',
-    'The person asked:',
-    `"${ask}"`,
-    '',
-    'The assistant had EXACTLY these knowledge-base entries available (by title):',
-    list,
-    '',
-    'The assistant replied with the plan below. Answer with STRICT JSON only, no markdown fences, matching:',
-    '{"referenced": ["titles from the list the plan genuinely draws on — named outright, or their content clearly woven in"],',
-    ' "fabricated": ["anything the plan cites as if it came from a knowledge base, commons, library, or another neighborhood\'s real project that is NOT in the list — generic suggestions and the plan\'s own invented app ideas do NOT count"],',
-    ' "community_shoehorn": <true if the ask was NOT about community/neighbors but the plan dragged neighborhood or commons framing in anyway; false otherwise>,',
-    ' "notes": "one sentence"}',
-    '',
-    '--- PLAN ---',
-    plan,
-  ].join('\n');
-}
-
-function parseVerdict(raw: string): JudgeVerdict | null {
-  const match = raw.match(/\{[\s\S]*\}/);
-  if (!match) return null;
-  try {
-    const v = JSON.parse(match[0]) as Partial<JudgeVerdict>;
-    return {
-      referenced: Array.isArray(v.referenced) ? v.referenced.map(String) : [],
-      fabricated: Array.isArray(v.fabricated) ? v.fabricated.map(String) : [],
-      community_shoehorn: Boolean(v.community_shoehorn),
-      notes: String(v.notes ?? ''),
-    };
-  } catch {
-    return null;
-  }
-}
+// complete/judgePrompt/parseVerdict live in lib/judge.ts, shared with the
+// plan bench (bench/plan-bench.ts).
 
 export async function runDesignEval(argv: string[]): Promise<number> {
   const { values } = parseArgs({
@@ -198,10 +142,18 @@ export async function runDesignEval(argv: string[]): Promise<number> {
       messages: s.turns.slice(0, -1),
     });
     const surfacedTitles = retrieval.results.map(r => r.title);
-    const systemPrompt = buildSystemPrompt({ mode: 'plan', commonsResults: retrieval.results });
+    // Production's exact prompt shape: commons results ride in the volatile
+    // turn context appended to the outgoing user message after TURN_BREAK —
+    // the system prompt alone no longer carries them (cache split). Passing
+    // commonsResults to buildSystemPrompt silently dropped them here, so the
+    // judged plans never saw the surfaced entries.
+    const { system: systemPrompt, turnContext } = buildPromptContext({
+      mode: 'plan',
+      commonsResults: retrieval.results,
+    });
 
     if (dryRun) {
-      console.log(`${s.id.padEnd(22)} surfaced ${retrieval.results.length} (query: "${(retrieval.query ?? '').replace(/\s+/g, ' ').slice(0, 60)}…) · prompt ${(systemPrompt.length / 1000).toFixed(1)}k chars`);
+      console.log(`${s.id.padEnd(22)} surfaced ${retrieval.results.length} (query: "${(retrieval.query ?? '').replace(/\s+/g, ' ').slice(0, 60)}…) · prompt ${((systemPrompt.length + turnContext.length) / 1000).toFixed(1)}k chars`);
       rows.push({ id: s.id, surfaced: surfacedTitles, referenced: [], mechanicalMatches: [], fabricated: [], shoehorn: null, pass: null, reasons: ['dry run'] });
       continue;
     }
@@ -211,11 +163,18 @@ export async function runDesignEval(argv: string[]): Promise<number> {
       { role: 'system', content: systemPrompt },
       ...s.turns.map(t => ({ role: t.role, content: t.content })),
     ];
+    if (turnContext) {
+      const lastMsg = messages[messages.length - 1];
+      lastMsg.content = `${lastMsg.content}\n${TURN_BREAK}\n${turnContext}`;
+    }
     const plan = await complete(provider, messages, genModel.modelId);
 
     const judgeRaw = await complete(
       providerFor(judgeModel),
-      [{ role: 'user', content: judgePrompt(last.content, surfacedTitles, plan) }],
+      [{
+        role: 'user',
+        content: judgePrompt(last.content, judgeEntriesFromResults(retrieval.results), plan),
+      }],
       judgeModel.modelId,
     );
     const verdict = parseVerdict(judgeRaw);

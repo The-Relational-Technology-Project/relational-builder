@@ -135,7 +135,9 @@ export function communityAccessActive(): boolean {
  *   of it, and plan turns are short prose — so the strongest reasoning model
  *   costs little here ($10/$50 per MTok vs Opus 5's $5/$25, on a fraction of
  *   a build's output tokens) while its judgment leverages the whole project.
- *   Not yet benched as a stage; revisit if a plan bench lands.
+ *   The stage now has its own bench — `npm run bench -- plan` (frozen
+ *   scenarios, mechanical + judge + human 0–10 scoring) — which defaults to
+ *   this constant; run it before revisiting the choice.
  * - **First build — Opus 5.** The moment the tool has to feel like magic.
  *   July 2026: matched-or-beat Fable 5 on completeness at half the cost, and
  *   clearly beat Opus 4.8 at the same cost (bench/results/2026-07-27T17-23-28db9a8).

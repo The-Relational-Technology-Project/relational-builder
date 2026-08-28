@@ -1,0 +1,473 @@
+{
+  "planBenchVersion": "1.0.0",
+  "scenariosVersion": "p1",
+  "gitCommit": "f10ab20",
+  "createdAt": "2026-08-28T06:00:44.145Z",
+  "runId": "2026-08-28T05-58-f10ab20",
+  "config": {
+    "trials": 1,
+    "judge": "sonnet-5"
+  },
+  "models": [
+    {
+      "alias": "fable-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-fable-5",
+      "pricing": {
+        "inputPerMTok": 10,
+        "outputPerMTok": 50,
+        "asOf": "2026-07"
+      },
+      "enabled": false
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "neighborhood-project",
+      "expect": "draft"
+    },
+    {
+      "id": "rt-tool-request",
+      "expect": "draft"
+    },
+    {
+      "id": "open-ended-starter",
+      "expect": "explore"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "fable-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-fable-5",
+      "scenarioId": "neighborhood-project",
+      "scenarioVersion": "p1",
+      "trial": 1,
+      "startedAt": "2026-08-28T05:58:58.598Z",
+      "latencyMs": 30160,
+      "ttftMs": 6648,
+      "finishReason": "stop",
+      "outputChars": 4456,
+      "words": 781,
+      "estTokens": {
+        "input": 8051,
+        "output": 1114,
+        "estimated": true
+      },
+      "estCostUsd": 0.13621,
+      "retrieval": {
+        "query": "I want to start a community garden with the neighbors on my block. There's an empty lot on Hartwell Street the owner says we can use, and about six families seem interested. Where do I start?\nWhat should we make first to help you invite people in? → A flyer for the block, and an outreach plan\nIs there a first gathering this could point to? → A Saturday workday at the lot — first Saturday in October\nWhich of these does it look like? → A hand-painted garden sign — deep green ground, painted lettering, soft edges",
+        "dropped": 0,
+        "surfaced": [
+          {
+            "slug": "community-garden",
+            "title": "Community Garden",
+            "kind": "recipe",
+            "similarity": 0.768928313519229
+          },
+          {
+            "slug": "block-party-organizing",
+            "title": "Block Party Organizing",
+            "kind": "prompt",
+            "similarity": 0.699694528193902
+          },
+          {
+            "slug": "neighborhood-connector-site",
+            "title": "Neighborhood Connector Site",
+            "kind": "prompt",
+            "similarity": 0.697308534878213
+          },
+          {
+            "slug": "build-relational-map",
+            "title": "Build: A Relational Map for Your Block",
+            "kind": "prompt",
+            "similarity": 0.69673722428999
+          },
+          {
+            "slug": "build-public-narrative-workshop",
+            "title": "Build: A Public Narrative Workshop",
+            "kind": "prompt",
+            "similarity": 0.690076371510422
+          },
+          {
+            "slug": "community-income-sharing",
+            "title": "Community Income Sharing",
+            "kind": "prompt",
+            "similarity": 0.688835995613036
+          },
+          {
+            "slug": "build-block-scale-pb",
+            "title": "Build: Participatory Budgeting for a Very Small Budget",
+            "kind": "prompt",
+            "similarity": 0.688752722504247
+          },
+          {
+            "slug": "community-clubs-platform",
+            "title": "Community Clubs Platform",
+            "kind": "prompt",
+            "similarity": 0.688381385669986
+          }
+        ]
+      },
+      "mentionedTitles": [
+        "Community Garden",
+        "Community Income Sharing"
+      ],
+      "checks": [
+        {
+          "id": "no-file-blocks",
+          "description": "No filename-annotated code or edit blocks (plan mode must not create files)",
+          "pass": true
+        },
+        {
+          "id": "no-flattery-open",
+          "description": "Does not open with flattery",
+          "pass": true,
+          "detail": "A lot, six families, and a workday date — that's the right order, and it matches"
+        },
+        {
+          "id": "commons-grounded",
+          "description": "Draws on at least one surfaced commons entry by name (production chip matcher)",
+          "pass": true,
+          "detail": "mentioned 2/8 surfaced"
+        },
+        {
+          "id": "sections-present",
+          "description": "Carries the drafted plan's core sections (vision, people & practices, features/artifacts, look & feel, first screen, data & services)",
+          "pass": true,
+          "detail": "all seven present"
+        },
+        {
+          "id": "project-name",
+          "description": "Exactly one PROJECT-NAME line, a real name (1–5 words)",
+          "pass": true,
+          "detail": "Hartwell Street Garden"
+        },
+        {
+          "id": "first-build-restraint",
+          "description": "First build stays small (≤6 items) and Later exists with at least one",
+          "pass": true,
+          "detail": "first build 2 items, later 9"
+        },
+        {
+          "id": "look-concrete",
+          "description": "Look & feel commits to real values — at least one hex color and a named font",
+          "pass": true,
+          "detail": "hex: #2D4A2B #F5EFDD #C8462E · fonts: Bricolage, Caprasimo, Karla"
+        },
+        {
+          "id": "no-question-section",
+          "description": "The drafted plan asks no questions of its own",
+          "pass": true
+        },
+        {
+          "id": "invites-build",
+          "description": "Ends by inviting refinement or \"Build this plan\"",
+          "pass": true
+        },
+        {
+          "id": "size-band",
+          "description": "A readable draft, not a stub or a spec dump (250–1800 words)",
+          "pass": true,
+          "detail": "781 words"
+        }
+      ],
+      "judge": {
+        "model": "sonnet-5",
+        "referenced": [
+          "Community Garden"
+        ],
+        "fabricated": [],
+        "notes": "The plan draws its core-team size and launch-timeline claims directly and accurately from the Community Garden entry, invents no other sourced facts, and the community framing fits the original community-garden request.",
+        "estCostUsd": 0.009729
+      },
+      "planText": "A lot, six families, and a workday date — that's the right order, and it matches how gardens actually launch. Here's the plan.\n\n# Hartwell Street Community Garden — Project Plan\n\n## The vision\n\nThe empty lot on Hartwell Street becomes the block's shared ground. On the first Saturday in October, a dozen neighbors show up with gloves and a wheelbarrow because a hand-painted-looking flyer on their door told them exactly when and where. Six families becomes ten. The flyer and the outreach plan do one job: turn \"the owner said yes\" into \"the block said yes.\"\n\n## People & practices\n\n- **Who this serves:** the households on and around Hartwell Street — the six interested families first, then everyone within a couple blocks who's never been asked.\n- **Who tends it:** you, for now, as the inviter. The Community Garden recipe from the commons is clear that new gardens want a core team of 5–10 — the October workday is where you find yours, so plan to ask two or three people that day to co-organize, not just dig.\n- **The connection type:** this starts as bonding (the six families deepening ties) but the flyer is your bridging move — it reaches the neighbors nobody's talked to yet. Door-knocking with the flyer in hand beats leaving it in a mailbox; the recipe's launch timeline (6–12 months to a full garden) means relationships built now are the real infrastructure.\n- **The practice the artifacts serve:** personal invitation. The outreach plan will name who invites whom, because a flyer alone recruits half as well as a flyer plus a face.\n\n## Artifacts\n\n**First build:**\n- **The flyer** — print-ready, one page: the garden idea in a sentence, the workday (first Saturday in October, at the lot), what to bring, and how to say \"count me in\" (your phone number or a group chat link — your call, and easy to swap in).\n- **The outreach plan** — a two-week plan leading to the workday: which doors to knock, which of the six families invites which neighbors, where flyers go up (corner store, school gate, laundromat), and a short knock-on-the-door script in plain words.\n\n**Later:**\n- A landing page, once the workday produces a real crew and there's news to point to.\n- The full coordination system (plots, workdays, harvest sharing) — it earns its turn when there are 15+ households and real scheduling to do. Building it before then is the classic way gardens stall; the invitations come first.\n\nStarting small isn't a downgrade — the flyer and plan arrive in minutes, you use them this week, and everything after is aimed by who actually shows up in October.\n\n## Look & feel\n\nThe flyer is a version of **a hand-painted garden sign** — the kind staked at the edge of a plot, lettering slightly imperfect, painted by a neighbor.\n\n- **Ground:** deep garden green, `#2D4A2B`\n- **Ink:** warm cream, `#F5EFDD` — like paint on wood\n- **Signal color:** tomato red, `#C8462E` — used only for the date and the \"count me in\" line\n- **Type:** *Caprasimo* or *Bricolage Grotesque* for display (chunky, hand-lettered feel) with *Karla* for body text — both on Google Fonts\n- **Edge:** soft — rounded corners, no hairlines, generous air; nothing that looks like a form\n\nEverything above follows from your \"hand-painted garden sign\" answer; the hexes and fonts are my concrete proposal, easy to adjust. One better move on imagery: a photo of the actual Hartwell Street lot beats any illustration — and if the flyer wants art (a tomato, a sunflower), a local artist or a kid on the block painting it makes the flyer itself a first act of the garden. AI art is a placeholder at most.\n\n## The first screen\n\nFor the flyer: the garden name and the workday date readable from six feet away, the lot's address, and one line of what to bring. Deliberately NOT on it: a mission statement, a history of community gardening, or more than one way to respond. If a neighbor can't get the whole thing in three seconds on a telephone pole, it's too much.\n\n## Pages & files\n\n- `flyer.html` — the print-ready flyer (letter size, also readable on a phone)\n- `outreach-plan.md` — the two-week plan and door script\n\n## Data & services\n\nNone. No backend, no accounts, no env vars — these are shareable artifacts, not an app. When the full system's turn comes, that build will want a backend; not this one.\n\nPROJECT-NAME: Hartwell Street Garden\n\nRefine anything here — the response method on the flyer, the fonts, the script's tone — or press **Build this plan** when it feels right.",
+      "error": null
+    },
+    {
+      "alias": "fable-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-fable-5",
+      "scenarioId": "rt-tool-request",
+      "scenarioVersion": "p1",
+      "trial": 1,
+      "startedAt": "2026-08-28T05:59:39.098Z",
+      "latencyMs": 37164,
+      "ttftMs": 17380,
+      "finishReason": "stop",
+      "outputChars": 4437,
+      "words": 771,
+      "estTokens": {
+        "input": 7581,
+        "output": 1110,
+        "estimated": true
+      },
+      "estCostUsd": 0.13131,
+      "retrieval": {
+        "query": "Our block already has a group chat but things get lost in it. I want a lending board — a place where neighbors can offer stuff like ladders and folding tables, and ask to borrow things, so we stop all buying the same tools.\nWho can post offers and asks? → Any neighbor, right away\nWhich of these does it look like? → The corkboard at the hardware store — plywood tan, hand-pinned cards, sturdy stencil type",
+        "dropped": 0,
+        "surfaced": [
+          {
+            "slug": "tool-library",
+            "title": "Tool Library",
+            "kind": "recipe",
+            "similarity": 0.738672228624811
+          },
+          {
+            "slug": "community-supplies",
+            "title": "Community Supplies",
+            "kind": "prompt",
+            "similarity": 0.74618152491009
+          },
+          {
+            "slug": "community-income-sharing",
+            "title": "Community Income Sharing",
+            "kind": "prompt",
+            "similarity": 0.734312185373153
+          },
+          {
+            "slug": "build-living-asset-map",
+            "title": "Build: A Living Asset Map",
+            "kind": "prompt",
+            "similarity": 0.727421657217881
+          },
+          {
+            "slug": "community-clubs-platform",
+            "title": "Community Clubs Platform",
+            "kind": "prompt",
+            "similarity": 0.725949278318376
+          },
+          {
+            "slug": "block-party-organizing",
+            "title": "Block Party Organizing",
+            "kind": "prompt",
+            "similarity": 0.725557062824749
+          },
+          {
+            "slug": "build-block-scale-pb",
+            "title": "Build: Participatory Budgeting for a Very Small Budget",
+            "kind": "prompt",
+            "similarity": 0.720767638767715
+          },
+          {
+            "slug": "faith-community-care-connector",
+            "title": "Faith Community Care Connector",
+            "kind": "prompt",
+            "similarity": 0.720142720096586
+          }
+        ]
+      },
+      "mentionedTitles": [
+        "Tool Library",
+        "Community Supplies",
+        "Community Income Sharing"
+      ],
+      "checks": [
+        {
+          "id": "no-file-blocks",
+          "description": "No filename-annotated code or edit blocks (plan mode must not create files)",
+          "pass": true
+        },
+        {
+          "id": "no-flattery-open",
+          "description": "Does not open with flattery",
+          "pass": true,
+          "detail": "Both answers settle it — here's the plan."
+        },
+        {
+          "id": "commons-grounded",
+          "description": "Draws on at least one surfaced commons entry by name (production chip matcher)",
+          "pass": true,
+          "detail": "mentioned 3/8 surfaced"
+        },
+        {
+          "id": "sections-present",
+          "description": "Carries the drafted plan's core sections (vision, people & practices, features/artifacts, look & feel, first screen, data & services)",
+          "pass": true,
+          "detail": "all seven present"
+        },
+        {
+          "id": "project-name",
+          "description": "Exactly one PROJECT-NAME line, a real name (1–5 words)",
+          "pass": true,
+          "detail": "The Block Lending Board"
+        },
+        {
+          "id": "first-build-restraint",
+          "description": "First build stays small (≤6 items) and Later exists with at least one",
+          "pass": true,
+          "detail": "first build 3 items, later 11"
+        },
+        {
+          "id": "look-concrete",
+          "description": "Look & feel commits to real values — at least one hex color and a named font",
+          "pass": true,
+          "detail": "hex: #C9A876 #2B2118 #C0392B #F5EFE3 · fonts: Public Sans"
+        },
+        {
+          "id": "no-question-section",
+          "description": "The drafted plan asks no questions of its own",
+          "pass": true
+        },
+        {
+          "id": "invites-build",
+          "description": "Ends by inviting refinement or \"Build this plan\"",
+          "pass": true
+        },
+        {
+          "id": "size-band",
+          "description": "A readable draft, not a stub or a spec dump (250–1800 words)",
+          "pass": true,
+          "detail": "771 words"
+        }
+      ],
+      "judge": {
+        "model": "sonnet-5",
+        "referenced": [
+          "Tool Library",
+          "Community Supplies"
+        ],
+        "fabricated": [
+          "Claim that many real tool libraries 'started exactly here, as an informal inventory of what neighbors already own' — not supported by the Tool Library entry's excerpt"
+        ],
+        "notes": "The plan accurately draws on Tool Library and Community Supplies but invents an unsupported origin-story detail about tool libraries as if it were commons lore.",
+        "estCostUsd": 0.010055999999999999
+      },
+      "planText": "Both answers settle it — here's the plan.\n\n# The Block Lending Board\n\n## The vision\n\nA neighbor needs a folding table for Saturday. Instead of scrolling back through three weeks of group chat, they open the board and see it in three seconds: pinned cards on a plywood corkboard — *ladder, 8ft, Dana at #14* — *WANTED: stand mixer, this weekend*. They tap a card, see whose it is, and the handoff happens on a porch. The group chat stays what it's good at — conversation — and the board becomes the block's shared memory of who has what. Over time it quietly proves the Tool Library math: a block doesn't need twelve drills, it needs one good one and a way to find it.\n\n## People & practices\n\n- **For:** everyone already in the block group chat — that chat is the front door. The board gets shared there once, then pinned.\n- **Posting:** any neighbor, right away, no approval step — you chose openness, which fits a block where people already know each other by chat handle.\n- **Tending:** the board needs one person (you, at first) who seeds it with 4–5 real offers before sharing the link, and who clears stale cards monthly. A board that opens empty dies; a board that opens with your actual ladder on it works.\n- **Lineage:** the **Tool Library** recipe from the commons is the grown-up version of this — hundreds now exist across North America, and many started exactly here, as an informal inventory of what neighbors already own. If the board takes off, that recipe is the path (it also warns this takes real stewardship time, which is why we start with a board, not a library). The **Community Supplies** prompt in the commons builds a similar tool; we're deliberately skipping its accounts, filters, and landing-page apparatus — a single block doesn't need a zip code filter.\n\n## Features\n\n**First build** — the one loop the board exists for:\n- The board itself: offer cards and ask cards, pinned in a loose grid, newest first\n- Post a card: name, item, offer/wanted, a note, optional photo\n- Respond: a \"borrow this\" / \"I have one\" tap that shows the poster's preferred contact (chat handle or phone)\n\n**Later** — good ideas that earn their turn once the board has real traffic:\n- Marking items \"out on loan\" and due-back dates\n- A simple inventory view by category\n- Photos of every item, borrow history, a steward view for clearing stale cards\n\nKeeping the first build this small isn't a downgrade — it arrives in minutes as a draft you react to, and the second build lands the rest, aimed by what neighbors actually do with it.\n\n## Look & feel\n\nThe board is a version of **the corkboard at the hardware store** — that decides the layout, not just the colors. Cards pinned at slight, varied angles, a pushpin dot at the top of each.\n\n- **Ground:** plywood tan, `#C9A876`, with a subtle grain texture\n- **Ink:** near-black brown, `#2B2118`\n- **Signal color:** one hardware-store red, `#C0392B` — used only for WANTED cards, so asks jump out from offers at a glance\n- **Type:** **Stardos Stencil** for card headlines (sturdy stencil, per your pick), **Public Sans** for everything else\n- **Edge:** square-cornered cards in off-white `#F5EFE3`, hard drop shadows like real paper, dense grid, no rounded-friendly-app softness\n\nAll of this comes straight from your corkboard answer. If you have a photo of an actual corkboard or sign on your block you love, attach it — real reference beats my hexes.\n\n## The first screen\n\nThe board itself, immediately: pinned cards filling the screen, offers in off-white and asks flagged red, plus one button — **Pin a card**. Nothing else. Deliberately absent: a hero banner, a welcome paragraph, a how-it-works page, sign-in, and category filters the board hasn't earned yet. If a neighbor at a bus stop can't tell what it is in three seconds, we've failed.\n\n## Pages & files\n\n- `index.html` — the board and the post-a-card form (one page is the whole tool)\n- `styles.css` — the corkboard design system\n- `app.js` — loading, posting, and responding to cards\n\n## Data & services\n\nCards need to be shared across neighbors, so this needs a small backend — **Community Cloud (Supabase)**: one `cards` table (name, item, type, note, contact, photo URL, posted date). No email, no scraping. Env vars: `SUPABASE_URL`, `SUPABASE_ANON_KEY`.\n\n---\n\nRefine anything here — the name, the red, what's First vs. Later — or press **Build this plan** when it feels right.\n\nPROJECT-NAME: The Block Lending Board",
+      "error": null
+    },
+    {
+      "alias": "fable-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-fable-5",
+      "scenarioId": "open-ended-starter",
+      "scenarioVersion": "p1",
+      "trial": 1,
+      "startedAt": "2026-08-28T06:00:26.174Z",
+      "latencyMs": 13885,
+      "ttftMs": 6041,
+      "finishReason": "stop",
+      "outputChars": 1823,
+      "words": 304,
+      "estTokens": {
+        "input": 8004,
+        "output": 456,
+        "estimated": true
+      },
+      "estCostUsd": 0.10284,
+      "retrieval": {
+        "query": "I keep thinking my street could feel more like an actual neighborhood. People wave, but nobody really knows each other. I don't know what to build, or whether building anything is even the right move.",
+        "dropped": 0,
+        "surfaced": [
+          {
+            "slug": "porch-conversations",
+            "title": "Porch Conversations",
+            "kind": "recipe",
+            "similarity": 0.682240838309755
+          },
+          {
+            "slug": "intersection-repair",
+            "title": "Intersection Repair",
+            "kind": "recipe",
+            "similarity": 0.680730511417443
+          },
+          {
+            "slug": "block-stewards",
+            "title": "Block Stewards",
+            "kind": "recipe",
+            "similarity": 0.675817009709487
+          },
+          {
+            "slug": "an-outer-sunset-story",
+            "title": "An Outer Sunset Story",
+            "kind": "story",
+            "similarity": 0.671416637493325
+          },
+          {
+            "slug": "topic-index",
+            "title": "Topic Index",
+            "kind": "framework",
+            "similarity": 0.672827284735802
+          },
+          {
+            "slug": "porch-conversations-and-front-porch-culture",
+            "title": "Porch Conversations and Front Porch Culture",
+            "kind": "reference",
+            "similarity": 0.668931261446687
+          },
+          {
+            "slug": "build-relational-map",
+            "title": "Build: A Relational Map for Your Block",
+            "kind": "prompt",
+            "similarity": 0.681393461152904
+          },
+          {
+            "slug": "build-local-ushahidi-third-places",
+            "title": "Build: A Third-Places Map for Your Neighborhood",
+            "kind": "prompt",
+            "similarity": 0.666400247400231
+          }
+        ]
+      },
+      "mentionedTitles": [
+        "Porch Conversations",
+        "Intersection Repair",
+        "Block Stewards",
+        "An Outer Sunset Story",
+        "Build: A Relational Map for Your Block"
+      ],
+      "checks": [
+        {
+          "id": "no-file-blocks",
+          "description": "No filename-annotated code or edit blocks (plan mode must not create files)",
+          "pass": true
+        },
+        {
+          "id": "no-flattery-open",
+          "description": "Does not open with flattery",
+          "pass": true,
+          "detail": "The honest answer first: the right move might not be software at all — and that'"
+        },
+        {
+          "id": "commons-grounded",
+          "description": "Draws on at least one surfaced commons entry by name (production chip matcher)",
+          "pass": true,
+          "detail": "mentioned 5/8 surfaced"
+        },
+        {
+          "id": "does-not-draft",
+          "description": "A seed gets a conversation, not a document — no drafted plan, no PROJECT-NAME",
+          "pass": true,
+          "detail": "0 plan-section headings"
+        },
+        {
+          "id": "question-format",
+          "description": "Uses \"## Question for you\" with 1–3 numbered questions and one-tap options",
+          "pass": true,
+          "detail": "2 questions, 8 option bullets"
+        },
+        {
+          "id": "explore-brevity",
+          "description": "Exploring reply stays short — prose before the questions ≤260 words",
+          "pass": true,
+          "detail": "213 words before the question section"
+        }
+      ],
+      "judge": {
+        "model": "sonnet-5",
+        "referenced": [
+          "Porch Conversations",
+          "Block Stewards",
+          "Intersection Repair",
+          "An Outer Sunset Story",
+          "Build: A Relational Map for Your Block"
+        ],
+        "fabricated": [],
+        "notes": "All specific claims (porch sitting, block stewards, intersection repair details, Josh Nesbit's story opening, the relational map tool) map accurately to entries in the provided knowledge base.",
+        "estCostUsd": 0.007949999999999999
+      },
+      "planText": "The honest answer first: the right move might not be software at all — and that's a fine outcome here. The commons has a lot of stories that start exactly where you are (\"people wave, but nobody really knows each other\" is almost word-for-word how Josh Nesbit's Outer Sunset story begins), and the ones that worked started with presence, not apps.\n\nA few genuinely different directions your instinct could go:\n\n- **Just be findable.** The *Porch Conversations* recipe is the smallest practice in the commons: sit out front on purpose, regularly, until waves turn into conversations. Zero build. Weeks, not days. It produces more neighbor relationships than almost anything else.\n- **Become the connector.** The *Block Stewards* recipe — quietly get to know everyone, notice who has a ladder and who has a new baby, make introductions. If you go this way, a small private tool (like the commons' *Relational Map for Your Block* starter) can help you remember conversations and follow-ups. Tech serves you, invisibly.\n- **Make one shared thing happen.** A visible project neighbors do *together* — anywhere from a street potluck up to *Intersection Repair* (Portland's Share-It Square: paint the intersection, add benches and a tiny library). Here the build might be a flyer and an invitation, not an app.\n\n## Question for you\n1. Which of these feels most like you?\n   - Quiet presence — porch sitting, no project needed\n   - The connector — I'd enjoy knowing everyone and linking people up\n   - A shared project — something visible we make together\n   - Honestly not sure yet\n2. What already happens on your street that this could join?\n   - Kids play outside / school pickup foot traffic\n   - Dog walkers pass at regular times\n   - Nothing regular that I've noticed\n   - There's one event a year (Halloween, a yard sale...)",
+      "error": null
+    }
+  ]
+}

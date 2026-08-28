@@ -93,12 +93,69 @@ bench/results/<runId>/
   `chromium --screenshot`; with neither installed they're skipped and the
   review page still works.
 
+## Plan-phase bench
+
+The strategy stage gets its own bench — plans shape everything downstream of
+them, and `COMMUNITY_PLAN_MODEL` (Fable 5) was chosen on judgment, not
+numbers. This is the bench that judgment call asked for.
+
+```bash
+npm run bench -- plan selftest        # checks + writers on canned replies, free
+npm run bench -- plan --dry-run       # live retrieval + prompt sizes, no model calls
+npm run bench -- plan                 # the production default model, 3 scenarios, ~$1
+npm run bench -- plan --models claude-fable-5,claude-opus-5 --trials 3
+npm run bench -- plan report bench/results/plan/<runId>   # merge scores.json → report.md
+npm run bench -- plan review bench/results/plan/<runId>   # regenerate review page
+```
+
+**Frozen inputs** (`plan-tasks.ts`, versioned — bump `PLAN_SCENARIOS_VERSION`
+to change anything): a normal neighborhood **project** ask (community garden;
+the shaping Q&A is scripted so the measured reply is the drafted plan), a
+normal relational-tech **tool** request (a lending board, same shape), and an
+open-ended **starter** seed — where the correct reply explores (directions +
+one-tap questions) and drafting a document is the failure.
+
+**Production pipeline, for real:** live commons retrieval through the
+retrieval policy, frames sensed from what surfaced, `buildPromptContext` in
+plan mode, and the volatile turn context appended to the outgoing user
+message after `TURN_BREAK` — the exact message shape ChatPanel sends. The
+default model is imported from `COMMUNITY_PLAN_MODEL`, so a bare run always
+measures what community builders actually get. Retrieval runs once per
+scenario per run: every model sees the same surfaced set (fair within a
+run); the corpus is live, so drift across runs is expected and recorded.
+Known deltas from production: anonymous builder (no profile/ecosystem
+sections) and web tools off.
+
+**Scoring — three layers:**
+
+1. **Mechanical** (free, `lib/plan-checks.ts`): the plan-mode contract a
+   regex can hold — sections present, one real `PROJECT-NAME`, First build
+   ≤6 items with a Later list, Look & feel committing to a hex + a named
+   font, no code blocks, no question section in a draft (and for the seed:
+   no draft, correct "Question for you" format, brevity), plus commons
+   grounding via the production chip matcher.
+2. **Judge** (`lib/judge.ts`, shared with the design eval, ~cents): the
+   factual honesty questions only — which surfaced entries the plan drew
+   on, and whether it fabricated commons-ish citations. Aesthetics stay
+   human.
+3. **Human review** (the score that decides): `review/index.html`, blinded,
+   plans side by side per scenario. Three dimensions, **0–10** each — RT
+   alignment, creativity, overall quality — with **overall weighted 2×**:
+   composite = (RT + creativity + 2×overall) / 4. Export → save as
+   `review/scores.json` → `plan report` merges it.
+
+Results land in `bench/results/plan/<runId>/` (same commit rules as model
+runs: `run.json`, `report.md`, `review/scores.json` committed; `artifacts/`
+and the review page regenerable, gitignored). Generations vary — decision
+runs want `--trials 3` and medians, same as the model bench.
+
 ## Commons retrieval evals
 
 Two additional subcommands measure the knowledge side of the Builder — how
 well RT Commons retrieval finds, filters, and lands in plans. They use the
 same Vite-SSR harness (production `searchCommons`, the retrieval policy in
-`src/knowledge/retrieval.ts`, the production `buildSystemPrompt`).
+`src/knowledge/retrieval.ts`, the production `buildPromptContext` with the
+turn context sent production's way).
 
 ### Layer 1 — retrieval golden set (free, no LLM)
 
