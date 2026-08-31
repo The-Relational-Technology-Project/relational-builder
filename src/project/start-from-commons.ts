@@ -1,3 +1,4 @@
+import { referenceCodebaseNote } from '@/project/remix';
 import { stashAndStartFresh } from '@/project/local-projects';
 import { useCloudStore } from '@/store/cloud-store';
 import { useProjectStore } from '@/store/project-store';
@@ -36,6 +37,9 @@ export async function startFromCommonsItem(card: CommonsCard): Promise<void> {
   const draft = [
     opening,
     summary ? `\nWhat it is: ${summary}` : '',
+    // When the original's source is a public repo, say so — the model can
+    // consult how it was actually built instead of guessing from the summary
+    referenceCodebaseNote(card.source_url),
     '\nHelp me plan this for my place — where would we start?',
     // The original's screenshot rides along as a visible attachment, same as
     // the relational tech tools' remix flow: the model sees what the original

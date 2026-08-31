@@ -49,7 +49,7 @@ export async function deployToVercel(
       name: projectName.replace(/[^a-z0-9-]/gi, '-').toLowerCase(),
       files: vercelFiles,
       projectSettings: {
-        framework: null, // static site
+        framework: null, // static site + zero-config `api/*` serverless functions
       },
       env: envVars,
     }),
@@ -61,6 +61,31 @@ export async function deployToVercel(
   }
 
   const deployment = await res.json();
+
+  // Persist env vars on the project too (encrypted, runtime): the inline
+  // `env` above covers this deployment, but serverless functions on later
+  // publishes need the vars to live on the project. Best-effort — a failure
+  // here shouldn't fail a deploy that already succeeded.
+  if (envVars && Object.keys(envVars).length > 0 && deployment.projectId) {
+    await fetch(
+      `https://api.vercel.com/v10/projects/${deployment.projectId}/env?upsert=true`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(
+          Object.entries(envVars).map(([key, value]) => ({
+            key,
+            value,
+            type: 'encrypted',
+            target: ['production', 'preview'],
+          })),
+        ),
+      },
+    ).catch(() => {});
+  }
 
   const result: VercelDeployResult = {
     url: `https://${deployment.url}`,

@@ -55,8 +55,8 @@ export function IntegrationsPanel() {
           <ResendCard key={def.id} def={def} isConnected={connected.has(def.id)} />
         ) : def.id === 'supabase' ? (
           <SupabaseCard key={def.id} def={def} isConnected={connected.has(def.id)} />
-        ) : def.id in AI_VAULT_SERVICES ? (
-          <CloudAiCard key={def.id} def={def} isConnected={connected.has(def.id)} />
+        ) : def.id in CLOUD_VAULT_SERVICES ? (
+          <CloudVaultCard key={def.id} def={def} isConnected={connected.has(def.id)} />
         ) : (
           <IntegrationCard key={def.id} def={def} isConnected={connected.has(def.id)} />
         ),
@@ -86,21 +86,22 @@ type CheckState =
   | { phase: 'checking' }
   | { phase: 'done'; result: VerifyResult };
 
-/** Catalog id → vault service + env marker for the AI providers */
-const AI_VAULT_SERVICES: Record<string, { service: string; marker: string }> = {
-  claude: { service: 'anthropic', marker: 'COMMUNITY_AI_ANTHROPIC' },
-  gemini: { service: 'gemini', marker: 'COMMUNITY_AI_GEMINI' },
-  openai: { service: 'openai', marker: 'COMMUNITY_AI_OPENAI' },
+/** Catalog id → vault service + env marker + what starts working ("<works> in the preview…") */
+const CLOUD_VAULT_SERVICES: Record<string, { service: string; marker: string; works: string }> = {
+  claude: { service: 'anthropic', marker: 'COMMUNITY_AI_ANTHROPIC', works: 'AI features work' },
+  gemini: { service: 'gemini', marker: 'COMMUNITY_AI_GEMINI', works: 'AI features work' },
+  openai: { service: 'openai', marker: 'COMMUNITY_AI_OPENAI', works: 'AI features work' },
+  firecrawl: { service: 'firecrawl', marker: 'COMMUNITY_SCRAPE', works: 'scraping works' },
 };
 
 /**
- * AI providers get the same vault treatment as Resend: with Community Cloud
- * on, the key lives server-side and in-app AI works in the preview and on
- * hosted sites via the ai_chat capability. Legacy secret-env-var path stays
- * for Netlify/Vercel-only builders.
+ * AI providers and Firecrawl get the same vault treatment as Resend: with
+ * Community Cloud on, the key lives server-side and the feature works in the
+ * preview and on hosted sites via its capability (ai_chat / scrape). Legacy
+ * secret-env-var path stays for Vercel-only builders.
  */
-function CloudAiCard({ def, isConnected }: { def: IntegrationDef; isConnected: boolean }) {
-  const { service, marker } = AI_VAULT_SERVICES[def.id];
+function CloudVaultCard({ def, isConnected }: { def: IntegrationDef; isConnected: boolean }) {
+  const { service, marker, works } = CLOUD_VAULT_SERVICES[def.id];
   const vars = useEnvStore(s => s.vars);
   const setVar = useEnvStore(s => s.setVar);
   const removeVar = useEnvStore(s => s.removeVar);
@@ -151,7 +152,7 @@ function CloudAiCard({ def, isConnected }: { def: IntegrationDef; isConnected: b
       setVar(marker, 'on', false);
       setKeyInput('');
       setExpanded(false);
-      setNote({ tone: 'ok', text: 'Key verified — AI features now work in the preview and on your hosted site.' });
+      setNote({ tone: 'ok', text: `Key verified — ${works} now in the preview and on your hosted site.` });
     } catch (err) {
       setNote({ tone: 'error', text: err instanceof Error ? err.message : 'Could not save the key' });
     } finally {
@@ -222,7 +223,7 @@ function CloudAiCard({ def, isConnected }: { def: IntegrationDef; isConnected: b
       {viaCloud && (
         <p className="text-xs text-muted-foreground leading-relaxed flex items-start gap-1.5">
           <Cloud className="size-3 mt-0.5 shrink-0 text-green-600" />
-          <span>Your key is vaulted server-side — AI features work in the preview and on your community-hosted site.</span>
+          <span>Your key is vaulted server-side — {works} in the preview and on your community-hosted site.</span>
         </p>
       )}
 
@@ -239,7 +240,7 @@ function CloudAiCard({ def, isConnected }: { def: IntegrationDef; isConnected: b
             <>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 Turn on Community Cloud first and your {def.name} key gets vaulted
-                server-side — AI features then work everywhere, including the live
+                server-side — {works} then everywhere, including the live
                 preview. No Netlify or Vercel account needed.
               </p>
               <Button size="sm" className="h-7 text-xs gap-1.5" disabled={busy !== 'idle'} onClick={handleEnableCloud}>

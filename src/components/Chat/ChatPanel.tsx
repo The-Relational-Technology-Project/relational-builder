@@ -17,6 +17,7 @@ import {
   COMMUNITY_CLOUD_GUIDANCE,
   RESEND_CLOUD_GUIDANCE,
   AI_CLOUD_GUIDANCE,
+  SCRAPE_CLOUD_GUIDANCE,
 } from '@/integrations/catalog';
 import { reconcileCloudSchema } from '@/cloud/schema-sync';
 import { applySupabaseChanges, supabaseManaged } from '@/cloud/supabase-admin';
@@ -487,9 +488,11 @@ export function ChatPanel() {
         : null;
     const envVars = useEnvStore.getState().vars;
     const connectedServices = getConnectedIntegrations(envVars);
-    // Resend via the Community Cloud vault (COMMUNITY_EMAIL marker) swaps the
-    // serverless-function guidance for the capability-endpoint pattern
+    // Resend / Firecrawl via the Community Cloud vault (COMMUNITY_EMAIL /
+    // COMMUNITY_SCRAPE markers) swap the serverless-function guidance for
+    // the capability-endpoint pattern
     const emailViaCloud = envVars.some(v => v.key === 'COMMUNITY_EMAIL' && v.value.trim());
+    const scrapeViaCloud = envVars.some(v => v.key === 'COMMUNITY_SCRAPE' && v.value.trim());
     // Managed Supabase swaps the paste-this-SQL guidance for the
     // migrations-directory convention the auto-apply flow understands
     const sbManaged = supabaseManaged().managed;
@@ -498,6 +501,7 @@ export function ChatPanel() {
     };
     const serviceGuidance = connectedServices.map(s =>
       s.id === 'resend' && emailViaCloud ? RESEND_CLOUD_GUIDANCE :
+      s.id === 'firecrawl' && scrapeViaCloud ? SCRAPE_CLOUD_GUIDANCE :
       s.id === 'supabase' && sbManaged ? SUPABASE_MANAGED_GUIDANCE :
       aiMarkers[s.id] && envVars.some(v => v.key === aiMarkers[s.id] && v.value.trim()) ? AI_CLOUD_GUIDANCE :
       s.aiGuidance,

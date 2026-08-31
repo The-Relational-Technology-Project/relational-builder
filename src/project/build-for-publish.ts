@@ -42,6 +42,23 @@ export function needsBuild(files: FileEntry[]): boolean {
 const SOURCE_PATH = /(^\/src\/)|(^\/index\.html$)|(\.(tsx|ts|jsx)$)|(\.css$)|((^|\/)(vite|tailwind|postcss)\.config\.[jt]s$)|((^|\/)(package|tsconfig[^/]*)\.json$)/;
 
 /**
+ * Serverless function sources. Not part of the static site on any target
+ * (shipping them as plain files would serve function source as text), but
+ * Vercel builds `api/*` into real functions from its file-system routing —
+ * the Publish → Vercel path appends them via `vercelServerlessFiles`.
+ * Netlify's zip deploy and community hosting are static-only and can't run
+ * them; `netlify/functions/*` only runs when Netlify builds a synced repo.
+ */
+export const SERVERLESS_PATH = /^\/?(api|netlify\/functions)\//;
+
+/** The `api/*` sources a Vercel deployment compiles into serverless functions. */
+export function vercelServerlessFiles(files: FileEntry[]): FileEntry[] {
+  return files
+    .filter(f => /^\/?api\//.test(f.path) && /\.(ts|js|mts|mjs)$/.test(f.path))
+    .map(f => ({ ...f, path: f.path.startsWith('/') ? f.path : '/' + f.path }));
+}
+
+/**
  * Build the deployable static site for a framework project.
  * Throws with readable build errors — publish should fail loudly, not ship
  * a broken site.
@@ -95,7 +112,7 @@ export async function buildStaticSite(
   const out: FileEntry[] = [entryOf('/index.html', html, 'html')];
   for (const f of files) {
     const path = f.path.startsWith('/') ? f.path : '/' + f.path;
-    if (!SOURCE_PATH.test(path)) out.push({ ...f, path });
+    if (!SOURCE_PATH.test(path) && !SERVERLESS_PATH.test(path)) out.push({ ...f, path });
   }
   return out;
 }

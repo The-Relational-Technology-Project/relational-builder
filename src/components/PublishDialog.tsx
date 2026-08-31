@@ -12,7 +12,7 @@ import { useDeployStore } from '@/store/deploy-store';
 import { useEnvStore } from '@/store/env-store';
 import { exportProjectZip, downloadBlob } from '@/project/export';
 import { buildEnvJs } from '@/project/env-module';
-import { needsBuild, buildStaticSite, materializeSource } from '@/project/build-for-publish';
+import { needsBuild, buildStaticSite, materializeSource, vercelServerlessFiles, SERVERLESS_PATH } from '@/project/build-for-publish';
 import { withAppIcons } from '@/project/app-icon';
 import { publishToCommunityHosting } from '@/project/deploy-community';
 import { useAuthStore, cloudEnabled } from '@/store/auth-store';
@@ -133,8 +133,10 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
       const isFramework = needsBuild(files);
       const builtFiles = isFramework ? await buildStaticSite(files, publicEnvVars) : files;
       // Every hosted site ships home-screen icons (manifest + apple-touch-icon)
-      // unless the project brings its own
-      const siteFiles = withAppIcons(builtFiles, projectName);
+      // unless the project brings its own. Serverless sources stay out of the
+      // static file set on every target — Vercel gets its `api/*` functions
+      // appended below, where they actually run.
+      const siteFiles = withAppIcons(builtFiles, projectName).filter(f => !SERVERLESS_PATH.test(f.path));
 
       if (activeTarget === 'community') {
         const res = await publishToCommunityHosting(siteFiles, projectName, publicEnvVars, passphrase);
@@ -164,7 +166,13 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
           publicEnvVars.length > 0 && !siteFiles.some(f => f.path.replace(/^\//, '') === 'env.js')
             ? [...siteFiles, { path: '/env.js', content: buildEnvJs(publicEnvVars), language: 'javascript', createdAt: Date.now(), updatedAt: Date.now() }]
             : siteFiles;
-        const res = await deployToVercel(filesWithEnv, projectName, vercelToken, envRecord, domain);
+        // `api/*` sources ride along un-bundled: Vercel's file-system routing
+        // compiles them into serverless functions (secrets reach them as
+        // project env vars, set inside deployToVercel)
+        const res = await deployToVercel(
+          [...filesWithEnv, ...vercelServerlessFiles(files)],
+          projectName, vercelToken, envRecord, domain,
+        );
         setResult({ url: res.url, adminUrl: res.deploymentUrl, dnsInstructions: res.dnsInstructions });
       }
 

@@ -1,5 +1,6 @@
 import { getCachedStarter, cacheStarter } from '@/cloud/starter-prompts';
 import { distillStarterPrompt } from '@/knowledge/prompt-distiller';
+import { referenceCodebaseNote } from '@/project/remix';
 import { stashAndStartFresh } from '@/project/local-projects';
 import { useCloudStore } from '@/store/cloud-store';
 import { useProjectStore } from '@/store/project-store';
@@ -52,10 +53,12 @@ export async function startFromStudioTool(tool: Tool): Promise<void> {
     sourceUrl: key,
     importedAt: new Date().toISOString(),
   });
+  // The starter is intent-level by design, but the original's repo is real
+  // and public — the note lets the model lean on its approach when useful
   useChatStore.getState().setDraftMessage(
-    screenshots.length > 0
+    (screenshots.length > 0
       ? `${starter.body}\n\nThe attached screenshot${screenshots.length > 1 ? 's show' : ' shows'} the original tool. Use it as the visual reference: keep the parts that transfer close to the original, and adapt the look and details to my answers.`
-      : starter.body,
+      : starter.body) + referenceCodebaseNote(key),
   );
   useChatStore.getState().setDraftAttachments(screenshots.length > 0 ? screenshots : null);
 }

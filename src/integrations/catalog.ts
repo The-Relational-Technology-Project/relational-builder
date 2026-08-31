@@ -71,10 +71,10 @@ export const INTEGRATIONS: IntegrationDef[] = [
     ],
     aiGuidance: [
       '- **Neon (serverless Postgres) is connected.** The connection string lives in the secret env var `DATABASE_URL` — it must NEVER appear in browser code.',
-      '  Use it only inside serverless functions (`netlify/functions/*.mts` for Netlify or `api/*.ts` for Vercel) with the `@neondatabase/serverless` driver, and have the browser call those functions with `fetch`.',
+      '  Use it only inside serverless functions (`api/*.ts` — Publish → Vercel deploys these; Netlify publishes are static-only, so `netlify/functions/*.mts` runs only when Netlify builds a GitHub-synced repo) with the `@neondatabase/serverless` driver, and have the browser call those functions with `fetch`.',
       '  Include the SQL schema as a `neon-schema.sql` file and tell the user to run it in the Neon SQL editor.',
     ].join('\n'),
-    setupHint: 'Stored as a secret — never included in previews or shared links, only sent to Netlify/Vercel at deploy time for serverless functions.',
+    setupHint: 'Stored as a secret — never included in previews or shared links, only sent to Vercel at deploy time for serverless functions.',
   },
   {
     id: 'resend',
@@ -87,10 +87,10 @@ export const INTEGRATIONS: IntegrationDef[] = [
     ],
     aiGuidance: [
       '- **Resend (email) is connected.** The API key lives in the secret env var `RESEND_API_KEY` — never call Resend from the browser.',
-      '  Generate a serverless function (`netlify/functions/send-email.mts` for Netlify or `api/send-email.ts` for Vercel) that POSTs to `https://api.resend.com/emails` with the `Authorization: Bearer` header, and have the browser call it with `fetch`.',
+      '  Generate a serverless function (`api/send-email.ts` — Publish → Vercel deploys it; Netlify publishes are static-only and can\'t run functions) that POSTs to `https://api.resend.com/emails` with the `Authorization: Bearer` header, and have the browser call it with `fetch`.',
       '  Until the user verifies their own domain in Resend, use `onboarding@resend.dev` as the from address and mention that limitation.',
     ].join('\n'),
-    setupHint: 'With Community Cloud on, your key is vaulted server-side and email works everywhere — the preview, your community-hosted site, any deploy. Without it, the key is stored as a secret and works once deployed to Netlify or Vercel.',
+    setupHint: 'With Community Cloud on, your key is vaulted server-side and email works everywhere — the preview, your community-hosted site, any deploy. Without it, the key is stored as a secret and works once deployed to Vercel.',
     altConnectedKeys: ['COMMUNITY_EMAIL'],
   },
   {
@@ -104,10 +104,11 @@ export const INTEGRATIONS: IntegrationDef[] = [
     ],
     aiGuidance: [
       '- **Firecrawl (web scraping) is connected.** The API key lives in the secret env var `FIRECRAWL_API_KEY` — never call Firecrawl from the browser.',
-      '  Generate a serverless function (`netlify/functions/scrape.mts` for Netlify or `api/scrape.ts` for Vercel) that POSTs to `https://api.firecrawl.dev/v2/scrape` with the `Authorization: Bearer` header, passing the target URL and `formats: ["markdown"]`, and have the browser call it with `fetch`.',
+      '  Generate a serverless function (`api/scrape.ts` — Publish → Vercel deploys it; Netlify publishes are static-only and can\'t run functions) that POSTs to `https://api.firecrawl.dev/v2/scrape` with the `Authorization: Bearer` header, passing the target URL and `formats: ["markdown"]`, and have the browser call it with `fetch`. Say clearly that scraping works once the app is published to Vercel — not in the preview.',
       '  Be respectful: scrape public community pages (calendars, org sites), cache results, and avoid tight polling loops.',
     ].join('\n'),
-    setupHint: 'Stored as a secret. Scraping runs in serverless functions once deployed — the AI wires the browser to call your function, not Firecrawl directly.',
+    setupHint: 'With Community Cloud on, your key is vaulted server-side and scraping works everywhere — the preview, your community-hosted site, any deploy. Without it, the key is stored as a secret and works once deployed to Vercel.',
+    altConnectedKeys: ['COMMUNITY_SCRAPE'],
   },
   {
     id: 'claude',
@@ -120,12 +121,12 @@ export const INTEGRATIONS: IntegrationDef[] = [
     ],
     aiGuidance: [
       '- **Claude (Anthropic) is connected** for AI features inside the app. The key lives in the secret env var `ANTHROPIC_API_KEY` — it must NEVER appear in browser code or be sent to the browser.',
-      '  Generate a serverless function (`netlify/functions/ai.mts` for Netlify or `api/ai.ts` for Vercel) that POSTs to `https://api.anthropic.com/v1/messages` with headers `x-api-key: <key>`, `anthropic-version: 2023-06-01`, `content-type: application/json`, and body `{ model, max_tokens, system, messages }`. The browser calls that function with `fetch` — never Anthropic directly.',
+      '  Generate a serverless function (`api/ai.ts` — Publish → Vercel deploys it; Netlify publishes are static-only and can\'t run functions) that POSTs to `https://api.anthropic.com/v1/messages` with headers `x-api-key: <key>`, `anthropic-version: 2023-06-01`, `content-type: application/json`, and body `{ model, max_tokens, system, messages }`. The browser calls that function with `fetch` — never Anthropic directly.',
       '  Model choice: `claude-haiku-4-5` for everyday in-app features (summaries, rewording, simple Q&A — fast and cheap); `claude-sonnet-5` when the feature needs real reasoning or longer writing.',
       '  Keep max_tokens modest (500–2000) for app features, pass user content in `messages` (never concatenated into the system prompt), and show a friendly loading state — responses take a few seconds.',
-      '  Say clearly: AI features run once the app is deployed (Netlify/Vercel carry the secret); they will not work in the builder preview.',
+      '  Say clearly: AI features run once the app is deployed to Vercel (which carries the secret); they will not work in the builder preview.',
     ].join('\n'),
-    setupHint: 'With Community Cloud on, your key is vaulted server-side and AI features work everywhere — the preview included. Without it, the key is a secret that works once deployed to Netlify or Vercel.',
+    setupHint: 'With Community Cloud on, your key is vaulted server-side and AI features work everywhere — the preview included. Without it, the key is a secret that works once deployed to Vercel.',
     altConnectedKeys: ['COMMUNITY_AI_ANTHROPIC'],
   },
   {
@@ -139,11 +140,11 @@ export const INTEGRATIONS: IntegrationDef[] = [
     ],
     aiGuidance: [
       '- **Google Gemini is connected** for AI features inside the app. The key lives in the secret env var `GEMINI_API_KEY` — it must NEVER appear in browser code.',
-      '  Generate a serverless function (`netlify/functions/ai.mts` for Netlify or `api/ai.ts` for Vercel) that POSTs to `https://generativelanguage.googleapis.com/v1beta/models/<model>:generateContent` with the `x-goog-api-key` header. The browser calls that function with `fetch` — never Google directly.',
+      '  Generate a serverless function (`api/ai.ts` — Publish → Vercel deploys it; Netlify publishes are static-only and can\'t run functions) that POSTs to `https://generativelanguage.googleapis.com/v1beta/models/<model>:generateContent` with the `x-goog-api-key` header. The browser calls that function with `fetch` — never Google directly.',
       '  Use a current Gemini Flash model for text features; Gemini also generates and edits images (useful for flyers and artwork) via its image-capable models — return the base64 image data from the function.',
-      '  Say clearly: AI features run once the app is deployed (Netlify/Vercel carry the secret); they will not work in the builder preview.',
+      '  Say clearly: AI features run once the app is deployed to Vercel (which carries the secret); they will not work in the builder preview.',
     ].join('\n'),
-    setupHint: 'With Community Cloud on, your key is vaulted server-side and AI features work everywhere — the preview included. Without it, the key is a secret that works once deployed to Netlify or Vercel.',
+    setupHint: 'With Community Cloud on, your key is vaulted server-side and AI features work everywhere — the preview included. Without it, the key is a secret that works once deployed to Vercel.',
     altConnectedKeys: ['COMMUNITY_AI_GEMINI'],
   },
   {
@@ -157,10 +158,10 @@ export const INTEGRATIONS: IntegrationDef[] = [
     ],
     aiGuidance: [
       '- **OpenAI is connected** for AI features inside the app. The key lives in the secret env var `OPENAI_API_KEY` — it must NEVER appear in browser code.',
-      '  Generate a serverless function (`netlify/functions/ai.mts` for Netlify or `api/ai.ts` for Vercel) that calls `https://api.openai.com/v1/chat/completions` (text) or `https://api.openai.com/v1/images/generations` (images) with the `Authorization: Bearer` header. The browser calls that function with `fetch` — never OpenAI directly.',
-      '  Say clearly: AI features run once the app is deployed (Netlify/Vercel carry the secret); they will not work in the builder preview.',
+      '  Generate a serverless function (`api/ai.ts` — Publish → Vercel deploys it; Netlify publishes are static-only and can\'t run functions) that calls `https://api.openai.com/v1/chat/completions` (text) or `https://api.openai.com/v1/images/generations` (images) with the `Authorization: Bearer` header. The browser calls that function with `fetch` — never OpenAI directly.',
+      '  Say clearly: AI features run once the app is deployed to Vercel (which carries the secret); they will not work in the builder preview.',
     ].join('\n'),
-    setupHint: 'With Community Cloud on, your key is vaulted server-side and AI features work everywhere — the preview included. Without it, the key is a secret that works once deployed to Netlify or Vercel.',
+    setupHint: 'With Community Cloud on, your key is vaulted server-side and AI features work everywhere — the preview included. Without it, the key is a secret that works once deployed to Vercel.',
     altConnectedKeys: ['COMMUNITY_AI_OPENAI'],
   },
 ];
@@ -346,4 +347,27 @@ export const RESEND_CLOUD_GUIDANCE = [
   '  }',
   '  ```',
   '  Rules: `to` is one address or up to 5; `subject` required; `text` and/or `html`; optional `reply_to`. Always check the response and surface `error` to the person in the UI — sends can fail (bad address, or the app hit its daily email limit, which returns a clear message). The from-address is configured in the Services tab, not in code. Only email addresses people typed into THIS app (their own, or an organizer\'s shown in the app) — never invent recipients or build bulk mailers.',
+].join('\n');
+
+/**
+ * Replaces the Firecrawl serverless guidance when the key is vaulted with
+ * Community Cloud (env marker COMMUNITY_SCRAPE): the app calls the managed
+ * scrape capability, so reading outside pages works in the preview and on
+ * community-hosted sites — no serverless functions, no exposed keys.
+ */
+export const SCRAPE_CLOUD_GUIDANCE = [
+  '- **Web scraping is connected through Community Cloud** — the builder\'s Firecrawl key is vaulted server-side and reading outside pages works EVERYWHERE this app runs, including the live preview. Do NOT generate `netlify/functions` or `api/` serverless code for scraping, and never reference `FIRECRAWL_API_KEY` — the app never sees the key. Read a page like this:',
+  '  ```javascript',
+  '  async function readPage(url) {',
+  '    const capUrl = env.COMMUNITY_CAPABILITIES_URL',
+  '      ?? env.COMMUNITY_CLOUD_URL.replace(/app-data$/, "app-capabilities");',
+  '    const res = await fetch(capUrl, {',
+  '      method: "POST",',
+  '      headers: { "Content-Type": "application/json" },',
+  '      body: JSON.stringify({ action: "scrape", app_id: env.APP_ID, app_key: env.APP_KEY, url }),',
+  '    });',
+  '    return res.json();   // {markdown, title, source_url} or {error: "friendly message"}',
+  '  }',
+  '  ```',
+  '  Reads take several seconds — always show a friendly loading state, and handle `{error}` gracefully (there is a daily limit with a clear message). Cache what you fetch (e.g. in Community Cloud or localStorage with a timestamp) and re-read on a person\'s explicit action or at most a few times a day — never poll in a loop. Parsing what came back (e.g. picking events out of a scraped calendar page) pairs well with the ai_chat capability when one is connected. Be respectful: read public community pages (calendars, org sites), and let a person review scraped content before it lands anywhere shared.',
 ].join('\n');

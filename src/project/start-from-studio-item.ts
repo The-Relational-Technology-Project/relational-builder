@@ -1,3 +1,4 @@
+import { referenceCodebaseNote } from '@/project/remix';
 import { stashAndStartFresh } from '@/project/local-projects';
 import { useCloudStore } from '@/store/cloud-store';
 import { useProjectStore } from '@/store/project-store';
@@ -24,6 +25,9 @@ export function startFromStudioItem(item: StudioLibraryItem, studioLabel: string
   const draft = [
     opening,
     item.summary ? `\nWhat it is: ${item.summary}` : '',
+    // A shelf item backed by a public repo carries that pointer into the
+    // draft, so the model can reference the real implementation
+    referenceCodebaseNote(item.url),
     '\nHelp me plan this — where would we start?',
     // The shelf item's screenshot rides along as a visible attachment, same
     // as the relational tech tools' remix flow: the model sees what the

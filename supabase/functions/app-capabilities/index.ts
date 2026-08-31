@@ -24,6 +24,10 @@
  *   ai_chat {app_id, app_key, messages, system?, max_tokens?, member_token?}
  *     — one completion via whichever AI key is vaulted (anthropic | openai |
  *       gemini). Returns {text, service}. Same rate/daily-cap regime.
+ *   scrape {app_id, app_key, url, member_token?}
+ *     — reads one public web page as markdown via the app's vaulted
+ *       Firecrawl key. Returns {markdown, title, source_url}. Same
+ *       rate/daily-cap regime.
  *
  * Deploy: supabase functions deploy app-capabilities --no-verify-jwt
  */
@@ -34,7 +38,7 @@ const CORS = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
-const SERVICES = ['resend', 'anthropic', 'openai', 'gemini'] as const;
+const SERVICES = ['resend', 'anthropic', 'openai', 'gemini', 'firecrawl'] as const;
 type Service = (typeof SERVICES)[number];
 const AI_SERVICES: Service[] = ['anthropic', 'openai', 'gemini'];
 
@@ -46,6 +50,8 @@ const MAX_LOG_LIMIT = 100;
 const MAX_AI_MESSAGES = 20;
 const MAX_AI_INPUT_BYTES = 32 * 1024;
 const MAX_AI_TOKENS = 2048;
+const MAX_SCRAPE_URL_CHARS = 2048;
+const MAX_SCRAPE_MARKDOWN_CHARS = 300_000;
 const AI_DEFAULT_MODEL: Record<string, string> = {
   anthropic: 'claude-haiku-4-5',
   openai: 'gpt-4o-mini',
@@ -99,6 +105,10 @@ Deno.serve(async (req: Request) => {
 
     if (action === 'ai_chat') {
       return await aiChat(body);
+    }
+
+    if (action === 'scrape') {
+      return await scrapeUrl(body);
     }
 
     return json({ error: `Unknown action: ${action}` }, 400);
@@ -207,6 +217,17 @@ async function handleBuilder(req: Request, body: Record<string, unknown>, action
       }
       const secret = await getSecret(appId, service);
       if (!secret) return json({ error: 'No key saved for this service yet' }, 404);
+      // Firecrawl: the credit-usage endpoint proves the key without spend
+      if (service === 'firecrawl') {
+        const probe = await fetch('https://api.firecrawl.dev/v2/team/credit-usage', {
+          headers: { Authorization: `Bearer ${secret.secret}` },
+        });
+        if (probe.ok) return json({ ok: true });
+        if ([400, 401, 403].includes(probe.status)) {
+          return json({ ok: false, error: 'Firecrawl rejected this key — check that you copied it fully' });
+        }
+        return json({ ok: false, error: 'Could not reach Firecrawl — try again shortly' });
+      }
       // AI providers: a free models-list call proves the key without spend
       if (service !== 'resend') {
         const probe =
@@ -543,6 +564,81 @@ async function callProvider(
   return (data?.candidates?.[0]?.content?.parts ?? [])
     .map((p: { text?: string }) => p.text ?? '')
     .join('');
+}
+
+// ── App action: read one public web page with the vaulted Firecrawl key ──
+
+async function scrapeUrl(body: Record<string, unknown>): Promise<Response> {
+  const appId = String(body.app_id ?? '');
+  const appKey = String(body.app_key ?? '');
+  if (!appId || !appKey) return json({ error: 'app_id and app_key required' }, 401);
+  if (isRateLimited(appId)) {
+    return json({ error: 'Rate limit exceeded — try again in a minute' }, 429);
+  }
+
+  const appRes = await fetch(
+    restUrl(`/cloud_apps?id=eq.${encodeURIComponent(appId)}&select=id,app_key`),
+    { headers: svcHeaders() },
+  );
+  const apps = appRes.ok ? await appRes.json() : [];
+  if (!Array.isArray(apps) || apps.length === 0 || apps[0].app_key !== appKey) {
+    return json({ error: 'Unknown app or wrong key' }, 403);
+  }
+
+  const vault = await getSecret(appId, 'firecrawl');
+  if (!vault) {
+    return json({ error: "Scraping isn't set up for this app — the builder can connect Firecrawl in the Services tab" }, 503);
+  }
+
+  const url = String(body.url ?? '').trim();
+  if (!url || url.length > MAX_SCRAPE_URL_CHARS) return json({ error: 'url required' }, 400);
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return json({ error: 'url must be a full web address (https://…)' }, 400);
+  }
+  if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+    return json({ error: 'url must be http(s)' }, 400);
+  }
+
+  if (vault.config?.members_only_send) {
+    const member = await resolveMember(appId, body.member_token);
+    if (!member) return json({ error: 'Sign in to use this feature' }, 403);
+  }
+
+  const usageRes = await fetch(restUrl('/rpc/increment_capability_usage'), {
+    method: 'POST',
+    headers: svcHeaders(),
+    body: JSON.stringify({ p_app_id: appId, p_service: 'firecrawl' }),
+  });
+  const callsToday = usageRes.ok ? Number(await usageRes.json()) : 0;
+  if (callsToday > vault.daily_cap) {
+    return json({ error: "This app reached today's scraping limit — try again tomorrow" }, 429);
+  }
+
+  const scrapeRes = await fetch('https://api.firecrawl.dev/v2/scrape', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${vault.secret}` },
+    body: JSON.stringify({ url, formats: ['markdown'] }),
+  });
+  const data = await scrapeRes.json().catch(() => ({}));
+  if (!scrapeRes.ok || data?.success === false) {
+    const message = String(data?.error ?? `Firecrawl error ${scrapeRes.status}`).slice(0, 300);
+    return json({ error: message }, 502);
+  }
+
+  fetch(restUrl(`/app_secrets?app_id=eq.${encodeURIComponent(appId)}&service=eq.firecrawl`), {
+    method: 'PATCH',
+    headers: svcHeaders(),
+    body: JSON.stringify({ last_used_at: new Date().toISOString() }),
+  }).catch(() => {});
+
+  return json({
+    markdown: String(data?.data?.markdown ?? '').slice(0, MAX_SCRAPE_MARKDOWN_CHARS),
+    title: String(data?.data?.metadata?.title ?? ''),
+    source_url: String(data?.data?.metadata?.sourceURL ?? url),
+  });
 }
 
 /** Resolve a neighbor from a session token (null when absent/expired) — same as app-data */

@@ -301,7 +301,11 @@ export function attachAppToProject(appId: string, appKey: string): void {
 
 export function detachAppFromProject(): void {
   const removeVar = useEnvStore.getState().removeVar;
-  for (const key of ['COMMUNITY_CLOUD_URL', 'COMMUNITY_CAPABILITIES_URL', 'APP_ID', 'APP_KEY', 'COMMUNITY_EMAIL']) removeVar(key);
+  for (const key of [
+    'COMMUNITY_CLOUD_URL', 'COMMUNITY_CAPABILITIES_URL', 'APP_ID', 'APP_KEY',
+    'COMMUNITY_EMAIL', 'COMMUNITY_SCRAPE',
+    'COMMUNITY_AI_ANTHROPIC', 'COMMUNITY_AI_GEMINI', 'COMMUNITY_AI_OPENAI',
+  ]) removeVar(key);
 }
 
 export function formatBytes(bytes: number): string {

@@ -46,6 +46,23 @@ export interface RemixResult {
   skipped: number;
 }
 
+/**
+ * When a remix source has a public codebase, say so in the seeded draft —
+ * visible to the person AND the model. Prompt-level remixing deliberately
+ * distills intent rather than copying implementation, but the model (and a
+ * curious builder) should still know the original's code exists and can be
+ * consulted for how it solved the hard parts — with departures welcome.
+ * Returns '' when the URL isn't a codebase we can point at.
+ */
+export function referenceCodebaseNote(url: string | null | undefined): string {
+  if (!url || !/github\.com\/[\w.-]+\/[\w.-]+/.test(url)) return '';
+  return (
+    `\nGood to know: the original's code is open source at ${url}. ` +
+    'Where it solved something hard (data model, integrations, scraping or sync logic), consult that approach rather than reinventing it — ' +
+    'and depart from it freely where a different stack or a simpler shape serves this build better.'
+  );
+}
+
 /** Accepts "owner/name" or a full github.com URL */
 export function parseRepoRef(input: string): string | null {
   const trimmed = input.trim();
