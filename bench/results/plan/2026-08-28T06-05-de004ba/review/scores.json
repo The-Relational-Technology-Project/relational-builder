@@ -1,0 +1,40 @@
+{
+  "runId": "2026-08-28T06-05-de004ba",
+  "reviewer": "Josh",
+  "scores": {
+    "opus-5": {
+      "neighborhood-project": {
+        "rtAlignment": 9,
+        "creativity": 7,
+        "overall": 8
+      },
+      "rt-tool-request": {
+        "rtAlignment": 9,
+        "creativity": 7,
+        "overall": 8
+      },
+      "open-ended-starter": {
+        "rtAlignment": 8,
+        "creativity": 8,
+        "overall": 8
+      }
+    },
+    "fable-5": {
+      "neighborhood-project": {
+        "rtAlignment": 8,
+        "creativity": 6,
+        "overall": 7
+      },
+      "rt-tool-request": {
+        "rtAlignment": 7,
+        "creativity": 6,
+        "overall": 7
+      },
+      "open-ended-starter": {
+        "rtAlignment": 8,
+        "creativity": 6,
+        "overall": 7
+      }
+    }
+  }
+}

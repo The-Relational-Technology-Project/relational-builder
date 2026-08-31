@@ -4,7 +4,7 @@
 - **Date:** 2026-08-28T06:18:53.356Z
 - **Models:** fable-5, opus-5 · **trials each:** 3 · **judge:** sonnet-5
 - **Pipeline:** live commons retrieval → production plan prompt (`buildPromptContext`) → turn context after TURN_BREAK, production's exact message shape. Anonymous builder (no profile), web tools off.
-- **Human review:** _pending_
+- **Human review:** scored by Josh
 
 > Cost and token figures are **estimates** (chars ÷ 4 × list prices); ~$ includes the judge call.
 > Mechanical columns are medians across trials. **Commons drawn** = surfaced entries the reply
@@ -74,9 +74,35 @@ Retrieval: `I keep thinking my street could feel more like an actual neighborhoo
 - **opus-5** · open-ended-starter t2: referenced 5 (mechanical 5) — The plan draws directly and accurately on five knowledge-base entries without inventing outside sources, and the community framing is appropriate since the user explicitly asked about neighborhood connection.
 - **opus-5** · open-ended-starter t3: referenced 5 (mechanical 5) — All cited items correspond to real knowledge-base entries with content accurately represented, and the request was genuinely about neighborhood community-building.
 
-## Human review
+## Human review (scored by Josh)
 
-_Not scored yet — open review/index.html, score each model per scenario (0–10: RT alignment, creativity, overall — overall counts 2×), export, save as review/scores.json, re-run `npm run bench -- plan report <runDir>`._
+Composite = (RT + Creativity + 2×Overall) / 4, out of 10.
+
+| Rank | Model | Mean composite | Scenarios scored |
+|---|---|---|---|
+| #1 | opus-5 | 8.0 | 3/3 |
+| #2 | fable-5 | 6.9 | 3/3 |
+
+### neighborhood-project
+
+| Model | RT alignment | Creativity | Overall (×2) | Composite | Notes |
+|---|---|---|---|---|---|
+| fable-5 | 8 | 6 | 7 | 7.0 | |
+| opus-5 | 9 | 7 | 8 | 8.0 | |
+
+### rt-tool-request
+
+| Model | RT alignment | Creativity | Overall (×2) | Composite | Notes |
+|---|---|---|---|---|---|
+| fable-5 | 7 | 6 | 7 | 6.8 | |
+| opus-5 | 9 | 7 | 8 | 8.0 | |
+
+### open-ended-starter
+
+| Model | RT alignment | Creativity | Overall (×2) | Composite | Notes |
+|---|---|---|---|---|---|
+| fable-5 | 8 | 6 | 7 | 7.0 | |
+| opus-5 | 8 | 8 | 8 | 8.0 | |
 
 ## Which model plans best
 
