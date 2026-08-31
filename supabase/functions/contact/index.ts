@@ -5,13 +5,18 @@
  * contact_messages (the durable record) and a copy goes to the steward by
  * email — best-effort, since the row is already safe in the database.
  *
- * POST JSON: { name?, email?, neighborhood?, message }
+ * Also carries budget feedback from the daily-budget banner
+ * (topic: 'budget-feedback') — same table, but the email copy goes to the
+ * whole team inbox, since budget sizing is a team resource question.
+ *
+ * POST JSON: { name?, email?, neighborhood?, message, topic? }
  *   - No auth (anyone may write to us); per-IP rate limited
  *
  * Deploy: supabase functions deploy contact --no-verify-jwt
  * Secrets:
  *   RESEND_API_KEY  — Resend key for the relationalbuilder.org domain
- *   STEWARD_EMAIL   — where messages go (default josh@relationaltechproject.org)
+ *   STEWARD_EMAIL   — where contact messages go (default josh@relationaltechproject.org)
+ *   FEEDBACK_EMAIL  — where budget feedback goes (default humans@relationaltechproject.org)
  */
 
 const CORS = {
@@ -63,28 +68,36 @@ Deno.serve(async (req: Request) => {
     const name = String(body.name ?? '').slice(0, 120).trim() || null;
     const email = String(body.email ?? '').slice(0, 200).trim() || null;
     const neighborhood = String(body.neighborhood ?? '').slice(0, 160).trim() || null;
+    const topic = body.topic === 'budget-feedback' ? 'budget-feedback' : null;
 
     const insertRes = await fetch(rest('/contact_messages'), {
       method: 'POST',
       headers: svc(),
-      body: JSON.stringify({ name, email, neighborhood, message }),
+      body: JSON.stringify({ name, email, neighborhood, message, topic }),
     });
     if (!insertRes.ok) return json({ error: 'Could not save your message' }, 500);
 
-    // Copy to the steward — best-effort; the message is already saved
+    // Email copy — best-effort; the message is already saved. Budget feedback
+    // goes to the team inbox, everything else to the steward.
     const resendKey = Deno.env.get('RESEND_API_KEY') ?? '';
     const steward = Deno.env.get('STEWARD_EMAIL') ?? 'josh@relationaltechproject.org';
+    const feedbackInbox = Deno.env.get('FEEDBACK_EMAIL') ?? 'humans@relationaltechproject.org';
     if (resendKey) {
+      const budgetFeedback = topic === 'budget-feedback';
       await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           from: 'Relational Builder <hello@relationalbuilder.org>',
-          to: [steward],
+          to: [budgetFeedback ? feedbackInbox : steward],
           reply_to: email ?? undefined,
-          subject: `Builder contact: ${name ?? email ?? 'someone'}`,
+          subject: budgetFeedback
+            ? `Daily budget feedback: ${name ?? email ?? 'a community builder'}`
+            : `Builder contact: ${name ?? email ?? 'someone'}`,
           html: [
-            `<p><strong>${esc(name ?? 'Someone')}</strong>${email ? ` (${esc(email)})` : ''} wrote through the Relational Builder contact form.</p>`,
+            budgetFeedback
+              ? `<p><strong>${esc(name ?? email ?? 'A community builder')}</strong>${name && email ? ` (${esc(email)})` : ''} hit the daily building budget and sent the team a note.${email ? '' : ' They chose not to include their email.'}</p>`
+              : `<p><strong>${esc(name ?? 'Someone')}</strong>${email ? ` (${esc(email)})` : ''} wrote through the Relational Builder contact form.</p>`,
             neighborhood ? `<p><strong>Neighborhood:</strong> ${esc(neighborhood)}</p>` : '',
             `<p>${esc(message).replace(/\n/g, '<br>')}</p>`,
           ].join('\n'),

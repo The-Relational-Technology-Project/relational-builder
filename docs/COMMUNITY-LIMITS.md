@@ -6,7 +6,13 @@
 ## Where limits live today
 
 - Every community member gets **5,000,000 tokens/day**, enforced
-  server-side in the `llm-proxy` edge function. Since 2026-08-19 this
+  server-side in the `llm-proxy` edge function. The "day" is the **UTC
+  calendar date**, so the budget resets at midnight UTC — 8pm ET / 5pm PT
+  during US daylight time. A builder who works a long evening after the
+  rollover and again the next morning is spending from the *same* day's
+  budget, which can feel like hitting the cap "first thing". The exhausted
+  banner and the proxy's 429 message both say the actual reset time (the
+  banner in the builder's local time). Since 2026-08-19 this
   counts **all** token traffic — input, output, cache writes, and cache
   reads. (It was input+output only, but cache traffic turned out to be
   ~78% of a heavy day's tokens, so the old gate capped dollars only in
@@ -82,7 +88,14 @@ closer to **$800–1,500/month**.
 
 1. **Encourage BYOK, gently** (shipped): nudge at 80%, clear path at 100%.
 2. **Never block mid-thought silently** (shipped): the proxy's words
-   ("resets tomorrow — thanks for building!") now surface verbatim.
+   now surface verbatim, and name the real reset time (midnight UTC).
+2b. **Invite feedback at the moment it's felt** (shipped 2026-08-31): the
+   exhausted banner asks whether the project is at a good stage to share,
+   whether a bigger daily budget or a weekly pool would help, and offers
+   "Send the team a note" — delivered to `humans@relationaltechproject.org`
+   via the `contact` function (`topic: 'budget-feedback'`), with the
+   builder's email attached only when they tick the opt-in box. Notes are
+   durable in `contact_messages` either way.
 3. **Next:** prompt caching in the proxy, then a Sonnet-for-edits default.
 4. **Watch the data:** `community_usage` already records per-member
    daily tokens — a monthly look at the distribution will show whether

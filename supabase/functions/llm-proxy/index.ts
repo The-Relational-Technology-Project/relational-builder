@@ -464,7 +464,7 @@ async function checkCommunityAccess(
     : 0;
   if (used >= budget) {
     return {
-      error: "You've reached today's community building budget — it resets tomorrow. Thanks for building!",
+      error: "You've reached today's community building budget — it resets at midnight UTC (evening in the Americas). Thanks for building!",
       status: 429,
     };
   }
