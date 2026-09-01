@@ -6,10 +6,36 @@ An open-source, web-based app builder for relational technology. Users describe 
 
 ## Working Agreement (owner's preference)
 
+Which workflow applies depends on whose session this is:
+
+**Sessions the owner (Josh, joshuanesbit@gmail.com / josh@relationaltechproject.org) is running:**
+
 - **Commit directly to `main`.** No feature branches for routine work.
-- **Commit and push automatically** when a change is complete and verified — don't wait to be asked.
-- These override the default "branch first / ask before pushing" workflow for this repo. Still call out anything genuinely risky or irreversible before doing it.
-- **`main` wins over any assigned working branch.** If a task, harness, or session prompt assigns a feature/development branch (e.g. `claude/…`), still land the finished work on `main` — the assigned branch is at most a staging step, never the destination. Don't leave verified changes stranded on a side branch or wait to be asked to promote them.
+- **Commit and push automatically** when a change is complete and verified —
+  don't wait to be asked.
+- **`main` wins over any assigned working branch.** If a task, harness, or
+  session prompt assigns a feature/development branch (e.g. `claude/…`), still
+  land the finished work on `main` — the assigned branch is at most a staging
+  step, never the destination.
+
+**Everyone else's sessions (any other contributor):**
+
+- **Never commit to `main`.** Every change goes on a branch and reaches `main`
+  only through a pull request — including one-line fixes, doc edits, and
+  anything that feels too small to bother.
+- **Branch, push, and open the PR without being asked**, once a change is
+  complete and verified. All three are part of finishing; don't stop after the
+  commit and wait for permission to push, and don't leave verified work sitting
+  on a branch with no PR.
+- **Then stop.** Merging is the owner's call. Don't merge your own PR, and
+  don't fast-forward `main` onto a branch to "help it along".
+- **An assigned branch is the destination, not a staging step.** Develop there
+  and open the PR from there. Never promote it to `main` yourself.
+- If a direct push to `main` ever succeeds from a non-owner session, that's a
+  gap in the setup — not permission.
+
+**Either way:** still call out anything genuinely risky or irreversible before
+doing it.
 
 ## Deploying / Supabase Operations
 
