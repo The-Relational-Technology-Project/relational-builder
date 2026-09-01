@@ -50,9 +50,25 @@ interface FoldState {
 
 let fold: FoldState | null = null;
 
+/**
+ * Paths the assistant asked to see in full (a NEED-FILES marker line — see
+ * the howto rendered into the snapshot header). Omitted files used to be a
+ * dead end the person had to bridge by hand-pasting code out of the Files
+ * tab; now the assistant asks the Builder instead. Requested files ride in
+ * the volatile tail UNTRUNCATED until the next fold, whose content budget
+ * then keeps them ahead of mere recency.
+ */
+let requestedPaths = new Set<string>();
+
+/** Pin files the assistant asked for (exact VFS paths) into the tail. */
+export function markFilesRequested(paths: string[]): void {
+  for (const p of paths) requestedPaths.add(p);
+}
+
 /** Test/reset hook — drops the fold so the next split starts fresh. */
 export function resetSnapshotFold(): void {
   fold = null;
+  requestedPaths = new Set();
 }
 
 const promptCost = (content: string) => Math.min(content.length, MAX_FILE_CHARS);
@@ -67,8 +83,11 @@ export function splitProjectSnapshot(
   const refold = () => {
     fold = {
       contents: new Map(files.map(f => [f.path, f.content])),
-      baseText: formatProjectFilesForPrompt(files),
+      baseText: formatProjectFilesForPrompt(files, requestedPaths),
     };
+    // The fresh base carries the requested files with bodies (the budget
+    // keeps them first) — the standing request has served its purpose.
+    requestedPaths = new Set();
     return { baseText: fold.baseText, changedFiles: [] };
   };
 
@@ -80,7 +99,9 @@ export function splitProjectSnapshot(
     if (!currentPaths.has(path)) return refold();
   }
 
-  const changedFiles = files.filter(f => fold!.contents.get(f.path) !== f.content);
+  const changedFiles = files.filter(
+    f => fold!.contents.get(f.path) !== f.content || requestedPaths.has(f.path),
+  );
   const changedChars = changedFiles.reduce((sum, f) => sum + promptCost(f.content), 0);
   const baseChars = [...fold.contents.values()].reduce((sum, c) => sum + promptCost(c), 0);
   if (changedChars > REFOLD_RATIO * Math.max(baseChars, 1)) return refold();
@@ -109,17 +130,32 @@ function fileLine(file: SnapshotFile): string | null {
   return null;
 }
 
-function fileBody(file: SnapshotFile): string[] {
+function fileBody(file: SnapshotFile, untruncated = false): string[] {
   let body = file.content;
   let note = '';
-  if (body.length > MAX_FILE_CHARS) {
+  if (!untruncated && body.length > MAX_FILE_CHARS) {
     body = body.slice(0, MAX_FILE_CHARS);
-    note = '\n... (truncated — re-output this file in full if you need to change the truncated part)';
+    note = '\n... (truncated — ask for the whole file with a NEED-FILES line if your change touches what was cut)';
   }
   return [`### ${file.path}`, '```', body + note, '```', ''];
 }
 
-export function formatProjectFilesForPrompt(files: SnapshotFile[]): string {
+/** How the assistant asks the Builder for files instead of asking the person
+ *  to copy-paste them. Rendered into the snapshot only when something is
+ *  actually omitted; ChatPanel answers the marker with an automatic
+ *  continuation carrying the full contents. */
+const NEED_FILES_HOWTO = [
+  'Some long, untouched files below appear as just their path with contents omitted. You can ALWAYS get their contents: end your reply with a single line naming every file you need, exactly like',
+  '',
+  '  `NEED-FILES: /src/pages/Home.tsx, /src/pages/About.tsx`',
+  '',
+  'then stop — the Builder sends their full current contents automatically and asks you to continue. Never ask the person to open or paste code themselves, and never guess at or rewrite a file you cannot see.',
+].join('\n');
+
+export function formatProjectFilesForPrompt(
+  files: SnapshotFile[],
+  requested?: Set<string>,
+): string {
   const sections: string[] = [
     '## Current Project Files',
     '',
@@ -132,11 +168,16 @@ export function formatProjectFilesForPrompt(files: SnapshotFile[]): string {
   // Files arrive least-recently-touched first, so the cached prefix survives
   // (see getFilesForPrompt). That is the wrong order to spend the content
   // budget in — it would drop the file they are working on right now. Pick
-  // what gets full content by recency FIRST, then emit in the cache order.
+  // what gets full content by recency FIRST (explicitly requested files
+  // ahead of everything — being asked for beats being recently touched),
+  // then emit in the cache order.
   const withBody = new Set(
     [...files]
       .filter(f => !isPhotoAsset(f.path) && !isRepoImage(f.path))
-      .sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0))
+      .sort((a, b) => {
+        const req = (requested?.has(b.path) ? 1 : 0) - (requested?.has(a.path) ? 1 : 0);
+        return req !== 0 ? req : (b.updatedAt ?? 0) - (a.updatedAt ?? 0);
+      })
       .reduce<{ keep: string[]; left: number }>(
         (acc, f) => {
           const cost = promptCost(f.content);
@@ -150,6 +191,11 @@ export function formatProjectFilesForPrompt(files: SnapshotFile[]): string {
       ).keep,
   );
 
+  const anyOmitted = files.some(
+    f => !isPhotoAsset(f.path) && !isRepoImage(f.path) && !withBody.has(f.path),
+  );
+  if (anyOmitted) sections.push(NEED_FILES_HOWTO, '');
+
   for (const file of files) {
     // Photo assets and repo images are named, never inlined
     const line = fileLine(file);
@@ -158,7 +204,7 @@ export function formatProjectFilesForPrompt(files: SnapshotFile[]): string {
       continue;
     }
     if (!withBody.has(file.path)) {
-      sections.push(`- ${file.path} (contents omitted — re-output this file in full if you need to change it)`);
+      sections.push(`- ${file.path} (contents omitted — ask for it with a NEED-FILES line before changing it)`);
       continue;
     }
     sections.push(...fileBody(file));
@@ -168,15 +214,16 @@ export function formatProjectFilesForPrompt(files: SnapshotFile[]): string {
 }
 
 /**
- * The volatile tail: current contents of files edited since the fold. Rides
- * in the per-turn context after every cache breakpoint — never cached, never
- * persisted into history.
+ * The volatile tail: current contents of files edited since the fold, plus
+ * any files the assistant asked for with NEED-FILES (those untruncated —
+ * "the full contents" is the whole promise). Rides in the per-turn context
+ * after every cache breakpoint — never cached, never persisted into history.
  */
 export function formatChangedFilesForPrompt(files: SnapshotFile[]): string {
   const sections: string[] = [
     '## Files changed since this snapshot',
     '',
-    'These files have changed since the Current Project Files snapshot in your instructions was taken. The contents below are their CURRENT truth and override the snapshot\'s version — edit blocks for these files must match what is shown here:',
+    'These files have changed since the Current Project Files snapshot in your instructions was taken — or you asked for them with a NEED-FILES line. The contents below are their CURRENT truth and override the snapshot\'s version — edit blocks for these files must match what is shown here:',
     '',
   ];
   for (const file of files) {
@@ -185,7 +232,7 @@ export function formatChangedFilesForPrompt(files: SnapshotFile[]): string {
       sections.push(line);
       continue;
     }
-    sections.push(...fileBody(file));
+    sections.push(...fileBody(file, requestedPaths.has(file.path)));
   }
   return sections.join('\n');
 }

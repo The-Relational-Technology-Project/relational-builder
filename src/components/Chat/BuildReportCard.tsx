@@ -39,6 +39,7 @@ const EVENT_LABELS: Record<BuildEventType, string> = {
   reply_cut_off: 'Reply cut off',
   auto_continuation: 'Automatic continuation',
   continuation_cap: 'Continuation limit reached',
+  files_requested: 'Assistant asked to see files',
   apply_warnings: "Some edits didn't apply",
   preview_error: 'Preview error',
   preview_recovered: 'Preview recovered',

@@ -8,10 +8,17 @@ import { normalizeFenceFilenames } from '@/project/code-extractor';
  *  instead of streaming into the wall and paying a mid-file recovery. */
 export const CHUNK_MARKER = /^NEXT-FILES:\s*(\S.*)$/m;
 
-/** Remove NEXT-FILES marker lines from a reply for display — the marker is
- *  machinery between the Builder and the model, not something to read. */
+/** A reply ends with this marker to ask the Builder for files whose contents
+ *  the snapshot omitted (the snapshot header teaches it). The Builder answers
+ *  with the full contents automatically — the person never copy-pastes code
+ *  out of the Files tab to bridge the model's context. */
+export const FILE_REQUEST_MARKER = /^NEED-FILES:\s*(\S.*)$/m;
+
+/** Remove NEXT-FILES / NEED-FILES marker lines from a reply for display —
+ *  markers are machinery between the Builder and the model, not something
+ *  to read. */
 export function stripChunkMarker(content: string): string {
-  return content.replace(/^NEXT-FILES:[^\n]*$\n?/gm, '');
+  return content.replace(/^(?:NEXT|NEED)-FILES:[^\n]*$\n?/gm, '');
 }
 
 /**

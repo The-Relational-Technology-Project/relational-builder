@@ -46,7 +46,8 @@ import { resetSubmitTracking } from '@/report/friction';
 import { BuildReportCard } from './BuildReportCard';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
-import { CHUNK_MARKER } from './display';
+import { CHUNK_MARKER, FILE_REQUEST_MARKER } from './display';
+import { markFilesRequested } from '@/knowledge/snapshot-split';
 import { useNeedsKey, NeedsKeyHint } from './composer-gate';
 import { Button } from '@/components/ui/button';
 import { HomeDashboard } from '@/components/HomeDashboard';
@@ -82,6 +83,48 @@ function continuePrompt(planned = false): string {
   const applied = useProjectStore.getState().getAllFiles().map(f => f.path);
   if (applied.length === 0) return base;
   return `${base}\n\nThese files are already complete in the project (do not re-output them): ${applied.join(', ')}. Every other file your plan calls for${planned ? '' : ' — including the one that was cut off —'} is NOT in the project yet and must be written now.`;
+}
+
+/** A clean reply that ended by asking to SEE files (NEED-FILES: …) — the
+ *  snapshot omits long-untouched contents, and the answer must come from the
+ *  Builder, never from the person copy-pasting code out of the Files tab.
+ *  Resolves the asked paths against the project (the model writes them with
+ *  a leading slash, but tolerate its absence). */
+function parseFileRequest(content: string): { found: string[]; unknown: string[] } | null {
+  const match = FILE_REQUEST_MARKER.exec(content);
+  if (!match) return null;
+  const projectPaths = new Set(useProjectStore.getState().getAllFiles().map(f => f.path));
+  const found: string[] = [];
+  const unknown: string[] = [];
+  for (const raw of match[1].split(',')) {
+    const token = raw.trim().replace(/^[`'"]+|[`'"]+$/g, '');
+    if (!token) continue;
+    const path = token.startsWith('/') ? token : `/${token}`;
+    if (projectPaths.has(path)) {
+      if (!found.includes(path)) found.push(path);
+    } else if (!unknown.includes(token)) {
+      unknown.push(token);
+    }
+  }
+  return found.length + unknown.length > 0 ? { found, unknown } : null;
+}
+
+/** Sent to answer a NEED-FILES request. The contents themselves ride in the
+ *  volatile turn context (snapshot-split pins them there), not in this stored
+ *  message — history stays lean and the cached prefix stays byte-stable. */
+function fileRequestPrompt(found: string[], unknown: string[]): string {
+  const parts: string[] = [];
+  if (found.length > 0) {
+    parts.push(
+      `Here are the files you asked for — the full current contents of ${found.join(', ')} are in the "Files changed since this snapshot" section of this message's context. Continue the change you were making; use targeted edit blocks where they fit, and do not re-output a file you are not changing.`,
+    );
+  }
+  if (unknown.length > 0) {
+    parts.push(
+      `Not in the project: ${unknown.join(', ')} — the file list in your snapshot has every real path. Ask again with a corrected NEED-FILES line if something is still missing, or continue without it.`,
+    );
+  }
+  return parts.join('\n\n');
 }
 
 
@@ -713,6 +756,11 @@ export function ChatPanel() {
                 // declared remaining files (NEXT-FILES: …) — continue the
                 // chain on purpose instead of treating the build as done
                 const chunked = !truncated && CHUNK_MARKER.test(msg.content);
+                // A request to see files the snapshot omitted (NEED-FILES: …)
+                // — pin them into the turn context and continue automatically
+                const fileRequest =
+                  !truncated && !chunked ? parseFileRequest(msg.content) : null;
+                if (fileRequest) markFilesRequested(fileRequest.found);
                 if (truncated) {
                   recordBuildEvent(
                     'reply_cut_off',
@@ -728,7 +776,9 @@ export function ChatPanel() {
                       : 'cut off mid-file — stream died with no finish signal'
                     : chunked
                       ? 'clean chunk boundary — more files declared'
-                      : 'clean',
+                      : fileRequest
+                        ? 'clean — asked to see files'
+                        : 'clean',
                 );
                 // The person's own ask names the restore point. Auto sends
                 // (fixes, continuations) carry Builder text, not theirs — pass
@@ -761,24 +811,39 @@ export function ChatPanel() {
                     if (note) appendToMessage(msgId, `\n\n> ${note}`);
                   });
                 }
-                if ((truncated || chunked) && useChatStore.getState().continuationCount < MAX_CONTINUATIONS) {
+                if ((truncated || chunked || fileRequest) && useChatStore.getState().continuationCount < MAX_CONTINUATIONS) {
                   // Continue through the fix channel. Truncated continuations
                   // keep chaining (big builds routinely need more than one
                   // extra reply); MAX_CONTINUATIONS bounds the spend.
                   if (truncated) {
                     appendToMessage(msgId, '\n\n> ⚠️ That reply was cut off mid-file — asking for the rest automatically.');
                   }
-                  useChatStore.getState().queueContinuation(continuePrompt(chunked), 'Finishing the build');
+                  if (fileRequest) {
+                    useChatStore.getState().queueContinuation(
+                      fileRequestPrompt(fileRequest.found, fileRequest.unknown),
+                      'Sending the files it asked for',
+                    );
+                    recordBuildEvent(
+                      'files_requested',
+                      [...fileRequest.found, ...fileRequest.unknown.map(p => `${p} (unknown)`)].join(', '),
+                    );
+                  } else {
+                    useChatStore.getState().queueContinuation(continuePrompt(chunked), 'Finishing the build');
+                  }
                   recordBuildEvent(
                     'auto_continuation',
-                    `${chunked ? 'planned chunk — ' : ''}pass ${useChatStore.getState().continuationCount} of ${MAX_CONTINUATIONS}`,
+                    `${chunked ? 'planned chunk — ' : fileRequest ? 'requested files — ' : ''}pass ${useChatStore.getState().continuationCount} of ${MAX_CONTINUATIONS}`,
                   );
-                } else if (truncated || chunked) {
+                } else if (truncated || chunked || fileRequest) {
+                  // Requested files were still pinned above — a manual
+                  // "continue" carries their contents even past the cap.
                   appendToMessage(
                     msgId,
-                    chunked
-                      ? '\n\n> ⚠️ This build is unusually large — say "continue" for the remaining files.'
-                      : '\n\n> ⚠️ Cut off again — this build is unusually large. Say "continue" to keep it going.',
+                    fileRequest
+                      ? '\n\n> ⚠️ More files were requested but the automatic chain is at its limit — say "continue" to keep going.'
+                      : chunked
+                        ? '\n\n> ⚠️ This build is unusually large — say "continue" for the remaining files.'
+                        : '\n\n> ⚠️ Cut off again — this build is unusually large. Say "continue" to keep it going.',
                   );
                   recordBuildEvent('continuation_cap');
                 } else {
@@ -831,6 +896,23 @@ export function ChatPanel() {
                     }
                   }
                 }
+              }
+            }
+            // Plan mode can ask to see omitted files too — a plan scoped
+            // against what's actually built needs the real contents just as
+            // much as an edit does. Same marker, same automatic answer.
+            if (currentMode === 'plan' && done) {
+              const request = parseFileRequest(done.content);
+              if (request && useChatStore.getState().continuationCount < MAX_CONTINUATIONS) {
+                markFilesRequested(request.found);
+                useChatStore.getState().queueContinuation(
+                  fileRequestPrompt(request.found, request.unknown),
+                  'Sending the files it asked for',
+                );
+                recordBuildEvent(
+                  'files_requested',
+                  [...request.found, ...request.unknown.map(p => `${p} (unknown)`)].join(', '),
+                );
               }
             }
             setIsGenerating(false);

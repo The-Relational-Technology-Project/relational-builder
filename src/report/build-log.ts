@@ -33,6 +33,10 @@ export type BuildEventType =
   | 'auto_continuation'
   /** Cut off again with no automatic passes left — the builder had to say "continue" */
   | 'continuation_cap'
+  /** The assistant asked to see files the snapshot omitted (NEED-FILES) and
+   *  the Builder answered automatically — detail carries the paths. Before
+   *  this channel existed the workaround was the person hand-pasting code. */
+  | 'files_requested'
   /** Some edits couldn't be applied cleanly to the project files */
   | 'apply_warnings'
   /** The live preview threw an error */

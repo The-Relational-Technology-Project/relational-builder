@@ -210,6 +210,7 @@ const BASE_INSTRUCTIONS = [
   '- Small or medium change (a few lines up to one function): one edit block',
   '- Several distinct changes in one file (up to about half the file): multiple SEARCH/REPLACE pairs in one edit block',
   '- Majority of a file changing, a new file, or you are unsure of current contents: output the complete file',
+  '- A file shown in your context as "(contents omitted)" or "(truncated)": never rewrite it from guesswork and never ask the person to open or paste code — ask the Builder for it by ending your reply with a `NEED-FILES:` line (see Current Project Files), then make the change when the contents arrive',
   '- If an edit was reported as not applying cleanly, do not retry it — re-output the complete corrected file',
   '',
   'Rules for edit blocks:',

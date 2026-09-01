@@ -713,9 +713,10 @@ const MessageBubble = memo(function MessageBubble({ message }: { message: Displa
               {/* The question section renders as answer cards, never as raw
                   markdown — stripped even mid-stream, so a conversational
                   reply's questions don't flash as text before carding up.
-                  PROJECT-NAME and NEXT-FILES are machinery too: one lands in
-                  the project header, the other drives chunk continuation —
-                  neither is a line to read (see renderableContent) */}
+                  PROJECT-NAME, NEXT-FILES, and NEED-FILES are machinery too:
+                  one lands in the project header, the others drive chunk
+                  continuation and file requests — none is a line to read
+                  (see renderableContent) */}
               {rendered}
             </ReactMarkdown>
             {message.isStreaming && (
