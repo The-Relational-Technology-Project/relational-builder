@@ -55,6 +55,14 @@ interface SyncState {
   lastPushedAt: Record<string, number>;
   /** Safe-copy mode: pushes landed on the safe copy since the last publish */
   unpublished: Record<string, boolean>;
+  /**
+   * Paths deleted in the Builder that the repo hasn't been told about yet,
+   * per project. A push only ever adds and updates — that's deliberate, so a
+   * README or workflow written on the forge survives — which means a deletion
+   * has to be carried over explicitly or the file lives on in the repo
+   * forever. Persisted: a deletion made offline still has to travel.
+   */
+  pendingDeletions: Record<string, string[]>;
 
   // Transient remote awareness (never persisted)
   remote: RemoteChanges | null;
@@ -97,6 +105,10 @@ interface SyncState {
   updateLastLive: (key: string, sha: string) => void;
   setUnpublished: (key: string, on: boolean) => void;
   setLiveConflict: (on: boolean) => void;
+  /** Remember that a file was deleted here, so the next push removes it there */
+  recordDeletion: (key: string, path: string) => void;
+  /** Replace the pending set — pruning paths that came back, or clearing after a push */
+  setPendingDeletions: (key: string, paths: string[]) => void;
   /** Move a repo connection when a local project becomes a cloud project */
   moveRepo: (fromKey: string, toKey: string) => void;
   setRemote: (remote: RemoteChanges | null) => void;
@@ -118,6 +130,7 @@ export const useSyncStore = create<SyncState>()(
       pushedFingerprint: {},
       lastPushedAt: {},
       unpublished: {},
+      pendingDeletions: {},
 
       remote: null,
       checkingRemote: false,
@@ -156,11 +169,16 @@ export const useSyncStore = create<SyncState>()(
         set((s) => {
           const repos = { ...s.repos };
           const pushedFingerprint = { ...s.pushedFingerprint };
+          const pendingDeletions = { ...s.pendingDeletions };
           delete repos[key];
           delete pushedFingerprint[key];
+          // Nothing left to tell — and a stale deletion must not fire at
+          // whatever repo gets connected next
+          delete pendingDeletions[key];
           return {
             repos,
             pushedFingerprint,
+            pendingDeletions,
             remote: null,
             dismissedHead: null,
             pushStatus: 'idle' as PushStatus,
@@ -199,6 +217,21 @@ export const useSyncStore = create<SyncState>()(
         set((s) => ({ unpublished: { ...s.unpublished, [key]: on } })),
       setLiveConflict: (liveConflict) => set({ liveConflict }),
 
+      recordDeletion: (key, path) =>
+        set((s) => {
+          const current = s.pendingDeletions[key] ?? [];
+          if (current.includes(path)) return s;
+          return { pendingDeletions: { ...s.pendingDeletions, [key]: [...current, path] } };
+        }),
+
+      setPendingDeletions: (key, paths) =>
+        set((s) => {
+          const pendingDeletions = { ...s.pendingDeletions };
+          if (paths.length === 0) delete pendingDeletions[key];
+          else pendingDeletions[key] = paths;
+          return { pendingDeletions };
+        }),
+
       moveRepo: (fromKey, toKey) =>
         set((s) => {
           const repo = s.repos[fromKey];
@@ -212,6 +245,7 @@ export const useSyncStore = create<SyncState>()(
           const pushedFingerprint = { ...s.pushedFingerprint };
           const lastPushedAt = { ...s.lastPushedAt };
           const unpublished = { ...s.unpublished };
+          const pendingDeletions = { ...s.pendingDeletions };
           if (fromKey in autoPush) {
             autoPush[toKey] = autoPush[fromKey];
             delete autoPush[fromKey];
@@ -228,7 +262,11 @@ export const useSyncStore = create<SyncState>()(
             unpublished[toKey] = unpublished[fromKey];
             delete unpublished[fromKey];
           }
-          return { repos, autoPush, pushedFingerprint, lastPushedAt, unpublished };
+          if (fromKey in pendingDeletions) {
+            pendingDeletions[toKey] = pendingDeletions[fromKey];
+            delete pendingDeletions[fromKey];
+          }
+          return { repos, autoPush, pushedFingerprint, lastPushedAt, unpublished, pendingDeletions };
         }),
 
       setRemote: (remote) => set({ remote, lastCheckedAt: Date.now() }),
@@ -273,6 +311,7 @@ export const useSyncStore = create<SyncState>()(
         pushedFingerprint: state.pushedFingerprint,
         lastPushedAt: state.lastPushedAt,
         unpublished: state.unpublished,
+        pendingDeletions: state.pendingDeletions,
       } as unknown as SyncState),
     },
   ),

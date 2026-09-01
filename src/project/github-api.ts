@@ -361,6 +361,7 @@ export async function pushFiles(
   branch: string,
   files: FileEntry[],
   message: string,
+  deletions: string[] = [],
 ): Promise<SyncResult> {
   const h = headers(token);
 
@@ -383,6 +384,31 @@ export async function pushFiles(
   if (!parentCommitRes.ok) throw new Error('Failed to read current commit');
   const parentCommit = await parentCommitRes.json();
   const baseTreeSha = parentCommit.tree.sha;
+
+  // Deletions are the one thing a push takes OUT of the repo, so they're
+  // carried as explicit tree entries with a null sha. Only for paths the
+  // base tree actually holds: GitHub rejects the whole tree with "Invalid
+  // tree info" if asked to delete something that isn't there, and a file
+  // deleted in the Builder before it was ever pushed is exactly that case.
+  const removals: { path: string; mode: '100644'; type: 'blob'; sha: null }[] = [];
+  if (deletions.length > 0) {
+    const treeListRes = await fetch(
+      `${API}/repos/${repoFullName}/git/trees/${baseTreeSha}?recursive=1`,
+      { headers: h },
+    );
+    if (!treeListRes.ok) throw new Error('Failed to read current file tree');
+    const baseTree = await treeListRes.json();
+    const present = new Set<string>(
+      (baseTree.tree as { path: string; type: string }[])
+        .filter(item => item.type === 'blob')
+        .map(item => item.path),
+    );
+    for (const path of deletions) {
+      const repoRelative = path.startsWith('/') ? path.slice(1) : path;
+      if (!present.has(repoRelative)) continue;
+      removals.push({ path: repoRelative, mode: '100644', type: 'blob', sha: null });
+    }
+  }
 
   // 2. Create blobs for each file
   const blobShas = await Promise.all(
@@ -415,7 +441,7 @@ export async function pushFiles(
     {
       method: 'POST',
       headers: h,
-      body: JSON.stringify({ base_tree: baseTreeSha, tree: blobShas }),
+      body: JSON.stringify({ base_tree: baseTreeSha, tree: [...blobShas, ...removals] }),
     },
   );
   if (!treeRes.ok) throw new Error('Failed to create tree');
@@ -451,7 +477,7 @@ export async function pushFiles(
   return {
     commitSha: commit.sha,
     commitUrl: commit.html_url,
-    filesChanged: files.length,
+    filesChanged: files.length + removals.length,
   };
 }
 
