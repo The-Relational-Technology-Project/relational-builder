@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useEnvStore } from '@/store/env-store';
 import { useChatStore } from '@/store/chat-store';
 import { useCloudStore } from '@/store/cloud-store';
@@ -86,12 +86,18 @@ type CheckState =
   | { phase: 'checking' }
   | { phase: 'done'; result: VerifyResult };
 
+const AI_REWRITE_PROMPT =
+  'I just moved my AI key into the Community Cloud vault, so AI features now work everywhere the app runs — the preview and my community-hosted site included. Please update the app to use the Community Cloud ai_chat capability instead of the api/ai serverless function, and remove the old serverless AI code.';
+
 /** Catalog id → vault service + env marker + what starts working ("<works> in the preview…") */
-const CLOUD_VAULT_SERVICES: Record<string, { service: string; marker: string; works: string }> = {
-  claude: { service: 'anthropic', marker: 'COMMUNITY_AI_ANTHROPIC', works: 'AI features work' },
-  gemini: { service: 'gemini', marker: 'COMMUNITY_AI_GEMINI', works: 'AI features work' },
-  openai: { service: 'openai', marker: 'COMMUNITY_AI_OPENAI', works: 'AI features work' },
-  firecrawl: { service: 'firecrawl', marker: 'COMMUNITY_SCRAPE', works: 'scraping works' },
+const CLOUD_VAULT_SERVICES: Record<string, { service: string; marker: string; works: string; rewritePrompt: string }> = {
+  claude: { service: 'anthropic', marker: 'COMMUNITY_AI_ANTHROPIC', works: 'AI features work', rewritePrompt: AI_REWRITE_PROMPT },
+  gemini: { service: 'gemini', marker: 'COMMUNITY_AI_GEMINI', works: 'AI features work', rewritePrompt: AI_REWRITE_PROMPT },
+  openai: { service: 'openai', marker: 'COMMUNITY_AI_OPENAI', works: 'AI features work', rewritePrompt: AI_REWRITE_PROMPT },
+  firecrawl: {
+    service: 'firecrawl', marker: 'COMMUNITY_SCRAPE', works: 'scraping works',
+    rewritePrompt: 'I just moved my Firecrawl key into the Community Cloud vault, so scraping now works everywhere the app runs — the preview and my community-hosted site included. Please update the app to use the Community Cloud scrape capability instead of the api/scrape serverless function, and remove the old serverless scraping code.',
+  },
 };
 
 /**
@@ -101,7 +107,7 @@ const CLOUD_VAULT_SERVICES: Record<string, { service: string; marker: string; wo
  * secret-env-var path stays for Vercel-only builders.
  */
 function CloudVaultCard({ def, isConnected }: { def: IntegrationDef; isConnected: boolean }) {
-  const { service, marker, works } = CLOUD_VAULT_SERVICES[def.id];
+  const { service, marker, works, rewritePrompt } = CLOUD_VAULT_SERVICES[def.id];
   const vars = useEnvStore(s => s.vars);
   const setVar = useEnvStore(s => s.setVar);
   const removeVar = useEnvStore(s => s.removeVar);
@@ -119,8 +125,22 @@ function CloudVaultCard({ def, isConnected }: { def: IntegrationDef; isConnected
   const [busy, setBusy] = useState<'idle' | 'enabling' | 'connecting' | 'testing'>('idle');
   const [note, setNote] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null);
 
-  if (!cloudAvailable || (legacyKeySet && !viaCloud)) {
+  if (!cloudAvailable) {
     return <IntegrationCard def={def} isConnected={isConnected} />;
+  }
+  // Connected the legacy way (secret env var, before the vault existed):
+  // keep the familiar card, but with the off-ramp — one click moves the
+  // key already entered into the vault. Without it a pre-vault connection
+  // is a dead end that quietly keeps builders deploying to Vercel just to
+  // keep the feature alive.
+  if (legacyKeySet && !viaCloud) {
+    return (
+      <IntegrationCard
+        def={def}
+        isConnected={isConnected}
+        footer={<MigrateToCloudFooter def={def} service={service} marker={marker} works={works} rewritePrompt={rewritePrompt} />}
+      />
+    );
   }
 
   async function handleEnableCloud() {
@@ -505,9 +525,26 @@ function ResendCard({ def, isConnected }: { def: IntegrationDef; isConnected: bo
   const [busy, setBusy] = useState<'idle' | 'enabling' | 'connecting' | 'testing'>('idle');
   const [note, setNote] = useState<{ tone: 'ok' | 'warn' | 'error'; text: string } | null>(null);
 
-  // Legacy secret-env-var connection (or no cloud in reach): the standard card
-  if (!cloudAvailable || (legacyKeySet && !viaCloud)) {
+  if (!cloudAvailable) {
     return <IntegrationCard def={def} isConnected={isConnected} />;
+  }
+  // Legacy secret-env-var connection: the standard card plus the vault off-ramp
+  if (legacyKeySet && !viaCloud) {
+    return (
+      <IntegrationCard
+        def={def}
+        isConnected={isConnected}
+        footer={
+          <MigrateToCloudFooter
+            def={def}
+            service="resend"
+            marker="COMMUNITY_EMAIL"
+            works="email works"
+            rewritePrompt="I just moved my Resend key into the Community Cloud vault, so email now works everywhere the app runs — the preview and my community-hosted site included. Please update the app to use the Community Cloud send_email capability instead of the api/send-email serverless function, and remove the old serverless email code."
+          />
+        }
+      />
+    );
   }
 
   async function handleEnableCloud() {
@@ -687,7 +724,81 @@ function ResendCard({ def, isConnected }: { def: IntegrationDef; isConnected: bo
   );
 }
 
-function IntegrationCard({ def, isConnected }: { def: IntegrationDef; isConnected: boolean }) {
+/**
+ * The off-ramp for a service connected before the Community Cloud vault
+ * existed (secret env var + generated serverless function): one click moves
+ * the key the builder already entered into the vault, verifies it with the
+ * provider, flips the env marker the AI guidance keys on, and drafts the
+ * chat message that rewrites the app's code to the capability endpoint.
+ * The legacy env vars are only removed once the vaulted key checks out.
+ */
+function MigrateToCloudFooter({ def, service, marker, works, rewritePrompt }: {
+  def: IntegrationDef;
+  service: string;
+  marker: string;
+  works: string;
+  rewritePrompt: string;
+}) {
+  const vars = useEnvStore(s => s.vars);
+  const setVar = useEnvStore(s => s.setVar);
+  const removeVar = useEnvStore(s => s.removeVar);
+  const projectName = useCloudStore(s => s.currentProjectName);
+  const setDraftMessage = useChatStore(s => s.setDraftMessage);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const cloudAttached = communityCloudConnected(vars);
+
+  async function handleMigrate() {
+    setBusy(true);
+    setError(null);
+    try {
+      if (!cloudAttached) await createAppForProject(projectName || 'my-community-app');
+      const fresh = useEnvStore.getState().vars;
+      const appId = fresh.find(v => v.key === 'APP_ID')?.value ?? '';
+      const key = fresh.find(v => v.key === def.fields[0]?.envKey)?.value.trim() ?? '';
+      if (!appId || !key) throw new Error('Could not find the saved key to move');
+      await setAppSecret(appId, service, key);
+      const test = await testAppSecret(appId, service);
+      if (!test.ok) {
+        await deleteAppSecret(appId, service).catch(() => {});
+        throw new Error(test.error ?? `${def.name} rejected the saved key — disconnect and reconnect with a fresh one`);
+      }
+      ensureCapabilitiesUrl();
+      setVar(marker, 'on', false);
+      for (const f of def.fields) removeVar(f.envKey);
+      // The app's generated code still calls the old serverless endpoint —
+      // hand the builder the message that has the AI rewrite it
+      setDraftMessage(rewritePrompt);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not move the key');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="rounded-md border border-dashed border-green-600/40 bg-green-600/5 p-2.5 space-y-1.5">
+      <p className="text-xs leading-relaxed text-muted-foreground">
+        <span className="font-medium text-foreground">New:</span> move this key into the
+        Community Cloud vault and {works} everywhere your app runs — the preview and your
+        community-hosted site included. One publish covers everything; no Vercel deploy needed.
+      </p>
+      {error && (
+        <p className="text-xs text-destructive flex items-start gap-1.5">
+          <AlertTriangle className="size-3 mt-0.5 shrink-0" />
+          <span>{error}</span>
+        </p>
+      )}
+      <Button size="sm" className="h-7 text-xs gap-1.5" disabled={busy} onClick={handleMigrate}>
+        {busy ? <Loader2 className="size-3 animate-spin" /> : <Cloud className="size-3" />}
+        Move to Community Cloud
+      </Button>
+    </div>
+  );
+}
+
+function IntegrationCard({ def, isConnected, footer }: { def: IntegrationDef; isConnected: boolean; footer?: ReactNode }) {
   const vars = useEnvStore(s => s.vars);
   const setVar = useEnvStore(s => s.setVar);
   const removeVar = useEnvStore(s => s.removeVar);
@@ -843,6 +954,8 @@ function IntegrationCard({ def, isConnected }: { def: IntegrationDef; isConnecte
           <p className="text-xs text-muted-foreground leading-relaxed">{def.setupHint}</p>
         </div>
       )}
+
+      {footer}
     </div>
   );
 }
