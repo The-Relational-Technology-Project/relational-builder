@@ -500,8 +500,14 @@ Deno.serve(async (req: Request) => {
         extras += ERROR_BEACON;
       }
       if (extras) {
-        content = /<\/body>/i.test(content)
-          ? content.replace(/<\/body>/i, `${extras}\n</body>`)
+        // Splice before the LAST </body>: app bundles are inlined in this
+        // HTML and can legitimately contain "</body>" inside a JS string —
+        // injecting at the first match would land these scripts mid-bundle
+        // and break the page with a SyntaxError. (Splicing also sidesteps
+        // String.replace's $-pattern expansion.)
+        const at = content.toLowerCase().lastIndexOf('</body>');
+        content = at >= 0
+          ? content.slice(0, at) + extras + '\n' + content.slice(at)
           : content + extras;
       }
     }

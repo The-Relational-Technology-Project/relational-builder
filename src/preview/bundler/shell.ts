@@ -70,11 +70,15 @@ export function buildShellHtml(options: ShellOptions): string {
     ...bodyExtra,
   ].join('\n');
 
+  // Function replacers: a plain-string replacement interprets $-patterns
+  // ($&, $', $1…), so a bundle containing e.g. the regex-escape idiom
+  // "\\$&" would have it expanded into the matched tag — shipping a
+  // corrupted app that no diff of the sources would ever show.
   html = /<\/head>/i.test(html)
-    ? html.replace(/<\/head>/i, `${headBits}\n</head>`)
+    ? html.replace(/<\/head>/i, () => `${headBits}\n</head>`)
     : headBits + html;
   html = /<\/body>/i.test(html)
-    ? html.replace(/<\/body>/i, `${bodyBits}\n</body>`)
+    ? html.replace(/<\/body>/i, () => `${bodyBits}\n</body>`)
     : html + bodyBits;
 
   return html;
