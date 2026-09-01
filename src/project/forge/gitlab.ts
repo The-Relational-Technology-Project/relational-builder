@@ -216,13 +216,18 @@ export class GitLabClient implements ForgeClient {
     branch: string,
     files: FileEntry[],
     message: string,
+    deletions: string[] = [],
   ): Promise<SyncResult> {
     // GitLab insists on the right action per file — 'create' for new paths,
     // 'update' for existing ones — so read the current tree first.
     const head = await this.getBranchHead(token, fullName, branch);
     const existing = new Set(await this.listTreePaths(token, fullName, head));
 
-    const actions = files.map(f => {
+    const actions: {
+      action: 'create' | 'update' | 'delete';
+      file_path: string;
+      content?: string;
+    }[] = files.map(f => {
       const path = repoPath(f.path);
       return {
         action: existing.has(path) ? ('update' as const) : ('create' as const),
@@ -230,6 +235,16 @@ export class GitLabClient implements ForgeClient {
         content: f.content,
       };
     });
+
+    // Only paths the branch actually holds: GitLab rejects the whole commit
+    // if asked to delete something that isn't there, and a file deleted in
+    // the Builder before it was ever pushed is exactly that case.
+    for (const path of deletions) {
+      const repoRelative = repoPath(path);
+      if (!existing.has(repoRelative)) continue;
+      actions.push({ action: 'delete', file_path: repoRelative });
+    }
+    if (actions.length === 0) throw new Error('Nothing to push');
 
     const res = await fetch(
       `${this.api}/projects/${this.project(fullName)}/repository/commits`,
@@ -247,7 +262,7 @@ export class GitLabClient implements ForgeClient {
     return {
       commitSha: commit.id,
       commitUrl: commit.web_url ?? `${this.webBase}/${fullName}/-/commit/${commit.id}`,
-      filesChanged: files.length,
+      filesChanged: actions.length,
     };
   }
 

@@ -157,10 +157,14 @@ function canAutoPull(): boolean {
   // assumes the code it just read
   if (useChatStore.getState().isGenerating) return false;
 
+  const key = projectRepoKey();
+  // A deletion the repo hasn't heard about is unpushed work like any other —
+  // and the one kind a pull would undo invisibly, by handing the file back.
+  if ((sync.pendingDeletions[key] ?? []).length > 0) return false;
+
   const project = useProjectStore.getState();
   if (project.getFileCount() === 0) return true;
 
-  const key = projectRepoKey();
   return sync.pushedFingerprint[key] === currentFingerprint(repo);
 }
 

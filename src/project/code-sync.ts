@@ -336,6 +336,26 @@ export interface PushOutcome {
 }
 
 /**
+ * Deletions waiting to travel to the repo, minus the ones that stopped being
+ * deletions: a path can come back — the AI writes the file again, or
+ * `filesForPush` re-synthesizes `.reltech.yml` after someone removes it — and
+ * a stale entry would then delete a file that's supposed to be there.
+ *
+ * Pruning writes back, so a path that returns before any push ever happens
+ * stops being pending rather than waiting around for a later one.
+ */
+function pruneStaleDeletions(key: string, files: FileEntry[]): string[] {
+  const pending = useSyncStore.getState().pendingDeletions[key] ?? [];
+  if (pending.length === 0) return [];
+  const present = new Set(files.map(f => f.path.replace(/^\//, '')));
+  const live = pending.filter(p => !present.has(p.replace(/^\//, '')));
+  if (live.length !== pending.length) {
+    useSyncStore.getState().setPendingDeletions(key, live);
+  }
+  return live;
+}
+
+/**
  * Send the project to its repo. The one push path — the sync panel's "push
  * now" and the automatic sync behind it both come through here, so they can't
  * disagree about what gets sent or when it's safe to send it.
@@ -352,13 +372,19 @@ export async function pushToRepo(
   const token = tokenForRepo(repo);
   if (!token) throw new Error('No repository connected');
   const key = projectRepoKey();
-  const store = useSyncStore.getState();
 
   const files = filesForPush(repo);
-  if (files.length === 0) return { status: 'unchanged' };
+  // Read the store only after this — pruning writes to it, and a snapshot
+  // taken before would be describing the state one line ago
+  const deletions = pruneStaleDeletions(key, files);
+  const store = useSyncStore.getState();
+  // A deletion is a real change with nothing to send — the file is gone, so
+  // it can't show up in `files` and can't move the fingerprint on its own.
+  // Both "nothing here" checks have to let it through.
+  if (files.length === 0 && deletions.length === 0) return { status: 'unchanged' };
 
   const fingerprint = fingerprintFiles(files);
-  if (!options.force && store.pushedFingerprint[key] === fingerprint) {
+  if (!options.force && deletions.length === 0 && store.pushedFingerprint[key] === fingerprint) {
     return { status: 'unchanged' };
   }
 
@@ -375,7 +401,11 @@ export async function pushToRepo(
     repo.branch,
     files,
     options.message?.trim() || autoCommitMessage(),
+    deletions,
   );
+  // Only once the commit has actually landed: a push that failed or was held
+  // must leave the deletions pending, or the file quietly outlives it there.
+  useSyncStore.getState().setPendingDeletions(key, []);
   useSyncStore.getState().recordPush(key, result.commitSha, fingerprint);
   // Safe-copy mode: this landed on the safe copy, not the live site — the
   // Publish button has something to do now
