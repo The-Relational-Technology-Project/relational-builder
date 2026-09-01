@@ -307,7 +307,7 @@ function SandpackPath({
       const code = typeof html === 'string' ? html : html.code;
       const tag = '<script src="./rb-inspect.js"></script>\n<script src="./rb-screenshot.js"></script>';
       spFiles['/index.html'] = {
-        code: /<\/body>/i.test(code) ? code.replace(/<\/body>/i, `${tag}\n</body>`) : code + `\n${tag}`,
+        code: /<\/body>/i.test(code) ? code.replace(/<\/body>/i, () => `${tag}\n</body>`) : code + `\n${tag}`,
       };
     }
 

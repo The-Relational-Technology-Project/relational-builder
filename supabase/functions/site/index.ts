@@ -500,9 +500,18 @@ Deno.serve(async (req: Request) => {
         extras += ERROR_BEACON;
       }
       if (extras) {
-        content = /<\/body>/i.test(content)
-          ? content.replace(/<\/body>/i, `${extras}\n</body>`)
-          : content + extras;
+        // Anchor to the LAST </body>, not the first, and splice by index
+        // rather than String.replace: a published bundle is arbitrary
+        // compiled JS that can contain the literal text "</body>" inside a
+        // string, and injecting at that one puts a <script> tag (and its
+        // </script>) inside the module script — which ends the script early
+        // and spills the rest of the bundle onto the page as visible text.
+        // String.replace would also interpret `$&` / `$\`` / `$'` in extras,
+        // which carry the site's own name.
+        const at = content.toLowerCase().lastIndexOf('</body>');
+        content = at === -1
+          ? content + extras
+          : content.slice(0, at) + extras + '\n' + content.slice(at);
       }
     }
 
