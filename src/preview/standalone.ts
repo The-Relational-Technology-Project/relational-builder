@@ -26,7 +26,7 @@ export function buildStandaloneHtml(files: FileEntry[]): string | null {
       const js = local(src);
       if (js === undefined) return tag;
       const type = /type=["']module["']/.test(pre + post) ? ' type="module"' : '';
-      return `<script${type}>\n${js.replace(/<\/script>/gi, '<\\/script>')}\n</script>`;
+      return `<script${type}>\n${js.replace(/<\/script(?=[\s/>])/gi, '<\\/script')}\n</script>`;
     },
   );
   return out;

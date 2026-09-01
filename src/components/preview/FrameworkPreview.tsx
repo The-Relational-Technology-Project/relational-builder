@@ -115,7 +115,7 @@ export function FrameworkPreview({
       // inline their modules so `<img data-asset>` works in framework apps.
       const assetScripts = files
         .filter(f => isPhotoAssetPath(f.path))
-        .map(f => `<script>\n${f.content.replace(/<\/script>/gi, '<\\/script>')}\n</script>`);
+        .map(f => `<script>\n${f.content.replace(/<\/script(?=[\s/>])/gi, '<\\/script')}\n</script>`);
 
       setBuildError(null);
       setRuntimeError(null);
