@@ -198,7 +198,9 @@ export function withAppIcons(files: FileEntry[], projectName: string): FileEntry
 
   const injection = headBits.join('\n');
   html = /<\/head>/i.test(html)
-    ? html.replace(/<\/head>/i, `${injection}\n</head>`)
+    // Function replacement: a string one would interpret `$&` / `$\`` / `$'`
+    // in the injected tags (they carry the project's own name)
+    ? html.replace(/<\/head>/i, () => `${injection}\n</head>`)
     : `${injection}\n${html}`;
 
   const out = files.slice();

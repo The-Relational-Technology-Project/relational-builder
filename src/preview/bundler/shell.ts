@@ -65,15 +65,17 @@ export function buildShellHtml(options: ShellOptions): string {
   ].join('\n');
 
   const bodyBits = [
-    // </script> inside the bundle would terminate the inline tag early
-    `<script type="module">\n${bundle.js.replace(/<\/script>/gi, '<\\/script>')}\n</script>`,
+    // An end tag inside the bundle would terminate the inline script early.
+    // The parser ends it at `</script` followed by whitespace, `/` or `>` —
+    // matching only the exact `</script>` left `</script >` as a way out.
+    `<script type="module">\n${bundle.js.replace(/<\/script(?=[\s/>])/gi, '<\\/script')}\n</script>`,
     ...bodyExtra,
   ].join('\n');
 
-  // Function replacers: a plain-string replacement interprets $-patterns
-  // ($&, $', $1…), so a bundle containing e.g. the regex-escape idiom
-  // "\\$&" would have it expanded into the matched tag — shipping a
-  // corrupted app that no diff of the sources would ever show.
+  // Both replacements pass a FUNCTION, never a string. A string replacement
+  // interprets `$&`, `$\``, `$'` and `$$` — and the bundle is arbitrary
+  // compiled JS, so an ordinary `.replace(re, '$&')` in someone's app used to
+  // splice `</body>` (or the whole document prefix) into the script body.
   html = /<\/head>/i.test(html)
     ? html.replace(/<\/head>/i, () => `${headBits}\n</head>`)
     : headBits + html;

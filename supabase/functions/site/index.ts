@@ -500,15 +500,18 @@ Deno.serve(async (req: Request) => {
         extras += ERROR_BEACON;
       }
       if (extras) {
-        // Splice before the LAST </body>: app bundles are inlined in this
-        // HTML and can legitimately contain "</body>" inside a JS string —
-        // injecting at the first match would land these scripts mid-bundle
-        // and break the page with a SyntaxError. (Splicing also sidesteps
-        // String.replace's $-pattern expansion.)
+        // Anchor to the LAST </body>, not the first, and splice by index
+        // rather than String.replace: a published bundle is arbitrary
+        // compiled JS that can contain the literal text "</body>" inside a
+        // string, and injecting at that one puts a <script> tag (and its
+        // </script>) inside the module script — which ends the script early
+        // and spills the rest of the bundle onto the page as visible text.
+        // String.replace would also interpret `$&` / `$\`` / `$'` in extras,
+        // which carry the site's own name.
         const at = content.toLowerCase().lastIndexOf('</body>');
-        content = at >= 0
-          ? content.slice(0, at) + extras + '\n' + content.slice(at)
-          : content + extras;
+        content = at === -1
+          ? content + extras
+          : content.slice(0, at) + extras + '\n' + content.slice(at);
       }
     }
 
