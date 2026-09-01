@@ -87,9 +87,8 @@ export class GitHubClient implements ForgeClient {
     branch: string,
     files: FileEntry[],
     message: string,
-    deletions: string[] = [],
   ): Promise<SyncResult> {
-    return gh.pushFiles(token, fullName, branch, files, message, deletions);
+    return gh.pushFiles(token, fullName, branch, files, message);
   }
 
   createBranch(token: string, fullName: string, branch: string, fromSha: string): Promise<void> {

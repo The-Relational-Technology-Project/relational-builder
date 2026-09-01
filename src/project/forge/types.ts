@@ -134,13 +134,8 @@ export interface ForgeClient {
     opts: { maxFileBytes: number },
   ): Promise<RepoImagePull>;
   /**
-   * Push files as a single commit. Adds and updates only — a file that exists
-   * only in the repo (a README, workflows, docs written outside the Builder)
-   * is never touched.
-   *
-   * `deletions` is the deliberate exception: repo-relative paths a person
-   * removed in the Builder, which the commit removes there too. Absent from
-   * that list, a deletion would never leave the workspace.
+   * Push files as a single commit. Only adds and updates — never deletes
+   * something that exists only in the repo.
    */
   pushFiles(
     token: string,
@@ -148,7 +143,6 @@ export interface ForgeClient {
     branch: string,
     files: FileEntry[],
     message: string,
-    deletions?: string[],
   ): Promise<SyncResult>;
 
   /**

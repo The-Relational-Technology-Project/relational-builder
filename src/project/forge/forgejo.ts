@@ -215,18 +215,12 @@ export class ForgejoClient implements ForgeClient {
     branch: string,
     files: FileEntry[],
     message: string,
-    deletions: string[] = [],
   ): Promise<SyncResult> {
     // One atomic commit; updates must carry the existing blob's sha.
     const head = await this.getBranchHead(token, fullName, branch);
     const existing = await this.listTree(token, fullName, head);
 
-    const changes: {
-      operation: 'create' | 'update' | 'delete';
-      path: string;
-      content?: string;
-      sha?: string;
-    }[] = files.map(f => {
+    const changes = files.map(f => {
       const path = repoPath(f.path);
       const sha = existing.get(path);
       return {
@@ -236,17 +230,6 @@ export class ForgejoClient implements ForgeClient {
         ...(sha ? { sha } : {}),
       };
     });
-
-    // A delete carries the blob's sha too, so it can only name a path the
-    // branch actually holds — which is also the guard against a file that
-    // was deleted in the Builder before it was ever pushed.
-    for (const path of deletions) {
-      const repoRelative = repoPath(path);
-      const sha = existing.get(repoRelative);
-      if (!sha) continue;
-      changes.push({ operation: 'delete', path: repoRelative, sha });
-    }
-    if (changes.length === 0) throw new Error('Nothing to push');
 
     const res = await fetch(`${this.api}/repos/${fullName}/contents`, {
       method: 'POST',
@@ -262,7 +245,7 @@ export class ForgejoClient implements ForgeClient {
     return {
       commitSha: sha,
       commitUrl: data.commit?.html_url ?? `${this.webBase}/${fullName}/commit/${sha}`,
-      filesChanged: changes.length,
+      filesChanged: files.length,
     };
   }
 
