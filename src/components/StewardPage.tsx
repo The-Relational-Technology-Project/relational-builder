@@ -23,6 +23,7 @@ import {
   type CommunityUsageReport,
   type MemberUsage,
 } from '@/cloud/community-usage';
+import { energyBand, formatWh, kitchenEquivalent } from '@/lib/energy';
 import { listAllStudios, DEFAULT_STUDIO_SLUG, type StudioContext } from '@/knowledge/studio-context';
 import {
   fetchStudioAccessMap,
@@ -210,6 +211,17 @@ function fmtUsd(n: number): string {
   return n >= 100 ? `$${Math.round(n)}` : `$${n.toFixed(2)}`;
 }
 
+/**
+ * The honest range behind a central estimate — "~24 Wh–480 Wh". Small
+ * amounts collapse to "under 9.5 Wh": a low end below a watt-hour renders
+ * as "<1 Wh", and "~<1 Wh–9.5 Wh" is not a thing anyone can read.
+ */
+function fmtWhRange(wh: number): string {
+  const { low, high } = energyBand(wh);
+  if (low < 1) return `under ${formatWh(high)}`;
+  return `~${formatWh(low)}\u2013${formatWh(high)}`;
+}
+
 /** "claude-fable-5 $6.10 · claude-opus-5 $3.20" → "fable-5 $6.10 · opus-5 $3.20" */
 function modelMix(models: MemberUsage['models']): string {
   return models
@@ -217,6 +229,22 @@ function modelMix(models: MemberUsage['models']): string {
     .slice(0, 3)
     .map(m => `${m.model.replace(/^claude-/, '')} ${fmtUsd(m.usd)}`)
     .join(' · ');
+}
+
+/**
+ * Energy under a headline number: the band, then the household comparison.
+ * Never the central estimate on its own — a single figure would read as a
+ * measurement, and this isn't one.
+ */
+function EnergyLine({ wh }: { wh: number }) {
+  if (!(wh > 0)) return null;
+  const equivalent = kitchenEquivalent(wh);
+  return (
+    <p className="text-xs text-muted-foreground/80 tabular-nums mt-0.5">
+      {fmtWhRange(wh)}
+      {equivalent && <span className="normal-nums"> · {equivalent}</span>}
+    </p>
+  );
 }
 
 function UsageTab() {
@@ -264,6 +292,13 @@ function UsageTab() {
         the same rates as the monitor's alerts (cache traffic included). Days
         roll over at midnight UTC.
       </p>
+      <p className="text-xs text-muted-foreground">
+        Energy is a rough estimate, not a measurement — no lab publishes
+        per-token figures, so the real value sits somewhere in the range
+        shown, which spans about twentyfold. Treat it as an order of
+        magnitude for our own sense of scale. Builders using their own API
+        key aren't counted here at all.
+      </p>
 
       {/* The headline numbers */}
       <div className="grid grid-cols-2 gap-2">
@@ -274,6 +309,7 @@ function UsageTab() {
             {fmtTokens(report.totals.today.tokens)} tokens ·{' '}
             {report.members.filter(m => m.today.tokens > 0).length} building
           </p>
+          <EnergyLine wh={report.totals.today.wh} />
         </div>
         <div className="rounded-lg border px-3 py-2.5">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">All time</p>
@@ -281,6 +317,7 @@ function UsageTab() {
           <p className="text-xs text-muted-foreground tabular-nums">
             {fmtTokens(report.totals.all_time.tokens)} tokens · {report.members.length} {report.members.length === 1 ? 'builder' : 'builders'}
           </p>
+          <EnergyLine wh={report.totals.all_time.wh} />
         </div>
       </div>
 
@@ -293,7 +330,7 @@ function UsageTab() {
               key={d.day}
               className="flex-1 rounded-sm bg-primary/70 min-h-[2px]"
               style={{ height: `${Math.max(4, (d.usd / maxDayUsd) * 100)}%` }}
-              title={`${d.day}: ${fmtUsd(d.usd)} · ${fmtTokens(d.tokens)} tokens`}
+              title={`${d.day}: ${fmtUsd(d.usd)} · ${fmtTokens(d.tokens)} tokens · ${fmtWhRange(d.wh)}`}
             />
           ))}
         </div>
@@ -353,6 +390,12 @@ function UsageTab() {
                     {budgetShare !== null && ` · ${budgetShare}% of today's budget`}
                     {view === 'all' && m.models.length > 0 && ` — ${modelMix(m.models)}`}
                   </p>
+                  {t.wh > 0 && (
+                    <p className="text-xs text-muted-foreground/80 truncate tabular-nums">
+                      {fmtWhRange(t.wh)}
+                      {kitchenEquivalent(t.wh) && ` · ${kitchenEquivalent(t.wh)}`}
+                    </p>
+                  )}
                 </div>
                 <Badge variant="outline" className="shrink-0 tabular-nums">
                   {fmtUsd(t.usd)}
