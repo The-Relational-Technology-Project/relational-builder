@@ -145,6 +145,53 @@ function priceUsage(t: UsageTokens, r: typeof USAGE_DEFAULT_RATES): number {
   );
 }
 
+// --- Energy: watt-hours per token, the same shape as the rates above ---
+//
+// Central estimate for an Opus-class model, in Wh per token. Output
+// dominates because generating is sequential — one forward pass per token,
+// memory-bandwidth-bound. Prefill processes the whole input in parallel and
+// is far cheaper per token, and a cache read skips recomputation almost
+// entirely; the weights (1 / 0.15 / 0.15 / 0.05 of the output rate) mirror
+// that, the way the price weights above mirror billing.
+//
+// The absolute figure is INFERRED, not published: from hardware it lands
+// near 0.04-0.15 mWh per output token, and from labs' per-prompt figures
+// nearer 0.8-1.1 mWh. So 0.2 mWh is a central estimate inside a band of
+// roughly twentyfold, and the client renders it as a band (see
+// src/lib/energy.ts, which holds the multipliers). Revise the number here
+// and every view follows; the token counts it multiplies are exact and
+// unaffected.
+const ENERGY_WH_PER_TOKEN = {
+  input: 3e-5,
+  output: 2e-4,
+  cacheWrite: 3e-5,
+  cacheRead: 1e-5,
+};
+
+/**
+ * How much more (or less) energy a model costs per token than the
+ * Opus-class default, taken from its output price relative to Opus.
+ *
+ * Price is a proxy for serving compute, not a measurement of it — it also
+ * carries margin and positioning. But treating Haiku and Fable as identical
+ * would be more wrong than this is, and the ordering (haiku < sonnet < opus
+ * < fable) certainly matches. The scalar moves things by 0.2x-2x, well
+ * inside the band, so it never carries more weight than it can bear.
+ */
+function energyScaleFor(model: string): number {
+  return usageRatesFor(model).output / USAGE_DEFAULT_RATES.output;
+}
+
+function energyUsage(t: UsageTokens, scale: number): number {
+  return (
+    scale *
+    (t.input * ENERGY_WH_PER_TOKEN.input +
+      t.output * ENERGY_WH_PER_TOKEN.output +
+      t.cacheWrite * ENERGY_WH_PER_TOKEN.cacheWrite +
+      t.cacheRead * ENERGY_WH_PER_TOKEN.cacheRead)
+  );
+}
+
 function usageCounts(row: Record<string, unknown>): UsageTokens {
   return {
     input: Number(row.input_tokens ?? 0),
@@ -572,13 +619,15 @@ Deno.serve(async (req: Request) => {
         requests: number;
         tokens: number;
         usd: number;
+        /** Estimated watt-hours — central estimate; the client renders a band */
+        wh: number;
       }
-      const blank = (): Acc => ({ requests: 0, tokens: 0, usd: 0 });
+      const blank = (): Acc => ({ requests: 0, tokens: 0, usd: 0, wh: 0 });
       const members = new Map<
         string,
         { today: Acc; all_time: Acc; days: Set<string>; models: Map<string, number> }
       >();
-      const byDay = new Map<string, { tokens: number; usd: number }>();
+      const byDay = new Map<string, { tokens: number; usd: number; wh: number }>();
 
       for (const row of usageRows) {
         const email = String(row.email ?? '').toLowerCase();
@@ -586,6 +635,7 @@ Deno.serve(async (req: Request) => {
         const total = usageCounts(row);
         const residual = { ...total };
         let usd = 0;
+        let wh = 0;
         const entry =
           members.get(email) ??
           { today: blank(), all_time: blank(), days: new Set<string>(), models: new Map<string, number>() };
@@ -598,11 +648,15 @@ Deno.serve(async (req: Request) => {
           const model = String(m.model ?? '');
           const modelUsd = priceUsage(t, usageRatesFor(model));
           usd += modelUsd;
+          // Energy scales per model for the same reason cost does — a day
+          // spent on Haiku shouldn't read like a day spent on Fable
+          wh += energyUsage(t, energyScaleFor(model));
           entry.models.set(model, (entry.models.get(model) ?? 0) + modelUsd);
         }
         if (totalTokens(residual) > 0) {
           const residualUsd = priceUsage(residual, USAGE_DEFAULT_RATES);
           usd += residualUsd;
+          wh += energyUsage(residual, 1);
           entry.models.set('untracked', (entry.models.get('untracked') ?? 0) + residualUsd);
         }
 
@@ -611,17 +665,20 @@ Deno.serve(async (req: Request) => {
         entry.all_time.requests += requests;
         entry.all_time.tokens += tokens;
         entry.all_time.usd += usd;
+        entry.all_time.wh += wh;
         entry.days.add(day);
         if (day === today) {
           entry.today.requests += requests;
           entry.today.tokens += tokens;
           entry.today.usd += usd;
+          entry.today.wh += wh;
         }
         members.set(email, entry);
 
-        const d = byDay.get(day) ?? { tokens: 0, usd: 0 };
+        const d = byDay.get(day) ?? { tokens: 0, usd: 0, wh: 0 };
         d.tokens += tokens;
         d.usd += usd;
+        d.wh += wh;
         byDay.set(day, d);
       }
 
@@ -631,8 +688,13 @@ Deno.serve(async (req: Request) => {
           email,
           name: names.get(email) ?? null,
           daily_budget: budgets.get(email) ?? null,
-          today: { ...m.today, usd: round(m.today.usd) },
-          all_time: { ...m.all_time, usd: round(m.all_time.usd), days_active: m.days.size },
+          today: { ...m.today, usd: round(m.today.usd), wh: round(m.today.wh) },
+          all_time: {
+            ...m.all_time,
+            usd: round(m.all_time.usd),
+            wh: round(m.all_time.wh),
+            days_active: m.days.size,
+          },
           models: [...m.models.entries()]
             .map(([model, usd]) => ({ model, usd: round(usd) }))
             .sort((a, b) => b.usd - a.usd),
@@ -640,18 +702,28 @@ Deno.serve(async (req: Request) => {
         .sort((a, b) => b.all_time.usd - a.all_time.usd);
 
       // The last 14 days, zeros filled, oldest first — the daily pulse
-      const recentDays: { day: string; tokens: number; usd: number }[] = [];
+      const recentDays: { day: string; tokens: number; usd: number; wh: number }[] = [];
       for (let i = 13; i >= 0; i--) {
         const day = new Date(Date.now() - i * 86400_000).toISOString().slice(0, 10);
         const d = byDay.get(day);
-        recentDays.push({ day, tokens: d?.tokens ?? 0, usd: round(d?.usd ?? 0) });
+        recentDays.push({
+          day,
+          tokens: d?.tokens ?? 0,
+          usd: round(d?.usd ?? 0),
+          wh: round(d?.wh ?? 0),
+        });
       }
 
       const sum = (pick: (m: (typeof memberList)[number]) => Acc): Acc =>
         memberList.reduce(
           (acc, m) => {
             const t = pick(m);
-            return { requests: acc.requests + t.requests, tokens: acc.tokens + t.tokens, usd: round(acc.usd + t.usd) };
+            return {
+              requests: acc.requests + t.requests,
+              tokens: acc.tokens + t.tokens,
+              usd: round(acc.usd + t.usd),
+              wh: round(acc.wh + t.wh),
+            };
           },
           blank(),
         );
