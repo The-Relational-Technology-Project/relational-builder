@@ -8,11 +8,21 @@ import { builderClient } from '@/cloud/builder-client';
 
 const FUNCTIONS_URL = `${import.meta.env.VITE_BUILDER_SUPABASE_URL ?? ''}/functions/v1`;
 
-/** Emails that see the super admin dashboard (server enforces the real gate) */
-const SUPER_ADMIN_EMAILS = (
-  (import.meta.env.VITE_SUPER_ADMIN_EMAILS as string | undefined) ?? 'joshuanesbit@gmail.com'
-)
-  .split(',')
+/**
+ * The stewards — who sees the Steward dashboard. Kept in code so the list is
+ * reviewable and travels with a deploy instead of living only in a hosting
+ * dashboard; `VITE_SUPER_ADMIN_EMAILS` adds to it rather than replacing it,
+ * so a missing (or stale) env var can never lock the stewards out. Removing
+ * someone is a code change, which is the point: it leaves a trace.
+ * This gate is for the UI only — the admin-requests function keeps its own
+ * copy and is the real boundary.
+ */
+const STEWARD_EMAILS = ['joshuanesbit@gmail.com', 'deborah@relationaltechproject.org'];
+
+const SUPER_ADMIN_EMAILS = [
+  ...STEWARD_EMAILS,
+  ...((import.meta.env.VITE_SUPER_ADMIN_EMAILS as string | undefined) ?? '').split(','),
+]
   .map(e => e.trim().toLowerCase())
   .filter(Boolean);
 

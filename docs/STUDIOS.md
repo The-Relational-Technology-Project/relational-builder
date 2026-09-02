@@ -19,7 +19,7 @@ some of them are offered to the broader commons.
 
 | Role | Granted by | Can |
 |---|---|---|
-| Steward (super admin) | `SUPER_ADMIN_EMAILS` | gate/ungate studios, grant/revoke Studio Admins (Steward → Studio access tab) |
+| Steward (super admin) | `STEWARD_EMAILS` (in code; `SUPER_ADMIN_EMAILS` adds to it) | gate/ungate studios, grant/revoke Studio Admins (Steward → Studio access tab) |
 | Studio Admin | Steward | approve/decline join requests, remove members, create/edit/delete/share library items (Studio admin page, in the account menu) |
 | Member (approved) | Studio Admin | see the studio library in the gallery + AI context |
 | Requester (pending) | — | nothing yet; their request waits at the door |

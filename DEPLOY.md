@@ -147,9 +147,16 @@ form instead of sending a link.
 supabase functions deploy request-account --no-verify-jwt
 supabase functions deploy admin-requests --no-verify-jwt
 supabase functions deploy signin-gate --no-verify-jwt
-supabase secrets set STEWARD_EMAIL=josh@relationaltechproject.org \
-  SUPER_ADMIN_EMAILS=joshuanesbit@gmail.com
+supabase secrets set STEWARD_EMAIL=josh@relationaltechproject.org
 ```
+
+Who counts as a steward lives in code, not in config: `STEWARD_EMAILS` in
+`supabase/functions/admin-requests/index.ts`, mirrored by the same constant
+in `src/cloud/account-requests.ts`. Adding or removing a steward is a
+two-line PR plus a redeploy of both halves, which leaves a trace. The
+`SUPER_ADMIN_EMAILS` secret and `VITE_SUPER_ADMIN_EMAILS` build var still
+work and are *added* to that list (handy for a staging project) — neither
+can shorten it, so a missing env var never locks the stewards out.
 
 For the gate to be enforced (not just friendly UX), close public signups
 at the Auth level — the app sends OTPs with `shouldCreateUser: false`, and
@@ -240,7 +247,8 @@ Vite bakes them in at build time):
 - `VITE_SITE_URL` — canonical domain magic-link sign-in returns to
   (`https://relationalbuilder.org`). Set this so sign-ins from a preview URL
   still land on the real domain; must also be in Supabase's Redirect URLs.
-- `VITE_SUPER_ADMIN_EMAILS` (optional — who sees the account-requests dashboard; default joshuanesbit@gmail.com)
+- `VITE_SUPER_ADMIN_EMAILS` (optional — extra addresses that see the Steward
+  dashboard, on top of the `STEWARD_EMAILS` list in `src/cloud/account-requests.ts`)
 - `VITE_RTP_MODEL_URL` (optional — Tier 1 model endpoint)
 
 For a custom domain, add it in Vercel and remember to add the same origin to
