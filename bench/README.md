@@ -103,7 +103,7 @@ numbers. This is the bench that judgment call asked for.
 npm run bench -- plan selftest        # checks + writers on canned replies, free
 npm run bench -- plan --dry-run       # live retrieval + prompt sizes, no model calls
 npm run bench -- plan                 # the production default model, 3 scenarios, ~$1
-npm run bench -- plan --models claude-fable-5,claude-opus-5 --trials 3
+npm run bench -- plan --models claude-fable-5-1,claude-opus-5 --trials 3
 npm run bench -- plan report bench/results/plan/<runId>   # merge scores.json → report.md
 npm run bench -- plan review bench/results/plan/<runId>   # regenerate review page
 ```

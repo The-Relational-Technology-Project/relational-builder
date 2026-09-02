@@ -47,6 +47,15 @@ export const BENCH_MODELS: BenchModel[] = [
     pricing: { inputPerMTok: 10, outputPerMTok: 50, asOf: '2026-07' },
     enabled: true,
   },
+  {
+    alias: 'claude-fable-5-1',
+    providerId: 'claude',
+    modelId: 'claude-fable-5-1',
+    // Same list price as Fable 5; cache reads are cheaper ($0.25/MTok) but
+    // the bench's chars/4 estimate doesn't model caching anyway.
+    pricing: { inputPerMTok: 10, outputPerMTok: 50, asOf: '2026-09' },
+    enabled: true,
+  },
 
   // --- OpenAI (env: OPENAI_API_KEY) ---
   {

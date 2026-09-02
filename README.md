@@ -24,7 +24,7 @@ Relational Builder combines three things that don't yet exist together:
 - **RT Commons retrieval** -- every message runs a hybrid semantic + full-text search across the whole commons (tools, stories, recipes, the Neighboring Commons library, frameworks) and weaves the most relevant knowledge into the AI's context
 - **Studio-aware building** -- pick a Studio from the network (or arrive via a `?studio=` link) and build inside its frame: the studio's principles layer onto the base RTP principles in the AI's context (append-only, never replacing), and the studio travels in your project's lineage
 - **Offer builds back to the commons** -- after publishing, share your build to the commons contribution queue (consent-first, steward-reviewed, credited by name)
-- **Community access** -- invited pilot builders get free Claude building via RTP's subsidized key, gated server-side with generous daily budgets — no API key, no credit card. Claude Opus 5 (the strongest builder on our bench) is the default for builds and edits; the daily budget also covers Fable 5, Opus 4.8, Sonnet 5, and Haiku 4.5, and picking a model in the picker pins it for that project. If Anthropic has an outage, community builds automatically fail over to a covered non-Anthropic model so a workshop never stalls
+- **Community access** -- invited pilot builders get free Claude building via RTP's subsidized key, gated server-side with generous daily budgets — no API key, no credit card. Claude Opus 5 (the strongest builder on our bench) is the default for builds and edits, Claude Fable 5.1 for planning; the daily budget also covers Opus 4.8, Sonnet 5, and Haiku 4.5, and picking a model in the picker pins it for that project. If Anthropic has an outage, community builds automatically fail over to a covered non-Anthropic model so a workshop never stalls
 - **Community Cloud** -- one click gives any project a free shared data store hosted by RTP (3 backends per builder, 100MB each) with built-in neighbor email-code sign-in — no database accounts, no SQL
 - **Cloud dashboard** -- the Cloud tab shows everything behind your apps: collections and documents (with moderation), the neighbors who've signed in, storage against the free tier, and backend settings — a friendly database console
 - **Your neighbors' data is safe, and it's yours** -- every backend exports as one zip (full JSON plus a spreadsheet per collection and the neighbor list), daily server-side backups snapshot each backend that changed (kept two weeks deep, plus back-up-now on demand), and restore puts documents back atomically — with a pre-restore snapshot first, so even a restore is undoable
@@ -64,7 +64,7 @@ Relational Builder combines three things that don't yet exist together:
 - **Custom domains** -- attach your own domain (e.g. myapp.ourneighborhood.org) when deploying to Netlify or Vercel, with DNS setup instructions
 - **Resizable panels** -- drag dividers to resize the chat, preview, and knowledge panels
 - **Session persistence** -- your chat and project files survive page refreshes via localStorage (and the cloud when signed in)
-- **Model-agnostic** -- latest models from Anthropic (Claude Opus 5 by default, plus Fable 5, Opus 4.8, Sonnet 5, Haiku 4.5), Google (Gemini 3.5), OpenAI (GPT-5.5), Together AI, OpenRouter, or any OpenAI-compatible endpoint
+- **Model-agnostic** -- latest models from Anthropic (Claude Opus 5 by default, plus Fable 5.1, Opus 4.8, Sonnet 5, Haiku 4.5), Google (Gemini 3.5), OpenAI (GPT-5.5), Together AI, OpenRouter, or any OpenAI-compatible endpoint
 
 ## Guiding Principles
 
@@ -148,7 +148,7 @@ Without a proxy URL, Claude falls back to direct browser-to-Anthropic calls (fin
 
 To use cloud models, click **Settings** in the toolbar and enter your API key:
 
-- **Claude** -- get a key at [console.anthropic.com](https://console.anthropic.com) (Opus 5, Fable 5, Opus 4.8, Sonnet 5, Haiku 4.5)
+- **Claude** -- get a key at [console.anthropic.com](https://console.anthropic.com) (Opus 5, Fable 5.1, Opus 4.8, Sonnet 5, Haiku 4.5)
 - **Google Gemini** -- get a key at [aistudio.google.com](https://aistudio.google.com/apikey) (Gemini 3.5 Flash, 3.1 Pro)
 - **OpenAI** -- get a key at [platform.openai.com](https://platform.openai.com)
 - **Together AI** -- get a key at [api.together.ai](https://api.together.ai)

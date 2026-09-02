@@ -427,7 +427,7 @@ export function ChatPanel() {
       else useChatStore.getState().endCooking();
     }
 
-    // Free community building: Fable 5 does the plan-mode strategy work,
+    // Free community building: Fable 5.1 does the plan-mode strategy work,
     // Opus 5 does builds and edits — unless the person picked a model
     // themselves. Fix sends stay on whatever model is active (a continuation
     // must finish what it started).

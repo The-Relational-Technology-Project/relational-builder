@@ -14,7 +14,7 @@ import {
 /** Short, human descriptions so choosing a model doesn't require model trivia */
 const MODEL_HINTS: Record<string, string> = {
   'claude-opus-5': 'Deep and complete — the everyday pick for builds and edits',
-  'claude-fable-5': 'The deepest thinker — worth it for the biggest, hardest builds',
+  'claude-fable-5-1': 'The deepest thinker — plans by default; worth it for the biggest, hardest builds',
   'claude-opus-4-8': 'The previous default — dependable for edits and fixes',
   'claude-sonnet-5': 'Fast and sharp — a lighter pick for small tweaks',
   'claude-haiku-4-5': 'Quickest and lightest',
