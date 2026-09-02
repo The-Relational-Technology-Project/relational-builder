@@ -66,7 +66,8 @@
  * (verify_jwt ON — every caller is a signed-in steward; the real gate is
  * the SUPER_ADMIN_EMAILS check below.)
  * Secrets:
- *   SUPER_ADMIN_EMAILS  — comma-separated (default joshuanesbit@gmail.com)
+ *   SUPER_ADMIN_EMAILS  — comma-separated, ADDED to the STEWARD_EMAILS list
+ *                         baked in below (it never replaces it)
  *   RESEND_API_KEY      — for the welcome email (optional but recommended)
  *   APP_URL             — sign-in link target
  *   COMMONS_URL         — RT Commons project URL (default the RTP website
@@ -96,9 +97,16 @@ function rest(path: string): string {
   return `${Deno.env.get('SUPABASE_URL')}/rest/v1${path}`;
 }
 
+/**
+ * The stewards. Kept in code (mirroring src/cloud/account-requests.ts) so the
+ * list is reviewable in a diff and can't drift from what the app shows; the
+ * SUPER_ADMIN_EMAILS secret adds to it rather than replacing it, so a stale
+ * secret can never lock the stewards out. Removing someone is a code change.
+ */
+const STEWARD_EMAILS = ['joshuanesbit@gmail.com', 'deborah@relationaltechproject.org'];
+
 function superAdmins(): string[] {
-  return (Deno.env.get('SUPER_ADMIN_EMAILS') ?? 'joshuanesbit@gmail.com')
-    .split(',')
+  return [...STEWARD_EMAILS, ...(Deno.env.get('SUPER_ADMIN_EMAILS') ?? '').split(',')]
     .map(e => e.trim().toLowerCase())
     .filter(Boolean);
 }
