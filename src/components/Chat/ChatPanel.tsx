@@ -44,6 +44,7 @@ import { adoptDraftedProjectName } from '@/project/drafted-name';
 import { recordBuildEvent, useBuildLogStore } from '@/report/build-log';
 import { resetSubmitTracking } from '@/report/friction';
 import { BuildReportCard } from './BuildReportCard';
+import { startBuildFromPlan } from './build-from-plan';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { CHUNK_MARKER, FILE_REQUEST_MARKER } from './display';
@@ -1044,17 +1045,9 @@ export function ChatPanel() {
     handleSend(queuedMessage, attachments.length > 0 ? attachments : undefined);
   }, [queuedMessage, isGenerating, setMode, handleSend]);
 
-  const handleBuildPlan = useCallback(() => {
-    setMode('build');
-    // On an existing project the plan is a delta — build only it. From
-    // scratch, the plan is the whole first build.
-    const existing = useProjectStore.getState().getFileCount() > 0;
-    handleSend(
-      existing
-        ? 'Make the changes agreed in the plan above — only those changes, keeping everything else in the app exactly as it is. Generate the complete added or edited files with filename annotations. End by naming, in one line, anything you deliberately left for a later pass.'
-        : 'Build the first version of the app described in the plan above — the plan\'s First-build features, not its Later ones. Generate complete, working files with filename annotations, following the plan\'s look & feel and data decisions. End by naming, in one line, what you left for the next pass.',
-    );
-  }, [setMode, handleSend]);
+  // The action under the conversation and the readiness card's "Ready to
+  // build" are the same press — see build-from-plan.ts
+  const handleBuildPlan = useCallback(() => startBuildFromPlan(), []);
 
   const handleStop = useCallback(() => {
     const controller = useChatStore.getState().abortController;
