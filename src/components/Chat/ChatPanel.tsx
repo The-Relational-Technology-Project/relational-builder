@@ -36,7 +36,7 @@ import { useCloudStore } from '@/store/cloud-store';
 import { retrieveCommonsContext, findMentionedResults } from '@/knowledge/retrieval';
 import { loadGalleryReferences } from '@/cloud/gallery-references';
 import { detectFrames, framesFromSlugs } from '@/knowledge/frames';
-import { buildMentionContext } from '@/knowledge/mentions';
+import { buildMentionContext, pinnedCommonsEntries } from '@/knowledge/mentions';
 import { retrieveCivicDataContext } from '@/knowledge/civic-data';
 import { runQualityReview, messageProducedFiles } from '@/knowledge/review-pass';
 import { requestBuildNotifyPermission, notifyBuildReady } from '@/notify/build-ready';
@@ -44,6 +44,7 @@ import { adoptDraftedProjectName } from '@/project/drafted-name';
 import { recordBuildEvent, useBuildLogStore } from '@/report/build-log';
 import { resetSubmitTracking } from '@/report/friction';
 import { BuildReportCard } from './BuildReportCard';
+import { startBuildFromPlan } from './build-from-plan';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { CHUNK_MARKER, FILE_REQUEST_MARKER } from './display';
@@ -484,7 +485,7 @@ export function ChatPanel() {
     // Context enriches the send; it must never break one. The person's
     // message is already on screen — a retrieval failure falls back to an
     // uninformed send instead of stranding the composer mid-generation.
-    const [retrieval, references, galleryReferences, civicData] = await Promise.all([
+    const [retrieval, references, pinned, galleryReferences, civicData] = await Promise.all([
       retrieveCommonsContext({
         message: content,
         mode: currentMode === 'plan' ? 'plan' : 'build',
@@ -492,6 +493,10 @@ export function ChatPanel() {
         messages: priorMessages,
       }).catch(() => ({ results: [], query: null, dropped: 0 })),
       buildMentionContext(content).catch(() => []),
+      // Commons entries the person named by @[Title] — a chip dragged in
+      // from an earlier reply. They ride the same section retrieval fills,
+      // ahead of anything it scored, whatever this turn's search returned
+      pinnedCommonsEntries(content).catch(() => []),
       // Connections between entries — cached for the session; lets the AI
       // say where else a surfaced tool or practice showed up
       loadGalleryReferences(),
@@ -507,7 +512,7 @@ export function ChatPanel() {
     if (civicData.length > 0) {
       recordBuildEvent('civic-data', `live city data in context: ${civicData.map(e => e.city).join(', ')}`);
     }
-    const commonsResults = retrieval.results;
+    const retrieved = retrieval.results;
     if (retrieval.query !== null) {
       // The eval trail: what was searched, what survived the floor. A
       // deliberate empty ("kept 0/8") is a finding, not a failure.
@@ -515,18 +520,23 @@ export function ChatPanel() {
       // section can only credit what the log names.
       recordBuildEvent(
         'retrieval',
-        `"${retrieval.query.replace(/\s+/g, ' ').slice(0, 60)}" · kept ${commonsResults.length}/${commonsResults.length + retrieval.dropped}` +
-          (commonsResults.length > 0
-            ? ` (${commonsResults.map(r => `${r.slug}${r.similarity ? ` ${r.similarity.toFixed(2)}` : ''}`).join(', ')})`
+        `"${retrieval.query.replace(/\s+/g, ' ').slice(0, 60)}" · kept ${retrieved.length}/${retrieved.length + retrieval.dropped}` +
+          (retrieved.length > 0
+            ? ` (${retrieved.map(r => `${r.slug}${r.similarity ? ` ${r.similarity.toFixed(2)}` : ''}`).join(', ')})`
             : ''),
       );
     }
+    if (pinned.length > 0) {
+      recordBuildEvent('retrieval', `referenced directly (${pinned.map(r => r.slug).join(', ')})`);
+    }
+    const pinnedSlugs = new Set(pinned.map(r => r.slug));
+    const commonsResults = [...pinned, ...retrieved.filter(r => !pinnedSlugs.has(r.slug))];
     // Local TF-IDF over the Studio KB is the fallback for an UNREACHABLE
     // commons (zero raw hits — the live search always returns candidates).
     // A reachable search whose hits all fell below the relevance floor is a
     // deliberate empty: injecting TF-IDF noise instead would undo the floor.
     const relevant =
-      retrieval.query !== null && commonsResults.length === 0 && retrieval.dropped === 0
+      retrieval.query !== null && retrieved.length === 0 && retrieval.dropped === 0
         ? getRelevantContext(content)
         : null;
     const envVars = useEnvStore.getState().vars;
@@ -1044,17 +1054,9 @@ export function ChatPanel() {
     handleSend(queuedMessage, attachments.length > 0 ? attachments : undefined);
   }, [queuedMessage, isGenerating, setMode, handleSend]);
 
-  const handleBuildPlan = useCallback(() => {
-    setMode('build');
-    // On an existing project the plan is a delta — build only it. From
-    // scratch, the plan is the whole first build.
-    const existing = useProjectStore.getState().getFileCount() > 0;
-    handleSend(
-      existing
-        ? 'Make the changes agreed in the plan above — only those changes, keeping everything else in the app exactly as it is. Generate the complete added or edited files with filename annotations. End by naming, in one line, anything you deliberately left for a later pass.'
-        : 'Build the first version of the app described in the plan above — the plan\'s First-build features, not its Later ones. Generate complete, working files with filename annotations, following the plan\'s look & feel and data decisions. End by naming, in one line, what you left for the next pass.',
-    );
-  }, [setMode, handleSend]);
+  // The action under the conversation and the readiness card's "Ready to
+  // build" are the same press — see build-from-plan.ts
+  const handleBuildPlan = useCallback(() => startBuildFromPlan(), []);
 
   const handleStop = useCallback(() => {
     const controller = useChatStore.getState().abortController;

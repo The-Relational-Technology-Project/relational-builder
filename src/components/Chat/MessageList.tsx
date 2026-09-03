@@ -7,6 +7,8 @@ import { useProjectStore } from '@/store/project-store';
 import { usePanelStore } from '@/store/panel-store';
 import { artifactDisplay } from '@/project/display-name';
 import { useUIStore } from '@/store/ui-store';
+import { COMMONS_REF_DRAG_TYPE, mentionToken, type CommonsRef } from '@/knowledge/mentions';
+import { isReadyToBuildOption, startBuildFromPlan } from './build-from-plan';
 import { renderableContent } from './display';
 import { CodeBlock } from './CodeBlock';
 import { ConnectionSuggestion } from './ConnectionSuggestion';
@@ -418,25 +420,36 @@ export function MessageList({ messages, onBuildPlan, isGenerating }: MessageList
     }
   }, [lastMessage]);
 
+  // From scratch, the action arrives with the drafted plan document — but it
+  // must not LEAVE with it. Refinements ("also add a lending toggle") come
+  // back as short conversational replies, and pinning the action to a
+  // document-shaped last message meant the invitation to build outlived the
+  // button that does it: the reply said "press Build this plan" and there was
+  // nothing to press. Once a plan has been drafted, the plan stands until it
+  // is built, and every settled reply carries the action. Refinements ride
+  // along with it — the send carries the whole conversation.
+  const planDrafted = useMemo(
+    () => messages.some(m => m.role === 'assistant' && m.isPlan && !m.isStreaming && isPlanDocument(m.content)),
+    [messages],
+  );
+
   if (messages.length === 0) {
     return null;
   }
 
   // The Build/Approve action belongs to a reply with something to approve.
-  // From scratch that means the drafted plan document — a conversational
-  // reply (exploring, questions) has nothing to build yet. On an existing
-  // project even a two-sentence change IS the plan, so any settled reply
-  // qualifies — except one that just asked questions, which wants answers,
-  // not approval.
+  // A reply that just asked questions is the exception either way: it wants
+  // answers, not approval — and when the question IS the readiness check, its
+  // "Ready to build" card is the press.
   const showBuildAction =
     !isGenerating &&
     !!onBuildPlan &&
     lastMessage?.role === 'assistant' &&
     lastMessage.isPlan &&
     !lastMessage.isStreaming &&
-    (hasProject
-      ? extractPlanQuestions(lastMessage.content).length === 0
-      : isPlanDocument(lastMessage.content));
+    extractPlanQuestions(lastMessage.content).length === 0 &&
+    // On an existing project even a two-sentence change IS the plan
+    (hasProject || planDrafted);
 
   return (
     <div className="flex-1 relative min-h-0">
@@ -769,8 +782,13 @@ const MessageBubble = memo(function MessageBubble({ message }: { message: Displa
  * borrowing from the Mutual Aid Pod recipe" is one tap from the recipe
  * itself. This is the visible half of the commons loop; the build log keeps
  * the measurable half.
+ *
+ * A chip also drags: dropped on the composer it becomes an @[Title] mention,
+ * so "yes, that one — build on it" is a gesture instead of a retyped name.
+ * The entry then rides the next turn pinned, not left to retrieval's luck
+ * (see knowledge/mentions.ts).
  */
-function CommonsRefChips({ refs }: { refs: { slug: string; title: string; kind: string }[] }) {
+function CommonsRefChips({ refs }: { refs: CommonsRef[] }) {
   const openGalleryItem = useUIStore(s => s.openGalleryItem);
   return (
     <div className="mt-1.5 pl-1 flex flex-wrap items-center gap-1.5">
@@ -778,9 +796,15 @@ function CommonsRefChips({ refs }: { refs: { slug: string; title: string; kind: 
       {refs.slice(0, 4).map(r => (
         <button
           key={r.slug}
+          draggable
+          onDragStart={e => {
+            e.dataTransfer.setData(COMMONS_REF_DRAG_TYPE, JSON.stringify(r));
+            e.dataTransfer.setData('text/plain', mentionToken(r.title));
+            e.dataTransfer.effectAllowed = 'copy';
+          }}
           onClick={() => openGalleryItem(r.slug)}
-          className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-primary/5 transition-colors"
-          title={`Open "${r.title}" in the Commons Gallery`}
+          className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-primary/5 transition-colors cursor-grab active:cursor-grabbing"
+          title={`Open "${r.title}" in the Commons Gallery — or drag it into your message to build on it`}
         >
           <BookOpen className="size-2.5 shrink-0" />
           {r.title}
@@ -844,6 +868,10 @@ export function stripPlanQuestions(content: string): string {
  * stage and send together once all are answered (or early via Send answers).
  * Only the newest plan's cards are live; older plans keep a quiet transcript
  * of what was asked.
+ *
+ * The readiness check ("Anything else to change, or ready to build?") comes
+ * through here like any other question — but its yes is not an answer to
+ * relay. It starts the build.
  */
 function PlanQuestionCards({ message }: { message: DisplayMessage }) {
   const questions = useMemo(() => extractPlanQuestions(message.content), [message.content]);
@@ -865,6 +893,14 @@ function PlanQuestionCards({ message }: { message: DisplayMessage }) {
   };
 
   const answer = (i: number, value: string) => {
+    // "Ready to build" IS the press — sending the words instead would spend a
+    // whole reply re-offering a button. Only when it stands alone: a yes
+    // tapped beside another open question would discard that answer.
+    if (questions.length === 1 && isReadyToBuildOption(value)) {
+      setSent(true);
+      startBuildFromPlan();
+      return;
+    }
     const next = { ...answers, [i]: value };
     setAnswers(next);
     // One question sends on tap; several send once the last one is answered
