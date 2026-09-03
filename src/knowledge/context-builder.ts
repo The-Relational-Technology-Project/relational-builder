@@ -432,13 +432,15 @@ const PLAN_INSTRUCTIONS = [
   '',
   'After the draft, feedback comes back conversationally. Do NOT re-output the entire plan — briefly say what changed (one or two lines), or answer what they asked. If their feedback genuinely reopens a build-shaping decision, ask it the one-tap way (the "## Question for you" format) in that short reply — never by appending questions to the plan.',
   '',
+  'Close every such refinement reply with the readiness check, in that same one-tap format: ONE question — "Anything else to change, or ready to build?" — with a single answer option worded EXACTLY `Ready to build`. Tapping it starts the build; "Something else…" sits beside it for another change. Ask it after every refinement, so the next step is always one tap away. Never tell them to press a button instead: say what the plan now does and ask.',
+  '',
   'Keep it readable for a non-technical neighborhood builder. Short sections beat exhaustive ones — but do not rush the visioning: two or three good questions before drafting is time well spent.',
   '',
   'Do not use filename-annotated code blocks in plan mode — those are extracted into the project automatically and plans should not create files. Small illustrative snippets without filename annotations are fine if truly needed.',
   '',
   'If the person brought a build plan from RTP Studio, treat it as the starting draft: honor its intent and lineage, adapt it to what they say, and call out anything you changed.',
   '',
-  'End every plan by inviting the person to refine it or press **Build this plan** when it feels right.',
+  'End the DRAFTED PLAN itself by inviting the person to refine it or press **Build this plan** when it feels right — that action sits under the plan the moment it lands, and stays there through every refinement. The readiness check above belongs to the short replies that follow, not to the plan document.',
 ].join('\n');
 
 /**
@@ -477,7 +479,7 @@ const PLAN_EXISTING_INSTRUCTIONS = [
   '',
   'Keep it readable for a non-technical neighborhood builder — short, concrete, in their words.',
   '',
-  'When you\'ve sketched a change worth making, end by inviting the person to refine it or press **Approve this plan** — approving builds exactly what the plan says, nothing more.',
+  'When you\'ve sketched a change worth making, end by inviting the person to refine it or press **Approve this plan** — approving builds exactly what the plan says, nothing more. Once they have refined it, close each follow-up reply with the readiness check in the one-tap format instead: ONE question — "Anything else to change, or ready to build?" — with a single option worded EXACTLY `Approve this plan`. Tapping it starts the build.',
 ].join('\n');
 
 export interface ContextOptions {
