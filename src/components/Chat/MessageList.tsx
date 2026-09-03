@@ -8,6 +8,7 @@ import { usePanelStore } from '@/store/panel-store';
 import { artifactDisplay } from '@/project/display-name';
 import { useUIStore } from '@/store/ui-store';
 import { COMMONS_REF_DRAG_TYPE, mentionToken, type CommonsRef } from '@/knowledge/mentions';
+import { isReadyToBuildOption, startBuildFromPlan } from './build-from-plan';
 import { renderableContent } from './display';
 import { CodeBlock } from './CodeBlock';
 import { ConnectionSuggestion } from './ConnectionSuggestion';
@@ -419,25 +420,36 @@ export function MessageList({ messages, onBuildPlan, isGenerating }: MessageList
     }
   }, [lastMessage]);
 
+  // From scratch, the action arrives with the drafted plan document — but it
+  // must not LEAVE with it. Refinements ("also add a lending toggle") come
+  // back as short conversational replies, and pinning the action to a
+  // document-shaped last message meant the invitation to build outlived the
+  // button that does it: the reply said "press Build this plan" and there was
+  // nothing to press. Once a plan has been drafted, the plan stands until it
+  // is built, and every settled reply carries the action. Refinements ride
+  // along with it — the send carries the whole conversation.
+  const planDrafted = useMemo(
+    () => messages.some(m => m.role === 'assistant' && m.isPlan && !m.isStreaming && isPlanDocument(m.content)),
+    [messages],
+  );
+
   if (messages.length === 0) {
     return null;
   }
 
   // The Build/Approve action belongs to a reply with something to approve.
-  // From scratch that means the drafted plan document — a conversational
-  // reply (exploring, questions) has nothing to build yet. On an existing
-  // project even a two-sentence change IS the plan, so any settled reply
-  // qualifies — except one that just asked questions, which wants answers,
-  // not approval.
+  // A reply that just asked questions is the exception either way: it wants
+  // answers, not approval — and when the question IS the readiness check, its
+  // "Ready to build" card is the press.
   const showBuildAction =
     !isGenerating &&
     !!onBuildPlan &&
     lastMessage?.role === 'assistant' &&
     lastMessage.isPlan &&
     !lastMessage.isStreaming &&
-    (hasProject
-      ? extractPlanQuestions(lastMessage.content).length === 0
-      : isPlanDocument(lastMessage.content));
+    extractPlanQuestions(lastMessage.content).length === 0 &&
+    // On an existing project even a two-sentence change IS the plan
+    (hasProject || planDrafted);
 
   return (
     <div className="flex-1 relative min-h-0">
@@ -856,6 +868,10 @@ export function stripPlanQuestions(content: string): string {
  * stage and send together once all are answered (or early via Send answers).
  * Only the newest plan's cards are live; older plans keep a quiet transcript
  * of what was asked.
+ *
+ * The readiness check ("Anything else to change, or ready to build?") comes
+ * through here like any other question — but its yes is not an answer to
+ * relay. It starts the build.
  */
 function PlanQuestionCards({ message }: { message: DisplayMessage }) {
   const questions = useMemo(() => extractPlanQuestions(message.content), [message.content]);
@@ -877,6 +893,14 @@ function PlanQuestionCards({ message }: { message: DisplayMessage }) {
   };
 
   const answer = (i: number, value: string) => {
+    // "Ready to build" IS the press — sending the words instead would spend a
+    // whole reply re-offering a button. Only when it stands alone: a yes
+    // tapped beside another open question would discard that answer.
+    if (questions.length === 1 && isReadyToBuildOption(value)) {
+      setSent(true);
+      startBuildFromPlan();
+      return;
+    }
     const next = { ...answers, [i]: value };
     setAnswers(next);
     // One question sends on tap; several send once the last one is answered
