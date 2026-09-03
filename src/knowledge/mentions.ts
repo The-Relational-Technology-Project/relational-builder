@@ -1,25 +1,86 @@
 import { builderClient } from '@/cloud/builder-client';
 import { useCloudStore } from '@/store/cloud-store';
+import { useChatStore } from '@/store/chat-store';
 import { listCommunitySites } from '@/project/community-sites';
+import { fetchCommonsItemDetail } from '@/knowledge/commons-items';
+import type { CommonsSearchResult } from '@/knowledge/commons-search';
+import { DEEPEN_EXCERPT_CHARS } from '@/knowledge/retrieval';
 
 /**
- * @ mentions — reference your other apps in chat (Dyad-style).
- * Typing @ in the input offers your cloud projects and live sites;
- * mentions resolve at send time into context the AI can actually use:
- * a project's files (truncated) or a site's identity and URL.
+ * @ mentions — reference your other apps, or a commons entry the chat has
+ * drawn on, in a message (Dyad-style). Typing @ in the input offers your
+ * cloud projects, live sites, and the commons entries surfaced so far;
+ * mentions resolve at send time into context the AI can actually use: a
+ * project's files (truncated), a site's identity and URL, or a commons
+ * entry's full text pinned into the Relevant Knowledge section.
  */
 
 export interface Mentionable {
-  kind: 'project' | 'site';
+  kind: 'project' | 'site' | 'commons';
+  /** Project id, site slug, or commons slug */
   id: string;
   name: string;
+}
+
+/** A commons entry a reply drew on — what the chips under a reply carry */
+export interface CommonsRef {
+  slug: string;
+  title: string;
+  kind: string;
+}
+
+/**
+ * The drag payload for a commons chip. Dropping one on the composer inserts
+ * the @[Title] mention; a text/plain twin rides along so a drop on any
+ * ordinary text field still lands as the same token.
+ */
+export const COMMONS_REF_DRAG_TYPE = 'application/x-rb-commons-ref';
+
+export function mentionToken(name: string): string {
+  return `@[${name}]`;
+}
+
+export function commonsRefFromDrag(dt: DataTransfer): CommonsRef | null {
+  const raw = dt.getData(COMMONS_REF_DRAG_TYPE);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as Partial<CommonsRef>;
+    if (typeof parsed.slug === 'string' && typeof parsed.title === 'string') {
+      return { slug: parsed.slug, title: parsed.title, kind: parsed.kind ?? 'entry' };
+    }
+  } catch {
+    // not ours
+  }
+  return null;
 }
 
 const MAX_MENTIONS = 2;
 const MAX_FILE_CHARS = 2000;
 const MAX_TOTAL_CHARS = 10000;
+const PIN_TIMEOUT_MS = 2500;
 
 let sitesCache: Mentionable[] | null = null;
+
+/**
+ * The commons entries this conversation's replies have drawn on, newest
+ * first — the chips a person can drag. Read from the messages themselves
+ * rather than a side registry, so a reloaded chat still knows them.
+ */
+export function surfacedCommonsRefs(): CommonsRef[] {
+  const seen = new Set<string>();
+  const refs: CommonsRef[] = [];
+  const messages = useChatStore.getState().messages;
+  for (let i = messages.length - 1; i >= 0; i--) {
+    for (const r of messages[i].commonsRefs ?? []) {
+      if (seen.has(r.slug)) continue;
+      seen.add(r.slug);
+      refs.push(r);
+    }
+  }
+  return refs;
+}
+
+const commonsMentionable = (r: CommonsRef): Mentionable => ({ kind: 'commons', id: r.slug, name: r.title });
 
 /** Everything the builder can @-mention (projects live in the store; sites fetched once) */
 export async function listMentionables(): Promise<Mentionable[]> {
@@ -46,9 +107,17 @@ export async function listMentionables(): Promise<Mentionable[]> {
     }
   }
 
-  // Projects first; skip site entries that duplicate a project name
-  const seen = new Set(projects.map(p => p.name.toLowerCase()));
-  return [...projects, ...sitesCache.filter(s => !seen.has(s.name.toLowerCase()))];
+  // Projects first, then sites, then the commons; a later entry that
+  // duplicates an earlier name steps aside so a token resolves one way
+  const out: Mentionable[] = [];
+  const seen = new Set<string>();
+  for (const m of [...projects, ...sitesCache, ...surfacedCommonsRefs().map(commonsMentionable)]) {
+    const key = m.name.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(m);
+  }
+  return out;
 }
 
 /** Invalidate the sites cache (e.g. after publishing) */
@@ -70,6 +139,45 @@ export function parseMentions(text: string, candidates: Mentionable[]): Mentiona
   return found.slice(0, MAX_MENTIONS);
 }
 
+/**
+ * The commons entries a message names by @[Title], shaped as search results
+ * so they ride the same Relevant Knowledge section retrieval fills and count
+ * in the same provenance (chips, build log). A person pointing at an entry
+ * outranks any similarity score, so each carries the strongest match and
+ * its full text — best-effort and bounded, like retrieval's own deepening.
+ */
+export async function pinnedCommonsEntries(text: string): Promise<CommonsSearchResult[]> {
+  if (!text.includes('@[')) return [];
+  const refs = surfacedCommonsRefs();
+  const mentions = parseMentions(text, refs.map(commonsMentionable));
+  if (mentions.length === 0) return [];
+
+  const controller = new AbortController();
+  const deadline = setTimeout(() => controller.abort(), PIN_TIMEOUT_MS);
+  const pinned = await Promise.all(
+    mentions.map(async (m): Promise<CommonsSearchResult> => {
+      const ref = refs.find(r => r.slug === m.id)!;
+      const detail = await fetchCommonsItemDetail(ref.slug, controller.signal).catch(() => null);
+      const body = detail?.body?.trim();
+      return {
+        id: detail?.id ?? ref.slug,
+        slug: ref.slug,
+        kind: detail?.kind ?? ref.kind,
+        title: detail?.title ?? ref.title,
+        summary: detail?.summary ?? null,
+        attribution: detail?.attribution ?? null,
+        source_studio_slug: detail?.source_studio_slug ?? null,
+        tags: detail?.tags ?? null,
+        similarity: 1,
+        match: 'both',
+        ...(body ? { body_excerpt: body.slice(0, DEEPEN_EXCERPT_CHARS) } : {}),
+      };
+    }),
+  );
+  clearTimeout(deadline);
+  return pinned;
+}
+
 /** Resolve mentions in a message into prompt-ready context sections */
 export async function buildMentionContext(text: string): Promise<string[]> {
   if (!text.includes('@[')) return [];
@@ -84,6 +192,19 @@ export async function buildMentionContext(text: string): Promise<string[]> {
           `## Referenced Site: ${mention.name}`,
           '',
           `The builder mentioned their live community-hosted site "${mention.name}" (https://relationalbuilder.org/s/${mention.id}/). Treat it as prior art of theirs — match or borrow from it as they ask.`,
+        ].join('\n'),
+      );
+      continue;
+    }
+
+    if (mention.kind === 'commons') {
+      // The entry itself travels in Relevant Knowledge (see
+      // pinnedCommonsEntries); this names the intent behind it
+      sections.push(
+        [
+          `## Referenced Commons Entry: ${mention.name}`,
+          '',
+          `The builder pointed at "${mention.name}" directly — an entry from the RT Commons that an earlier reply drew on, carried into this message on purpose. It is listed under Relevant Knowledge with its text. Treat it as the pattern this ask should build on, and say plainly which parts of it you're borrowing.`,
         ].join('\n'),
       );
       continue;

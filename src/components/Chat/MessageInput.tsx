@@ -1,10 +1,16 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { SendHorizontal, Square, Map, Hammer, ImagePlus, X, FolderOpen, Globe, Clock, MessagesSquare } from 'lucide-react';
+import { SendHorizontal, Square, Map, Hammer, ImagePlus, X, FolderOpen, Globe, Clock, MessagesSquare, BookOpen } from 'lucide-react';
 import { useChatStore, type ChatMode } from '@/store/chat-store';
 import { useCloudStore } from '@/store/cloud-store';
 import { fileToDataUrl, isImageFile } from '@/lib/image';
-import { listMentionables, type Mentionable } from '@/knowledge/mentions';
+import {
+  listMentionables,
+  commonsRefFromDrag,
+  mentionToken,
+  COMMONS_REF_DRAG_TYPE,
+  type Mentionable,
+} from '@/knowledge/mentions';
 import { ModelSelector } from '@/components/ModelSelector';
 import { noteSubmit, recordFriction } from '@/report/friction';
 
@@ -39,7 +45,7 @@ export function MessageInput({
 }: MessageInputProps) {
   const [input, setInput] = useState('');
   const [attachments, setAttachments] = useState<string[]>([]);
-  const [dragOver, setDragOver] = useState(false);
+  const [dragOver, setDragOver] = useState<'files' | 'commons' | null>(null);
   const dragDepth = useRef(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -56,15 +62,23 @@ export function MessageInput({
   }, [mode, hasCollaborators, onModeChange]);
   const messageMode = mode === 'message' && hasCollaborators;
 
-  // @ mentions: candidates load on first @, popover filters as you type
+  // @ mentions: candidates load each time a @ opens the popover (the commons
+  // entries the chat has drawn on grow as it goes), popover filters as you type
   const [mentionables, setMentionables] = useState<Mentionable[] | null>(null);
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
+  const listedForOpen = useRef(false);
 
   useEffect(() => {
-    if (mentionQuery !== null && mentionables === null) {
-      listMentionables().then(setMentionables).catch(() => setMentionables([]));
+    if (mentionQuery === null) {
+      listedForOpen.current = false;
+      return;
     }
-  }, [mentionQuery, mentionables]);
+    if (listedForOpen.current) return;
+    listedForOpen.current = true;
+    listMentionables()
+      .then(setMentionables)
+      .catch(() => setMentionables(prev => prev ?? []));
+  }, [mentionQuery]);
 
   function updateMentionState(value: string, caret: number) {
     // An @ being typed: "@" preceded by start/whitespace, no ] yet, caret at end of it
@@ -84,6 +98,27 @@ export function MessageInput({
     setTimeout(() => {
       el.focus();
       el.setSelectionRange(before.length, before.length);
+    }, 0);
+  }
+
+  // A mention arriving whole (a dragged commons chip) lands at the caret,
+  // padded so it never fuses with the word beside it
+  function insertMentionAtCaret(name: string) {
+    const token = mentionToken(name);
+    if (input.includes(token)) return;
+    const el = textareaRef.current;
+    const caret = el?.selectionStart ?? input.length;
+    const before = input.slice(0, caret);
+    const after = input.slice(caret);
+    const lead = before && !/\s$/.test(before) ? ' ' : '';
+    const head = `${before}${lead}${token} `;
+    setInput(head + after.replace(/^\s+/, ''));
+    setTimeout(() => {
+      if (!el) return;
+      el.focus();
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, maxHeight) + 'px';
+      el.setSelectionRange(head.length, head.length);
     }, 0);
   }
 
@@ -211,32 +246,45 @@ export function MessageInput({
   }
 
   // Drag a photo anywhere onto the composer and it attaches — the same
-  // door the picker and paste use. dragenter/dragleave fire for every
-  // child crossed, so a depth counter tells "left the composer" from
-  // "moved over the textarea".
-  const draggingFiles = (e: React.DragEvent) => e.dataTransfer.types.includes('Files');
+  // door the picker and paste use. A "Drew on the commons" chip dragged
+  // from a reply lands as an @[Title] mention through the same door.
+  // dragenter/dragleave fire for every child crossed, so a depth counter
+  // tells "left the composer" from "moved over the textarea".
+  const dragKind = (e: React.DragEvent): 'files' | 'commons' | null => {
+    const types = e.dataTransfer.types;
+    if (types.includes(COMMONS_REF_DRAG_TYPE)) return 'commons';
+    if (types.includes('Files')) return 'files';
+    return null;
+  };
 
   function handleDragEnter(e: React.DragEvent) {
-    if (!draggingFiles(e) || disabled) return;
+    const kind = dragKind(e);
+    if (!kind || disabled) return;
     e.preventDefault();
     dragDepth.current++;
-    setDragOver(true);
+    setDragOver(kind);
   }
   function handleDragOver(e: React.DragEvent) {
-    if (!draggingFiles(e) || disabled) return;
+    if (!dragKind(e) || disabled) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'copy';
   }
   function handleDragLeave(e: React.DragEvent) {
-    if (!draggingFiles(e)) return;
+    if (!dragKind(e)) return;
     dragDepth.current = Math.max(0, dragDepth.current - 1);
-    if (dragDepth.current === 0) setDragOver(false);
+    if (dragDepth.current === 0) setDragOver(null);
   }
   function handleDrop(e: React.DragEvent) {
     dragDepth.current = 0;
-    setDragOver(false);
-    if (!draggingFiles(e) || disabled) return;
+    setDragOver(null);
+    const kind = dragKind(e);
+    if (!kind || disabled) return;
     e.preventDefault();
+    if (kind === 'commons') {
+      const ref = commonsRefFromDrag(e.dataTransfer);
+      if (ref) insertMentionAtCaret(ref.title);
+      return;
+    }
     addFiles(e.dataTransfer.files);
   }
 
@@ -251,7 +299,7 @@ export function MessageInput({
       {dragOver && (
         <div className={`pointer-events-none absolute inset-0 z-10 flex items-center justify-center border-2 border-dashed border-primary bg-primary/10 ${hero ? 'rounded-2xl' : 'rounded-lg'}`}>
           <p className="rounded-full bg-background/95 border px-3 py-1.5 text-xs font-medium text-foreground shadow-sm">
-            Drop images to attach
+            {dragOver === 'commons' ? 'Drop to build on this commons entry' : 'Drop images to attach'}
           </p>
         </div>
       )}
@@ -279,7 +327,9 @@ export function MessageInput({
       {mentionMatches.length > 0 && (
         <div className="mb-2 rounded-lg border bg-popover shadow-md max-w-sm overflow-hidden">
           <p className="px-2.5 pt-2 pb-1 text-xs uppercase tracking-wide text-muted-foreground">
-            Reference one of your apps
+            {mentionMatches.some(m => m.kind === 'commons')
+              ? 'Reference one of your apps, or the commons'
+              : 'Reference one of your apps'}
           </p>
           {mentionMatches.map(m => (
             <button
@@ -289,10 +339,12 @@ export function MessageInput({
             >
               {m.kind === 'project'
                 ? <FolderOpen className="size-3 text-muted-foreground shrink-0" />
-                : <Globe className="size-3 text-muted-foreground shrink-0" />}
+                : m.kind === 'commons'
+                  ? <BookOpen className="size-3 text-muted-foreground shrink-0" />
+                  : <Globe className="size-3 text-muted-foreground shrink-0" />}
               <span className="truncate">{m.name}</span>
               <span className="ml-auto text-xs text-muted-foreground shrink-0">
-                {m.kind === 'project' ? 'project' : 'live site'}
+                {m.kind === 'project' ? 'project' : m.kind === 'commons' ? 'commons' : 'live site'}
               </span>
             </button>
           ))}

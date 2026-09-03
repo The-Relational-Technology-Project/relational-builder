@@ -7,6 +7,7 @@ import { useProjectStore } from '@/store/project-store';
 import { usePanelStore } from '@/store/panel-store';
 import { artifactDisplay } from '@/project/display-name';
 import { useUIStore } from '@/store/ui-store';
+import { COMMONS_REF_DRAG_TYPE, mentionToken, type CommonsRef } from '@/knowledge/mentions';
 import { renderableContent } from './display';
 import { CodeBlock } from './CodeBlock';
 import { ConnectionSuggestion } from './ConnectionSuggestion';
@@ -769,8 +770,13 @@ const MessageBubble = memo(function MessageBubble({ message }: { message: Displa
  * borrowing from the Mutual Aid Pod recipe" is one tap from the recipe
  * itself. This is the visible half of the commons loop; the build log keeps
  * the measurable half.
+ *
+ * A chip also drags: dropped on the composer it becomes an @[Title] mention,
+ * so "yes, that one — build on it" is a gesture instead of a retyped name.
+ * The entry then rides the next turn pinned, not left to retrieval's luck
+ * (see knowledge/mentions.ts).
  */
-function CommonsRefChips({ refs }: { refs: { slug: string; title: string; kind: string }[] }) {
+function CommonsRefChips({ refs }: { refs: CommonsRef[] }) {
   const openGalleryItem = useUIStore(s => s.openGalleryItem);
   return (
     <div className="mt-1.5 pl-1 flex flex-wrap items-center gap-1.5">
@@ -778,9 +784,15 @@ function CommonsRefChips({ refs }: { refs: { slug: string; title: string; kind: 
       {refs.slice(0, 4).map(r => (
         <button
           key={r.slug}
+          draggable
+          onDragStart={e => {
+            e.dataTransfer.setData(COMMONS_REF_DRAG_TYPE, JSON.stringify(r));
+            e.dataTransfer.setData('text/plain', mentionToken(r.title));
+            e.dataTransfer.effectAllowed = 'copy';
+          }}
           onClick={() => openGalleryItem(r.slug)}
-          className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-primary/5 transition-colors"
-          title={`Open "${r.title}" in the Commons Gallery`}
+          className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-primary/5 transition-colors cursor-grab active:cursor-grabbing"
+          title={`Open "${r.title}" in the Commons Gallery — or drag it into your message to build on it`}
         >
           <BookOpen className="size-2.5 shrink-0" />
           {r.title}
