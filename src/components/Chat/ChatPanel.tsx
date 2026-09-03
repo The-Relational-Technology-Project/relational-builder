@@ -45,7 +45,7 @@ import { recordBuildEvent, useBuildLogStore } from '@/report/build-log';
 import { resetSubmitTracking } from '@/report/friction';
 import { BuildReportCard } from './BuildReportCard';
 import { MessageList } from './MessageList';
-import { MessageInput } from './MessageInput';
+import { MessageInput, type SendOptions } from './MessageInput';
 import { CHUNK_MARKER, FILE_REQUEST_MARKER } from './display';
 import { markFilesRequested } from '@/knowledge/snapshot-split';
 import { useNeedsKey, NeedsKeyHint } from './composer-gate';
@@ -375,7 +375,7 @@ export function ChatPanel() {
   // asks the same question through the same hook (composer-gate.tsx)
   const needsKey = useNeedsKey();
 
-  const handleSend = useCallback(async (content: string, attachments?: string[]) => {
+  const handleSend = useCallback(async (content: string, attachments?: string[], opts?: SendOptions) => {
     // Mode is read fresh from the store: "Build this plan" flips it right before sending
     const currentMode = useChatStore.getState().mode;
     // Message mode is human-to-human: the note joins the conversation (and
@@ -450,6 +450,13 @@ export function ChatPanel() {
           .addSyncMessage(communityModelNote(autoDefault.stage, activeModelId), MODEL_NOTE_LABEL);
       }
     }
+
+    // A lighter model the person chose for this one message — the composer's
+    // nudge on a small change. One send only: the picker stays where it was,
+    // nothing pins, and the next message runs on whatever it would have. It
+    // was chosen in plain view, so no model note; the build log's gen_start
+    // still records what actually ran.
+    if (opts?.model && !wasFix) modelForSend = opts.model;
 
     // A project's initial build starts a fresh build log — the timeline that
     // becomes a shareable report if the builder opts in when it's done. The

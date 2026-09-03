@@ -1,19 +1,36 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { SendHorizontal, Square, Map, Hammer, ImagePlus, X, FolderOpen, Globe, Clock, MessagesSquare } from 'lucide-react';
+import { SendHorizontal, Square, Map, Hammer, ImagePlus, X, FolderOpen, Globe, Clock, MessagesSquare, Leaf } from 'lucide-react';
 import { useChatStore, type ChatMode } from '@/store/chat-store';
 import { useCloudStore } from '@/store/cloud-store';
+import { useProjectStore } from '@/store/project-store';
+import { useProviderStore } from '@/store/provider-store';
 import { fileToDataUrl, isImageFile } from '@/lib/image';
 import { listMentionables, type Mentionable } from '@/knowledge/mentions';
 import { ModelSelector } from '@/components/ModelSelector';
 import { noteSubmit, recordFriction } from '@/report/friction';
+import {
+  lighterModelFor,
+  looksLikeSmallChange,
+  relativeCostLabel,
+  modelDisplayName,
+  hushLighterModelNudge,
+  lighterModelNudgeHushed,
+} from './lighter-model';
+
+/** Per-send options a composer can attach to what it sends */
+export interface SendOptions {
+  /** Run this one message on a specific model — the lighter-model nudge.
+   *  Never pins or changes the picker; the next message is unaffected. */
+  model?: string;
+}
 
 // Room for two seeded reference screenshots (gallery remixes) plus the
 // person's own images
 const MAX_ATTACHMENTS = 4;
 
 interface MessageInputProps {
-  onSend: (message: string, attachments?: string[]) => void;
+  onSend: (message: string, attachments?: string[], opts?: SendOptions) => void;
   onStop: () => void;
   isGenerating: boolean;
   disabled?: boolean;
@@ -55,6 +72,29 @@ export function MessageInput({
     if (mode === 'message' && !hasCollaborators) onModeChange?.('build');
   }, [mode, hasCollaborators, onModeChange]);
   const messageMode = mode === 'message' && hasCollaborators;
+
+  // The lighter-model nudge: a small change drafted on a heavy model gets a
+  // quiet offer of the lighter one, for this message only. It reads the
+  // draft, so it shows up at the moment people forget — right before send —
+  // and it never fires on a first build, a plan, or the home composer.
+  // Arming is sticky until send or undo (their choice, even if the draft
+  // grows); the unarmed suggestion follows the draft.
+  const fileCount = useProjectStore(s => s.getFileCount());
+  const activeModelId = useProviderStore(s => s.activeModelId);
+  const activeProviderId = useProviderStore(s => s.activeProviderId);
+  const [lighterArmed, setLighterArmed] = useState<string | null>(null);
+  const [nudgeHushed, setNudgeHushed] = useState(lighterModelNudgeHushed);
+  const lighter = activeProviderId === 'claude' ? lighterModelFor(activeModelId) : null;
+  const showLighterNudge =
+    !!lighter &&
+    !hero &&
+    mode === 'build' &&
+    fileCount > 0 &&
+    !isGenerating &&
+    !disabled &&
+    !nudgeHushed &&
+    (lighterArmed !== null || looksLikeSmallChange(input));
+  const costLabel = lighter ? relativeCostLabel(activeModelId, lighter) : null;
 
   // @ mentions: candidates load on first @, popover filters as you type
   const [mentionables, setMentionables] = useState<Mentionable[] | null>(null);
@@ -151,14 +191,19 @@ export function MessageInput({
       if (textareaRef.current) textareaRef.current.style.height = 'auto';
       return;
     }
-    onSend(trimmed || 'Here’s an image for reference.', attachments);
+    onSend(
+      trimmed || 'Here’s an image for reference.',
+      attachments,
+      lighterArmed ? { model: lighterArmed } : undefined,
+    );
     setInput('');
     setAttachments([]);
+    setLighterArmed(null);
     // Reset textarea height
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
-  }, [input, attachments, disabled, isGenerating, mode, onSend]);
+  }, [input, attachments, disabled, isGenerating, mode, onSend, lighterArmed]);
 
   function handleKeyDown(e: React.KeyboardEvent) {
     if (mentionMatches.length > 0 && (e.key === 'Enter' || e.key === 'Tab')) {
@@ -320,6 +365,60 @@ export function MessageInput({
           >
             <X className="size-3" />
           </button>
+        </div>
+      )}
+
+      {/* The lighter-model nudge. Quiet, one line, two answers — and the
+          heavy model stays the default unless they tap. Armed, it turns
+          into a plain statement of what's about to happen, with an undo. */}
+      {showLighterNudge && lighter && (
+        <div
+          className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-border bg-muted/40 px-2.5 py-1.5 text-xs"
+          role="status"
+        >
+          <Leaf className="size-3.5 shrink-0 text-green-700 dark:text-green-500" />
+          {lighterArmed ? (
+            <>
+              <span className="text-foreground">
+                This message runs on <span className="font-medium">{modelDisplayName(lighterArmed)}</span>
+                {' '}— the next one goes back to {modelDisplayName(activeModelId)}.
+              </span>
+              <button
+                type="button"
+                onClick={() => setLighterArmed(null)}
+                className="ml-auto text-muted-foreground underline decoration-dotted hover:text-foreground"
+              >
+                Undo
+              </button>
+            </>
+          ) : (
+            <>
+              <span className="text-foreground">
+                Small change? <span className="font-medium">{modelDisplayName(lighter)}</span> can do this
+                {costLabel ? ` for ${costLabel}` : ' with a lighter footprint'}.
+              </span>
+              <span className="ml-auto flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setLighterArmed(lighter)}
+                  className="rounded-full border border-primary/50 bg-primary/10 px-2.5 py-0.5 font-medium text-foreground hover:bg-primary/20 transition-colors"
+                >
+                  Use {modelDisplayName(lighter)} for this one
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    hushLighterModelNudge();
+                    setNudgeHushed(true);
+                  }}
+                  title="Stop suggesting for the rest of this sitting"
+                  className="rounded-full px-2 py-0.5 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Keep {modelDisplayName(activeModelId)}
+                </button>
+              </span>
+            </>
+          )}
         </div>
       )}
 
