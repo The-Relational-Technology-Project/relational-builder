@@ -5,13 +5,13 @@ import { useProviderStore } from '@/store/provider-store';
 
 /**
  * Models covered by the RTP community key (mirror of the proxy's allowlist).
- * Fable 5 is the default for planning (project strategy, commons work); Opus
+ * Fable 5.1 is the default for planning (project strategy, commons work); Opus
  * 5 for first builds AND edits (July 27 launch check: completest
  * mutual-aid-board build the bench has produced, at Opus 4.8's price — half
  * Fable's). Opus 4.8 stays covered as a manual pick; Sonnet 5 as the
  * lighter pick.
  */
-export const COMMUNITY_MODELS = ['claude-opus-5', 'claude-fable-5', 'claude-opus-4-8', 'claude-sonnet-5', 'claude-haiku-4-5'];
+export const COMMUNITY_MODELS = ['claude-opus-5', 'claude-fable-5-1', 'claude-opus-4-8', 'claude-sonnet-5', 'claude-haiku-4-5'];
 
 /**
  * Community access (Tier 3): RTP-subsidized Claude for invited builders.
@@ -78,7 +78,7 @@ export const useCommunityStore = create<CommunityState>()((set) => ({
     });
 
     // Community default: a member with no personal Claude key gets steered off
-    // a model that would 403 — onto the stage-appropriate default (Fable 5
+    // a model that would 403 — onto the stage-appropriate default (Fable 5.1
     // while planning, Opus 5 for builds and edits).
     const providers = useProviderStore.getState();
     if (
@@ -129,7 +129,7 @@ export function communityAccessActive(): boolean {
  * Smart model defaults for free community building — one slot per stage of a
  * project's life.
  *
- * - **Planning — Fable 5.** The strategy phase: exploring the project,
+ * - **Planning — Fable 5.1.** The strategy phase: exploring the project,
  *   drawing on the commons, and drafting the build plan. Owner decision
  *   (2026-08-21, project-first shift): the plan shapes everything downstream
  *   of it, and plan turns are short prose — so the strongest reasoning model
@@ -138,6 +138,12 @@ export function communityAccessActive(): boolean {
  *   The stage now has its own bench — `npm run bench -- plan` (frozen
  *   scenarios, mechanical + judge + human 0–10 scoring) — which defaults to
  *   this constant; run it before revisiting the choice.
+ *   2026-09-02: Fable 5 → Fable 5.1 (owner decision). Same $10/$50 per MTok,
+ *   cache reads at a quarter of Fable 5's rate, stronger reasoning, and
+ *   Anthropic says Fable 5 prompts carry over as-is. The build and edit
+ *   slots stay on Opus 5: Fable 5.1's output price is double, and the
+ *   first-build case needs the bench (three trials against Opus 5 on the
+ *   mutual-aid-board task) before it's revisited.
  * - **First build — Opus 5.** The moment the tool has to feel like magic.
  *   July 2026: matched-or-beat Fable 5 on completeness at half the cost, and
  *   clearly beat Opus 4.8 at the same cost (bench/results/2026-07-27T17-23-28db9a8).
@@ -171,7 +177,7 @@ export function communityAccessActive(): boolean {
  * showed an "edits and fixes" note to someone whose first build hadn't even
  * started).
  */
-export const COMMUNITY_PLAN_MODEL = 'claude-fable-5';
+export const COMMUNITY_PLAN_MODEL = 'claude-fable-5-1';
 export const COMMUNITY_FIRST_BUILD_MODEL = 'claude-opus-5';
 export const COMMUNITY_EDIT_MODEL = 'claude-opus-5';
 

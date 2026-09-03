@@ -16,7 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 
 /** Covered models, in the order the community proxy prefers them */
-const COMMUNITY_MODEL_NAMES = 'Claude Opus 5 (the default builder), Fable 5, Opus 4.8, Sonnet 5, and Haiku 4.5';
+const COMMUNITY_MODEL_NAMES = 'Claude Opus 5 (the default builder), Fable 5.1 (the default planner), Opus 4.8, Sonnet 5, and Haiku 4.5';
 
 /** 161_000 → "161k", 5_000_000 → "5M" */
 function formatTokens(n: number): string {

@@ -50,7 +50,8 @@ const CORS = {
 // short TTL had us re-writing the whole prompt every turn and never reading
 // it back. The rows only carry a cache_creation_tokens total with no TTL
 // attached, so pricing it at 1.25x here would quietly understate the bill on
-// the one number these alerts exist to watch. Cache reads price at 0.1x.
+// the one number these alerts exist to watch. Cache reads price at 0.1x,
+// except on Fable 5.1 where Anthropic lists them at $0.25 per MTok (0.025x).
 const DEFAULT_RATES = {
   input: 5,
   output: 25,
@@ -58,12 +59,14 @@ const DEFAULT_RATES = {
   cacheRead: 0.5,
 };
 
-// Matched against the recorded model id, first hit wins (fable before opus
-// etc. doesn't matter — the ids never overlap). Cache rates derive from the
-// input rate per the 1h-write/0.1x-read reasoning above. Fallback-provider
+// Matched against the recorded model id, first hit wins — so the Fable 5.1
+// row (its own cache-read rate) must sit above the generic fable row. Cache
+// rates derive from the input rate per the 1h-write/0.1x-read reasoning
+// above unless a row carries its own cacheRead. Fallback-provider
 // models (GPT/Gemini outage runs, Gemini image) match nothing and price at
 // DEFAULT_RATES — safe-side, and rare enough not to matter.
-const MODEL_RATES: { match: RegExp; input: number; output: number }[] = [
+const MODEL_RATES: { match: RegExp; input: number; output: number; cacheRead?: number }[] = [
+  { match: /fable-5-1|mythos-5-1/i, input: 10, output: 50, cacheRead: 0.25 },
   { match: /fable|mythos/i, input: 10, output: 50 },
   { match: /opus/i, input: 5, output: 25 },
   { match: /sonnet/i, input: 3, output: 15 },
@@ -84,7 +87,7 @@ function ratesForModel(model: string, fallback: Rates): Rates {
     input: hit.input,
     output: hit.output,
     cacheWrite: hit.input * 2,
-    cacheRead: hit.input * 0.1,
+    cacheRead: hit.cacheRead ?? hit.input * 0.1,
   };
 }
 
@@ -728,7 +731,8 @@ function renderSpendEmail(
     </table>
     <p style="font-size:13px;color:#78716C;line-height:1.6;margin:0;">
       Each model prices at its own rates: Fable $10/$50 per MTok, Opus $5/$25, Sonnet $3/$15,
-      Haiku $1/$5, with 1-hour cache writes at 2&times; input and cache reads at 0.1&times;.
+      Haiku $1/$5, with 1-hour cache writes at 2&times; input and cache reads at 0.1&times;
+      (Fable 5.1: $0.25 per MTok).
       Usage without a recorded model prices at Opus-class rates
       ($${rates.input}/$${rates.output}, cache writes $${rates.cacheWrite}, reads $${rates.cacheRead})
       and shows as "untracked". Daily budgets reset at midnight UTC. This alert sends once per

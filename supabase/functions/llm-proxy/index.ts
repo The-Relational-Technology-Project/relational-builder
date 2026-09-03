@@ -164,7 +164,9 @@ const COMMUNITY_MODELS = (
   // Canonical covered set (mirrored in the client's community-store). The
   // env secret exists to narrow or extend this in an emergency without a
   // deploy; when it's unset, this list is the source of truth.
-  'claude-opus-5,claude-fable-5,claude-opus-4-8,claude-sonnet-5,claude-haiku-4-5'
+  // Fable 5 stays covered for clients that haven't picked up the v6 store
+  // migration (Fable 5 → 5.1) yet; it is no longer in the picker.
+  'claude-opus-5,claude-fable-5-1,claude-fable-5,claude-opus-4-8,claude-sonnet-5,claude-haiku-4-5'
 )
   .split(',')
   .map((s) => s.trim())
@@ -174,7 +176,8 @@ const COMMUNITY_MODELS = (
 // sunsetting), requests retry once on the mapped fallback so community
 // building never breaks on a model sunset. Format: 'model:fallback,...'.
 const MODEL_FALLBACKS: Record<string, string> = Object.fromEntries(
-  (Deno.env.get('MODEL_FALLBACKS') ?? 'claude-fable-5:claude-opus-4-8,claude-opus-5:claude-opus-4-8')
+  (Deno.env.get('MODEL_FALLBACKS') ??
+    'claude-fable-5-1:claude-opus-5,claude-fable-5:claude-opus-4-8,claude-opus-5:claude-opus-4-8')
     .split(',')
     .map((pair) => pair.split(':').map((s) => s.trim()))
     .filter((p) => p.length === 2 && p[0] && p[1]),
@@ -739,7 +742,7 @@ async function proxyAnthropic(
       anthropicBody.tools = WEB_TOOLS;
     }
   }
-  // Opus 5 and Fable 5 run safety classifiers that can decline a request
+  // Opus 5 and Fable 5.x run safety classifiers that can decline a request
   // (stop_reason "refusal") — rare false positives happen on benign builds.
   // The server-side fallback re-runs a declined request on Anthropic's
   // recommended substitute (Opus 4.8 for cyber-category declines) inside the

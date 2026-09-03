@@ -90,7 +90,7 @@ export const useProviderStore = create<ProviderState>()(
     }),
     {
       name: 'rb-provider-config',
-      version: 5,
+      version: 6,
       migrate: (persisted, version) => {
         const state = persisted as Partial<ProviderState>;
 
@@ -139,6 +139,18 @@ export const useProviderStore = create<ProviderState>()(
           !state.modelPinned
         ) {
           state.activeModelId = 'claude-opus-5';
+        }
+
+        // v6: Fable 5.1 supersedes Fable 5 (2026-09-02). Same price, same
+        // tier, and Fable 5 leaves the picker — so everyone on it moves,
+        // pinned or not: a pinned Fable 5 pick was "the deepest thinker",
+        // and that is now 5.1. BYOK included (their key serves 5.1 too).
+        if (
+          version <= 5 &&
+          state.activeProviderId === 'claude' &&
+          state.activeModelId === 'claude-fable-5'
+        ) {
+          state.activeModelId = 'claude-fable-5-1';
         }
 
         return state as ProviderState;

@@ -23,7 +23,7 @@ function): Fable $10/$50 per MTok, Opus $5/$25, Sonnet $3/$15, Haiku
 $1/$5 — so a builder who picks Fable 5 projects at Fable prices instead
 of understating by half. Cache writes price at the 1-hour rate (2×
 input; the proxy sets `ttl: '1h'` on every breakpoint) and cache reads
-at 0.1×, using the separately-recorded `cache_creation_tokens` /
+at 0.1× (Fable 5.1: $0.25 per MTok, its listed rate), using the separately-recorded `cache_creation_tokens` /
 `cache_read_tokens` — so prompt caching, most of a build conversation's
 input, is priced at its real rate rather than inflating the estimate
 3–5×. Any usage the aggregate holds beyond the model rows (recorded
