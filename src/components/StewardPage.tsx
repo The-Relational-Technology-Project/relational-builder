@@ -809,17 +809,23 @@ function EventsTab() {
   const [name, setName] = useState('');
   const [customCode, setCustomCode] = useState('');
   const [expires, setExpires] = useState('');
+  // The studio the event lives in ('' = none): joiners become members on
+  // the spot, gated studio or not — the code is the stewards' invitation
+  const [studioSlug, setStudioSlug] = useState('');
+  const [studios, setStudios] = useState<StudioContext[]>([]);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     setError(null);
     try {
-      const [codeList, statList] = await Promise.all([
+      const [codeList, statList, studioList] = await Promise.all([
         adminListEventCodes(),
         adminReferralStats(),
+        listAllStudios(),
       ]);
       setCodes(codeList);
       setStats(statList);
+      setStudios(studioList.filter(st => st.slug !== DEFAULT_STUDIO_SLUG));
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not load event codes');
     } finally {
@@ -841,15 +847,18 @@ function EventsTab() {
       const expiresAt = expires
         ? new Date(`${expires}T23:59:59`).toISOString()
         : undefined;
+      const studio = studios.find(st => st.slug === studioSlug);
       const created = await adminCreateEventCode({
         name: name.trim(),
         code: customCode.trim() || undefined,
         expiresAt,
+        ...(studio ? { studioSlug: studio.slug, studioLabel: studio.label } : {}),
       });
       setCodes(list => [created, ...list]);
       setName('');
       setCustomCode('');
       setExpires('');
+      setStudioSlug('');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not create the code');
     } finally {
@@ -870,11 +879,11 @@ function EventsTab() {
     }
   }
 
-  async function copyLink(code: string) {
+  async function copyLink(code: EventCode) {
     try {
       await navigator.clipboard.writeText(eventInviteLink(code));
-      setCopiedCode(code);
-      setTimeout(() => setCopiedCode(current => (current === code ? null : current)), 2000);
+      setCopiedCode(code.code);
+      setTimeout(() => setCopiedCode(current => (current === code.code ? null : current)), 2000);
     } catch {
       setError('Could not copy — the link is ' + eventInviteLink(code));
     }
@@ -898,7 +907,9 @@ function EventsTab() {
           An event code is a room key: everyone who joins with it gets in on the
           spot — no waiting on you — and their profile carries the event, so the
           Builder knows who was in the room together. Share the link, or put the
-          code on a slide.
+          code on a slide. Give the code a studio and the room lands inside it:
+          every joiner is a member from their first sign-in, no Studio Admin
+          approval needed, gated or not.
         </p>
         {error && <p className="text-xs text-destructive">{error}</p>}
 
@@ -928,6 +939,17 @@ function EventsTab() {
               title="Last day the code works (optional)"
               className="h-7 text-xs w-36"
             />
+            <select
+              value={studioSlug}
+              onChange={e => setStudioSlug(e.target.value)}
+              title="The studio the event lives in — joiners become members on the spot (optional)"
+              className="h-7 rounded-md border bg-background px-2 text-xs w-48"
+            >
+              <option value="">No studio</option>
+              {studios.map(st => (
+                <option key={st.slug} value={st.slug}>{st.label}</option>
+              ))}
+            </select>
             <Button
               size="sm"
               className="h-7 text-xs shrink-0"
@@ -952,6 +974,15 @@ function EventsTab() {
               <div key={c.code} className="rounded-lg border px-3 py-2 flex items-center gap-2.5 flex-wrap">
                 <span className="font-mono text-sm font-semibold tracking-wide">{c.code}</span>
                 <span className="text-sm truncate">{c.name}</span>
+                {c.studio_slug && (
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] shrink-0"
+                    title="Joiners become members of this studio on the spot"
+                  >
+                    {c.studio_label ?? c.studio_slug}
+                  </Badge>
+                )}
                 <Badge variant="outline" className="shrink-0 tabular-nums">
                   {c.joined} joined
                 </Badge>
@@ -969,9 +1000,9 @@ function EventsTab() {
                 )}
                 <div className="ml-auto flex items-center gap-2 shrink-0">
                   <button
-                    onClick={() => copyLink(c.code)}
+                    onClick={() => copyLink(c)}
                     className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-                    title={eventInviteLink(c.code)}
+                    title={eventInviteLink(c)}
                   >
                     {copiedCode === c.code ? <Check className="size-3" /> : <Copy className="size-3" />}
                     {copiedCode === c.code ? 'Copied' : 'Copy link'}
@@ -980,7 +1011,7 @@ function EventsTab() {
                       the door, or a stack on the welcome table */}
                   <button
                     onClick={() => {
-                      if (!openRoomKey({ name: c.name, code: c.code, link: eventInviteLink(c.code) })) {
+                      if (!openRoomKey({ name: c.name, code: c.code, link: eventInviteLink(c) })) {
                         setError('The room key opens in a new tab — allow pop-ups for this site');
                       }
                     }}

@@ -13,6 +13,10 @@ export interface EventCode {
   name: string;
   active: boolean;
   expires_at: string | null;
+  /** The studio the event lives in — joiners are seated in it outright,
+   *  gated or not, and the invite link opens that studio's doorway */
+  studio_slug: string | null;
+  studio_label: string | null;
   created_by: string;
   created_at: string;
   /** Profiles carrying this code — people who joined AND signed in */
@@ -28,12 +32,22 @@ export interface ReferralStat {
   joined: number;
 }
 
-/** The link to put on a slide or a QR code — same ?ref= door as personal codes */
-export function eventInviteLink(code: string): string {
+/**
+ * The link to put on a slide or a QR code — same ?ref= door as personal
+ * codes. A studio on the code adds its ?studio= doorway too, so the landing
+ * shows the studio they're joining and the frame is active before sign-in;
+ * the server seats them in it regardless (the code alone vouches).
+ */
+export function eventInviteLink(code: string | EventCode): string {
   const base =
     (import.meta.env.VITE_SITE_URL as string | undefined)?.replace(/\/$/, '') ||
     window.location.origin;
-  return `${base}/?ref=${encodeURIComponent(code)}`;
+  const ref = typeof code === 'string' ? code : code.code;
+  const studio = typeof code === 'string' ? null : code.studio_slug;
+  return (
+    `${base}/?ref=${encodeURIComponent(ref)}` +
+    (studio ? `&studio=${encodeURIComponent(studio)}` : '')
+  );
 }
 
 export async function adminListEventCodes(): Promise<EventCode[]> {
@@ -47,12 +61,18 @@ export async function adminCreateEventCode(input: {
   code?: string;
   /** Optional ISO timestamp after which the code stops opening the door */
   expiresAt?: string;
+  /** Optional studio the event lives in — every joiner becomes a member */
+  studioSlug?: string;
+  studioLabel?: string;
 }): Promise<EventCode> {
   const result = await adminCall({
     action: 'event_code_create',
     name: input.name,
     ...(input.code?.trim() ? { code: input.code.trim() } : {}),
     ...(input.expiresAt ? { expires_at: input.expiresAt } : {}),
+    ...(input.studioSlug
+      ? { studio_slug: input.studioSlug, studio_label: input.studioLabel ?? input.studioSlug }
+      : {}),
   });
   return result.event_code as EventCode;
 }

@@ -456,8 +456,10 @@ function RequestAccountForm() {
             className="size-2 rounded-full shrink-0"
             style={{ background: doorwayStudio.color ?? C.muted }}
           />
-          You're joining through {doorwayStudio.label} — once you're in, its
-          stewards will wave you into the studio too.
+          You're joining through {doorwayStudio.label} —{' '}
+          {referralCode.trim()
+            ? 'an event key seats you in the studio the moment you sign in.'
+            : 'once you\'re in, its stewards will wave you into the studio too.'}
         </p>
       )}
       <input
