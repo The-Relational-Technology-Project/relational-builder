@@ -4,6 +4,8 @@ import { SendHorizontal, Square, Map, Hammer, ImagePlus, X, FolderOpen, Globe, C
 import { useChatStore, type ChatMode } from '@/store/chat-store';
 import { useCloudStore } from '@/store/cloud-store';
 import { fileToDataUrl, isImageFile } from '@/lib/image';
+import { addReferenceDoc, isReferenceFile, REFERENCE_ACCEPT } from '@/project/references';
+import { referencePath } from '@/store/references-store';
 import { listMentionables, type Mentionable } from '@/knowledge/mentions';
 import { ModelSelector } from '@/components/ModelSelector';
 import { noteSubmit, recordFriction } from '@/report/friction';
@@ -197,6 +199,32 @@ export function MessageInput({
         // unsupported image — skip quietly
       }
     }
+    // Documents (PDF, Word, Markdown, text) become reference material the
+    // AI reads for context — the same door as the Files tab's "Add
+    // reference", reachable here before a project exists at all, which is
+    // exactly when a proposal or a set of notes shapes the plan most. The
+    // draft names each one so the person says what it's for.
+    const docs = [...files].filter(f => !isImageFile(f) && isReferenceFile(f));
+    for (const file of docs) {
+      try {
+        const doc = await addReferenceDoc(file);
+        setInput(prev =>
+          `${prev.trimEnd()}${prev.trim() ? ' ' : ''}I added "${doc.name}" as a reference document (${referencePath(doc)}). Read it and `,
+        );
+        setTimeout(() => {
+          const el = textareaRef.current;
+          if (!el) return;
+          el.focus();
+          el.style.height = 'auto';
+          el.style.height = Math.min(el.scrollHeight, maxHeight) + 'px';
+        }, 0);
+      } catch (e) {
+        useChatStore.getState().addSyncMessage(
+          `Couldn't read **${file.name}** — ${e instanceof Error ? e.message : 'unknown error'}`,
+          'Reference document',
+        );
+      }
+    }
   }
 
   function handlePaste(e: React.ClipboardEvent) {
@@ -358,7 +386,7 @@ export function MessageInput({
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/png,image/jpeg,image/webp,image/gif"
+            accept={`image/png,image/jpeg,image/webp,image/gif,${REFERENCE_ACCEPT}`}
             multiple
             className="hidden"
             onChange={e => {
@@ -372,11 +400,11 @@ export function MessageInput({
               variant="outline"
               onClick={() => fileInputRef.current?.click()}
               disabled={disabled || attachments.length >= MAX_ATTACHMENTS}
-              title="Screenshots, local art, a photo of your place, a mood board — visuals shape the design"
+              title="Screenshots, local art, a photo of your place, a mood board — visuals shape the design. Or a PDF, Word doc, or notes for the AI to read while it plans."
               className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground rounded-full px-3 shrink-0"
             >
               <ImagePlus className="size-4" />
-              <span className="hidden sm:inline">Add an image</span>
+              <span className="hidden sm:inline">Add an image or doc</span>
             </Button>
           ) : (
             <Button
@@ -384,7 +412,7 @@ export function MessageInput({
               variant="ghost"
               onClick={() => fileInputRef.current?.click()}
               disabled={disabled || attachments.length >= MAX_ATTACHMENTS}
-              title="Attach an image — a sketch, screenshot, or mockup"
+              title="Attach an image (a sketch, screenshot, or mockup) or a document (PDF, Word, Markdown, text) for the AI to read"
               className="size-8 text-muted-foreground hover:text-foreground"
             >
               <ImagePlus className="size-4" />

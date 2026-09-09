@@ -4,8 +4,10 @@ import { useAuthStore } from '@/store/auth-store';
 import {
   useCloudStore, readCloudAttachment,
   notepadColumnKnownMissing, markNotepadColumnMissing,
+  referenceDocsColumnKnownMissing, markReferenceDocsColumnMissing, isMissingReferenceDocsColumnError,
 } from '@/store/cloud-store';
 import { useNotepadStore } from '@/store/notepad-store';
+import { useReferencesStore } from '@/store/references-store';
 import { useLocalProjects } from '@/project/local-projects';
 import { builderClient } from '@/cloud/builder-client';
 
@@ -80,7 +82,7 @@ export async function migrateShelfToCloud(): Promise<void> {
     if (cloudNames.has(meta.name.trim().toLowerCase())) continue;
     let snapshot: {
       name: string; files: unknown; chat: unknown; mode: unknown; lineage: unknown;
-      notepad?: unknown;
+      notepad?: unknown; referenceDocs?: unknown;
     } | null = null;
     try {
       const raw = localStorage.getItem(`rb-local-project:${meta.id}`);
@@ -90,7 +92,7 @@ export async function migrateShelfToCloud(): Promise<void> {
     }
     if (!snapshot) continue;
 
-    const insertRow = (withNotepad: boolean) =>
+    const insertRow = () =>
       builderClient!.from('projects').insert({
         owner_id: user.id,
         name: meta!.name,
@@ -98,13 +100,18 @@ export async function migrateShelfToCloud(): Promise<void> {
         chat: snapshot!.chat ?? [],
         mode: snapshot!.mode ?? 'build',
         lineage: snapshot!.lineage ?? null,
-        ...(withNotepad ? { notepad: snapshot!.notepad ?? null } : {}),
+        ...(notepadColumnKnownMissing() ? {} : { notepad: snapshot!.notepad ?? null }),
+        ...(referenceDocsColumnKnownMissing() ? {} : { reference_docs: snapshot!.referenceDocs ?? null }),
         updated_by: user.id,
       });
-    let { error } = await insertRow(!notepadColumnKnownMissing());
+    let { error } = await insertRow();
     if (error && /notepad/i.test(error.message) && /column|schema/i.test(error.message)) {
       markNotepadColumnMissing();
-      ({ error } = await insertRow(false));
+      ({ error } = await insertRow());
+    }
+    if (error && isMissingReferenceDocsColumnError(error.message)) {
+      markReferenceDocsColumnMissing();
+      ({ error } = await insertRow());
     }
     if (error) {
       // Offline or rejected — leave the slot for a later session
@@ -142,5 +149,9 @@ export function initCloudSync() {
     if (state.notes !== prev.notes || state.story !== prev.story) {
       scheduleSave();
     }
+  });
+
+  useReferencesStore.subscribe((state, prev) => {
+    if (state.docs !== prev.docs) scheduleSave();
   });
 }

@@ -49,6 +49,8 @@ import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { CHUNK_MARKER, FILE_REQUEST_MARKER } from './display';
 import { markFilesRequested } from '@/knowledge/snapshot-split';
+import { markReferenceDocsRequested } from '@/knowledge/references-prompt';
+import { useReferencesStore, findReferenceByPath, referencePath } from '@/store/references-store';
 import { useNeedsKey, NeedsKeyHint } from './composer-gate';
 import { Button } from '@/components/ui/button';
 import { HomeDashboard } from '@/components/HomeDashboard';
@@ -113,33 +115,48 @@ function continuePrompt(planned = false): string {
  *  Builder, never from the person copy-pasting code out of the Files tab.
  *  Resolves the asked paths against the project (the model writes them with
  *  a leading slash, but tolerate its absence). */
-function parseFileRequest(content: string): { found: string[]; unknown: string[] } | null {
+function parseFileRequest(
+  content: string,
+): { found: string[]; foundDocs: string[]; unknown: string[] } | null {
   const match = FILE_REQUEST_MARKER.exec(content);
   if (!match) return null;
   const projectPaths = new Set(useProjectStore.getState().getAllFiles().map(f => f.path));
+  const docs = useReferencesStore.getState().docs;
   const found: string[] = [];
+  // Reference documents answer to the same marker (their /references/…
+  // paths are virtual — see references-store) so the model has one way
+  // to ask for anything it can't see in full
+  const foundDocs: string[] = [];
   const unknown: string[] = [];
   for (const raw of match[1].split(',')) {
     const token = raw.trim().replace(/^[`'"]+|[`'"]+$/g, '');
     if (!token) continue;
     const path = token.startsWith('/') ? token : `/${token}`;
+    const doc = findReferenceByPath(docs, path);
     if (projectPaths.has(path)) {
       if (!found.includes(path)) found.push(path);
+    } else if (doc) {
+      if (!foundDocs.includes(path)) foundDocs.push(referencePath(doc));
     } else if (!unknown.includes(token)) {
       unknown.push(token);
     }
   }
-  return found.length + unknown.length > 0 ? { found, unknown } : null;
+  return found.length + foundDocs.length + unknown.length > 0 ? { found, foundDocs, unknown } : null;
 }
 
 /** Sent to answer a NEED-FILES request. The contents themselves ride in the
  *  volatile turn context (snapshot-split pins them there), not in this stored
  *  message — history stays lean and the cached prefix stays byte-stable. */
-function fileRequestPrompt(found: string[], unknown: string[]): string {
+function fileRequestPrompt(found: string[], foundDocs: string[], unknown: string[]): string {
   const parts: string[] = [];
   if (found.length > 0) {
     parts.push(
       `Here are the files you asked for — the full current contents of ${found.join(', ')} are in the "Files changed since this snapshot" section of this message's context. Continue the change you were making; use targeted edit blocks where they fit, and do not re-output a file you are not changing.`,
+    );
+  }
+  if (foundDocs.length > 0) {
+    parts.push(
+      `The full text of ${foundDocs.join(', ')} is now in the "Reference Documents the Builder Shared" section of your instructions. Continue with what you were doing.`,
     );
   }
   if (unknown.length > 0) {
@@ -617,6 +634,7 @@ export function ChatPanel() {
       mode: currentMode,
       connectedServiceGuidance: serviceGuidance,
       projectFiles,
+      referenceDocs: useReferencesStore.getState().docs,
       studio: activeStudio,
       studioLibraryItems,
       frames,
@@ -770,7 +788,10 @@ export function ChatPanel() {
             // — pin them into the turn context and continue automatically
             const fileRequest =
               !truncated && !chunked ? parseFileRequest(msg.content) : null;
-            if (fileRequest) markFilesRequested(fileRequest.found);
+            if (fileRequest) {
+              markFilesRequested(fileRequest.found);
+              markReferenceDocsRequested(fileRequest.foundDocs);
+            }
             if (truncated) {
               recordBuildEvent(
                 'reply_cut_off',
@@ -830,12 +851,12 @@ export function ChatPanel() {
               }
               if (fileRequest) {
                 useChatStore.getState().queueContinuation(
-                  fileRequestPrompt(fileRequest.found, fileRequest.unknown),
+                  fileRequestPrompt(fileRequest.found, fileRequest.foundDocs, fileRequest.unknown),
                   'Sending the files it asked for',
                 );
                 recordBuildEvent(
                   'files_requested',
-                  [...fileRequest.found, ...fileRequest.unknown.map(p => `${p} (unknown)`)].join(', '),
+                  [...fileRequest.found, ...fileRequest.foundDocs, ...fileRequest.unknown.map(p => `${p} (unknown)`)].join(', '),
                 );
               } else {
                 useChatStore.getState().queueContinuation(continuePrompt(chunked), 'Finishing the build');
@@ -915,13 +936,14 @@ export function ChatPanel() {
           const request = parseFileRequest(done.content);
           if (request && useChatStore.getState().continuationCount < MAX_CONTINUATIONS) {
             markFilesRequested(request.found);
+            markReferenceDocsRequested(request.foundDocs);
             useChatStore.getState().queueContinuation(
-              fileRequestPrompt(request.found, request.unknown),
+              fileRequestPrompt(request.found, request.foundDocs, request.unknown),
               'Sending the files it asked for',
             );
             recordBuildEvent(
               'files_requested',
-              [...request.found, ...request.unknown.map(p => `${p} (unknown)`)].join(', '),
+              [...request.found, ...request.foundDocs, ...request.unknown.map(p => `${p} (unknown)`)].join(', '),
             );
           }
         }

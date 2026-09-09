@@ -12,6 +12,8 @@ import {
   connectionIndex, refKey,
   type EntryConnection, type GalleryReference,
 } from './gallery-references';
+import { formatReferenceDocsForPrompt } from './references-prompt';
+import type { ReferenceDoc } from '@/store/references-store';
 import { splitProjectSnapshot, formatChangedFilesForPrompt } from './snapshot-split';
 
 /**
@@ -508,6 +510,10 @@ export interface ContextOptions {
   builderProfile?: BuilderProfileContext | null;
   /** Resolved @ mention context — other apps the builder referenced */
   references?: string[];
+  /** Reference documents the builder added (PDFs, docs, notes) — read for
+   *  context, never shipped. Cacheable: they change only when one is added
+   *  or removed. */
+  referenceDocs?: ReferenceDoc[];
   /** Gallery connections — cross-references between knowledge entries */
   galleryReferences?: GalleryReference[];
   /** Anthropic server-side web tools are attached to this chat (Claude
@@ -685,6 +691,12 @@ export function buildPromptContext(
   // (see snapshot-split): its cache segment gets read every turn instead of
   // re-written at 2× on every edit. Files changed since the fold ride in the
   // volatile turn context below.
+  // Reference documents lead the snapshot segment: background the builder
+  // handed over, read before the code. Same segment as the files — a refold
+  // rewrites it anyway, and documents change far less often than files.
+  if (options.referenceDocs && options.referenceDocs.length > 0) {
+    sections.push('', formatReferenceDocsForPrompt(options.referenceDocs));
+  }
   let changedFiles: { path: string; content: string; updatedAt?: number }[] = [];
   if (options.projectFiles && options.projectFiles.length > 0) {
     const snapshot = splitProjectSnapshot(options.projectFiles);

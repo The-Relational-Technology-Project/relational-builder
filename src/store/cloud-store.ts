@@ -6,6 +6,7 @@ import { useProjectStore, type ProjectLineage } from '@/store/project-store';
 import { useProviderStore } from '@/store/provider-store';
 import { useChatStore, type ChatMode, type DisplayMessage } from '@/store/chat-store';
 import { useNotepadStore, captureNotepad, type NotepadSnapshot } from '@/store/notepad-store';
+import { useReferencesStore, captureReferences, type ReferencesSnapshot } from '@/store/references-store';
 import { useEnvStore } from '@/store/env-store';
 import type { FileEntry } from '@/project/virtual-fs';
 
@@ -84,6 +85,8 @@ interface CloudProjectRow {
   lineage: ProjectLineage | null;
   /** Notes + story (null on rows saved before the notepad existed) */
   notepad: NotepadSnapshot | null;
+  /** Reference documents (null on rows saved before they existed) */
+  reference_docs: ReferencesSnapshot | null;
   updated_by: string | null;
   updated_at: string;
 }
@@ -141,6 +144,45 @@ function isMissingNotepadColumnError(message: string): boolean {
   return /notepad/i.test(message) && /column|schema/i.test(message);
 }
 
+/** Same story for `reference_docs` (migration 20260909090000): a save must
+ *  never fail over a column the database hasn't grown yet. */
+let referenceDocsColumnMissing = false;
+
+export function referenceDocsColumnKnownMissing(): boolean {
+  return referenceDocsColumnMissing;
+}
+
+export function markReferenceDocsColumnMissing(): void {
+  referenceDocsColumnMissing = true;
+}
+
+export function isMissingReferenceDocsColumnError(message: string): boolean {
+  return /reference_docs/i.test(message) && /column|schema/i.test(message);
+}
+
+/** The optional columns a project row carries, minus any this database is
+ *  known to lack. Rows are written with this spread; a write that fails
+ *  over a missing column marks it and retries. */
+function optionalColumns(snapshot: { notepad: NotepadSnapshot; reference_docs: ReferencesSnapshot }) {
+  return {
+    ...(notepadColumnMissing ? {} : { notepad: snapshot.notepad }),
+    ...(referenceDocsColumnMissing ? {} : { reference_docs: snapshot.reference_docs }),
+  };
+}
+
+/** Did this write fail over an optional column? Mark it missing and say so. */
+function absorbMissingColumn(message: string): boolean {
+  if (!notepadColumnMissing && isMissingNotepadColumnError(message)) {
+    markNotepadColumnMissing();
+    return true;
+  }
+  if (!referenceDocsColumnMissing && isMissingReferenceDocsColumnError(message)) {
+    markReferenceDocsColumnMissing();
+    return true;
+  }
+  return false;
+}
+
 /** Snapshot the current local workspace for cloud storage */
 function captureWorkspace() {
   const project = useProjectStore.getState();
@@ -151,6 +193,7 @@ function captureWorkspace() {
     mode: chat.mode,
     lineage: project.lineage,
     notepad: captureNotepad(),
+    reference_docs: captureReferences(),
   };
 }
 
@@ -162,6 +205,7 @@ function applyWorkspace(row: CloudProjectRow) {
     row.notepad?.notes ?? [],
     row.notepad?.story ?? null,
   );
+  useReferencesStore.getState().hydrateReferences(row.reference_docs ?? []);
 }
 
 let channel: RealtimeChannel | null = null;
@@ -224,7 +268,7 @@ export const useCloudStore = create<CloudState>()((set, get) => ({
     if (!builderClient || !user) return { error: 'Sign in first' };
 
     const snapshot = captureWorkspace();
-    const insertRow = (withNotepad: boolean) =>
+    const insertRow = () =>
       builderClient!
         .from('projects')
         .insert({
@@ -234,16 +278,16 @@ export const useCloudStore = create<CloudState>()((set, get) => ({
           chat: snapshot.chat,
           mode: snapshot.mode,
           lineage: snapshot.lineage,
-          ...(withNotepad ? { notepad: snapshot.notepad } : {}),
+          ...optionalColumns(snapshot),
           updated_by: user.id,
         })
         .select('id, name, owner_id, updated_at')
         .single();
 
-    let { data, error } = await insertRow(!notepadColumnMissing);
-    if (error && isMissingNotepadColumnError(error.message)) {
-      markNotepadColumnMissing();
-      ({ data, error } = await insertRow(false));
+    let { data, error } = await insertRow();
+    // Each optional column gets one retry without it (two at most)
+    while (error && absorbMissingColumn(error.message)) {
+      ({ data, error } = await insertRow());
     }
 
     if (error) return { error: error.message };
@@ -426,7 +470,7 @@ export const useCloudStore = create<CloudState>()((set, get) => ({
 
     set({ syncStatus: 'saving' });
     const snapshot = captureWorkspace();
-    const updateRow = (withNotepad: boolean) =>
+    const updateRow = () =>
       builderClient!
         .from('projects')
         .update({
@@ -434,17 +478,16 @@ export const useCloudStore = create<CloudState>()((set, get) => ({
           chat: snapshot.chat,
           mode: snapshot.mode,
           lineage: snapshot.lineage,
-          ...(withNotepad ? { notepad: snapshot.notepad } : {}),
+          ...optionalColumns(snapshot),
           updated_by: user.id,
         })
         .eq('id', currentProjectId)
         .select('updated_at')
         .single();
 
-    let { data, error } = await updateRow(!notepadColumnMissing);
-    if (error && isMissingNotepadColumnError(error.message)) {
-      markNotepadColumnMissing();
-      ({ data, error } = await updateRow(false));
+    let { data, error } = await updateRow();
+    while (error && absorbMissingColumn(error.message)) {
+      ({ data, error } = await updateRow());
     }
 
     // The project may have been closed while the write was in flight (e.g. a

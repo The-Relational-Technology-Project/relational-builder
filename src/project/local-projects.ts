@@ -4,6 +4,7 @@ import { useProjectStore, type ProjectLineage } from '@/store/project-store';
 import { useChatStore, type ChatMode, type DisplayMessage } from '@/store/chat-store';
 import { useEnvStore, type EnvVar } from '@/store/env-store';
 import { useNotepadStore, captureNotepad, type NotepadSnapshot } from '@/store/notepad-store';
+import { useReferencesStore, captureReferences, type ReferencesSnapshot } from '@/store/references-store';
 import { useCloudStore, cloudProjectOwnsWorkspace } from '@/store/cloud-store';
 import { useDeployStore } from '@/store/deploy-store';
 import { useAuthStore, cloudEnabled } from '@/store/auth-store';
@@ -41,6 +42,8 @@ interface LocalProjectSnapshot extends LocalProjectMeta {
   envVars: EnvVar[];
   /** Notes + story travel with the project (absent on pre-notepad snapshots) */
   notepad?: NotepadSnapshot;
+  /** Reference documents travel with the project too (absent on older snapshots) */
+  referenceDocs?: ReferencesSnapshot;
 }
 
 const INDEX_KEY = 'rb-local-projects-index';
@@ -145,6 +148,7 @@ export function saveCurrentLocally(fallbackName?: string): void {
     lineage: project.lineage,
     envVars: useEnvStore.getState().vars,
     notepad: captureNotepad(),
+    referenceDocs: captureReferences(),
   };
 
   try {
@@ -194,6 +198,7 @@ export function openLocalProject(id: string): boolean {
     snapshot.notepad?.notes ?? [],
     snapshot.notepad?.story ?? null,
   );
+  useReferencesStore.getState().hydrateReferences(snapshot.referenceDocs ?? []);
   setCurrent(id, snapshot.name);
   useLocalProjects.setState({ savedAt: snapshot.updatedAt });
   return true;
@@ -333,6 +338,9 @@ export function initLocalAutosave(): void {
   });
   useNotepadStore.subscribe((state, prev) => {
     if (state.notes !== prev.notes || state.story !== prev.story) schedule();
+  });
+  useReferencesStore.subscribe((state, prev) => {
+    if (state.docs !== prev.docs) schedule();
   });
   // Env vars travel in the snapshot too — without this, a key added
   // moments before switching projects is missing from the shelf copy

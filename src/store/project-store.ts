@@ -135,6 +135,8 @@ export const useProjectStore = create<ProjectState>()(persist((set, get) => ({
     import('@/report/build-log').then(m => m.useBuildLogStore.getState().reset());
     // So does the notepad — its notes and story belong to the project they were written in
     import('@/store/notepad-store').then(m => m.useNotepadStore.getState().clearNotepad());
+    // And the reference documents — read for this project, never carried into the next
+    import('@/store/references-store').then(m => m.useReferencesStore.getState().clearReferences());
   },
 
   takeCheckpoint: (label) => {
