@@ -95,7 +95,14 @@ Chat/Builder Panel  |  Preview Sandbox (iframe)  |  RTP Knowledge Base Panel
 
 - `src/providers/` — LLM provider abstraction (types, OpenAI-compatible, Claude, registry)
 - `src/store/` — Zustand stores (provider config, chat state, project state)
-- `src/project/` — Virtual file system, code extractor, publish builds
+- `src/project/` — Virtual file system, code extractor, publish builds.
+  Two upload doors besides photos: `references.ts` (PDF/docx/md/txt the AI
+  *reads* — text extracted in the browser, kept in `src/store/references-store.ts`,
+  never a project file, so never previewed/published/exported; formatted into the
+  prompt by `src/knowledge/references-prompt.ts`) and `data-files.ts` (JSON/GeoJSON/CSV
+  the app *uses* — written under `/data/`, shipped with the app; large ones appear in
+  the prompt as a one-line shape description with a never-re-output rule, see
+  `snapshot-split.ts`)
 - `src/preview/` — preview engines: kind detection, esbuild-wasm bundler, inspector
 - `src/kit/` — the RB component kit: shadcn-aligned sources (`files/` mirrors a
   generated project's `/src`) merged under the project VFS at bundle time and

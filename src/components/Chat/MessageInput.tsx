@@ -5,6 +5,7 @@ import { useChatStore, type ChatMode } from '@/store/chat-store';
 import { useCloudStore } from '@/store/cloud-store';
 import { fileToDataUrl, isImageFile } from '@/lib/image';
 import { addReferenceDoc, isReferenceFile, REFERENCE_ACCEPT } from '@/project/references';
+import { addDataFile, isDataFile, DATA_ACCEPT, dataLoadHint } from '@/project/data-files';
 import { referencePath } from '@/store/references-store';
 import { listMentionables, type Mentionable } from '@/knowledge/mentions';
 import { ModelSelector } from '@/components/ModelSelector';
@@ -204,24 +205,40 @@ export function MessageInput({
     // reference", reachable here before a project exists at all, which is
     // exactly when a proposal or a set of notes shapes the plan most. The
     // draft names each one so the person says what it's for.
+    // Through the store's draft slot, not local state: a data file added
+    // from the empty home screen creates the project, the layout switches to
+    // the workspace, and this composer remounts — a local setInput would be
+    // lost in the move. The draft effect above applies it wherever the
+    // composer lands next (and grows + focuses the textarea).
+    const appendDraft = (line: string) => {
+      const cur = textareaRef.current?.value ?? '';
+      useChatStore.getState().setDraftMessage(`${cur.trimEnd()}${cur.trim() ? ' ' : ''}${line}`);
+    };
     const docs = [...files].filter(f => !isImageFile(f) && isReferenceFile(f));
     for (const file of docs) {
       try {
         const doc = await addReferenceDoc(file);
-        setInput(prev =>
-          `${prev.trimEnd()}${prev.trim() ? ' ' : ''}I added "${doc.name}" as a reference document (${referencePath(doc)}). Read it and `,
-        );
-        setTimeout(() => {
-          const el = textareaRef.current;
-          if (!el) return;
-          el.focus();
-          el.style.height = 'auto';
-          el.style.height = Math.min(el.scrollHeight, maxHeight) + 'px';
-        }, 0);
+        appendDraft(`I added "${doc.name}" as a reference document (${referencePath(doc)}). Read it and `);
       } catch (e) {
         useChatStore.getState().addSyncMessage(
           `Couldn't read **${file.name}** — ${e instanceof Error ? e.message : 'unknown error'}`,
           'Reference document',
+        );
+      }
+    }
+    // Data files (JSON, GeoJSON, CSV) are the app's own records: they go
+    // into the project under /data/ and the app loads them at runtime
+    const data = [...files].filter(f => !isImageFile(f) && !isReferenceFile(f) && isDataFile(f));
+    for (const file of data) {
+      try {
+        const added = await addDataFile(file);
+        appendDraft(
+          `I added my data file ${added.path} (${added.summary}). Load it at runtime (${dataLoadHint(added.path)}) rather than retyping any of it, and use it for `,
+        );
+      } catch (e) {
+        useChatStore.getState().addSyncMessage(
+          `Couldn't add **${file.name}** — ${e instanceof Error ? e.message : 'unknown error'}`,
+          'Data file',
         );
       }
     }
@@ -386,7 +403,7 @@ export function MessageInput({
           <input
             ref={fileInputRef}
             type="file"
-            accept={`image/png,image/jpeg,image/webp,image/gif,${REFERENCE_ACCEPT}`}
+            accept={`image/png,image/jpeg,image/webp,image/gif,${REFERENCE_ACCEPT},${DATA_ACCEPT}`}
             multiple
             className="hidden"
             onChange={e => {
@@ -400,7 +417,7 @@ export function MessageInput({
               variant="outline"
               onClick={() => fileInputRef.current?.click()}
               disabled={disabled || attachments.length >= MAX_ATTACHMENTS}
-              title="Screenshots, local art, a photo of your place, a mood board — visuals shape the design. Or a PDF, Word doc, or notes for the AI to read while it plans."
+              title="Screenshots, local art, a photo of your place, a mood board — visuals shape the design. Or a PDF, Word doc, or notes for the AI to read while it plans. Or a JSON/CSV of real data for the app to use."
               className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground rounded-full px-3 shrink-0"
             >
               <ImagePlus className="size-4" />
@@ -412,7 +429,7 @@ export function MessageInput({
               variant="ghost"
               onClick={() => fileInputRef.current?.click()}
               disabled={disabled || attachments.length >= MAX_ATTACHMENTS}
-              title="Attach an image (a sketch, screenshot, or mockup) or a document (PDF, Word, Markdown, text) for the AI to read"
+              title="Attach an image (a sketch, screenshot, or mockup), a document (PDF, Word, Markdown, text) for the AI to read, or a data file (JSON, GeoJSON, CSV) for the app to use"
               className="size-8 text-muted-foreground hover:text-foreground"
             >
               <ImagePlus className="size-4" />

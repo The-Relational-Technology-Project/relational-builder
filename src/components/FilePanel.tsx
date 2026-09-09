@@ -9,8 +9,9 @@ import { downloadSourceZip } from '@/project/download-source';
 import { detectPreviewKind } from '@/preview/detect';
 import { isImageFile } from '@/lib/image';
 import { addReferenceDoc, isReferenceFile, REFERENCE_ACCEPT, wordCount } from '@/project/references';
+import { addDataFile, isDataFile, DATA_ACCEPT, dataLoadHint } from '@/project/data-files';
 import { useReferencesStore, referencePath, type ReferenceDoc } from '@/store/references-store';
-import { Download, FileText, ImagePlus, Loader2, Sparkles, X } from 'lucide-react';
+import { Database, Download, FileText, ImagePlus, Loader2, Sparkles, X } from 'lucide-react';
 
 /**
  * The wiring instructions handed to the AI when an asset lands. Two things a
@@ -74,8 +75,10 @@ export function FilePanel() {
   const removeDoc = useReferencesStore(s => s.removeDoc);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const referenceInputRef = useRef<HTMLInputElement>(null);
+  const dataInputRef = useRef<HTMLInputElement>(null);
   const [adding, setAdding] = useState(false);
   const [addingReference, setAddingReference] = useState(false);
+  const [addingData, setAddingData] = useState(false);
   /** A reference document open in the viewer (a project file click wins) */
   const [viewingDocId, setViewingDocId] = useState<string | null>(null);
   const viewingDoc = referenceDocs.find(d => d.id === viewingDocId) ?? null;
@@ -146,6 +149,34 @@ export function FilePanel() {
     }
   }
 
+  async function handleAddData(files: FileList | null) {
+    const file = files?.[0];
+    if (!file) return;
+    if (!isDataFile(file)) {
+      setNotice('Add a JSON, GeoJSON, or CSV file');
+      return;
+    }
+    setAddingData(true);
+    setNotice(null);
+    try {
+      const added = await addDataFile(file);
+      setNotice(
+        added.overHostingCap
+          ? `Added ${added.path} (${Math.round(added.bytes / 1024)} KB — over Community Hosting's 512 KB per-file limit; Netlify and Vercel publish it fine)`
+          : `Added ${added.path}`,
+      );
+      selectFile(added.path);
+      setViewingDocId(null);
+      setDraftMessage(
+        `I added my data file ${added.path} (${added.summary}). Load it at runtime (${dataLoadHint(added.path)}) rather than retyping any of it, and use it for `,
+      );
+    } catch (e) {
+      setNotice(e instanceof Error ? e.message : 'Could not add that file');
+    } finally {
+      setAddingData(false);
+    }
+  }
+
   async function handleAddPhoto(files: FileList | null) {
     const file = files?.[0];
     if (!file || !isImageFile(file)) return;
@@ -208,6 +239,25 @@ export function FilePanel() {
         >
           {addingReference ? <Loader2 className="size-3 animate-spin" /> : <FileText className="size-3" />}
           Add reference
+        </button>
+        <input
+          ref={dataInputRef}
+          type="file"
+          accept={DATA_ACCEPT}
+          className="hidden"
+          onChange={e => {
+            handleAddData(e.target.files);
+            e.target.value = '';
+          }}
+        />
+        <button
+          onClick={() => dataInputRef.current?.click()}
+          disabled={addingData}
+          className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap text-xs text-muted-foreground hover:text-foreground disabled:opacity-50"
+          title="Add real data the app should use — a JSON, GeoJSON or CSV file. It becomes a /data/ file the app loads; the AI reads its shape, never retypes it"
+        >
+          {addingData ? <Loader2 className="size-3 animate-spin" /> : <Database className="size-3" />}
+          Add data
         </button>
         {artworkAvailable() && (
           <button

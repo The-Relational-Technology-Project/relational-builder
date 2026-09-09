@@ -154,6 +154,10 @@ function loaderFor(path: string): esbuild.Loader {
   if (path.endsWith('.ts')) return 'ts';
   if (path.endsWith('.jsx')) return 'jsx';
   if (path.endsWith('.json')) return 'json';
+  // Builder data files (project/data-files): GeoJSON parses like JSON, CSV
+  // arrives as a string for the app to split
+  if (path.endsWith('.geojson')) return 'json';
+  if (path.endsWith('.csv')) return 'text';
   if (path.endsWith('.svg')) return 'dataurl';
   return 'js';
 }

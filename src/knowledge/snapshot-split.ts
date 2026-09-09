@@ -25,6 +25,8 @@
  * exactly one extra fold — the cache TTL is an hour anyway.
  */
 
+import { isDataPath, describeDataFile, dataLoadHint, DATA_INLINE_CHARS } from '@/project/data-files';
+
 export interface SnapshotFile {
   path: string;
   content: string;
@@ -114,11 +116,20 @@ export function splitProjectSnapshot(
 // the content budget either.
 const isPhotoAsset = (p: string) => /^\/?assets\/[\w-]+\.js$/.test(p);
 const isRepoImage = (p: string) => /\.(png|jpe?g|gif|webp|avif|ico)$/i.test(p);
+// A large data file under /data/ (the builder's records, or a big seed the
+// model wrote) is described, never inlined: the model needs its shape and
+// keys to write code against it, and must never retype it. Small ones show
+// in full so seed data stays editable.
+const isBigDataFile = (f: SnapshotFile) => isDataPath(f.path) && f.content.length > DATA_INLINE_CHARS;
+const isNamedOnly = (f: SnapshotFile) => isPhotoAsset(f.path) || isRepoImage(f.path) || isBigDataFile(f);
 
 function fileLine(file: SnapshotFile): string | null {
   if (isPhotoAsset(file.path)) {
     const name = file.path.replace(/^\/?assets\//, '').replace(/\.js$/, '');
     return `- ${file.path} — the builder's own photo asset "${name}". React apps: just <img data-asset="${name}" alt="..."> anywhere (the builder wires it up). Plain HTML pages: <script src="./assets/${name}.js"></script> plus the same img tag. NEVER re-output or modify this file.`;
+  }
+  if (isBigDataFile(file)) {
+    return `- ${file.path} — data file (${describeDataFile(file.path, file.content)}). This is real data the project carries; load it at runtime — ${dataLoadHint(file.path)}. NEVER output, edit, or paste this file: retyping it would spend the whole reply and corrupt the data. If its shape needs to change, transform it in code after loading.`;
   }
   if (isRepoImage(file.path)) {
     const kb = Math.max(1, Math.round((file.content.length * 0.75) / 1024));
@@ -173,7 +184,7 @@ export function formatProjectFilesForPrompt(
   // then emit in the cache order.
   const withBody = new Set(
     [...files]
-      .filter(f => !isPhotoAsset(f.path) && !isRepoImage(f.path))
+      .filter(f => !isNamedOnly(f))
       .sort((a, b) => {
         const req = (requested?.has(b.path) ? 1 : 0) - (requested?.has(a.path) ? 1 : 0);
         return req !== 0 ? req : (b.updatedAt ?? 0) - (a.updatedAt ?? 0);
@@ -191,9 +202,7 @@ export function formatProjectFilesForPrompt(
       ).keep,
   );
 
-  const anyOmitted = files.some(
-    f => !isPhotoAsset(f.path) && !isRepoImage(f.path) && !withBody.has(f.path),
-  );
+  const anyOmitted = files.some(f => !isNamedOnly(f) && !withBody.has(f.path));
   if (anyOmitted) sections.push(NEED_FILES_HOWTO, '');
 
   for (const file of files) {
