@@ -149,9 +149,11 @@ export class ClaudeProvider implements LLMProvider {
       max_tokens: maxTokensFor(model),
       stream: true,
       messages: messages.map(m => ({ role: m.role, content: m.content })),
-      // Non-standard flag; the proxy attaches Anthropic's server-side web
-      // search + web fetch tools when the model supports them
+      // Non-standard flags; the proxy attaches Anthropic's server-side web
+      // search + web fetch tools when the model supports them, and sets the
+      // thinking effort for adaptive-thinking models (default xhigh)
       ...(opts?.webTools ? { web_tools: true } : {}),
+      ...(opts?.effort ? { effort: opts.effort } : {}),
     });
 
     // Transient failures (rate limits, overload, network blips) retry with
@@ -232,8 +234,11 @@ export class ClaudeProvider implements LLMProvider {
       body.thinking = { type: 'adaptive', display: 'summarized' };
       // xhigh effort: the documented best setting for coding/agentic work —
       // full design and architecture power on builds (errors on Haiku, so it
-      // stays gated on the adaptive set; the proxy path sets its own)
-      body.output_config = { effort: 'xhigh' };
+      // stays gated on the adaptive set; the proxy path sets its own). The
+      // Builder lowers it per pass: a continuation that types out files it
+      // already planned once sat thinking for five minutes at xhigh, which
+      // the proxy's wall clock then cut off mid-file.
+      body.output_config = { effort: opts?.effort ?? 'xhigh' };
     }
     if (opts?.webTools) {
       const tools = webToolsFor(model);

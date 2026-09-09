@@ -37,6 +37,7 @@ const EVENT_LABELS: Record<BuildEventType, string> = {
   gen_start: 'Generation started',
   gen_end: 'Generation ended',
   reply_cut_off: 'Reply cut off',
+  thinking_timeout: 'Thinking ran long — retried with less deliberation',
   auto_continuation: 'Automatic continuation',
   continuation_cap: 'Continuation limit reached',
   files_requested: 'Assistant asked to see files',

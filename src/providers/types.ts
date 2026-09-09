@@ -32,7 +32,15 @@ export interface StreamCallbacks {
   onError: (error: Error) => void;
 }
 
+/** How hard the model deliberates before (and while) it writes — Anthropic's
+ *  `output_config.effort` ladder. The Builder picks per pass: a fresh ask gets
+ *  the top rung, a continuation or fix pass a lower one (see ChatPanel). */
+export type ThinkingEffort = 'low' | 'medium' | 'high' | 'xhigh';
+
 export interface ChatOptions {
+  /** Thinking effort for this reply. Claude adaptive-thinking models only —
+   *  other providers ignore it. Unset means the provider's default (xhigh). */
+  effort?: ThinkingEffort;
   /** Attach Anthropic's server-side web tools (web search + web fetch) so the
    *  model can read linked pages and search for current info. Claude-only —
    *  other providers ignore it. Off by default so internal calls (quality

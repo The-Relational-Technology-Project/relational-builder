@@ -8,6 +8,7 @@ import { useProjectStore } from '@/store/project-store';
 import { useKnowledgeStore } from '@/store/knowledge-store';
 import { buildPromptContext, TURN_BREAK } from '@/knowledge/context-builder';
 import { registry } from '@/providers/registry';
+import type { StreamCallbacks, ThinkingEffort } from '@/providers/types';
 import { CLAUDE_MODELS } from '@/providers/claude';
 import { shortModelName } from '@/providers/model-label';
 import { useEnvStore } from '@/store/env-store';
@@ -69,6 +70,28 @@ const MAX_CONTINUATIONS = 6;
  *  route through the truncation machinery instead of leaving the builder
  *  staring at a stuck spinner (a real build once sat 12 minutes like that). */
 const STALL_TIMEOUT_MS = 150_000;
+
+/** Thinking effort per pass. A fresh ask gets full design and architecture
+ *  deliberation. A continuation types out files the model already planned,
+ *  and a fix pass acts on one concrete error — neither needs first-build
+ *  depth, and on the proxy's ~400s wall clock the depth is what kills them:
+ *  a real continuation sat "thinking it through" for five minutes at xhigh,
+ *  then died mid-file with the clock spent. Only Claude adaptive-thinking
+ *  models honor this; other providers ignore it. */
+const BUILD_EFFORT: ThinkingEffort = 'xhigh';
+const CONTINUATION_EFFORT: ThinkingEffort = 'medium';
+const FIX_EFFORT: ThinkingEffort = 'high';
+
+/** How long a reply may think before its first output token. Thinking deltas
+ *  count as activity for the stall watchdog, so a reply that deliberates for
+ *  five minutes and then streams a 400-line file into the wall clock never
+ *  looked stuck. Past this budget the attempt is aborted and re-sent once
+ *  at a lower effort while there is still time to stream the reply. */
+const THINKING_BUDGET_MS = 180_000;
+
+function lowerEffort(effort: ThinkingEffort): ThinkingEffort {
+  return effort === 'xhigh' ? 'high' : effort === 'high' ? 'medium' : 'low';
+}
 
 /** Sent whenever a build reply was cut off — by the output cap or a dropped
  *  stream. Asks for the files, not a post-mortem: continuation replies used
@@ -641,7 +664,7 @@ export function ChatPanel() {
     }
 
     const msgId = startAssistantMessage(currentMode === 'plan');
-    const controller = new AbortController();
+    let controller = new AbortController();
     setAbortController(controller);
     let finishReason: string | null = null;
     let sawToken = false;
@@ -669,288 +692,329 @@ export function ChatPanel() {
       `${genKind} · ${useProviderStore.getState().activeProviderId} · ${modelForSend}`,
     );
 
-    // Stall watchdog: streams can die silently mid-file with no finish signal
-    // and no error. If nothing arrives for STALL_TIMEOUT_MS, abort — the
-    // post-stream handling below salvages what streamed and continues.
     let lastActivity = Date.now();
     let stalledAbort = false;
-    const watchdog = setInterval(() => {
-      if (Date.now() - lastActivity > STALL_TIMEOUT_MS) {
-        stalledAbort = true;
-        controller.abort();
-      }
-    }, 10_000);
 
-    try {
-      await provider.chat(
-        chatMessages,
-        modelForSend,
-        {
-          onToken: (token) => {
-            lastActivity = Date.now();
-            if (!sawToken) {
-              sawToken = true;
-              useChatStore.getState().progressWriting();
-            }
-            appendToMessage(msgId, token);
-          },
-          onReasoning: () => {
-            lastActivity = Date.now();
-            useChatStore.getState().progressReasoning();
-          },
-          onRetry: () => {
-            lastActivity = Date.now();
-            useChatStore.getState().progressNotice(
-              'Lots of building happening right now — retrying automatically, hang tight…',
+    const callbacks: StreamCallbacks = {
+      onToken: (token) => {
+        lastActivity = Date.now();
+        if (!sawToken) {
+          sawToken = true;
+          useChatStore.getState().progressWriting();
+        }
+        appendToMessage(msgId, token);
+      },
+      onReasoning: () => {
+        lastActivity = Date.now();
+        useChatStore.getState().progressReasoning();
+      },
+      onRetry: () => {
+        lastActivity = Date.now();
+        useChatStore.getState().progressNotice(
+          'Lots of building happening right now — retrying automatically, hang tight…',
+        );
+      },
+      onFinishReason: (reason) => { finishReason = reason; },
+      onComplete: () => {
+        useChatStore.getState().endProgress();
+        finalizeMessage(msgId);
+        const done = useChatStore.getState().messages.find(m => m.id === msgId);
+        // A stream that "completes" with nothing (a reply that silently
+        // never came through): say so instead of leaving an empty bubble
+        // the person has to ask about.
+        if (done && !done.content.trim()) {
+          useChatStore.getState().endCooking();
+          appendToMessage(
+            msgId,
+            "**The reply didn't come through** — the stream ended without content. This is usually a hiccup upstream; please send that message again.",
+          );
+          endGen('empty — stream ended without content');
+          recordBuildEvent('reply_cut_off', 'empty reply (stream ended without content)');
+          setIsGenerating(false);
+          setAbortController(null);
+          if (useCommunityStore.getState().active) void useCommunityStore.getState().check();
+          return;
+        }
+        // The model drafts the project's name in its first build or plan
+        // reply (PROJECT-NAME marker) — adopt it here, where the reply is
+        // final. Guarded inside: a name a person typed is never replaced.
+        if (done) adoptDraftedProjectName(done.content);
+        // Close the commons loop: which surfaced entries did this reply
+        // actually draw on? Chips make it visible; the log makes it
+        // measurable alongside the 'retrieval' event that offered them.
+        if (done && commonsResults.length > 0) {
+          const drawnOn = findMentionedResults(done.content, commonsResults);
+          if (drawnOn.length > 0) {
+            useChatStore.getState().setCommonsRefs(
+              msgId,
+              drawnOn.map(r => ({ slug: r.slug, title: r.title, kind: r.kind })),
             );
-          },
-          onFinishReason: (reason) => { finishReason = reason; },
-          onComplete: () => {
-            useChatStore.getState().endProgress();
-            finalizeMessage(msgId);
-            const done = useChatStore.getState().messages.find(m => m.id === msgId);
-            // A stream that "completes" with nothing (a reply that silently
-            // never came through): say so instead of leaving an empty bubble
-            // the person has to ask about.
-            if (done && !done.content.trim()) {
-              useChatStore.getState().endCooking();
-              appendToMessage(
-                msgId,
-                "**The reply didn't come through** — the stream ended without content. This is usually a hiccup upstream; please send that message again.",
+            recordBuildEvent('commons_mentions', drawnOn.map(r => r.slug).join(', '));
+          }
+        }
+        // Extract code blocks into the virtual file system (build mode only)
+        if (currentMode === 'build') {
+          const msg = done;
+          if (msg) {
+            // Cut off — by the output cap (finish_reason "length") or by a
+            // stream that died mid-file (proxy wall-clock limit, network
+            // drop). A killed stream never reports a finish reason at all,
+            // so the unterminated code fence is the tell.
+            const truncated =
+              finishReason === 'length' || endsInsideCodeFence(msg.content);
+            // A deliberate chunk boundary: the reply ended cleanly but
+            // declared remaining files (NEXT-FILES: …) — continue the
+            // chain on purpose instead of treating the build as done
+            const chunked = !truncated && CHUNK_MARKER.test(msg.content);
+            // A request to see files the snapshot omitted (NEED-FILES: …)
+            // — pin them into the turn context and continue automatically
+            const fileRequest =
+              !truncated && !chunked ? parseFileRequest(msg.content) : null;
+            if (fileRequest) markFilesRequested(fileRequest.found);
+            if (truncated) {
+              recordBuildEvent(
+                'reply_cut_off',
+                finishReason === 'length'
+                  ? 'output length cap'
+                  : 'stream died mid-file (no finish signal)',
               );
-              endGen('empty — stream ended without content');
-              recordBuildEvent('reply_cut_off', 'empty reply (stream ended without content)');
-              setIsGenerating(false);
-              setAbortController(null);
-              if (useCommunityStore.getState().active) void useCommunityStore.getState().check();
-              return;
             }
-            // The model drafts the project's name in its first build or plan
-            // reply (PROJECT-NAME marker) — adopt it here, where the reply is
-            // final. Guarded inside: a name a person typed is never replaced.
-            if (done) adoptDraftedProjectName(done.content);
-            // Close the commons loop: which surfaced entries did this reply
-            // actually draw on? Chips make it visible; the log makes it
-            // measurable alongside the 'retrieval' event that offered them.
-            if (done && commonsResults.length > 0) {
-              const drawnOn = findMentionedResults(done.content, commonsResults);
-              if (drawnOn.length > 0) {
-                useChatStore.getState().setCommonsRefs(
-                  msgId,
-                  drawnOn.map(r => ({ slug: r.slug, title: r.title, kind: r.kind })),
-                );
-                recordBuildEvent('commons_mentions', drawnOn.map(r => r.slug).join(', '));
+            endGen(
+              truncated
+                ? finishReason === 'length'
+                  ? 'cut off — output length cap'
+                  : 'cut off mid-file — stream died with no finish signal'
+                : chunked
+                  ? 'clean chunk boundary — more files declared'
+                  : fileRequest
+                    ? 'clean — asked to see files'
+                    : 'clean',
+            );
+            // The person's own ask names the restore point. Auto sends
+            // (fixes, continuations) carry Builder text, not theirs — pass
+            // nothing and let it fall back to a version number rather than
+            // labelling their history with our machinery.
+            applyMessageFiles(msg.content, msgId, wasFix ? undefined : content);
+            // An unfinished first build isn't "ready" — hold its
+            // notification and quality review until the chain lands
+            if ((truncated || chunked) && isFirstBuild && messageProducedFiles(msg.content)) {
+              useChatStore.setState({ chainFirstBuildAsk: content });
+            }
+            // Surface edits that couldn't be applied cleanly
+            const warnings = useProjectStore.getState().lastApplyWarnings;
+            if (warnings.length > 0) {
+              appendToMessage(msgId, `\n\n> ⚠️ ${warnings.join(' ')}`);
+              recordBuildEvent('apply_warnings', warnings.join(' '));
+            }
+            // A build that touched cloud-schema.json syncs the collection
+            // schemas to Community Cloud (destructive changes confirm first)
+            if (msg.content.includes('cloud-schema.json')) {
+              void reconcileCloudSchema().then(({ note }) => {
+                if (note) appendToMessage(msgId, `\n\n> ${note}`);
+              });
+            }
+            // Managed Supabase: builds that touch supabase/ get their
+            // migrations linted + applied and functions deployed (with
+            // the builder's confirmation) via the vaulted PAT
+            if (/supabase\/(migrations|functions)\//.test(msg.content)) {
+              void applySupabaseChanges(msg.content).then(({ note }) => {
+                if (note) appendToMessage(msgId, `\n\n> ${note}`);
+              });
+            }
+            if ((truncated || chunked || fileRequest) && useChatStore.getState().continuationCount < MAX_CONTINUATIONS) {
+              // Continue through the fix channel. Truncated continuations
+              // keep chaining (big builds routinely need more than one
+              // extra reply); MAX_CONTINUATIONS bounds the spend.
+              if (truncated) {
+                appendToMessage(msgId, '\n\n> ⚠️ That reply was cut off mid-file — asking for the rest automatically.');
               }
-            }
-            // Extract code blocks into the virtual file system (build mode only)
-            if (currentMode === 'build') {
-              const msg = done;
-              if (msg) {
-                // Cut off — by the output cap (finish_reason "length") or by a
-                // stream that died mid-file (proxy wall-clock limit, network
-                // drop). A killed stream never reports a finish reason at all,
-                // so the unterminated code fence is the tell.
-                const truncated =
-                  finishReason === 'length' || endsInsideCodeFence(msg.content);
-                // A deliberate chunk boundary: the reply ended cleanly but
-                // declared remaining files (NEXT-FILES: …) — continue the
-                // chain on purpose instead of treating the build as done
-                const chunked = !truncated && CHUNK_MARKER.test(msg.content);
-                // A request to see files the snapshot omitted (NEED-FILES: …)
-                // — pin them into the turn context and continue automatically
-                const fileRequest =
-                  !truncated && !chunked ? parseFileRequest(msg.content) : null;
-                if (fileRequest) markFilesRequested(fileRequest.found);
-                if (truncated) {
-                  recordBuildEvent(
-                    'reply_cut_off',
-                    finishReason === 'length'
-                      ? 'output length cap'
-                      : 'stream died mid-file (no finish signal)',
-                  );
-                }
-                endGen(
-                  truncated
-                    ? finishReason === 'length'
-                      ? 'cut off — output length cap'
-                      : 'cut off mid-file — stream died with no finish signal'
-                    : chunked
-                      ? 'clean chunk boundary — more files declared'
-                      : fileRequest
-                        ? 'clean — asked to see files'
-                        : 'clean',
-                );
-                // The person's own ask names the restore point. Auto sends
-                // (fixes, continuations) carry Builder text, not theirs — pass
-                // nothing and let it fall back to a version number rather than
-                // labelling their history with our machinery.
-                applyMessageFiles(msg.content, msgId, wasFix ? undefined : content);
-                // An unfinished first build isn't "ready" — hold its
-                // notification and quality review until the chain lands
-                if ((truncated || chunked) && isFirstBuild && messageProducedFiles(msg.content)) {
-                  useChatStore.setState({ chainFirstBuildAsk: content });
-                }
-                // Surface edits that couldn't be applied cleanly
-                const warnings = useProjectStore.getState().lastApplyWarnings;
-                if (warnings.length > 0) {
-                  appendToMessage(msgId, `\n\n> ⚠️ ${warnings.join(' ')}`);
-                  recordBuildEvent('apply_warnings', warnings.join(' '));
-                }
-                // A build that touched cloud-schema.json syncs the collection
-                // schemas to Community Cloud (destructive changes confirm first)
-                if (msg.content.includes('cloud-schema.json')) {
-                  void reconcileCloudSchema().then(({ note }) => {
-                    if (note) appendToMessage(msgId, `\n\n> ${note}`);
-                  });
-                }
-                // Managed Supabase: builds that touch supabase/ get their
-                // migrations linted + applied and functions deployed (with
-                // the builder's confirmation) via the vaulted PAT
-                if (/supabase\/(migrations|functions)\//.test(msg.content)) {
-                  void applySupabaseChanges(msg.content).then(({ note }) => {
-                    if (note) appendToMessage(msgId, `\n\n> ${note}`);
-                  });
-                }
-                if ((truncated || chunked || fileRequest) && useChatStore.getState().continuationCount < MAX_CONTINUATIONS) {
-                  // Continue through the fix channel. Truncated continuations
-                  // keep chaining (big builds routinely need more than one
-                  // extra reply); MAX_CONTINUATIONS bounds the spend.
-                  if (truncated) {
-                    appendToMessage(msgId, '\n\n> ⚠️ That reply was cut off mid-file — asking for the rest automatically.');
-                  }
-                  if (fileRequest) {
-                    useChatStore.getState().queueContinuation(
-                      fileRequestPrompt(fileRequest.found, fileRequest.unknown),
-                      'Sending the files it asked for',
-                    );
-                    recordBuildEvent(
-                      'files_requested',
-                      [...fileRequest.found, ...fileRequest.unknown.map(p => `${p} (unknown)`)].join(', '),
-                    );
-                  } else {
-                    useChatStore.getState().queueContinuation(continuePrompt(chunked), 'Finishing the build');
-                  }
-                  recordBuildEvent(
-                    'auto_continuation',
-                    `${chunked ? 'planned chunk — ' : fileRequest ? 'requested files — ' : ''}pass ${useChatStore.getState().continuationCount} of ${MAX_CONTINUATIONS}`,
-                  );
-                } else if (truncated || chunked || fileRequest) {
-                  // Requested files were still pinned above — a manual
-                  // "continue" carries their contents even past the cap.
-                  appendToMessage(
-                    msgId,
-                    fileRequest
-                      ? '\n\n> ⚠️ More files were requested but the automatic chain is at its limit — say "continue" to keep going.'
-                      : chunked
-                        ? '\n\n> ⚠️ This build is unusually large — say "continue" for the remaining files.'
-                        : '\n\n> ⚠️ Cut off again — this build is unusually large. Say "continue" to keep it going.',
-                  );
-                  recordBuildEvent('continuation_cap');
-                } else {
-                  // This reply finished clean — the build (or its chain) is done.
-                  const chainAsk = useChatStore.getState().chainFirstBuildAsk;
-                  // Arm exactly one automatic error→fix pass after normal
-                  // builds and completed continuation chains — never after an
-                  // error fix itself, so error→fix can't loop
-                  useChatStore.setState({
-                    autoFixArmed: !wasFix || wasContinuation,
-                    continuationCount: 0,
-                    chainFirstBuildAsk: null,
-                  });
-                  // The ask this reply completes, when it's a project's first
-                  // build — directly, or via the chain that started as one
-                  const firstBuildAsk =
-                    !wasFix && isFirstBuild ? content : wasContinuation ? chainAsk : null;
-                  if (firstBuildAsk && messageProducedFiles(msg.content)) {
-                    recordBuildEvent('build_ready');
-                    // The initial build is done — arm the once-per-project
-                    // offer to share its story with the stewards. The card
-                    // itself waits for a calm moment (build settled, nothing
-                    // fixing or reviewing) before it appears; consent-first
-                    // either way — the report is only assembled on yes.
-                    useBuildLogStore.getState().setOffer('armed');
-                    // The one notification we ever send: first build ready, tab hidden
-                    notifyBuildReady(useCloudStore.getState().currentProjectName ?? undefined);
-                    // One background quality review, ONLY on the first build:
-                    // that's where a whole-codebase review matches the request.
-                    // Later builds are incremental, and reviewing everything
-                    // against a small ask re-surfaces pre-existing issues.
-                    // (Thrown errors win the race; fix sends are never
-                    // reviewed, so neither can loop.)
-                    runQualityReview(firstBuildAsk);
-                    // First build landed on the community key: step the
-                    // default down to the edit model for the changes ahead —
-                    // visibly, with a note, so the model picker never changes
-                    // behind anyone's back. (No-op while both stage models
-                    // are the same, since there's nothing to step down to.)
-                    const autoDefault = resolveCommunityModelDefault(
-                      useProjectStore.getState().getFileCount(),
-                      useChatStore.getState().mode,
-                    );
-                    if (autoDefault?.stage === 'edit') {
-                      const movedOff = useProviderStore.getState().activeModelId;
-                      useProviderStore.getState().setActiveModel(autoDefault.model);
-                      useChatStore
-                        .getState()
-                        .addSyncMessage(communityModelNote('edit', movedOff), MODEL_NOTE_LABEL);
-                    }
-                  }
-                }
-              }
-            }
-            // Plan mode can ask to see omitted files too — a plan scoped
-            // against what's actually built needs the real contents just as
-            // much as an edit does. Same marker, same automatic answer.
-            if (currentMode === 'plan' && done) {
-              const request = parseFileRequest(done.content);
-              if (request && useChatStore.getState().continuationCount < MAX_CONTINUATIONS) {
-                markFilesRequested(request.found);
+              if (fileRequest) {
                 useChatStore.getState().queueContinuation(
-                  fileRequestPrompt(request.found, request.unknown),
+                  fileRequestPrompt(fileRequest.found, fileRequest.unknown),
                   'Sending the files it asked for',
                 );
                 recordBuildEvent(
                   'files_requested',
-                  [...request.found, ...request.unknown.map(p => `${p} (unknown)`)].join(', '),
+                  [...fileRequest.found, ...fileRequest.unknown.map(p => `${p} (unknown)`)].join(', '),
                 );
+              } else {
+                useChatStore.getState().queueContinuation(continuePrompt(chunked), 'Finishing the build');
+              }
+              recordBuildEvent(
+                'auto_continuation',
+                `${chunked ? 'planned chunk — ' : fileRequest ? 'requested files — ' : ''}pass ${useChatStore.getState().continuationCount} of ${MAX_CONTINUATIONS}`,
+              );
+            } else if (truncated || chunked || fileRequest) {
+              // Requested files were still pinned above — a manual
+              // "continue" carries their contents even past the cap.
+              appendToMessage(
+                msgId,
+                fileRequest
+                  ? '\n\n> ⚠️ More files were requested but the automatic chain is at its limit — say "continue" to keep going.'
+                  : chunked
+                    ? '\n\n> ⚠️ This build is unusually large — say "continue" for the remaining files.'
+                    : '\n\n> ⚠️ Cut off again — this build is unusually large. Say "continue" to keep it going.',
+              );
+              recordBuildEvent('continuation_cap');
+            } else {
+              // This reply finished clean — the build (or its chain) is done.
+              const chainAsk = useChatStore.getState().chainFirstBuildAsk;
+              // Arm exactly one automatic error→fix pass after normal
+              // builds and completed continuation chains — never after an
+              // error fix itself, so error→fix can't loop
+              useChatStore.setState({
+                autoFixArmed: !wasFix || wasContinuation,
+                continuationCount: 0,
+                chainFirstBuildAsk: null,
+              });
+              // The ask this reply completes, when it's a project's first
+              // build — directly, or via the chain that started as one
+              const firstBuildAsk =
+                !wasFix && isFirstBuild ? content : wasContinuation ? chainAsk : null;
+              if (firstBuildAsk && messageProducedFiles(msg.content)) {
+                recordBuildEvent('build_ready');
+                // The initial build is done — arm the once-per-project
+                // offer to share its story with the stewards. The card
+                // itself waits for a calm moment (build settled, nothing
+                // fixing or reviewing) before it appears; consent-first
+                // either way — the report is only assembled on yes.
+                useBuildLogStore.getState().setOffer('armed');
+                // The one notification we ever send: first build ready, tab hidden
+                notifyBuildReady(useCloudStore.getState().currentProjectName ?? undefined);
+                // One background quality review, ONLY on the first build:
+                // that's where a whole-codebase review matches the request.
+                // Later builds are incremental, and reviewing everything
+                // against a small ask re-surfaces pre-existing issues.
+                // (Thrown errors win the race; fix sends are never
+                // reviewed, so neither can loop.)
+                runQualityReview(firstBuildAsk);
+                // First build landed on the community key: step the
+                // default down to the edit model for the changes ahead —
+                // visibly, with a note, so the model picker never changes
+                // behind anyone's back. (No-op while both stage models
+                // are the same, since there's nothing to step down to.)
+                const autoDefault = resolveCommunityModelDefault(
+                  useProjectStore.getState().getFileCount(),
+                  useChatStore.getState().mode,
+                );
+                if (autoDefault?.stage === 'edit') {
+                  const movedOff = useProviderStore.getState().activeModelId;
+                  useProviderStore.getState().setActiveModel(autoDefault.model);
+                  useChatStore
+                    .getState()
+                    .addSyncMessage(communityModelNote('edit', movedOff), MODEL_NOTE_LABEL);
+                }
               }
             }
-            setIsGenerating(false);
-            setAbortController(null);
-            // Keep the budget picture honest after every generation
-            if (useCommunityStore.getState().active) void useCommunityStore.getState().check();
-          },
-          onError: (error) => {
-            useChatStore.getState().endProgress();
-            // An errored reply must surface right away — with its retry offer
-            // — not sit hidden behind the cooking line
-            useChatStore.getState().endCooking();
-            endGen(`error — ${error.message.slice(0, 120)}`);
-            appendToMessage(msgId, `\n\n**Hit a snag** — ${error.message}`);
-            finalizeMessage(msgId);
-            useChatStore.getState().markErrored(msgId);
-            setIsGenerating(false);
-            setAbortController(null);
-            if (useCommunityStore.getState().active) void useCommunityStore.getState().check();
-          },
-        },
-        controller.signal,
-        { webTools },
-      );
-    } catch (err) {
-      useChatStore.getState().endProgress();
-      if (!controller.signal.aborted) {
-        const msg = err instanceof Error ? err.message : String(err);
+          }
+        }
+        // Plan mode can ask to see omitted files too — a plan scoped
+        // against what's actually built needs the real contents just as
+        // much as an edit does. Same marker, same automatic answer.
+        if (currentMode === 'plan' && done) {
+          const request = parseFileRequest(done.content);
+          if (request && useChatStore.getState().continuationCount < MAX_CONTINUATIONS) {
+            markFilesRequested(request.found);
+            useChatStore.getState().queueContinuation(
+              fileRequestPrompt(request.found, request.unknown),
+              'Sending the files it asked for',
+            );
+            recordBuildEvent(
+              'files_requested',
+              [...request.found, ...request.unknown.map(p => `${p} (unknown)`)].join(', '),
+            );
+          }
+        }
+        setIsGenerating(false);
+        setAbortController(null);
+        // Keep the budget picture honest after every generation
+        if (useCommunityStore.getState().active) void useCommunityStore.getState().check();
+      },
+      onError: (error) => {
+        useChatStore.getState().endProgress();
+        // An errored reply must surface right away — with its retry offer
+        // — not sit hidden behind the cooking line
         useChatStore.getState().endCooking();
-        endGen(`error — ${msg.slice(0, 120)}`);
-        appendToMessage(msgId, `\n\n**Hit a snag** — ${msg}`);
+        endGen(`error — ${error.message.slice(0, 120)}`);
+        appendToMessage(msgId, `\n\n**Hit a snag** — ${error.message}`);
         finalizeMessage(msgId);
         useChatStore.getState().markErrored(msgId);
         setIsGenerating(false);
         setAbortController(null);
+        if (useCommunityStore.getState().active) void useCommunityStore.getState().check();
+      },
+    };
+
+    let effort: ThinkingEffort = wasContinuation
+      ? CONTINUATION_EFFORT
+      : wasFix
+        ? FIX_EFFORT
+        : BUILD_EFFORT;
+    let effortRetried = false;
+
+    // At most two attempts: the second only when the first spent its whole
+    // thinking budget without a single output token.
+    for (;;) {
+      const attemptStartAt = Date.now();
+      lastActivity = attemptStartAt;
+      let thinkingAbort = false;
+      // Watchdog, two clocks. Thinking budget: no output token yet and the
+      // budget is spent — abort and retry once at lower effort (a second
+      // silent attempt counts as a stall instead). Stall: nothing at all,
+      // thinking included, for STALL_TIMEOUT_MS — the stream is dead; the
+      // post-stream handling below salvages what streamed and continues.
+      const attemptController = controller;
+      const watchdog = setInterval(() => {
+        if (!sawToken && Date.now() - attemptStartAt > THINKING_BUDGET_MS) {
+          if (effortRetried) stalledAbort = true;
+          else thinkingAbort = true;
+          attemptController.abort();
+        } else if (Date.now() - lastActivity > STALL_TIMEOUT_MS) {
+          stalledAbort = true;
+          attemptController.abort();
+        }
+      }, 10_000);
+
+      try {
+        await provider.chat(chatMessages, modelForSend, callbacks, controller.signal, {
+          webTools,
+          effort,
+        });
+      } catch (err) {
+        useChatStore.getState().endProgress();
+        if (!controller.signal.aborted) {
+          const msg = err instanceof Error ? err.message : String(err);
+          useChatStore.getState().endCooking();
+          endGen(`error — ${msg.slice(0, 120)}`);
+          appendToMessage(msgId, `\n\n**Hit a snag** — ${msg}`);
+          finalizeMessage(msgId);
+          useChatStore.getState().markErrored(msgId);
+          setIsGenerating(false);
+          setAbortController(null);
+        }
+      } finally {
+        clearInterval(watchdog);
       }
-    } finally {
-      clearInterval(watchdog);
+
+      if (!thinkingAbort) break;
+      // The reply never started. Nothing streamed, so nothing is lost by
+      // asking again — with less deliberation, so the wall clock is spent
+      // on the files this time.
+      effortRetried = true;
+      const from = effort;
+      effort = lowerEffort(effort);
+      const minutes = Math.round(THINKING_BUDGET_MS / 60_000);
+      recordBuildEvent(
+        'thinking_timeout',
+        `${genKind} · no output after ${minutes} min at ${from} effort — retrying at ${effort}`,
+      );
+      useChatStore
+        .getState()
+        .progressNotice(
+          `Still thinking after ${minutes} minutes — asking again with less deliberation so the reply gets written…`,
+        );
+      controller = new AbortController();
+      setAbortController(controller);
     }
 
     // A watchdog abort fires no callbacks (aborted streams return silently) —

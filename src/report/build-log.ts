@@ -29,6 +29,11 @@ export type BuildEventType =
   | 'gen_end'
   /** A build reply was cut off — by the output cap or a silently dropped stream */
   | 'reply_cut_off'
+  /** A reply thought past its budget without writing a token and was re-sent
+   *  once at lower effort — detail carries the pass kind and both efforts.
+   *  A continuation once deliberated for five minutes at xhigh and then died
+   *  at the proxy's wall clock mid-file; this is the intervention. */
+  | 'thinking_timeout'
   /** An automatic continuation was queued to finish the cut-off reply */
   | 'auto_continuation'
   /** Cut off again with no automatic passes left — the builder had to say "continue" */

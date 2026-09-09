@@ -625,6 +625,14 @@ const ADAPTIVE_THINKING_RE = /opus-(4-[78]|5)|sonnet-5|fable/;
 // recommended fallback (beta: server-side-fallback-2026-07-01).
 const REFUSAL_FALLBACK_RE = /opus-5|fable/;
 
+// Thinking effort a client may ask for on an adaptive-thinking model. The
+// ladder is Anthropic's `output_config.effort`; `max` is deliberately left
+// out (nothing in the Builder should spend that on a shared key).
+const EFFORT_LEVELS = new Set(['low', 'medium', 'high', 'xhigh']);
+function effortFor(requested: unknown): string {
+  return typeof requested === 'string' && EFFORT_LEVELS.has(requested) ? requested : 'xhigh';
+}
+
 // Anthropic server-side web tools — attached when the client sends
 // `web_tools: true` (chat turns only; the Builder's internal calls never set
 // it). Lets the model read pages the builder links and search for current
@@ -736,8 +744,12 @@ async function proxyAnthropic(
     anthropicBody.thinking = { type: 'adaptive', display: 'summarized' };
     // xhigh is the documented sweet spot for coding/agentic work on these
     // models — it buys real design and architecture thinking on first builds.
-    // Effort errors on Haiku, so it stays gated on the same model set.
-    anthropicBody.output_config = { effort: 'xhigh' };
+    // Effort errors on Haiku, so it stays gated on the same model set. The
+    // client lowers it per pass (`effort`, non-standard flag): continuation
+    // and fix passes don't need first-build deliberation, and at xhigh a
+    // continuation once thought for five minutes and then died at this
+    // function's wall clock mid-file. Unknown values fall back to xhigh.
+    anthropicBody.output_config = { effort: effortFor(body.effort) };
     if (body.web_tools === true) {
       anthropicBody.tools = WEB_TOOLS;
     }
