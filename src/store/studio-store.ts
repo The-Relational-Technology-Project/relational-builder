@@ -37,6 +37,8 @@ interface StudioState {
    * to put a Thread fellow inside the Thread frame.
    */
   studioChosen: boolean;
+  /** init() ran (or is running) — it's called from both Landing and App */
+  initStarted: boolean;
   studios: StudioContext[];
   loaded: boolean;
   /** Studios this builder belongs to — including pending gated requests */
@@ -71,6 +73,7 @@ export const useStudioStore = create<StudioState>()(
     (set, get) => ({
       activeStudio: null,
       studioChosen: false,
+      initStarted: false,
       studios: [],
       loaded: false,
       memberships: [],
@@ -80,6 +83,12 @@ export const useStudioStore = create<StudioState>()(
       libraryLoaded: false,
 
       init: async () => {
+        // The landing page starts the store too (App is lazy and only mounts
+        // once someone is through the door, but a ?studio= doorway has to be
+        // read while the visitor is still outside it) — the second call is a
+        // no-op so the auth subscription below is wired exactly once
+        if (get().initStarted) return;
+        set({ initStarted: true });
         // URL param wins over the persisted choice — this is how a Studio
         // links its members in, including studios not yet listed publicly
         const param = new URLSearchParams(window.location.search).get('studio');
