@@ -20,7 +20,9 @@
  *     auto-approves the request on the spot (account + membership created,
  *     welcome email sent, steward gets an FYI instead of an approve ask).
  *     An event code additionally rides along on the request so the joiner's
- *     profile gets tagged as an event participant at first sign-in.
+ *     profile gets tagged as an event participant at first sign-in — and
+ *     when the code names a studio, that studio rides too (overriding any
+ *     ?studio= doorway), so the join trigger seats them in it outright.
  *     The magic-link sign-in that follows is the email confirmation: OTPs
  *     only ever go to the address itself. An unrecognized code falls back
  *     to the normal pending flow.
@@ -145,10 +147,18 @@ async function referrerByCode(
  * steward can deactivate one the moment an event wraps, and an expiry set at
  * creation retires it on its own.
  */
-async function eventByCode(code: string): Promise<{ code: string; name: string } | null> {
+interface EventCode {
+  code: string;
+  name: string;
+  /** The studio this event lives in, if any — joining seats them in it */
+  studio_slug: string | null;
+  studio_label: string | null;
+}
+
+async function eventByCode(code: string): Promise<EventCode | null> {
   const res = await fetch(
     rest(
-      `/event_codes?code=eq.${encodeURIComponent(code)}&active=eq.true&select=code,name,expires_at&limit=1`,
+      `/event_codes?code=eq.${encodeURIComponent(code)}&active=eq.true&select=code,name,expires_at,studio_slug,studio_label&limit=1`,
     ),
     { headers: svc() },
   );
@@ -156,7 +166,13 @@ async function eventByCode(code: string): Promise<{ code: string; name: string }
   if (rows.length === 0) return null;
   const expires = rows[0].expires_at ? Date.parse(String(rows[0].expires_at)) : null;
   if (expires !== null && !Number.isNaN(expires) && expires < Date.now()) return null;
-  return { code: String(rows[0].code), name: String(rows[0].name) };
+  const studioSlug = rows[0].studio_slug ? String(rows[0].studio_slug) : null;
+  return {
+    code: String(rows[0].code),
+    name: String(rows[0].name),
+    studio_slug: studioSlug,
+    studio_label: studioSlug ? String(rows[0].studio_label ?? studioSlug) : null,
+  };
 }
 
 /**
@@ -238,7 +254,7 @@ async function sendReferralEmails(
 async function sendEventEmails(
   email: string,
   name: string | null,
-  event: { code: string; name: string },
+  event: EventCode,
 ): Promise<void> {
   const resendKey = Deno.env.get('RESEND_API_KEY') ?? '';
   if (!resendKey) return;
@@ -255,6 +271,9 @@ async function sendEventEmails(
       html: [
         `<p>Hi${name ? ' ' + esc(name) : ''},</p>`,
         `<p>Your Relational Builder account is ready — the <strong>${esc(event.name)}</strong> code opened the door, so there was no waiting. Free community building is included: no API key, no credit card.</p>`,
+        ...(event.studio_label
+          ? [`<p>The event lives in <strong>${esc(event.studio_label)}</strong> — you're a member of the studio from your first sign-in, no approval needed.</p>`]
+          : []),
         `<p><a href="${appUrl}">Open Relational Builder</a> and sign in with this email address (we'll send you a sign-in link — no password to remember).</p>`,
         `<p>Build something your neighborhood will love.</p>`,
       ].join('\n'),
@@ -353,7 +372,15 @@ Deno.serve(async (req: Request) => {
       : event && attemptedCode
         ? {
             approveNote: `joined via event code ${attemptedCode} (${event.name})`,
-            requestPatch: { event_code: attemptedCode },
+            // The event's studio rides with the code: claim_studio_intent
+            // reads studio_slug + event_code off this same row and seats
+            // them in the studio without a Studio Admin's approval
+            requestPatch: {
+              event_code: attemptedCode,
+              ...(event.studio_slug
+                ? { studio_slug: event.studio_slug, studio_label: event.studio_label }
+                : {}),
+            },
             decidedBy: `event code ${attemptedCode} (${event.name})`,
           }
         : null;

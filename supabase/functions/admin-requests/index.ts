@@ -53,7 +53,9 @@
  * POST JSON — event codes (steward-minted room keys: a ?ref=CODE that
  * auto-joins like a builder's referral code and tags each joiner's profile
  * as an event participant) + join counts per code:
- *   { action: "event_code_create", name, code?, expires_at? }
+ *   { action: "event_code_create", name, code?, expires_at?,
+ *     studio_slug?, studio_label? }   — a studio on the code seats every
+ *                                       joiner in it, no approval needed
  *                                          → { event_code: {...} }
  *   { action: "event_code_list" }          → { event_codes: [...] }
  *     (each with a `joined` count of profiles carrying the code)
@@ -411,6 +413,15 @@ Deno.serve(async (req: Request) => {
       }
       const expiresRaw = String(body.expires_at ?? '').trim();
       const expiresMs = expiresRaw ? Date.parse(expiresRaw) : NaN;
+      // The studio the event lives in — same slug shape the doorway accepts
+      const rawStudio = String(body.studio_slug ?? '').trim().toLowerCase();
+      if (rawStudio && !/^[a-z0-9-]{1,40}$/.test(rawStudio)) {
+        return json({ error: 'That studio slug is not valid' }, 400);
+      }
+      const studioSlug = rawStudio || null;
+      const studioLabel = studioSlug
+        ? String(body.studio_label ?? '').slice(0, 80).trim() || studioSlug
+        : null;
       const insRes = await fetch(rest('/event_codes'), {
         method: 'POST',
         headers: { ...svc(), Prefer: 'return=representation' },
@@ -418,6 +429,8 @@ Deno.serve(async (req: Request) => {
           code,
           name,
           expires_at: Number.isNaN(expiresMs) ? null : new Date(expiresMs).toISOString(),
+          studio_slug: studioSlug,
+          studio_label: studioLabel,
           created_by: callerEmail,
         }),
       });
