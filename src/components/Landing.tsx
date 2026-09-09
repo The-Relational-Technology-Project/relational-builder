@@ -95,11 +95,14 @@ export function Landing({ children }: { children: ReactNode }) {
   });
   const [hashPage, setHashPage] = useState(getHashPage);
 
-  // App (which normally inits auth) is gated below, so init here too — that
-  // way a magic-link redirect landing on this page still gets its session
-  // detected. init() guards against running twice, so App's call is a no-op.
+  // App (which normally inits auth and the studio store) is gated below, so
+  // init both here too — that way a magic-link redirect landing on this page
+  // still gets its session detected, and a studio doorway (?studio=slug) is
+  // read while the visitor is still outside, so the request form can carry
+  // it. Both init()s guard against running twice, so App's calls are no-ops.
   useEffect(() => {
     useAuthStore.getState().init();
+    void useStudioStore.getState().init();
     const onHash = () => setHashPage(getHashPage());
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
