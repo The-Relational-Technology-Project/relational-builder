@@ -48,6 +48,7 @@ export function ProviderSettings({ open: controlledOpen, onOpenChange, hideTrigg
   const communityActive = useCommunityStore(s => s.active);
   const dailyBudget = useCommunityStore(s => s.dailyBudget);
   const usedToday = useCommunityStore(s => s.usedToday);
+  const refreshUsage = useCommunityStore(s => s.refreshUsage);
 
   // Community access and Claude BYOK share the claude provider under the
   // hood — a saved personal key wins, otherwise the community path runs.
@@ -64,6 +65,15 @@ export function ProviderSettings({ open: controlledOpen, onOpenChange, hideTrigg
     }
     setKeyInputs(inputs);
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // The meter reads fresh when the dialog opens and keeps up while it's open
+  // — a build running in the background meters on the proxy, not here
+  useEffect(() => {
+    if (!open || !communityActive) return;
+    void refreshUsage();
+    const timer = setInterval(() => { void refreshUsage(); }, 30_000);
+    return () => clearInterval(timer);
+  }, [open, communityActive, refreshUsage]);
 
   function handleSaveKey(providerId: string) {
     const key = keyInputs[providerId]?.trim();

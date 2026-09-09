@@ -368,16 +368,19 @@ function RepoListView({ forge, onBack }: { forge: ForgeId; onBack: () => void })
     : repos;
 
   return (
-    <div className="space-y-3 pt-2">
-      <div className="flex items-center justify-between">
-        <p className="text-xs text-muted-foreground">
+    /* min-w-0: a repo name is rendered nowrap (truncate) below, and without
+       this the grid cell grows to fit the widest one and the whole list
+       spills past the dialog's edge */
+    <div className="space-y-3 pt-2 min-w-0">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs text-muted-foreground min-w-0 truncate">
           {username ? (
             <>Signed in to {meta.name} as <span className="font-medium text-foreground">{username}</span></>
           ) : (
             <>Connected to {meta.name}</>
           )}
         </p>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <button onClick={onBack} className="text-xs text-muted-foreground hover:text-foreground underline">
             Different service
           </button>
@@ -404,6 +407,7 @@ function RepoListView({ forge, onBack }: { forge: ForgeId; onBack: () => void })
             onChange={e => setNewName(e.target.value)}
             placeholder="my-community-app"
             className="h-8 text-sm flex-1"
+            autoFocus
             onKeyDown={e => e.key === 'Enter' && handleCreateRepo()}
           />
           <Button size="sm" className="h-8 gap-1" onClick={handleCreateRepo} disabled={creating || !newName.trim()}>
@@ -441,7 +445,7 @@ function RepoListView({ forge, onBack }: { forge: ForgeId; onBack: () => void })
             <button
               key={repo.fullName}
               onClick={() => connect(repo)}
-              className="w-full text-left px-2 py-1.5 rounded hover:bg-muted transition-colors"
+              className="w-full min-w-0 text-left px-2 py-1.5 rounded hover:bg-muted transition-colors"
             >
               <div className="text-xs font-medium truncate">{repo.fullName}</div>
               <div className="text-xs text-muted-foreground">
@@ -501,6 +505,11 @@ function ConnectedView() {
   const [busy, setBusy] = useState<'push' | 'pull' | 'publish' | 'reset' | null>(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
+  // With automatic sync on, Pull and Push are the exception, not the routine:
+  // they stay folded away unless the automatic path is off or has stopped
+  // (held behind unpulled commits, or errored) — or the person asks for them
+  const [showManual, setShowManual] = useState(false);
+  const manualNeeded = !autoOn || pushStatus === 'held' || pushStatus === 'error';
 
   const handlePublish = useCallback(async () => {
     setBusy('publish');
@@ -582,15 +591,15 @@ function ConnectedView() {
   }, [forgeName]);
 
   return (
-    <div className="space-y-4 pt-2">
+    <div className="space-y-4 pt-2 min-w-0">
       {/* Connected repo info */}
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
           <a
             href={connectedRepo.htmlUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs font-medium hover:underline inline-flex items-center gap-1"
+            className="text-xs font-medium hover:underline inline-flex items-center gap-1 break-all"
           >
             {connectedRepo.fullName} <ExternalLink className="size-2.5" />
           </a>
@@ -788,48 +797,59 @@ function ConnectedView() {
             </div>
           )}
 
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            Edit this project anywhere — Claude Code, your own editor — and the
-            changes find their way back here, with a plain-language summary in
-            chat. Pull brings them in early, or by hand when you have unpushed
-            changes of your own.
-          </p>
+          {autoOn && (
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Edit this project anywhere, in Claude Code or your own editor,
+              and the changes find their way back here with a plain-language
+              summary in chat.
+            </p>
+          )}
 
-          <div className="flex gap-2">
-            <Button
-              onClick={handlePull}
-              disabled={busy !== null}
-              className="flex-1 gap-1.5"
-              variant={pushStatus === 'held' ? 'default' : 'outline'}
+          {manualNeeded || showManual ? (
+            <div className="flex gap-2">
+              <Button
+                onClick={handlePull}
+                disabled={busy !== null}
+                className="flex-1 gap-1.5"
+                variant={pushStatus === 'held' ? 'default' : 'outline'}
+              >
+                {busy === 'pull' ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <ArrowDownToLine className="size-3.5" />
+                )}
+                Pull changes
+              </Button>
+              {/* The manual path, kept for the moments automatic sync holds
+                  back. It sends nothing when nothing changed. */}
+              <Button
+                onClick={() => handlePush(pushStatus === 'held')}
+                disabled={busy !== null || fileCount === 0}
+                className="gap-1.5"
+                variant="ghost"
+                title={
+                  pushStatus === 'held'
+                    ? 'Push anyway — your version wins'
+                    : 'Push now instead of waiting'
+                }
+              >
+                {busy === 'push' ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <RefreshCw className="size-3.5" />
+                )}
+                {pushStatus === 'held' ? 'Push anyway' : 'Push now'}
+              </Button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowManual(true)}
+              className="text-xs text-muted-foreground hover:text-foreground underline"
             >
-              {busy === 'pull' ? (
-                <Loader2 className="size-3.5 animate-spin" />
-              ) : (
-                <ArrowDownToLine className="size-3.5" />
-              )}
-              Pull changes
-            </Button>
-            {/* The manual path, kept for the moments automatic sync holds
-                back. It sends nothing when nothing changed. */}
-            <Button
-              onClick={() => handlePush(pushStatus === 'held')}
-              disabled={busy !== null || fileCount === 0}
-              className="gap-1.5"
-              variant="ghost"
-              title={
-                pushStatus === 'held'
-                  ? 'Push anyway — your version wins'
-                  : 'Push now instead of waiting'
-              }
-            >
-              {busy === 'push' ? (
-                <Loader2 className="size-3.5 animate-spin" />
-              ) : (
-                <RefreshCw className="size-3.5" />
-              )}
-              {pushStatus === 'held' ? 'Push anyway' : 'Push now'}
-            </Button>
-          </div>
+              Pull or push by hand
+            </button>
+          )}
         </>
       )}
 

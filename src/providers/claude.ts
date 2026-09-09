@@ -1,6 +1,6 @@
 import type { LLMProvider, ChatMessage, ChatOptions, StreamCallbacks, ModelInfo, ContentPart } from './types';
 import { contentToText } from './types';
-import { communityAccessActive, getCommunitySessionToken } from '@/store/community-store';
+import { communityAccessActive, getCommunitySessionToken, refreshCommunityUsageSoon } from '@/store/community-store';
 import { ServerToolProgress, webToolsFor } from './web-tools';
 
 /** Translate OpenAI-style content parts to Anthropic content blocks (dev-direct path) */
@@ -205,7 +205,13 @@ export class ClaudeProvider implements LLMProvider {
     if (!res) throw new Error('No response from the LLM proxy');
 
     // Parse OpenAI-format SSE (proxy already translated from Anthropic)
-    await this.readOpenAIStream(res, callbacks, signal);
+    try {
+      await this.readOpenAIStream(res, callbacks, signal);
+    } finally {
+      // The proxy meters community turns once the stream closes (even a
+      // turn that ended early) — pull the new total in soon after
+      if (!this.apiKey) refreshCommunityUsageSoon();
+    }
   }
 
   /**

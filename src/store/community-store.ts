@@ -27,7 +27,26 @@ interface CommunityState {
   checked: boolean;
 
   check: () => Promise<void>;
+  /** Re-read today's usage only — cheap enough to run after every turn */
+  refreshUsage: () => Promise<void>;
   init: () => void;
+}
+
+/** Today's usage row, summed the way the llm-proxy gate sums it */
+async function fetchUsedToday(): Promise<number> {
+  if (!builderClient) return 0;
+  const today = new Date().toISOString().slice(0, 10);
+  const { data: usage } = await builderClient
+    .from('community_usage')
+    .select('input_tokens, output_tokens, cache_creation_tokens, cache_read_tokens')
+    .eq('day', today)
+    .maybeSingle();
+  return usage
+    ? Number(usage.input_tokens) +
+        Number(usage.output_tokens) +
+        Number(usage.cache_creation_tokens ?? 0) +
+        Number(usage.cache_read_tokens ?? 0)
+    : 0;
 }
 
 export const useCommunityStore = create<CommunityState>()((set) => ({
@@ -58,22 +77,10 @@ export const useCommunityStore = create<CommunityState>()((set) => ({
     // Mirrors the llm-proxy gate: ALL token traffic counts against the daily
     // budget — input, output, and cache writes/reads — so the banner's meter
     // and the server's 429 agree.
-    const today = new Date().toISOString().slice(0, 10);
-    const { data: usage } = await builderClient
-      .from('community_usage')
-      .select('input_tokens, output_tokens, cache_creation_tokens, cache_read_tokens')
-      .eq('day', today)
-      .maybeSingle();
-
     set({
       active: true,
       dailyBudget: Number(member.daily_token_budget ?? 0),
-      usedToday: usage
-        ? Number(usage.input_tokens) +
-          Number(usage.output_tokens) +
-          Number(usage.cache_creation_tokens ?? 0) +
-          Number(usage.cache_read_tokens ?? 0)
-        : 0,
+      usedToday: await fetchUsedToday(),
       checked: true,
     });
 
@@ -96,6 +103,15 @@ export const useCommunityStore = create<CommunityState>()((set) => ({
           useProjectStore.getState().getFileCount(),
         ).model,
       );
+    }
+  },
+
+  refreshUsage: async () => {
+    if (!useCommunityStore.getState().active) return;
+    try {
+      set({ usedToday: await fetchUsedToday() });
+    } catch {
+      // A missed refresh just leaves the last reading in place
     }
   },
 
@@ -123,6 +139,17 @@ export async function getCommunitySessionToken(): Promise<string | null> {
 /** Non-React accessor for provider code */
 export function communityAccessActive(): boolean {
   return useCommunityStore.getState().active;
+}
+
+/**
+ * Called by the provider once a community turn has streamed to its end. The
+ * proxy meters the turn fire-and-forget after the stream closes, so a short
+ * beat before reading keeps the Settings meter and the budget banner within
+ * one turn of the truth instead of frozen at sign-in.
+ */
+export function refreshCommunityUsageSoon(delayMs = 2500): void {
+  if (!useCommunityStore.getState().active) return;
+  setTimeout(() => { void useCommunityStore.getState().refreshUsage(); }, delayMs);
 }
 
 /**
