@@ -35,19 +35,26 @@ export interface CommonsSearchResult {
 
 const SEARCH_TIMEOUT_MS = 3500;
 
+export interface CommonsSearchOutcome {
+  results: CommonsSearchResult[];
+  /** Why the search came back empty-handed, when it did — null on success
+   *  (including a real zero-hit answer). Callers that only want results use
+   *  searchCommons(); the retrieval log wants this. */
+  failure: string | null;
+}
+
 /**
- * Search the commons. Returns [] on any failure or timeout — callers fall
- * back to local scoring.
+ * Search the commons. Never throws — a failure or timeout yields no results
+ * and names itself, so a log can tell "unreachable" from "nothing relevant".
  */
-export async function searchCommons(
+export async function searchCommonsDetailed(
   query: string,
   matchCount = 8,
   kinds: string[] | null = null,
-): Promise<CommonsSearchResult[]> {
+): Promise<CommonsSearchOutcome> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SEARCH_TIMEOUT_MS);
   try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), SEARCH_TIMEOUT_MS);
-
     const res = await fetch(`${COMMONS_URL}/functions/v1/search-commons`, {
       method: 'POST',
       headers: {
@@ -58,12 +65,28 @@ export async function searchCommons(
       body: JSON.stringify({ query, match_count: matchCount, kinds }),
       signal: controller.signal,
     });
-    clearTimeout(timer);
-
-    if (!res.ok) return [];
+    if (!res.ok) return { results: [], failure: `HTTP ${res.status}` };
     const data = await res.json();
-    return Array.isArray(data.results) ? (data.results as CommonsSearchResult[]) : [];
-  } catch {
-    return [];
+    return {
+      results: Array.isArray(data.results) ? (data.results as CommonsSearchResult[]) : [],
+      failure: null,
+    };
+  } catch (err) {
+    if (controller.signal.aborted) {
+      return { results: [], failure: `timed out after ${SEARCH_TIMEOUT_MS / 1000}s` };
+    }
+    return { results: [], failure: err instanceof Error && err.message ? err.message : 'network error' };
+  } finally {
+    clearTimeout(timer);
   }
+}
+
+/** Search the commons. Returns [] on any failure or timeout — callers fall
+ *  back to local scoring. */
+export async function searchCommons(
+  query: string,
+  matchCount = 8,
+  kinds: string[] | null = null,
+): Promise<CommonsSearchResult[]> {
+  return (await searchCommonsDetailed(query, matchCount, kinds)).results;
 }

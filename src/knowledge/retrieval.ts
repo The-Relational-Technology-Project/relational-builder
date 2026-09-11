@@ -1,4 +1,4 @@
-import { searchCommons, type CommonsSearchResult } from './commons-search';
+import { searchCommonsDetailed, type CommonsSearchResult } from './commons-search';
 import { fetchCommonsItemDetail } from './commons-items';
 
 /**
@@ -182,6 +182,9 @@ export interface RetrievalOutcome {
   query: string | null;
   /** How many raw hits the floor dropped */
   dropped: number;
+  /** The search itself failed (timeout, HTTP error, network) — results are
+   *  empty because the commons was unreachable, not because nothing fit */
+  failure?: string | null;
   skipped: 'fix-send' | 'machine-turn' | null;
 }
 
@@ -205,10 +208,10 @@ export async function retrieveCommonsContext(input: RetrievalInput): Promise<Ret
   const query = blendQuery(topic, input.message);
   if (!query) return { results: [], query: null, dropped: 0, skipped: null };
 
-  const raw = await searchCommons(query);
+  const { results: raw, failure } = await searchCommonsDetailed(query);
   const results = selectRelevant(raw, input.mode);
   await deepenResults(results);
-  return { results, query, dropped: raw.length - results.length, skipped: null };
+  return { results, query, dropped: raw.length - results.length, failure, skipped: null };
 }
 
 /**

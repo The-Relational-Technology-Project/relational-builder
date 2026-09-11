@@ -48,6 +48,7 @@ import { BuildReportCard } from './BuildReportCard';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { CHUNK_MARKER, FILE_REQUEST_MARKER } from './display';
+import { buildPlanPrompt, isPlanApproval, shouldOfferBuild } from './plan-approval';
 import { markFilesRequested } from '@/knowledge/snapshot-split';
 import { markReferenceDocsRequested } from '@/knowledge/references-prompt';
 import { useReferencesStore, findReferenceByPath, referencePath } from '@/store/references-store';
@@ -429,6 +430,22 @@ export function ChatPanel() {
     }
 
     if (!provider) return;
+
+    // "approved" / "build this plan" typed into plan mode IS the Build button.
+    // A real builder typed exactly that, got a plan-mode reply about where the
+    // button might be, and lost a day. Only when there's a plan to build and
+    // the words are the whole message — a sentence that also asks for a
+    // change is a refinement and goes to the model as typed.
+    if (
+      currentMode === 'plan' &&
+      !attachments?.length &&
+      isPlanApproval(content) &&
+      shouldOfferBuild(useChatStore.getState().messages, useProjectStore.getState().getFileCount() > 0)
+    ) {
+      setMode('build');
+      recordBuildEvent('typed_approval', content.trim().slice(0, 60));
+      return handleSend(buildPlanPrompt(useProjectStore.getState().getFileCount() > 0));
+    }
     // Fix requests (auto or manual) never re-arm the automatic pass. They ride
     // as a user turn so the model acts on them, but render as a Builder note —
     // not the person's own chat bubble — via the captured label.
@@ -530,7 +547,12 @@ export function ChatPanel() {
         mode: currentMode === 'plan' ? 'plan' : 'build',
         isFixSend: wasFix,
         messages: priorMessages,
-      }).catch(() => ({ results: [], query: null, dropped: 0 })),
+      }).catch((err: unknown) => ({
+        results: [],
+        query: null,
+        dropped: 0,
+        failure: err instanceof Error ? err.message : 'retrieval threw',
+      })),
       buildMentionContext(content).catch(() => []),
       // Connections between entries — cached for the session; lets the AI
       // say where else a surfaced tool or practice showed up
@@ -550,21 +572,28 @@ export function ChatPanel() {
     const commonsResults = retrieval.results;
     if (retrieval.query !== null) {
       // The eval trail: what was searched, what survived the floor. A
-      // deliberate empty ("kept 0/8") is a finding, not a failure.
+      // deliberate empty ("kept 0/8") is a finding, not a failure — and a
+      // failed search says so, instead of posing as "kept 0/0": one builder's
+      // log showed five of ten searches empty on a slow connection, and the
+      // report couldn't tell an unreachable commons from an irrelevant one.
       // Every kept entry, not just the top few — the report's provenance
       // section can only credit what the log names.
+      const q = `"${retrieval.query.replace(/\s+/g, ' ').slice(0, 60)}"`;
       recordBuildEvent(
         'retrieval',
-        `"${retrieval.query.replace(/\s+/g, ' ').slice(0, 60)}" · kept ${commonsResults.length}/${commonsResults.length + retrieval.dropped}` +
-          (commonsResults.length > 0
-            ? ` (${commonsResults.map(r => `${r.slug}${r.similarity ? ` ${r.similarity.toFixed(2)}` : ''}`).join(', ')})`
-            : ''),
+        retrieval.failure
+          ? `${q} · search failed — ${retrieval.failure}`
+          : `${q} · kept ${commonsResults.length}/${commonsResults.length + retrieval.dropped}` +
+            (commonsResults.length > 0
+              ? ` (${commonsResults.map(r => `${r.slug}${r.similarity ? ` ${r.similarity.toFixed(2)}` : ''}`).join(', ')})`
+              : ''),
       );
     }
     // Local TF-IDF over the Studio KB is the fallback for an UNREACHABLE
-    // commons (zero raw hits — the live search always returns candidates).
-    // A reachable search whose hits all fell below the relevance floor is a
-    // deliberate empty: injecting TF-IDF noise instead would undo the floor.
+    // commons (the search failed, or returned no candidates at all — the
+    // live search always returns some). A reachable search whose hits all
+    // fell below the relevance floor is a deliberate empty: injecting TF-IDF
+    // noise instead would undo the floor.
     const relevant =
       retrieval.query !== null && commonsResults.length === 0 && retrieval.dropped === 0
         ? getRelevantContext(content)
@@ -1084,7 +1113,7 @@ export function ChatPanel() {
     // every gen_start has its gen_end
     if (!genEnded && controller.signal.aborted) endGen('stopped by the builder');
   }, [
-    provider, activeModelId, addUserMessage, toChatMessages,
+    provider, activeModelId, addUserMessage, toChatMessages, setMode,
     startAssistantMessage, appendToMessage, finalizeMessage,
     setIsGenerating, setAbortController, applyMessageFiles,
     getRelevantContext, setSystemPrompt,
@@ -1134,12 +1163,7 @@ export function ChatPanel() {
     setMode('build');
     // On an existing project the plan is a delta — build only it. From
     // scratch, the plan is the whole first build.
-    const existing = useProjectStore.getState().getFileCount() > 0;
-    handleSend(
-      existing
-        ? 'Make the changes agreed in the plan above — only those changes, keeping everything else in the app exactly as it is. Generate the complete added or edited files with filename annotations. End by naming, in one line, anything you deliberately left for a later pass.'
-        : 'Build the first version of the app described in the plan above — the plan\'s First-build features, not its Later ones. Generate complete, working files with filename annotations, following the plan\'s look & feel and data decisions. End by naming, in one line, what you left for the next pass.',
-    );
+    handleSend(buildPlanPrompt(useProjectStore.getState().getFileCount() > 0));
   }, [setMode, handleSend]);
 
   const handleStop = useCallback(() => {

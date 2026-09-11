@@ -58,6 +58,9 @@ export type BuildEventType =
   | 'quality_review_fix'
   /** The build (or its continuation chain) landed complete */
   | 'build_ready'
+  /** "approved" / "build this plan" typed into plan mode started the build —
+   *  the same send the button makes. Detail carries what was typed. */
+  | 'typed_approval'
   /** Commons retrieval ran for a send — detail carries the query head and
    *  what survived the relevance floor (slugs · similarities). The eval
    *  data every retrieval-tuning decision has been missing. */
