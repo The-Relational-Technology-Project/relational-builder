@@ -32,6 +32,8 @@ function clearAuthHash() {
  * (#error=access_denied&error_code=otp_expired&…). Read it before the hash is
  * wiped, so the sign-in dialog can say what happened — silently swallowing it
  * looks like the click did nothing, and people loop on requesting new links.
+ * Only emails sent before the link moved to /auth/confirm can still arrive
+ * this way; new ones never spend the token on a bare visit.
  */
 function readAuthHashError(): string | null {
   const h = window.location.hash;
@@ -103,6 +105,11 @@ interface AuthState {
   /** Sign in with the 6-digit code from the magic-link email — the phone-proof
    *  path when the link would open in the wrong browser */
   verifyCode: (email: string, code: string) => Promise<{ error: string | null }>;
+  /** Sign in from the email's link. The link carries a token *hash* to our own
+   *  /auth/confirm page, and nothing is spent until the person presses the
+   *  button there — so an inbox scanner that opens the link consumes nothing,
+   *  and the 6-digit code in the same email keeps working */
+  verifyLink: (tokenHash: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   saveProfile: (fields: Partial<BuilderProfile>) => Promise<{ error: string | null }>;
@@ -196,6 +203,15 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       type: 'email',
     });
     // Session lands via onAuthStateChange — nothing else to set here
+    return { error: error?.message ?? null };
+  },
+
+  verifyLink: async (tokenHash: string) => {
+    if (!builderClient) return { error: 'Cloud features are not configured' };
+    const { error } = await builderClient.auth.verifyOtp({
+      token_hash: tokenHash,
+      type: 'email',
+    });
     return { error: error?.message ?? null };
   },
 

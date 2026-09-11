@@ -7,6 +7,8 @@ import { useStudioStore } from '@/store/studio-store';
 import { DEFAULT_STUDIO_SLUG } from '@/knowledge/studio-context';
 import { MailCheck, Plus, Minus } from 'lucide-react';
 import { PrivacyPage, ContactPage } from './LandingPages';
+import { ConfirmSignInPage } from './ConfirmSignInPage';
+import { isConfirmPath, readConfirmToken } from '@/cloud/confirm-link';
 
 // The build-a-thon page is for event partners who may never sign in — its
 // own chunk, loaded only at its own address
@@ -94,6 +96,10 @@ export function Landing({ children }: { children: ReactNode }) {
     return localStorage.getItem(ENTERED_KEY) === '1';
   });
   const [hashPage, setHashPage] = useState(getHashPage);
+  // The sign-in email's link lands at /auth/confirm — a page that verifies the
+  // token only when a person presses the button, so inbox link scanners can't
+  // spend it. Wins over everything else, signed in or not, like /buildathon.
+  const [confirming, setConfirming] = useState(isConfirmPath);
 
   // App (which normally inits auth and the studio store) is gated below, so
   // init both here too — that way a magic-link redirect landing on this page
@@ -112,6 +118,20 @@ export function Landing({ children }: { children: ReactNode }) {
   // you're signed in — they win over both the landing and the app
   if (hashPage === 'privacy') return <PrivacyPage />;
   if (hashPage === 'contact') return <ContactPage />;
+
+  if (confirming) {
+    return (
+      <ConfirmSignInPage
+        tokenHash={readConfirmToken()}
+        onDone={() => {
+          // The session is in hand; drop the spent address so a reload or a
+          // shared tab never re-offers the button
+          window.history.replaceState(null, '', '/');
+          setConfirming(false);
+        }}
+      />
+    );
+  }
 
   // Same standing for the build-a-thon page, which lives at a path so it
   // reads like the site page it is (relationalbuilder.org/buildathon)
@@ -570,9 +590,8 @@ function SignInPanel({ onEnter }: { onEnter: () => void }) {
           </div>
           <p className="text-xs leading-relaxed" style={{ color: C.body }}>
             We sent a 6-digit code to <strong>{email}</strong> — type it here
-            to sign in. No password needed. (The email has a sign-in link too,
-            but the typed code works even when a work inbox's link scanner has
-            used the link up.)
+            to sign in. No password needed. (The email has a sign-in link too —
+            either one works, whichever is handier.)
           </p>
           <CodeEntry email={email} />
           <p className="text-xs leading-relaxed" style={{ color: C.muted }}>
