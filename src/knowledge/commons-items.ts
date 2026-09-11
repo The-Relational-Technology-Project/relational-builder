@@ -1,4 +1,6 @@
 import { COMMONS_URL, COMMONS_ANON_KEY } from './commons-search';
+import { resolveStudioAssetUrl } from './queries';
+import { toMarkdown } from '@/lib/rich-text';
 
 /**
  * Direct reads of commons_items for the Commons Gallery — the remixable
@@ -126,6 +128,14 @@ export async function fetchMicrograntCards(): Promise<CommonsCard[]> {
   return rows.sort((a, b) => (MICROGRANT_SHELF_ORDER[a.kind] ?? 9) - (MICROGRANT_SHELF_ORDER[b.kind] ?? 9));
 }
 
+/**
+ * Bodies are Markdown, except the field-guide stories, which came over from
+ * the Studio site as HTML. Normalized here so every reader downstream — the
+ * detail dialog, a remix, the excerpts that ride into prompts — sees one
+ * format, with their site-relative images qualified against the Studio.
+ */
+const BODY_ASSETS = { resolveUrl: (u: string) => resolveStudioAssetUrl(u) ?? u };
+
 /** Full entry (body + structured metadata) for a card's detail view / remix. */
 export async function fetchCommonsItemDetail(
   slug: string,
@@ -135,5 +145,7 @@ export async function fetchCommonsItemDetail(
     `commons_items?select=${CARD_COLUMNS},body,metadata&slug=eq.${encodeURIComponent(slug)}&limit=1`,
     signal,
   );
-  return rows[0] ?? null;
+  const item = rows[0];
+  if (!item) return null;
+  return { ...item, body: item.body ? toMarkdown(item.body, BODY_ASSETS) : item.body };
 }

@@ -8,6 +8,8 @@
  * largely don't run JS) get real HTML in the first response.
  */
 
+import { toMarkdown, toPlainText, type RichTextOptions } from '../../src/lib/rich-text';
+
 export const SITE = 'https://relationalbuilder.org';
 
 // Vercel's edge runtime exposes env through `process.env`; typed here so the
@@ -30,6 +32,11 @@ const BUILDER_ANON =
 const STUDIO_SITE_ORIGIN = 'https://studio.relationaltechproject.org';
 export const qualifyAsset = (u: string | null | undefined): string | null =>
   u ? (u.startsWith('/') ? `${STUDIO_SITE_ORIGIN}${u}` : u) : null;
+
+/** Images inside a story body are site-relative to the Studio too. */
+const MARKDOWN_ASSETS: RichTextOptions = {
+  resolveUrl: u => qualifyAsset(u) ?? u,
+};
 
 // --- Types -----------------------------------------------------------------
 
@@ -282,13 +289,20 @@ export const esc = (s: unknown): string =>
 
 const SAFE_HREF = /^https?:\/\//;
 
+/** Prose with its markup spent — for meta descriptions and truncated blurbs. */
+export const plainText = (text: string | null | undefined): string =>
+  toPlainText(text, MARKDOWN_ASSETS);
+
 /**
  * Minimal Markdown for commons bodies (headings, lists, links, bold,
  * images, blockquotes). Content is steward-curated but escaped anyway;
  * only http(s) links survive.
+ *
+ * Bodies that came over as HTML (the field-guide stories) are normalized to
+ * Markdown first — escaping them as-is is what put literal `<p>` on the page.
  */
 export function renderMarkdown(md: string): string {
-  const lines = esc(md).split('\n');
+  const lines = esc(toMarkdown(md, MARKDOWN_ASSETS)).split('\n');
   const out: string[] = [];
   let list: 'ul' | 'ol' | null = null;
   let para: string[] = [];

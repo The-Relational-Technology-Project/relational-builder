@@ -1,4 +1,5 @@
 import { supabase } from './supabase-client';
+import { toMarkdown } from '@/lib/rich-text';
 import type { Tool, Story, Prompt } from './types';
 
 /**
@@ -38,6 +39,25 @@ export async function fetchTools(): Promise<Tool[]> {
   return (data ?? []).map(resolveToolImages);
 }
 
+/**
+ * The field-guide stories were authored on the Studio site as HTML, so their
+ * bodies arrive as `<p>` paragraphs rather than Markdown — and react-markdown
+ * escapes raw HTML rather than rendering it, which is how the tags ended up
+ * as words in the story dialog. Normalized on the way in, with their
+ * site-relative images qualified the same way gallery images are.
+ */
+const STORY_ASSETS = { resolveUrl: (u: string) => resolveStudioAssetUrl(u) ?? u };
+
+function normalizeStory(story: Story): Story {
+  return {
+    ...story,
+    story_text: toMarkdown(story.story_text, STORY_ASSETS),
+    full_story_text: story.full_story_text
+      ? toMarkdown(story.full_story_text, STORY_ASSETS)
+      : story.full_story_text,
+  };
+}
+
 /** Fetch all stories ordered by most recent */
 export async function fetchStories(): Promise<Story[]> {
   const { data, error } = await supabase
@@ -49,7 +69,7 @@ export async function fetchStories(): Promise<Story[]> {
     console.error('Failed to fetch stories:', error.message);
     return [];
   }
-  return data ?? [];
+  return (data ?? []).map(normalizeStory);
 }
 
 /** Fetch all prompts */

@@ -14,7 +14,7 @@
 import {
   SITE, Entry, esc, kindLabel, entryPath, hasOwnPage, resolveSlugTarget,
   fetchAllSlim, fetchAllRefs, fetchEntry, fetchBySlugs, fetchRefsFor, renderMarkdown,
-  qualifyAsset, monthKey, searchCommonsHybrid,
+  plainText, qualifyAsset, monthKey, searchCommonsHybrid,
 } from './_commons/shared';
 import {
   page, FooterStats, constellation, entryCard, kindChip, kindClass, truncate, breadcrumbs, breadcrumbLd, fmtMonth, sparkline,
@@ -654,7 +654,9 @@ async function storyWall(url: URL): Promise<Response> {
       const who = [e.attribution?.name, e.attribution?.neighborhood].filter(Boolean).join(', ');
       return `<li class="card" id="${esc(e.slug)}">
 <h3>${own ? `<a href="${entryPath(e)}">${esc(e.title)}</a>` : esc(e.title)}</h3>
-<p style="font-size:.95rem;color:var(--ink)">${esc(own ? truncate(text, 260) : text)}</p>
+${own
+        ? `<p style="font-size:.95rem;color:var(--ink)">${esc(truncate(plainText(text), 260))}</p>`
+        : `<div class="prose" style="font-size:.95rem">${renderMarkdown(text)}</div>`}
 ${who ? `<p class="meta">— ${esc(who)}</p>` : ''}
 ${own ? `<p class="meta"><a href="${entryPath(e)}">Read the whole story →</a></p>` : ''}
 </li>`;
@@ -912,10 +914,7 @@ the commons <a href="${MIRROR_REPO}" rel="noopener">lives in git</a> too, and it
     page(
       {
         title: `${entry.title} · ${kindLabel(entry.kind)} · The Civic Commons`,
-        description: truncate(
-          entry.summary ?? (entry.body ?? '').replace(/\s+/g, ' ').trim(),
-          158,
-        ),
+        description: truncate(entry.summary ?? plainText(entry.body), 158),
         path: entryPath(entry),
         // Derived civic-media entries point their canonical at the original.
         canonical: isCivicDerived ? entry.source_url! : undefined,
