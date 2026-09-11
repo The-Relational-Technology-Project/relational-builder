@@ -48,6 +48,7 @@ const EVENT_LABELS: Record<BuildEventType, string> = {
   manual_error_fix: 'Fix requested by hand',
   quality_review_fix: 'Quality review queued a fix',
   build_ready: 'Build ready',
+  typed_approval: 'Build approved by typing it',
   retrieval: 'Commons knowledge searched',
   commons_mentions: 'Reply drew on the commons',
   'civic-data': 'Live city data in context',

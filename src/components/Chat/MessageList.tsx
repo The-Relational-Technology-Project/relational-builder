@@ -8,6 +8,7 @@ import { usePanelStore } from '@/store/panel-store';
 import { artifactDisplay } from '@/project/display-name';
 import { useUIStore } from '@/store/ui-store';
 import { renderableContent } from './display';
+import { QUESTION_HEADING_RE, docHeadingCount, isPlanDocument, shouldOfferBuild } from './plan-approval';
 import { CodeBlock } from './CodeBlock';
 import { ConnectionSuggestion } from './ConnectionSuggestion';
 import { Button } from '@/components/ui/button';
@@ -153,24 +154,6 @@ function CollapsedCode({
       )}
     </div>
   );
-}
-
-/** Markdown headings that aren't the question section — the tell of a
- *  drafted document rather than a conversational reply */
-function docHeadingCount(content: string): number {
-  const headings = content.match(/^#{1,3}\s+.+$/gm) ?? [];
-  return headings.filter(h => !QUESTION_HEADING_RE.test(h)).length;
-}
-
-/**
- * Plan-mode replies come in two registers. Conversation — exploring an idea,
- * asking the shaping questions as one-tap cards — renders like any chat
- * message, streaming live. The drafted plan document (sections under
- * markdown headings) gets the plan dress: it lands whole, wears the "Build
- * plan" chip, and carries the Build/Approve action.
- */
-function isPlanDocument(content: string): boolean {
-  return docHeadingCount(content) >= 2;
 }
 
 /** Three quiet dots taking turns — says "still working" without a spinner */
@@ -422,21 +405,10 @@ export function MessageList({ messages, onBuildPlan, isGenerating }: MessageList
     return null;
   }
 
-  // The Build/Approve action belongs to a reply with something to approve.
-  // From scratch that means the drafted plan document — a conversational
-  // reply (exploring, questions) has nothing to build yet. On an existing
-  // project even a two-sentence change IS the plan, so any settled reply
-  // qualifies — except one that just asked questions, which wants answers,
-  // not approval.
-  const showBuildAction =
-    !isGenerating &&
-    !!onBuildPlan &&
-    lastMessage?.role === 'assistant' &&
-    lastMessage.isPlan &&
-    !lastMessage.isStreaming &&
-    (hasProject
-      ? extractPlanQuestions(lastMessage.content).length === 0
-      : isPlanDocument(lastMessage.content));
+  // The Build/Approve action belongs to a reply with something to approve —
+  // a drafted plan anywhere in the thread (refinements after it keep the
+  // action live), never a reply that just asked questions. See plan-approval.
+  const showBuildAction = !isGenerating && !!onBuildPlan && shouldOfferBuild(messages, hasProject);
 
   return (
     <div className="flex-1 relative min-h-0">
@@ -790,7 +762,6 @@ function CommonsRefChips({ refs }: { refs: { slug: string; title: string; kind: 
   );
 }
 
-const QUESTION_HEADING_RE = /^#{2,3}\s+Questions?\s+for\s+you\s*$/im;
 
 export interface PlanQuestion {
   question: string;

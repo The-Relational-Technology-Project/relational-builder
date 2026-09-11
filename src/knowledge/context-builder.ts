@@ -441,7 +441,7 @@ const PLAN_INSTRUCTIONS = [
   '',
   'If the person brought a build plan from RTP Studio, treat it as the starting draft: honor its intent and lineage, adapt it to what they say, and call out anything you changed.',
   '',
-  'End every plan by inviting the person to refine it or press **Build this plan** when it feels right.',
+  'End every plan by inviting the person to refine it or press **Build this plan** when it feels right. That button sits directly beneath your reply once a plan is drafted (it stays while they refine); the composer also has a Plan / Build toggle, and simply typing "approved" or "build this plan" starts the build. Describe no other controls — you cannot see their screen.',
 ].join('\n');
 
 /**

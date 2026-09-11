@@ -83,6 +83,7 @@ const EVENT_LABELS: Record<string, string> = {
   manual_error_fix: 'Fix requested by hand',
   quality_review_fix: 'Quality review queued a fix',
   build_ready: 'Build ready',
+  typed_approval: 'Build approved by typing it',
   retrieval: 'Commons knowledge searched',
   commons_mentions: 'Reply drew on the commons',
   'civic-data': 'Live city data in context',
@@ -110,15 +111,23 @@ interface CommonsEntry { slug: string; score: number | null; drawnOn: boolean }
 function knowledgeStory(events: LogEvent[]): {
   entries: CommonsEntry[];
   searches: { kept: number; offered: number }[];
+  /** Searches that never reached the commons (timeout, HTTP, network) — with why */
+  failed: string[];
   cities: string[];
 } {
   const byslug = new Map<string, CommonsEntry>();
   const searches: { kept: number; offered: number }[] = [];
+  const failed: string[] = [];
   const cities = new Set<string>();
 
   for (const e of events) {
     const detail = e.detail ?? '';
     if (e.type === 'retrieval') {
+      const failure = detail.match(/search failed — (.+)$/);
+      if (failure) {
+        failed.push(failure[1].trim());
+        continue;
+      }
       const counts = detail.match(/kept (\d+)\/(\d+)/);
       if (counts) searches.push({ kept: Number(counts[1]), offered: Number(counts[2]) });
       // The kept entries live in the trailing "(slug 0.61, slug 0.60)" group
@@ -152,7 +161,7 @@ function knowledgeStory(events: LogEvent[]): {
   const entries = [...byslug.values()].sort((a, b) =>
     a.drawnOn !== b.drawnOn ? (a.drawnOn ? -1 : 1) : (b.score ?? 0) - (a.score ?? 0),
   );
-  return { entries, searches, cities: [...cities] };
+  return { entries, searches, failed, cities: [...cities] };
 }
 
 /**
@@ -293,7 +302,7 @@ function renderEmail(r: {
   // only trace was two raw event lines mid-timeline, while the influence was
   // plainly visible in the plan text; a steward had to read the whole
   // conversation to see which entries had actually done the work.
-  const { entries, searches, cities } = knowledgeStory(r.events);
+  const { entries, searches, failed, cities } = knowledgeStory(r.events);
   if (entries.length > 0 || cities.length > 0) {
     parts.push('<h3 style="margin:16px 0 4px">What shaped this build</h3>');
     if (entries.length > 0) {
@@ -303,7 +312,8 @@ function renderEmail(r: {
         (drawn > 0
           ? ` — <strong>${drawn}</strong> named in a plan or build reply (marked ★)`
           : ' — none were named in a reply') +
-        `${searches.length > 0 ? ` · ${searches.length} ${searches.length === 1 ? 'search' : 'searches'} (${searches.map(s => `kept ${s.kept}/${s.offered}`).join(', ')})` : ''}.</p>`,
+        `${searches.length > 0 ? ` · ${searches.length} ${searches.length === 1 ? 'search' : 'searches'} (${searches.map(s => `kept ${s.kept}/${s.offered}`).join(', ')})` : ''}` +
+        `${failed.length > 0 ? ` · <strong>${failed.length} ${failed.length === 1 ? 'search' : 'searches'} never reached the commons</strong> (${esc([...new Set(failed)].join('; '))})` : ''}.</p>`,
       );
       parts.push('<table style="border-collapse:collapse;font-size:13px">');
       for (const e of entries) {
