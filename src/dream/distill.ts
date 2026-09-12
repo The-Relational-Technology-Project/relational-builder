@@ -10,6 +10,11 @@
 
 import { registry } from '@/providers/registry';
 import { useProviderStore } from '@/store/provider-store';
+import { useChatStore } from '@/store/chat-store';
+import { useProjectStore } from '@/store/project-store';
+import { useCloudStore } from '@/store/cloud-store';
+import { useEnvStore } from '@/store/env-store';
+import { stashAndStartFresh } from '@/project/local-projects';
 import type { ChatMessage } from '@/providers/types';
 
 export const DREAM_SYSTEM = `You are Dream Recorder, the listening front door of Relational Builder — an open, community-oriented builder from the Relational Technology Project. People use Relational Builder to strengthen real-world relationships: neighbors organizing, mutual aid, shared projects. Software is one possible outcome, not the assumption.
@@ -118,14 +123,14 @@ export function distillDream(input: DistillInput): DistillHandle {
  * Plant the distilled description as a fresh project: same choreography as
  * planting a shared prompt — stash open work, clear the workspace, put the
  * description in the composer, record where it came from.
+ *
+ * Synchronous on purpose. An earlier version pulled the stores in with
+ * dynamic imports at click time, which meant five extra chunk fetches
+ * between the button and the builder — and on a flaky connection, or with
+ * a deploy that had replaced those chunks since the page loaded, the button
+ * just spun. Everything here is already in the app; load it with the page.
  */
-export async function plantDream(description: string): Promise<void> {
-  const { useChatStore } = await import('@/store/chat-store');
-  const { useProjectStore } = await import('@/store/project-store');
-  const { useCloudStore } = await import('@/store/cloud-store');
-  const { useEnvStore } = await import('@/store/env-store');
-  const { stashAndStartFresh } = await import('@/project/local-projects');
-
+export function plantDream(description: string): void {
   stashAndStartFresh();
   useCloudStore.getState().closeProject();
   useChatStore.getState().clearMessages();

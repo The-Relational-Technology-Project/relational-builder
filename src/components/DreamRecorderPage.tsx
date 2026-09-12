@@ -105,6 +105,7 @@ export function DreamRecorderPage() {
   const [output, setOutput] = useState('');
   const [refine, setRefine] = useState('');
   const [planting, setPlanting] = useState(false);
+  const [plantError, setPlantError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const captureRef = useRef<Capture | null>(null);
@@ -330,14 +331,16 @@ export function DreamRecorderPage() {
       .finally(() => setDistilling(false));
   }
 
-  async function plant() {
+  function plant() {
     if (!output.trim()) return;
     setPlanting(true);
     try {
-      await plantDream(output.trim());
+      plantDream(output.trim());
       setView('builder');
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      // Shown beside the button (below), not only up in step 2 — a failure
+      // here has to be visible from where the click happened
+      setPlantError(e instanceof Error ? e.message : String(e));
       setPlanting(false);
     }
   }
@@ -548,7 +551,7 @@ export function DreamRecorderPage() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <Button onClick={() => void plant()} disabled={distilling || planting}>
+              <Button onClick={plant} disabled={distilling || planting}>
                 {planting ? <Loader2 className="size-4 animate-spin" /> : <ArrowRight className="size-4" />}
                 Plant it in the Builder
               </Button>
@@ -561,6 +564,11 @@ export function DreamRecorderPage() {
                 Copy
               </Button>
             </div>
+            {plantError && (
+              <p className="text-sm text-destructive whitespace-pre-wrap">
+                Couldn't plant it: {plantError}
+              </p>
+            )}
 
             <div className="flex gap-2">
               <Input

@@ -13,6 +13,22 @@ initTheme()
 // to the bare site root, so the query string does not survive the trip.
 captureInviteFromUrl()
 
+// Pages and stores load as separate chunks. When a deploy lands while a tab
+// is open, the old tab's next lazy import points at a chunk that no longer
+// exists and the page it wanted never appears. Reload once so the tab picks
+// up the new build; the guard keeps a genuinely broken chunk from looping.
+window.addEventListener('vite:preloadError', event => {
+  const key = 'rb-preload-reloaded'
+  try {
+    if (sessionStorage.getItem(key)) return
+    sessionStorage.setItem(key, '1')
+  } catch {
+    return
+  }
+  event.preventDefault()
+  window.location.reload()
+})
+
 // Dev-only handles for driving/inspecting state from the console
 if (import.meta.env.DEV) {
   const w = window as unknown as Record<string, unknown>
