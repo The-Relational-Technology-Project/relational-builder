@@ -2,7 +2,8 @@ import { adminCall } from '@/cloud/account-requests';
 
 /**
  * The steward's community plan utilization view — who's building on the
- * subsidized plan and what it's costing, today and all-time. Usage rows are
+ * subsidized plan, what it's costing, and roughly what it's drawing in
+ * energy, today and all-time. Usage rows are
  * RLS-locked to each member, so the cross-member read (and the per-model
  * pricing, kept in lockstep with the community-monitor alerts) lives in the
  * admin-requests function; the client just asks.
@@ -12,6 +13,13 @@ export interface UsageTotals {
   requests: number;
   tokens: number;
   usd: number;
+  /**
+   * Estimated energy in watt-hours — the CENTRAL estimate of a band that
+   * spans roughly twentyfold. Never render it as a bare number: pass it
+   * through `energyBand` / `kitchenEquivalent` in `@/lib/energy`, which
+   * carry the reasoning and the honest range.
+   */
+  wh: number;
 }
 
 export interface MemberUsage {
@@ -31,8 +39,8 @@ export interface CommunityUsageReport {
   /** Every member with any recorded usage, all-time cost descending */
   members: MemberUsage[];
   totals: { today: UsageTotals; all_time: UsageTotals };
-  /** The last 14 days' community-wide tokens and cost, oldest first */
-  recent_days: { day: string; tokens: number; usd: number }[];
+  /** The last 14 days' community-wide tokens, cost and energy, oldest first */
+  recent_days: { day: string; tokens: number; usd: number; wh: number }[];
 }
 
 export async function adminCommunityUsage(): Promise<CommunityUsageReport> {
