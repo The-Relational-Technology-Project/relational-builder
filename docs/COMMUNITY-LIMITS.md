@@ -5,33 +5,48 @@
 
 ## Where limits live today
 
-- Every community member gets **5,000,000 tokens/day**, enforced
-  server-side in the `llm-proxy` edge function. The "day" is the **UTC
-  calendar date**, so the budget resets at midnight UTC — 8pm ET / 5pm PT
-  during US daylight time. A builder who works a long evening after the
-  rollover and again the next morning is spending from the *same* day's
-  budget, which can feel like hitting the cap "first thing". The exhausted
-  banner and the proxy's 429 message both say the actual reset time (the
-  banner in the builder's local time). Since 2026-08-19 this
-  counts **all** token traffic — input, output, cache writes, and cache
-  reads. (It was input+output only, but cache traffic turned out to be
-  ~78% of a heavy day's tokens, so the old gate capped dollars only in
-  theory: ~$187/day at Opus rates vs ~$42 all-inclusive.) Per-member
-  overrides live in `community_members.daily_token_budget`.
-- The client shows a banner at **80% used** (dismissible per day) and a
-  persistent one at 100%, both with an "Add your own key" path.
+*(Updated 2026-09-14: weekly budgets, 10 sites, 10 backends, 20MB sites,
+200MB shared Cloud storage. The daily-era analysis below is kept for
+the reasoning; the numbers in this section are current.)*
+
+- Every community member gets **20,000,000 tokens per week**, enforced
+  server-side in the `llm-proxy` edge function. The week is the **UTC
+  calendar week starting Monday 00:00 UTC** — Sunday evening in the
+  Americas. Usage is still recorded per UTC day in `community_usage`; the
+  gate sums every day since Monday. The exhausted banner and the proxy's
+  429 both name the reset in the builder's local day and time. Since
+  2026-08-19 this counts **all** token traffic — input, output, cache
+  writes, and cache reads. Per-member overrides live in
+  `community_members.weekly_token_budget` (the September migration scaled
+  every row ×4, so a member on a doubled daily budget is on a doubled
+  weekly one: 40M).
+  *Why weekly:* the daily cap was rarely hit, but when it was, it was a
+  workshop day or a long weekend build — exactly the moments a wall hurts
+  most. A weekly pool of the same expected spend absorbs those and gives
+  a reset moment people can plan around.
+- **Hosting:** 10 live sites per builder (plus 10 unlisted previews), 20MB
+  per site, 512KB per file, 150 files — `publish-site`. Sites live as
+  text in Postgres with the newest 5 versions kept, so the theoretical
+  worst case is ~100MB per site; real neighborhood sites run well under
+  a megabyte.
+- **Community Cloud:** 10 app backends per builder, 5,000 documents and
+  32KB per document each, and **200MB of storage shared across all of a
+  builder's backends** (was 100MB per app) — `app-data`, via the
+  `cloud_builder_bytes` RPC.
+- The client shows a banner at **80% of the week used** (dismissible per
+  day) and a persistent one at 100%, both with an "Add your own key" path.
 - Usage refreshes after every generation, so the picture is honest.
 
 ## The strategy, in one paragraph
 
 Keep the free tier generous and quiet — most builders should never see a
 limit. When someone does get close, treat it as a *graduation moment*,
-not a wall: explain that the budget resets tomorrow, that their project
+not a wall: explain when the budget resets, that their project
 is safe, and that a personal API key (they pay their provider directly)
 removes the daily cap. BYOK is the pressure valve that keeps RTP's costs
 bounded without ever stranding an engaged builder mid-build.
 
-## Will builders actually hit 5M tokens/day?
+## Will builders actually hit the budget? (daily-era analysis, 5M/day; the weekly 20M pool is the same expected spend)
 
 Anatomy of a message: the system prompt carries base instructions, RTP
 principles, studio frame, profile, commons results, and a project-files
@@ -91,14 +106,15 @@ closer to **$800–1,500/month**.
    now surface verbatim, and name the real reset time (midnight UTC).
 2b. **Invite feedback at the moment it's felt** (shipped 2026-08-31): the
    exhausted banner asks whether the project is at a good stage to share,
-   whether a bigger daily budget or a weekly pool would help, and offers
+   whether a bigger weekly budget would help, and offers
    "Send the team a note" — delivered to `humans@relationaltechproject.org`
    via the `contact` function (`topic: 'budget-feedback'`), with the
    builder's email attached only when they tick the opt-in box. Notes are
    durable in `contact_messages` either way.
 3. **Next:** prompt caching in the proxy, then a Sonnet-for-edits default.
 4. **Watch the data:** `community_usage` already records per-member
-   daily tokens — a monthly look at the distribution will show whether
-   5M/day is right long before anyone complains. Since 2026-07-31 the
+   daily tokens — the steward page's "This week" view shows each member
+   against their weekly budget, and a monthly look at the distribution
+   will show whether 20M/week is right long before anyone complains. Since 2026-07-31 the
    `community-monitor` function watches spend automatically and emails
    the steward at $5/day and $10/day — see [MONITORING.md](./MONITORING.md).

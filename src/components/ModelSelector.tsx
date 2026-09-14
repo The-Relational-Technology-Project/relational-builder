@@ -77,7 +77,7 @@ export function ModelSelector({ className }: { className?: string }) {
         {onCommunityKey && (
           <p className="px-2 py-1.5 text-xs leading-snug text-muted-foreground">
             Included with community access — every model draws on the same
-            daily budget. Builds and edits pick a sensible default; choosing
+            weekly budget. Builds and edits pick a sensible default; choosing
             here makes it stick for this project.
           </p>
         )}

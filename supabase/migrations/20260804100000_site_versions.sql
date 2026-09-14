@@ -7,8 +7,8 @@
 --
 --   * publish_site_files() replaces a site's files in ONE transaction,
 --     snapshotting the outgoing version first;
---   * snapshots keep the newest 5 per site (sites cap at 4MB, so worst
---     case ~20MB per site);
+--   * snapshots keep the newest 5 per site (sites capped at 4MB when this
+--     shipped, 20MB since Sept 2026 — worst case ~100MB per site);
 --   * restore_site_version() rolls a live site back to a snapshot — and
 --     snapshots the current version first, so a rollback is undoable.
 --

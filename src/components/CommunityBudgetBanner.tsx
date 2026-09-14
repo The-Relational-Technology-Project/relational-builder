@@ -8,14 +8,14 @@ import { Button } from '@/components/ui/button';
 import { KeyRound, MessageCircleHeart, X } from 'lucide-react';
 
 /**
- * The community plan's edge, handled with warmth. Free building has a daily
+ * The community plan's edge, handled with warmth. Free building has a weekly
  * token budget (server-enforced in the llm-proxy). When someone gets close
  * to it — or hits it — this banner explains what happened and offers the
  * two honest paths: come back when the budget resets, or add a personal API
  * key and keep going without limits.
  *
  * The "almost there" nudge is dismissible per day; the "you've hit it"
- * state stays until the day rolls over, because the composer genuinely
+ * state stays until the week rolls over, because the composer genuinely
  * won't work and silence would read as breakage.
  *
  * Hitting the budget is also the one moment someone truly feels how it's
@@ -30,20 +30,26 @@ function today(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-/** The budget day is the UTC calendar date (mirrors the llm-proxy gate), so
- *  it resets at midnight UTC — evening in the Americas. Saying "tomorrow"
- *  reads wrong to someone who hit it at 9am; say the actual local time. */
+/** The budget week starts Monday 00:00 UTC (mirrors the llm-proxy gate),
+ *  which is Sunday evening in the Americas. Name the actual local day and
+ *  time rather than "Monday", which reads wrong to someone for whom the
+ *  reset lands on Sunday night. */
 function resetLabel(): string {
-  const reset = new Date();
-  reset.setUTCHours(24, 0, 0, 0);
+  const now = new Date();
+  const sinceMonday = (now.getUTCDay() + 6) % 7;
+  const reset = new Date(Date.UTC(
+    now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - sinceMonday + 7,
+  ));
   const time = reset.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
-  return reset.getDate() === new Date().getDate() ? `${time} today` : `${time} tonight`;
+  const sameDay = reset.toDateString() === now.toDateString();
+  const day = sameDay ? 'today' : reset.toLocaleDateString(undefined, { weekday: 'long' });
+  return `${time} ${day}`;
 }
 
 export function CommunityBudgetBanner() {
   const active = useCommunityStore(s => s.active);
-  const dailyBudget = useCommunityStore(s => s.dailyBudget);
-  const usedToday = useCommunityStore(s => s.usedToday);
+  const weeklyBudget = useCommunityStore(s => s.weeklyBudget);
+  const usedThisWeek = useCommunityStore(s => s.usedThisWeek);
   const hasOwnKey = useProviderStore(s => !!s.apiKeys['claude']);
   const userEmail = useAuthStore(s => s.user?.email);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -56,9 +62,9 @@ export function CommunityBudgetBanner() {
   const [noteState, setNoteState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
 
   // Builders on their own key never see budget talk
-  if (!active || hasOwnKey || dailyBudget <= 0) return null;
+  if (!active || hasOwnKey || weeklyBudget <= 0) return null;
 
-  const ratio = usedToday / dailyBudget;
+  const ratio = usedThisWeek / weeklyBudget;
   const exhausted = ratio >= 1;
   if (!exhausted && (ratio < NUDGE_AT || dismissed)) return null;
 
@@ -93,13 +99,13 @@ export function CommunityBudgetBanner() {
         <div className="flex-1 space-y-1">
           <p className="text-sm">
             {exhausted
-              ? `You've used today's free community building — it resets at ${resetLabel()}.`
-              : `You've used ${Math.min(99, Math.round(ratio * 100))}% of today's free community building.`}
+              ? `You've used this week's free community building — it resets at ${resetLabel()}.`
+              : `You've used ${Math.min(99, Math.round(ratio * 100))}% of this week's free community building.`}
           </p>
           <p className="text-xs text-muted-foreground">
             {exhausted
-              ? 'Your project is safe — you can keep editing files and previewing. To keep building with AI today, add your own API key (you pay your provider directly, no daily cap).'
-              : 'Big builds use more of it than small edits. If you want to keep going past the daily budget, you can add your own API key anytime.'}
+              ? 'Your project is safe — you can keep editing files and previewing. To keep building with AI before then, add your own API key (you pay your provider directly, no weekly cap).'
+              : 'Big builds use more of it than small edits. If you want to keep going past the weekly budget, you can add your own API key anytime.'}
           </p>
         </div>
         <Button
@@ -127,15 +133,14 @@ export function CommunityBudgetBanner() {
           {noteState === 'sent' ? (
             <p className="text-xs text-muted-foreground">
               Thank you — your note is on its way to the team. It genuinely
-              helps us size the daily budget well.
+              helps us size the weekly budget well.
             </p>
           ) : (
             <>
               <p className="text-xs text-muted-foreground">
                 Also: is your project at a good stage to share with neighbors?
-                Would a bigger daily budget help, or being able to pull from a
-                weekly budget? We'd appreciate feedback as we try to allocate
-                resources thoughtfully.
+                Would a bigger weekly budget help? We'd appreciate feedback as
+                we try to allocate resources thoughtfully.
               </p>
               {!noteOpen ? (
                 <Button
@@ -152,7 +157,7 @@ export function CommunityBudgetBanner() {
                   <textarea
                     value={note}
                     onChange={e => setNote(e.target.value)}
-                    placeholder="How is the daily budget working for you? What would help?"
+                    placeholder="How is the weekly budget working for you? What would help?"
                     rows={3}
                     maxLength={4000}
                     className="w-full resize-none rounded-md border bg-background px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-ring"

@@ -19,6 +19,7 @@ export interface CloudAppOverview {
 
 export interface CloudLimits {
   max_apps: number;
+  /** Storage pool shared across every backend the builder owns */
   max_bytes: number;
   max_docs: number;
 }

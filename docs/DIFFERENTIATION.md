@@ -23,7 +23,7 @@ A general chatbot ends where a neighborhood tool begins: with a real URL neighbo
 | Plan mode that explores your place and people before building | ✅ Visioning-first, grounded in your neighborhood | ⚠️ Only if you prompt for it | ⚠️ Only if you prompt for it |
 | Builder profile that grounds the AI in where you build | ✅ Neighborhood, dreams, tech comfort | ⚠️ Generic memory | ⚠️ Generic memory |
 | **From code to a real tool** | | | |
-| One-click free hosting at a real URL | ✅ Community hosting, 3 sites per builder | ❌ | ❌ |
+| One-click free hosting at a real URL | ✅ Community hosting, 10 sites per builder | ❌ | ❌ |
 | Free shared data store with neighbor sign-in | ✅ Community Cloud: no database accounts, no SQL | ❌ Bring your own backend | ❌ Bring your own backend |
 | Built-in way for neighbors to leave feedback on your live tool | ✅ Neighbor notes on every hosted site | ❌ | ❌ |
 | Site health monitoring in plain language | ✅ | ❌ | ❌ |

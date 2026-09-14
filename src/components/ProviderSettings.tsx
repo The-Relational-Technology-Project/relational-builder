@@ -46,8 +46,8 @@ export function ProviderSettings({ open: controlledOpen, onOpenChange, hideTrigg
   const freeEntries = entries.filter(e => e.tier === 1);
   const byokEntries = entries.filter(e => e.tier !== 1);
   const communityActive = useCommunityStore(s => s.active);
-  const dailyBudget = useCommunityStore(s => s.dailyBudget);
-  const usedToday = useCommunityStore(s => s.usedToday);
+  const weeklyBudget = useCommunityStore(s => s.weeklyBudget);
+  const usedThisWeek = useCommunityStore(s => s.usedThisWeek);
   const refreshUsage = useCommunityStore(s => s.refreshUsage);
 
   // Community access and Claude BYOK share the claude provider under the
@@ -124,12 +124,12 @@ export function ProviderSettings({ open: controlledOpen, onOpenChange, hideTrigg
                 </Button>
               </div>
               <p className="text-xs text-foreground">
-                Free building, covered by the Relational Tech Project. Your daily
+                Free building, covered by the Relational Tech Project. Your weekly
                 token budget works across {COMMUNITY_MODEL_NAMES}.
               </p>
-              {dailyBudget > 0 && (
+              {weeklyBudget > 0 && (
                 <p className="text-xs text-muted-foreground">
-                  Today: {formatTokens(usedToday)} of {formatTokens(dailyBudget)} tokens used.
+                  This week: {formatTokens(usedThisWeek)} of {formatTokens(weeklyBudget)} tokens used (resets Monday 00:00 UTC).
                 </p>
               )}
               {claudeKeySet && (

@@ -10,7 +10,7 @@ import { useProviderStore } from '@/store/provider-store';
  *
  * Generation runs through the LLM proxy's `gemini-image` lane: a BYOK Gemini
  * key passes through, community members draw on RTP's server-held key under
- * the same allowlist and daily budget as chat. The result lands in the
+ * the same allowlist and weekly budget as chat. The result lands in the
  * project as a normal photo asset (assets/<name>.js), so the AI wires it in
  * exactly like a builder's own photo.
  */

@@ -61,7 +61,7 @@ const ADAPTIVE_THINKING_RE = /opus-(4-[78]|5)|sonnet-5|fable/;
 
 // Transient upstream failures worth retrying before the stream starts:
 // 429 rate limit, 5xx hiccups, 529 Anthropic overloaded. NOT the community
-// daily budget's 429 — that one won't clear in ten seconds.
+// weekly budget's 429 — that one won't clear in ten seconds.
 const RETRY_STATUSES = new Set([429, 500, 502, 503, 504, 529]);
 const RETRY_DELAYS_MS = [2000, 5000, 10000];
 
@@ -192,8 +192,8 @@ export class ClaudeProvider implements LLMProvider {
         ) friendly = (parsed.error as { message: string }).message;
       } catch { /* not JSON — fall through to the raw form */ }
 
-      // The community daily budget answers 429 too, but retrying it is
-      // hopeless — it resets tomorrow, so let its message through now
+      // The community weekly budget answers 429 too, but retrying it is
+      // hopeless — it resets Monday, so let its message through now
       const retryable =
         RETRY_STATUSES.has(r.status) && !(friendly ?? '').includes('budget');
       if (!retryable || attempt === maxAttempts) {

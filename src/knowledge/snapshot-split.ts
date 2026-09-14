@@ -36,7 +36,7 @@ export interface SnapshotFile {
 // Keep the file snapshot bounded: big files get truncated, and past the total
 // budget only paths are listed. Generous on purpose — a complex app the model
 // can't fully see becomes a complex app it silently breaks. Community budgets
-// are sized for this (5M tokens/day).
+// are sized for this (20M tokens/week).
 const MAX_FILE_CHARS = 16000;
 const MAX_TOTAL_FILE_CHARS = 120000;
 

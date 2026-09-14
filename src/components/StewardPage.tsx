@@ -223,7 +223,7 @@ function UsageTab() {
   const [report, setReport] = useState<CommunityUsageReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [view, setView] = useState<'today' | 'all'>('today');
+  const [view, setView] = useState<'today' | 'week' | 'all'>('week');
 
   useEffect(() => {
     adminCommunityUsage()
@@ -234,13 +234,10 @@ function UsageTab() {
 
   const ranked = useMemo(() => {
     if (!report) return [];
-    const list =
-      view === 'today'
-        ? report.members.filter(m => m.today.tokens > 0)
-        : report.members.filter(m => m.all_time.tokens > 0);
-    return [...list].sort((a, b) =>
-      view === 'today' ? b.today.usd - a.today.usd : b.all_time.usd - a.all_time.usd,
-    );
+    const pick = (m: (typeof report.members)[number]) =>
+      view === 'today' ? m.today : view === 'week' ? m.week : m.all_time;
+    const list = report.members.filter(m => pick(m).tokens > 0);
+    return [...list].sort((a, b) => pick(b).usd - pick(a).usd);
   }, [report, view]);
 
   if (loading) {
@@ -306,7 +303,7 @@ function UsageTab() {
       {/* The leaderboard */}
       <div className="flex items-center gap-1.5">
         <Trophy className="size-3.5 text-muted-foreground" />
-        {(['today', 'all'] as const).map(v => (
+        {(['today', 'week', 'all'] as const).map(v => (
           <button
             key={v}
             onClick={() => setView(v)}
@@ -316,7 +313,7 @@ function UsageTab() {
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            {v === 'today' ? 'Today' : 'All time'}
+            {v === 'today' ? 'Today' : v === 'week' ? 'This week' : 'All time'}
           </button>
         ))}
       </div>
@@ -325,15 +322,18 @@ function UsageTab() {
         <p className="text-sm text-muted-foreground">
           {view === 'today'
             ? 'Nobody has built on the plan yet today.'
-            : 'No plan usage recorded yet.'}
+            : view === 'week'
+              ? 'Nobody has built on the plan yet this week.'
+              : 'No plan usage recorded yet.'}
         </p>
       ) : (
         <div className="space-y-1.5">
           {ranked.map((m, i) => {
-            const t = view === 'today' ? m.today : m.all_time;
+            const t = view === 'today' ? m.today : view === 'week' ? m.week : m.all_time;
+            // The budget is weekly, so the share only means something on the week view
             const budgetShare =
-              view === 'today' && m.daily_budget
-                ? Math.round((t.tokens / m.daily_budget) * 100)
+              view === 'week' && m.weekly_budget
+                ? Math.round((t.tokens / m.weekly_budget) * 100)
                 : null;
             return (
               <div key={m.email} className="rounded-lg border px-3 py-2 flex items-center gap-2.5">
@@ -350,7 +350,7 @@ function UsageTab() {
                   <p className="text-xs text-muted-foreground truncate tabular-nums">
                     {fmtTokens(t.tokens)} tokens · {t.requests} {t.requests === 1 ? 'request' : 'requests'}
                     {view === 'all' && ` · ${m.all_time.days_active} ${m.all_time.days_active === 1 ? 'day' : 'days'}`}
-                    {budgetShare !== null && ` · ${budgetShare}% of today's budget`}
+                    {budgetShare !== null && ` · ${budgetShare}% of this week's budget`}
                     {view === 'all' && m.models.length > 0 && ` — ${modelMix(m.models)}`}
                   </p>
                 </div>
