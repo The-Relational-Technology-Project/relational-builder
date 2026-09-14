@@ -735,7 +735,7 @@ function renderSpendEmail(
       (Fable 5.1: $0.25 per MTok).
       Usage without a recorded model prices at Opus-class rates
       ($${rates.input}/$${rates.output}, cache writes $${rates.cacheWrite}, reads $${rates.cacheRead})
-      and shows as "untracked". Daily budgets reset at midnight UTC. This alert sends once per
+      and shows as "untracked". Weekly budgets reset Monday at midnight UTC. This alert sends once per
       threshold per day.
     </p>`,
   );

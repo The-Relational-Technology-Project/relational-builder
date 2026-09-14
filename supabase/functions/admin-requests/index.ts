@@ -553,7 +553,7 @@ Deno.serve(async (req: Request) => {
           ),
           { headers: svc() },
         ),
-        fetch(rest('/community_members?select=email,daily_token_budget&limit=5000'), {
+        fetch(rest('/community_members?select=email,weekly_token_budget&limit=5000'), {
           headers: svc(),
         }),
         fetch(rest('/profiles?select=email,display_name,full_name&limit=5000'), {
@@ -574,7 +574,7 @@ Deno.serve(async (req: Request) => {
       }
       const budgets = new Map<string, number>();
       for (const m of memberRows) {
-        budgets.set(String(m.email ?? '').toLowerCase(), Number(m.daily_token_budget ?? 0));
+        budgets.set(String(m.email ?? '').toLowerCase(), Number(m.weekly_token_budget ?? 0));
       }
 
       // Per-(email, day) model rows, so each day's aggregate prices its
@@ -589,6 +589,9 @@ Deno.serve(async (req: Request) => {
       }
 
       const today = new Date().toISOString().slice(0, 10);
+      // Budgets are weekly (Monday 00:00 UTC) — mirror the llm-proxy gate
+      const sinceMonday = (new Date().getUTCDay() + 6) % 7;
+      const weekStart = new Date(Date.now() - sinceMonday * 86400_000).toISOString().slice(0, 10);
       interface Acc {
         requests: number;
         tokens: number;
@@ -597,7 +600,7 @@ Deno.serve(async (req: Request) => {
       const blank = (): Acc => ({ requests: 0, tokens: 0, usd: 0 });
       const members = new Map<
         string,
-        { today: Acc; all_time: Acc; days: Set<string>; models: Map<string, number> }
+        { today: Acc; week: Acc; all_time: Acc; days: Set<string>; models: Map<string, number> }
       >();
       const byDay = new Map<string, { tokens: number; usd: number }>();
 
@@ -609,7 +612,7 @@ Deno.serve(async (req: Request) => {
         let usd = 0;
         const entry =
           members.get(email) ??
-          { today: blank(), all_time: blank(), days: new Set<string>(), models: new Map<string, number>() };
+          { today: blank(), week: blank(), all_time: blank(), days: new Set<string>(), models: new Map<string, number>() };
         for (const m of modelsByEmailDay.get(`${email}|${day}`) ?? []) {
           const t = usageCounts(m);
           residual.input = Math.max(0, residual.input - t.input);
@@ -638,6 +641,11 @@ Deno.serve(async (req: Request) => {
           entry.today.tokens += tokens;
           entry.today.usd += usd;
         }
+        if (day >= weekStart) {
+          entry.week.requests += requests;
+          entry.week.tokens += tokens;
+          entry.week.usd += usd;
+        }
         members.set(email, entry);
 
         const d = byDay.get(day) ?? { tokens: 0, usd: 0 };
@@ -651,8 +659,9 @@ Deno.serve(async (req: Request) => {
         .map(([email, m]) => ({
           email,
           name: names.get(email) ?? null,
-          daily_budget: budgets.get(email) ?? null,
+          weekly_budget: budgets.get(email) ?? null,
           today: { ...m.today, usd: round(m.today.usd) },
+          week: { ...m.week, usd: round(m.week.usd) },
           all_time: { ...m.all_time, usd: round(m.all_time.usd), days_active: m.days.size },
           models: [...m.models.entries()]
             .map(([model, usd]) => ({ model, usd: round(usd) }))
@@ -680,8 +689,9 @@ Deno.serve(async (req: Request) => {
       return json({
         usage: {
           day: today,
+          week_start: weekStart,
           members: memberList,
-          totals: { today: sum(m => m.today), all_time: sum(m => m.all_time) },
+          totals: { today: sum(m => m.today), week: sum(m => m.week), all_time: sum(m => m.all_time) },
           recent_days: recentDays,
         },
       });

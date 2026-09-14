@@ -47,7 +47,7 @@ import {
  * The Cloud tab: a builder's window into their Community Cloud — the
  * zero-setup backends behind their apps. See the data neighbors have
  * posted, who has signed in, usage against the free community tier
- * (3 backends, 100MB each), and manage everything without SQL.
+ * (10 backends, 200MB shared across them), and manage everything without SQL.
  */
 export function CloudPanel() {
   const user = useAuthStore(s => s.user);
@@ -95,7 +95,7 @@ export function CloudPanel() {
     return (
       <AppDetail
         app={openApp}
-        limits={overview?.limits ?? { max_apps: 3, max_bytes: 104857600, max_docs: 5000 }}
+        limits={overview?.limits ?? { max_apps: 10, max_bytes: 209715200, max_docs: 5000 }}
         onBack={() => { setOpenApp(null); refresh(); }}
         onChanged={refresh}
       />
@@ -113,7 +113,9 @@ export function CloudPanel() {
             </h3>
             <p className="text-xs text-muted-foreground mt-0.5">
               {overview
-                ? `${overview.apps.length} of ${overview.limits.max_apps} free app backends`
+                ? `${overview.apps.length} of ${overview.limits.max_apps} free app backends · ${formatBytes(
+                    overview.apps.reduce((sum, a) => sum + a.bytes, 0),
+                  )} of ${formatBytes(overview.limits.max_bytes)} shared storage`
                 : 'Data for your apps, hosted by RTP'}
             </p>
           </div>
@@ -308,7 +310,7 @@ function AppCard({
       <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
         <span>{app.doc_count.toLocaleString()} documents</span>
         <span>{app.member_count.toLocaleString()} neighbors</span>
-        <span className="ml-auto">{formatBytes(app.bytes)} of {formatBytes(limits.max_bytes)}</span>
+        <span className="ml-auto">{formatBytes(app.bytes)} of {formatBytes(limits.max_bytes)} shared</span>
       </div>
       <div className="mt-1.5">
         <UsageBar value={app.bytes} max={limits.max_bytes} />
@@ -618,7 +620,7 @@ function AppSettings({
         <label className="text-xs font-medium">Storage</label>
         <UsageBar value={app.bytes} max={limits.max_bytes} />
         <p className="text-xs text-muted-foreground">
-          {formatBytes(app.bytes)} of {formatBytes(limits.max_bytes)} · {app.doc_count.toLocaleString()} of {limits.max_docs.toLocaleString()} documents
+          {formatBytes(app.bytes)} of {formatBytes(limits.max_bytes)} (shared across all your backends) · {app.doc_count.toLocaleString()} of {limits.max_docs.toLocaleString()} documents
         </p>
       </div>
 

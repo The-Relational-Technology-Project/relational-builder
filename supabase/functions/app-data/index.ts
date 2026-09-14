@@ -45,7 +45,8 @@
  *                        snapshot (members upserted, never deleted; a
  *                        pre-restore snapshot is taken first)
  *
- * Free community tier: 3 backends per builder, 100MB / 5000 documents each.
+ * Free community tier: 10 backends per builder, 5000 documents each, and
+ * 200MB of storage shared across all of a builder's backends.
  *
  * Neighbor accounts — email-code sign-in for the app's users, so built
  * apps get "neighbors sign in" with zero builder configuration:
@@ -72,8 +73,11 @@ const CORS = {
 const MAX_DATA_BYTES = 32 * 1024;
 const MAX_LIST_LIMIT = 100;
 const MAX_DOCS_PER_APP = 5000;
-const MAX_APPS_PER_BUILDER = 3;
-const MAX_BYTES_PER_APP = 100 * 1024 * 1024;
+const MAX_APPS_PER_BUILDER = 10;
+// One storage pool per builder, shared by every backend they own — a
+// builder with one big directory and nine small signup sheets shouldn't
+// have to ration per app.
+const MAX_BYTES_PER_BUILDER = 200 * 1024 * 1024;
 const RATE_LIMIT_PER_MIN = 120;
 
 const rateBuckets = new Map<string, { count: number; windowStart: number }>();
@@ -254,7 +258,7 @@ Deno.serve(async (req: Request) => {
           return json({ error: 'This app has reached its document limit' }, 507);
         }
         if (await storageFull(appId)) {
-          return json({ error: `This app's storage is full (${MAX_BYTES_PER_APP / 1024 / 1024}MB) — remove old data in the Builder's Cloud tab` }, 507);
+          return json({ error: `Your Community Cloud storage is full (${MAX_BYTES_PER_BUILDER / 1024 / 1024}MB across all your app backends) — remove old data in the Builder's Cloud tab` }, 507);
         }
         const visibility = body.visibility === 'members' ? 'members' : 'public';
         if (visibility === 'members' && !member) {
@@ -290,7 +294,7 @@ Deno.serve(async (req: Request) => {
           return json({ error: `data too large (max ${MAX_DATA_BYTES / 1024}KB)` }, 413);
         }
         if (await storageFull(appId)) {
-          return json({ error: `This app's storage is full (${MAX_BYTES_PER_APP / 1024 / 1024}MB) — remove old data in the Builder's Cloud tab` }, 507);
+          return json({ error: `Your Community Cloud storage is full (${MAX_BYTES_PER_BUILDER / 1024 / 1024}MB across all your app backends) — remove old data in the Builder's Cloud tab` }, 507);
         }
         const owned = await ownershipCheck(appId, id, member);
         if (owned !== true) return owned;
@@ -639,16 +643,18 @@ async function resolveBuilder(req: Request): Promise<string | null> {
   return email || null;
 }
 
-/** True when this app's stored documents have reached the storage cap */
+/** True when the owning builder's backends together have reached the
+ *  shared storage pool (cloud_builder_bytes sums every app with the same
+ *  owner as this one) */
 async function storageFull(appId: string): Promise<boolean> {
-  const res = await fetch(restUrl('/rpc/cloud_app_bytes'), {
+  const res = await fetch(restUrl('/rpc/cloud_builder_bytes'), {
     method: 'POST',
     headers: svcHeaders(),
     body: JSON.stringify({ p_app_id: appId }),
   });
   if (!res.ok) return false; // never block writes on a stats failure
   const bytes = Number(await res.json());
-  return Number.isFinite(bytes) && bytes >= MAX_BYTES_PER_APP;
+  return Number.isFinite(bytes) && bytes >= MAX_BYTES_PER_BUILDER;
 }
 
 /** Create a Community Cloud app — requires a signed-in Builder session */
@@ -656,7 +662,7 @@ async function createApp(req: Request, body: Record<string, unknown>): Promise<R
   const email = await resolveBuilder(req);
   if (!email) return json({ error: 'Sign in to enable Community Cloud' }, 401);
 
-  // Free community tier: three backends per builder
+  // Free community tier: ten backends per builder
   const mineRes = await fetch(
     restUrl(`/cloud_apps?owner_email=eq.${encodeURIComponent(email)}&select=id,name`),
     { headers: svcHeaders() },
@@ -700,7 +706,8 @@ async function handleAdmin(req: Request, body: Record<string, unknown>, action: 
       apps,
       limits: {
         max_apps: MAX_APPS_PER_BUILDER,
-        max_bytes: MAX_BYTES_PER_APP,
+        // Shared across every backend the builder owns (not per app)
+        max_bytes: MAX_BYTES_PER_BUILDER,
         max_docs: MAX_DOCS_PER_APP,
       },
     });

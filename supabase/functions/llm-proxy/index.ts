@@ -155,9 +155,10 @@ Deno.serve(async (req: Request) => {
 //
 // When a signed-in Builder user has no personal key, the client sends their
 // Supabase access token in x-community-token. The proxy verifies identity,
-// checks the community_members allowlist + daily token budget, and forwards
+// checks the community_members allowlist + weekly token budget, and forwards
 // the request using the ANTHROPIC_COMMUNITY_KEY secret. The shared key never
-// leaves the server. Usage is metered per email per day.
+// leaves the server. Usage is metered per email per day and budgeted per
+// UTC calendar week (Monday start).
 
 const COMMUNITY_MODELS = (
   Deno.env.get('COMMUNITY_MODELS') ??
@@ -432,7 +433,7 @@ async function checkCommunityAccess(
   const svc = { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` };
 
   const memberRes = await fetch(
-    `${supabaseUrl}/rest/v1/community_members?email=eq.${encodeURIComponent(email)}&select=daily_token_budget`,
+    `${supabaseUrl}/rest/v1/community_members?email=eq.${encodeURIComponent(email)}&select=weekly_token_budget`,
     { headers: svc },
   );
   const members = memberRes.ok ? await memberRes.json() : [];
@@ -444,7 +445,7 @@ async function checkCommunityAccess(
   }
   // Generous by design: early adopters deserve great experiences. The DB row
   // can still lower (or raise) any individual member's budget.
-  const budget = Number(members[0].daily_token_budget ?? 5000000);
+  const budget = Number(members[0].weekly_token_budget ?? 20000000);
 
   // The gate counts ALL token traffic — input, output, and cache writes/reads
   // (Aug 19 2026; previously input+output only). Cache tokens were ~78% of
@@ -453,26 +454,41 @@ async function checkCommunityAccess(
   // Cache reads bill at just 0.1x but count fully here — the cap is a blunt
   // token meter, and the community-monitor's per-model estimate stays the
   // honest dollar picture.
-  const today = new Date().toISOString().slice(0, 10);
+  //
+  // The budget is weekly (since Sept 2026): usage rows stay per-day, and the
+  // gate sums every day since Monday 00:00 UTC.
   const usageRes = await fetch(
-    `${supabaseUrl}/rest/v1/community_usage?email=eq.${encodeURIComponent(email)}&day=eq.${today}&select=input_tokens,output_tokens,cache_creation_tokens,cache_read_tokens`,
+    `${supabaseUrl}/rest/v1/community_usage?email=eq.${encodeURIComponent(email)}&day=gte.${weekStartUtc()}&select=input_tokens,output_tokens,cache_creation_tokens,cache_read_tokens`,
     { headers: svc },
   );
   const usage = usageRes.ok ? await usageRes.json() : [];
-  const used = Array.isArray(usage) && usage.length > 0
-    ? Number(usage[0].input_tokens) +
-      Number(usage[0].output_tokens) +
-      Number(usage[0].cache_creation_tokens ?? 0) +
-      Number(usage[0].cache_read_tokens ?? 0)
+  const used = Array.isArray(usage)
+    ? usage.reduce(
+        (sum: number, row: Record<string, unknown>) =>
+          sum +
+          Number(row.input_tokens ?? 0) +
+          Number(row.output_tokens ?? 0) +
+          Number(row.cache_creation_tokens ?? 0) +
+          Number(row.cache_read_tokens ?? 0),
+        0,
+      )
     : 0;
   if (used >= budget) {
     return {
-      error: "You've reached today's community building budget — it resets at midnight UTC (evening in the Americas). Thanks for building!",
+      error: "You've reached this week's community building budget — it resets Monday at midnight UTC (Sunday evening in the Americas). Thanks for building!",
       status: 429,
     };
   }
 
   return { email };
+}
+
+/** The UTC date (YYYY-MM-DD) of the Monday that starts the current budget week */
+function weekStartUtc(now = new Date()): string {
+  const sinceMonday = (now.getUTCDay() + 6) % 7;
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - sinceMonday))
+    .toISOString()
+    .slice(0, 10);
 }
 
 function recordCommunityUsage(
@@ -512,7 +528,7 @@ function recordCommunityUsage(
 //
 // Not a chat: one prompt in, one image out as a data URL. BYOK Gemini keys
 // pass straight through; community members draw on the GEMINI_COMMUNITY_KEY
-// secret under the same allowlist and daily budget as chat. Image output
+// secret under the same allowlist and weekly budget as chat. Image output
 // meters as output tokens (Gemini bills ~1290 tokens per generated image).
 
 const IMAGE_MODEL = Deno.env.get('COMMUNITY_IMAGE_MODEL') ?? 'gemini-3.1-flash-image';

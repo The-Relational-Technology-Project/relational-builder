@@ -17,20 +17,24 @@ export interface UsageTotals {
 export interface MemberUsage {
   email: string;
   name: string | null;
-  /** Tokens/day allowed on the plan (community_members.daily_token_budget) */
-  daily_budget: number | null;
+  /** Tokens per UTC week allowed on the plan (community_members.weekly_token_budget) */
+  weekly_budget: number | null;
   today: UsageTotals;
+  /** Since this week's Monday 00:00 UTC — the window the budget applies to */
+  week: UsageTotals;
   all_time: UsageTotals & { days_active: number };
   /** All-time cost per model, biggest first ('untracked' = no model recorded) */
   models: { model: string; usd: number }[];
 }
 
 export interface CommunityUsageReport {
-  /** Today's date (UTC) — the day budgets and "today" columns refer to */
+  /** Today's date (UTC) — the day the "today" columns refer to */
   day: string;
+  /** The Monday (UTC) that started the current budget week */
+  week_start: string;
   /** Every member with any recorded usage, all-time cost descending */
   members: MemberUsage[];
-  totals: { today: UsageTotals; all_time: UsageTotals };
+  totals: { today: UsageTotals; week: UsageTotals; all_time: UsageTotals };
   /** The last 14 days' community-wide tokens and cost, oldest first */
   recent_days: { day: string; tokens: number; usd: number }[];
 }

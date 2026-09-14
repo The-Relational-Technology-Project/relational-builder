@@ -45,12 +45,12 @@ const CORS = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
-const MAX_SITES_PER_BUILDER = 3;
+const MAX_SITES_PER_BUILDER = 10;
 const MAX_PREVIEWS_PER_BUILDER = 10;
 const PREVIEW_DAYS = 30;
 const MAX_FILES = 150;
 const MAX_FILE_BYTES = 512 * 1024;
-const MAX_TOTAL_BYTES = 4 * 1024 * 1024;
+const MAX_TOTAL_BYTES = 20 * 1024 * 1024;
 
 const CONTENT_TYPES: Record<string, string> = {
   html: 'text/html; charset=utf-8',
@@ -275,7 +275,7 @@ Deno.serve(async (req: Request) => {
       if (size > MAX_FILE_BYTES) return json({ error: `${f.path} is too large (max 512KB per file)` }, 413);
       total += size;
     }
-    if (total > MAX_TOTAL_BYTES) return json({ error: 'Site too large (max 4MB total)' }, 413);
+    if (total > MAX_TOTAL_BYTES) return json({ error: `Site too large (max ${MAX_TOTAL_BYTES / 1024 / 1024}MB total)` }, 413);
 
     // Private-site intent — parsed up front so a bad passphrase fails before
     // anything is created or replaced. string → set, null → remove,

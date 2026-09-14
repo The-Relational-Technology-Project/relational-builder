@@ -85,9 +85,9 @@ insert into public.community_members (email, note) values
 ```
 
 Watch spend per person per day in `community_usage`. The default budget is
-750k tokens/day (≈ $3–6/day ceiling per person at Sonnet 5 intro pricing);
-adjust `daily_token_budget` per member as needed. Rough pilot math: 10
-builders, a few sessions a week ≈ $50–200/month total.
+20M tokens per UTC week (Monday start), all token traffic counted; adjust
+`weekly_token_budget` per member as needed. See
+`docs/COMMUNITY-LIMITS.md` for the cost model.
 
 Example:
 
@@ -311,8 +311,8 @@ the deployment before using that button, or push instead.
 
 ## 5. Community Hosting
 
-Built apps deploy free to RTP-hosted community hosting (3 sites per
-builder, paid by RTP for the pilot):
+Built apps deploy free to RTP-hosted community hosting (10 sites per
+builder, 20MB each, paid by RTP for the pilot):
 
 ```bash
 supabase functions deploy publish-site --no-verify-jwt

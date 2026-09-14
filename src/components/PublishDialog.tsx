@@ -242,7 +242,7 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
               <p className="text-xs font-medium">🌱 Free hosting from the Relational Tech Project</p>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 One click, no accounts or tokens — your app goes live at a shareable
-                link with simple visit counts. Every builder gets 3 sites
+                link with simple visit counts. Every builder gets 10 sites
                 (republish anytime by using the same name).
                 {!cloudEnabled ? ' Community hosting needs the cloud backend configured.' : !user ? ' Sign in (top right) to publish.' : ''}
               </p>
