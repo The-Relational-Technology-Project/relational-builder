@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { RBMark } from '@/components/RBMark';
 import { LANDING_COLORS as C } from '@/components/Landing';
+import { InquiryForm } from '@/components/InquiryForm';
 import {
   Ticket,
   Printer,
@@ -16,16 +17,25 @@ import {
   ArrowRight,
   ChevronLeft,
   ChevronRight,
+  DoorOpen,
+  Hammer,
+  Home,
+  Map,
+  Landmark,
+  Building2,
 } from 'lucide-react';
 
 /**
- * /buildathon — the public page for event partners: how a build-a-thon runs
- * on Relational Builder, from the room key at the door to the demo wall at
- * closing. A companion to the landing (same palette, its own address),
- * reachable signed in or out — Landing routes here before the app gate.
+ * /buildathon — the public page for event partners: why the build-a-thon is
+ * back (anyone can contribute; working tools, built together), how one runs
+ * on Relational Builder from the room key at the door to the demo wall at
+ * closing, who might convene one, and a form to plan one with us. A
+ * companion to the landing (same palette, its own address), reachable
+ * signed in or out — Landing routes here before the app gate.
  */
 
 const JOIN_HREF = '/#join';
+const PLAN_HREF = '#plan';
 
 function Kicker({ children }: { children: ReactNode }) {
   return (
@@ -126,6 +136,53 @@ function DeckPreview() {
   );
 }
 
+/** One of the two shifts from the hackathon model */
+function Shift({ icon: Icon, from, to, children }: { icon: typeof Users; from: string; to: string; children: ReactNode }) {
+  return (
+    <div
+      className="rounded-2xl border p-5 sm:p-6 space-y-3"
+      style={{ borderColor: C.border, background: C.card }}
+    >
+      <div className="flex items-center gap-2.5">
+        <span
+          className="flex size-9 shrink-0 items-center justify-center rounded-full"
+          style={{ background: '#FBEFE6' }}
+        >
+          <Icon className="size-4.5" style={{ color: C.orangeDeep }} />
+        </span>
+        <div className="text-sm leading-tight">
+          <span className="line-through decoration-1" style={{ color: C.muted }}>{from}</span>
+          <br />
+          <span className="font-semibold" style={{ color: C.ink }}>{to}</span>
+        </div>
+      </div>
+      <p className="text-[15px] leading-relaxed" style={{ color: C.body }}>
+        {children}
+      </p>
+    </div>
+  );
+}
+
+/** A picture of who might convene one */
+function Scenario({ icon: Icon, who, children }: { icon: typeof Home; who: string; children: ReactNode }) {
+  return (
+    <div className="flex gap-4 rounded-2xl border p-5" style={{ borderColor: C.border, background: C.card }}>
+      <span
+        className="flex size-10 shrink-0 items-center justify-center rounded-full"
+        style={{ background: '#FBEFE6' }}
+      >
+        <Icon className="size-5" style={{ color: C.orangeDeep }} />
+      </span>
+      <div className="space-y-1">
+        <h3 className="text-[15px] font-semibold tracking-tight">{who}</h3>
+        <p className="text-[14px] leading-relaxed" style={{ color: C.body }}>
+          {children}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function Moment({
   n,
   icon: Icon,
@@ -176,12 +233,15 @@ export function BuildathonPage() {
             <a href="/" className="hover:underline underline-offset-4" style={{ color: C.body }}>
               Home
             </a>
+            <a href="/studios" className="hidden sm:inline hover:underline underline-offset-4" style={{ color: C.body }}>
+              Studios
+            </a>
             <a
-              href={JOIN_HREF}
+              href={PLAN_HREF}
               className="rounded-full px-4 py-1.5 text-xs font-semibold"
               style={{ background: C.orangeDeep, color: '#FFF6EE' }}
             >
-              Get an account
+              Plan one with us
             </a>
           </nav>
         </div>
@@ -190,21 +250,35 @@ export function BuildathonPage() {
       <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 sm:py-16 space-y-12 sm:space-y-16">
         {/* Hero */}
         <header className="space-y-4 text-center">
-          <Kicker>For build-a-thons &amp; group build days</Kicker>
-          <h1 className="text-[1.7rem] leading-[1.15] sm:text-5xl font-semibold tracking-tight sm:leading-tight">
-            A room full of neighbors.
+          <Kicker>Build-a-thons &amp; group build days</Kicker>
+          <h1 className="text-[1.85rem] leading-[1.15] sm:text-5xl font-semibold tracking-tight sm:leading-tight">
+            This moment calls us
             <br />
-            An afternoon of working tools.
+            to build{' '}
+            <em
+              className="not-italic"
+              style={{
+                color: C.orangeDeep,
+                textDecoration: 'underline',
+                textDecorationThickness: '3px',
+                textDecorationColor: C.yellow,
+                textUnderlineOffset: '6px',
+              }}
+            >
+              together
+            </em>
+            .
           </h1>
           <p className="mx-auto max-w-xl text-base sm:text-lg leading-relaxed" style={{ color: C.body }}>
-            Relational Builder takes ~100 people — solo builders and small
-            groups — from “here's what our block needs” to live, demoable,
-            shareable community tools in a single event. Here's the whole arc,
-            door to demo.
+            A build-a-thon is a day when a room of people who share a place
+            make the tools that place needs. Not a competition, not a demo of
+            someone else's product. Neighbors, organizers, city staff, and
+            first-time builders, working side by side, leaving with things
+            that work.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
             <a
-              href="mailto:josh@relationaltechproject.org?subject=Build-a-thon%20with%20Relational%20Builder"
+              href={PLAN_HREF}
               className="rounded-full px-5 py-2 text-sm font-semibold"
               style={{ background: C.orangeDeep, color: '#FFF6EE' }}
             >
@@ -219,6 +293,37 @@ export function BuildathonPage() {
             </a>
           </div>
         </header>
+
+        {/* Two shifts from the hackathon model */}
+        <section className="space-y-5">
+          <div className="text-center space-y-2">
+            <Kicker>Why we're bringing the build-a-thon back</Kicker>
+            <h2 className="text-xl sm:text-2xl font-semibold tracking-tight">Two shifts from the hackathon we all remember</h2>
+            <p className="mx-auto max-w-xl text-[15px] leading-relaxed" style={{ color: C.body }}>
+              Hackathons asked for a weekend, a laptop full of tooling, and a
+              pitch. Most people in a neighborhood were spectators, and most of
+              what got built never shipped. Two things have changed.
+            </p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Shift icon={DoorOpen} from="Developers only" to="Anyone can contribute">
+              Building is now a conversation. The person who knows which
+              corner floods, who runs the food pantry, or what the seniors on
+              the block actually ask for is the most valuable builder in the
+              room. Describe it in plain language and the tool takes shape in
+              front of you. No setup, no code required, and the people who do
+              code work alongside everyone else.
+            </Shift>
+            <Shift icon={Hammer} from="Prototypes and pitch decks" to="Working tools, built together">
+              What leaves the room works. Live sites, real data, sign-ups,
+              email, all included and free, so a tool made at 2pm is in
+              neighbors' hands by 5. And building happens together: teams
+              form in the room, the Builder points people at each other when
+              their projects overlap, and finished work goes back to the
+              commons for the next neighborhood to remix.
+            </Shift>
+          </div>
+        </section>
 
         <Shot
           src="/media/workspace.webp"
@@ -345,25 +450,66 @@ export function BuildathonPage() {
           </Moment>
         </div>
 
-        {/* CTA */}
-        <section
-          className="rounded-2xl border p-6 sm:p-8 text-center space-y-4"
-          style={{ borderColor: C.border, background: C.card }}
-        >
-          <h2 className="text-xl font-semibold tracking-tight">Planning a build-a-thon?</h2>
-          <p className="mx-auto max-w-lg text-sm leading-relaxed" style={{ color: C.body }}>
-            We'll mint your event code together, walk through the room key and
-            demo flow, and shape the day around your community — whether it's
-            twelve neighbors in a library or a hundred people in a hall.
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            <a
-              href="mailto:josh@relationaltechproject.org?subject=Build-a-thon%20with%20Relational%20Builder"
-              className="rounded-full px-5 py-2 text-sm font-semibold"
-              style={{ background: C.orangeDeep, color: '#FFF6EE' }}
-            >
-              Plan one with us
-            </a>
+        {/* Who might do this */}
+        <section className="space-y-5">
+          <div className="text-center space-y-2">
+            <Kicker>A sense of what's possible</Kicker>
+            <h2 className="text-xl sm:text-2xl font-semibold tracking-tight">Who might build together</h2>
+            <p className="mx-auto max-w-xl text-[15px] leading-relaxed" style={{ color: C.body }}>
+              A build-a-thon fits the shape of the people who call it. A few
+              of the rooms we picture:
+            </p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Scenario icon={Home} who="A block of neighbors with specific needs">
+              Twelve households around one kitchen table. The shared tool
+              library nobody can keep track of, the elder who needs rides on
+              Tuesdays, the alley that needs a cleanup rota. By the end of the
+              evening there's a sign-up that works on everyone's phone, and a
+              printed flyer for the neighbors who weren't there.
+            </Scenario>
+            <Scenario icon={Map} who="A neighborhood sharing dreams and forming teams">
+              A Saturday in the library. The morning is for saying out loud
+              what people wish existed here. Teams form around the dreams
+              that get the most nods, the afternoon is for building them, and
+              the demo hour ends with everyone's phone open to five new tools
+              made by people they now know by name.
+            </Scenario>
+            <Scenario icon={Landmark} who="A city hosting a civic build-a-thon">
+              City staff and residents at the same tables. The 311 team
+              brings what they hear, residents bring what they live, and
+              together they build the small tools in between: a sidewalk
+              report that reaches the right desk, a plain-language guide to a
+              permit, a neighborhood dashboard drawn from open data.
+            </Scenario>
+            <Scenario icon={Building2} who="An organization moving its projects forward">
+              A community organization brings its members in for a day. Each
+              committee arrives with a project that's been stuck for lack of a
+              tool: the volunteer schedule, the intake form, the map of who
+              has what to lend. They leave with those tools live, and with
+              members who know they can make the next one themselves.
+            </Scenario>
+          </div>
+        </section>
+
+        {/* Plan one with us */}
+        <InquiryForm
+          id="plan"
+          topic="buildathon"
+          title="Plan one with us"
+          intro={
+            <>
+              Tell us a little about your place and the people you'd bring
+              together. We'll mint your event code, walk through the room key
+              and demo flow, and shape the day around your community, whether
+              it's twelve neighbors in a library or a hundred people in a hall.
+            </>
+          }
+          placePlaceholder="Your neighborhood, city, or organization"
+          messagePlaceholder="Who would be in the room, and what do you hope they'd build?"
+          submitLabel="Plan one with us"
+          sentNote="Thank you. Josh will reply soon so we can start shaping the day together."
+          aside={
             <a
               href={JOIN_HREF}
               className="inline-flex items-center gap-1.5 rounded-full border px-5 py-2 text-sm font-semibold"
@@ -371,8 +517,8 @@ export function BuildathonPage() {
             >
               Get a builder account <ArrowRight className="size-3.5" />
             </a>
-          </div>
-        </section>
+          }
+        />
 
         {/* Footer */}
         <footer className="pb-4 text-center text-xs space-y-2" style={{ color: C.muted }}>
@@ -382,6 +528,8 @@ export function BuildathonPage() {
           </p>
           <p>
             <a href="/" className="underline underline-offset-2">Home</a>
+            {' '}·{' '}
+            <a href="/studios" className="underline underline-offset-2">Studios</a>
             {' '}·{' '}
             <a href="/#privacy" className="underline underline-offset-2">Privacy &amp; Terms</a>
             {' '}·{' '}

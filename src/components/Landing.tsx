@@ -15,6 +15,9 @@ import { isConfirmPath, readConfirmToken } from '@/cloud/confirm-link';
 const BuildathonPage = lazy(() =>
   import('./BuildathonPage').then(m => ({ default: m.BuildathonPage })),
 );
+const StudiosPage = lazy(() =>
+  import('./StudiosPage').then(m => ({ default: m.StudiosPage })),
+);
 
 const ENTERED_KEY = 'rb-entered';
 
@@ -22,6 +25,10 @@ const ENTERED_KEY = 'rb-entered';
  *  the landing and the app, signed in or not, so partners can share the link */
 function isBuildathonPath(): boolean {
   return window.location.pathname.replace(/\/+$/, '').toLowerCase() === '/buildathon';
+}
+/** /studios is the same kind of page: what a Studio is, and how to start one */
+function isStudiosPath(): boolean {
+  return window.location.pathname.replace(/\/+$/, '').toLowerCase() === '/studios';
 }
 
 /**
@@ -142,6 +149,13 @@ export function Landing({ children }: { children: ReactNode }) {
       </Suspense>
     );
   }
+  if (isStudiosPath()) {
+    return (
+      <Suspense fallback={null}>
+        <StudiosPage />
+      </Suspense>
+    );
+  }
 
   // A signed-in builder is always through the door: after signing in from the
   // panel below, the magic-link redirect returns here and walks them straight in.
@@ -226,6 +240,14 @@ function LandingPage({ onUnlock }: { onUnlock: () => void }) {
             style={{ color: C.body, textDecorationColor: C.border }}
           >
             See how Relational Builder supports events
+          </a>
+          . Building with a community in one place?{' '}
+          <a
+            href="/studios"
+            className="underline underline-offset-2"
+            style={{ color: C.body, textDecorationColor: C.border }}
+          >
+            Learn about Studios
           </a>
           .
         </p>
