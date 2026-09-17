@@ -21,6 +21,14 @@ const StudiosPage = lazy(() =>
 
 const ENTERED_KEY = 'rb-entered';
 
+/** The landing's main nav: the site's other public pages. Each links back
+ *  here as "Home" so the loop closes in one tap. */
+const LANDING_NAV = [
+  { href: '/buildathon', label: 'Build-a-thons' },
+  { href: '/studios', label: 'Studios' },
+  { href: '/commons', label: 'Commons' },
+];
+
 /** /buildathon is a public companion page like #privacy — it wins over both
  *  the landing and the app, signed in or not, so partners can share the link */
 function isBuildathonPath(): boolean {
@@ -176,6 +184,23 @@ function LandingPage({ onUnlock }: { onUnlock: () => void }) {
       style={{ background: C.bg, color: C.ink, fontFamily: "'Inter Variable', system-ui, sans-serif" }}
     >
       <div className="max-w-2xl mx-auto px-6 py-14 sm:py-20 space-y-12">
+
+        {/* Main nav: the site's other front pages, one tap from the door */}
+        <nav
+          aria-label="Main"
+          className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm"
+        >
+          {LANDING_NAV.map(({ href, label }) => (
+            <a
+              key={href}
+              href={href}
+              className="hover:underline underline-offset-4"
+              style={{ color: C.body }}
+            >
+              {label}
+            </a>
+          ))}
+        </nav>
 
         {/* Hero */}
         <header className="space-y-5 text-center">

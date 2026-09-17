@@ -236,6 +236,9 @@ export function BuildathonPage() {
             <a href="/studios" className="hidden sm:inline hover:underline underline-offset-4" style={{ color: C.body }}>
               Studios
             </a>
+            <a href="/commons" className="hidden sm:inline hover:underline underline-offset-4" style={{ color: C.body }}>
+              Commons
+            </a>
             <a
               href={PLAN_HREF}
               className="rounded-full px-4 py-1.5 text-xs font-semibold"
@@ -530,6 +533,8 @@ export function BuildathonPage() {
             <a href="/" className="underline underline-offset-2">Home</a>
             {' '}·{' '}
             <a href="/studios" className="underline underline-offset-2">Studios</a>
+            {' '}·{' '}
+            <a href="/commons" className="underline underline-offset-2">Commons</a>
             {' '}·{' '}
             <a href="/#privacy" className="underline underline-offset-2">Privacy &amp; Terms</a>
             {' '}·{' '}
