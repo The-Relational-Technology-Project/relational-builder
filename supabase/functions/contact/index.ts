@@ -9,6 +9,10 @@
  * (topic: 'budget-feedback') — same table, but the email copy goes to the
  * whole team inbox, since budget sizing is a team resource question.
  *
+ * The public site pages post here too: "Plan one with us" on /buildathon
+ * (topic: 'buildathon') and "Create your studio" on /studios (topic:
+ * 'studio'). Same table, steward inbox, a subject line that says which.
+ *
  * POST JSON: { name?, email?, neighborhood?, message, topic? }
  *   - No auth (anyone may write to us); per-IP rate limited
  *
@@ -68,7 +72,9 @@ Deno.serve(async (req: Request) => {
     const name = String(body.name ?? '').slice(0, 120).trim() || null;
     const email = String(body.email ?? '').slice(0, 200).trim() || null;
     const neighborhood = String(body.neighborhood ?? '').slice(0, 160).trim() || null;
-    const topic = body.topic === 'budget-feedback' ? 'budget-feedback' : null;
+    const TOPICS = ['budget-feedback', 'buildathon', 'studio'] as const;
+    type Topic = (typeof TOPICS)[number];
+    const topic: Topic | null = (TOPICS as readonly string[]).includes(body.topic) ? body.topic : null;
 
     const insertRes = await fetch(rest('/contact_messages'), {
       method: 'POST',
@@ -84,6 +90,23 @@ Deno.serve(async (req: Request) => {
     const feedbackInbox = Deno.env.get('FEEDBACK_EMAIL') ?? 'humans@relationaltechproject.org';
     if (resendKey) {
       const budgetFeedback = topic === 'budget-feedback';
+      const who = name ?? email ?? 'someone';
+      const subject =
+        topic === 'buildathon'
+          ? `Build-a-thon inquiry: ${who}`
+          : topic === 'studio'
+            ? `Studio inquiry: ${who}`
+            : budgetFeedback
+              ? `Daily budget feedback: ${name ?? email ?? 'a community builder'}`
+              : `Builder contact: ${who}`;
+      const intro =
+        topic === 'buildathon'
+          ? `<p><strong>${esc(name ?? 'Someone')}</strong>${email ? ` (${esc(email)})` : ''} wants to plan a build-a-thon (sent from relationalbuilder.org/buildathon).</p>`
+          : topic === 'studio'
+            ? `<p><strong>${esc(name ?? 'Someone')}</strong>${email ? ` (${esc(email)})` : ''} wants to create a studio (sent from relationalbuilder.org/studios).</p>`
+            : budgetFeedback
+              ? `<p><strong>${esc(name ?? email ?? 'A community builder')}</strong>${name && email ? ` (${esc(email)})` : ''} hit the daily building budget and sent the team a note.${email ? '' : ' They chose not to include their email.'}</p>`
+              : `<p><strong>${esc(name ?? 'Someone')}</strong>${email ? ` (${esc(email)})` : ''} wrote through the Relational Builder contact form.</p>`;
       await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
@@ -91,14 +114,10 @@ Deno.serve(async (req: Request) => {
           from: 'Relational Builder <hello@relationalbuilder.org>',
           to: [budgetFeedback ? feedbackInbox : steward],
           reply_to: email ?? undefined,
-          subject: budgetFeedback
-            ? `Daily budget feedback: ${name ?? email ?? 'a community builder'}`
-            : `Builder contact: ${name ?? email ?? 'someone'}`,
+          subject,
           html: [
-            budgetFeedback
-              ? `<p><strong>${esc(name ?? email ?? 'A community builder')}</strong>${name && email ? ` (${esc(email)})` : ''} hit the daily building budget and sent the team a note.${email ? '' : ' They chose not to include their email.'}</p>`
-              : `<p><strong>${esc(name ?? 'Someone')}</strong>${email ? ` (${esc(email)})` : ''} wrote through the Relational Builder contact form.</p>`,
-            neighborhood ? `<p><strong>Neighborhood:</strong> ${esc(neighborhood)}</p>` : '',
+            intro,
+            neighborhood ? `<p><strong>${topic === 'buildathon' || topic === 'studio' ? 'Place / organization' : 'Neighborhood'}:</strong> ${esc(neighborhood)}</p>` : '',
             `<p>${esc(message).replace(/\n/g, '<br>')}</p>`,
           ].join('\n'),
         }),
