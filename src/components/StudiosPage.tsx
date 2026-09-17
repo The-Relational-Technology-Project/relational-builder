@@ -243,6 +243,9 @@ export function StudiosPage() {
             <a href="/buildathon" className="hidden sm:inline hover:underline underline-offset-4" style={{ color: C.body }}>
               Build-a-thons
             </a>
+            <a href="/commons" className="hidden sm:inline hover:underline underline-offset-4" style={{ color: C.body }}>
+              Commons
+            </a>
             <a
               href={CREATE_HREF}
               className="rounded-full px-4 py-1.5 text-xs font-semibold"
@@ -415,6 +418,8 @@ export function StudiosPage() {
             <a href="/" className="underline underline-offset-2">Home</a>
             {' '}·{' '}
             <a href="/buildathon" className="underline underline-offset-2">Build-a-thons</a>
+            {' '}·{' '}
+            <a href="/commons" className="underline underline-offset-2">Commons</a>
             {' '}·{' '}
             <a href="/#privacy" className="underline underline-offset-2">Privacy &amp; Terms</a>
             {' '}·{' '}

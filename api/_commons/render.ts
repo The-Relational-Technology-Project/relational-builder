@@ -193,7 +193,7 @@ ${ld}
 <a href="/commons/tools">Tools</a>
 <a href="/commons/stories">Stories</a>
 <a href="/commons/map">Map</a>
-<a href="/">Builder</a>
+<a href="/">Relational Builder Home</a>
 </nav>
 <form class="search" action="/commons/search" method="get" role="search">
 <input type="search" name="q" placeholder="Search the commons…" aria-label="Search the commons">
@@ -224,6 +224,7 @@ community where you live — stewarded by the
 and kept remixable in <a href="/">Relational Builder</a>. Entries carry their contributors'
 names and the <a href="/commons/license">Reciprocal Commons License</a>; credit travels with the work.</p>
 <nav>
+<a href="/">Relational Builder Home</a>
 <a href="/commons">Commons home</a>
 <a href="/commons/guides">Guides</a>
 <a href="/commons/search">Search</a>
