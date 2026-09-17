@@ -16,10 +16,12 @@ import {
 /**
  * /studios — the public page for what a Studio is inside Relational Builder
  * and an invitation to create one. A Studio is a home for a community of
- * builders: its own frame layered on the RTP base, knowledge of its place
- * (neighborhoods, local data), and a gallery of what its builders make. The
- * worked example is a representative San Francisco civic tech studio, not a
- * live one. A companion to /buildathon (same shell, same form), reachable
+ * builders with a shared focus: its own values and principles layered on
+ * the RTP base, the practices and guardrails it wants in every build, the
+ * contexts and sources it knows, and a gallery of what its builders make.
+ * Place is one shape that takes (a city, a neighborhood); a mission, a
+ * network, or a practice is another. The worked example is a representative
+ * San Francisco civic tech studio, not a live one. A companion to /buildathon (same shell, same form), reachable
  * signed in or out — Landing routes here before the app gate.
  */
 
@@ -257,16 +259,17 @@ export function StudiosPage() {
         <header className="space-y-4 text-center">
           <Kicker>Studios</Kicker>
           <h1 className="text-[1.85rem] leading-[1.15] sm:text-5xl font-semibold tracking-tight sm:leading-tight">
-            A Builder that knows
+            A Builder that shares
             <br />
-            your place.
+            your values.
           </h1>
           <p className="mx-auto max-w-xl text-base sm:text-lg leading-relaxed" style={{ color: C.body }}>
             A Studio is a home for a community of builders inside Relational
-            Builder. It carries what your place knows: its neighborhoods, its
-            way of seeing, its data, and the tools its people are already
-            making. Everyone who builds in the studio starts from there, not
-            from a blank page.
+            Builder. It carries what your community holds in common: your
+            focus, your values and principles, the practices and guardrails
+            you want in every build, the contexts and sources you know, and
+            the tools your people are already making. Everyone who builds in
+            the studio starts from there, not from a blank page.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
             <a
@@ -290,23 +293,28 @@ export function StudiosPage() {
         <section className="space-y-5">
           <div className="text-center space-y-2">
             <Kicker>What a studio enables</Kicker>
-            <h2 className="text-xl sm:text-2xl font-semibold tracking-tight">Four things the Builder learns from a studio</h2>
+            <h2 className="text-xl sm:text-2xl font-semibold tracking-tight">Four things the Builder takes from a studio</h2>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Enables icon={MapPinned} title="The neighborhood contexts">
-              Who lives where, what each part of town is like, what people
-              there have been asking for. Written once by the studio's
+            <Enables icon={Compass} title="A frame: your values, principles, and practices">
+              The shared relational tech principles, plus the studio's own.
+              A mission, a set of practices, guardrails a network has agreed
+              on. The AI uses them to plan a build, critique a first draft,
+              and say plainly what a tool does when it's presented. Every
+              build, not just the ones where someone remembers to ask.
+            </Enables>
+            <Enables icon={MapPinned} title="The contexts your community works in">
+              Who your builders serve, what those people have been asking
+              for, the settings a tool has to fit. For a civic studio that's
+              neighborhoods and city teams; for a network it might be its
+              chapters or the practice it teaches. Written once by the
               stewards, present in every conversation after.
             </Enables>
-            <Enables icon={Compass} title="A frame based on the place">
-              The shared relational tech principles, plus the studio's own.
-              The AI uses them to plan a build, critique a first draft, and
-              say plainly what a tool does when it's presented.
-            </Enables>
-            <Enables icon={Database} title="The local data sources">
-              Open data portals, service feeds, maps, directories. The studio
-              keeps the list, so a builder asks for what they want and the
-              Builder already knows where it lives.
+            <Enables icon={Database} title="The sources you trust">
+              Open data portals, service feeds, a body of research, a
+              curriculum, a directory. The studio keeps the list, so a
+              builder asks for what they want and the Builder already knows
+              where it lives.
             </Enables>
             <Enables icon={LayoutGrid} title="A gallery of remixable examples">
               A shelf of its own in the Commons Gallery. What the studio's
@@ -328,9 +336,11 @@ export function StudiosPage() {
             <Kicker>What that looks like</Kicker>
             <h2 className="text-xl sm:text-2xl font-semibold tracking-tight">Picture a civic tech studio for San Francisco</h2>
             <p className="mx-auto max-w-xl text-[15px] leading-relaxed" style={{ color: C.body }}>
-              Imagine a studio started by a few SF civic technologists,
-              neighborhood organizers, and city staff. Here's what it would
-              carry, and what a builder inside it would feel.
+              One shape a studio can take. Imagine one started by a few SF
+              civic technologists, neighborhood organizers, and city staff,
+              with a focus on tools residents and city teams make together.
+              Here's what it would carry, and what a builder inside it would
+              feel.
             </p>
           </div>
           <StudioExample />
@@ -341,20 +351,27 @@ export function StudiosPage() {
         <section className="space-y-5">
           <div className="text-center space-y-2">
             <Kicker>Who starts a studio</Kicker>
-            <h2 className="text-xl sm:text-2xl font-semibold tracking-tight">Any community with a place in common</h2>
+            <h2 className="text-xl sm:text-2xl font-semibold tracking-tight">Any community with something in common</h2>
+            <p className="mx-auto max-w-xl text-[15px] leading-relaxed" style={{ color: C.body }}>
+              A place is one thing to share. A focus, a mission, or a set of
+              practices is another. Studios hold all of these.
+            </p>
           </div>
           <div className="grid gap-4 sm:grid-cols-3">
-            <Enables icon={Users} title="A city or region">
-              Civic technologists, organizers, and staff who want the tools
-              made for their city to share a frame and a shelf.
+            <Enables icon={Users} title="A shared focus">
+              A community organized around one kind of work, such as
+              participatory systems that city teams and residents shape
+              together, whose builders should all hold that focus.
             </Enables>
-            <Enables icon={Sparkles} title="A network or organization">
-              Chapters, member groups, or a coalition whose builders should
-              start from the same principles and learn from each other's work.
+            <Enables icon={Sparkles} title="A mission and its practices">
+              An organization or network with a long-held mission and a way of
+              working it wants embedded in every tool its members make, not
+              re-explained each time.
             </Enables>
-            <Enables icon={MapPinned} title="A neighborhood">
-              A few blocks with stewards who want to hold what the place
-              knows, and a gallery of what neighbors have built for it.
+            <Enables icon={MapPinned} title="A place">
+              A city, region, or neighborhood with stewards who want to hold
+              what the place knows, and a gallery of what neighbors have built
+              for it.
             </Enables>
           </div>
         </section>
@@ -366,14 +383,15 @@ export function StudiosPage() {
           title="Create your studio"
           intro={
             <>
-              Tell us about your place and the community of builders you have
-              in mind. We'll set the studio up together: its frame, its
-              knowledge, its door, and its first stewards. Studios are free to
+              Tell us about your community of builders and what they hold in
+              common. We'll set the studio up together: its values and
+              principles, its practices and guardrails, its contexts and
+              sources, its door, and its first stewards. Studios are free to
               start.
             </>
           }
-          placePlaceholder="Your city, region, network, or neighborhood"
-          messagePlaceholder="Who would build here, and what does your place know that the Builder should too?"
+          placePlaceholder="Your network, organization, city, or neighborhood"
+          messagePlaceholder="Who would build here, and what values, practices, or contexts should shape every build?"
           submitLabel="Create your studio"
           sentNote="Thank you. Josh will reply soon so we can start shaping your studio together."
           aside={

@@ -241,7 +241,7 @@ function LandingPage({ onUnlock }: { onUnlock: () => void }) {
           >
             See how Relational Builder supports events
           </a>
-          . Building with a community in one place?{' '}
+          . Building with a network that shares values and a focus?{' '}
           <a
             href="/studios"
             className="underline underline-offset-2"
