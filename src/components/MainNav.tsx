@@ -10,13 +10,16 @@ import { useCurrentProjectName } from '@/lib/use-project-name';
  * The header's left side, which says two different things depending on where
  * you are.
  *
- * **In a project** it is about the project: the mark, then the project's name
- * carrying everything true about it. Nothing competes with the work.
+ * **In a project** it leads with the project: the mark, then the project's
+ * name carrying everything true about it (the menu), then the destinations.
  *
  * **On a page** (Home, Gallery, Projects, your profile…) it is a way around:
- * the way back to the project you left, then the destinations. Sync and
+ * the way back to the project you left, then the same destinations. Sync and
  * Share disappear on these pages — there is no project in front of you to
  * sync or share.
+ *
+ * Your projects and Gallery stay put in both states, so the way around never
+ * moves; only the project slot changes shape (menu ↔ back pill).
  *
  * The mark goes Home — the web's oldest convention, and the one door that's
  * always in the same place. It points *away* from the project while the
@@ -76,47 +79,40 @@ export function MainNav() {
   return (
     <div className="flex items-center gap-2 min-w-0">
       <Wordmark />
-      <Separator orientation="vertical" className="h-5 shrink-0" />
+      {/* The base Separator stretches itself (self-stretch); with a fixed
+          height that pins it to the top of the row. Center it instead. */}
+      <Separator orientation="vertical" className="h-5 shrink-0 data-vertical:self-center" />
 
-      {view === 'builder' ? (
-        // A project in front of you: its name is the nav. With nothing built
-        // yet there is no project to name, so the destinations stand in.
-        projectName !== null ? (
+      {/* The project slot: its menu while you're in it, the way back while
+          you're elsewhere. With nothing built yet there is no project to
+          name, so the slot is empty and the destinations lead. */}
+      {projectName !== null &&
+        (view === 'builder' ? (
           <ProjectMenu />
         ) : (
-          <>
-            <NavButton icon={FolderOpen} label="Your projects" onClick={go('projects')} />
-            <NavButton icon={LayoutGrid} label="Gallery" onClick={go('gallery')} />
-          </>
-        )
-      ) : (
-        <>
-          {projectName !== null && (
-            <button
-              onClick={go('builder')}
-              title="Back to this project"
-              className="group flex items-center gap-1.5 min-w-0 rounded-full border border-border/70 bg-background px-2.5 py-1 text-xs font-medium text-foreground/80 shadow-xs transition-colors hover:bg-accent hover:text-foreground"
-            >
-              <ArrowLeft className="size-3 shrink-0 text-muted-foreground group-hover:text-foreground" />
-              <span className="max-w-[180px] truncate">{projectName}</span>
-            </button>
-          )}
-          {/* No "New project" button: starting something new is what Home's
-              composer is — one door, not two labels for it */}
-          <NavButton
-            icon={FolderOpen}
-            label="Your projects"
-            active={view === 'projects'}
-            onClick={go('projects')}
-          />
-          <NavButton
-            icon={LayoutGrid}
-            label="Gallery"
-            active={view === 'gallery'}
-            onClick={go('gallery')}
-          />
-        </>
-      )}
+          <button
+            onClick={go('builder')}
+            title="Back to this project"
+            className="group flex items-center gap-1.5 min-w-0 rounded-full border border-border/70 bg-background px-2.5 py-1 text-xs font-medium text-foreground/80 shadow-xs transition-colors hover:bg-accent hover:text-foreground"
+          >
+            <ArrowLeft className="size-3 shrink-0 text-muted-foreground group-hover:text-foreground" />
+            <span className="max-w-[180px] truncate">{projectName}</span>
+          </button>
+        ))}
+      {/* No "New project" button: starting something new is what Home's
+          composer is — one door, not two labels for it */}
+      <NavButton
+        icon={FolderOpen}
+        label="Your projects"
+        active={view === 'projects'}
+        onClick={go('projects')}
+      />
+      <NavButton
+        icon={LayoutGrid}
+        label="Gallery"
+        active={view === 'gallery'}
+        onClick={go('gallery')}
+      />
     </div>
   );
 }
