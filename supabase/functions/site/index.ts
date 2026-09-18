@@ -307,6 +307,13 @@ Deno.serve(async (req: Request) => {
     const siteIdx = segments.indexOf('site');
     const slug = segments[siteIdx + 1] ?? '';
     let filePath = segments.slice(siteIdx + 2).join('/');
+    // The gateway sandboxes any URL ending in .html/.htm regardless of
+    // content type, so the trusted front asks for `.rbpage` and sends the
+    // real path here (see the x-rb-raw note below)
+    const realPath = req.headers.get('x-rb-path');
+    if (req.headers.get('x-rb-raw') === '1' && realPath !== null) {
+      filePath = realPath.split('/').filter(Boolean).join('/');
+    }
     if (!slug) return new Response('Site not specified', { status: 400 });
     if (!filePath) filePath = 'index.html';
 
