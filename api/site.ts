@@ -7,6 +7,11 @@
  * CSP and render as source code. We send x-rb-raw so the site function
  * disguises HTML as text/x-rb-html (which passes through untouched), then
  * restore the real content type here on our own domain.
+ *
+ * The gateway also keys on the URL: any path ending in .html/.htm gets the
+ * same treatment whatever the content type says, so a second page
+ * (about.html) rendered as source while index.html was fine. We ask
+ * upstream for an extension-free path and carry the real one in x-rb-path.
  */
 
 export const config = { runtime: 'edge' };
@@ -16,11 +21,13 @@ const ORIGIN = 'https://texakzqqenzpxawktbgx.supabase.co/functions/v1/site';
 export default async function handler(req: Request): Promise<Response> {
   const url = new URL(req.url);
   const path = url.searchParams.get('path') ?? '';
+  const upstreamPath = path.replace(/\.html?$/i, '.rbpage');
 
-  const res = await fetch(`${ORIGIN}/${path}`, {
+  const res = await fetch(`${ORIGIN}/${upstreamPath}`, {
     method: req.method,
     headers: {
       'x-rb-raw': '1',
+      'x-rb-path': encodeURI(path),
       ...(req.headers.get('content-type')
         ? { 'content-type': req.headers.get('content-type') as string }
         : {}),

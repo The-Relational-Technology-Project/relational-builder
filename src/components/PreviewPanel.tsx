@@ -203,7 +203,7 @@ export function PreviewPanel() {
     return (
       <div className="h-full flex flex-col">
         {tabsRow}
-        <MaterialPreview file={materialFile} />
+        <MaterialPreview file={materialFile} files={files} />
       </div>
     );
   }
@@ -457,8 +457,12 @@ const PDF_HINT = 'Opens the print dialog — choose "Save as PDF" as the destina
  * All the print/PDF affordances live HERE in the builder chrome — the
  * material itself stays clean, exactly what comes out of the printer.
  */
-function MaterialPreview({ file }: { file: FileEntry }) {
+function MaterialPreview({ file, files }: { file: FileEntry; files: FileEntry[] }) {
   const frameRef = useRef<HTMLIFrameElement | null>(null);
+  // srcdoc has no base URL, so a `<link href="./styles.css">` the page
+  // shares with the app would never resolve — inline the project's own
+  // stylesheets (and scripts) the same way "open in browser" does
+  const html = useMemo(() => buildStandaloneHtml(files, file.path) ?? file.content, [files, file]);
   return (
     <div className="flex-1 min-h-0 flex flex-col">
       <div className="flex items-center justify-end gap-1.5 border-b px-2 py-1 shrink-0">
@@ -478,7 +482,7 @@ function MaterialPreview({ file }: { file: FileEntry }) {
         <button
           onClick={() => {
             window.open(
-              URL.createObjectURL(new Blob([file.content], { type: 'text/html' })),
+              URL.createObjectURL(new Blob([html], { type: 'text/html' })),
               '_blank',
             );
           }}
@@ -489,7 +493,7 @@ function MaterialPreview({ file }: { file: FileEntry }) {
       </div>
       <iframe
         ref={frameRef}
-        srcDoc={file.content}
+        srcDoc={html}
         sandbox="allow-same-origin allow-modals"
         title={file.path}
         className="flex-1 w-full bg-white"

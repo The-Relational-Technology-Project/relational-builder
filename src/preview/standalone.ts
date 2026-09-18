@@ -4,14 +4,24 @@ import type { FileEntry } from '@/project/virtual-fs';
  * Turn a simple static project into ONE self-contained HTML document —
  * local stylesheet links and script tags inlined — so "open in browser"
  * can hand the whole app to a new tab as a blob URL. Remote (http…) refs
- * stay as-is; they load normally in the tab.
+ * stay as-is; they load normally in the tab. `entry` picks which HTML file
+ * is the document: the app's index.html by default, or a second page /
+ * material (about.html, flyer.html) that shares the project's stylesheet.
  */
-export function buildStandaloneHtml(files: FileEntry[]): string | null {
+export function buildStandaloneHtml(files: FileEntry[], entry = 'index.html'): string | null {
   const byPath = new Map(files.map(f => [f.path.replace(/^\//, ''), f.content]));
-  const html = byPath.get('index.html');
+  const entryPath = entry.replace(/^\//, '');
+  const html = byPath.get(entryPath);
   if (!html) return null;
 
-  const local = (src: string) => byPath.get(src.replace(/^\.?\//, ''));
+  // Relative refs resolve against the entry's own folder (about.html next
+  // to styles.css; materials/flyer.html next to materials/print.css)
+  const dir = entryPath.includes('/') ? entryPath.slice(0, entryPath.lastIndexOf('/') + 1) : '';
+  const local = (src: string) => {
+    const clean = src.replace(/^\.\//, '');
+    if (clean.startsWith('/')) return byPath.get(clean.slice(1));
+    return byPath.get(dir + clean) ?? byPath.get(clean);
+  };
 
   let out = html.replace(
     /<link\b[^>]*\brel=["']stylesheet["'][^>]*\bhref=["'](?!https?:)([^"']+)["'][^>]*\/?>/gi,
