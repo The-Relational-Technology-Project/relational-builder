@@ -22,6 +22,7 @@ import { getPromptForProject } from '@/cloud/prompts';
 import { deployToNetlify } from '@/project/deploy-netlify';
 import { deployToVercel } from '@/project/deploy-vercel';
 import { Download, ExternalLink, Globe, Check, Loader2, Lock } from 'lucide-react';
+import { LiveSiteLink } from './LiveSiteLink';
 import { cn } from '@/lib/utils';
 import { CommonsSubmitCard } from './CommonsSubmitCard';
 import { StudioSubmitCard } from './StudioSubmitCard';
@@ -52,6 +53,8 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
   const publishNameKey = cloudProjectId ?? localProjectId ?? 'local';
   const savedPublishName = useDeployStore(s => s.publishNames[publishNameKey]);
   const setPublishName = useDeployStore(s => s.setPublishName);
+  const liveSite = useDeployStore(s => s.liveSites[publishNameKey]);
+  const setLiveSite = useDeployStore(s => s.setLiveSite);
   const cloudProjectName = useCloudStore(s => s.currentProjectName);
   const localProjectName = useLocalProjects(s => s.currentName);
 
@@ -141,6 +144,12 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
       if (activeTarget === 'community') {
         const res = await publishToCommunityHosting(siteFiles, projectName, publicEnvVars, passphrase);
         setResult({ url: res.url, totalViews: res.total_views, hasPassphrase: res.has_passphrase });
+        setLiveSite(publishNameKey, {
+          slug: res.slug,
+          url: res.url,
+          hasPassphrase: Boolean(res.has_passphrase),
+          publishedAt: Date.now(),
+        });
       } else if (activeTarget === 'download') {
         const sourceFiles = isFramework ? materializeSource(files) : files;
         const blob = await exportProjectZip(sourceFiles, projectName, lineage, publicEnvVars, buildPrompt);
@@ -236,8 +245,23 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
             </div>
           </div>
 
+          {/* Already live: the link first, so Share and Publish both answer
+              "where is it?" — publishing again updates this same site */}
+          {activeTarget === 'community' && liveSite && !result && (
+            <div className="rounded-lg border bg-muted/40 p-3 space-y-1.5">
+              <p className="text-xs font-medium flex items-center gap-1.5">
+                <Globe className="size-3.5 text-green-700" />
+                Live on community hosting
+              </p>
+              <LiveSiteLink url={liveSite.url} hasPassphrase={liveSite.hasPassphrase} />
+              <p className="text-xs text-muted-foreground">
+                Publishing again replaces what's at this link with your current build.
+              </p>
+            </div>
+          )}
+
           {/* Community hosting info */}
-          {activeTarget === 'community' && (
+          {activeTarget === 'community' && !liveSite && (
             <div className="rounded-lg border border-dashed border-green-600/40 bg-green-600/5 p-3 space-y-1">
               <p className="text-xs font-medium">🌱 Free hosting from the Relational Tech Project</p>
               <p className="text-xs text-muted-foreground leading-relaxed">
@@ -386,7 +410,7 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
             ) : activeTarget === 'community' ? (
               <>
                 <Globe className="size-4" />
-                Publish to community hosting
+                {liveSite ? 'Update the live site' : 'Publish to community hosting'}
               </>
             ) : activeTarget === 'download' ? (
               <>
@@ -413,16 +437,22 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
             <div className="rounded-lg border bg-muted/50 p-3 space-y-2">
               <div className="flex items-center gap-1.5">
                 <Check className="size-3.5 text-green-600" />
-                <p className="text-xs font-medium">Deployed successfully!</p>
+                <p className="text-xs font-medium">
+                  {activeTarget === 'community' ? "It's live — here's the link to share" : 'Deployed successfully!'}
+                </p>
               </div>
-              <a
-                href={result.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs underline hover:text-foreground flex items-center gap-1"
-              >
-                {result.url} <ExternalLink className="size-2.5" />
-              </a>
+              {activeTarget === 'community' ? (
+                <LiveSiteLink url={result.url} />
+              ) : (
+                <a
+                  href={result.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs underline hover:text-foreground flex items-center gap-1"
+                >
+                  {result.url} <ExternalLink className="size-2.5" />
+                </a>
+              )}
               {result.totalViews !== undefined && result.totalViews > 0 && (
                 <p className="text-xs text-muted-foreground">
                   {result.totalViews.toLocaleString()} visit{result.totalViews === 1 ? '' : 's'} so far

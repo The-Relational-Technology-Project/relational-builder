@@ -89,3 +89,19 @@ export async function listSiteVersions(slug: string): Promise<SiteVersion[]> {
 export async function restoreSiteVersion(slug: string, versionId: string): Promise<void> {
   await call({ action: 'restore_version', slug, version_id: versionId });
 }
+
+/**
+ * Find the live site a project published under `name` before the Builder
+ * started remembering links locally — matched on the site's saved name,
+ * newest first. Quiet on any failure (signed out, offline): it only fills a
+ * gap, and Your Sites still has everything.
+ */
+export async function findLiveSiteByName(name: string): Promise<CommunitySite | null> {
+  try {
+    const sites = await listCommunitySites();
+    const wanted = name.trim().toLowerCase();
+    return sites.find(s => s.name.trim().toLowerCase() === wanted) ?? null;
+  } catch {
+    return null;
+  }
+}
