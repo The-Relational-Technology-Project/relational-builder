@@ -37,7 +37,17 @@ export interface Capture {
   /** Ask the browser for a tab/screen share and mix its audio in */
   addTabAudio(): Promise<'ok' | 'no-audio' | 'denied'>;
   hasTab(): boolean;
+  /** Seconds recorded so far — paused stretches don't count */
   elapsedSec(): number;
+  /**
+   * Pause: the mic stays open (no second permission prompt) but nothing
+   * is transcribed or kept until resume. Anyone at the table can hit it.
+   */
+  pause(): void;
+  resume(): void;
+  isPaused(): boolean;
+  /** Current input loudness, 0–1, for a "yes, it hears you" meter */
+  level(): number;
   /** Stop everything; resolves with the raw-audio backup (null if it failed) */
   stop(): Promise<Blob | null>;
 }
@@ -94,7 +104,18 @@ export async function startCapture(opts: CaptureOptions): Promise<Capture> {
 
   const ctx = new AudioContext();
   const startedAt = performance.now();
-  const elapsedSec = () => (performance.now() - startedAt) / 1000;
+  // Paused time is subtracted so timestamps stay honest across a pause
+  let pausedAt: number | null = null;
+  let pausedTotalMs = 0;
+  const elapsedSec = () =>
+    (performance.now() - startedAt - pausedTotalMs - (pausedAt !== null ? performance.now() - pausedAt : 0)) / 1000;
+  const paused = () => pausedAt !== null;
+
+  // A level meter on the room mic: the reassurance that the phone in the
+  // middle of the table is actually hearing people
+  const analyser = ctx.createAnalyser();
+  analyser.fftSize = 512;
+  const levelBuf = new Float32Array(analyser.fftSize);
 
   // Everything audible gets mixed into one stream for the backup recording
   const mixDest = ctx.createMediaStreamDestination();
@@ -106,6 +127,7 @@ export async function startCapture(opts: CaptureOptions): Promise<Capture> {
   function attach(stream: MediaStream, source: CaptureSource) {
     const node = ctx.createMediaStreamSource(stream);
     node.connect(mixDest);
+    if (source === 'room') node.connect(analyser);
     if (!opts.collectPcm) return;
 
     const collector = new PcmCollector();
@@ -115,7 +137,9 @@ export async function startCapture(opts: CaptureOptions): Promise<Capture> {
     // ScriptProcessorNode is deprecated but universally supported and needs
     // no worklet asset plumbing — the right tradeoff for capture at 16 kHz
     const proc = ctx.createScriptProcessor(4096, 1, 1);
-    proc.onaudioprocess = e => collector.push(e.inputBuffer.getChannelData(0));
+    proc.onaudioprocess = e => {
+      if (!paused()) collector.push(e.inputBuffer.getChannelData(0));
+    };
     node.connect(proc);
     // Chrome only runs a processor that reaches the destination — mute it
     const mute = ctx.createGain();
@@ -138,6 +162,7 @@ export async function startCapture(opts: CaptureOptions): Promise<Capture> {
 
   const flushTimer = opts.collectPcm
     ? window.setInterval(() => {
+        if (paused()) return;
         for (const source of collectors.keys()) flush(source, chunkSeconds);
       }, 2000)
     : 0;
@@ -191,6 +216,32 @@ export async function startCapture(opts: CaptureOptions): Promise<Capture> {
 
     hasTab: () => tabStream !== null,
     elapsedSec,
+
+    pause() {
+      if (pausedAt !== null) return;
+      // Flush what's buffered so the pause lands between lines, not mid-line
+      for (const source of collectors.keys()) flush(source, 0.5);
+      pausedAt = performance.now();
+      if (recorder?.state === 'recording') recorder.pause();
+    },
+    resume() {
+      if (pausedAt === null) return;
+      pausedTotalMs += performance.now() - pausedAt;
+      pausedAt = null;
+      for (const c of collectors.values()) c.chunkStartSec = elapsedSec();
+      if (recorder?.state === 'paused') recorder.resume();
+    },
+    isPaused: paused,
+
+    level() {
+      if (paused()) return 0;
+      analyser.getFloatTimeDomainData(levelBuf);
+      let sum = 0;
+      for (let i = 0; i < levelBuf.length; i++) sum += levelBuf[i] * levelBuf[i];
+      const rms = Math.sqrt(sum / levelBuf.length);
+      // Speech at a table sits around 0.02–0.2 RMS; map that to most of the bar
+      return Math.min(1, rms * 6);
+    },
 
     async stop() {
       window.clearInterval(flushTimer);

@@ -15,11 +15,11 @@ import { useProjectStore } from '@/store/project-store';
 import { useCloudStore } from '@/store/cloud-store';
 import { useEnvStore } from '@/store/env-store';
 import { stashAndStartFresh } from '@/project/local-projects';
-import type { ChatMessage } from '@/providers/types';
+import type { ChatMessage, ContentPart } from '@/providers/types';
 
 export const DREAM_SYSTEM = `You are Dream Recorder, the listening front door of Relational Builder — an open, community-oriented builder from the Relational Technology Project. People use Relational Builder to strengthen real-world relationships: neighbors organizing, mutual aid, shared projects. Software is one possible outcome, not the assumption.
 
-You have been handed the transcript of people dreaming out loud — maybe one person at a laptop, maybe a group around a build-a-thon table or in a Zoom breakout. Timestamps like [12:40] mark elapsed time; a (room) or (call) tag, when present, marks whether a line was spoken in the room or by someone on a video call. Your job is to distill the conversation into a single Project Description that will seed a Relational Builder project.
+You have been handed the transcript of people dreaming out loud — maybe one person at a laptop, maybe a group around a build-a-thon table or a kitchen table, maybe a team talking on a neighborhood walk, maybe a Zoom breakout. Timestamps like [12:40] mark elapsed time; a (room) or (call) tag, when present, marks whether a line was spoken in the room or by someone on a video call; "Speaker A:" style labels, when present, come from a transcription model and tell voices apart without naming anyone. The transcript may be stitched from several pieces — a walk recording, then notes typed afterward, then a second recording — each introduced by a "=== … ===" header; read them in order as one conversation. Photos, when attached, are the group's own whiteboard, napkin, or notebook notes: read every word and sketch on them as part of the conversation, and treat what's written down as things the group cared enough to write. Your job is to distill all of it into a single Project Description that will seed a Relational Builder project.
 
 HOW TO READ THE TRANSCRIPT
 - Follow the arc, not just the content. Early ideas get refined, merged, or dropped. When the group cuts an idea, prioritizes, or catches fire about one direction near the end, honor that: build the description around where they LANDED, not an average of everything said.
@@ -58,6 +58,8 @@ export interface DistillInput {
   /** Fresh distill: the transcript (+ optional emphasis from the group) */
   transcript?: string;
   guidance?: string;
+  /** Photos of the group's notes (data URLs), read alongside the transcript */
+  images?: string[];
   /** Refinement: the prior exchange plus the new instruction */
   conversation?: ChatMessage[];
   refineInstruction?: string;
@@ -65,12 +67,22 @@ export interface DistillInput {
 }
 
 /** Build the user-turn messages for a fresh distill (exported for reuse/refine) */
-export function distillMessages(transcript: string, guidance?: string): ChatMessage[] {
-  let content = `Here is the transcript:\n\n${transcript}`;
+export function distillMessages(transcript: string, guidance?: string, images: string[] = []): ChatMessage[] {
+  let content = transcript.trim()
+    ? `Here is the transcript:\n\n${transcript}`
+    : 'There is no spoken transcript this time — the attached photos of our notes are the whole conversation.';
+  if (images.length) {
+    content += `\n\n${images.length === 1 ? 'Attached is a photo' : `Attached are ${images.length} photos`} of our notes from the conversation (whiteboard, napkin, notebook).`;
+  }
   if (guidance?.trim()) {
     content += `\n\nA note from the group after the conversation: ${guidance.trim()}`;
   }
-  return [{ role: 'user', content }];
+  if (!images.length) return [{ role: 'user', content }];
+  const parts: ContentPart[] = [
+    { type: 'text', text: content },
+    ...images.map(url => ({ type: 'image_url' as const, image_url: { url } })),
+  ];
+  return [{ role: 'user', content: parts }];
 }
 
 export function distillDream(input: DistillInput): DistillHandle {
@@ -95,7 +107,7 @@ export function distillDream(input: DistillInput): DistillHandle {
         },
       ];
     } else {
-      messages = distillMessages(input.transcript ?? '', input.guidance);
+      messages = distillMessages(input.transcript ?? '', input.guidance, input.images ?? []);
     }
 
     let full = '';
@@ -130,7 +142,7 @@ export function distillDream(input: DistillInput): DistillHandle {
  * a deploy that had replaced those chunks since the page loaded, the button
  * just spun. Everything here is already in the app; load it with the page.
  */
-export function plantDream(description: string): void {
+export function plantDream(description: string, images: string[] = []): void {
   stashAndStartFresh();
   useCloudStore.getState().closeProject();
   useChatStore.getState().clearMessages();
@@ -138,6 +150,9 @@ export function plantDream(description: string): void {
   useEnvStore.getState().clearAll();
 
   useChatStore.getState().setDraftMessage(description);
+  // The napkin sketches ride along into the composer as attachments, so the
+  // builder sees the same drawings the description came from
+  useChatStore.getState().setDraftAttachments(images.length ? images.slice(0, 4) : null);
   useProjectStore.getState().setLineage({
     source: 'dream',
     importedAt: new Date().toISOString(),
