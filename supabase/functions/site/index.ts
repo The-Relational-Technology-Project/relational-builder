@@ -312,7 +312,9 @@ Deno.serve(async (req: Request) => {
     // real path here (see the x-rb-raw note below)
     const realPath = req.headers.get('x-rb-path');
     if (req.headers.get('x-rb-raw') === '1' && realPath !== null) {
-      filePath = realPath.split('/').filter(Boolean).join('/');
+      // The front sends everything after /s/ — slug first, then the file
+      const parts = realPath.split('/').filter(Boolean);
+      filePath = (parts[0] === slug ? parts.slice(1) : parts).join('/');
     }
     if (!slug) return new Response('Site not specified', { status: 400 });
     if (!filePath) filePath = 'index.html';
