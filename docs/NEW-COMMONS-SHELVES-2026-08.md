@@ -56,3 +56,12 @@ Thesis (lead framework): civic tech doesn't have to be built for your neighborho
 2. ~~Wire gallery shelves in `src/knowledge/commons-items.ts` + `CommonsGallery.tsx`.~~ Done — both shelves are filter chips in the Commons Gallery, with all 87 items as cards (frameworks lead, then recipes/tools, prompts, stories, references; shelf stories also surface under Local Stories).
 3. ~~Public pages + six-question theme pages.~~ Done — all 87 items render on the public commons (`/commons/...`: shelf pages, story wall, reading room, search, sitemap, llms.txt), plus two new theme pages: `/commons/themes/organizing` (Building Power with Your Neighbors — structured as the six questions, each with its practices, stories and build prompts) and `/commons/themes/neighborhood-civic-tech` (Civic Tech at Neighborhood Scale). Both are doors on the commons home page.
 4. ~~Confirm `search-commons` retrieval picks the new rows up (embedding job).~~ Done — all 87 embedded, retrieval verified; the 9 items corrected in the cleanup pass re-embedded.
+
+## Addendum 2026-09-21: two Civic Media items from Outer Sunset Today
+
+Not a new shelf, but the same seeding path used for an existing one: `scripts/seed/civic-media-todays-news.json` adds two items to `civic-media` (the studio block mirrors the live `commons_studios` row, so re-seeding leaves the shelf row unchanged and only upserts the items listed).
+
+- **recipe** `todays-news-local-news-by-need` — the editorial policy (force-rank by the Hierarchy of Information Needs, citywide counts, crime only when neighbors must act now, one story per event, calm rewritten headlines, summaries grounded in the full article, 1 to 4 stories and never blank) plus the pipeline and what took iteration to learn. The first 1,400 characters carry the policy on purpose: that is the slice retrieval excerpts into the prompt.
+- **prompt** `build-todays-news-section` — the software shape: `news_items` schema, scheduled `check-news` function (Vercel cron or the builder's own edge function), the curator system-prompt template with the local nouns as placeholders, structured tool output, display hook and component.
+
+Seeded and embedded 2026-09-21 (`embed-commons` with `item_ids`). Retrieval verified: both lead for "add a local news section to my neighborhood website" (0.76 / 0.73) and neither clears the floor for "make the header blue". Both sit in a new section on `/commons/themes/civic-media`.
