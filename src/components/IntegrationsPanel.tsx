@@ -297,9 +297,21 @@ function CloudVaultCard({ def, isConnected }: { def: IntegrationDef; isConnected
           {!cloudAttached ? (
             <>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Turn on Community Cloud first and your {def.name} key gets vaulted
-                server-side — {works} then everywhere, including the live
-                preview. No Netlify or Vercel account needed.
+                {planOffered ? (
+                  <>
+                    Turn on Community Cloud first, then pick either path: use your
+                    Community Plan (no key, Claude Opus on the shared key) or paste
+                    your own {def.name} key, vaulted server-side. Either way {works}
+                    everywhere, including the live preview. No Netlify or Vercel
+                    account needed.
+                  </>
+                ) : (
+                  <>
+                    Turn on Community Cloud first and your {def.name} key gets vaulted
+                    server-side — {works} then everywhere, including the live
+                    preview. No Netlify or Vercel account needed.
+                  </>
+                )}
               </p>
               <Button size="sm" className="h-7 text-xs gap-1.5" disabled={busy !== 'idle'} onClick={handleEnableCloud}>
                 {busy === 'enabling' ? <Loader2 className="size-3 animate-spin" /> : <Cloud className="size-3" />}
@@ -351,7 +363,11 @@ function CloudVaultCard({ def, isConnected }: { def: IntegrationDef; isConnected
               </div>
             </>
           )}
-          <p className="text-xs text-muted-foreground leading-relaxed">{def.setupHint}</p>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            {planOffered
+              ? 'Your own key always wins over the plan: with a key connected, AI runs on it (your spend, your model choice) and nothing draws on your Community Plan budget. Without Community Cloud, a key is a secret that only works once deployed to Vercel.'
+              : def.setupHint}
+          </p>
         </div>
       )}
     </div>
