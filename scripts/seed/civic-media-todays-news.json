@@ -1,0 +1,148 @@
+{
+  "studio": {
+    "slug": "civic-media",
+    "display_name": "Civic Media Studio",
+    "home_url": "https://newsfutures.org",
+    "notes": "Civic media practices, recipes, and examples seeded from the News Futures Studio foundation: the Civic Media Cookbook (Jolly & Brandel, with the NF Working Group), the NF Charter, and the combined examples library."
+  },
+  "_note": "Additions to the existing civic-media shelf. The studio block mirrors the live commons_studios row so re-seeding leaves it unchanged; the seed script only upserts the items listed here.",
+  "items": [
+    {
+      "slug": "todays-news-local-news-by-need",
+      "kind": "recipe",
+      "title": "Today's News: Local News Filtered by What Neighbors Need",
+      "summary": "A calm, 1 to 4 story local news section for a neighborhood site: a few local RSS feeds, full articles fetched, then a curator (AI or human) that force-ranks by the Hierarchy of Information Needs, keeps out past-tense crime, rewrites headlines neighbor-to-neighbor, and never leaves the section blank. Built and tuned on Outer Sunset Today.",
+      "body": "A neighborhood site is not a news site. It is a bulletin board that helps neighbors stay informed about what matters in daily life. This recipe turns a few local RSS feeds into 1 to 4 calm, useful stories a day, filtered by need rather than by outrage. It was built and tuned on Outer Sunset Today, a neighborhood calendar in San Francisco.\n\n**The editorial policy** (hand this to your curator, whether a neighbor or an AI):\n\n1. **Force-rank by the Hierarchy of Information Needs.** Tier 1, basic needs and safety: housing and rent policy, disruptions on the transit lines neighbors ride, food access, school enrollment and closures, healthcare, active safety alerts. Tier 2, civic participation: votes, hearings, ballot measures, comment periods, community meetings. Tier 3, community connection: events, neighbor initiatives, business openings and closings, parks. Tier 4, general interest, only with a clear local angle. A Tier 1 story always outranks a Tier 3 story.\n2. **Citywide counts.** A school district policy or a regional transit change affects the neighborhood even when the neighborhood is never named. Do not reject those for lacking the name.\n3. **Crime: only what is happening right now.** Include a crime story only if neighbors need to take a precaution today (a suspect at large, a hazard, an advisory to avoid an area). Exclude arrests, arraignments, charges, trials, sentencing, investigations, and anything where the danger has passed. When in doubt, leave it out.\n4. **One story per event.** When several outlets cover the same thing, keep the version most useful to neighbors.\n5. **Rewrite the headline.** Under 80 characters, plain language, what happened and what it means here. No alarm words, no question-bait. Written the way you would tell a neighbor over coffee.\n6. **Summarize only from the article body.** One or two sentences. No invented details or quotes, and no generic calls to action (\"neighbors should attend\") unless the article itself says so.\n7. **Quality over quantity, but never blank.** Pick 1 to 4 stories; one great story beats four mediocre ones. Score relevance from 0 to 1 and aim for 0.55 and up. If nothing clears the bar, keep the single best candidate so the section never goes dark.\n\n**The pipeline** (what runs, twice a day):\n\n1. Pull RSS from a short list of local outlets, looking back 96 hours. Hyperlocal outlets publish a few times a week, so a 48-hour window sees only the big-city feed.\n2. Hash `source name + link` (SHA-256) and skip anything already evaluated. Nothing goes to the curator twice.\n3. Fetch each new article's full page in parallel, strip scripts, styles, and tags, collapse whitespace, cap at 6,000 characters. RSS snippets are one-paragraph teasers, and summarizing a teaser is how an AI invents quotes and outcomes. The full body ends that.\n4. Send the candidates to an LLM with the editorial policy as its system prompt and a structured tool for the answer: `articles: [{ index, display_title, relevance_score, category, is_actionable, summary }]`.\n5. Keep stories at 0.55 and up, or the single best if none pass. Upsert into `news_items` keyed on the hash.\n6. The page shows up to 4 stories from the last 7 days, newest first: rewritten headline linking to the source, first sentence of the summary, outlet name in muted text, and a helpful / not helpful pair so neighbors can tune it.\n\n**What took iteration to learn:**\n\n- Snippets hallucinate, full bodies do not. This was the single biggest quality jump.\n- The crime rule has to be explicit and past-tense aware. \"Local news\" feeds are dense with court stories that make a block feel less safe without giving anyone anything to do.\n- Citywide relevance has to be stated, or the curator rejects the school board story for not naming the neighborhood.\n- Slow days are normal. The never-blank fallback plus a 7-day display window keeps the section alive without lowering the bar on busy days.\n- Headlines are the tone. Rewriting them is what makes the section feel like a neighbor and not a feed.\n\n**To adapt it for your place:** list 2 to 5 outlets that actually cover your neighborhood and city; name the transit lines, districts, schools, and landmarks the curator should recognize; state your own citywide-counts rule; and decide who skims the section once a week and adjusts the sources. The software is the smaller part. The policy above is the recipe, and it works just as well for a human editor with a Sunday hour.\n\nCompanion build prompt: \"Build: A Today's News Section for a Neighborhood Site\" on this shelf, with the schema, the scheduled function, the curator prompt template, and the display component.",
+      "attribution": {
+        "name": "Josh Nesbit, Outer Sunset Today",
+        "neighborhood": "Outer Sunset, San Francisco",
+        "source": "Relational Technology Project",
+        "source_repo": "https://github.com/The-Relational-Technology-Project/outer-sunset-today"
+      },
+      "source_url": "https://github.com/The-Relational-Technology-Project/outer-sunset-today",
+      "tags": [
+        "civic-media",
+        "civic-media-recipe",
+        "local-news",
+        "news-curation",
+        "hierarchy-of-needs",
+        "rss",
+        "neighborhood-site",
+        "ai-curation",
+        "need:wellbeing.safety",
+        "need:belonging.context",
+        "need:agency.civic_expression",
+        "participation:collective_sensemaking",
+        "time:community_rhythm",
+        "ingredient:trust",
+        "size:snack",
+        "pattern:creating_shared_understanding",
+        "charter:hierarchy_of_needs",
+        "charter:news_as_care",
+        "charter:information_equity"
+      ],
+      "image_urls": [],
+      "metadata": {
+        "practice_kind": "recipe",
+        "builds_on": [
+          "hierarchy-of-needs",
+          "news-futures-charter",
+          "format-neighborhood-newsletter"
+        ],
+        "companion_prompt": "build-todays-news-section",
+        "example": {
+          "name": "Outer Sunset Today",
+          "url": "https://github.com/The-Relational-Technology-Project/outer-sunset-today",
+          "function": "supabase/functions/check-news/index.ts"
+        },
+        "tiers": {
+          "1": "basic needs and safety: housing, transit disruptions, food access, schools, healthcare, active safety alerts",
+          "2": "civic participation: votes, hearings, ballot measures, comment periods, community meetings",
+          "3": "community connection: events, neighbor initiatives, business openings and closings, parks",
+          "4": "general interest, only with a clear local angle"
+        },
+        "rules": [
+          "force-rank by tier; Tier 1 always outranks Tier 3",
+          "citywide decisions count even when the neighborhood is not named",
+          "crime only when neighbors must act right now; no arrests, trials, or past incidents",
+          "one story per event",
+          "headline rewritten under 80 characters, calm, neighbor-to-neighbor",
+          "summary grounded only in the article body",
+          "1 to 4 stories; relevance 0.55 and up; keep the single best if none pass"
+        ],
+        "pipeline": {
+          "window_hours": 96,
+          "dedupe": "sha256(source_name + link)",
+          "body_cap_chars": 6000,
+          "threshold": 0.55,
+          "display_window_days": 7,
+          "display_max": 4,
+          "schedule": "twice daily"
+        },
+        "lessons": [
+          "full article bodies end summary hallucination",
+          "the crime rule must be explicit and past-tense aware",
+          "citywide relevance must be stated",
+          "never-blank fallback plus a 7-day window keeps slow days alive",
+          "headline rewriting sets the tone"
+        ],
+        "charter_alignment": [
+          "hierarchy_of_needs",
+          "news_as_care",
+          "information_equity"
+        ]
+      },
+      "license": null,
+      "sort_order": 55
+    },
+    {
+      "slug": "build-todays-news-section",
+      "kind": "prompt",
+      "title": "Build: A Today's News Section for a Neighborhood Site",
+      "summary": "Starter build: a scheduled function pulls a few local RSS feeds, fetches full articles, has an LLM curate 1 to 4 stories by the Hierarchy of Information Needs with structured output, and a compact component shows them. Includes the schema, the curator prompt template, and the never-blank rule.",
+      "body": "Add a calm \"Today's News\" section to a neighborhood site: a few local RSS feeds, filtered and rewritten by the News Futures Hierarchy of Information Needs, showing 1 to 4 stories that matter to neighbors' daily lives. Follow the recipe \"Today's News: Local News Filtered by What Neighbors Need\" on this shelf. Build it in four steps, and ask for the local details in step 3 before generating the curator prompt.\n\n**1. Storage.** A `news_items` table (Supabase, or a Community Cloud collection) with: `id`, `title` (original), `display_title` (rewritten), `source_name`, `source_url`, `article_hash` (unique), `summary`, `category`, `relevance_score` (numeric), `is_actionable` (boolean), `published_at`, `helpful_count` and `not_helpful_count` (default 0), `created_at`. Index `created_at` and `relevance_score`. Public read; writes only from the function. An `increment_news_feedback(item_id, feedback_type)` RPC or equivalent for the two buttons.\n\n**2. Ingestion, on a schedule.** A server-side function `check-news` that runs twice a day. In Relational Builder that is an `api/check-news.ts` serverless function with a `{\"crons\": [...]}` entry in `vercel.json` (runs once published to Vercel), or the builder's own Supabase edge function scheduled with pg_cron. It takes a list of `{ name, url }` RSS sources; parses items from the past 96 hours; hashes `name + link` with SHA-256 and drops anything already in `news_items`; fetches each remaining article's full HTML in parallel with a 10-second timeout; strips `<script>`, `<style>`, and tags, collapses whitespace, and caps each body at 6,000 characters. The LLM key lives in a secret env var and is only ever read server-side.\n\n**3. Curation with structured output.** Send the candidates (index, title, outlet, URL, body) to an LLM with a forced tool call `submit_curated_news` returning `articles: [{ index, display_title, relevance_score (0 to 1), category, is_actionable, summary }]`, where category is one of housing, transit, business, community, government, education, environment, safety, health, culture. The system prompt, with the builder's local details filled in:\n\n> You are a neighborhood bulletin-board curator for [NEIGHBORHOOD] in [CITY]. This is not a news site; the tone is calm, helpful, neighborly. Choose 1 to 4 stories that genuinely matter to neighbors; one great story beats four mediocre ones. Force-rank by the Hierarchy of Information Needs. TIER 1, basic needs and safety: housing and rent policy, transit disruptions on [LINES], food access, school enrollment and closures, healthcare, active safety alerts. TIER 2, civic participation: votes, hearings, ballot measures, comment periods, community meetings. TIER 3, community connection: events, neighbor initiatives, business openings and closings, parks. TIER 4, general interest, only with a clear [NEIGHBORHOOD] angle. A Tier 1 story always outranks a Tier 3 story. CITYWIDE COUNTS: [CITY]-wide stories about [SCHOOL DISTRICT], [TRANSIT AGENCY], housing policy, ballot measures, and [LANDMARKS] are relevant even when the neighborhood is not named. DEDUPLICATE: one story per underlying event, the most useful version. CRIME: include only an active, ongoing safety concern where neighbors need to take precautions right now; exclude arrests, arraignments, charges, court proceedings, sentencing, investigations, and anything where the danger has passed. When in doubt, leave it out. HEADLINES: rewrite each, under 80 characters, plain language, what happened and what it means for neighbors, no alarm words or question-bait, as if telling a neighbor over coffee. SUMMARY: one or two sentences based only on the article body; never invent details, quotes, or calls to action. Get local geography right: [DISTRICT NOTES]. SCORING: Tier 1 starts at 0.7, Tier 4 caps at 0.5, target 0.55 or above. Always return your single best candidate with an honest score even on a slow day; return an empty list only if nothing is relevant to [CITY] residents.\n\nAfter the call, keep `relevance_score >= 0.55`; if none pass, keep the single highest-scoring candidate. Upsert into `news_items` on `article_hash`. Log what was rejected and why so the builder can tune the sources.\n\n**4. Display.** A `useNewsItems` hook that reads items created in the last 7 days, ordered by `created_at` then `relevance_score` descending, limit 4. A compact `TodaysNews` component: each story is the `display_title` linking out to `source_url` with an external-link icon, the first sentence of `summary`, `source_name` in muted text, and a small helpful / not helpful pair. Skeletons while loading, and a neighborly empty state (\"Quiet week. Nothing new that needs your attention.\") if the table is empty.\n\nBefore generating, ask the builder for: their neighborhood and city, 2 to 5 RSS feeds that cover it, the transit lines and landmarks the curator should know, and who will glance at the section once a week. Credit the recipe and Outer Sunset Today in the plan.",
+      "attribution": {
+        "name": "Josh Nesbit, Outer Sunset Today",
+        "neighborhood": "Outer Sunset, San Francisco",
+        "source": "Civic Media shelf starter prompt"
+      },
+      "source_url": "https://github.com/The-Relational-Technology-Project/outer-sunset-today",
+      "tags": [
+        "civic-media",
+        "build-prompt",
+        "software",
+        "starter",
+        "local-news",
+        "news-curation",
+        "hierarchy-of-needs",
+        "rss",
+        "ai-curation",
+        "scheduled-function"
+      ],
+      "image_urls": [],
+      "metadata": {
+        "practice_kind": "prompt",
+        "category": "Neighborhood Sites",
+        "builds_on": [
+          "todays-news-local-news-by-need",
+          "hierarchy-of-needs"
+        ],
+        "parent_format_id": "f-neighborhood-newsletter",
+        "software_note": "The curator policy is the recipe; this prompt is the software shape of it. A human editor with a Sunday hour can run the same policy without any of this.",
+        "stack_notes": [
+          "scheduled function: api/check-news.ts + vercel.json crons (Vercel publish), or the builder's own Supabase edge function with pg_cron",
+          "LLM key stays in a secret env var, server-side only",
+          "storage: Supabase news_items or a Community Cloud collection"
+        ],
+        "guardrails": [
+          "ask for the local nouns before writing the curator prompt",
+          "never summarize from RSS snippets alone",
+          "never leave the section blank",
+          "crime only when neighbors must act now"
+        ]
+      },
+      "license": null,
+      "sort_order": 56
+    }
+  ]
+}

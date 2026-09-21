@@ -108,6 +108,15 @@ export const THEMES: Record<string, Theme> = {
         ],
       },
       {
+        heading: 'From the field: local news that meets needs',
+        blurb: `A neighborhood site is not a news site. This recipe, built and tuned on Outer Sunset Today, filters a few local feeds by the Hierarchy of Information Needs into 1 to 4 calm stories a day, with the build prompt to add it to your own site.`,
+        slugs: ['todays-news-local-news-by-need', 'build-todays-news-section'],
+        notes: {
+          'todays-news-local-news-by-need': 'The editorial policy and the pipeline: needs first, no past-tense crime, headlines rewritten neighbor-to-neighbor, never blank.',
+          'build-todays-news-section': 'The software shape of it: schema, scheduled function, curator prompt template, display component.',
+        },
+      },
+      {
         heading: 'Plan yours: the worksheets',
         blurb: `Three worksheets for going from "our neighborhood needs something" to a recipe you can run.`,
         slugs: ['worksheet-community-needs', 'worksheet-recipe-builder', 'worksheet-impact-tracker'],
