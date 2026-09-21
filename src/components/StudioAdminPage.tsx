@@ -1,10 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useStudioStore, adminMemberships } from '@/store/studio-store';
 import {
   listStudioMembers,
   approveStudioMember,
   removeStudioMember,
+  listStudioInvites,
+  inviteStudioMember,
+  withdrawStudioInvite,
   type StudioMemberRow,
+  type StudioInviteRow,
 } from '@/cloud/studios';
 import {
   createStudioItem,
@@ -35,13 +39,14 @@ import {
   SelectTrigger,
 } from '@/components/ui/select';
 import {
-  Check, X, Loader2, Plus, Pencil, Trash2, Share2, Lock, KeyRound, Users, BookOpen,
+  Check, X, Loader2, Plus, Pencil, Trash2, Share2, Lock, KeyRound, Users, BookOpen, Mail,
 } from 'lucide-react';
 
 /**
  * The Studio Admin console — the door and the shelf of a gated studio, run
  * by its own admins (a role the steward grants). Two jobs:
- *  - Members: approve or decline builders asking to join, and tend the roster
+ *  - Members: approve or decline builders asking to join, add people by
+ *    email (they're in as soon as they're signed in), and tend the roster
  *  - Library: the studio's private principles, examples, and materials —
  *    what approved members see in the gallery and what the AI draws on
  *    while they build. Items stay studio-private until shared, explicitly.
@@ -103,7 +108,7 @@ export function StudioAdminPage() {
               </TabsTrigger>
             </TabsList>
             <TabsContent value="members" className="pt-4">
-              <MembersTab slug={current.studio_slug} />
+              <MembersTab slug={current.studio_slug} label={current.studio_label} />
             </TabsContent>
             <TabsContent value="library" className="pt-4">
               <LibraryTab slug={current.studio_slug} label={current.studio_label} />
@@ -117,17 +122,23 @@ export function StudioAdminPage() {
 
 // --- Members: the studio's door ---
 
-function MembersTab({ slug }: { slug: string }) {
+function MembersTab({ slug, label }: { slug: string; label: string }) {
   const [members, setMembers] = useState<StudioMemberRow[]>([]);
+  const [invites, setInvites] = useState<StudioInviteRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [email, setEmail] = useState('');
+  const [inviting, setInviting] = useState(false);
+  const [inviteNote, setInviteNote] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      setMembers(await listStudioMembers(slug));
+      const [m, i] = await Promise.all([listStudioMembers(slug), listStudioInvites(slug)]);
+      setMembers(m);
+      setInvites(i);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not load members');
     } finally {
@@ -150,8 +161,42 @@ function MembersTab({ slug }: { slug: string }) {
     setBusyId(null);
   }
 
+  async function invite(e: FormEvent) {
+    e.preventDefault();
+    const target = email.trim();
+    if (!target) return;
+    setInviting(true);
+    setInviteNote(null);
+    const err = await inviteStudioMember(slug, label, target);
+    if (err) {
+      setInviteNote(err);
+    } else {
+      setEmail('');
+      await refresh();
+      const seated = (await listStudioInvites(slug)).find(
+        i => i.email === target.toLowerCase() && i.claimed_at,
+      );
+      setInviteNote(
+        seated
+          ? `${target.toLowerCase()} is in — they already had a Builder account.`
+          : `${target.toLowerCase()} will be in the moment they sign in to the Builder.`,
+      );
+    }
+    setInviting(false);
+  }
+
+  async function withdraw(id: string) {
+    setBusyId(id);
+    setError(null);
+    const ok = await withdrawStudioInvite(id);
+    if (!ok) setError('That invite did not go away');
+    await refresh();
+    setBusyId(null);
+  }
+
   const pending = members.filter(m => m.status === 'pending');
   const approved = members.filter(m => m.status === 'approved');
+  const waiting = invites.filter(i => !i.claimed_at);
 
   if (loading) {
     return (
@@ -164,6 +209,61 @@ function MembersTab({ slug }: { slug: string }) {
   return (
     <div className="space-y-5">
       {error && <p className="text-xs text-destructive">{error}</p>}
+
+      <div className="space-y-2">
+        <p className="text-xs uppercase tracking-wide text-muted-foreground">Add by email</p>
+        <form onSubmit={invite} className="flex flex-wrap gap-2">
+          <Input
+            type="email"
+            value={email}
+            onChange={e => { setEmail(e.target.value); setInviteNote(null); }}
+            placeholder="name@example.org"
+            className="h-8 text-sm flex-1 min-w-[12rem]"
+            disabled={inviting}
+            aria-label="Email address to add"
+          />
+          <Button type="submit" size="sm" className="h-8 text-xs" disabled={inviting || !email.trim()}>
+            {inviting ? <Loader2 className="size-3 mr-1 animate-spin" /> : <Plus className="size-3 mr-1" />}
+            Add to {label}
+          </Button>
+        </form>
+        <p className="text-xs text-muted-foreground">
+          If they already have a Builder account they're in right away. Otherwise
+          they join the studio the first time they sign in with this email.
+        </p>
+        {inviteNote && <p className="text-xs text-foreground/80">{inviteNote}</p>}
+      </div>
+
+      {waiting.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">
+            Added, not signed in yet ({waiting.length})
+          </p>
+          {waiting.map(i => (
+            <div key={i.id} className="rounded-lg border px-3 py-2 flex items-center gap-2.5">
+              <Mail className="size-3.5 text-muted-foreground shrink-0" />
+              <div className="min-w-0 flex-1">
+                <span className="text-sm truncate">{i.email}</span>
+                {i.invited_by_name && (
+                  <span className="text-xs text-muted-foreground ml-2">added by {i.invited_by_name}</span>
+                )}
+              </div>
+              <span className="text-xs text-muted-foreground/60 shrink-0">
+                {new Date(i.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+              </span>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7 text-xs text-muted-foreground"
+                disabled={busyId !== null}
+                onClick={() => withdraw(i.id)}
+              >
+                {busyId === i.id ? <Loader2 className="size-3 animate-spin" /> : 'Withdraw'}
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="space-y-2">
         <p className="text-xs uppercase tracking-wide text-muted-foreground">

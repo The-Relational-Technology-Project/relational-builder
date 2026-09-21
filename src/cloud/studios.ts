@@ -30,6 +30,15 @@ export interface StudioMemberRow extends StudioMembership {
   display_name: string | null;
 }
 
+export interface StudioInviteRow {
+  id: string;
+  studio_slug: string;
+  email: string;
+  invited_by_name: string | null;
+  created_at: string;
+  claimed_at: string | null;
+}
+
 export interface StudioActivityEntry {
   id: string;
   studio_slug: string;
@@ -141,6 +150,56 @@ export async function removeStudioMember(slug: string, userId: string): Promise<
     .delete()
     .eq('studio_slug', slug)
     .eq('user_id', userId);
+  return !error;
+}
+
+// --- Studio Admin: inviting people in by email ---
+
+/**
+ * Invites an admin has sent for a studio, newest first. A claimed invite
+ * means the person is seated (they'll also appear on the members list); an
+ * unclaimed one is waiting for that email to sign in for the first time.
+ */
+export async function listStudioInvites(slug: string): Promise<StudioInviteRow[]> {
+  if (!builderClient) return [];
+  const { data } = await builderClient
+    .from('studio_invites')
+    .select('id, studio_slug, email, invited_by_name, created_at, claimed_at')
+    .eq('studio_slug', slug)
+    .order('created_at', { ascending: false });
+  return (data ?? []) as StudioInviteRow[];
+}
+
+/**
+ * Add someone to a studio by email. If they already have a Builder account
+ * they're a member immediately; otherwise membership lands the first time
+ * they sign in. Returns an error message, or null on success.
+ */
+export async function inviteStudioMember(
+  slug: string,
+  label: string,
+  email: string,
+): Promise<string | null> {
+  const user = useAuthStore.getState().user;
+  if (!builderClient || !user) return 'Sign in to add members';
+  const clean = email.trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean)) return 'That does not look like an email address';
+  const { error } = await builderClient.from('studio_invites').insert({
+    studio_slug: slug,
+    studio_label: label,
+    email: clean,
+    invited_by: user.id,
+    invited_by_name: displayName(),
+  });
+  if (!error) return null;
+  if (error.code === '23505') return `${clean} has already been added`;
+  return error.message || 'That invite did not save';
+}
+
+/** Withdraw an invite that hasn't been claimed yet */
+export async function withdrawStudioInvite(id: string): Promise<boolean> {
+  if (!builderClient) return false;
+  const { error } = await builderClient.from('studio_invites').delete().eq('id', id);
   return !error;
 }
 
