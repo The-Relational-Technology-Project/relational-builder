@@ -29,13 +29,21 @@ export interface IntegrationDef {
   /** Shown in the panel under the fields */
   setupHint: string;
   /**
-   * Alternate connected signal: when every one of these env keys is set the
+   * Alternate connected signals: when ANY one of these env keys is set the
    * service counts as connected even without its `fields` keys. Used by
    * capability-proxy connections (e.g. Resend vaulted server-side sets
-   * COMMUNITY_EMAIL instead of RESEND_API_KEY).
+   * COMMUNITY_EMAIL instead of RESEND_API_KEY; Claude on the community plan
+   * sets COMMUNITY_AI_PLAN instead of a vaulted key).
    */
   altConnectedKeys?: string[];
 }
+
+/**
+ * Env marker: this app's AI features run on the builder's community plan
+ * (RTP's shared Claude key, Opus, metered against their weekly budget) — no
+ * key of their own. Set by the Services tab; read by the chat prompt.
+ */
+export const COMMUNITY_AI_PLAN_KEY = 'COMMUNITY_AI_PLAN';
 
 export const INTEGRATIONS: IntegrationDef[] = [
   {
@@ -127,7 +135,7 @@ export const INTEGRATIONS: IntegrationDef[] = [
       '  Say clearly: AI features run once the app is deployed to Vercel (which carries the secret); they will not work in the builder preview.',
     ].join('\n'),
     setupHint: 'With Community Cloud on, your key is vaulted server-side and AI features work everywhere — the preview included. Without it, the key is a secret that works once deployed to Vercel.',
-    altConnectedKeys: ['COMMUNITY_AI_ANTHROPIC'],
+    altConnectedKeys: ['COMMUNITY_AI_ANTHROPIC', COMMUNITY_AI_PLAN_KEY],
   },
   {
     id: 'gemini',
@@ -171,7 +179,7 @@ export function getConnectedIntegrations(vars: EnvVar[]): IntegrationDef[] {
   const keys = new Set(vars.filter(v => v.value.trim()).map(v => v.key));
   return INTEGRATIONS.filter(def =>
     def.fields.every(f => keys.has(f.envKey)) ||
-    (def.altConnectedKeys?.every(k => keys.has(k)) ?? false),
+    (def.altConnectedKeys?.some(k => keys.has(k)) ?? false),
   );
 }
 
@@ -325,6 +333,40 @@ export const AI_CLOUD_GUIDANCE = [
   '  ```',
   '  Responses take a few seconds — always show a friendly loading state. Handle `{error}` gracefully in the UI (there is a daily limit with a clear message). Keep max_tokens modest (500–2000). Good uses: summaries, rewording, gentle Q&A over the app\'s own data; never build unbounded chat loops that burn the builder\'s budget.',
 ].join('\n');
+
+/**
+ * Same ai_chat pattern, on the community plan (env marker COMMUNITY_AI_PLAN):
+ * the builder has no key of their own — RTP's shared Claude key serves, on
+ * Opus, and every call draws on the builder's weekly community budget. The
+ * guidance differs from AI_CLOUD_GUIDANCE only in what it tells the model
+ * about cost and model choice.
+ */
+export const AI_PLAN_GUIDANCE = [
+  '- **AI is included through the builder\'s Community Plan** — no API key anywhere. AI features work EVERYWHERE this app runs, including the live preview, and every request is served by Claude Opus on the Relational Tech Project\'s shared key. Do NOT generate `netlify/functions` or `api/` serverless code for AI, never reference provider API keys or model names, and never let a person pick a model. Call it like this:',
+  '  ```javascript',
+  '  async function askAI(messages, system, maxTokens = 1024) {',
+  '    const url = env.COMMUNITY_CAPABILITIES_URL',
+  '      ?? env.COMMUNITY_CLOUD_URL.replace(/app-data$/, "app-capabilities");',
+  '    const res = await fetch(url, {',
+  '      method: "POST",',
+  '      headers: { "Content-Type": "application/json" },',
+  '      body: JSON.stringify({ action: "ai_chat", app_id: env.APP_ID, app_key: env.APP_KEY, messages, system, max_tokens: maxTokens }),',
+  '    });',
+  '    return res.json();   // {text} or {error: "friendly message"}',
+  '  }',
+  '  // messages: [{role: "user"|"assistant", content: "..."}] — put user content (e.g. a pasted transcript, up to ~200KB) in messages, instructions in system',
+  '  ```',
+  '  Responses take several seconds — always show a friendly loading state. Handle `{error}` gracefully in the UI: there is a per-app daily limit and a weekly plan budget, both returning a clear message to show as-is. Keep max_tokens modest (500–2000). Every call spends the builder\'s shared community budget, so AI runs only on a person\'s explicit action (a button, a submit) — never on page load, on every keystroke, or in loops — and results worth keeping get saved (Community Cloud or localStorage) rather than regenerated. Good uses: summarizing an uploaded transcript or notes, rewording, gentle Q&A over the app\'s own data.',
+].join('\n');
+
+/**
+ * Told to the model when the builder is on the community plan with Community
+ * Cloud attached but hasn't turned on Community AI (and has no AI key
+ * connected): AI is one switch away, so the model should say so instead of
+ * writing serverless code or asking for an API key.
+ */
+export const AI_PLAN_AVAILABLE_GUIDANCE =
+  '- **AI features are available on this builder\'s Community Plan but not turned on yet.** If they ask for anything AI-powered (summaries, drafting, Q&A, sorting free text), do NOT write serverless functions or ask for an API key: tell them to open the Services tab → Claude (Anthropic) → "Use my Community Plan" (one click, no key), then build the feature against the `ai_chat` capability once it is on.';
 
 /**
  * Replaces the Resend serverless guidance when the key is vaulted with

@@ -281,6 +281,18 @@ export function testAppSecret(appId: string, service: string) {
   return capRequest<{ ok: boolean; error?: string; verified_domains?: string[] }>('secret_test', { app_id: appId, service });
 }
 
+/** The vault "service" name for AI on the community plan (a switch, not a key) */
+export const COMMUNITY_AI_SERVICE = 'community_ai';
+
+/**
+ * Turn on in-app AI for this backend on the builder's community plan: no key
+ * to paste — the server checks they're on the plan and flips the switch.
+ * Turn it off with deleteAppSecret(appId, COMMUNITY_AI_SERVICE).
+ */
+export function enableCommunityAi(appId: string) {
+  return capRequest<{ ok: boolean; model: string }>('community_ai_enable', { app_id: appId });
+}
+
 export function getEmailLog(appId: string, limit = 20) {
   return capRequest<{ log: EmailLogRow[] }>('secret_log', { app_id: appId, limit });
 }
@@ -305,7 +317,7 @@ export function detachAppFromProject(): void {
   for (const key of [
     'COMMUNITY_CLOUD_URL', 'COMMUNITY_CAPABILITIES_URL', 'APP_ID', 'APP_KEY',
     'COMMUNITY_EMAIL', 'COMMUNITY_SCRAPE',
-    'COMMUNITY_AI_ANTHROPIC', 'COMMUNITY_AI_GEMINI', 'COMMUNITY_AI_OPENAI',
+    'COMMUNITY_AI_ANTHROPIC', 'COMMUNITY_AI_GEMINI', 'COMMUNITY_AI_OPENAI', 'COMMUNITY_AI_PLAN',
   ]) removeVar(key);
 }
 

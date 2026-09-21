@@ -16,14 +16,21 @@
  *   secret_status {app_id}            — services, config, caps, usage; never values
  *   secret_test   {app_id, service}   — live server-side key check (Resend: GET /domains)
  *   secret_log    {app_id, limit?}    — recent email history
+ *   community_ai_enable {app_id}      — turn on Community AI for this app (no key:
+ *                                       the owner must be on the community plan)
  *
  * App actions (authenticate with app_id + app_key, like app-data):
  *   send_email {app_id, app_key, to, subject, text?, html?, reply_to?, member_token?}
  *     — sends via the app's vaulted Resend key. Rate-limited, daily-capped,
  *       and optionally restricted to signed-in neighbors (config.members_only_send).
  *   ai_chat {app_id, app_key, messages, system?, max_tokens?, member_token?}
- *     — one completion via whichever AI key is vaulted (anthropic | openai |
- *       gemini). Returns {text, service}. Same rate/daily-cap regime.
+ *     — one completion. A builder-vaulted AI key (anthropic | openai | gemini)
+ *       wins; otherwise, when the builder turned on Community AI, the call
+ *       runs on RTP's shared Anthropic key (ANTHROPIC_COMMUNITY_KEY) with
+ *       Claude Opus, metered against the OWNER's weekly community token
+ *       budget exactly like their building turns (community_usage, model
+ *       recorded as `app:<model>` so the steward view can tell them apart).
+ *       Returns {text, service}. Same rate/daily-cap regime.
  *   scrape {app_id, app_key, url, member_token?}
  *     — reads one public web page as markdown via the app's vaulted
  *       Firecrawl key. Returns {markdown, title, source_url}. Same
@@ -48,7 +55,10 @@ const MAX_SUBJECT_CHARS = 200;
 const MAX_BODY_BYTES = 50 * 1024;
 const MAX_LOG_LIMIT = 100;
 const MAX_AI_MESSAGES = 20;
-const MAX_AI_INPUT_BYTES = 32 * 1024;
+// 200KB (~50k tokens): room for a meeting transcript, the headline use case
+// for in-app AI. Per-call spend at Opus rates stays well under a dollar, and
+// the owner's weekly community budget is the real ceiling.
+const MAX_AI_INPUT_BYTES = 200 * 1024;
 const MAX_AI_TOKENS = 2048;
 const MAX_SCRAPE_URL_CHARS = 2048;
 const MAX_SCRAPE_MARKDOWN_CHARS = 300_000;
@@ -57,6 +67,26 @@ const AI_DEFAULT_MODEL: Record<string, string> = {
   openai: 'gpt-4o-mini',
   gemini: 'gemini-2.5-flash',
 };
+
+// ── Community AI: in-app AI on the community plan, no key from the builder ──
+//
+// The app_secrets row for this "service" is a switch, not a key: its secret
+// column holds a sentinel and is never sent anywhere. It exists so the usual
+// machinery (per-app daily cap, members_only_send, last_used_at, secret_status)
+// applies unchanged. The real credential is the ANTHROPIC_COMMUNITY_KEY secret
+// the llm-proxy already uses; the real cap is the owner's weekly token budget.
+const COMMUNITY_AI_SERVICE = 'community_ai';
+const COMMUNITY_AI_SENTINEL = 'community-plan';
+// Opus by default (the model that serves community builds). Override without a
+// deploy via the COMMUNITY_APP_MODEL secret; per-model choice for builders can
+// come later.
+const COMMUNITY_APP_MODEL = Deno.env.get('COMMUNITY_APP_MODEL') ?? 'claude-opus-5';
+// Adaptive thinking shares max_tokens with the answer on Opus 5, so the
+// community path gives the request headroom rather than truncating a summary
+// mid-sentence. Effort stays low: summaries and Q&A don't need deep reasoning,
+// and low effort keeps thinking tokens (billed as output) small.
+const COMMUNITY_AI_MAX_TOKENS = 4096;
+const COMMUNITY_AI_EFFORT = Deno.env.get('COMMUNITY_APP_EFFORT') ?? 'low';
 
 const rateBuckets = new Map<string, { count: number; windowStart: number }>();
 
@@ -95,7 +125,7 @@ Deno.serve(async (req: Request) => {
     const body = await req.json();
     const action = String(body.action ?? '');
 
-    if (action.startsWith('secret_')) {
+    if (action.startsWith('secret_') || action === 'community_ai_enable') {
       return await handleBuilder(req, body, action);
     }
 
@@ -150,6 +180,29 @@ async function handleBuilder(req: Request, body: Record<string, unknown>, action
   }
 
   switch (action) {
+    case 'community_ai_enable': {
+      // The owner has to be on the community plan — that's whose weekly
+      // budget every in-app call draws on.
+      if (!Deno.env.get('ANTHROPIC_COMMUNITY_KEY')) {
+        return json({ error: 'Community AI is not configured on this server' }, 503);
+      }
+      const gate = await communityPlanGate(email);
+      if ('error' in gate && gate.status === 403) return json({ error: gate.error }, 403);
+      const res = await fetch(restUrl('/app_secrets?on_conflict=app_id,service'), {
+        method: 'POST',
+        headers: { ...svcHeaders(), Prefer: 'resolution=merge-duplicates' },
+        body: JSON.stringify({
+          app_id: appId,
+          service: COMMUNITY_AI_SERVICE,
+          secret: COMMUNITY_AI_SENTINEL,
+          config: {},
+          created_by_email: email,
+        }),
+      });
+      if (!res.ok) return json({ error: 'Could not turn on Community AI' }, 500);
+      return json({ ok: true, model: COMMUNITY_APP_MODEL });
+    }
+
     case 'secret_set': {
       const service = String(body.service ?? '');
       if (!(SERVICES as readonly string[]).includes(service)) {
@@ -212,6 +265,20 @@ async function handleBuilder(req: Request, body: Record<string, unknown>, action
 
     case 'secret_test': {
       const service = String(body.service ?? '');
+      // Community AI: no key to probe — "works" means the server has the
+      // shared key, the switch is on, and the owner is still on the plan
+      // with budget left this week.
+      if (service === COMMUNITY_AI_SERVICE) {
+        if (!(await getSecret(appId, COMMUNITY_AI_SERVICE))) {
+          return json({ error: 'Community AI is not turned on for this app yet' }, 404);
+        }
+        if (!Deno.env.get('ANTHROPIC_COMMUNITY_KEY')) {
+          return json({ ok: false, error: 'Community AI is not configured on this server' });
+        }
+        const gate = await communityPlanGate(email);
+        if ('error' in gate) return json({ ok: false, error: gate.error });
+        return json({ ok: true, model: COMMUNITY_APP_MODEL });
+      }
       if (!(SERVICES as readonly string[]).includes(service)) {
         return json({ error: `No test available for: ${service}` }, 400);
       }
@@ -447,23 +514,42 @@ async function aiChat(body: Record<string, unknown>): Promise<Response> {
   }
 
   const appRes = await fetch(
-    restUrl(`/cloud_apps?id=eq.${encodeURIComponent(appId)}&select=id,app_key`),
+    restUrl(`/cloud_apps?id=eq.${encodeURIComponent(appId)}&select=id,app_key,owner_email`),
     { headers: svcHeaders() },
   );
   const apps = appRes.ok ? await appRes.json() : [];
   if (!Array.isArray(apps) || apps.length === 0 || apps[0].app_key !== appKey) {
     return json({ error: 'Unknown app or wrong key' }, 403);
   }
+  const ownerEmail = String(apps[0].owner_email ?? '').toLowerCase();
 
-  // Whichever AI key the builder vaulted, in preference order
-  let service: Service | null = null;
+  // A key the builder vaulted themselves wins (their own spend, their own
+  // model choice); otherwise the Community AI switch, if they turned it on.
+  let service: Service | typeof COMMUNITY_AI_SERVICE | null = null;
   let vault: SecretRow | null = null;
   for (const s of AI_SERVICES) {
     vault = await getSecret(appId, s);
     if (vault) { service = s; break; }
   }
+  if (!vault) {
+    vault = await getSecret(appId, COMMUNITY_AI_SERVICE);
+    if (vault) service = COMMUNITY_AI_SERVICE;
+  }
   if (!service || !vault) {
-    return json({ error: "AI isn't set up for this app — the builder can connect an AI key in the Services tab" }, 503);
+    return json({ error: "AI isn't set up for this app — the builder can turn on Community AI (or connect their own key) in the Services tab" }, 503);
+  }
+  const viaCommunity = service === COMMUNITY_AI_SERVICE;
+
+  // Community AI: the shared key must exist, and the OWNER must still be on
+  // the plan with weekly budget left — checked before any spend, same gate
+  // as their building turns.
+  if (viaCommunity) {
+    if (!Deno.env.get('ANTHROPIC_COMMUNITY_KEY')) {
+      return json({ error: 'Community AI is not configured on this server' }, 503);
+    }
+    if (!ownerEmail) return json({ error: "AI isn't available for this app right now" }, 503);
+    const gate = await communityPlanGate(ownerEmail);
+    if ('error' in gate) return json({ error: gate.error }, gate.status);
   }
 
   const rawMessages = Array.isArray(body.messages) ? body.messages : [];
@@ -501,9 +587,21 @@ async function aiChat(body: Record<string, unknown>): Promise<Response> {
     return json({ error: "This app reached today's AI limit — try again tomorrow" }, 429);
   }
 
-  const model = String(vault.config?.model ?? '') || AI_DEFAULT_MODEL[service];
   try {
-    const text = await callProvider(service, vault.secret, model, messages, system, maxTokens);
+    let text: string;
+    if (viaCommunity) {
+      const result = await callCommunityAnthropic(messages, system, maxTokens);
+      text = result.text;
+      // Metered under the owner's email so the weekly gate, the budget
+      // banner, and the steward's utilization view all see it. The model
+      // is prefixed so app usage is distinguishable from building turns;
+      // the monitor's pricing matches on substring, so `app:claude-opus-5`
+      // still prices at Opus rates.
+      recordCommunityUsage(ownerEmail, result.usage, `app:${result.model}`);
+    } else {
+      const model = String(vault.config?.model ?? '') || AI_DEFAULT_MODEL[service];
+      text = await callProvider(service as Service, vault.secret, model, messages, system, maxTokens);
+    }
     fetch(restUrl(`/app_secrets?app_id=eq.${encodeURIComponent(appId)}&service=eq.${encodeURIComponent(service)}`), {
       method: 'PATCH',
       headers: svcHeaders(),
@@ -513,6 +611,135 @@ async function aiChat(body: Record<string, unknown>): Promise<Response> {
   } catch (err) {
     return json({ error: err instanceof Error ? err.message : 'The AI provider returned an error' }, 502);
   }
+}
+
+// ── Community AI helpers: the plan gate and metering, mirrored from llm-proxy ──
+
+interface TokenUsage {
+  input: number;
+  output: number;
+  cacheWrite: number;
+  cacheRead: number;
+}
+
+type PlanGate = { ok: true } | { error: string; status: number };
+
+/**
+ * Is this builder on the community plan with weekly budget left? Same rules
+ * as the llm-proxy's checkCommunityAccess minus the identity step (the caller
+ * already knows whose email this is): membership row, then all token traffic
+ * since Monday 00:00 UTC against weekly_token_budget.
+ */
+async function communityPlanGate(email: string): Promise<PlanGate> {
+  const memberRes = await fetch(
+    restUrl(`/community_members?email=eq.${encodeURIComponent(email)}&select=weekly_token_budget`),
+    { headers: svcHeaders() },
+  );
+  const members = memberRes.ok ? await memberRes.json() : [];
+  if (!Array.isArray(members) || members.length === 0) {
+    return {
+      error: "Community AI needs the app's builder to be on the community plan — reach out to the Relational Tech Project to join, or connect your own AI key in the Services tab.",
+      status: 403,
+    };
+  }
+  const budget = Number(members[0].weekly_token_budget ?? 20000000);
+  const usageRes = await fetch(
+    restUrl(`/community_usage?email=eq.${encodeURIComponent(email)}&day=gte.${weekStartUtc()}&select=input_tokens,output_tokens,cache_creation_tokens,cache_read_tokens`),
+    { headers: svcHeaders() },
+  );
+  const usage = usageRes.ok ? await usageRes.json() : [];
+  const used = Array.isArray(usage)
+    ? usage.reduce(
+        (sum: number, row: Record<string, unknown>) =>
+          sum +
+          Number(row.input_tokens ?? 0) +
+          Number(row.output_tokens ?? 0) +
+          Number(row.cache_creation_tokens ?? 0) +
+          Number(row.cache_read_tokens ?? 0),
+        0,
+      )
+    : 0;
+  if (used >= budget) {
+    return {
+      error: "This app's AI features are resting until Monday — its builder's weekly community plan budget is used up.",
+      status: 429,
+    };
+  }
+  return { ok: true };
+}
+
+/** The UTC date (YYYY-MM-DD) of the Monday that starts the current budget week */
+function weekStartUtc(now = new Date()): string {
+  const sinceMonday = (now.getUTCDay() + 6) % 7;
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - sinceMonday))
+    .toISOString()
+    .slice(0, 10);
+}
+
+/** Fire-and-forget: add one in-app call to the owner's community_usage rows */
+function recordCommunityUsage(email: string, usage: TokenUsage, model: string): void {
+  fetch(restUrl('/rpc/increment_community_usage'), {
+    method: 'POST',
+    headers: svcHeaders(),
+    body: JSON.stringify({
+      p_email: email,
+      p_input: usage.input,
+      p_output: usage.output,
+      p_cache_write: usage.cacheWrite,
+      p_cache_read: usage.cacheRead,
+      p_model: model,
+    }),
+  }).catch(() => {});
+}
+
+/**
+ * One Opus completion on the shared community key. Not streamed: in-app
+ * features are short (max_tokens ≤ 4096) and the app expects one JSON reply.
+ * A refusal or an empty reply surfaces as an error the app can show.
+ */
+async function callCommunityAnthropic(
+  messages: AiMessage[],
+  system: string | undefined,
+  requestedMaxTokens: number,
+): Promise<{ text: string; model: string; usage: TokenUsage }> {
+  const key = Deno.env.get('ANTHROPIC_COMMUNITY_KEY') ?? '';
+  // Headroom for adaptive thinking, which shares the output budget
+  const maxTokens = Math.min(Math.max(requestedMaxTokens * 2, 1024), COMMUNITY_AI_MAX_TOKENS);
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: COMMUNITY_APP_MODEL,
+      max_tokens: maxTokens,
+      output_config: { effort: COMMUNITY_AI_EFFORT },
+      ...(system ? { system } : {}),
+      messages,
+    }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    // Upstream detail goes to the log; the app gets something it can show
+    console.error('community ai upstream error', res.status, JSON.stringify(data).slice(0, 500));
+    throw new Error(res.status === 429 ? 'The AI is busy right now — try again in a moment' : 'The AI is unavailable right now — try again shortly');
+  }
+  if (data?.stop_reason === 'refusal') {
+    throw new Error('The AI declined this request');
+  }
+  const text = (Array.isArray(data?.content) ? data.content : [])
+    .filter((b: { type?: string }) => b.type === 'text')
+    .map((b: { text?: string }) => b.text ?? '')
+    .join('');
+  const u = data?.usage ?? {};
+  return {
+    text,
+    model: String(data?.model ?? COMMUNITY_APP_MODEL),
+    usage: {
+      input: Number(u.input_tokens ?? 0),
+      output: Number(u.output_tokens ?? 0),
+      cacheWrite: Number(u.cache_creation_input_tokens ?? 0),
+      cacheRead: Number(u.cache_read_input_tokens ?? 0),
+    },
+  };
 }
 
 async function callProvider(

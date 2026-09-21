@@ -18,6 +18,9 @@ import {
   COMMUNITY_CLOUD_GUIDANCE,
   RESEND_CLOUD_GUIDANCE,
   AI_CLOUD_GUIDANCE,
+  AI_PLAN_GUIDANCE,
+  AI_PLAN_AVAILABLE_GUIDANCE,
+  COMMUNITY_AI_PLAN_KEY,
   SCRAPE_CLOUD_GUIDANCE,
 } from '@/integrations/catalog';
 import { reconcileCloudSchema } from '@/cloud/schema-sync';
@@ -611,14 +614,25 @@ export function ChatPanel() {
     const aiMarkers: Record<string, string> = {
       claude: 'COMMUNITY_AI_ANTHROPIC', gemini: 'COMMUNITY_AI_GEMINI', openai: 'COMMUNITY_AI_OPENAI',
     };
+    // Claude on the community plan: same ai_chat capability, no key, Opus on
+    // RTP's shared key against the builder's weekly budget
+    const aiViaPlan = envVars.some(v => v.key === COMMUNITY_AI_PLAN_KEY && v.value.trim());
     const serviceGuidance = connectedServices.map(s =>
       s.id === 'resend' && emailViaCloud ? RESEND_CLOUD_GUIDANCE :
       s.id === 'firecrawl' && scrapeViaCloud ? SCRAPE_CLOUD_GUIDANCE :
       s.id === 'supabase' && sbManaged ? SUPABASE_MANAGED_GUIDANCE :
       aiMarkers[s.id] && envVars.some(v => v.key === aiMarkers[s.id] && v.value.trim()) ? AI_CLOUD_GUIDANCE :
+      s.id === 'claude' && aiViaPlan ? AI_PLAN_GUIDANCE :
       s.aiGuidance,
     );
-    if (communityCloudConnected(envVars)) serviceGuidance.unshift(COMMUNITY_CLOUD_GUIDANCE);
+    const cloudAttached = communityCloudConnected(envVars);
+    if (cloudAttached) serviceGuidance.unshift(COMMUNITY_CLOUD_GUIDANCE);
+    // A plan member with Community Cloud on and no AI connected at all: the
+    // model should point at the one-click switch, not write serverless code
+    const anyAiConnected = connectedServices.some(s => s.id in aiMarkers);
+    if (cloudAttached && !anyAiConnected && useCommunityStore.getState().active) {
+      serviceGuidance.push(AI_PLAN_AVAILABLE_GUIDANCE);
+    }
     // Least-recently-touched first, not alphabetical: the snapshot is a
     // prompt-cache segment and caching matches on prefix, so whatever changed
     // this turn must sort last (see getFilesForPrompt). updatedAt rides along

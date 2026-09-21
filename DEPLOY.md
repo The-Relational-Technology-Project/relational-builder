@@ -69,7 +69,9 @@ Set these as Edge Function secrets (`supabase secrets set KEY=value`):
 | `RATE_LIMIT_PER_MIN` | Best-effort per-minute request cap, keyed per credential (community token or BYOK key) so a room on shared venue WiFi doesn't throttle itself; per-IP only for credential-less requests | `30` |
 | `RATE_LIMIT_PER_MIN_PER_IP` | Loose per-IP backstop on credentialed traffic (bounds credential-rotation abuse from a single address) | `RATE_LIMIT_PER_MIN` × 20 |
 | `RTP_MODEL_URL` | Base URL of the RTP-hosted vLLM instance (Tier 1) | `https://api.relationaltech.org` |
-| `ANTHROPIC_COMMUNITY_KEY` | RTP's shared Anthropic key for the community pilot (Tier 3). Never reaches the browser. | unset (community access off) |
+| `ANTHROPIC_COMMUNITY_KEY` | RTP's shared Anthropic key for the community pilot (Tier 3). Never reaches the browser. Also serves **Community AI** inside built apps (see below). | unset (community access off) |
+| `COMMUNITY_APP_MODEL` | Model for Community AI calls made by built apps (`app-capabilities` → `ai_chat`) | `claude-opus-5` |
+| `COMMUNITY_APP_EFFORT` | Thinking effort for those in-app calls (`low`…`max`) | `low` |
 | `COMMUNITY_MODELS` | Models the community key may be used with | `claude-sonnet-5,claude-haiku-4-5` |
 
 ### Community access pilot (Tier 3)
@@ -88,6 +90,22 @@ Watch spend per person per day in `community_usage`. The default budget is
 20M tokens per UTC week (Monday start), all token traffic counted; adjust
 `weekly_token_budget` per member as needed. See
 `docs/COMMUNITY-LIMITS.md` for the cost model.
+
+#### Community AI inside built apps
+
+The same key also powers AI features inside the apps members build (a
+neighbor uploads a transcript, the app summarizes it). A member turns it on
+per backend in Services → Claude (Anthropic) → "Use my Community Plan"; no
+key of their own. The `app-capabilities` function then serves `ai_chat` on
+Claude Opus (`COMMUNITY_APP_MODEL`) and meters every call under the
+**owner's** email in `community_usage`, model recorded as `app:claude-opus-5`,
+so the weekly budget gate, the builder's budget banner, and the steward's
+utilization view all include it. Guard rails on top of the weekly budget:
+the app's public `app_id`/`app_key` is all a caller needs, so each backend
+also gets a per-app daily call cap (`app_secrets.daily_cap`, default 200),
+a per-minute rate limit, a 200KB input / 4096-token output ceiling, and the
+optional `members_only_send` setting (signed-in neighbors only). A member
+whose own key is vaulted keeps using that key; the plan is the fallback.
 
 Example:
 

@@ -3,9 +3,11 @@ import { useEnvStore } from '@/store/env-store';
 import { useChatStore } from '@/store/chat-store';
 import { useCloudStore } from '@/store/cloud-store';
 import { useAuthStore, cloudEnabled } from '@/store/auth-store';
+import { useCommunityStore } from '@/store/community-store';
 import {
   INTEGRATIONS,
   GUIDED_SERVICES,
+  COMMUNITY_AI_PLAN_KEY,
   getConnectedIntegrations,
   communityCloudConnected,
   type IntegrationDef,
@@ -18,6 +20,8 @@ import {
   deleteAppSecret,
   testAppSecret,
   ensureCapabilitiesUrl,
+  enableCommunityAi,
+  COMMUNITY_AI_SERVICE,
 } from '@/cloud/community-cloud';
 import {
   patSet,
@@ -119,10 +123,15 @@ function CloudVaultCard({ def, isConnected }: { def: IntegrationDef; isConnected
   const appId = vars.find(v => v.key === 'APP_ID')?.value ?? '';
   const viaCloud = !!vars.find(v => v.key === marker && v.value.trim());
   const legacyKeySet = def.fields.some(f => vars.find(v => v.key === f.envKey && v.value.trim()));
+  // Claude only: a community plan member can skip the key entirely — the
+  // app's AI runs on RTP's shared key (Opus) against their weekly budget
+  const planMember = useCommunityStore(s => s.active);
+  const planOffered = def.id === 'claude' && planMember;
+  const viaPlan = planOffered && !!vars.find(v => v.key === COMMUNITY_AI_PLAN_KEY && v.value.trim());
 
   const [expanded, setExpanded] = useState(false);
   const [keyInput, setKeyInput] = useState('');
-  const [busy, setBusy] = useState<'idle' | 'enabling' | 'connecting' | 'testing'>('idle');
+  const [busy, setBusy] = useState<'idle' | 'enabling' | 'connecting' | 'testing' | 'plan'>('idle');
   const [note, setNote] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null);
 
   if (!cloudAvailable) {
@@ -133,7 +142,7 @@ function CloudVaultCard({ def, isConnected }: { def: IntegrationDef; isConnected
   // key already entered into the vault. Without it a pre-vault connection
   // is a dead end that quietly keeps builders deploying to Vercel just to
   // keep the feature alive.
-  if (legacyKeySet && !viaCloud) {
+  if (legacyKeySet && !viaCloud && !viaPlan) {
     return (
       <IntegrationCard
         def={def}
@@ -184,10 +193,10 @@ function CloudVaultCard({ def, isConnected }: { def: IntegrationDef; isConnected
     if (!appId) return;
     setBusy('testing');
     try {
-      const test = await testAppSecret(appId, service);
+      const test = await testAppSecret(appId, viaPlan ? COMMUNITY_AI_SERVICE : service);
       setNote(
         test.ok
-          ? { tone: 'ok', text: 'Key checks out with the provider.' }
+          ? { tone: 'ok', text: viaPlan ? 'Your Community Plan is active — AI features are ready.' : 'Key checks out with the provider.' }
           : { tone: 'error', text: test.error ?? 'The provider rejected this key' },
       );
     } catch (err) {
@@ -197,11 +206,30 @@ function CloudVaultCard({ def, isConnected }: { def: IntegrationDef; isConnected
     }
   }
 
+  async function handleUsePlan() {
+    if (!appId) return;
+    setBusy('plan');
+    setNote(null);
+    try {
+      await enableCommunityAi(appId);
+      ensureCapabilitiesUrl();
+      setVar(COMMUNITY_AI_PLAN_KEY, 'on', false);
+      setExpanded(false);
+      setNote({ tone: 'ok', text: 'AI features are on through your Community Plan — in the preview and on your hosted site.' });
+    } catch (err) {
+      setNote({ tone: 'error', text: err instanceof Error ? err.message : 'Could not turn on Community AI' });
+    } finally {
+      setBusy('idle');
+    }
+  }
+
   async function handleDisconnect() {
-    if (appId) await deleteAppSecret(appId, service).catch(() => {});
-    removeVar(marker);
+    if (appId) await deleteAppSecret(appId, viaPlan ? COMMUNITY_AI_SERVICE : service).catch(() => {});
+    removeVar(viaPlan ? COMMUNITY_AI_PLAN_KEY : marker);
     setNote(null);
   }
+
+  const connected = viaCloud || viaPlan;
 
   return (
     <div className="rounded-lg border p-3 space-y-2">
@@ -209,7 +237,7 @@ function CloudVaultCard({ def, isConnected }: { def: IntegrationDef; isConnected
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium">{def.name}</span>
-            {viaCloud && (
+            {connected && (
               <Badge className="text-xs gap-0.5 bg-green-600 hover:bg-green-600">
                 <Check className="size-2.5" />
                 Connected
@@ -218,7 +246,7 @@ function CloudVaultCard({ def, isConnected }: { def: IntegrationDef; isConnected
           </div>
           <p className="text-xs text-muted-foreground">{def.tagline}</p>
         </div>
-        {viaCloud ? (
+        {connected ? (
           <div className="flex items-center gap-1 shrink-0">
             <Button variant="ghost" size="sm" className="h-7 text-xs" disabled={busy !== 'idle'} onClick={handleTest}>
               {busy === 'testing' ? <Loader2 className="size-3 animate-spin" /> : 'Test'}
@@ -246,6 +274,16 @@ function CloudVaultCard({ def, isConnected }: { def: IntegrationDef; isConnected
           <span>Your key is vaulted server-side — {works} in the preview and on your community-hosted site.</span>
         </p>
       )}
+      {viaPlan && (
+        <p className="text-xs text-muted-foreground leading-relaxed flex items-start gap-1.5">
+          <Cloud className="size-3 mt-0.5 shrink-0 text-green-600" />
+          <span>
+            Included with your Community Plan — Claude Opus, no key to manage.
+            AI features work in the preview and on your hosted site; every
+            call counts toward your weekly building budget.
+          </span>
+        </p>
+      )}
 
       {note && (
         <p className={`text-xs leading-relaxed flex items-start gap-1.5 ${note.tone === 'ok' ? 'text-green-700 dark:text-green-500' : 'text-destructive'}`}>
@@ -254,7 +292,7 @@ function CloudVaultCard({ def, isConnected }: { def: IntegrationDef; isConnected
         </p>
       )}
 
-      {expanded && !viaCloud && (
+      {expanded && !connected && (
         <div className="space-y-2 pt-1">
           {!cloudAttached ? (
             <>
@@ -270,6 +308,20 @@ function CloudVaultCard({ def, isConnected }: { def: IntegrationDef; isConnected
             </>
           ) : (
             <>
+              {planOffered && (
+                <div className="space-y-1.5 rounded-md border border-green-600/30 bg-green-600/5 p-2">
+                  <p className="text-xs leading-relaxed">
+                    <span className="font-medium">Use my Community Plan</span> — AI
+                    features on Claude Opus with no key of your own. Calls count
+                    toward the same weekly budget as your building.
+                  </p>
+                  <Button size="sm" className="h-7 text-xs gap-1.5" disabled={busy !== 'idle'} onClick={handleUsePlan}>
+                    {busy === 'plan' ? <Loader2 className="size-3 animate-spin" /> : <Cloud className="size-3" />}
+                    {busy === 'plan' ? 'Turning on…' : 'Use my Community Plan'}
+                  </Button>
+                  <p className="text-[11px] text-muted-foreground">Or bring your own key below.</p>
+                </div>
+              )}
               <div className="space-y-1">
                 <label className="text-xs font-medium flex items-center gap-1.5">
                   API key
