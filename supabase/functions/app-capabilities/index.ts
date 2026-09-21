@@ -171,13 +171,14 @@ async function handleBuilder(req: Request, body: Record<string, unknown>, action
   const appId = String(body.app_id ?? '');
   if (!appId) return json({ error: 'app_id required' }, 400);
   const appRes = await fetch(
-    restUrl(`/cloud_apps?id=eq.${encodeURIComponent(appId)}&select=id,owner_email`),
+    restUrl(`/cloud_apps?id=eq.${encodeURIComponent(appId)}&select=id,owner_email,name`),
     { headers: svcHeaders() },
   );
   const apps = appRes.ok ? await appRes.json() : [];
   if (!apps.length || String(apps[0].owner_email ?? '').toLowerCase() !== email) {
     return json({ error: 'Not your app' }, 403);
   }
+  const appName = String(apps[0].name ?? 'Untitled app');
 
   switch (action) {
     case 'community_ai_enable': {
@@ -188,6 +189,9 @@ async function handleBuilder(req: Request, body: Record<string, unknown>, action
       }
       const gate = await communityPlanGate(email);
       if ('error' in gate && gate.status === 403) return json({ error: gate.error }, 403);
+      // Re-enabling an app that already has the switch is silent; the
+      // steward hears about each app once, when it first turns on.
+      const alreadyOn = !!(await getSecret(appId, COMMUNITY_AI_SERVICE));
       const res = await fetch(restUrl('/app_secrets?on_conflict=app_id,service'), {
         method: 'POST',
         headers: { ...svcHeaders(), Prefer: 'resolution=merge-duplicates' },
@@ -200,6 +204,7 @@ async function handleBuilder(req: Request, body: Record<string, unknown>, action
         }),
       });
       if (!res.ok) return json({ error: 'Could not turn on Community AI' }, 500);
+      if (!alreadyOn) notifyStewardCommunityAiOn(email, appId, appName);
       return json({ ok: true, model: COMMUNITY_APP_MODEL });
     }
 
@@ -666,6 +671,62 @@ async function communityPlanGate(email: string): Promise<PlanGate> {
     };
   }
   return { ok: true };
+}
+
+/**
+ * Steward heads-up when an app first turns on Community AI: who, which app,
+ * the model, and where their weekly budget stands. Fire-and-forget through
+ * Resend (RESEND_API_KEY; STEWARD_EMAIL defaults to Josh) — never blocks or
+ * fails the enable.
+ */
+function notifyStewardCommunityAiOn(builderEmail: string, appId: string, appName: string): void {
+  const resendKey = Deno.env.get('RESEND_API_KEY') ?? '';
+  if (!resendKey) return;
+  const steward = Deno.env.get('STEWARD_EMAIL') ?? 'josh@relationaltechproject.org';
+  (async () => {
+    // Budget snapshot: this week's token traffic vs their allowance
+    let budgetLine = '';
+    try {
+      const memberRes = await fetch(
+        restUrl(`/community_members?email=eq.${encodeURIComponent(builderEmail)}&select=weekly_token_budget`),
+        { headers: svcHeaders() },
+      );
+      const members = memberRes.ok ? await memberRes.json() : [];
+      const budget = Number(members[0]?.weekly_token_budget ?? 0);
+      const usageRes = await fetch(
+        restUrl(`/community_usage?email=eq.${encodeURIComponent(builderEmail)}&day=gte.${weekStartUtc()}&select=input_tokens,output_tokens,cache_creation_tokens,cache_read_tokens`),
+        { headers: svcHeaders() },
+      );
+      const usage = usageRes.ok ? await usageRes.json() : [];
+      const used = (Array.isArray(usage) ? usage : []).reduce(
+        (sum: number, r: Record<string, unknown>) =>
+          sum + Number(r.input_tokens ?? 0) + Number(r.output_tokens ?? 0) +
+          Number(r.cache_creation_tokens ?? 0) + Number(r.cache_read_tokens ?? 0),
+        0,
+      );
+      if (budget > 0) {
+        budgetLine = `<p style="margin:0 0 8px;">Weekly budget: ${(used / 1e6).toFixed(2)}M of ${(budget / 1e6).toFixed(0)}M tokens used so far this week.</p>`;
+      }
+    } catch { /* the notice still goes out without the snapshot */ }
+    const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: 'Relational Builder Monitor <alerts@relationalbuilder.org>',
+        to: [steward],
+        subject: `Community AI turned on: ${appName} (${builderEmail})`,
+        html: [
+          '<div style="font-family:Georgia,serif;color:#292524;font-size:15px;line-height:1.6;">',
+          `<p style="margin:0 0 8px;"><strong>${esc(builderEmail)}</strong> turned on in-app AI for <strong>${esc(appName)}</strong>.</p>`,
+          `<p style="margin:0 0 8px;">Model: ${esc(COMMUNITY_APP_MODEL)} on the shared community key. Backend id: <code>${esc(appId)}</code>.</p>`,
+          budgetLine,
+          `<p style="margin:0 0 8px;">Calls are metered under their email as <code>app:${esc(COMMUNITY_APP_MODEL)}</code> against their weekly plan budget, with a per-app daily cap on top. ${new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC.</p>`,
+          '</div>',
+        ].join('\n'),
+      }),
+    });
+  })().catch(() => {});
 }
 
 /** The UTC date (YYYY-MM-DD) of the Monday that starts the current budget week */

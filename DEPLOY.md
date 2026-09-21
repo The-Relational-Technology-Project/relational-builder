@@ -107,6 +107,13 @@ a per-minute rate limit, a 200KB input / 4096-token output ceiling, and the
 optional `members_only_send` setting (signed-in neighbors only). A member
 whose own key is vaulted keeps using that key; the plan is the fallback.
 
+Two steward notices ride along: `app-capabilities` emails `STEWARD_EMAIL`
+(default josh@relationaltechproject.org) the first time each app turns
+Community AI on (who, which app, model, weekly budget standing), and the
+community-monitor emails once per day when the in-app slice alone passes
+`MONITOR_APP_SPEND_THRESHOLDS` (default $5, in addition to the plan-wide
+$5/$10 alerts that already include it).
+
 Example:
 
 ```bash

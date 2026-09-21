@@ -25,6 +25,9 @@
  *   RESEND_API_KEY           — email delivery (already set for notify-invite)
  *   MONITOR_ALERT_EMAIL      — default josh@relationaltechproject.org
  *   MONITOR_SPEND_THRESHOLDS — default "5,10" (USD/day)
+ *   MONITOR_APP_SPEND_THRESHOLDS — default "5" (USD/day) for the in-app AI
+ *                              slice alone (calls built apps make on the
+ *                              community plan, model rows prefixed `app:`)
  *   MONITOR_RATE_*           — overrides for the untracked-usage fallback
  *                              rates per MTok (see DEFAULT_RATES); per-model
  *                              rates live in MODEL_RATES in this file
@@ -272,6 +275,54 @@ Deno.serve(async (req: Request) => {
       alertEmail,
       `Community plan spend passed $${threshold} today (est. $${totalSpend.toFixed(2)})`,
       renderSpendEmail(threshold, totalSpend, memberSpend, today, rates),
+    );
+    if (ok) sent.push(key);
+    else errors.push(`email send failed for ${key}`);
+  }
+
+  // ── 1b. In-app AI spend ───────────────────────────────────────────────
+  //
+  // Calls made by built apps on the community plan (app-capabilities →
+  // ai_chat) are metered under the owner's email with the model prefixed
+  // `app:`. They are already inside the plan-wide total above; this is the
+  // separate view the steward asked for — one email per day as in-app spend
+  // alone crosses each threshold ($5 by default), with a per-builder table.
+  const appSpend = modelRows
+    .filter((r) => r.model.startsWith('app:'))
+    .map((r) => {
+      const t = counts(r);
+      return {
+        email: r.email,
+        model: r.model,
+        requests: Number(r.requests ?? 0),
+        tokens: t.input + t.output + t.cacheWrite + t.cacheRead,
+        usd: priceTokens(t, ratesForModel(r.model, rates)),
+      };
+    });
+  const appSpendByBuilder = new Map<string, { email: string; requests: number; tokens: number; usd: number; models: { model: string; usd: number }[] }>();
+  for (const r of appSpend) {
+    const b = appSpendByBuilder.get(r.email) ?? { email: r.email, requests: 0, tokens: 0, usd: 0, models: [] };
+    b.requests += r.requests;
+    b.tokens += r.tokens;
+    b.usd += r.usd;
+    b.models.push({ model: r.model, usd: r.usd });
+    appSpendByBuilder.set(r.email, b);
+  }
+  const appBuilders = [...appSpendByBuilder.values()].sort((a, b) => b.usd - a.usd);
+  const totalAppSpend = appBuilders.reduce((sum, b) => sum + b.usd, 0);
+  const appThresholds = (env('MONITOR_APP_SPEND_THRESHOLDS') || '5')
+    .split(',')
+    .map((s) => Number(s.trim()))
+    .filter((n) => Number.isFinite(n) && n > 0)
+    .sort((a, b) => a - b);
+  for (const threshold of appThresholds.filter((t) => totalAppSpend >= t)) {
+    const key = `app-spend-${threshold}-${today}`;
+    if (dryRun) continue;
+    if (!(await claimAlert(supabaseUrl, svc, key, { totalAppSpend, threshold }))) continue;
+    const ok = await sendEmail(
+      alertEmail,
+      `In-app AI spend passed $${threshold} today (est. $${totalAppSpend.toFixed(2)})`,
+      renderAppSpendEmail(threshold, totalAppSpend, appBuilders, today),
     );
     if (ok) sent.push(key);
     else errors.push(`email send failed for ${key}`);
@@ -737,6 +788,49 @@ function renderSpendEmail(
       ($${rates.input}/$${rates.output}, cache writes $${rates.cacheWrite}, reads $${rates.cacheRead})
       and shows as "untracked". Weekly budgets reset Monday at midnight UTC. This alert sends once per
       threshold per day.
+    </p>`,
+  );
+}
+
+function renderAppSpendEmail(
+  threshold: number,
+  total: number,
+  builders: Array<{ email: string; requests: number; tokens: number; usd: number; models: Array<{ model: string; usd: number }> }>,
+  day: string,
+): string {
+  const rowsHtml = builders
+    .slice(0, 15)
+    .map(
+      (b) => `<tr>
+        <td style="padding:6px 8px;border-bottom:1px solid #E7E5E4;font-size:13px;">${escapeHtml(b.email)}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #E7E5E4;font-size:13px;text-align:right;">${b.requests}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #E7E5E4;font-size:13px;text-align:right;">${(b.tokens / 1e6).toFixed(2)}M</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #E7E5E4;font-size:12px;text-align:right;color:#78716C;">${escapeHtml(modelMixLabel(b.models.map((m) => ({ ...m, model: m.model.replace(/^app:/, '') }))))}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #E7E5E4;font-size:13px;text-align:right;">$${b.usd.toFixed(2)}</td>
+      </tr>`,
+    )
+    .join('');
+  return emailShell(
+    `In-app AI spend passed $${threshold} today`,
+    `<p style="font-size:15px;line-height:1.6;margin:0 0 16px;">
+      AI calls made by built apps on the community plan for <strong>${day}</strong> (UTC)
+      come to an estimated <strong>$${total.toFixed(2)}</strong>, past the $${threshold}/day mark.
+      This is the in-app slice only; it is also counted in the plan-wide spend alerts.
+    </p>
+    <table style="border-collapse:collapse;width:100%;margin:0 0 16px;">
+      <tr>
+        <th style="text-align:left;padding:6px 8px;font-size:12px;color:#78716C;border-bottom:2px solid #E7E5E4;">App owner</th>
+        <th style="text-align:right;padding:6px 8px;font-size:12px;color:#78716C;border-bottom:2px solid #E7E5E4;">Calls</th>
+        <th style="text-align:right;padding:6px 8px;font-size:12px;color:#78716C;border-bottom:2px solid #E7E5E4;">Tokens</th>
+        <th style="text-align:right;padding:6px 8px;font-size:12px;color:#78716C;border-bottom:2px solid #E7E5E4;">Models</th>
+        <th style="text-align:right;padding:6px 8px;font-size:12px;color:#78716C;border-bottom:2px solid #E7E5E4;">Est. cost</th>
+      </tr>
+      ${rowsHtml}
+    </table>
+    <p style="font-size:13px;color:#78716C;line-height:1.6;margin:0;">
+      Every in-app call draws on its owner's weekly plan budget, with a per-app daily call cap on top.
+      An owner can turn in-app AI off in Services &rarr; Claude, and you can lower their
+      weekly_token_budget in community_members. This alert sends once per threshold per day.
     </p>`,
   );
 }
