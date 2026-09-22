@@ -12,7 +12,7 @@ import { QUESTION_HEADING_RE, docHeadingCount, isPlanDocument, shouldOfferBuild 
 import { CodeBlock } from './CodeBlock';
 import { ConnectionSuggestion } from './ConnectionSuggestion';
 import { Button } from '@/components/ui/button';
-import { Hammer, History, FileCode, ChevronDown, ChevronRight, Loader2, Copy, Check, ArrowDown, ArrowRight, Code2, GitBranch, Sparkles, MessagesSquare, BookOpen } from 'lucide-react';
+import { Hammer, History, FileCode, ChevronDown, ChevronRight, Loader2, Copy, Check, ArrowDown, ArrowRight, Code2, GitBranch, Sparkles, MessagesSquare, BookOpen, Library } from 'lucide-react';
 
 /** "Today at 4:26 PM" / "Tuesday at 9:12 AM" — calm dividers between sittings */
 function formatSitting(ts: number): string {
@@ -703,6 +703,9 @@ const MessageBubble = memo(function MessageBubble({ message }: { message: Displa
       {!isUser && !message.isStreaming && message.commonsRefs && message.commonsRefs.length > 0 && (
         <CommonsRefChips refs={message.commonsRefs} />
       )}
+      {!isUser && !message.isStreaming && message.studioRefs && message.studioRefs.length > 0 && (
+        <StudioRefChips refs={message.studioRefs} />
+      )}
       {!isUser && !message.isStreaming && message.content.trim() && (
         <div className="mt-1 pl-1 flex items-center gap-2">
           <CopyMessage content={message.content} />
@@ -762,6 +765,30 @@ function CommonsRefChips({ refs }: { refs: { slug: string; title: string; kind: 
   );
 }
 
+/**
+ * The studio library items a reply drew on — the same loop as the commons
+ * chips, for the shelf that belongs to the builder's own studio. Each chip
+ * opens the item's card in the gallery.
+ */
+function StudioRefChips({ refs }: { refs: { id: string; title: string; kind: string }[] }) {
+  const openStudioLibraryItem = useUIStore(s => s.openStudioLibraryItem);
+  return (
+    <div className="mt-1.5 pl-1 flex flex-wrap items-center gap-1.5">
+      <span className="text-xs text-muted-foreground/70">Drew on the studio:</span>
+      {refs.slice(0, 4).map(r => (
+        <button
+          key={r.id}
+          onClick={() => openStudioLibraryItem(r.id)}
+          className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-primary/5 transition-colors"
+          title={`Open "${r.title}" in your studio's library`}
+        >
+          <Library className="size-2.5 shrink-0" />
+          {r.title}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 export interface PlanQuestion {
   question: string;

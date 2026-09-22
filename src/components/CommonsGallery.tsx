@@ -190,6 +190,23 @@ export function CommonsGallery() {
       .catch(() => {});
   }, [galleryFocusSlug, clearGalleryFocus]);
 
+  // Same door for a studio library item ("Drew on the studio" chip). The
+  // library loads with the studio store, so wait for the item to appear
+  // rather than clearing the focus on a shelf that hasn't arrived yet.
+  const galleryFocusStudioItemId = useUIStore(s => s.galleryFocusStudioItemId);
+  const clearStudioFocus = useUIStore(s => s.clearStudioFocus);
+  const libraryLoaded = useStudioStore(s => s.libraryLoaded);
+  useEffect(() => {
+    if (!galleryFocusStudioItemId) return;
+    const item = studioLibrary.find(i => i.id === galleryFocusStudioItemId);
+    if (item) {
+      clearStudioFocus();
+      setStudioDetail(item);
+    } else if (libraryLoaded) {
+      clearStudioFocus();
+    }
+  }, [galleryFocusStudioItemId, clearStudioFocus, studioLibrary, libraryLoaded]);
+
   // Debounced hybrid search — the same semantic+text retrieval that informs
   // builds ranks the gallery, so "help seniors feel less alone" finds the
   // right recipes even when no card contains those words.

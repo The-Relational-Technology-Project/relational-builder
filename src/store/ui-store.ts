@@ -38,6 +38,11 @@ interface UIState {
   galleryFocusSlug: string | null;
   openGalleryItem: (slug: string) => void;
   clearGalleryFocus: () => void;
+  /** A studio library item (by id) the gallery should open on arrival — the
+   *  "Drew on the studio" twin of galleryFocusSlug */
+  galleryFocusStudioItemId: string | null;
+  openStudioLibraryItem: (id: string) => void;
+  clearStudioFocus: () => void;
 }
 
 export const useUIStore = create<UIState>(set => ({
@@ -54,6 +59,12 @@ export const useUIStore = create<UIState>(set => ({
     pushPath(pathForView('gallery'));
   },
   clearGalleryFocus: () => set({ galleryFocusSlug: null }),
+  galleryFocusStudioItemId: null,
+  openStudioLibraryItem: id => {
+    set({ galleryFocusStudioItemId: id, view: 'gallery' });
+    pushPath(pathForView('gallery'));
+  },
+  clearStudioFocus: () => set({ galleryFocusStudioItemId: null }),
 }));
 
 /**

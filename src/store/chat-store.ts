@@ -57,6 +57,12 @@ export interface DisplayMessage {
    * named in the reply) — rendered as "Drew on the commons" chips that open
    * the entry's gallery card */
   commonsRefs?: { slug: string; title: string; kind: string }[];
+  /** Studio library items this reply drew on (in the builder's studio AND
+   * named in the reply) — "Drew on the studio" chips that open the item's
+   * card in the gallery. Studio shelves never reach the commons matcher, so
+   * without this the reply could credit FixMyStreet in prose while the chips
+   * showed only public entries. */
+  studioRefs?: { id: string; title: string; kind: string }[];
 }
 
 interface ChatState {
@@ -151,6 +157,7 @@ interface ChatState {
   markErrored: (id: string) => void;
   /** Record which surfaced commons entries a finished reply drew on */
   setCommonsRefs: (id: string, refs: { slug: string; title: string; kind: string }[]) => void;
+  setStudioRefs: (id: string, refs: { id: string; title: string; kind: string }[]) => void;
   setIsGenerating: (generating: boolean) => void;
   setAbortController: (controller: AbortController | null) => void;
   setSystemPrompt: (prompt: string) => void;
@@ -384,6 +391,15 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
     set(state => ({
       messages: state.messages.map(m =>
         m.id === id ? { ...m, commonsRefs: refs } : m,
+      ),
+    }));
+  },
+
+  setStudioRefs: (id: string, refs: { id: string; title: string; kind: string }[]) => {
+    if (refs.length === 0) return;
+    set(state => ({
+      messages: state.messages.map(m =>
+        m.id === id ? { ...m, studioRefs: refs } : m,
       ),
     }));
   },
