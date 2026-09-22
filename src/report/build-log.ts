@@ -69,6 +69,9 @@ export type BuildEventType =
    *  slugs. Together with 'retrieval' this measures whether surfaced
    *  knowledge actually lands in plans and builds. */
   | 'commons_mentions'
+  /** A finished reply named items from the builder's studio library —
+   *  detail carries their titles. The studio's half of the same loop. */
+  | 'studio_mentions'
   /** Live civic data endpoints matched this send — detail carries the
    *  cities whose MCP endpoints rode into context. */
   | 'civic-data';
@@ -107,6 +110,7 @@ const MAX_DETAIL_CHARS = 400;
 export const KNOWLEDGE_EVENTS: ReadonlySet<BuildEventType> = new Set<BuildEventType>([
   'retrieval',
   'commons_mentions',
+  'studio_mentions',
   'civic-data',
 ]);
 

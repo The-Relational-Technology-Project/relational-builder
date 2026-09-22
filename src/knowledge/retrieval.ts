@@ -234,7 +234,21 @@ const GENERIC_TERMS = new Set([
  * makes single words safe — a word shared by two offered entries can't
  * attribute a mention to either.
  */
-function mentionTerms(r: CommonsSearchResult, wordOwners: Map<string, number>): string[] {
+/** The least an entry needs to be recognized in prose: a stable id-ish slug
+ *  and its title. Commons hits have both; studio library items lend a slug
+ *  derived from their title (see slugForMention). */
+export interface MentionableEntry {
+  slug: string;
+  title: string;
+}
+
+/** A slug for an entry that has none (studio library items are keyed by
+ *  uuid): "Design for Care, Not Enforcement" → "design-for-care-not-enforcement". */
+export function slugForMention(title: string): string {
+  return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
+function mentionTerms(r: MentionableEntry, wordOwners: Map<string, number>): string[] {
   const terms = new Set<string>();
   const title = r.title.trim().toLowerCase();
   if (title.length >= 5) terms.add(title);
@@ -264,10 +278,10 @@ function mentionTerms(r: CommonsSearchResult, wordOwners: Map<string, number>): 
  * never by reciting "Build: A Third-Places Map for Your Neighborhood". So a
  * distinctive name for the entry counts too — see mentionTerms.
  */
-export function findMentionedResults(
+export function findMentionedResults<T extends MentionableEntry>(
   replyText: string,
-  surfaced: CommonsSearchResult[],
-): CommonsSearchResult[] {
+  surfaced: T[],
+): T[] {
   if (!replyText || surfaced.length === 0) return [];
   const haystack = replyText.toLowerCase();
   // How many of the surfaced entries claim each word — only sole owners can

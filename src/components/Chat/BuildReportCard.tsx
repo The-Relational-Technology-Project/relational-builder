@@ -51,6 +51,7 @@ const EVENT_LABELS: Record<BuildEventType, string> = {
   typed_approval: 'Build approved by typing it',
   retrieval: 'Commons knowledge searched',
   commons_mentions: 'Reply drew on the commons',
+  studio_mentions: 'Reply drew on the studio library',
   'civic-data': 'Live city data in context',
 };
 

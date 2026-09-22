@@ -37,7 +37,7 @@ import {
 import { useStudioStore } from '@/store/studio-store';
 import { useAuthStore } from '@/store/auth-store';
 import { useCloudStore } from '@/store/cloud-store';
-import { retrieveCommonsContext, findMentionedResults } from '@/knowledge/retrieval';
+import { retrieveCommonsContext, findMentionedResults, slugForMention } from '@/knowledge/retrieval';
 import { loadGalleryReferences } from '@/cloud/gallery-references';
 import { detectFrames, framesFromSlugs } from '@/knowledge/frames';
 import { buildMentionContext } from '@/knowledge/mentions';
@@ -815,6 +815,22 @@ export function ChatPanel() {
               drawnOn.map(r => ({ slug: r.slug, title: r.title, kind: r.kind })),
             );
             recordBuildEvent('commons_mentions', drawnOn.map(r => r.slug).join(', '));
+          }
+        }
+        // The studio's shelf is the other half of what a reply draws on —
+        // the prompt asks the model to say which studio principles and
+        // examples shaped the build, so credit them the same visible way.
+        if (done && studioLibraryItems.length > 0) {
+          const drawnOn = findMentionedResults(
+            done.content,
+            studioLibraryItems.map(i => ({ ...i, slug: slugForMention(i.title) })),
+          );
+          if (drawnOn.length > 0) {
+            useChatStore.getState().setStudioRefs(
+              msgId,
+              drawnOn.map(i => ({ id: i.id, title: i.title, kind: i.kind })),
+            );
+            recordBuildEvent('studio_mentions', drawnOn.map(i => i.title).join(', '));
           }
         }
         // Extract code blocks into the virtual file system (build mode only)
