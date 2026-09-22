@@ -41,7 +41,7 @@ import { retrieveCommonsContext, findMentionedResults } from '@/knowledge/retrie
 import { loadGalleryReferences } from '@/cloud/gallery-references';
 import { detectFrames, framesFromSlugs } from '@/knowledge/frames';
 import { buildMentionContext } from '@/knowledge/mentions';
-import { retrieveCivicDataContext } from '@/knowledge/civic-data';
+import { retrieveCivicDataContext, toMcpServers } from '@/knowledge/civic-data';
 import { runQualityReview, messageProducedFiles } from '@/knowledge/review-pass';
 import { requestBuildNotifyPermission, notifyBuildReady } from '@/notify/build-ready';
 import { adoptDraftedProjectName } from '@/project/drafted-name';
@@ -663,6 +663,9 @@ export function ChatPanel() {
     // Anthropic server-side web tools ride Claude chats only — the model can
     // read pages the person links and search for current info
     const webTools = useProviderStore.getState().activeProviderId === 'claude';
+    // Live civic-data endpoints ride the same way, through Anthropic's MCP
+    // connector — so a plan can stand on real fields and dates, not guesses
+    const mcpServers = webTools ? toMcpServers(civicData) : [];
 
     // Two halves: the system prompt is fully cacheable (stable instructions +
     // the frozen snapshot base), while this turn's volatile context (files
@@ -686,6 +689,7 @@ export function ChatPanel() {
       galleryReferences,
       webTools,
       civicData,
+      civicDataQueryable: mcpServers.length > 0,
     });
     setSystemPrompt(updatedPrompt);
 
@@ -1044,6 +1048,7 @@ export function ChatPanel() {
         await provider.chat(chatMessages, modelForSend, callbacks, controller.signal, {
           webTools,
           effort,
+          mcpServers,
         });
       } catch (err) {
         useChatStore.getState().endProgress();

@@ -1,3 +1,5 @@
+import type { McpServerRef } from './web-tools';
+
 /** OpenAI-style multimodal content parts (all providers speak this shape;
  *  the llm-proxy translates to Anthropic image blocks server-side) */
 export type ContentPart =
@@ -46,6 +48,10 @@ export interface ChatOptions {
    *  other providers ignore it. Off by default so internal calls (quality
    *  review, summaries) can never spend money searching the web. */
   webTools?: boolean;
+  /** Remote MCP servers (live civic-data endpoints) the model may query
+   *  through Anthropic's server-side MCP connector this turn. Claude-only —
+   *  other providers ignore it. Empty/unset attaches nothing. */
+  mcpServers?: McpServerRef[];
 }
 
 export interface ModelInfo {

@@ -1,7 +1,8 @@
 import type { LLMProvider, ChatMessage, ChatOptions, StreamCallbacks, ModelInfo, ContentPart } from './types';
 import { contentToText } from './types';
 import { communityAccessActive, getCommunitySessionToken, refreshCommunityUsageSoon } from '@/store/community-store';
-import { ServerToolProgress, webToolsFor } from './web-tools';
+import { MCP_CONNECTOR_BETA, ServerToolProgress, mcpRequestPartsFor, sanitizeMcpServers, webToolsFor } from './web-tools';
+import type { McpServerRef } from './web-tools';
 
 /** Translate OpenAI-style content parts to Anthropic content blocks (dev-direct path) */
 function toAnthropicContent(content: string | ContentPart[]): unknown {
@@ -144,6 +145,7 @@ export class ClaudeProvider implements LLMProvider {
       headers['x-community-token'] = token;
     }
 
+    const mcpServers = sanitizeMcpServers(opts?.mcpServers);
     const body = JSON.stringify({
       model,
       max_tokens: maxTokensFor(model),
@@ -154,6 +156,9 @@ export class ClaudeProvider implements LLMProvider {
       // thinking effort for adaptive-thinking models (default xhigh)
       ...(opts?.webTools ? { web_tools: true } : {}),
       ...(opts?.effort ? { effort: opts.effort } : {}),
+      // Live civic-data endpoints the model may query this turn; the proxy
+      // wires them through Anthropic's MCP connector (see llm-proxy)
+      ...(mcpServers.length > 0 ? { mcp_servers: mcpServers } : {}),
     });
 
     // Transient failures (rate limits, overload, network blips) retry with
@@ -246,10 +251,18 @@ export class ClaudeProvider implements LLMProvider {
       // the proxy's wall clock then cut off mid-file.
       body.output_config = { effort: opts?.effort ?? 'xhigh' };
     }
-    if (opts?.webTools) {
-      const tools = webToolsFor(model);
-      if (tools) body.tools = tools;
+    const tools: Record<string, unknown>[] = [];
+    if (opts?.webTools) tools.push(...(webToolsFor(model) ?? []));
+    // Live civic-data endpoints via Anthropic's server-side MCP connector:
+    // Anthropic holds the MCP session, the model calls the city's tools
+    // mid-turn, and results land in this same stream. Mirrors the llm-proxy.
+    const mcpServers = sanitizeMcpServers(opts?.mcpServers);
+    const mcp = ADAPTIVE_THINKING_RE.test(model) ? mcpRequestPartsFor(mcpServers) : null;
+    if (mcp) {
+      body.mcp_servers = mcp.mcp_servers;
+      tools.push(...mcp.tools);
     }
+    if (tools.length > 0) body.tools = tools;
     // Same cache segmentation the proxy applies (see llm-proxy): CACHE_BREAK
     // markers become cache_control breakpoints at the 1-hour TTL. A TRAILING
     // marker (clients since 2026-08-19) means every system segment is stable
@@ -323,6 +336,7 @@ export class ClaudeProvider implements LLMProvider {
         'x-api-key': this.apiKey,
         'anthropic-version': '2023-06-01',
         'anthropic-dangerous-direct-browser-access': 'true',
+        ...(mcp ? { 'anthropic-beta': MCP_CONNECTOR_BETA } : {}),
       },
       body: JSON.stringify(body),
       signal,
@@ -333,7 +347,7 @@ export class ClaudeProvider implements LLMProvider {
       throw new Error(`Claude API error (${res.status}): ${text}`);
     }
 
-    await this.readAnthropicStream(res, callbacks, signal);
+    await this.readAnthropicStream(res, callbacks, signal, mcpServers);
   }
 
   /** Parse OpenAI-format SSE stream */
@@ -396,6 +410,7 @@ export class ClaudeProvider implements LLMProvider {
     res: Response,
     callbacks: StreamCallbacks,
     signal?: AbortSignal,
+    mcpServers: McpServerRef[] = [],
   ): Promise<void> {
     const reader = res.body?.getReader();
     if (!reader) throw new Error('No response body');
@@ -403,7 +418,7 @@ export class ClaudeProvider implements LLMProvider {
     const decoder = new TextDecoder();
     let fullText = '';
     let buffer = '';
-    const toolProgress = new ServerToolProgress();
+    const toolProgress = new ServerToolProgress(mcpServers);
 
     try {
       while (true) {

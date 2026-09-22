@@ -1,4 +1,5 @@
 import { builderClient } from '@/cloud/builder-client';
+import type { McpServerRef } from '@/providers/web-tools';
 
 /**
  * Civic data endpoints — live open-data MCP servers, one per city, provided
@@ -82,6 +83,12 @@ export function matchCityEndpoints(
   );
 }
 
+/** The endpoints as MCP server refs for the provider layer — the slug is
+ *  the server name the model addresses, the city is the progress label. */
+export function toMcpServers(matches: CityDataEndpoint[]): McpServerRef[] {
+  return matches.map(e => ({ name: e.slug, url: e.mcp_url, label: e.city }));
+}
+
 /** Load + match in one call; never throws (context enriches, never breaks). */
 export async function retrieveCivicDataContext(signals: (string | null | undefined)[]): Promise<CityDataEndpoint[]> {
   try {
@@ -127,8 +134,29 @@ const PORTAL_NOTES: Record<string, string[]> = {
   ],
 };
 
+/** The model's own access to the endpoints, which differs by provider: with
+ *  Anthropic's MCP connector attached the city's tools are callable mid-turn
+ *  (a plan can stand on real fields and real dates); without it, nothing in
+ *  chat can reach them, and saying so beats a turn spent "knocking on the
+ *  data door" with a tool that only speaks GET. */
+function accessNotes(matches: CityDataEndpoint[], queryable: boolean): string[] {
+  if (queryable) {
+    const names = matches.map(e => `\`${e.slug}\` (${e.city})`).join(', ');
+    return [
+      '**You can query these endpoints yourself, right now, in this conversation.** Each one is attached as a tool server — ' + names + ' — and its tools (the `arcgis__*` / `ckan__*` / `philly__*` names below) are callable directly. Use them:',
+      '- **Before planning around a dataset, look at it.** Search the catalog, open the dataset, read its schema or a sample row, and probe the newest record. A plan that names real fields, the real date range, and the real row cap is worth more than one that guesses — and you have what you need to check.',
+      '- **Show your work in the reply.** When a number or a field name came from a query, say which tool you called and what it returned, in a sentence. Never present a figure you did not read from the endpoint as if it came from the city.',
+      '- **Spend queries like a colleague would:** a handful per reply is plenty — catalog search, one dataset, one schema, one or two data probes. Do not page through a whole dataset in chat; that is what the built app is for.',
+      '- **Know the limit of what you can do here.** Your calls prove the data is real and show its shape; the app the person builds does the live reading for residents. Write the app to call the endpoint itself, exactly as below.',
+    ];
+  }
+  return [
+    '**You cannot call these endpoints from this conversation** — they need a POST with a JSON-RPC body, and your own web tools only fetch pages. Do not try, and do not say you tried. Plan around the dataset by name and by what the portal notes below say it carries; say plainly that field names and freshness will be confirmed the first time the built app queries it.',
+  ];
+}
+
 /** The system-prompt section for matched endpoints */
-export function formatCivicDataForPrompt(matches: CityDataEndpoint[]): string {
+export function formatCivicDataForPrompt(matches: CityDataEndpoint[], queryable = false): string {
   const list = matches
     .map(e => `- **${e.city}** — MCP endpoint: \`${e.mcp_url}\` (${e.kind}-backed open data)`)
     .join('\n');
@@ -144,6 +172,8 @@ export function formatCivicDataForPrompt(matches: CityDataEndpoint[]): string {
     'This build appears to touch a city whose open data is reachable through a live MCP endpoint (provided by the Responsive Cities Network):',
     '',
     list,
+    '',
+    ...accessNotes(matches, queryable),
     '',
     'How to use this:',
     '- **In plans and conversation:** treat the city\'s open data as a first-class ingredient. Name the real datasets a build could stand on (service requests, permits, capital projects, facilities…) and prefer "read it live from the city endpoint" over pasted snapshots or invented sample data.',

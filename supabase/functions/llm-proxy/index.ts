@@ -660,6 +660,33 @@ const WEB_TOOLS = [
   { type: 'web_fetch_20260209', name: 'web_fetch', max_uses: 6 },
 ];
 
+// Anthropic's server-side MCP connector — attached when the client sends
+// `mcp_servers: [{name, url, label}]` (chat turns in/near a city with a live
+// open-data endpoint; see src/knowledge/civic-data.ts). Anthropic holds the
+// MCP session and runs tools/list + tools/call itself, so the model can read
+// real civic data mid-turn — during planning, not only inside a built app.
+// Mirrors src/providers/web-tools.ts: only public TLS servers with
+// slug-shaped names, at most four, and every server needs its own
+// mcp_toolset entry or the request is rejected.
+const MCP_CONNECTOR_BETA = 'mcp-client-2025-11-20';
+type McpServerRef = { name: string; url: string; label: string };
+function sanitizeMcpServers(input: unknown): McpServerRef[] {
+  if (!Array.isArray(input)) return [];
+  const seen = new Set<string>();
+  const out: McpServerRef[] = [];
+  for (const raw of input) {
+    if (!raw || typeof raw !== 'object') continue;
+    const { name, url, label } = raw as Record<string, unknown>;
+    if (typeof name !== 'string' || !/^[a-z0-9][a-z0-9-]{0,63}$/.test(name)) continue;
+    if (typeof url !== 'string' || !/^https:\/\/[^\s"'<>]+$/.test(url)) continue;
+    if (seen.has(name)) continue;
+    seen.add(name);
+    out.push({ name, url, label: typeof label === 'string' && label.trim() ? label.trim() : name });
+    if (out.length === 4) break;
+  }
+  return out;
+}
+
 // Output ceiling when the client doesn't say: real multi-file builds need far
 // more than the old 8192, and adaptive thinking at xhigh effort spends from
 // the same budget — Opus/Sonnet/Fable stream up to 128k. Haiku 4.5 caps at
@@ -750,6 +777,7 @@ async function proxyAnthropic(
     .map((m) => ({ role: m.role, content: toAnthropicContent(m.content) }));
 
   const model = String(body.model ?? '');
+  const mcpServers = sanitizeMcpServers(body.mcp_servers);
   const anthropicBody: Record<string, unknown> = {
     model: body.model,
     max_tokens: (body.max_tokens as number) ?? defaultMaxTokens(model),
@@ -766,9 +794,13 @@ async function proxyAnthropic(
     // continuation once thought for five minutes and then died at this
     // function's wall clock mid-file. Unknown values fall back to xhigh.
     anthropicBody.output_config = { effort: effortFor(body.effort) };
-    if (body.web_tools === true) {
-      anthropicBody.tools = WEB_TOOLS;
+    const tools: Record<string, unknown>[] = [];
+    if (body.web_tools === true) tools.push(...WEB_TOOLS);
+    if (mcpServers.length > 0) {
+      anthropicBody.mcp_servers = mcpServers.map((s) => ({ type: 'url', url: s.url, name: s.name }));
+      tools.push(...mcpServers.map((s) => ({ type: 'mcp_toolset', mcp_server_name: s.name })));
     }
+    if (tools.length > 0) anthropicBody.tools = tools;
   }
   // Opus 5 and Fable 5.x run safety classifiers that can decline a request
   // (stop_reason "refusal") — rare false positives happen on benign builds.
@@ -866,19 +898,22 @@ async function proxyAnthropic(
     }
   }
 
-  const callAnthropic = (payload: Record<string, unknown>) =>
-    fetch('https://api.anthropic.com/v1/messages', {
+  const callAnthropic = (payload: Record<string, unknown>) => {
+    const betas = [
+      ...(payload.fallbacks ? ['server-side-fallback-2026-07-01'] : []),
+      ...(payload.mcp_servers ? [MCP_CONNECTOR_BETA] : []),
+    ];
+    return fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
-        ...(payload.fallbacks
-          ? { 'anthropic-beta': 'server-side-fallback-2026-07-01' }
-          : {}),
+        ...(betas.length > 0 ? { 'anthropic-beta': betas.join(',') } : {}),
       },
       body: JSON.stringify(payload),
     });
+  };
 
   let upstream: Response | null = null;
   try {
@@ -991,7 +1026,8 @@ async function proxyAnthropic(
       // Streamed server_tool_use blocks (web search / fetch): accumulate the
       // tool input as it arrives so a human progress line ("Searching the
       // web: …") can ride the reasoning channel when the call fires.
-      const toolBlocks = new Map<number, { name: string; json: string }>();
+      const toolBlocks = new Map<number, { name: string; json: string; server?: string }>();
+      const mcpLabels = new Map(mcpServers.map((s) => [s.name, s.label]));
 
       try {
         while (true) {
@@ -1054,6 +1090,26 @@ async function proxyAnthropic(
                   json: '',
                 });
               } else if (
+                parsed.type === 'content_block_start' &&
+                parsed.content_block?.type === 'mcp_tool_use'
+              ) {
+                toolBlocks.set(Number(parsed.index), {
+                  name: String(parsed.content_block.name ?? ''),
+                  json: '',
+                  server: String(parsed.content_block.server_name ?? ''),
+                });
+              } else if (
+                parsed.type === 'content_block_start' &&
+                parsed.content_block?.type === 'mcp_tool_result' &&
+                parsed.content_block?.is_error
+              ) {
+                // A failed civic-data call is worth a line; a good one is
+                // just the reply continuing
+                const chunk = {
+                  choices: [{ index: 0, delta: { reasoning_content: '\n[The city data endpoint returned an error]\n' } }],
+                };
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+              } else if (
                 parsed.type === 'content_block_delta' &&
                 parsed.delta?.type === 'input_json_delta' &&
                 toolBlocks.has(Number(parsed.index))
@@ -1066,6 +1122,12 @@ async function proxyAnthropic(
                 const block = toolBlocks.get(Number(parsed.index))!;
                 toolBlocks.delete(Number(parsed.index));
                 let note = block.name === 'web_fetch' ? '\n[Reading a web page]\n' : '\n[Searching the web]\n';
+                if (block.server !== undefined) {
+                  // "arcgis__query_data" → "query data", against the city's name
+                  const where = mcpLabels.get(block.server) ?? block.server ?? 'the city';
+                  const what = block.name.replace(/^[a-z0-9]+__/, '').replace(/_/g, ' ');
+                  note = `\n[Asking ${where} open data: ${what || 'query'}]\n`;
+                }
                 try {
                   const input = JSON.parse(block.json || '{}') as { query?: string; url?: string };
                   if (block.name === 'web_search' && input.query) note = `\n[Searching the web: "${input.query}"]\n`;
