@@ -12,7 +12,13 @@ export interface EventCode {
   code: string;
   name: string;
   active: boolean;
+  /** The day of the event — context for the room, and what the expiry is
+   *  derived from. Null for an evergreen invite code. */
+  event_date: string | null;
+  /** Derived: 60 days past event_date; null when there's no date */
   expires_at: string | null;
+  /** Set when a steward archives a finished event; archived codes are off */
+  archived_at: string | null;
   /** The studio the event lives in — joiners are seated in it outright,
    *  gated or not, and the invite link opens that studio's doorway */
   studio_slug: string | null;
@@ -59,8 +65,8 @@ export async function adminCreateEventCode(input: {
   name: string;
   /** Optional hand-picked code (3–12 letters/digits); omit to auto-generate */
   code?: string;
-  /** Optional ISO timestamp after which the code stops opening the door */
-  expiresAt?: string;
+  /** Optional event day (YYYY-MM-DD) — the code stays open 60 days past it */
+  eventDate?: string;
   /** Optional studio the event lives in — every joiner becomes a member */
   studioSlug?: string;
   studioLabel?: string;
@@ -69,7 +75,7 @@ export async function adminCreateEventCode(input: {
     action: 'event_code_create',
     name: input.name,
     ...(input.code?.trim() ? { code: input.code.trim() } : {}),
-    ...(input.expiresAt ? { expires_at: input.expiresAt } : {}),
+    ...(input.eventDate ? { event_date: input.eventDate } : {}),
     ...(input.studioSlug
       ? { studio_slug: input.studioSlug, studio_label: input.studioLabel ?? input.studioSlug }
       : {}),
@@ -79,6 +85,16 @@ export async function adminCreateEventCode(input: {
 
 export async function adminSetEventCodeActive(code: string, active: boolean): Promise<void> {
   await adminCall({ action: 'event_code_set', code, active });
+}
+
+/** Archive a finished event (turns the code off too), or bring it back */
+export async function adminSetEventCodeArchived(code: string, archived: boolean): Promise<void> {
+  await adminCall({ action: 'event_code_set', code, archived });
+}
+
+/** Change or clear the event's day; the expiry follows (60 days past it) */
+export async function adminSetEventCodeDate(code: string, eventDate: string | null): Promise<void> {
+  await adminCall({ action: 'event_code_set', code, event_date: eventDate });
 }
 
 export async function adminReferralStats(): Promise<ReferralStat[]> {

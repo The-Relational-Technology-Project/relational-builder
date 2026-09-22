@@ -53,13 +53,18 @@
  * POST JSON — event codes (steward-minted room keys: a ?ref=CODE that
  * auto-joins like a builder's referral code and tags each joiner's profile
  * as an event participant) + join counts per code:
- *   { action: "event_code_create", name, code?, expires_at?,
- *     studio_slug?, studio_label? }   — a studio on the code seats every
+ *   { action: "event_code_create", name, code?, event_date?,
+ *     studio_slug?, studio_label? }   — event_date (YYYY-MM-DD) is context;
+ *                                          the code stays open 60 days past
+ *                                          it (no date = until turned off).
+ *                                          A studio on the code seats every
  *                                       joiner in it, no approval needed
  *                                          → { event_code: {...} }
  *   { action: "event_code_list" }          → { event_codes: [...] }
  *     (each with a `joined` count of profiles carrying the code)
- *   { action: "event_code_set", code, active }
+ *   { action: "event_code_set", code, active?, event_date?, archived? }
+ *     — event_date (YYYY-MM-DD or null) re-derives the expiry; archived
+ *     takes a finished event off the working list (and turns it off)
  *   { action: "referral_stats" }           → { stats: [...] }
  *     (per-builder joined counts over profiles.referred_by_code — which
  *      covers typed referral codes and project-invite joins alike)
@@ -383,6 +388,24 @@ Deno.serve(async (req: Request) => {
     }
 
     // --- Event codes: a key the steward cuts for a whole room ---
+    /** How long a dated event's code stays open past the date — the room
+     *  keeps using the shelf and the presentation well after demo day */
+    const EVENT_CODE_GRACE_DAYS = 60;
+    /** YYYY-MM-DD → the same string; empty/null → null; anything else → undefined */
+    function parseEventDate(raw: unknown): string | null | undefined {
+      const s = String(raw ?? '').trim();
+      if (!s) return null;
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(s) || Number.isNaN(Date.parse(`${s}T00:00:00Z`))) return undefined;
+      return s;
+    }
+    /** The door closes at the end of the 60th day after the event, UTC */
+    function expiryFor(eventDate: string | null): string | null {
+      if (!eventDate) return null;
+      const end = new Date(`${eventDate}T00:00:00Z`);
+      end.setUTCDate(end.getUTCDate() + EVENT_CODE_GRACE_DAYS + 1);
+      return end.toISOString();
+    }
+
     if (action === 'event_code_create') {
       const name = String(body.name ?? '').trim().slice(0, 80);
       if (!name) return json({ error: 'The event needs a name' }, 400);
@@ -411,8 +434,8 @@ Deno.serve(async (req: Request) => {
           return json({ error: 'That code already belongs to a builder — pick another' }, 409);
         }
       }
-      const expiresRaw = String(body.expires_at ?? '').trim();
-      const expiresMs = expiresRaw ? Date.parse(expiresRaw) : NaN;
+      const eventDate = parseEventDate(body.event_date);
+      if (eventDate === undefined) return json({ error: 'Dates are YYYY-MM-DD' }, 400);
       // The studio the event lives in — same slug shape the doorway accepts
       const rawStudio = String(body.studio_slug ?? '').trim().toLowerCase();
       if (rawStudio && !/^[a-z0-9-]{1,40}$/.test(rawStudio)) {
@@ -428,7 +451,8 @@ Deno.serve(async (req: Request) => {
         body: JSON.stringify({
           code,
           name,
-          expires_at: Number.isNaN(expiresMs) ? null : new Date(expiresMs).toISOString(),
+          event_date: eventDate,
+          expires_at: expiryFor(eventDate),
           studio_slug: studioSlug,
           studio_label: studioLabel,
           created_by: callerEmail,
@@ -445,10 +469,25 @@ Deno.serve(async (req: Request) => {
     if (action === 'event_code_set') {
       const code = String(body.code ?? '').trim().toUpperCase();
       if (!code) return json({ error: 'code is required' }, 400);
+      const patch: Record<string, unknown> = {};
+      if (typeof body.active === 'boolean') patch.active = body.active;
+      if ('event_date' in body) {
+        const eventDate = parseEventDate(body.event_date);
+        if (eventDate === undefined) return json({ error: 'Dates are YYYY-MM-DD' }, 400);
+        patch.event_date = eventDate;
+        patch.expires_at = expiryFor(eventDate);
+      }
+      if (typeof body.archived === 'boolean') {
+        patch.archived_at = body.archived ? new Date().toISOString() : null;
+        // An archived event's key no longer opens the door; restoring it
+        // is a deliberate second step (turn on)
+        if (body.archived) patch.active = false;
+      }
+      if (Object.keys(patch).length === 0) return json({ error: 'Nothing to change' }, 400);
       const res = await fetch(rest(`/event_codes?code=eq.${encodeURIComponent(code)}`), {
         method: 'PATCH',
         headers: svc(),
-        body: JSON.stringify({ active: body.active === true }),
+        body: JSON.stringify(patch),
       });
       if (!res.ok) return json({ error: 'Could not update the event code' }, 500);
       return json({ ok: true });

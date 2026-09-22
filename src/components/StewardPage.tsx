@@ -36,6 +36,8 @@ import {
   adminListEventCodes,
   adminCreateEventCode,
   adminSetEventCodeActive,
+  adminSetEventCodeArchived,
+  adminSetEventCodeDate,
   adminReferralStats,
   eventInviteLink,
   type EventCode,
@@ -48,7 +50,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Check, X, Loader2, ChevronDown, ChevronRight, ShieldCheck, KeyRound, Lock, LockOpen, Ticket, Copy, Printer, Trophy, Presentation } from 'lucide-react';
+import { Check, X, Loader2, ChevronDown, ChevronRight, ShieldCheck, KeyRound, Lock, LockOpen, Ticket, Copy, Printer, Trophy, Presentation, Archive, ArchiveRestore, CalendarDays } from 'lucide-react';
 
 /**
  * The Steward page — every steward task in one full-width space (these
@@ -809,7 +811,10 @@ function EventsTab() {
   const [error, setError] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [customCode, setCustomCode] = useState('');
-  const [expires, setExpires] = useState('');
+  const [eventDate, setEventDate] = useState('');
+  const [showArchived, setShowArchived] = useState(false);
+  // Which code's date is being edited inline, and the draft value
+  const [dateEdit, setDateEdit] = useState<{ code: string; value: string } | null>(null);
   // The studio the event lives in ('' = none): joiners become members on
   // the spot, gated studio or not — the code is the stewards' invitation
   const [studioSlug, setStudioSlug] = useState('');
@@ -843,22 +848,17 @@ function EventsTab() {
     setBusyKey('create');
     setError(null);
     try {
-      // A date picked in the steward's timezone should last through that
-      // whole day — expiry lands at local midnight after it
-      const expiresAt = expires
-        ? new Date(`${expires}T23:59:59`).toISOString()
-        : undefined;
       const studio = studios.find(st => st.slug === studioSlug);
       const created = await adminCreateEventCode({
         name: name.trim(),
         code: customCode.trim() || undefined,
-        expiresAt,
+        eventDate: eventDate || undefined,
         ...(studio ? { studioSlug: studio.slug, studioLabel: studio.label } : {}),
       });
       setCodes(list => [created, ...list]);
       setName('');
       setCustomCode('');
-      setExpires('');
+      setEventDate('');
       setStudioSlug('');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not create the code');
@@ -873,6 +873,43 @@ function EventsTab() {
     try {
       await adminSetEventCodeActive(code.code, active);
       setCodes(list => list.map(c => (c.code === code.code ? { ...c, active } : c)));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'That change did not save');
+    } finally {
+      setBusyKey(null);
+    }
+  }
+
+  async function setArchived(code: EventCode, archived: boolean) {
+    setBusyKey(`archive-${code.code}`);
+    setError(null);
+    try {
+      await adminSetEventCodeArchived(code.code, archived);
+      setCodes(list =>
+        list.map(c =>
+          c.code === code.code
+            ? { ...c, archived_at: archived ? new Date().toISOString() : null, active: archived ? false : c.active }
+            : c,
+        ),
+      );
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'That change did not save');
+    } finally {
+      setBusyKey(null);
+    }
+  }
+
+  async function saveDate(code: EventCode, value: string) {
+    setBusyKey(`date-${code.code}`);
+    setError(null);
+    try {
+      await adminSetEventCodeDate(code.code, value || null);
+      // Mirror the server's rule so the row reads right without a refetch
+      const expiresAt = value ? new Date(Date.parse(`${value}T00:00:00Z`) + 61 * 86400_000).toISOString() : null;
+      setCodes(list =>
+        list.map(c => (c.code === code.code ? { ...c, event_date: value || null, expires_at: expiresAt } : c)),
+      );
+      setDateEdit(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'That change did not save');
     } finally {
@@ -898,6 +935,10 @@ function EventsTab() {
     );
   }
 
+  const working = codes.filter(c => !c.archived_at);
+  const archived = codes.filter(c => c.archived_at);
+  const fmtDay = (iso: string) =>
+    new Date(iso.length === 10 ? `${iso}T12:00:00` : iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   const expired = (c: EventCode) =>
     c.expires_at !== null && Date.parse(c.expires_at) < Date.now();
 
@@ -910,7 +951,9 @@ function EventsTab() {
           Builder knows who was in the room together. Share the link, or put the
           code on a slide. Give the code a studio and the room lands inside it:
           every joiner is a member from their first sign-in, no Studio Admin
-          approval needed, gated or not.
+          approval needed, gated or not. The date is context for the room; a
+          dated code stays open for 60 days past it, and an undated one until
+          you turn it off. Archive a code once its event is done.
         </p>
         {error && <p className="text-xs text-destructive">{error}</p>}
 
@@ -935,9 +978,9 @@ function EventsTab() {
             />
             <Input
               type="date"
-              value={expires}
-              onChange={e => setExpires(e.target.value)}
-              title="Last day the code works (optional)"
+              value={eventDate}
+              onChange={e => setEventDate(e.target.value)}
+              title="The day of the event (optional) — the code stays open 60 days past it"
               className="h-7 text-xs w-36"
             />
             <select
@@ -967,11 +1010,13 @@ function EventsTab() {
           </div>
         </div>
 
-        {codes.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No event codes yet.</p>
+        {working.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            {codes.length === 0 ? 'No event codes yet.' : 'Every event code is archived.'}
+          </p>
         ) : (
           <div className="space-y-1.5">
-            {codes.map(c => (
+            {working.map(c => (
               <div key={c.code} className="rounded-lg border px-3 py-2 flex items-center gap-2.5 flex-wrap">
                 <span className="font-mono text-sm font-semibold tracking-wide">{c.code}</span>
                 <span className="text-sm truncate">{c.name}</span>
@@ -994,10 +1039,37 @@ function EventsTab() {
                 ) : (
                   <Badge variant="outline" className="text-[10px] text-green-600 border-green-600/40 shrink-0">live</Badge>
                 )}
-                {c.expires_at && !expired(c) && (
-                  <span className="text-xs text-muted-foreground/70 shrink-0">
-                    until {new Date(c.expires_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                {dateEdit?.code === c.code ? (
+                  <span className="inline-flex items-center gap-1 shrink-0">
+                    <Input
+                      type="date"
+                      value={dateEdit.value}
+                      onChange={e => setDateEdit({ code: c.code, value: e.target.value })}
+                      className="h-6 text-xs w-32"
+                      autoFocus
+                    />
+                    <button
+                      onClick={() => void saveDate(c, dateEdit.value)}
+                      disabled={busyKey !== null}
+                      className="text-xs text-primary hover:underline"
+                    >
+                      {busyKey === `date-${c.code}` ? <Loader2 className="size-3 animate-spin" /> : 'save'}
+                    </button>
+                    <button onClick={() => setDateEdit(null)} className="text-xs text-muted-foreground hover:text-foreground">
+                      cancel
+                    </button>
                   </span>
+                ) : (
+                  <button
+                    onClick={() => setDateEdit({ code: c.code, value: c.event_date ?? '' })}
+                    className="inline-flex items-center gap-1 text-xs text-muted-foreground/70 hover:text-foreground shrink-0"
+                    title={c.event_date ? 'Change the event day (clear it for no expiry)' : 'Set the event day — the code stays open 60 days past it'}
+                  >
+                    <CalendarDays className="size-3" />
+                    {c.event_date
+                      ? <>{fmtDay(c.event_date)}{c.expires_at ? ` · open until ${fmtDay(c.expires_at)}` : ''}</>
+                      : 'no date'}
+                  </button>
                 )}
                 <div className="ml-auto flex items-center gap-2 shrink-0">
                   <button
@@ -1046,6 +1118,54 @@ function EventsTab() {
                     ) : (
                       'turn on'
                     )}
+                  </button>
+                  <button
+                    onClick={() => void setArchived(c, true)}
+                    disabled={busyKey !== null}
+                    className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                    title="Take this event off the working list — the code turns off; its shelf and joiners stay"
+                  >
+                    {busyKey === `archive-${c.code}` ? <Loader2 className="size-3 animate-spin" /> : <Archive className="size-3" />}
+                    archive
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {archived.length > 0 && (
+          <div className="space-y-1.5">
+            <button
+              onClick={() => setShowArchived(v => !v)}
+              className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+            >
+              {showArchived ? <ChevronDown className="size-3" /> : <ChevronRight className="size-3" />}
+              Archived ({archived.length})
+            </button>
+            {showArchived && archived.map(c => (
+              <div key={c.code} className="rounded-lg border border-dashed px-3 py-2 flex items-center gap-2.5 flex-wrap text-muted-foreground">
+                <span className="font-mono text-sm font-semibold tracking-wide">{c.code}</span>
+                <span className="text-sm truncate">{c.name}</span>
+                {c.event_date && <span className="text-xs">{fmtDay(c.event_date)}</span>}
+                <Badge variant="outline" className="shrink-0 tabular-nums">{c.joined} joined</Badge>
+                <div className="ml-auto flex items-center gap-3 shrink-0">
+                  <a
+                    href={eventShowLink(c.code)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 text-xs hover:text-foreground"
+                  >
+                    <Presentation className="size-3" /> Presentation
+                  </a>
+                  <button
+                    onClick={() => void setArchived(c, false)}
+                    disabled={busyKey !== null}
+                    className="inline-flex items-center gap-1 text-xs hover:text-foreground"
+                    title="Back to the working list (still off until you turn it on)"
+                  >
+                    {busyKey === `archive-${c.code}` ? <Loader2 className="size-3 animate-spin" /> : <ArchiveRestore className="size-3" />}
+                    restore
                   </button>
                 </div>
               </div>
