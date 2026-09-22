@@ -44,6 +44,7 @@ const ConnectionsPage = lazy(() => import('@/components/ConnectionsPage').then(m
 const ProfilePage = lazy(() => import('@/components/ProfilePage').then(m => ({ default: m.ProfilePage })));
 const StewardPage = lazy(() => import('@/components/StewardPage').then(m => ({ default: m.StewardPage })));
 const StudioAdminPage = lazy(() => import('@/components/StudioAdminPage').then(m => ({ default: m.StudioAdminPage })));
+const EventAdminPage = lazy(() => import('@/components/EventAdminPage').then(m => ({ default: m.EventAdminPage })));
 const CommonsGallery = lazy(() => import('@/components/CommonsGallery').then(m => ({ default: m.CommonsGallery })));
 const DreamRecorderPage = lazy(() => import('@/components/DreamRecorderPage').then(m => ({ default: m.DreamRecorderPage })));
 
@@ -326,6 +327,8 @@ function App() {
           <StewardPage />
         ) : view === 'studio-admin' ? (
           <StudioAdminPage />
+        ) : view === 'event-admin' ? (
+          <EventAdminPage />
         ) : view === 'connections' ? (
           <ConnectionsPage />
         ) : view === 'profile' ? (

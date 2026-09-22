@@ -38,6 +38,7 @@ import {
   adminSetEventCodeActive,
   adminSetEventCodeArchived,
   adminSetEventCodeDate,
+  adminSetEventAdmin,
   adminReferralStats,
   eventInviteLink,
   type EventCode,
@@ -50,7 +51,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Check, X, Loader2, ChevronDown, ChevronRight, ShieldCheck, KeyRound, Lock, LockOpen, Ticket, Copy, Printer, Trophy, Presentation, Archive, ArchiveRestore, CalendarDays } from 'lucide-react';
+import { Check, X, Loader2, ChevronDown, ChevronRight, ShieldCheck, KeyRound, Lock, LockOpen, Ticket, Copy, Printer, Trophy, Presentation, Archive, ArchiveRestore, CalendarDays, UserPlus } from 'lucide-react';
 
 /**
  * The Steward page — every steward task in one full-width space (these
@@ -815,6 +816,8 @@ function EventsTab() {
   const [showArchived, setShowArchived] = useState(false);
   // Which code's date is being edited inline, and the draft value
   const [dateEdit, setDateEdit] = useState<{ code: string; value: string } | null>(null);
+  // Which code is getting a new Event Admin, and the address being typed
+  const [adminEdit, setAdminEdit] = useState<{ code: string; value: string } | null>(null);
   // The studio the event lives in ('' = none): joiners become members on
   // the spot, gated studio or not — the code is the stewards' invitation
   const [studioSlug, setStudioSlug] = useState('');
@@ -917,6 +920,28 @@ function EventsTab() {
     }
   }
 
+  async function setAdmin(code: EventCode, email: string, remove: boolean) {
+    const addr = email.trim().toLowerCase();
+    if (!addr) return;
+    setBusyKey(`admin-${code.code}`);
+    setError(null);
+    try {
+      await adminSetEventAdmin(code.code, addr, remove);
+      setCodes(list =>
+        list.map(c =>
+          c.code === code.code
+            ? { ...c, admins: remove ? c.admins.filter(a => a !== addr) : [...c.admins.filter(a => a !== addr), addr] }
+            : c,
+        ),
+      );
+      setAdminEdit(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'That change did not save');
+    } finally {
+      setBusyKey(null);
+    }
+  }
+
   async function copyLink(code: EventCode) {
     try {
       await navigator.clipboard.writeText(eventInviteLink(code));
@@ -953,7 +978,11 @@ function EventsTab() {
           every joiner is a member from their first sign-in, no Studio Admin
           approval needed, gated or not. The date is context for the room; a
           dated code stays open for 60 days past it, and an undated one until
-          you turn it off. Archive a code once its event is done.
+          you turn it off. Archive a code once its event is done. Name an Event
+          Admin by email and they get the Event admin page for that event: the
+          room key and presentation links, who's joined, add or remove people,
+          take decks down, and the key's on/off switch — no steward needed on
+          the day.
         </p>
         {error && <p className="text-xs text-destructive">{error}</p>}
 
@@ -1128,6 +1157,53 @@ function EventsTab() {
                     {busyKey === `archive-${c.code}` ? <Loader2 className="size-3 animate-spin" /> : <Archive className="size-3" />}
                     archive
                   </button>
+                </div>
+                {/* Event Admins: the hosts who run the room from the Event
+                    admin page. Named by email so a steward can set them up
+                    before they have an account. */}
+                <div className="basis-full flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground pl-0.5">
+                  <span className="uppercase tracking-wide text-[10px]">Admins</span>
+                  {c.admins.length === 0 && adminEdit?.code !== c.code && <span>none</span>}
+                  {c.admins.map(a => (
+                    <span key={a} className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5">
+                      {a}
+                      <button
+                        onClick={() => void setAdmin(c, a, true)}
+                        disabled={busyKey !== null}
+                        className="hover:text-destructive"
+                        title="Remove this Event Admin"
+                        aria-label={`Remove ${a}`}
+                      >
+                        <X className="size-3" />
+                      </button>
+                    </span>
+                  ))}
+                  {adminEdit?.code === c.code ? (
+                    <form
+                      onSubmit={e => { e.preventDefault(); void setAdmin(c, adminEdit.value, false); }}
+                      className="inline-flex items-center gap-1"
+                    >
+                      <Input
+                        type="email"
+                        value={adminEdit.value}
+                        onChange={e => setAdminEdit({ code: c.code, value: e.target.value })}
+                        placeholder="email"
+                        className="h-6 text-xs w-52"
+                        autoFocus
+                      />
+                      <button type="submit" disabled={busyKey !== null || !adminEdit.value.trim()} className="text-primary hover:underline">
+                        {busyKey === `admin-${c.code}` ? <Loader2 className="size-3 animate-spin" /> : 'add'}
+                      </button>
+                      <button type="button" onClick={() => setAdminEdit(null)} className="hover:text-foreground">cancel</button>
+                    </form>
+                  ) : (
+                    <button
+                      onClick={() => setAdminEdit({ code: c.code, value: '' })}
+                      className="inline-flex items-center gap-1 hover:text-foreground"
+                    >
+                      <UserPlus className="size-3" /> add admin
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

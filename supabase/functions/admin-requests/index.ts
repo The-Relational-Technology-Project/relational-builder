@@ -60,7 +60,11 @@
  *                                          A studio on the code seats every
  *                                       joiner in it, no approval needed
  *                                          → { event_code: {...} }
- *   { action: "event_code_list" }          → { event_codes: [...] }
+ *   { action: "event_code_list" }          → { event_codes: [...] } (each
+ *                                            with admins: string[])
+ *   { action: "event_admin_set", code, email, remove? }
+ *     — name (or drop) an Event Admin: someone who runs the room from the
+ *       Event Admin page without a steward present
  *     (each with a `joined` count of profiles carrying the code)
  *   { action: "event_code_set", code, active?, event_date?, archived? }
  *     — event_date (YYYY-MM-DD or null) re-derives the expiry; archived
@@ -494,26 +498,62 @@ Deno.serve(async (req: Request) => {
     }
 
     if (action === 'event_code_list') {
-      const [codesRes, joinsRes] = await Promise.all([
+      const [codesRes, joinsRes, adminsRes] = await Promise.all([
         fetch(rest('/event_codes?select=*&order=created_at.desc&limit=200'), { headers: svc() }),
         fetch(rest('/profiles?event_code=not.is.null&select=event_code&limit=10000'), {
+          headers: svc(),
+        }),
+        fetch(rest('/event_admins?select=code,email&order=created_at.asc&limit=2000'), {
           headers: svc(),
         }),
       ]);
       if (!codesRes.ok) return json({ error: 'Could not load event codes' }, 500);
       const codes: Array<Record<string, unknown>> = await codesRes.json();
       const joins: Array<{ event_code: string }> = joinsRes.ok ? await joinsRes.json() : [];
+      const admins: Array<{ code: string; email: string }> = adminsRes.ok ? await adminsRes.json() : [];
       const counts = new Map<string, number>();
       for (const j of joins) {
         const key = j.event_code.toUpperCase();
         counts.set(key, (counts.get(key) ?? 0) + 1);
       }
+      const adminsByCode = new Map<string, string[]>();
+      for (const a of admins) {
+        const key = a.code.toUpperCase();
+        adminsByCode.set(key, [...(adminsByCode.get(key) ?? []), a.email]);
+      }
       return json({
         event_codes: codes.map(c => ({
           ...c,
           joined: counts.get(String(c.code).toUpperCase()) ?? 0,
+          admins: adminsByCode.get(String(c.code).toUpperCase()) ?? [],
         })),
       });
+    }
+
+    if (action === 'event_admin_set') {
+      const code = String(body.code ?? '').trim().toUpperCase();
+      const email = String(body.email ?? '').trim().toLowerCase();
+      if (!code || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return json({ error: 'code and a valid email are required' }, 400);
+      }
+      if (body.remove === true) {
+        const res = await fetch(
+          rest(`/event_admins?code=eq.${encodeURIComponent(code)}&email=eq.${encodeURIComponent(email)}`),
+          { method: 'DELETE', headers: svc() },
+        );
+        if (!res.ok) return json({ error: 'Could not remove the event admin' }, 500);
+        return json({ ok: true });
+      }
+      const res = await fetch(rest('/event_admins?on_conflict=code,email'), {
+        method: 'POST',
+        headers: { ...svc(), Prefer: 'resolution=ignore-duplicates' },
+        body: JSON.stringify({ code, email, added_by: callerEmail }),
+      });
+      if (res.status === 409 || res.status === 404) {
+        return json({ error: 'No event with that code' }, 404);
+      }
+      if (!res.ok) return json({ error: 'Could not add the event admin' }, 500);
+      return json({ ok: true });
     }
 
     // --- Referral stats: who is opening the door, and how wide ---

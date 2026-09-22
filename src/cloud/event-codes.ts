@@ -27,6 +27,8 @@ export interface EventCode {
   created_at: string;
   /** Profiles carrying this code — people who joined AND signed in */
   joined: number;
+  /** Emails with the Event Admin page for this event */
+  admins: string[];
 }
 
 /** A builder whose invites have brought people in — typed codes and project
@@ -44,7 +46,7 @@ export interface ReferralStat {
  * shows the studio they're joining and the frame is active before sign-in;
  * the server seats them in it regardless (the code alone vouches).
  */
-export function eventInviteLink(code: string | EventCode): string {
+export function eventInviteLink(code: string | Pick<EventCode, 'code' | 'studio_slug'>): string {
   const base =
     (import.meta.env.VITE_SITE_URL as string | undefined)?.replace(/\/$/, '') ||
     window.location.origin;
@@ -95,6 +97,11 @@ export async function adminSetEventCodeArchived(code: string, archived: boolean)
 /** Change or clear the event's day; the expiry follows (60 days past it) */
 export async function adminSetEventCodeDate(code: string, eventDate: string | null): Promise<void> {
   await adminCall({ action: 'event_code_set', code, event_date: eventDate });
+}
+
+/** Name (or drop) an Event Admin — the host who runs the room without a steward */
+export async function adminSetEventAdmin(code: string, email: string, remove = false): Promise<void> {
+  await adminCall({ action: 'event_admin_set', code, email, ...(remove ? { remove: true } : {}) });
 }
 
 export async function adminReferralStats(): Promise<ReferralStat[]> {

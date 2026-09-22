@@ -17,7 +17,7 @@ import {
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CircleUser, MailCheck, LogOut, MapPin, Palette, HeartHandshake, Sun, Moon, SlidersHorizontal, DoorOpen, KeyRound } from 'lucide-react';
+import { CircleUser, MailCheck, LogOut, MapPin, Palette, HeartHandshake, Sun, Moon, SlidersHorizontal, DoorOpen, KeyRound, PartyPopper } from 'lucide-react';
 import { useUIStore } from '@/store/ui-store';
 import { useCloudStore, readCloudAttachment } from '@/store/cloud-store';
 import { useChatStore } from '@/store/chat-store';
@@ -27,6 +27,7 @@ import { stashAndStartFresh } from '@/project/local-projects';
 import { useConnectionsStore } from '@/store/connections-store';
 import { isSuperAdmin } from '@/cloud/account-requests';
 import { useStudioStore, adminMemberships } from '@/store/studio-store';
+import { fetchMyAdminEvents } from '@/cloud/event-admin';
 import { DesignSystemDialog } from '@/components/DesignSystemDialog';
 import { ProviderSettings } from '@/components/ProviderSettings';
 import { getThemeMode, setThemeMode, type ThemeMode } from '@/theme';
@@ -49,6 +50,16 @@ export function AccountMenu() {
   // Studio Admins get their console in the menu — a role the steward grants
   const memberships = useStudioStore(s => s.memberships);
   const isStudioAdmin = adminMemberships(memberships).length > 0;
+  // Event Admins are named by email on the steward's Codes tab; the menu
+  // asks once per sign-in whether this address is one
+  const [isEventAdmin, setIsEventAdmin] = useState(false);
+  const userEmail = user?.email ?? null;
+  useEffect(() => {
+    if (!userEmail) return;
+    let cancelled = false;
+    fetchMyAdminEvents().then(list => { if (!cancelled) setIsEventAdmin(list.length > 0); });
+    return () => { cancelled = true; };
+  }, [userEmail]);
 
   // The friendly signal that something's waiting on the Connections page —
   // a warm dot on your name, never a red alarm
@@ -136,6 +147,12 @@ export function AccountMenu() {
             <DropdownMenuItem onClick={() => setView('studio-admin')} className="gap-2 text-xs">
               <KeyRound className="size-3.5 text-muted-foreground" />
               Studio admin
+            </DropdownMenuItem>
+          )}
+          {isEventAdmin && (
+            <DropdownMenuItem onClick={() => setView('event-admin')} className="gap-2 text-xs">
+              <PartyPopper className="size-3.5 text-muted-foreground" />
+              Event admin
             </DropdownMenuItem>
           )}
           {isSuperAdmin(user.email) && (

@@ -32,6 +32,7 @@ const VIEW_PATHS: Record<AppView, string> = {
   profile: '/profile',
   steward: '/steward',
   'studio-admin': '/studio-admin',
+  'event-admin': '/event-admin',
 };
 
 /**

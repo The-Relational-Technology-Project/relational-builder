@@ -28,7 +28,8 @@ export type AppView =
   | 'connections'
   | 'profile'
   | 'steward'
-  | 'studio-admin';
+  | 'studio-admin'
+  | 'event-admin';
 
 interface UIState {
   view: AppView;
