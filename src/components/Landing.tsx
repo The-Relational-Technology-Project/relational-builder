@@ -9,6 +9,7 @@ import { MailCheck, Plus, Minus } from 'lucide-react';
 import { PrivacyPage, ContactPage } from './LandingPages';
 import { ConfirmSignInPage } from './ConfirmSignInPage';
 import { isConfirmPath, readConfirmToken } from '@/cloud/confirm-link';
+import { stashPendingEvent, readShowCode } from '@/cloud/event-join';
 
 // The build-a-thon page is for event partners who may never sign in — its
 // own chunk, loaded only at its own address
@@ -17,6 +18,10 @@ const BuildathonPage = lazy(() =>
 );
 const StudiosPage = lazy(() =>
   import('./StudiosPage').then(m => ({ default: m.StudiosPage })),
+);
+// /show/CODE — an event's Share Live decks in order, for the projector
+const EventShowPage = lazy(() =>
+  import('./EventShowPage').then(m => ({ default: m.EventShowPage })),
 );
 
 const ENTERED_KEY = 'rb-entered';
@@ -70,7 +75,11 @@ function captureRefParam(): void {
   const params = new URLSearchParams(window.location.search);
   const ref = params.get('ref');
   if (ref === null) return;
-  if (ref.trim()) sessionStorage.setItem(REF_KEY, ref.trim());
+  if (ref.trim()) {
+    sessionStorage.setItem(REF_KEY, ref.trim());
+    // An existing account spends the same code inside the app (EventJoinBanner)
+    stashPendingEvent(ref);
+  }
   params.delete('ref');
   const qs = params.toString();
   window.history.replaceState(null, '', window.location.pathname + (qs ? `?${qs}` : '') + window.location.hash);
@@ -161,6 +170,14 @@ export function Landing({ children }: { children: ReactNode }) {
     return (
       <Suspense fallback={null}>
         <StudiosPage />
+      </Suspense>
+    );
+  }
+  const showCode = readShowCode();
+  if (showCode) {
+    return (
+      <Suspense fallback={null}>
+        <EventShowPage code={showCode} />
       </Suspense>
     );
   }

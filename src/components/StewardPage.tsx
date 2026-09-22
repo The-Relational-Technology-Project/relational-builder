@@ -42,12 +42,13 @@ import {
   type ReferralStat,
 } from '@/cloud/event-codes';
 import { openRoomKey } from '@/project/room-key';
+import { eventShowLink } from '@/cloud/event-join';
 import { useKnowledgeStore } from '@/store/knowledge-store';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Check, X, Loader2, ChevronDown, ChevronRight, ShieldCheck, KeyRound, Lock, LockOpen, Ticket, Copy, Printer, Trophy } from 'lucide-react';
+import { Check, X, Loader2, ChevronDown, ChevronRight, ShieldCheck, KeyRound, Lock, LockOpen, Ticket, Copy, Printer, Trophy, Presentation } from 'lucide-react';
 
 /**
  * The Steward page — every steward task in one full-width space (these
@@ -1021,6 +1022,18 @@ function EventsTab() {
                     <Printer className="size-3" />
                     Room key
                   </button>
+                  {/* The running order for demo time: every deck pinned to
+                      this event, oldest first, with a Present mode */}
+                  <a
+                    href={eventShowLink(c.code)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                    title="Every Share Live deck pinned to this event, in the order they were shared"
+                  >
+                    <Presentation className="size-3" />
+                    Presentation
+                  </a>
                   <button
                     onClick={() => setActive(c, !c.active)}
                     disabled={busyKey !== null}

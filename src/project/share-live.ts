@@ -237,7 +237,13 @@ export function buildDeckHtml(input: DeckInput): string {
     var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
     var dots = Array.prototype.slice.call(document.querySelectorAll('.dots span'));
     var i = 0;
+    // Inside an event's presentation page (/show/CODE) the deck sits in an
+    // iframe: stepping past either end hands the clicker to the page, which
+    // moves to the next or previous builder. On its own, the deck wraps.
+    var framed = window.parent && window.parent !== window;
     function show(n) {
+      if (framed && n >= slides.length) { window.parent.postMessage({ type: 'rb-deck-next' }, '*'); return; }
+      if (framed && n < 0) { window.parent.postMessage({ type: 'rb-deck-prev' }, '*'); return; }
       i = (n + slides.length) % slides.length;
       slides.forEach(function (s, k) { s.classList.toggle('on', k === i); });
       dots.forEach(function (d, k) { d.classList.toggle('on', k === i); });

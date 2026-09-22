@@ -26,6 +26,7 @@ import { MainNav } from '@/components/MainNav';
 import { useCurrentProjectName } from '@/lib/use-project-name';
 import { ProjectMenu } from '@/components/ProjectMenu';
 import { InviteBanner } from '@/components/InviteBanner';
+import { EventJoinBanner } from '@/components/EventJoinBanner';
 
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
@@ -200,6 +201,9 @@ function App() {
       {/* An invite link that landed in the wrong account says so here — it
           used to be indistinguishable from a link that did nothing at all */}
       <InviteBanner />
+      {/* A room key scanned by someone who already has an account joins
+          the event here — the door only handles newcomers */}
+      <EventJoinBanner />
       {/* Desktop toolbar */}
       <header className="hidden md:flex items-center justify-between gap-3 px-4 py-2 border-b shrink-0">
         {/* min-w-0 so a long project name compresses the left group instead of
