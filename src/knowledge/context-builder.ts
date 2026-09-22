@@ -522,6 +522,10 @@ export interface ContextOptions {
   webTools?: boolean;
   /** Live civic data MCP endpoints matched to this build's city/cities */
   civicData?: CityDataEndpoint[];
+  /** The model can query those endpoints itself this turn (Anthropic's MCP
+   *  connector is attached — Claude provider only). Off means the prompt
+   *  says so plainly instead of letting the model try and fail. */
+  civicDataQueryable?: boolean;
 }
 
 /**
@@ -734,7 +738,7 @@ export function buildPromptContext(
   // Live civic data endpoints matched to this build's city — volatile,
   // since a city can enter the conversation on any turn
   if (options.civicData && options.civicData.length > 0) {
-    turn.push('', formatCivicDataForPrompt(options.civicData));
+    turn.push('', formatCivicDataForPrompt(options.civicData, options.civicDataQueryable === true));
   }
 
   if (options.references && options.references.length > 0) {
