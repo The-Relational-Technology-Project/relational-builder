@@ -25,7 +25,8 @@ import {
 import { isSuperAdmin } from '@/cloud/account-requests';
 import { GalleryToolBuilders } from '@/components/GalleryToolBuilders';
 import { ContributeCallout } from '@/components/ContributeDialog';
-import { EventShowcaseSection } from '@/components/EventShowcase';
+import { EventShelf, EVENT_SCOPE } from '@/components/EventShowcase';
+import { fetchMyEvent } from '@/cloud/event-showcase';
 import { useAuthStore } from '@/store/auth-store';
 import type { Tool, Prompt, Story } from '@/knowledge/types';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -166,6 +167,17 @@ export function CommonsGallery() {
   const [semanticRank, setSemanticRank] = useState<Map<string, number>>(new Map());
   const searchSeq = useRef(0);
   const authUser = useAuthStore(s => s.user);
+  // The event this viewer joined through a room key, if any — its demo
+  // wall is a shelf only the room has
+  const [myEvent, setMyEvent] = useState<{ code: string; name: string } | null>(null);
+  useEffect(() => {
+    if (!authUser) { setMyEvent(null); return; }
+    let cancelled = false;
+    fetchMyEvent().then(e => { if (!cancelled) setMyEvent(e); }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [authUser]);
+  const eventShelf = scope === EVENT_SCOPE ? myEvent : null;
+  const isEventScope = eventShelf !== null;
 
   useEffect(() => {
     fetchPrompts().then(setPrompts).catch(() => {});
@@ -513,12 +525,18 @@ export function CommonsGallery() {
       <div className="max-w-5xl mx-auto px-4 md:px-6 py-6 space-y-5">
         <div className="min-w-0">
           <h1 className="text-xl font-semibold tracking-tight">
-            {scope === 'commons' ? 'Commons Gallery' : galleryNameFor(scopeLabel(scope))}
+            {scope === 'commons'
+              ? 'Commons Gallery'
+              : eventShelf
+                ? galleryNameFor(eventShelf.name)
+                : galleryNameFor(scopeLabel(scope))}
           </h1>
           <p className="text-sm text-muted-foreground">
             {scope === 'commons'
               ? 'Tools, practices, and recipes from the civic commons – ready to be remixed, with attribution and lineage, for your place.'
-              : 'Your studio’s own examples, prompts, and materials — for approved members to build from and remix, with the studio’s principles live in every build.'}
+              : isEventScope
+                ? 'What the room built — pinned by the builders themselves via Share Live. Only people at the event have this shelf.'
+                : 'Your studio’s own examples, prompts, and materials — for approved members to build from and remix, with the studio’s principles live in every build.'}
           </p>
         </div>
 
@@ -529,11 +547,12 @@ export function CommonsGallery() {
         {/* Which library you're browsing — the commons, or a studio you've
             been approved into. The switch only appears once you belong
             somewhere with its own shelf. */}
-        {libraryStudios.length > 0 && (
+        {(libraryStudios.length > 0 || myEvent) && (
           <div className="flex flex-wrap items-center gap-1.5">
             <Library className="size-3.5 text-muted-foreground" />
             {[{ slug: 'commons', label: 'Commons' },
-              ...libraryStudios.map(m => ({ slug: m.studio_slug, label: galleryNameFor(m.studio_label) }))].map(o => (
+              ...libraryStudios.map(m => ({ slug: m.studio_slug, label: galleryNameFor(m.studio_label) })),
+              ...(myEvent ? [{ slug: EVENT_SCOPE, label: galleryNameFor(myEvent.name) }] : [])].map(o => (
               <button
                 key={o.slug}
                 onClick={() => { setScope(o.slug); setCategory('all'); }}
@@ -546,7 +565,7 @@ export function CommonsGallery() {
                 {o.label}
               </button>
             ))}
-            {scope !== 'commons' && myAdminSlugs.has(scope) && (
+            {scope !== 'commons' && !isEventScope && myAdminSlugs.has(scope) && (
               <button
                 onClick={() => setView('studio-admin')}
                 className="inline-flex items-center gap-1 text-xs text-primary hover:underline ml-1"
@@ -560,7 +579,7 @@ export function CommonsGallery() {
         {/* The studio's principles aren't cards to remix — they're the live
             frame every member build carries, layered on the base RTP
             principles. Shown here so members know what's active. */}
-        {scope !== 'commons' && (
+        {scope !== 'commons' && !isEventScope && (
           <StudioPrinciplesPanel
             studioLabel={scopeLabel(scope)}
             principles={studioLibrary.filter(
@@ -569,7 +588,7 @@ export function CommonsGallery() {
           />
         )}
 
-        <div className="flex flex-wrap items-center gap-2">
+        {!isEventScope && <div className="flex flex-wrap items-center gap-2">
           <Input
             value={query}
             onChange={e => setQuery(e.target.value)}
@@ -593,16 +612,15 @@ export function CommonsGallery() {
               ))}
             </div>
           )}
-        </div>
+        </div>}
 
         {error && <p className="text-sm text-destructive">{error}</p>}
 
-        {/* Demo walls from recent events — what each room built, pinned by
-            the builders themselves via Share Live. Renders nothing outside
-            event season. */}
-        {scope === 'commons' && <EventShowcaseSection />}
-
-        {!loaded ? (
+        {/* The event shelf is its own thing — demo decks, not remixable
+            cards — so it replaces the grid rather than filtering it */}
+        {eventShelf ? (
+          <EventShelf code={eventShelf.code} name={eventShelf.name} />
+        ) : !loaded ? (
           <p className="text-sm text-muted-foreground flex items-center gap-2">
             <Loader2 className="size-3.5 animate-spin" /> Loading the gallery…
           </p>

@@ -298,8 +298,8 @@ function ShareLiveContent() {
             className="mt-0.5 accent-primary"
           />
           <span>
-            Add it to the <strong className="font-medium">{event.name}</strong> demo
-            wall in the Gallery — screenshot, one-liner, and links, visible to everyone.
+            Add it to the <strong className="font-medium">{event.name}</strong> shelf
+            in the Gallery — screenshot, one-liner, and links, for everyone at the event.
           </span>
         </label>
       )}
@@ -381,7 +381,7 @@ function DeckResult({ result }: { result: DoneResult }) {
 
       {result.pinned && (
         <p className="text-xs text-muted-foreground text-center">
-          Pinned to your event's demo wall in the Gallery.
+          Pinned to your event's shelf in the Gallery.
         </p>
       )}
       {result.pinError && (
