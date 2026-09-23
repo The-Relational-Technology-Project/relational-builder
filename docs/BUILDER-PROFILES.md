@@ -87,9 +87,22 @@ the prompt as a shape description with the never-re-output rule):
   "technologies": [],             // inferred from project files (package deps, services in env), confirmed in plan
   "ideas": [],                    // written in plan mode
   "commons": { "incorporated": [{ "type": "tool", "count": 2 }], "contributed": [] },
+  "contact": { "email": "…", "links": [{ "label": "…", "url": "…" }] },  // email from the account; links written in plan mode
   "sections": ["name","neighborhood","projects","practice","technologies","dreams","ideas","commons"]
 }
 ```
+
+`contact` is a standard checklist option but never on by default and never
+in the plan's recommended set: the seeded email is the sign-in address, and
+putting it on a public page is the builder's call. When ticked, plan mode
+confirms the email and asks for other places to link (a personal site, a
+newsletter, a social account) as label + URL pairs. Refresh from RB never
+touches `contact` — a cleared email stays cleared.
+
+Every page ends with one small, muted "Made with Relational Builder" line
+linking to relationalbuilder.org. It is the one thing on the page not driven
+by the data file; it is how a visitor who lands on a builder's page finds the
+tool.
 
 This is the page's own copy. Editing the name here does not touch `profiles`,
 which matches the ask ("per profile, edited as needed") and keeps the private

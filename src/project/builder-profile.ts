@@ -36,6 +36,13 @@ export interface ProfileProject {
   description: string;
 }
 
+/** A place a visitor can follow the builder to — personal site, newsletter,
+ *  social account — as the builder wants it labelled */
+export interface ProfileLink {
+  label: string;
+  url: string;
+}
+
 export interface ProfileData {
   name: string;
   neighborhood: string;
@@ -49,6 +56,11 @@ export interface ProfileData {
     incorporated: { type: string; count: number }[];
     contributed: { type: string; count: number }[];
   };
+  /** How to reach the builder — public only once they turn the section on */
+  contact: {
+    email: string;
+    links: ProfileLink[];
+  };
   sections: string[];
 }
 
@@ -61,7 +73,13 @@ export const PROFILE_SECTIONS = [
   'dreams',
   'ideas',
   'commons',
+  'contact',
 ] as const;
+
+/** Sections a fresh page starts with. Contact is a standard option on the
+ *  checklist but never on by default: an email on a public page is the
+ *  builder's call, made in plan mode, not a seed's. */
+export const DEFAULT_PROFILE_SECTIONS: string[] = PROFILE_SECTIONS.filter(s => s !== 'contact');
 
 /** Is the open workspace the builder's profile page? */
 export function isBuilderProfileProject(): boolean {
@@ -96,7 +114,7 @@ export function suggestHandle(displayName: string | null | undefined, email: str
  * prompted for in plan mode.
  */
 export async function gatherProfileSeed(): Promise<ProfileData> {
-  const profile = useAuthStore.getState().profile;
+  const { profile, user } = useAuthStore.getState();
   const cloud = useCloudStore.getState();
   await cloud.refreshProjects().catch(() => {});
   const projects = useCloudStore.getState().projects;
@@ -143,7 +161,8 @@ export async function gatherProfileSeed(): Promise<ProfileData> {
     technologies,
     ideas: [],
     commons: { incorporated, contributed },
-    sections: [...PROFILE_SECTIONS],
+    contact: { email: user?.email?.trim() || '', links: [] },
+    sections: [...DEFAULT_PROFILE_SECTIONS],
   };
 }
 
@@ -178,15 +197,17 @@ function emptyProfile(): ProfileData {
   return {
     name: '', neighborhood: '', about_neighborhood: '', dreams: '',
     projects: [], practice_highlights: [], technologies: [], ideas: [],
-    commons: { incorporated: [], contributed: [] }, sections: [...PROFILE_SECTIONS],
+    commons: { incorporated: [], contributed: [] }, contact: { email: '', links: [] },
+    sections: [...DEFAULT_PROFILE_SECTIONS],
   };
 }
 
 /**
  * Merge a fresh seed into the current data file. RB-sourced fields update;
  * what the builder wrote stays: practice highlights, ideas, sections, project
- * descriptions, and any technology or project they added by hand. A project
- * that left the account stays only if it carries a description.
+ * descriptions, contact (email and links — a cleared email stays cleared),
+ * and any technology or project they added by hand. A project that left the
+ * account stays only if it carries a description.
  */
 export function mergeProfileSeed(current: ProfileData, seed: ProfileData): { next: ProfileData; changes: ProfileChange[] } {
   const changes: ProfileChange[] = [];
