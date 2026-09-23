@@ -1,7 +1,7 @@
 # Public Builder Profiles — Spec
 
-*September 2026. Status: Phases 1 and 2 built (see "What shipped" at the
-end); Phase 3 open. The three owner decisions (address, free-ness, handle
+*September 2026. Status: all three phases built (see "What shipped" at the
+end). The three owner decisions (address, free-ness, handle
 release) are settled below.*
 
 ## The idea, in one sentence
@@ -285,7 +285,20 @@ approach); optional richer connection matching.
   shows the field-by-field diff before writing; opened from the Builder
   Page card.
 
-Not yet: sitemap, per-page OG image, richer connection matching (Phase 3).
+## What shipped in Phase 3 (September 2026)
+
+- `/sitemap.xml` (`api/sitemap.ts`): the app's static addresses plus every
+  published builder page with its last-updated date, listed through the
+  anon-callable `public_builder_pages()` RPC (slug + updated_at only).
+  `robots.txt` names it beside the commons sitemap.
+- `/b/{handle}/og.png` (`api/og.ts`, `@vercel/og` on the edge): a social
+  card rendered from the page's own data file — name, neighborhood, a line
+  of what they built, the address. The `site` function's injected tags
+  point `og:image` at it with `summary_large_image`.
+- Intro matching on page text: the `connect` directory attaches `page_text`
+  (practice highlights, technologies, ideas, dreams from the published data
+  file, only for sections the builder turned on, capped at 600 chars), and
+  `suggestConnection` treats it as topical text alongside the connect note.
 
 ## Non-goals
 

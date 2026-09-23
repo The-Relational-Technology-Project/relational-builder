@@ -351,15 +351,46 @@ Deno.serve(async (req: Request) => {
       // Public builder pages: already public by the builder's own choice to
       // publish, so the directory links to them (docs/BUILDER-PROFILES.md)
       const pageByEmail = new Map<string, string>();
+      // What the page says, for intro matching: practice highlights,
+      // technologies, ideas, dreams — richer than a 140-character note,
+      // and public already. Capped so the directory stays small.
+      const pageTextByEmail = new Map<string, string>();
       if (visible.length > 0) {
         const emails = visible.map((p: { email: string }) => `"${p.email.toLowerCase()}"`).join(',');
         const pagesRes = await fetch(
-          rest(`/community_sites?kind=eq.profile&owner_email=in.(${emails})&select=owner_email,slug`),
+          rest(`/community_sites?kind=eq.profile&owner_email=in.(${emails})&select=id,owner_email,slug`),
           { headers: svc() },
         );
         const appUrl = Deno.env.get('APP_URL') ?? 'https://relationalbuilder.org';
-        for (const row of (pagesRes.ok ? await pagesRes.json() : []) as { owner_email: string; slug: string }[]) {
+        const pages = (pagesRes.ok ? await pagesRes.json() : []) as { id: string; owner_email: string; slug: string }[];
+        for (const row of pages) {
           pageByEmail.set(row.owner_email.toLowerCase(), `${appUrl}/b/${row.slug}/`);
+        }
+        if (pages.length > 0) {
+          const ids = pages.map(p => p.id).join(',');
+          const filesRes = await fetch(
+            rest(`/site_files?site_id=in.(${ids})&path=eq.data%2Fprofile.json&select=site_id,content`),
+            { headers: svc() },
+          );
+          const emailBySite = new Map(pages.map(p => [p.id, p.owner_email.toLowerCase()]));
+          for (const f of (filesRes.ok ? await filesRes.json() : []) as { site_id: string; content: string }[]) {
+            try {
+              const d = JSON.parse(f.content) as Record<string, unknown>;
+              const on = new Set(Array.isArray(d.sections) ? (d.sections as string[]) : []);
+              const pick = (key: string, section: string) =>
+                on.has(section) && Array.isArray(d[key]) ? (d[key] as unknown[]).map(String) : [];
+              const text = [
+                ...pick('practice_highlights', 'practice'),
+                ...pick('technologies', 'technologies'),
+                ...pick('ideas', 'ideas'),
+                on.has('dreams') && typeof d.dreams === 'string' ? d.dreams : '',
+              ].filter(Boolean).join('. ').slice(0, 600);
+              const email = emailBySite.get(f.site_id);
+              if (email && text) pageTextByEmail.set(email, text);
+            } catch {
+              // A broken data file just contributes nothing to matching
+            }
+          }
         }
       }
 
@@ -371,6 +402,7 @@ Deno.serve(async (req: Request) => {
         cal_link: p.cal_link ?? null,
         allow_requests: Boolean(p.allow_requests),
         profile_url: pageByEmail.get(String(p.email).toLowerCase()) ?? null,
+        page_text: pageTextByEmail.get(String(p.email).toLowerCase()) ?? null,
         // Which event they joined through — same-event peers get suggested
         // to each other more readily
         event_code: p.event_code ?? null,

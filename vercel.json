@@ -5,8 +5,16 @@
       "destination": "/api/site?path=:path"
     },
     {
+      "source": "/b/:handle/og.png",
+      "destination": "/api/og?b=:handle"
+    },
+    {
       "source": "/b/:path(.*)",
       "destination": "/api/site?path=:path&b=1"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/api/sitemap"
     },
     {
       "source": "/commons",
