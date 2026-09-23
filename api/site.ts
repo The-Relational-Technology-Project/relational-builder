@@ -22,12 +22,16 @@ export default async function handler(req: Request): Promise<Response> {
   const url = new URL(req.url);
   const path = url.searchParams.get('path') ?? '';
   const upstreamPath = path.replace(/\.html?$/i, '.rbpage');
+  // /b/{handle}/ (builder pages) rides the same proxy; the header tells the
+  // site function which kind of thing this address may answer for
+  const profile = url.searchParams.get('b') === '1';
 
   const res = await fetch(`${ORIGIN}/${upstreamPath}`, {
     method: req.method,
     headers: {
       'x-rb-raw': '1',
       'x-rb-path': encodeURI(path),
+      ...(profile ? { 'x-rb-profile': '1' } : {}),
       ...(req.headers.get('content-type')
         ? { 'content-type': req.headers.get('content-type') as string }
         : {}),

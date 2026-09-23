@@ -1,6 +1,7 @@
 import type { LLMProvider, ChatMessage, ChatOptions, StreamCallbacks, ModelInfo, ContentPart } from './types';
 import { contentToText } from './types';
 import { communityAccessActive, getCommunitySessionToken, refreshCommunityUsageSoon } from '@/store/community-store';
+import { builderProfileProjectId } from '@/project/builder-profile';
 import { MCP_CONNECTOR_BETA, ServerToolProgress, mcpRequestPartsFor, sanitizeMcpServers, webToolsFor } from './web-tools';
 import type { McpServerRef } from './web-tools';
 
@@ -146,6 +147,7 @@ export class ClaudeProvider implements LLMProvider {
     }
 
     const mcpServers = sanitizeMcpServers(opts?.mcpServers);
+    const profileProjectId = this.apiKey ? null : builderProfileProjectId();
     const body = JSON.stringify({
       model,
       max_tokens: maxTokensFor(model),
@@ -159,6 +161,10 @@ export class ClaudeProvider implements LLMProvider {
       // Live civic-data endpoints the model may query this turn; the proxy
       // wires them through Anthropic's MCP connector (see llm-proxy)
       ...(mcpServers.length > 0 ? { mcp_servers: mcpServers } : {}),
+      // A builder's public page builds outside the weekly budget: the proxy
+      // verifies this project is the caller's one profile project before
+      // exempting the request (see llm-proxy), so the flag alone means nothing
+      ...(profileProjectId ? { project_id: profileProjectId } : {}),
     });
 
     // Transient failures (rate limits, overload, network blips) retry with

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuthStore, type BuilderProfile } from '@/store/auth-store';
 import { ReferralCard } from '@/components/ReferralCard';
+import { BuilderPageCard } from '@/components/BuilderPageCard';
 import { useStudioStore, approvedMemberships } from '@/store/studio-store';
 import { DEFAULT_STUDIO_SLUG, type StudioContext } from '@/knowledge/studio-context';
 import { useUIStore } from '@/store/ui-store';
@@ -119,6 +120,10 @@ export function ProfilePage() {
         {/* The invite code rides at the top: sharing the Builder should
             never require scrolling past your own profile */}
         <ReferralCard />
+
+        {/* The public page: the one part of a profile that is meant to be
+            seen — built in the Builder, public only once published */}
+        <BuilderPageCard />
 
         {/* About you */}
         <section className="space-y-4">

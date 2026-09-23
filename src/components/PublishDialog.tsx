@@ -15,6 +15,7 @@ import { buildEnvJs } from '@/project/env-module';
 import { needsBuild, buildStaticSite, materializeSource, vercelServerlessFiles, SERVERLESS_PATH } from '@/project/build-for-publish';
 import { withAppIcons } from '@/project/app-icon';
 import { publishToCommunityHosting } from '@/project/deploy-community';
+import { HANDLE_RE, PROFILE_PROJECT_NAME, suggestHandle } from '@/project/builder-profile';
 import { useAuthStore, cloudEnabled } from '@/store/auth-store';
 import { useCloudStore } from '@/store/cloud-store';
 import { useLocalProjects } from '@/project/local-projects';
@@ -79,6 +80,13 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
   const getAllFiles = useProjectStore(s => s.getAllFiles);
   const fileCount = useProjectStore(s => s.getFileCount());
   const lineage = useProjectStore(s => s.lineage);
+  // The builder's public page publishes one way only: community hosting,
+  // public, at /b/{handle}/ — the handle is the one thing to choose
+  const isProfilePage = lineage?.source === 'builder-profile';
+  const profile = useAuthStore(s => s.profile);
+  const [handle, setHandle] = useState(
+    () => liveSite?.slug ?? suggestHandle(profile?.display_name, useAuthStore.getState().user?.email),
+  );
 
   const netlifyToken = useDeployStore(s => s.netlifyToken);
   const vercelToken = useDeployStore(s => s.vercelToken);
@@ -142,7 +150,13 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
       const siteFiles = withAppIcons(builtFiles, projectName).filter(f => !SERVERLESS_PATH.test(f.path));
 
       if (activeTarget === 'community') {
-        const res = await publishToCommunityHosting(siteFiles, projectName, publicEnvVars, passphrase);
+        const res = await publishToCommunityHosting(
+          siteFiles,
+          isProfilePage ? PROFILE_PROJECT_NAME : projectName,
+          publicEnvVars,
+          passphrase,
+          isProfilePage ? { handle: handle.trim().toLowerCase() } : undefined,
+        );
         setResult({ url: res.url, totalViews: res.total_views, hasPassphrase: res.has_passphrase });
         setLiveSite(publishNameKey, {
           slug: res.slug,
@@ -194,12 +208,15 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
     }
   };
 
-  const targets: { id: DeployTarget; label: string; icon: string }[] = [
-    { id: 'community', label: 'Community', icon: '🌱' },
-    { id: 'download', label: 'Download', icon: '📦' },
-    { id: 'netlify', label: 'Netlify', icon: '▲' },
-    { id: 'vercel', label: 'Vercel', icon: '◆' },
-  ];
+  const targets: { id: DeployTarget; label: string; icon: string }[] = isProfilePage
+    ? [{ id: 'community', label: 'Community', icon: '🌱' }]
+    : [
+        { id: 'community', label: 'Community', icon: '🌱' },
+        { id: 'download', label: 'Download', icon: '📦' },
+        { id: 'netlify', label: 'Netlify', icon: '▲' },
+        { id: 'vercel', label: 'Vercel', icon: '◆' },
+      ];
+  const handleOk = HANDLE_RE.test(handle.trim().toLowerCase());
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -209,22 +226,43 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
         </DialogHeader>
 
         <div className="space-y-4 pt-2">
-          {/* Project name */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium">Project name</label>
-            <Input
-              value={projectName}
-              onChange={e => { setProjectName(e.target.value); resetState(); }}
-              placeholder="my-community-app"
-              className="h-8 text-sm"
-            />
-            <p className="text-xs text-muted-foreground">
-              {fileCount} file{fileCount !== 1 ? 's' : ''} with .reltech.yml manifest
-            </p>
-          </div>
+          {/* Project name — or, for the builder's page, the handle */}
+          {isProfilePage ? (
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium">Your handle</label>
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs text-muted-foreground shrink-0">relationalbuilder.org/b/</span>
+                <Input
+                  value={handle}
+                  onChange={e => { setHandle(e.target.value); resetState(); }}
+                  placeholder="your-name"
+                  className="h-8 text-sm"
+                  spellCheck={false}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {liveSite
+                  ? 'Publishing again replaces your page. A new handle moves it and frees the old address.'
+                  : 'Lowercase letters, digits, and hyphens, 3 to 32 characters. This becomes your public address, and search engines will index the page.'}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium">Project name</label>
+              <Input
+                value={projectName}
+                onChange={e => { setProjectName(e.target.value); resetState(); }}
+                placeholder="my-community-app"
+                className="h-8 text-sm"
+              />
+              <p className="text-xs text-muted-foreground">
+                {fileCount} file{fileCount !== 1 ? 's' : ''} with .reltech.yml manifest
+              </p>
+            </div>
+          )}
 
           {/* Deploy target selector */}
-          <div className="space-y-1.5">
+          {!isProfilePage && <div className="space-y-1.5">
             <label className="text-xs font-medium">Deploy to</label>
             <div className="flex gap-1.5">
               {targets.map(t => (
@@ -243,7 +281,7 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
                 </button>
               ))}
             </div>
-          </div>
+          </div>}
 
           {/* Already live: the link first, so Share and Publish both answer
               "where is it?" — publishing again updates this same site */}
@@ -261,7 +299,7 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
           )}
 
           {/* Community hosting info */}
-          {activeTarget === 'community' && !liveSite && (
+          {activeTarget === 'community' && !liveSite && !isProfilePage && (
             <div className="rounded-lg border border-dashed border-green-600/40 bg-green-600/5 p-3 space-y-1">
               <p className="text-xs font-medium">🌱 Free hosting from the Relational Tech Project</p>
               <p className="text-xs text-muted-foreground leading-relaxed">
@@ -273,8 +311,8 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
             </div>
           )}
 
-          {/* Private site (community hosting only) */}
-          {activeTarget === 'community' && (
+          {/* Private site (community hosting only; never a builder page) */}
+          {activeTarget === 'community' && !isProfilePage && (
             <div className="space-y-1.5">
               <label className="text-xs font-medium flex items-center gap-1">
                 <Lock className="size-3" />
@@ -399,7 +437,7 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
           {/* Deploy button */}
           <Button
             onClick={() => handleDeploy()}
-            disabled={deploying || !projectName.trim() || (activeTarget === 'community' && (!cloudEnabled || !user))}
+            disabled={deploying || (isProfilePage ? !handleOk : !projectName.trim()) || (activeTarget === 'community' && (!cloudEnabled || !user))}
             className="w-full gap-2"
           >
             {deploying ? (

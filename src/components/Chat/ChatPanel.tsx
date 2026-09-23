@@ -678,6 +678,7 @@ export function ChatPanel() {
       stories: relevant?.stories,
       networkEntries: relevant?.networkEntries,
       mode: currentMode,
+      builderProfilePage: useProjectStore.getState().lineage?.source === 'builder-profile',
       connectedServiceGuidance: serviceGuidance,
       projectFiles,
       referenceDocs: useReferencesStore.getState().docs,

@@ -30,6 +30,14 @@
  * dashboard. Opt out with:
  *   <meta name="rb-monitor" content="off">
  *
+ * Builder pages (kind 'profile', docs/BUILDER-PROFILES.md) are served the
+ * same way at /b/{handle}/. The front marks those requests with
+ * x-rb-profile so a page and a site can never answer for each other, and
+ * the served index.html gets its title, description, Open Graph tags,
+ * canonical link, a JSON-LD Person, and a <noscript> summary injected from
+ * the page's own /data/profile.json — the page is a bundled app, and
+ * previews and search snippets don't run scripts.
+ *
  * Fronted by a rewrite on the builder domain so sites get clean URLs:
  *   https://relationalbuilder.org/s/{slug}/
  *
@@ -293,6 +301,105 @@ const ERROR_BEACON = `
 })();
 </script>`;
 
+// ---- Builder pages: head tags from the page's data file ----
+
+function escapeHtml(s: string): string {
+  return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
+}
+
+interface ProfileData {
+  name?: string;
+  neighborhood?: string;
+  about_neighborhood?: string;
+  dreams?: string;
+  projects?: { name?: string; live_url?: string | null; repo_url?: string | null; description?: string }[];
+  practice_highlights?: string[];
+  technologies?: string[];
+  sections?: string[];
+}
+
+/**
+ * What a crawler or a link preview sees. Real text only: everything comes
+ * from the data file the builder published, nothing is generated here.
+ */
+function profileHeadTags(data: ProfileData, canonical: string, appUrl: string): { head: string; noscript: string } {
+  const name = String(data.name ?? '').trim() || 'A relational technologist';
+  const place = String(data.neighborhood ?? '').trim();
+  const title = place ? `${name} — relational technologist in ${place}` : `${name} — relational technologist`;
+  const on = new Set(Array.isArray(data.sections) ? data.sections : []);
+  const projects = (Array.isArray(data.projects) ? data.projects : []).filter(p => p && String(p.name ?? '').trim());
+  const descParts: string[] = [];
+  if (place) descParts.push(`${name} builds relational technology in ${place}.`);
+  else descParts.push(`${name} builds relational technology for their neighborhood.`);
+  if (on.has('projects') && projects.length > 0) {
+    descParts.push(`Projects: ${projects.slice(0, 4).map(p => String(p.name).trim()).join(', ')}.`);
+  }
+  const description = descParts.join(' ').slice(0, 300);
+
+  const person: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name,
+    url: canonical,
+    description,
+  };
+  if (place) person.homeLocation = { '@type': 'Place', name: place };
+  if (on.has('projects') && projects.length > 0) {
+    person.hasCreated = projects.slice(0, 20).map(p => ({
+      '@type': 'CreativeWork',
+      name: String(p.name).trim(),
+      ...(p.live_url ? { url: String(p.live_url) } : {}),
+      ...(p.description ? { description: String(p.description).slice(0, 300) } : {}),
+    }));
+  }
+
+  const head = [
+    `<title>${escapeHtml(title)}</title>`,
+    `<meta name="description" content="${escapeHtml(description)}">`,
+    `<link rel="canonical" href="${escapeHtml(canonical)}">`,
+    `<meta property="og:type" content="profile">`,
+    `<meta property="og:title" content="${escapeHtml(title)}">`,
+    `<meta property="og:description" content="${escapeHtml(description)}">`,
+    `<meta property="og:url" content="${escapeHtml(canonical)}">`,
+    `<meta property="og:image" content="${escapeHtml(appUrl)}/og.png">`,
+    `<meta name="twitter:card" content="summary">`,
+    // JSON.stringify output is safe inside <script> once "</" is broken up
+    `<script type="application/ld+json">${JSON.stringify(person).replace(/<\//g, '<\\/')}</script>`,
+  ].join('\n');
+
+  const lines: string[] = [`<h1>${escapeHtml(name)}</h1>`];
+  if (place) lines.push(`<p>Relational technologist in ${escapeHtml(place)}</p>`);
+  if (on.has('neighborhood') && data.about_neighborhood) lines.push(`<p>${escapeHtml(String(data.about_neighborhood))}</p>`);
+  if (on.has('projects') && projects.length > 0) {
+    lines.push('<h2>Projects</h2><ul>' + projects.map(p => {
+      const label = escapeHtml(String(p.name).trim());
+      return `<li>${p.live_url ? `<a href="${escapeHtml(String(p.live_url))}">${label}</a>` : label}</li>`;
+    }).join('') + '</ul>');
+  }
+  if (on.has('practice') && Array.isArray(data.practice_highlights) && data.practice_highlights.length > 0) {
+    lines.push('<h2>Practice</h2><ul>' + data.practice_highlights.map(h => `<li>${escapeHtml(String(h))}</li>`).join('') + '</ul>');
+  }
+  if (on.has('dreams') && data.dreams) lines.push(`<h2>Neighborhood dreams</h2><p>${escapeHtml(String(data.dreams))}</p>`);
+  return { head, noscript: `<noscript>${lines.join('')}</noscript>` };
+}
+
+/** Replace the shell's own <title> (if any) and add the tags at the end of
+ *  <head>; the noscript goes right after <body>. Spliced by index, never
+ *  String.replace — see the note on the widget injection below. */
+function injectProfileTags(html: string, tags: { head: string; noscript: string }): string {
+  let out = html.replace(/<title>[^<]*<\/title>/i, '');
+  const lower = out.toLowerCase();
+  const headEnd = lower.indexOf('</head>');
+  if (headEnd !== -1) out = out.slice(0, headEnd) + tags.head + '\n' + out.slice(headEnd);
+  else out = tags.head + '\n' + out;
+  const bodyOpen = out.toLowerCase().indexOf('<body');
+  if (bodyOpen !== -1) {
+    const bodyTagEnd = out.indexOf('>', bodyOpen);
+    if (bodyTagEnd !== -1) out = out.slice(0, bodyTagEnd + 1) + '\n' + tags.noscript + out.slice(bodyTagEnd + 1);
+  }
+  return out;
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
   if (req.method !== 'GET' && req.method !== 'HEAD' && req.method !== 'POST') {
@@ -324,11 +431,15 @@ Deno.serve(async (req: Request) => {
       { headers: svc() },
     );
     const sites = siteRes.ok ? await siteRes.json() : [];
-    if (sites.length === 0) {
-      return new Response('This site does not exist (or was taken down).', {
-        status: 404,
-        headers: { 'Content-Type': 'text/plain; charset=utf-8' },
-      });
+    // /b/{handle}/ answers only for builder pages and /s/{slug}/ only for
+    // sites — one address per thing, so the canonical link is the address
+    const wantsProfile = req.headers.get('x-rb-profile') === '1';
+    const isProfile = sites.length > 0 && sites[0].kind === 'profile';
+    if (sites.length === 0 || (req.headers.get('x-rb-raw') === '1' && wantsProfile !== isProfile)) {
+      return new Response(
+        wantsProfile ? 'No builder page at this address (yet).' : 'This site does not exist (or was taken down).',
+        { status: 404, headers: { 'Content-Type': 'text/plain; charset=utf-8' } },
+      );
     }
     const siteId = sites[0].id;
     const siteName = sites[0].name ?? slug;
@@ -500,6 +611,24 @@ Deno.serve(async (req: Request) => {
 
     // Inject the neighbor-note widget and error beacon into served HTML
     let content = file.content as string;
+    if (servedIndex && isProfile && String(file.content_type).startsWith('text/html')) {
+      // Builder pages: head tags + noscript summary from the data file
+      const dataRes = await fetch(
+        rest(`/site_files?site_id=eq.${siteId}&path=eq.data%2Fprofile.json&select=content`),
+        { headers: svc() },
+      );
+      const dataRows = dataRes.ok ? await dataRes.json() : [];
+      let data: ProfileData | null = null;
+      try {
+        data = dataRows[0] ? (JSON.parse(String(dataRows[0].content)) as ProfileData) : null;
+      } catch {
+        data = null;
+      }
+      if (data && typeof data === 'object') {
+        const appUrl = Deno.env.get('APP_URL') ?? 'https://relationalbuilder.org';
+        content = injectProfileTags(content, profileHeadTags(data, `${appUrl}/b/${slug}/`, appUrl));
+      }
+    }
     if (servedIndex && !isPreview && String(file.content_type).startsWith('text/html')) {
       let extras = '';
       if (!/name=["']rb-feedback["']\s+content=["']off["']/i.test(content)) {
