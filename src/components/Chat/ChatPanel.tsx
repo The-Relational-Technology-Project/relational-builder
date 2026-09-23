@@ -106,8 +106,10 @@ const FIX_EFFORT: ThinkingEffort = 'high';
  *  the same task: 87s), and a real 110k-token first build then sat past the
  *  thinking budget at xhigh AND at the high retry — the person saw "nothing
  *  arrived" twice. So on 5.5 every pass runs two rungs below the ladder
- *  above (a first build at `medium`, a fix at `low`) — see the Sept 23 bench
- *  results at the lower rungs before moving these. */
+ *  above (a first build at `medium`, a fix at `low`). Measured on the same
+ *  task the same day (bench/results/2026-09-23T22-23-*-effort-*): high 128s
+ *  and medium 127s to first token, both bundling first try — the rung buys
+ *  nothing in latency between those two, so medium is the cheaper one. */
 function effortFor(model: string, base: ThinkingEffort): ThinkingEffort {
   return /opus-5-5/.test(model) ? lowerEffort(lowerEffort(base)) : base;
 }

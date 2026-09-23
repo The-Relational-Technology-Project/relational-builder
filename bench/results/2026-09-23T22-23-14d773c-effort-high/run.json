@@ -1,0 +1,111 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "v1",
+  "gitCommit": "14d773c",
+  "createdAt": "2026-09-23T22:28:02.948Z",
+  "runId": "2026-09-23T22-23-14d773c",
+  "config": {
+    "trials": 1,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": "high"
+  },
+  "models": [
+    {
+      "alias": "claude-opus-5-5",
+      "providerId": "claude",
+      "modelId": "claude-opus-5-5",
+      "pricing": {
+        "inputPerMTok": 4,
+        "outputPerMTok": 20,
+        "asOf": "2026-09"
+      },
+      "enabled": true
+    }
+  ],
+  "tasks": [
+    {
+      "id": "mutual-aid-board",
+      "version": "v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "claude-opus-5-5",
+      "providerId": "claude",
+      "modelId": "claude-opus-5-5",
+      "taskId": "mutual-aid-board",
+      "taskVersion": "v1",
+      "trial": 1,
+      "startedAt": "2026-09-23T22:23:48.308Z",
+      "plan": null,
+      "latencyMs": 254407,
+      "ttftMs": 128466,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 172039,
+          "chars": 17117
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 82367,
+          "chars": 16318
+        }
+      ],
+      "continuations": 1,
+      "truncatedFinal": false,
+      "outputChars": 33435,
+      "estTokens": {
+        "input": 29549,
+        "output": 8359,
+        "estimated": true
+      },
+      "estCostUsd": 0.28537599999999996,
+      "extraction": {
+        "writes": 9,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/mutual-aid-board/claude-opus-5-5-t1",
+      "fixRound": null,
+      "error": null
+    }
+  ]
+}
