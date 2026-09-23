@@ -31,7 +31,7 @@ export const useProviderStore = create<ProviderState>()(
   persist(
     (set, get) => ({
       activeProviderId: 'claude',
-      activeModelId: 'claude-opus-5',
+      activeModelId: 'claude-opus-5-5',
       apiKeys: {},
       availableModels: [],
       modelPinned: false,
@@ -90,7 +90,7 @@ export const useProviderStore = create<ProviderState>()(
     }),
     {
       name: 'rb-provider-config',
-      version: 6,
+      version: 7,
       migrate: (persisted, version) => {
         const state = persisted as Partial<ProviderState>;
 
@@ -151,6 +151,21 @@ export const useProviderStore = create<ProviderState>()(
           state.activeModelId === 'claude-fable-5'
         ) {
           state.activeModelId = 'claude-fable-5-1';
+        }
+
+        // v7: Opus 5.5 replaces Opus 5 as the community build/edit default
+        // (2026-09-23 bench: every build compiled first try, at a lower list
+        // price). Same rule as v5 — only keyless, un-pinned people still on
+        // the default they never chose move; a pinned or deliberate Opus 5
+        // pick sticks, and Opus 5 stays in the picker.
+        if (
+          version <= 6 &&
+          state.activeProviderId === 'claude' &&
+          state.activeModelId === 'claude-opus-5' &&
+          !state.apiKeys?.['claude'] &&
+          !state.modelPinned
+        ) {
+          state.activeModelId = 'claude-opus-5-5';
         }
 
         return state as ProviderState;

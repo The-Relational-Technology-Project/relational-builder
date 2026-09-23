@@ -6,12 +6,12 @@ import { useProviderStore } from '@/store/provider-store';
 /**
  * Models covered by the RTP community key (mirror of the proxy's allowlist).
  * Fable 5.1 is the default for planning (project strategy, commons work); Opus
- * 5 for first builds AND edits (July 27 launch check: completest
- * mutual-aid-board build the bench has produced, at Opus 4.8's price — half
- * Fable's). Opus 4.8 stays covered as a manual pick; Sonnet 5 as the
- * lighter pick.
+ * 5.5 for first builds AND edits (Sept 23 bench: 3/3 mutual-aid-board builds
+ * compiled first try, matching Fable 5.1 at under half its cost — and cheaper
+ * than Opus 5 at list, $4/$20 vs $5/$25). Opus 5 and Opus 4.8 stay covered
+ * as manual picks; Sonnet 5 as the lighter pick.
  */
-export const COMMUNITY_MODELS = ['claude-opus-5', 'claude-fable-5-1', 'claude-opus-4-8', 'claude-sonnet-5', 'claude-haiku-4-5'];
+export const COMMUNITY_MODELS = ['claude-opus-5-5', 'claude-fable-5-1', 'claude-opus-5', 'claude-opus-4-8', 'claude-sonnet-5', 'claude-haiku-4-5'];
 
 /**
  * Community access (Tier 3): RTP-subsidized Claude for invited builders.
@@ -226,8 +226,8 @@ export function refreshCommunityUsageSoon(delayMs = 2500): void {
  * started).
  */
 export const COMMUNITY_PLAN_MODEL = 'claude-fable-5-1';
-export const COMMUNITY_FIRST_BUILD_MODEL = 'claude-opus-5';
-export const COMMUNITY_EDIT_MODEL = 'claude-opus-5';
+export const COMMUNITY_FIRST_BUILD_MODEL = 'claude-opus-5-5';
+export const COMMUNITY_EDIT_MODEL = 'claude-opus-5-5';
 
 export type CommunityModelStage = 'plan' | 'first-build' | 'edit';
 
