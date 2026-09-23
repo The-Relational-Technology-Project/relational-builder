@@ -123,6 +123,41 @@ export function suggestConnection(
   return best;
 }
 
+/**
+ * One plain sentence on why a builder was raised — built from the same
+ * overlap the match was scored on, so it is always true of the match and
+ * never a model's flourish. Reads like a person explaining: "You've both
+ * been writing about mutual aid and food, and you're both in the Sunset."
+ */
+export function explainMatch(
+  builder: DirectoryBuilder,
+  matched: string[],
+  sameEvent: boolean,
+): string {
+  const place = meaningfulTokens(builder.neighborhood ?? '');
+  // Tokens are stemmed for matching ("libraries" → "librarie"); surface the
+  // word as the builder actually wrote it so the sentence reads like one
+  const surface = (`${builder.note ?? ''} ${builder.page_text ?? ''}`).toLowerCase().split(/[^a-z]+/);
+  const topics = matched
+    .filter(t => !place.includes(t))
+    .slice(0, 3)
+    .map(t => surface.find(w => w === t || w === `${t}s` || w === `${t}es`) ?? t);
+  const sharedPlace = matched.some(t => place.includes(t));
+  const parts: string[] = [];
+  if (topics.length > 0) parts.push(`you've both been writing about ${listWords(topics)}`);
+  if (sharedPlace && builder.neighborhood) parts.push(`you're both around ${builder.neighborhood}`);
+  if (sameEvent) parts.push(sharedPlace || topics.length ? "you're at the same event today" : `you're both at this event and ${builder.name} is working on something close by`);
+  if (parts.length === 0) return `Their note overlaps with what you're building.`;
+  const sentence = parts.join(', and ');
+  return sentence.charAt(0).toUpperCase() + sentence.slice(1) + '.';
+}
+
+function listWords(words: string[]): string {
+  if (words.length <= 1) return words.join('');
+  if (words.length === 2) return `${words[0]} and ${words[1]}`;
+  return `${words.slice(0, -1).join(', ')}, and ${words[words.length - 1]}`;
+}
+
 export async function requestConnection(toId: string, message: string): Promise<void> {
   await call({ action: 'request', to_id: toId, message });
 }
