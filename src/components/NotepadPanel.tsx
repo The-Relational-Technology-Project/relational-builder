@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import ReactMarkdown, { defaultUrlTransform } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useNotepadStore, type ProjectNote } from '@/store/notepad-store';
+import { useDeskStore, type DeskIntro } from '@/store/desk-store';
+import { ConnectionActions } from '@/components/Chat/ConnectionActions';
 import { useProjectStore } from '@/store/project-store';
 import { useChatStore } from '@/store/chat-store';
 import { useAuthStore } from '@/store/auth-store';
@@ -13,7 +15,7 @@ import { fileToDataUrl, isImageFile } from '@/lib/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
-  BookOpenText, Check, ImagePlus, Loader2, NotebookPen, Sparkles, Sprout, X,
+  BookOpenText, Check, HeartHandshake, ImagePlus, Loader2, MapPin, NotebookPen, Sparkles, Sprout, X,
 } from 'lucide-react';
 
 /**
@@ -124,8 +126,81 @@ export function NotepadPanel() {
         )}
         {draftError && <p className="text-xs text-destructive">{draftError}</p>}
 
-        {view === 'story' && story ? <StoryView /> : <NotesView notes={notes} />}
+        {view === 'story' && story ? <StoryView /> : (
+          <>
+            <NotesView notes={notes} />
+            <DeskView />
+          </>
+        )}
       </div>
+    </div>
+  );
+}
+
+// ── The desk: yours across projects ────────────────────────────────────
+
+/**
+ * The part of the Notepad that isn't the project's. It holds matchmaking
+ * offers the person saved from chat — each card keeps RB's one-line reason
+ * and where it came from (project, date), and stays actionable here long
+ * after the pop-up is gone. Persisted per person on this device, never
+ * swapped with the project; rendered only when it holds something.
+ */
+function DeskView() {
+  const intros = useDeskStore(s => s.intros);
+  if (intros.length === 0) return null;
+  return (
+    <div className="pt-3 mt-3 border-t space-y-2">
+      <div>
+        <h3 className="text-xs font-medium flex items-center gap-1.5">
+          <HeartHandshake className="size-3.5 text-primary" />
+          Your desk
+        </h3>
+        <p className="text-[11px] text-muted-foreground mt-0.5">
+          Introductions you kept — across projects, still open.
+        </p>
+      </div>
+      {intros.map(i => <DeskIntroCard key={i.id} intro={i} />)}
+    </div>
+  );
+}
+
+function DeskIntroCard({ intro }: { intro: DeskIntro }) {
+  const { builder } = intro;
+  const from = [
+    intro.context.projectName ? `Saved from ${intro.context.projectName}` : 'Saved',
+    fmtStamp(intro.savedAt),
+  ].join(' · ');
+  return (
+    <div className="group rounded-md border border-dashed border-primary/40 bg-primary/5 p-2 space-y-1.5">
+      <div className="flex items-center gap-1.5">
+        <span className="text-xs font-medium truncate">
+          {intro.context.sameEvent ? `${builder.name} — at your event` : builder.name}
+        </span>
+        {builder.neighborhood && (
+          <span className="inline-flex items-center gap-0.5 text-xs text-muted-foreground shrink-0">
+            <MapPin className="size-2.5" />
+            {builder.neighborhood}
+          </span>
+        )}
+        <button
+          onClick={() => useDeskStore.getState().removeIntro(intro.id)}
+          className="ml-auto opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity shrink-0"
+          title="Take this off your desk"
+        >
+          <X className="size-3" />
+        </button>
+      </div>
+      <p className="text-xs text-foreground/80">{intro.reason}</p>
+      {builder.note && (
+        <p className="text-xs text-muted-foreground">"{builder.note}"</p>
+      )}
+      <ConnectionActions
+        builder={builder}
+        sent={!!intro.requestedAt}
+        onRequested={() => useDeskStore.getState().markRequested(intro.id)}
+      />
+      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{from}</p>
     </div>
   );
 }

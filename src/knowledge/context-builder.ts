@@ -2,6 +2,7 @@ import { formatPrinciplesForPrompt } from './rtp-principles';
 import { INTEGRATIONS, GUIDED_SERVICES } from '@/integrations/catalog';
 import { formatStudioForPrompt, type StudioContext } from './studio-context';
 import { formatCivicDataForPrompt, type CityDataEndpoint } from './civic-data';
+import { DEMO_DATA_EVENT_BLOCK, isDemoDataEvent } from './event-modes';
 import type { DomainFrame } from './frames';
 import { PINNED_VERSIONS } from '@/preview/bundler/versions';
 import { THEME_TEMPLATE } from '@/kit/theme';
@@ -620,6 +621,9 @@ export interface BuilderProfileContext {
   ai_coding_experience: string | null;
   design_system?: string | null;
   local_tech_ecosystem?: string | null;
+  /** The event they joined through, if any — some events swap in a
+   *  demo-context data rule (see event-modes.ts) */
+  event_code?: string | null;
 }
 
 const TONE_BY_FAMILIARITY: Record<string, string> = {
@@ -752,6 +756,12 @@ export function buildPromptContext(
 
   if (options.builderProfile && (options.builderProfile.neighborhood || options.builderProfile.dreams || options.builderProfile.display_name)) {
     sections.push('', formatBuilderProfileForPrompt(options.builderProfile));
+  }
+
+  // A buildathon room with a relaxed data rule — stable for the session
+  // (the event code lives on the profile), so it rides in the cacheable half
+  if (isDemoDataEvent(options.builderProfile?.event_code)) {
+    sections.push('', DEMO_DATA_EVENT_BLOCK);
   }
 
   // The ecosystem rides in BOTH modes: plan mode designs new tools into it,

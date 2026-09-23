@@ -2,13 +2,15 @@ import { useEffect, useState } from 'react';
 import {
   fetchDirectoryCached,
   suggestConnection,
-  requestConnection,
+  explainMatch,
   type DirectoryBuilder,
 } from '@/knowledge/connections';
 import { useAuthStore } from '@/store/auth-store';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { HeartHandshake, CalendarClock, MailPlus, MapPin, X, Loader2, Check, CircleUser } from 'lucide-react';
+import { useDeskStore } from '@/store/desk-store';
+import { useLocalProjects } from '@/project/local-projects';
+import { useCloudStore } from '@/store/cloud-store';
+import { ConnectionActions } from './ConnectionActions';
+import { HeartHandshake, MapPin, X, NotebookPen } from 'lucide-react';
 
 const MEMORY_KEY = 'rb-connection-suggestions';
 
@@ -92,23 +94,22 @@ function countOffer(id: string): void {
  * inline, with the same consent-first actions (book via their shared cal
  * link, or a double-opt-in intro request). Appears only on a genuine
  * topical match, one builder at a time, and at most twice per builder ever —
- * dismissing or acting on one retires them for good.
+ * dismissing, acting on, or saving one to the Notepad desk retires them for
+ * good (a saved offer lives on the desk from then on, still actionable).
  */
 export function ConnectionSuggestion({ conversationText }: { conversationText: string }) {
   const user = useAuthStore(s => s.user);
   const eventCode = useAuthStore(s => s.profile?.event_code ?? null);
   const [suggestion, setSuggestion] = useState<{ builder: DirectoryBuilder; matched: string[]; sameEvent: boolean } | null>(null);
-  const [requesting, setRequesting] = useState(false);
-  const [message, setMessage] = useState('');
-  const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
+
+  // Nothing to match against — render nothing (a stale suggestion can't
+  // show, and the effect below has nothing to do)
+  const active = !!user && conversationText.trim().length > 0;
 
   useEffect(() => {
-    if (!user || !conversationText.trim()) {
-      setSuggestion(null);
-      return;
-    }
+    if (!active) return;
     let cancelled = false;
     fetchDirectoryCached().then(builders => {
       if (cancelled) return;
@@ -119,25 +120,34 @@ export function ConnectionSuggestion({ conversationText }: { conversationText: s
       setSuggestion(next);
     });
     return () => { cancelled = true; };
-  }, [user, conversationText, eventCode]);
+  }, [active, conversationText, eventCode]);
 
-  if (!suggestion) return null;
-  const { builder } = suggestion;
+  if (!active || !suggestion) return null;
+  const { builder, matched, sameEvent } = suggestion;
+  const reason = explainMatch(builder, matched, sameEvent);
 
-  async function sendRequest() {
-    setBusy(true);
-    setError(null);
-    try {
-      await requestConnection(builder.id, message);
-      // The introduction has been made — there is nothing left to suggest
-      retire(builder.id);
-      setSent(true);
-      setRequesting(false);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not send the request');
-    } finally {
-      setBusy(false);
-    }
+  function onRequested() {
+    // The introduction has been made — there is nothing left to suggest
+    retire(builder.id);
+    setSent(true);
+  }
+
+  /** Keep the offer on the Notepad desk: it stays open there, with the
+   *  reason and where it came from, so the person can act on it later */
+  function saveToDesk() {
+    const projectName =
+      useCloudStore.getState().currentProjectName.trim() ||
+      useLocalProjects.getState().currentName.trim() ||
+      null;
+    useDeskStore.getState().saveIntro({
+      builder,
+      reason,
+      context: { projectName, sameEvent },
+      ...(sent ? { requestedAt: Date.now() } : {}),
+    });
+    // The desk is its home now — the pop-up never needs to return
+    retire(builder.id);
+    setSaved(true);
   }
 
   return (
@@ -163,67 +173,28 @@ export function ConnectionSuggestion({ conversationText }: { conversationText: s
           <X className="size-3" />
         </button>
       </div>
+      <p className="text-xs text-foreground/80">{reason}</p>
       {builder.note && (
         <p className="text-xs text-muted-foreground">"{builder.note}"</p>
       )}
-      <div className="flex gap-3 items-center">
-        {builder.profile_url && (
-          <a
-            href={builder.profile_url}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-          >
-            <CircleUser className="size-3" />
-            Builder page
-          </a>
-        )}
-        {builder.cal_link && (
-          <a
-            href={builder.cal_link}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-          >
-            <CalendarClock className="size-3" />
-            Book a call
-          </a>
-        )}
-        {builder.allow_requests && (sent ? (
+      <ConnectionActions builder={builder} sent={sent} onRequested={onRequested} />
+      <div className="pt-0.5">
+        {saved ? (
           <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-            <Check className="size-3" />
-            Request sent — if they accept, you'll both get an intro email
+            <NotebookPen className="size-3" />
+            Saved to your Notepad desk — it stays open there
           </span>
-        ) : !requesting && (
+        ) : (
           <button
-            onClick={() => setRequesting(true)}
+            onClick={saveToDesk}
             className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+            title="Keep this offer on your Notepad desk, across projects, to act on later"
           >
-            <MailPlus className="size-3" />
-            Request intro
+            <NotebookPen className="size-3" />
+            Save to Notepad
           </button>
-        ))}
+        )}
       </div>
-      {requesting && (
-        <div className="space-y-1.5 pt-0.5">
-          <Input
-            value={message}
-            onChange={e => setMessage(e.target.value)}
-            maxLength={500}
-            placeholder={`A short note for ${builder.name} — what you're building, why you'd like to connect`}
-            className="h-8 text-xs"
-          />
-          <div className="flex gap-2 justify-end">
-            <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setRequesting(false)} disabled={busy}>
-              Cancel
-            </Button>
-            <Button size="sm" className="h-6 text-xs" onClick={sendRequest} disabled={busy || !message.trim()}>
-              {busy ? <Loader2 className="size-3 animate-spin" /> : 'Send request'}
-            </Button>
-          </div>
-        </div>
-      )}
-      {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   );
 }
