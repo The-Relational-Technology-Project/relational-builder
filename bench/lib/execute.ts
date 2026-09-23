@@ -348,7 +348,7 @@ async function writeRunJson(
     gitCommit: sha,
     createdAt: new Date().toISOString(),
     runId,
-    config: { trials: opts.trials, timeoutMs: TRIAL_TIMEOUT_MS, planFirst: opts.planFirst, studio: opts.studio ?? null },
+    config: { trials: opts.trials, timeoutMs: TRIAL_TIMEOUT_MS, planFirst: opts.planFirst, studio: opts.studio ?? null, effort: process.env.BENCH_EFFORT?.trim() || null },
     models: opts.models,
     tasks: opts.tasks.map(t => ({ id: t.id, version: t.version })),
     trials,

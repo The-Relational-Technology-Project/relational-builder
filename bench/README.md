@@ -49,7 +49,11 @@ npm run bench -- report bench/results/<runId>   # regenerate report.md (merges s
 
 A full default run (8 models × 1 trial) costs roughly **$1.50–3** at list
 prices. Flags: `--models a,b,c` · `--trials N` · `--dry-run` ·
-`--skip-screenshots` · `--out <dir>` · `--list-models`.
+`--skip-screenshots` · `--out <dir>` · `--list-models`. Env:
+`BENCH_EFFORT=low|medium|high|xhigh` overrides the thinking effort the Claude
+provider sends (unset = the provider's default, the production first-build
+shape); use it to size a new model's production rung — Opus 5.5 at xhigh took
+193–254s to its first token, past the Builder's 180s thinking budget.
 
 Typical loop when triggering from Claude Code: set the keys as environment
 secrets, ask Claude to run the bench, review the screenshots it shows you (or

@@ -99,6 +99,19 @@ const BUILD_EFFORT: ThinkingEffort = 'xhigh';
 const CONTINUATION_EFFORT: ThinkingEffort = 'medium';
 const FIX_EFFORT: ThinkingEffort = 'high';
 
+/** Opus 5.5 thinks much longer per rung than Opus 5 — Anthropic's own
+ *  guidance is that its `medium` beats Opus 5's `high` on coding and that
+ *  `xhigh` is for a measured gain only. Measured here: the Sept 23 bench put
+ *  its first output token at 193–254s at xhigh on a 12k-token task (Opus 5 on
+ *  the same task: 87s), and a real 110k-token first build then sat past the
+ *  thinking budget at xhigh AND at the high retry — the person saw "nothing
+ *  arrived" twice. So on 5.5 every pass runs two rungs below the ladder
+ *  above (a first build at `medium`, a fix at `low`) — see the Sept 23 bench
+ *  results at the lower rungs before moving these. */
+function effortFor(model: string, base: ThinkingEffort): ThinkingEffort {
+  return /opus-5-5/.test(model) ? lowerEffort(lowerEffort(base)) : base;
+}
+
 /** How long a reply may think before its first output token. Thinking deltas
  *  count as activity for the stall watchdog, so a reply that deliberates for
  *  five minutes and then streams a 400-line file into the wall clock never
@@ -1083,12 +1096,12 @@ export function ChatPanel() {
       },
     };
 
-    let effort: ThinkingEffort = wasContinuation
-      ? CONTINUATION_EFFORT
-      : wasFix
-        ? FIX_EFFORT
-        : BUILD_EFFORT;
+    let effort: ThinkingEffort = effortFor(
+      modelForSend,
+      wasContinuation ? CONTINUATION_EFFORT : wasFix ? FIX_EFFORT : BUILD_EFFORT,
+    );
     let effortRetried = false;
+    let thinkingStalled = false;
 
     // At most two attempts: the second only when the first spent its whole
     // thinking budget without a single output token.
@@ -1104,8 +1117,10 @@ export function ChatPanel() {
       const attemptController = controller;
       const watchdog = setInterval(() => {
         if (!sawToken && Date.now() - attemptStartAt > THINKING_BUDGET_MS) {
-          if (effortRetried) stalledAbort = true;
-          else thinkingAbort = true;
+          if (effortRetried) {
+            stalledAbort = true;
+            thinkingStalled = true;
+          } else thinkingAbort = true;
           attemptController.abort();
         } else if (Date.now() - lastActivity > STALL_TIMEOUT_MS) {
           stalledAbort = true;
@@ -1163,10 +1178,17 @@ export function ChatPanel() {
       finalizeMessage(msgId);
       const stalledMsg = useChatStore.getState().messages.find(m => m.id === msgId);
       const got = stalledMsg?.content.trim() ?? '';
-      endGen(`stalled — no data for ${Math.round(STALL_TIMEOUT_MS / 60_000)}+ minutes`);
+      const budgetMinutes = Math.round(THINKING_BUDGET_MS / 60_000);
+      endGen(
+        thinkingStalled
+          ? `no output after ${budgetMinutes} min of thinking, twice`
+          : `stalled — no data for ${Math.round(STALL_TIMEOUT_MS / 60_000)}+ minutes`,
+      );
       recordBuildEvent(
-        'reply_cut_off',
-        `stream stalled (no data for ${Math.round(STALL_TIMEOUT_MS / 60_000)}+ minutes)`,
+        thinkingStalled ? 'thinking_timeout' : 'reply_cut_off',
+        thinkingStalled
+          ? `${genKind} · still no output after ${budgetMinutes} min at ${effort} effort — giving up`
+          : `stream stalled (no data for ${Math.round(STALL_TIMEOUT_MS / 60_000)}+ minutes)`,
       );
       if (currentMode === 'build' && got && stalledMsg) {
         applyMessageFiles(stalledMsg.content, msgId);
@@ -1184,6 +1206,15 @@ export function ChatPanel() {
           appendToMessage(msgId, '\n\n> ⚠️ The stream stalled again — say "continue" to keep the build going.');
           recordBuildEvent('continuation_cap');
         }
+      } else if (!got && thinkingStalled) {
+        // Not a dead connection: the model was deliberating the whole time
+        // and never got to the files — even after the retry with less
+        // deliberation. Say so, so the person doesn't just resend the same
+        // ask into the same wall.
+        appendToMessage(
+          msgId,
+          `**Still thinking after ${budgetMinutes} minutes, twice** — the model spent its whole time budget deliberating and never started writing, even when asked again with less deliberation. Sending again may hit the same wall; try trimming the ask, or pick a different model in the model menu.`,
+        );
       } else if (!got) {
         appendToMessage(
           msgId,

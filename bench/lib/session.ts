@@ -1,5 +1,5 @@
 import { extractOperations } from '@/project/code-extractor';
-import type { ChatMessage, LLMProvider } from '@/providers/types';
+import type { ChatMessage, LLMProvider, ThinkingEffort } from '@/providers/types';
 import { contentToText } from '@/providers/types';
 
 /**
@@ -58,6 +58,20 @@ export interface SessionResult {
   sentChars: number;
 }
 
+/** Thinking effort override for the bench (BENCH_EFFORT=low|medium|high|xhigh).
+ *  Unset means the provider's own default — the request shape production
+ *  sends for a first build. Set it to measure a lower rung: Opus 5.5 thinks
+ *  far longer per level than Opus 5 (Sept 23: 193–254s to first token at
+ *  xhigh, past the Builder's 180s thinking budget), so the production rung
+ *  for a new model is a measurement, not a carry-over. */
+const BENCH_EFFORTS = new Set(['low', 'medium', 'high', 'xhigh']);
+const benchEffort = (() => {
+  const v = process.env.BENCH_EFFORT?.trim();
+  if (!v) return undefined;
+  if (!BENCH_EFFORTS.has(v)) throw new Error(`BENCH_EFFORT must be one of ${[...BENCH_EFFORTS].join(', ')} (got "${v}")`);
+  return v as ThinkingEffort;
+})();
+
 export async function runSession(
   provider: LLMProvider,
   modelId: string,
@@ -112,6 +126,7 @@ export async function runSession(
               onError: err => reject(err),
             },
             ac.signal,
+            benchEffort ? { effort: benchEffort } : undefined,
           )
           .catch(reject); // pre-stream failures (HTTP errors) reject the call itself
       });

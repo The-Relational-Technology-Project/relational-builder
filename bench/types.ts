@@ -94,7 +94,7 @@ export interface RunReport {
   gitCommit: string;
   createdAt: string;
   runId: string;
-  config: { trials: number; timeoutMs: number; planFirst: boolean; studio?: string | null };
+  config: { trials: number; timeoutMs: number; planFirst: boolean; studio?: string | null; effort?: string | null };
   models: BenchModel[];
   tasks: Array<{ id: string; version: string }>;
   trials: TrialResult[];
