@@ -291,10 +291,12 @@ approach); optional richer connection matching.
   published builder page with its last-updated date, listed through the
   anon-callable `public_builder_pages()` RPC (slug + updated_at only).
   `robots.txt` names it beside the commons sitemap.
-- `/b/{handle}/og.png` (`api/og.ts`, `@vercel/og` on the edge): a social
-  card rendered from the page's own data file — name, neighborhood, a line
-  of what they built, the address. The `site` function's injected tags
-  point `og:image` at it with `summary_large_image`.
+- Per-page OG image: attempted with `@vercel/og` in a plain `api/` edge
+  function and reverted the same day — the Vercel build failed on the
+  library's Node `module` and `.wasm?module` imports. Pages use the app's
+  static `/og.png` for now. If it comes back, it needs a bundling approach
+  proven on a preview deploy first (a Next-style route, or an SVG-to-PNG
+  step at publish time stored as a site file).
 - Intro matching on page text: the `connect` directory attaches `page_text`
   (practice highlights, technologies, ideas, dreams from the published data
   file, only for sections the builder turned on, capped at 600 chars), and
