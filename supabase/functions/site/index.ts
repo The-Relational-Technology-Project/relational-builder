@@ -361,11 +361,8 @@ function profileHeadTags(data: ProfileData, canonical: string, appUrl: string): 
     `<meta property="og:title" content="${escapeHtml(title)}">`,
     `<meta property="og:description" content="${escapeHtml(description)}">`,
     `<meta property="og:url" content="${escapeHtml(canonical)}">`,
-    // The card is rendered from this same data file by api/og.ts
-    `<meta property="og:image" content="${escapeHtml(canonical)}og.png">`,
-    `<meta property="og:image:width" content="1200">`,
-    `<meta property="og:image:height" content="630">`,
-    `<meta name="twitter:card" content="summary_large_image">`,
+    `<meta property="og:image" content="${escapeHtml(appUrl)}/og.png">`,
+    `<meta name="twitter:card" content="summary">`,
     // JSON.stringify output is safe inside <script> once "</" is broken up
     `<script type="application/ld+json">${JSON.stringify(person).replace(/<\//g, '<\\/')}</script>`,
   ].join('\n');
