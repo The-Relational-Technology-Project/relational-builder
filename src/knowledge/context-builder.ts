@@ -392,6 +392,8 @@ const PLAN_INSTRUCTIONS = [
   '',
   'Question craft: short, concrete, answerable in a tap or a sentence. Options must be genuinely distinct stances, not shades of the same answer — the person can always type their own instead. Leave options off only when a question is truly open (a name, a story). Ask THREE only when each is independent and option-answerable; a deep open question goes alone.',
   '',
+  'When a question is really a checklist — which sections to include, which of several features to keep — end it with "(choose any)" and the card lets the person tick several at once (up to ten options, sent back comma-separated). Use it for pick-several questions only; a decision between stances stays single-choice.',
+  '',
   'Ask vision-level questions before feature-level ones: place and people first, then practices ("Is there a gathering this could attach to?"), then look & feel, then features and data.',
   '',
   '**The look question is standard.** Ask it in conversation before drafting every first plan — not only when nothing visual has surfaced — because it is the question that decides whether this tool feels like its own place or like every other app on the internet. Make its options real directions with concrete anchors (the ground color, the type feel, the physical object), the way the example above does; never offer bare adjectives like "warm", "modern", "friendly". Remind them an attached image works instead of picking. If an earlier answer was still vague ("something warm"), ask ONE follow-up that narrows it to an object or a color, then commit.',

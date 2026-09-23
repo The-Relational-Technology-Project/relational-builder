@@ -794,7 +794,15 @@ export interface PlanQuestion {
   question: string;
   /** Tappable answer choices (dash bullets under the question); may be empty */
   options: string[];
+  /** "(choose any)" questions: several pills can be on at once; the card sends
+   *  them together as one comma-joined answer */
+  multi: boolean;
 }
+
+/** The trailing marker that turns a question into a multi-select card */
+const MULTI_MARKER_RE = /\s*\((?:choose|pick|select|tick)\s+(?:any|all that apply|several|more than one|as many as you like)\)\s*$/i;
+const MAX_OPTIONS = 4;
+const MAX_MULTI_OPTIONS = 10;
 
 /**
  * Pull the "Question for you" section out of a plan. Questions render ONLY
@@ -811,15 +819,18 @@ export function extractPlanQuestions(content: string): PlanQuestion[] {
     const line = raw.trim();
     const qMatch = /^\d+\.\s+(.+)$/.exec(line);
     if (qMatch) {
-      const question = qMatch[1].replace(/\*\*/g, '').trim();
-      if (question.length > 5) questions.push({ question, options: [] });
+      const heading = qMatch[1].replace(/\*\*/g, '').trim();
+      const multi = MULTI_MARKER_RE.test(heading);
+      const question = heading.replace(MULTI_MARKER_RE, '').trim();
+      if (question.length > 5) questions.push({ question, options: [], multi });
       continue;
     }
     const oMatch = /^[-*]\s+(.+)$/.exec(line);
     if (oMatch && questions.length > 0) {
       const option = oMatch[1].replace(/\*\*/g, '').trim();
       const current = questions[questions.length - 1];
-      if (option && current.options.length < 4) current.options.push(option);
+      const cap = current.multi ? MAX_MULTI_OPTIONS : MAX_OPTIONS;
+      if (option && current.options.length < cap) current.options.push(option);
     }
   }
   return questions.slice(0, 3);
@@ -929,10 +940,20 @@ function PlanQuestionCard({
   const [text, setText] = useState('');
   // A tapped option waiting for its promised content ("Here's the title…")
   const [pendingOption, setPendingOption] = useState<string | null>(null);
-  const stagedIsCustom = !!staged && !question.options.includes(staged);
+  // Multi-select: pills toggled on so far, sent together on Done
+  const [picked, setPicked] = useState<string[]>([]);
+  const stagedIsCustom = !!staged && !question.options.includes(staged) && !question.multi;
 
   const submitText = () => {
     const value = text.trim();
+    if (question.multi) {
+      // Typed text joins the picked pills as one more item
+      if (!value && picked.length === 0) return;
+      setTyping(false);
+      setText('');
+      onAnswer([...picked, ...(value ? [value] : [])].join(', '));
+      return;
+    }
     // With a content-promising option staged, empty text still sends the
     // option alone — the person can decline to elaborate
     if (!value && !pendingOption) return;
@@ -946,6 +967,10 @@ function PlanQuestionCard({
   };
 
   const tapOption = (option: string) => {
+    if (question.multi) {
+      setPicked(prev => prev.includes(option) ? prev.filter(o => o !== option) : [...prev, option]);
+      return;
+    }
     if (optionPromisesContent(option)) {
       setPendingOption(option);
       setTyping(true);
@@ -962,9 +987,15 @@ function PlanQuestionCard({
         : 'border-border text-foreground hover:bg-primary/10 hover:border-primary/50'
     } disabled:opacity-50`;
 
+  const isOn = (option: string) =>
+    question.multi ? picked.includes(option) : staged === option || pendingOption === option;
+
   return (
     <div className="w-full rounded-lg border border-dashed border-primary/50 px-3 py-2.5 space-y-2">
-      <p className="text-sm">{question.question}</p>
+      <p className="text-sm">
+        {question.question}
+        {question.multi && <span className="ml-1.5 text-xs text-muted-foreground">choose any</span>}
+      </p>
       {(question.options.length > 0 || stagedIsCustom) && (
         <div className="flex flex-wrap gap-1.5">
           {question.options.map(option => (
@@ -972,9 +1003,9 @@ function PlanQuestionCard({
               key={option}
               disabled={disabled}
               onClick={() => tapOption(option)}
-              className={pill(staged === option || pendingOption === option)}
+              className={pill(isOn(option))}
             >
-              {(staged === option || pendingOption === option) && <Check className="size-3 shrink-0" />}
+              {isOn(option) && <Check className="size-3 shrink-0" />}
               {option}
             </button>
           ))}
@@ -993,6 +1024,17 @@ function PlanQuestionCard({
               Something else…
             </button>
           )}
+          {question.multi && !typing && (
+            <Button
+              size="sm"
+              className="h-7 text-xs"
+              disabled={disabled || picked.length === 0}
+              onClick={() => onAnswer(picked.join(', '))}
+            >
+              <ArrowRight className="size-3 mr-1" />
+              {staged ? 'Update' : 'Done'}{picked.length > 0 ? ` (${picked.length})` : ''}
+            </Button>
+          )}
         </div>
       )}
       {typing && (
@@ -1009,10 +1051,10 @@ function PlanQuestionCard({
                 setPendingOption(null);
               }
             }}
-            placeholder={pendingOption ? 'Add it here (or send as is)…' : 'Your answer…'}
+            placeholder={pendingOption ? 'Add it here (or send as is)…' : question.multi ? 'Add one of your own…' : 'Your answer…'}
             className="flex-1 min-w-0 rounded-md border bg-background px-2.5 py-1.5 text-xs placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
           />
-          <Button size="sm" className="h-7 text-xs shrink-0" disabled={disabled || (!text.trim() && !pendingOption)} onClick={submitText}>
+          <Button size="sm" className="h-7 text-xs shrink-0" disabled={disabled || (!text.trim() && !pendingOption && picked.length === 0)} onClick={submitText}>
             <ArrowRight className="size-3" />
           </Button>
         </div>
