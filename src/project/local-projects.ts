@@ -58,8 +58,10 @@ interface LocalProjectsState {
   shelf: LocalProjectMeta[];
 }
 
+// Guarded: this module loads under Vite SSR too (the bench harness), where
+// there is no localStorage. readIndex() below already swallows that case.
 export const useLocalProjects = create<LocalProjectsState>(() => ({
-  currentId: localStorage.getItem(CURRENT_KEY),
+  currentId: typeof localStorage === 'undefined' ? null : localStorage.getItem(CURRENT_KEY),
   currentName: '',
   savedAt: null,
   shelf: readIndex(),

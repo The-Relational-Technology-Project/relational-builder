@@ -19,6 +19,17 @@ export const BENCH_MODELS: BenchModel[] = [
     enabled: true,
   },
   {
+    alias: 'claude-opus-5-5',
+    providerId: 'claude',
+    modelId: 'claude-opus-5-5',
+    // Cheaper than Opus 5 at list ($4/$20 vs $5/$25). Thinking can't be
+    // disabled on 5.5 and its effort default is medium, not high — the Claude
+    // provider sends effort explicitly (xhigh for builds), so the bench
+    // measures the same request shape production would send.
+    pricing: { inputPerMTok: 4, outputPerMTok: 20, asOf: '2026-09' },
+    enabled: true,
+  },
+  {
     alias: 'claude-opus-4-8',
     providerId: 'claude',
     modelId: 'claude-opus-4-8',
