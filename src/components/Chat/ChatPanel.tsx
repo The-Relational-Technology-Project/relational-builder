@@ -10,6 +10,16 @@ import { useKnowledgeStore } from '@/store/knowledge-store';
 import { buildPromptContext, TURN_BREAK } from '@/knowledge/context-builder';
 import { registry } from '@/providers/registry';
 import type { StreamCallbacks, ThinkingEffort } from '@/providers/types';
+import { addPhotoAssetFromDataUrl, attachedPhotosNote, type AddedAsset } from '@/project/assets';
+import type { QueuedPhoto } from '@/store/chat-store';
+
+/** Extras a send can carry beyond its text and reference images */
+interface SendOptions {
+  /** Photos marked "In the app": stored as project assets as the message sends */
+  photos?: QueuedPhoto[];
+  /** A retry of a message whose photos were already stored: the note that names them */
+  photoNote?: string;
+}
 import { CLAUDE_MODELS } from '@/providers/claude';
 import { shortModelName } from '@/providers/model-label';
 import { useEnvStore } from '@/store/env-store';
@@ -281,7 +291,11 @@ function BuildRecovery() {
  * and resend the same ask. When the reply DID stream recoverable files,
  * BuildRecovery is the better offer, so this banner stands down.
  */
-function RetryBanner({ onRetry }: { onRetry: (content: string, attachments?: string[]) => void }) {
+function RetryBanner({
+  onRetry,
+}: {
+  onRetry: (content: string, attachments?: string[], opts?: SendOptions) => void;
+}) {
   const messages = useChatStore(s => s.messages);
   const [dismissedId, setDismissedId] = useState<string | null>(null);
 
@@ -295,7 +309,13 @@ function RetryBanner({ onRetry }: { onRetry: (content: string, attachments?: str
     if (!ask || ask.role !== 'user' || ask.isAuto) return null;
     // Recoverable files streamed before the error → BuildRecovery's territory
     if (extractOperations(last.content).writes.length > 0) return null;
-    return { failedId: last.id, askId: ask.id, content: ask.content, attachments: ask.attachments };
+    return {
+      failedId: last.id,
+      askId: ask.id,
+      content: ask.content,
+      attachments: ask.attachments,
+      photoNote: ask.photoNote,
+    };
   }, [last, ask, dismissedId]);
 
   if (!candidate) return null;
@@ -308,7 +328,9 @@ function RetryBanner({ onRetry }: { onRetry: (content: string, attachments?: str
         m => m.id !== candidate.failedId && m.id !== candidate.askId,
       ),
     }));
-    onRetry(candidate.content, candidate.attachments);
+    // The photos themselves were stored on the first try — only the note
+    // that names them needs to ride again
+    onRetry(candidate.content, candidate.attachments, { photoNote: candidate.photoNote });
   };
 
   return (
@@ -420,7 +442,7 @@ export function ChatPanel() {
   // asks the same question through the same hook (composer-gate.tsx)
   const needsKey = useNeedsKey();
 
-  const handleSend = useCallback(async (content: string, attachments?: string[]) => {
+  const handleSend = useCallback(async (content: string, attachments?: string[], opts?: SendOptions) => {
     // Mode is read fresh from the store: "Build this plan" flips it right before sending
     const currentMode = useChatStore.getState().mode;
     // Message mode is human-to-human: the note joins the conversation (and
@@ -533,7 +555,33 @@ export function ChatPanel() {
     // finish looks dropped. History is snapshotted first so retrieval and
     // the provider payload both see the conversation as it was.
     const priorMessages = useChatStore.getState().messages;
-    addUserMessage(content, attachments, wasFix ? { label: fixLabel ?? 'Automatic fix' } : undefined);
+    // Photos the person marked "In the app" become project files right now,
+    // before the snapshot is built, so this very turn sees them in the file
+    // list — and the note tells the model which attached image is which
+    // asset, and how to reference it. Their own words say where it goes.
+    let photoNote = opts?.photoNote;
+    if (opts?.photos?.length && currentMode === 'build') {
+      const stored: AddedAsset[] = [];
+      for (const photo of opts.photos) {
+        try {
+          stored.push(addPhotoAssetFromDataUrl(photo.dataUrl, photo.name));
+        } catch (e) {
+          useChatStore.getState().addSyncMessage(
+            `Couldn't add **${photo.name}** to the project — ${e instanceof Error ? e.message : 'unknown error'}`,
+            'Photo',
+          );
+        }
+      }
+      if (stored.length > 0) {
+        photoNote = attachedPhotosNote(stored, useProjectStore.getState().getAllFiles());
+      }
+    }
+    addUserMessage(
+      content,
+      attachments,
+      wasFix ? { label: fixLabel ?? 'Automatic fix' } : undefined,
+      photoNote,
+    );
     setIsGenerating(true);
     useChatStore.getState().beginProgress();
 
@@ -1194,9 +1242,14 @@ export function ChatPanel() {
     if (!useChatStore.getState().queuedMessage) return;
     const wasFix = useChatStore.getState().pendingFixSend;
     const attachments = useChatStore.getState().queuedAttachments;
+    const photos = useChatStore.getState().queuedPhotos;
     useChatStore.getState().clearQueuedMessage();
     if (wasFix) setMode('build');
-    handleSend(queuedMessage, attachments.length > 0 ? attachments : undefined);
+    handleSend(
+      queuedMessage,
+      attachments.length > 0 ? attachments : undefined,
+      photos.length > 0 ? { photos } : undefined,
+    );
   }, [queuedMessage, isGenerating, setMode, handleSend]);
 
   const handleBuildPlan = useCallback(() => {

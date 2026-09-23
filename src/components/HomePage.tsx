@@ -3,7 +3,7 @@ import { HomeDashboard } from '@/components/HomeDashboard';
 import { MessageInput } from '@/components/Chat/MessageInput';
 import { useNeedsKey, NeedsKeyHint } from '@/components/Chat/composer-gate';
 import { CommunityBudgetBanner } from '@/components/CommunityBudgetBanner';
-import { useChatStore } from '@/store/chat-store';
+import { useChatStore, type QueuedPhoto } from '@/store/chat-store';
 import { useUIStore } from '@/store/ui-store';
 import { startNewProject } from '@/project/new-project';
 
@@ -26,12 +26,12 @@ export function HomePage() {
   const setMode = useChatStore(s => s.setMode);
   const needsKey = useNeedsKey();
 
-  const handleSend = useCallback((content: string, attachments?: string[]) => {
+  const handleSend = useCallback((content: string, attachments?: string[], opts?: { photos?: QueuedPhoto[] }) => {
     const chosenMode = useChatStore.getState().mode;
     startNewProject();
     // clearMessages resets mode to 'plan' — the person's choice survives
     useChatStore.getState().setMode(chosenMode);
-    useChatStore.getState().queueMessage(content, attachments);
+    useChatStore.getState().queueMessage(content, attachments, opts?.photos);
     setView('builder');
   }, [setView]);
 

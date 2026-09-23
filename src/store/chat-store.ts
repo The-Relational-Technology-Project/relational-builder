@@ -8,6 +8,14 @@ import { collapseFileBlocks } from '@/project/code-extractor';
 /** `message` is human-to-human: a note for collaborators the AI never sees */
 export type ChatMode = 'plan' | 'build' | 'message';
 
+/** A photo attached to a build message, compressed for the project (see
+ * `compressToDataUrl` in project/assets.ts) and waiting to be stored as an
+ * asset the moment the message sends. `name` is the original file name. */
+export interface QueuedPhoto {
+  name: string;
+  dataUrl: string;
+}
+
 export interface GenerationProgress {
   startedAt: number;
   /** waiting → thinking (reasoning streams) → writing (reply streams) */
@@ -45,6 +53,11 @@ export interface DisplayMessage {
   autoLabel?: string;
   /** Attached images as data URLs (downscaled client-side) */
   attachments?: string[];
+  /** For a build message whose attached photos were stored as project
+   * assets: the wiring note the model sees after the message text (asset
+   * names, paths, how to reference them). Persisted with the message so
+   * later turns still know which image is which file. */
+  photoNote?: string;
   /** True for assistant replies that ended in a provider/network error —
    * the reply's files were never applied, so a retry loses nothing */
   errored?: boolean;
@@ -81,7 +94,10 @@ interface ChatState {
    *  the one input the composer silently refused mid-generation — the person
    *  pressed send, nothing happened, and nothing said why. */
   queuedAttachments: string[];
-  queueMessage: (content: string, attachments?: string[]) => void;
+  /** Attached photos (already compressed for the project) waiting to be
+   * stored as assets when the queued message sends */
+  queuedPhotos: QueuedPhoto[];
+  queueMessage: (content: string, attachments?: string[], photos?: QueuedPhoto[]) => void;
   clearQueuedMessage: () => void;
   /** True while the queued/current send is an error-fix request — fix
    * attempts never re-arm the automatic pass, so it can't loop */
@@ -143,6 +159,7 @@ interface ChatState {
     content: string,
     attachments?: string[],
     auto?: { label?: string },
+    photoNote?: string,
   ) => void;
   /** Add a Builder-generated note (e.g. GitHub pull summary) to the conversation */
   addSyncMessage: (content: string, label?: string) => void;
@@ -189,6 +206,7 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
 
   queuedMessage: null,
   queuedAttachments: [],
+  queuedPhotos: [],
   // A person's queued follow-up supersedes any pending auto-fix — their
   // intent wins, and it must not inherit the fix send's special handling.
   // Appends rather than replaces. A person who gets no clear acknowledgement
@@ -198,7 +216,7 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
   // chip shows the combined text, so nothing is lost invisibly. Auto sends
   // (fixes, continuations) still replace: those are the Builder's own and
   // must not accumulate.
-  queueMessage: (content: string, attachments?: string[]) =>
+  queueMessage: (content: string, attachments?: string[], photos?: QueuedPhoto[]) =>
     set(state => ({
       queuedMessage:
         state.queuedMessage && !state.pendingFixSend && !state.pendingContinuationSend
@@ -206,11 +224,12 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
           : content,
       queuedAttachments:
         [...(state.queuedAttachments ?? []), ...(attachments ?? [])].slice(0, 4),
+      queuedPhotos: [...(state.queuedPhotos ?? []), ...(photos ?? [])].slice(0, 4),
       pendingFixSend: false,
       pendingFixLabel: null,
       pendingContinuationSend: false,
     })),
-  clearQueuedMessage: () => set({ queuedMessage: null, queuedAttachments: [] }),
+  clearQueuedMessage: () => set({ queuedMessage: null, queuedAttachments: [], queuedPhotos: [] }),
   pendingFixSend: false,
   autoFixArmed: false,
   pendingFixLabel: null,
@@ -218,6 +237,7 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
     set({
       queuedMessage: content,
       queuedAttachments: [],
+  queuedPhotos: [],
       pendingFixSend: true,
       pendingFixLabel: label ?? 'Automatic fix',
     }),
@@ -230,6 +250,7 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
     set(state => ({
       queuedMessage: content,
       queuedAttachments: [],
+  queuedPhotos: [],
       pendingFixSend: true,
       pendingFixLabel: label ?? 'Finishing the build',
       pendingContinuationSend: true,
@@ -290,13 +311,14 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
       mode,
     }),
 
-  addUserMessage: (content: string, attachments?: string[], auto?: { label?: string }) => {
+  addUserMessage: (content: string, attachments?: string[], auto?: { label?: string }, photoNote?: string) => {
     const msg: DisplayMessage = {
       id: nextId(),
       role: 'user',
       content,
       timestamp: Date.now(),
       attachments: attachments?.length ? attachments : undefined,
+      photoNote: photoNote || undefined,
       isAuto: auto ? true : undefined,
       autoLabel: auto?.label,
     };
@@ -465,7 +487,11 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
       // A reply's own code is already in the project snapshot — send the
       // conversation, not a second copy of every file (see collapseFileBlocks)
       const body =
-        msg.role === 'assistant' ? collapseFileBlocks(msg.content) : msg.content;
+        msg.role === 'assistant'
+          ? collapseFileBlocks(msg.content)
+          : msg.photoNote
+            ? `${msg.content}\n\n${msg.photoNote}`
+            : msg.content;
       // Prefix the omission note onto the first user message in the window
       const text =
         !injectedNote && omittedNote && msg.role === 'user'

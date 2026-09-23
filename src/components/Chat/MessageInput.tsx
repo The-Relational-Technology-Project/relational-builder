@@ -1,9 +1,10 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { SendHorizontal, Square, Map, Hammer, ImagePlus, X, FolderOpen, Globe, Clock, MessagesSquare } from 'lucide-react';
-import { useChatStore, type ChatMode } from '@/store/chat-store';
+import { useChatStore, type ChatMode, type QueuedPhoto } from '@/store/chat-store';
 import { useCloudStore } from '@/store/cloud-store';
 import { fileToDataUrl, isImageFile } from '@/lib/image';
+import { compressToDataUrl } from '@/project/assets';
 import { addReferenceDoc, isReferenceFile, REFERENCE_ACCEPT } from '@/project/references';
 import { addDataFile, isDataFile, DATA_ACCEPT, dataLoadHint } from '@/project/data-files';
 import { referencePath } from '@/store/references-store';
@@ -15,8 +16,22 @@ import { noteSubmit, recordFriction } from '@/report/friction';
 // person's own images
 const MAX_ATTACHMENTS = 4;
 
+/**
+ * An image in the composer. `url` is the chat-sized copy the model sees (and
+ * the thumbnail). In build mode a photo can also go INTO the app: `assetUrl`
+ * is the project-sized copy stored as `assets/<name>.js` when the message
+ * sends, and `use` is the person's call — their own photo of the block
+ * belongs in the site; a screenshot of a site they like is reference only.
+ */
+interface ComposerImage {
+  url: string;
+  name: string;
+  assetUrl: string | null;
+  use: 'app' | 'reference';
+}
+
 interface MessageInputProps {
-  onSend: (message: string, attachments?: string[]) => void;
+  onSend: (message: string, attachments?: string[], opts?: { photos?: QueuedPhoto[] }) => void;
   onStop: () => void;
   isGenerating: boolean;
   disabled?: boolean;
@@ -41,7 +56,7 @@ export function MessageInput({
   startsNewProject = false,
 }: MessageInputProps) {
   const [input, setInput] = useState('');
-  const [attachments, setAttachments] = useState<string[]>([]);
+  const [attachments, setAttachments] = useState<ComposerImage[]>([]);
   const [dragOver, setDragOver] = useState(false);
   const dragDepth = useRef(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -58,6 +73,8 @@ export function MessageInput({
     if (mode === 'message' && !hasCollaborators) onModeChange?.('build');
   }, [mode, hasCollaborators, onModeChange]);
   const messageMode = mode === 'message' && hasCollaborators;
+  // Only a build message can put a photo into the app
+  const canPlacePhotos = mode === 'build';
 
   // @ mentions: candidates load on first @, popover filters as you type
   const [mentionables, setMentionables] = useState<Mentionable[] | null>(null);
@@ -117,7 +134,11 @@ export function MessageInput({
   const draftAttachments = useChatStore(s => s.draftAttachments);
   useEffect(() => {
     if (draftAttachments === null) return;
-    setAttachments(draftAttachments.slice(0, MAX_ATTACHMENTS));
+    setAttachments(
+      draftAttachments
+        .slice(0, MAX_ATTACHMENTS)
+        .map(url => ({ url, name: 'reference', assetUrl: null, use: 'reference' as const })),
+    );
     useChatStore.getState().setDraftAttachments(null);
   }, [draftAttachments]);
 
@@ -130,10 +151,20 @@ export function MessageInput({
     const trimmed = input.trim();
     if ((!trimmed && attachments.length === 0) || disabled) return;
     noteSubmit(trimmed);
+    const urls = attachments.map(a => a.url);
+    // Photos marked for the app ride separately: the send pipeline stores
+    // them as project assets and tells the model their names
+    const photos: QueuedPhoto[] = canPlacePhotos
+      ? attachments
+          .flatMap(a => (a.use === 'app' && a.assetUrl ? [{ name: a.name, dataUrl: a.assetUrl }] : []))
+      : [];
+    const fallbackText = photos.length > 0
+      ? 'Here’s a photo for the app — put it where it fits best.'
+      : 'Here’s an image for reference.';
     if (mode === 'message') {
       // A note to collaborators involves no model — it posts immediately,
       // even while the AI is mid-reply, and never rides the AI queue
-      onSend(trimmed || 'Here’s an image.', attachments);
+      onSend(trimmed || 'Here’s an image.', urls);
       setInput('');
       setAttachments([]);
       if (textareaRef.current) textareaRef.current.style.height = 'auto';
@@ -148,20 +179,20 @@ export function MessageInput({
       recordFriction('submit_while_busy', { hasAttachments: attachments.length > 0 });
       useChatStore
         .getState()
-        .queueMessage(trimmed || 'Here’s an image for reference.', attachments);
+        .queueMessage(trimmed || fallbackText, urls, photos);
       setInput('');
       setAttachments([]);
       if (textareaRef.current) textareaRef.current.style.height = 'auto';
       return;
     }
-    onSend(trimmed || 'Here’s an image for reference.', attachments);
+    onSend(trimmed || fallbackText, urls, photos.length > 0 ? { photos } : undefined);
     setInput('');
     setAttachments([]);
     // Reset textarea height
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
-  }, [input, attachments, disabled, isGenerating, mode, onSend]);
+  }, [input, attachments, disabled, isGenerating, mode, onSend, canPlacePhotos]);
 
   function handleKeyDown(e: React.KeyboardEvent) {
     if (mentionMatches.length > 0 && (e.key === 'Enter' || e.key === 'Tab')) {
@@ -192,9 +223,25 @@ export function MessageInput({
     const images = [...files].filter(isImageFile).slice(0, MAX_ATTACHMENTS - attachments.length);
     for (const file of images) {
       try {
-        const dataUrl = await fileToDataUrl(file);
+        const url = await fileToDataUrl(file);
+        // The project-sized copy is prepared now, not at send: an image too
+        // big even after compression should say so while the person can
+        // still swap it, not after they've pressed send. Without it the
+        // image can only be reference.
+        let assetUrl: string | null = null;
+        try {
+          assetUrl = await compressToDataUrl(file);
+        } catch (e) {
+          if (canPlacePhotos) {
+            useChatStore.getState().addSyncMessage(
+              `**${file.name}** can be shown to the AI for reference but not placed in the app — ${e instanceof Error ? e.message : 'could not compress it'}`,
+              'Photo',
+            );
+          }
+        }
+        const use = canPlacePhotos && assetUrl ? 'app' : 'reference';
         setAttachments(prev =>
-          prev.length < MAX_ATTACHMENTS ? [...prev, dataUrl] : prev,
+          prev.length < MAX_ATTACHMENTS ? [...prev, { url, name: file.name, assetUrl, use }] : prev,
         );
       } catch {
         // unsupported image — skip quietly
@@ -301,12 +348,12 @@ export function MessageInput({
         </div>
       )}
       {attachments.length > 0 && (
-        <div className="flex gap-2 mb-2">
-          {attachments.map((url, i) => (
-            <div key={i} className="relative group">
+        <div className="flex flex-wrap gap-2 mb-2">
+          {attachments.map((a, i) => (
+            <div key={i} className="relative group flex flex-col items-center gap-1">
               <img
-                src={url}
-                alt={`Attachment ${i + 1}`}
+                src={a.url}
+                alt={a.name || `Attachment ${i + 1}`}
                 className="h-14 w-14 object-cover rounded-md border"
               />
               <button
@@ -316,6 +363,33 @@ export function MessageInput({
               >
                 <X className="size-3" />
               </button>
+              {/* Where this image goes. A photo of the block belongs IN the
+                  site; a screenshot of something they like is for the AI's
+                  eyes only. One tap flips it; the label always says which. */}
+              {canPlacePhotos && !messageMode && a.assetUrl && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setAttachments(prev =>
+                      prev.map((b, j) =>
+                        j === i ? { ...b, use: b.use === 'app' ? 'reference' : 'app' } : b,
+                      ),
+                    )
+                  }
+                  className={`rounded-full border px-1.5 py-px text-[10px] leading-4 whitespace-nowrap transition-colors ${
+                    a.use === 'app'
+                      ? 'border-primary/50 bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                  title={
+                    a.use === 'app'
+                      ? 'This photo is saved into your project and placed in the app. Tap to make it reference only.'
+                      : 'The AI looks at this for reference; it is not added to the app. Tap to place it in the app.'
+                  }
+                >
+                  {a.use === 'app' ? 'In the app' : 'Reference only'}
+                </button>
+              )}
             </div>
           ))}
         </div>
@@ -417,7 +491,7 @@ export function MessageInput({
               variant="outline"
               onClick={() => fileInputRef.current?.click()}
               disabled={disabled || attachments.length >= MAX_ATTACHMENTS}
-              title="Screenshots, local art, a photo of your place, a mood board — visuals shape the design. Or a PDF, Word doc, or notes for the AI to read while it plans. Or a JSON/CSV of real data for the app to use."
+              title="A photo of your place to put in the app, or screenshots, local art, a mood board for the design. Or a PDF, Word doc, or notes for the AI to read while it plans. Or a JSON/CSV of real data for the app to use."
               className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground rounded-full px-3 shrink-0"
             >
               <ImagePlus className="size-4" />
@@ -429,7 +503,7 @@ export function MessageInput({
               variant="ghost"
               onClick={() => fileInputRef.current?.click()}
               disabled={disabled || attachments.length >= MAX_ATTACHMENTS}
-              title="Attach an image (a sketch, screenshot, or mockup), a document (PDF, Word, Markdown, text) for the AI to read, or a data file (JSON, GeoJSON, CSV) for the app to use"
+              title="Attach a photo to put in the app, an image for reference (a sketch, screenshot, or mockup), a document (PDF, Word, Markdown, text) for the AI to read, or a data file (JSON, GeoJSON, CSV) for the app to use"
               className="size-8 text-muted-foreground hover:text-foreground"
             >
               <ImagePlus className="size-4" />
