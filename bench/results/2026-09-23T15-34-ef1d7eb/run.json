@@ -1,0 +1,501 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "v1",
+  "gitCommit": "ef1d7eb",
+  "createdAt": "2026-09-23T16:25:08.003Z",
+  "runId": "2026-09-23T15-34-ef1d7eb",
+  "config": {
+    "trials": 3,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null
+  },
+  "models": [
+    {
+      "alias": "claude-opus-5-5",
+      "providerId": "claude",
+      "modelId": "claude-opus-5-5",
+      "pricing": {
+        "inputPerMTok": 4,
+        "outputPerMTok": 20,
+        "asOf": "2026-09"
+      },
+      "enabled": true
+    },
+    {
+      "alias": "claude-fable-5-1",
+      "providerId": "claude",
+      "modelId": "claude-fable-5-1",
+      "pricing": {
+        "inputPerMTok": 10,
+        "outputPerMTok": 50,
+        "asOf": "2026-09"
+      },
+      "enabled": true
+    }
+  ],
+  "tasks": [
+    {
+      "id": "mutual-aid-board",
+      "version": "v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "claude-opus-5-5",
+      "providerId": "claude",
+      "modelId": "claude-opus-5-5",
+      "taskId": "mutual-aid-board",
+      "taskVersion": "v1",
+      "trial": 1,
+      "startedAt": "2026-09-23T15:34:42.131Z",
+      "plan": null,
+      "latencyMs": 426308,
+      "ttftMs": 254440,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 292087,
+          "chars": 16440
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 134219,
+          "chars": 16848
+        }
+      ],
+      "continuations": 1,
+      "truncatedFinal": false,
+      "outputChars": 33288,
+      "estTokens": {
+        "input": 29185,
+        "output": 8322,
+        "estimated": true
+      },
+      "estCostUsd": 0.28318,
+      "extraction": {
+        "writes": 8,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/mutual-aid-board/claude-opus-5-5-t1",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "claude-opus-5-5",
+      "providerId": "claude",
+      "modelId": "claude-opus-5-5",
+      "taskId": "mutual-aid-board",
+      "taskVersion": "v1",
+      "trial": 2,
+      "startedAt": "2026-09-23T15:41:48.689Z",
+      "plan": null,
+      "latencyMs": 511267,
+      "ttftMs": 243392,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 281051,
+          "chars": 14548
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 230216,
+          "chars": 27444
+        }
+      ],
+      "continuations": 1,
+      "truncatedFinal": false,
+      "outputChars": 41992,
+      "estTokens": {
+        "input": 28713,
+        "output": 10498,
+        "estimated": true
+      },
+      "estCostUsd": 0.324812,
+      "extraction": {
+        "writes": 10,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/mutual-aid-board/claude-opus-5-5-t2",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "claude-opus-5-5",
+      "providerId": "claude",
+      "modelId": "claude-opus-5-5",
+      "taskId": "mutual-aid-board",
+      "taskVersion": "v1",
+      "trial": 3,
+      "startedAt": "2026-09-23T15:50:20.110Z",
+      "plan": null,
+      "latencyMs": 506754,
+      "ttftMs": 193071,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 224070,
+          "chars": 12533
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 282684,
+          "chars": 30525
+        }
+      ],
+      "continuations": 1,
+      "truncatedFinal": false,
+      "outputChars": 43058,
+      "estTokens": {
+        "input": 28208,
+        "output": 10765,
+        "estimated": true
+      },
+      "estCostUsd": 0.328132,
+      "extraction": {
+        "writes": 10,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/mutual-aid-board/claude-opus-5-5-t3",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "claude-fable-5-1",
+      "providerId": "claude",
+      "modelId": "claude-fable-5-1",
+      "taskId": "mutual-aid-board",
+      "taskVersion": "v1",
+      "trial": 1,
+      "startedAt": "2026-09-23T15:58:47.010Z",
+      "plan": null,
+      "latencyMs": 482694,
+      "ttftMs": 337957,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 381287,
+          "chars": 13121
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 101407,
+          "chars": 20977
+        }
+      ],
+      "continuations": 1,
+      "truncatedFinal": false,
+      "outputChars": 34098,
+      "estTokens": {
+        "input": 28355,
+        "output": 8525,
+        "estimated": true
+      },
+      "estCostUsd": 0.7098,
+      "extraction": {
+        "writes": 10,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/mutual-aid-board/claude-fable-5-1-t1",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "claude-fable-5-1",
+      "providerId": "claude",
+      "modelId": "claude-fable-5-1",
+      "taskId": "mutual-aid-board",
+      "taskVersion": "v1",
+      "trial": 2,
+      "startedAt": "2026-09-23T16:06:49.840Z",
+      "plan": null,
+      "latencyMs": 590782,
+      "ttftMs": 282243,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 332179,
+          "chars": 14545
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 258603,
+          "chars": 22732
+        }
+      ],
+      "continuations": 1,
+      "truncatedFinal": false,
+      "outputChars": 37277,
+      "estTokens": {
+        "input": 28711,
+        "output": 9320,
+        "estimated": true
+      },
+      "estCostUsd": 0.75311,
+      "extraction": {
+        "writes": 9,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/mutual-aid-board/claude-fable-5-1-t2",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "claude-fable-5-1",
+      "providerId": "claude",
+      "modelId": "claude-fable-5-1",
+      "taskId": "mutual-aid-board",
+      "taskVersion": "v1",
+      "trial": 3,
+      "startedAt": "2026-09-23T16:16:40.803Z",
+      "plan": null,
+      "latencyMs": 507075,
+      "ttftMs": 243026,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 293974,
+          "chars": 13812
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 213100,
+          "chars": 22281
+        }
+      ],
+      "continuations": 1,
+      "truncatedFinal": false,
+      "outputChars": 36093,
+      "estTokens": {
+        "input": 28527,
+        "output": 9024,
+        "estimated": true
+      },
+      "estCostUsd": 0.7364700000000001,
+      "extraction": {
+        "writes": 9,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/mutual-aid-board/claude-fable-5-1-t3",
+      "fixRound": null,
+      "error": null
+    }
+  ]
+}
