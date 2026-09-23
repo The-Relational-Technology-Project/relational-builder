@@ -1,5 +1,7 @@
 import { fileToDataUrl } from '@/lib/image';
 import { useProjectStore } from '@/store/project-store';
+import { detectPreviewKind } from '@/preview/detect';
+import type { FileEntry } from '@/project/virtual-fs';
 
 /**
  * Photo assets — the builder's own real, local images in their apps.
@@ -81,12 +83,14 @@ export function replacePhotoAsset(name: string, dataUrl: string): boolean {
   return true;
 }
 
-/** Compress and add a photo to the project as assets/<name>.js */
-export async function addPhotoAsset(file: File): Promise<AddedAsset> {
-  const dataUrl = await compressToDataUrl(file);
-
+/**
+ * Add an already-compressed photo (see `compressToDataUrl`) to the project as
+ * assets/<name>.js. `nameHint` is the original file name; the asset name is
+ * its slug, suffixed if the project already has one by that name.
+ */
+export function addPhotoAssetFromDataUrl(dataUrl: string, nameHint: string): AddedAsset {
   const store = useProjectStore.getState();
-  let name = slugify(file.name);
+  let name = slugify(nameHint);
   // Avoid clobbering an existing asset with the same name
   const existing = new Set(store.getAllFiles().map(f => f.path.replace(/^\//, '')));
   let candidate = name;
@@ -99,6 +103,68 @@ export async function addPhotoAsset(file: File): Promise<AddedAsset> {
   const path = `assets/${name}.js`;
   store.writeFile(path, assetModule(name, dataUrl), 'js');
   return { name, path, bytes: dataUrl.length };
+}
+
+/** Compress and add a photo to the project as assets/<name>.js */
+export async function addPhotoAsset(file: File): Promise<AddedAsset> {
+  const dataUrl = await compressToDataUrl(file);
+  return addPhotoAssetFromDataUrl(dataUrl, file.name);
+}
+
+/** Asset name behind an `assets/<name>.js` path */
+export function photoAssetName(path: string): string {
+  return path.replace(/^\/?assets\//, '').replace(/\.js$/, '');
+}
+
+/**
+ * The wiring instructions handed to the AI when a photo lands, whichever
+ * door it came through (a photo attached to a chat message, Add photo in
+ * the Files tab, a generated image). Two things a static template got wrong
+ * in a real build: it told the AI to add a `<script src>` tag (only right for
+ * plain HTML pages — framework apps inline asset modules automatically, and
+ * the AI had to spend its reply correcting us), and it said nothing about
+ * placeholder slots the build had already left waiting, so a photo named
+ * "mural-art" sat beside an empty slot named "mural" until the person
+ * reconciled them by hand.
+ */
+export function photoWiringNote(asset: AddedAsset, files: FileEntry[]): string {
+  const kind = detectPreviewKind(files);
+
+  // Placeholder slots already in the app with no matching asset behind them
+  const assetNames = new Set(
+    files.filter(f => isPhotoAssetPath(f.path)).map(f => photoAssetName(f.path)),
+  );
+  const emptySlots = new Set<string>();
+  for (const f of files) {
+    if (isPhotoAssetPath(f.path)) continue;
+    for (const m of f.content.matchAll(/data-asset=["']([\w-]+)["']/g)) {
+      if (!assetNames.has(m[1])) emptySlots.add(m[1]);
+    }
+  }
+
+  const wiring =
+    kind === 'framework'
+      ? `add <img data-asset="${asset.name}" alt="..."> where it belongs (no script tag — the builder loads photo assets automatically in this app)`
+      : `include <script src="./${asset.path}"></script> and <img data-asset="${asset.name}" alt="...">`;
+  const slotNote =
+    emptySlots.size > 0
+      ? ` The app already has empty photo slots waiting (${[...emptySlots].join(', ')}) — if this photo belongs in one of them, change that slot's data-asset to "${asset.name}" instead of adding a new img.`
+      : '';
+  return `Use it where it fits: ${wiring}.${slotNote}`;
+}
+
+/**
+ * The note that rides with a chat message whose attached photos were stored
+ * in the project. The person's own words say where each photo goes; this
+ * says what the file is called and how to reference it, so the model never
+ * has to guess a path or invent an image.
+ */
+export function attachedPhotosNote(assets: AddedAsset[], files: FileEntry[]): string {
+  const lines = assets.map((a, i) => {
+    const which = assets.length > 1 ? `Attached photo ${i + 1}` : 'The attached photo';
+    return `${which} is now stored in this project as the asset "${a.name}" (file ${a.path}) — the builder's own real image, not a mockup. ${photoWiringNote(a, files)}`;
+  });
+  return `[${lines.join(' ')} Put it where the message above asks; if the message doesn't say, choose the most fitting place and say where it went. Never re-output the asset file.]`;
 }
 
 /** Asset modules are mostly base64 — never worth showing the AI in full */

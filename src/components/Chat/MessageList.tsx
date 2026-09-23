@@ -635,15 +635,22 @@ const MessageBubble = memo(function MessageBubble({ message }: { message: Displa
         {isUser ? (
           <div>
             {message.attachments && message.attachments.length > 0 && (
-              <div className="flex gap-1.5 mb-1.5">
-                {message.attachments.map((url, i) => (
-                  <img
-                    key={i}
-                    src={url}
-                    alt={`Attached image ${i + 1}`}
-                    className="h-20 max-w-[160px] object-cover rounded-md border border-primary-foreground/20"
-                  />
-                ))}
+              <div className="mb-1.5">
+                <div className="flex gap-1.5">
+                  {message.attachments.map((url, i) => (
+                    <img
+                      key={i}
+                      src={url}
+                      alt={`Attached image ${i + 1}`}
+                      className="h-20 max-w-[160px] object-cover rounded-md border border-primary-foreground/20"
+                    />
+                  ))}
+                </div>
+                {message.photoNote && (
+                  <p className="mt-1 text-[11px] opacity-80">
+                    {message.attachments.length === 1 ? 'Photo saved' : 'Photos saved'} to your project files
+                  </p>
+                )}
               </div>
             )}
             <p className="whitespace-pre-wrap">{message.content}</p>
