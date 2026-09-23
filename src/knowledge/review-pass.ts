@@ -44,6 +44,8 @@ const REVIEW_SYSTEM_PROMPT = [
   '- Only report defects you are CONFIDENT are real. Style preferences, refactors, and nice-to-haves are never defects.',
   '- A first build ships the core loop and defers the rest ON PURPOSE — secondary screens (admin/steward views, About pages, calendars, extra boards) being absent is the intended design, not a defect. Only the core interaction being broken or missing counts.',
   '- Some files may be marked omitted or truncated for length. NEVER report a defect in — or speculate about — code you cannot see. "Cannot verify" is not a defect.',
+  '- `<script src="./assets/<name>.js">` together with `<img data-asset="<name>">` is the builder\'s photo hook: the asset file appears when the person adds a photo later, so its absence is never a defect. Do not report it.',
+  '- Data present in a data file but not rendered is not a defect when the page renders from a list of enabled sections (e.g. `sections`) and that field\'s section is switched off — that is the person\'s choice, not a bug. Report it only when the field is enabled and still never read.',
   '- If the app looks solid, reply with exactly: NONE',
   '- Otherwise reply with only a short bullet list of the defects, each naming the file and what\'s broken. No preamble, no code.',
 ].join('\n');

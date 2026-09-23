@@ -860,11 +860,17 @@ function PlanQuestionCards({ message }: { message: DisplayMessage }) {
   const isGenerating = useChatStore(s => s.isGenerating);
   const queueMessage = useChatStore(s => s.queueMessage);
   const [answers, setAnswers] = useState<Record<number, string>>({});
+  // What each card holds but hasn't committed: a tapped "I'll type…" option
+  // waiting for its text, pills ticked without Done, text typed but not
+  // entered. Sending carries these along — a real build once lost a whole
+  // question because its option looked answered (checked pill) but was only
+  // pending, and "skip the rest" skipped it.
+  const [drafts, setDrafts] = useState<Record<number, string | null>>({});
   const [sent, setSent] = useState(false);
 
   if (questions.length === 0) return null;
 
-  const send = (final: Record<number, string>) => {
+  const send = (final: Record<number, string | null>) => {
     const lines = questions
       .map((q, i) => (final[i] ? `${q.question} → ${final[i]}` : null))
       .filter(Boolean) as string[];
@@ -890,7 +896,12 @@ function PlanQuestionCards({ message }: { message: DisplayMessage }) {
     );
   }
 
-  const answeredCount = questions.filter((_, i) => answers[i]).length;
+  // Committed answers win; a card's draft stands in for one it hasn't sent
+  const effective: Record<number, string | null> = {};
+  questions.forEach((_, i) => { effective[i] = answers[i] ?? drafts[i] ?? null; });
+  const settledCount = questions.filter((_, i) => effective[i]).length;
+  const allSettled = settledCount === questions.length;
+  const allAnswered = questions.every((_, i) => answers[i]);
 
   return (
     <div className="mt-2 flex flex-col items-start gap-2 max-w-[85%]">
@@ -901,18 +912,21 @@ function PlanQuestionCards({ message }: { message: DisplayMessage }) {
           staged={answers[i] ?? null}
           disabled={isGenerating}
           onAnswer={value => answer(i, value)}
+          onDraft={value => setDrafts(prev => (prev[i] === value ? prev : { ...prev, [i]: value }))}
         />
       ))}
-      {questions.length > 1 && answeredCount > 0 && answeredCount < questions.length && (
+      {questions.length > 1 && settledCount > 0 && !allAnswered && (
         <Button
           size="sm"
           variant="outline"
           className="h-7 text-xs"
           disabled={isGenerating}
-          onClick={() => send(answers)}
+          onClick={() => send(effective)}
         >
           <ArrowRight className="size-3 mr-1" />
-          Send {answeredCount === 1 ? 'answer' : 'answers'} — skip the rest
+          {allSettled
+            ? 'Send answers'
+            : `Send ${settledCount === 1 ? 'answer' : 'answers'} — skip the rest`}
         </Button>
       )}
     </div>
@@ -928,12 +942,15 @@ function optionPromisesContent(option: string): boolean {
 }
 
 function PlanQuestionCard({
-  question, staged, disabled, onAnswer,
+  question, staged, disabled, onAnswer, onDraft,
 }: {
   question: PlanQuestion;
   staged: string | null;
   disabled: boolean;
   onAnswer: (value: string) => void;
+  /** The card's uncommitted answer (or null) — what a group send carries
+   *  for this question if the person never presses its own Done/Enter */
+  onDraft: (value: string | null) => void;
 }) {
   // Questions without options open straight into the text field
   const [typing, setTyping] = useState(question.options.length === 0);
@@ -943,6 +960,16 @@ function PlanQuestionCard({
   // Multi-select: pills toggled on so far, sent together on Done
   const [picked, setPicked] = useState<string[]>([]);
   const stagedIsCustom = !!staged && !question.options.includes(staged) && !question.multi;
+
+  const typed = text.trim();
+  const draft = question.multi
+    ? [...picked, ...(typed ? [typed] : [])].join(', ') || null
+    : pendingOption
+      ? (typed ? `${pendingOption} — ${typed}` : pendingOption)
+      : (typing && typed ? typed : null);
+  const onDraftRef = useRef(onDraft);
+  useEffect(() => { onDraftRef.current = onDraft; });
+  useEffect(() => { onDraftRef.current(draft); }, [draft]);
 
   const submitText = () => {
     const value = text.trim();
