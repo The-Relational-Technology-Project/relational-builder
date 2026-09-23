@@ -71,6 +71,7 @@ const DEFAULT_RATES = {
 const MODEL_RATES: { match: RegExp; input: number; output: number; cacheRead?: number }[] = [
   { match: /fable-5-1|mythos-5-1/i, input: 10, output: 50, cacheRead: 0.25 },
   { match: /fable|mythos/i, input: 10, output: 50 },
+  { match: /opus-5-5/i, input: 4, output: 20, cacheRead: 0.2 },
   { match: /opus/i, input: 5, output: 25 },
   { match: /sonnet/i, input: 3, output: 15 },
   { match: /haiku/i, input: 1, output: 5 },
@@ -781,7 +782,7 @@ function renderSpendEmail(
       ${rowsHtml}
     </table>
     <p style="font-size:13px;color:#78716C;line-height:1.6;margin:0;">
-      Each model prices at its own rates: Fable $10/$50 per MTok, Opus $5/$25, Sonnet $3/$15,
+      Each model prices at its own rates: Fable $10/$50 per MTok, Opus 5.5 $4/$20, other Opus $5/$25, Sonnet $3/$15,
       Haiku $1/$5, with 1-hour cache writes at 2&times; input and cache reads at 0.1&times;
       (Fable 5.1: $0.25 per MTok).
       Usage without a recorded model prices at Opus-class rates

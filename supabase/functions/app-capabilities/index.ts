@@ -80,8 +80,8 @@ const COMMUNITY_AI_SENTINEL = 'community-plan';
 // Opus by default (the model that serves community builds). Override without a
 // deploy via the COMMUNITY_APP_MODEL secret; per-model choice for builders can
 // come later.
-const COMMUNITY_APP_MODEL = Deno.env.get('COMMUNITY_APP_MODEL') ?? 'claude-opus-5';
-// Adaptive thinking shares max_tokens with the answer on Opus 5, so the
+const COMMUNITY_APP_MODEL = Deno.env.get('COMMUNITY_APP_MODEL') ?? 'claude-opus-5-5';
+// Adaptive thinking shares max_tokens with the answer on Opus 5.5, so the
 // community path gives the request headroom rather than truncating a summary
 // mid-sentence. Effort stays low: summaries and Q&A don't need deep reasoning,
 // and low effort keeps thinking tokens (billed as output) small.
@@ -600,7 +600,7 @@ async function aiChat(body: Record<string, unknown>): Promise<Response> {
       // Metered under the owner's email so the weekly gate, the budget
       // banner, and the steward's utilization view all see it. The model
       // is prefixed so app usage is distinguishable from building turns;
-      // the monitor's pricing matches on substring, so `app:claude-opus-5`
+      // the monitor's pricing matches on substring, so `app:claude-opus-5-5`
       // still prices at Opus rates.
       recordCommunityUsage(ownerEmail, result.usage, `app:${result.model}`);
     } else {

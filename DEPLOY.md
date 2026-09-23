@@ -70,7 +70,7 @@ Set these as Edge Function secrets (`supabase secrets set KEY=value`):
 | `RATE_LIMIT_PER_MIN_PER_IP` | Loose per-IP backstop on credentialed traffic (bounds credential-rotation abuse from a single address) | `RATE_LIMIT_PER_MIN` × 20 |
 | `RTP_MODEL_URL` | Base URL of the RTP-hosted vLLM instance (Tier 1) | `https://api.relationaltech.org` |
 | `ANTHROPIC_COMMUNITY_KEY` | RTP's shared Anthropic key for the community pilot (Tier 3). Never reaches the browser. Also serves **Community AI** inside built apps (see below). | unset (community access off) |
-| `COMMUNITY_APP_MODEL` | Model for Community AI calls made by built apps (`app-capabilities` → `ai_chat`) | `claude-opus-5` |
+| `COMMUNITY_APP_MODEL` | Model for Community AI calls made by built apps (`app-capabilities` → `ai_chat`) | `claude-opus-5-5` |
 | `COMMUNITY_APP_EFFORT` | Thinking effort for those in-app calls (`low`…`max`) | `low` |
 | `COMMUNITY_MODELS` | Models the community key may be used with | `claude-sonnet-5,claude-haiku-4-5` |
 
@@ -98,7 +98,7 @@ neighbor uploads a transcript, the app summarizes it). A member turns it on
 per backend in Services → Claude (Anthropic) → "Use my Community Plan"; no
 key of their own. The `app-capabilities` function then serves `ai_chat` on
 Claude Opus (`COMMUNITY_APP_MODEL`) and meters every call under the
-**owner's** email in `community_usage`, model recorded as `app:claude-opus-5`,
+**owner's** email in `community_usage`, model recorded as `app:claude-opus-5-5`,
 so the weekly budget gate, the builder's budget banner, and the steward's
 utilization view all include it. Guard rails on top of the weekly budget:
 the app's public `app_id`/`app_key` is all a caller needs, so each backend

@@ -167,7 +167,7 @@ const COMMUNITY_MODELS = (
   // deploy; when it's unset, this list is the source of truth.
   // Fable 5 stays covered for clients that haven't picked up the v6 store
   // migration (Fable 5 → 5.1) yet; it is no longer in the picker.
-  'claude-opus-5,claude-fable-5-1,claude-fable-5,claude-opus-4-8,claude-sonnet-5,claude-haiku-4-5'
+  'claude-opus-5-5,claude-fable-5-1,claude-opus-5,claude-fable-5,claude-opus-4-8,claude-sonnet-5,claude-haiku-4-5'
 )
   .split(',')
   .map((s) => s.trim())
@@ -178,7 +178,7 @@ const COMMUNITY_MODELS = (
 // building never breaks on a model sunset. Format: 'model:fallback,...'.
 const MODEL_FALLBACKS: Record<string, string> = Object.fromEntries(
   (Deno.env.get('MODEL_FALLBACKS') ??
-    'claude-fable-5-1:claude-opus-5,claude-fable-5:claude-opus-4-8,claude-opus-5:claude-opus-4-8')
+    'claude-opus-5-5:claude-opus-5,claude-fable-5-1:claude-opus-5-5,claude-fable-5:claude-opus-4-8,claude-opus-5:claude-opus-4-8')
     .split(',')
     .map((pair) => pair.split(':').map((s) => s.trim()))
     .filter((p) => p.length === 2 && p[0] && p[1]),
@@ -694,7 +694,9 @@ async function proxyGeminiImage(
 
 // ── Anthropic (translate OpenAI format → Anthropic Messages API) ─────
 
-// Models on the adaptive-thinking API surface (Opus 4.7+, Sonnet 5, Fable).
+// Models on the adaptive-thinking API surface (Opus 4.7+, Sonnet 5, Fable;
+// `opus-5` also matches Opus 5.5, which can't turn thinking off and defaults
+// to medium effort — the explicit effort below is what keeps builds at xhigh).
 // On Sonnet 5 adaptive thinking runs even when the field is omitted — set it
 // explicitly with display: "summarized" so the reasoning streams back as a
 // progress signal instead of a silent stall.
