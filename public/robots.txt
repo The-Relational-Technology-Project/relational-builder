@@ -27,4 +27,5 @@ Allow: /
 User-agent: Google-Extended
 Allow: /
 
+Sitemap: https://relationalbuilder.org/sitemap.xml
 Sitemap: https://relationalbuilder.org/commons/sitemap.xml

@@ -18,6 +18,7 @@
     "@huggingface/transformers": "^3.5.0",
     "@supabase/supabase-js": "^2.103.0",
     "@tailwindcss/typography": "^0.5.20",
+    "@vercel/og": "^1.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "esbuild-wasm": "^0.28.1",

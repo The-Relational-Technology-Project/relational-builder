@@ -20,6 +20,9 @@ export interface DirectoryBuilder {
   prompts?: { title: string; slug: string }[];
   /** Their public builder page, when they've published one */
   profile_url?: string | null;
+  /** What that page says (practice, technologies, ideas, dreams) — public
+   *  already, so it can feed intro matching alongside the note */
+  page_text?: string | null;
 }
 
 async function call(body: Record<string, unknown>): Promise<Record<string, unknown>> {
@@ -96,11 +99,12 @@ export function suggestConnection(
   let bestScore = 0;
   for (const b of builders) {
     if (excludeIds.has(b.id)) continue;
-    if (!b.note && !b.neighborhood) continue;
+    if (!b.note && !b.neighborhood && !b.page_text) continue;
     const sameEvent =
       !!selfEventCode && !!b.event_code &&
       b.event_code.toUpperCase() === selfEventCode.toUpperCase();
-    const noteMatches = meaningfulTokens(b.note ?? '').filter(t => convo.has(t));
+    // Topical text: the connect note, plus the builder's published page
+    const noteMatches = [...new Set(meaningfulTokens(`${b.note ?? ''} ${b.page_text ?? ''}`))].filter(t => convo.has(t));
     const placeMatches = meaningfulTokens(b.neighborhood ?? '').filter(t => convo.has(t));
     const matched = [...new Set([...noteMatches, ...placeMatches])];
     // Bar: two topical matches, or one topical + a place match — or one
