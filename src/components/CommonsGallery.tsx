@@ -149,6 +149,10 @@ export function CommonsGallery() {
   const [category, setCategory] = useState<string>('all');
   // Which library is on the shelves: the commons, or one of the viewer's studios
   const [scope, setScope] = useState<string>('commons');
+  // True once the viewer picked a shelf themselves — until then the gallery
+  // opens on the studio they're building in (a Responsive Cities member
+  // lands on the Responsive Cities Gallery), falling back to the commons
+  const scopeChosen = useRef(false);
   const [detail, setDetail] = useState<Tool | null>(null);
   const [commonsDetail, setCommonsDetail] = useState<CommonsCard | null>(null);
   const [studioDetail, setStudioDetail] = useState<StudioLibraryItem | null>(null);
@@ -264,6 +268,16 @@ export function CommonsGallery() {
       m => accessMap.get(m.studio_slug) === 'gated' || withItems.has(m.studio_slug),
     );
   }, [myApproved, accessMap, studioLibrary]);
+
+  // Open on the active studio's own gallery when it has one. Memberships and
+  // the library arrive after mount, so this settles once they do; a shelf the
+  // viewer clicked in the meantime stays put.
+  useEffect(() => {
+    if (scopeChosen.current) return;
+    const home = activeStudio?.slug;
+    const next = home && libraryStudios.some(m => m.studio_slug === home) ? home : 'commons';
+    setScope(prev => (prev === next ? prev : next));
+  }, [activeStudio, libraryStudios]);
 
   const studioMeta = useMemo(() => {
     const map = new Map<string, StudioBadge>();
@@ -555,7 +569,7 @@ export function CommonsGallery() {
               ...(myEvent ? [{ slug: EVENT_SCOPE, label: galleryNameFor(myEvent.name) }] : [])].map(o => (
               <button
                 key={o.slug}
-                onClick={() => { setScope(o.slug); setCategory('all'); }}
+                onClick={() => { scopeChosen.current = true; setScope(o.slug); setCategory('all'); }}
                 className={`rounded-full border px-3 py-1 text-xs transition-colors ${
                   scope === o.slug
                     ? 'bg-foreground text-background border-foreground'
