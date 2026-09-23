@@ -251,14 +251,20 @@ export function mergeProfileSeed(current: ProfileData, seed: ProfileData): { nex
 /** Compute what a refresh would change on the OPEN page project */
 export async function previewProfileRefresh(): Promise<{ next: ProfileData; changes: ProfileChange[] } | { error: string }> {
   if (!isBuilderProfileProject()) return { error: 'Open your builder page first' };
-  const current = readProfileData() ?? emptyProfile();
+  const current = currentProfileData() ?? emptyProfile();
   const seed = await gatherProfileSeed();
   return mergeProfileSeed(current, seed);
 }
 
-/** Write the merged data file and let the cloud save it */
+/** Write the merged data where it lives (the file once building started,
+ *  the lineage seed before) and let the cloud save it */
 export async function applyProfileRefresh(next: ProfileData): Promise<void> {
-  useProjectStore.getState().writeFile(PROFILE_DATA_PATH, JSON.stringify(next, null, 2), 'json');
+  if (useProjectStore.getState().getFile(PROFILE_DATA_PATH)) {
+    useProjectStore.getState().writeFile(PROFILE_DATA_PATH, JSON.stringify(next, null, 2), 'json');
+  } else {
+    const { lineage, setLineage } = useProjectStore.getState();
+    setLineage({ ...(lineage ?? { source: 'builder-profile' }), profileSeed: next });
+  }
   await useCloudStore.getState().saveNow().catch(() => {});
 }
 
@@ -328,6 +334,39 @@ export async function contributedCounts(): Promise<{ type: string; count: number
   return [...counts].map(([type, count]) => ({ type, count }));
 }
 
+/** The seed the page was started from, when the data file isn't written yet */
+export function lineageSeed(): ProfileData | null {
+  return useProjectStore.getState().lineage?.profileSeed ?? null;
+}
+
+/** The page's data, wherever it currently lives: the file once building has
+ *  started, the lineage seed before that */
+export function currentProfileData(): ProfileData | null {
+  return readProfileData() ?? lineageSeed();
+}
+
+/**
+ * Building needs the file. Called at the top of every build-mode send on a
+ * page project: writes /data/profile.json from the lineage seed the first
+ * time, and leaves an existing file alone.
+ */
+export function ensureProfileDataFile(): void {
+  if (!isBuilderProfileProject()) return;
+  if (useProjectStore.getState().getFile(PROFILE_DATA_PATH)) return;
+  const seed = lineageSeed();
+  if (!seed) return;
+  useProjectStore.getState().writeFile(PROFILE_DATA_PATH, JSON.stringify(seed, null, 2), 'json');
+}
+
+/** The drafted first message of the page conversation */
+function openingDraft(seed: ProfileData): string {
+  return [
+    "I'd like to build my public builder page — a page that shows my relational tech work in my neighborhood.",
+    `Here's what you already have on me: ${seedSummary(seed)}.`,
+    'Tell me what you found, then help me choose which sections to include and what it should look like.',
+  ].join('\n');
+}
+
 /** A one-line inventory for the opening of the plan conversation */
 function seedSummary(seed: ProfileData): string {
   const live = seed.projects.filter(p => p.live_url).length;
@@ -368,7 +407,25 @@ export async function startBuilderProfile(): Promise<{ error: string | null }> {
   const existing = await findBuilderProfileProject();
   if (existing) {
     await promoteWorkspaceToCloud();
-    return useCloudStore.getState().openProject(existing.id);
+    const opened = await useCloudStore.getState().openProject(existing.id);
+    if (opened.error) return opened;
+    // A page that was opened and left before its first message lands back
+    // where it started: the conversation drafted and ready to send
+    if (useChatStore.getState().messages.length === 0) {
+      useChatStore.getState().setMode('plan');
+      // Pages started before the seed moved into lineage carry it as a
+      // file; fold it back so the workspace is empty until building starts
+      const seed = lineageSeed() ?? readProfileData() ?? (await gatherProfileSeed());
+      if (useProjectStore.getState().getFile(PROFILE_DATA_PATH)) {
+        useProjectStore.getState().deleteFile(PROFILE_DATA_PATH);
+      }
+      if (!lineageSeed()) {
+        const { lineage, setLineage } = useProjectStore.getState();
+        setLineage({ ...(lineage ?? { source: 'builder-profile' }), profileSeed: seed });
+      }
+      useChatStore.getState().setDraftMessage(openingDraft(seed));
+    }
+    return { error: null };
   }
 
   const seed = await gatherProfileSeed();
@@ -380,25 +437,24 @@ export async function startBuilderProfile(): Promise<{ error: string | null }> {
   useChatStore.getState().clearMessages();
   useEnvStore.getState().clearAll();
   useChatStore.getState().setMode('plan');
+  // The seed rides in lineage, not as a file yet: an empty workspace lands
+  // in the plan conversation (no preview pane, no placeholder app), and the
+  // file is written the moment building starts (ensureProfileDataFile)
   useProjectStore.getState().setLineage({
     source: 'builder-profile',
     planTitle: PROFILE_PROJECT_NAME,
     importedAt: new Date().toISOString(),
+    profileSeed: seed,
   });
-  useProjectStore.getState().writeFile(PROFILE_DATA_PATH, JSON.stringify(seed, null, 2), 'json');
 
   // The cloud row exists from the first message: the budget exemption and
-  // the one-per-builder rule both key on it
-  const promoted = await promoteWorkspaceToCloud(PROFILE_PROJECT_NAME);
-  if (promoted.error) return promoted;
+  // the one-per-builder rule both key on it. createProject directly, since
+  // the promote path treats a workspace with no files or messages as
+  // untouched — this one carries its seed in lineage.
+  const created = await useCloudStore.getState().createProject(PROFILE_PROJECT_NAME);
+  if (created.error) return created;
 
-  useChatStore.getState().setDraftMessage(
-    [
-      "I'd like to build my public builder page — a page that shows my relational tech work in my neighborhood.",
-      `Here's what you already have on me: ${seedSummary(seed)}. It's in /data/profile.json.`,
-      'Tell me what you found, then help me choose which sections to include and what it should look like.',
-    ].join('\n'),
-  );
+  useChatStore.getState().setDraftMessage(openingDraft(seed));
   return { error: null };
 }
 

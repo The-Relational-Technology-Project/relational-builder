@@ -465,7 +465,7 @@ const PROFILE_PLAN_INSTRUCTIONS = [
   '',
   '## What you already have',
   '',
-  'The project holds `/data/profile.json` — the page\'s own data, seeded from what Relational Builder knows about this builder (their profile, their projects, live sites, repo links, and the commons items they drew on). Its shape:',
+  'The seed below is the page\'s own data, gathered from what Relational Builder knows about this builder (their profile, their projects, live sites, repo links, and the commons items they drew on). It becomes `/data/profile.json` the moment building starts. Its shape:',
   '`name`, `neighborhood`, `about_neighborhood`, `dreams` (text); `projects` (name, live_url, repo_url, description); `practice_highlights`, `technologies`, `ideas` (lists of short lines); `commons.incorporated` / `commons.contributed` (type + count); `sections` (which sections are on).',
   '',
   'Seeded fields are real. Empty ones are empty because nothing was recorded — never fill them from imagination. `practice_highlights` and `ideas` are written WITH the person in this conversation; project descriptions too, when they want them.',
@@ -555,6 +555,8 @@ export interface ContextOptions {
   /** The open project is the builder's public page (lineage builder-profile):
    *  plan mode runs the page conversation, build mode gets the data-file rule */
   builderProfilePage?: boolean;
+  /** The page's seed while it still lives in lineage (before the first build) */
+  builderProfileSeed?: unknown;
   /** AI guidance blocks for services the user has connected in the Services tab */
   connectedServiceGuidance?: string[];
   /** Current project files so edits and plans match reality. Ordered
@@ -707,6 +709,16 @@ export function buildPromptContext(
   const sections = [base, '', formatPrinciplesForPrompt()];
   if (options.builderProfilePage && base !== PROFILE_PLAN_INSTRUCTIONS) {
     sections.push('', PROFILE_PROJECT_GUIDANCE);
+  }
+  if (options.builderProfilePage && options.builderProfileSeed && !options.projectFiles?.some(f => /^\/?data\/profile\.json$/.test(f.path))) {
+    sections.push(
+      '',
+      '## The Seed (what Relational Builder knows about this builder)',
+      '',
+      '```json',
+      JSON.stringify(options.builderProfileSeed, null, 2),
+      '```',
+    );
   }
 
   if (options.webTools) {

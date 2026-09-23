@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { extractOperations } from '@/project/code-extractor';
+import { ensureProfileDataFile } from '@/project/builder-profile';
 import { RotateCcw, X, Undo2, Check } from 'lucide-react';
 import { useChatStore } from '@/store/chat-store';
 import { usePreviewHealthStore } from '@/store/preview-health-store';
@@ -637,6 +638,8 @@ export function ChatPanel() {
     // prompt-cache segment and caching matches on prefix, so whatever changed
     // this turn must sort last (see getFilesForPrompt). updatedAt rides along
     // so the content budget can keep the file they're working on.
+    // A builder page's data file is born the moment building starts
+    if (currentMode === 'build') ensureProfileDataFile();
     const projectFiles = useProjectStore.getState().getFilesForPrompt()
       .map(f => ({ path: f.path, content: f.content, updatedAt: f.updatedAt }));
     const activeStudio = useStudioStore.getState().activeStudio;
@@ -679,6 +682,7 @@ export function ChatPanel() {
       networkEntries: relevant?.networkEntries,
       mode: currentMode,
       builderProfilePage: useProjectStore.getState().lineage?.source === 'builder-profile',
+      builderProfileSeed: useProjectStore.getState().lineage?.profileSeed,
       connectedServiceGuidance: serviceGuidance,
       projectFiles,
       referenceDocs: useReferencesStore.getState().docs,

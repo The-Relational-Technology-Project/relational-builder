@@ -18,6 +18,8 @@ export interface Checkpoint {
 const MAX_CHECKPOINTS = 10;
 
 /** Provenance of this project — flows into the .reltech.yml manifest on export */
+import type { ProfileData } from '@/project/builder-profile';
+
 export interface ProjectLineage {
   /** Where the starting point came from — 'repo-import' means the builder's
    *  own existing repo, connected for two-way sync rather than forked */
@@ -38,6 +40,9 @@ export interface ProjectLineage {
   studioItemId?: string;
   /** Domain frames whose principles ride with this project (see knowledge/frames.ts) */
   frames?: string[];
+  /** Builder pages: what RB knew at the start, carried here until the build
+   *  begins and it becomes /data/profile.json (see project/builder-profile) */
+  profileSeed?: ProfileData;
 }
 
 interface ProjectState {
