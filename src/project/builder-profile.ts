@@ -127,6 +127,11 @@ export async function gatherProfileSeed(): Promise<ProfileData> {
   const technologies = ['Relational Builder'];
   if (projectEntries.some(p => p.live_url)) technologies.push('Community Hosting');
   if (projectEntries.some(p => p.repo_url)) technologies.push('GitHub');
+  const [inferred, contributed] = await Promise.all([
+    inferTechnologies().catch(() => [] as string[]),
+    contributedCounts().catch(() => [] as { type: string; count: number }[]),
+  ]);
+  for (const t of inferred) if (!technologies.includes(t)) technologies.push(t);
 
   return {
     name: profile?.display_name?.trim() || profile?.full_name?.trim() || '',
@@ -137,9 +142,190 @@ export async function gatherProfileSeed(): Promise<ProfileData> {
     practice_highlights: [],
     technologies,
     ideas: [],
-    commons: { incorporated, contributed: [] },
+    commons: { incorporated, contributed },
     sections: [...PROFILE_SECTIONS],
   };
+}
+
+// ── Refresh from RB: re-seed the page's data without losing what the ──
+// ── builder wrote ─────────────────────────────────────────────────────
+
+export interface ProfileChange {
+  field: string;
+  before: string;
+  after: string;
+}
+
+const show = (v: unknown): string => {
+  if (Array.isArray(v)) return v.length ? v.map(x => (typeof x === 'string' ? x : JSON.stringify(x))).join(', ') : '(empty)';
+  const str = String(v ?? '').trim();
+  return str || '(empty)';
+};
+
+/** Read the page's current data file, tolerating a missing or broken one */
+export function readProfileData(): ProfileData | null {
+  const file = useProjectStore.getState().getFile(PROFILE_DATA_PATH);
+  if (!file) return null;
+  try {
+    const parsed = JSON.parse(file.content) as Partial<ProfileData>;
+    return parsed && typeof parsed === 'object' ? { ...emptyProfile(), ...parsed } : null;
+  } catch {
+    return null;
+  }
+}
+
+function emptyProfile(): ProfileData {
+  return {
+    name: '', neighborhood: '', about_neighborhood: '', dreams: '',
+    projects: [], practice_highlights: [], technologies: [], ideas: [],
+    commons: { incorporated: [], contributed: [] }, sections: [...PROFILE_SECTIONS],
+  };
+}
+
+/**
+ * Merge a fresh seed into the current data file. RB-sourced fields update;
+ * what the builder wrote stays: practice highlights, ideas, sections, project
+ * descriptions, and any technology or project they added by hand. A project
+ * that left the account stays only if it carries a description.
+ */
+export function mergeProfileSeed(current: ProfileData, seed: ProfileData): { next: ProfileData; changes: ProfileChange[] } {
+  const changes: ProfileChange[] = [];
+  const next: ProfileData = { ...current, commons: { ...current.commons } };
+
+  for (const field of ['name', 'neighborhood', 'about_neighborhood', 'dreams'] as const) {
+    if (seed[field] && seed[field] !== current[field]) {
+      changes.push({ field, before: show(current[field]), after: show(seed[field]) });
+      next[field] = seed[field];
+    }
+  }
+
+  const byName = new Map(current.projects.map(p => [p.name.trim().toLowerCase(), p]));
+  const merged: ProfileProject[] = [];
+  for (const p of seed.projects) {
+    const have = byName.get(p.name.trim().toLowerCase());
+    if (!have) {
+      merged.push(p);
+      changes.push({ field: 'projects', before: '(not listed)', after: `${p.name}${p.live_url ? ` · ${p.live_url}` : ''}` });
+      continue;
+    }
+    const updated: ProfileProject = {
+      ...have,
+      live_url: p.live_url ?? have.live_url,
+      repo_url: p.repo_url ?? have.repo_url,
+    };
+    if (updated.live_url !== have.live_url || updated.repo_url !== have.repo_url) {
+      changes.push({ field: `projects · ${have.name}`, before: show([have.live_url, have.repo_url].filter(Boolean)), after: show([updated.live_url, updated.repo_url].filter(Boolean)) });
+    }
+    merged.push(updated);
+    byName.delete(p.name.trim().toLowerCase());
+  }
+  for (const leftover of byName.values()) {
+    if (leftover.description?.trim()) merged.push(leftover);
+    else changes.push({ field: 'projects', before: leftover.name, after: '(no longer in your account)' });
+  }
+  next.projects = merged;
+
+  const tech = [...current.technologies];
+  for (const t of seed.technologies) if (!tech.includes(t)) tech.push(t);
+  if (tech.length !== current.technologies.length) {
+    changes.push({ field: 'technologies', before: show(current.technologies), after: show(tech) });
+  }
+  next.technologies = tech;
+
+  const sameCounts = (a: { type: string; count: number }[], b: { type: string; count: number }[]) =>
+    JSON.stringify([...a].sort((x, y) => x.type.localeCompare(y.type))) ===
+    JSON.stringify([...b].sort((x, y) => x.type.localeCompare(y.type)));
+  const fmtCounts = (c: { type: string; count: number }[]) => c.length ? c.map(x => `${x.count} ${x.type}`).join(', ') : '(none)';
+  if (!sameCounts(current.commons.incorporated, seed.commons.incorporated)) {
+    changes.push({ field: 'commons · drew on', before: fmtCounts(current.commons.incorporated), after: fmtCounts(seed.commons.incorporated) });
+    next.commons.incorporated = seed.commons.incorporated;
+  }
+  if (!sameCounts(current.commons.contributed, seed.commons.contributed)) {
+    changes.push({ field: 'commons · contributed', before: fmtCounts(current.commons.contributed), after: fmtCounts(seed.commons.contributed) });
+    next.commons.contributed = seed.commons.contributed;
+  }
+
+  return { next, changes };
+}
+
+/** Compute what a refresh would change on the OPEN page project */
+export async function previewProfileRefresh(): Promise<{ next: ProfileData; changes: ProfileChange[] } | { error: string }> {
+  if (!isBuilderProfileProject()) return { error: 'Open your builder page first' };
+  const current = readProfileData() ?? emptyProfile();
+  const seed = await gatherProfileSeed();
+  return mergeProfileSeed(current, seed);
+}
+
+/** Write the merged data file and let the cloud save it */
+export async function applyProfileRefresh(next: ProfileData): Promise<void> {
+  useProjectStore.getState().writeFile(PROFILE_DATA_PATH, JSON.stringify(next, null, 2), 'json');
+  await useCloudStore.getState().saveNow().catch(() => {});
+}
+
+/** Import specifiers and file markers worth naming on a page. Anything not
+ *  listed stays out: a page says "maps" and "Supabase", not "clsx". */
+const TECH_LABELS: Record<string, string> = {
+  react: 'React',
+  'react-dom': 'React',
+  tailwindcss: 'Tailwind CSS',
+  'community-cloud': 'Community Cloud',
+  serverless: 'Serverless functions',
+  leaflet: 'Leaflet maps',
+  'react-leaflet': 'Leaflet maps',
+  'maplibre-gl': 'MapLibre maps',
+  'mapbox-gl': 'Mapbox maps',
+  '@supabase/supabase-js': 'Supabase',
+  recharts: 'Charts (Recharts)',
+  'chart.js': 'Charts (Chart.js)',
+  d3: 'D3',
+  'react-router-dom': 'React Router',
+  'react-router': 'React Router',
+  '@tanstack/react-query': 'React Query',
+  'framer-motion': 'Motion',
+  motion: 'Motion',
+  three: 'Three.js',
+  '@react-three/fiber': 'Three.js',
+  'date-fns': 'date-fns',
+  dayjs: 'Day.js',
+  zod: 'Zod',
+  marked: 'Markdown rendering',
+  'react-markdown': 'Markdown rendering',
+  ical: 'Calendar feeds (iCal)',
+  'ical.js': 'Calendar feeds (iCal)',
+  papaparse: 'CSV data',
+  'qrcode.react': 'QR codes',
+  qrcode: 'QR codes',
+  pdfjs: 'PDF handling',
+  'pdf-lib': 'PDF generation',
+  jspdf: 'PDF generation',
+  resend: 'Email (Resend)',
+  twilio: 'SMS (Twilio)',
+  stripe: 'Payments (Stripe)',
+  '@stripe/stripe-js': 'Payments (Stripe)',
+};
+
+/** Technologies the builder's projects actually use, read from their files
+ *  server-side (my_project_technologies), mapped to plain labels */
+export async function inferTechnologies(): Promise<string[]> {
+  if (!builderClient) return [];
+  const { data } = await builderClient.rpc('my_project_technologies');
+  const labels = new Set<string>();
+  for (const row of (Array.isArray(data) ? data : []) as { spec: string; projects: number }[]) {
+    const label = TECH_LABELS[row.spec];
+    if (label) labels.add(label);
+  }
+  return [...labels];
+}
+
+/** What this builder has given back to the commons, counted by type */
+export async function contributedCounts(): Promise<{ type: string; count: number }[]> {
+  if (!builderClient) return [];
+  const { data } = await builderClient.from('commons_contributions').select('contribution_type');
+  const counts = new Map<string, number>();
+  for (const row of (Array.isArray(data) ? data : []) as { contribution_type: string }[]) {
+    counts.set(row.contribution_type, (counts.get(row.contribution_type) ?? 0) + 1);
+  }
+  return [...counts].map(([type, count]) => ({ type, count }));
 }
 
 /** A one-line inventory for the opening of the plan conversation */

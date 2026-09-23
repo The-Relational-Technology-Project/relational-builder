@@ -7,6 +7,8 @@
  */
 
 import { useStudioStore } from '@/store/studio-store';
+import { useAuthStore } from '@/store/auth-store';
+import { builderClient } from '@/cloud/builder-client';
 
 const COMMONS_URL =
   import.meta.env.VITE_COMMONS_SUPABASE_URL ?? 'https://odowkowcinyoxejyzhwl.supabase.co';
@@ -77,6 +79,9 @@ export async function submitToCommons(submission: CommonsSubmission): Promise<Su
     if (!res.ok) {
       return { ok: false, error: data.error ?? `Submission failed (${res.status})` };
     }
+    // The Builder remembers what this builder gave back (best-effort; the
+    // Commons project is the record of truth, this feeds their own page)
+    void recordContribution(submission, data.contribution_id, activeStudio?.slug);
     // Offering a build to the commons is studio life too (best-effort)
     if (activeStudio) {
       void import('@/cloud/studios').then(({ recordStudioActivity }) =>
@@ -86,6 +91,27 @@ export async function submitToCommons(submission: CommonsSubmission): Promise<Su
     return { ok: true, contributionId: data.contribution_id };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : 'Submission failed' };
+  }
+}
+
+async function recordContribution(
+  submission: CommonsSubmission,
+  contributionId: unknown,
+  studioSlug?: string,
+): Promise<void> {
+  const user = useAuthStore.getState().user;
+  if (!builderClient || !user) return;
+  try {
+    await builderClient.from('commons_contributions').insert({
+      user_id: user.id,
+      contribution_type: submission.contributionType ?? 'tool',
+      title: submission.title.slice(0, 200),
+      source_url: submission.sourceUrl || null,
+      studio_slug: studioSlug ?? null,
+      contribution_id: typeof contributionId === 'string' ? contributionId : null,
+    });
+  } catch {
+    // Nothing to do — the contribution itself already landed
   }
 }
 

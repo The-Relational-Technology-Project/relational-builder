@@ -9,7 +9,8 @@ import {
   startBuilderProfile,
   type LiveBuilderPage,
 } from '@/project/builder-profile';
-import { Globe, Loader2, Pencil, Sparkles, Trash2 } from 'lucide-react';
+import { Globe, Loader2, Pencil, RefreshCw, Sparkles, Trash2 } from 'lucide-react';
+import { RefreshBuilderPageDialog } from '@/components/RefreshBuilderPageDialog';
 
 /**
  * The door to a builder's public page, at the top of their profile. Three
@@ -26,6 +27,7 @@ export function BuilderPageCard() {
   const [busy, setBusy] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -51,6 +53,19 @@ export function BuilderPageCard() {
       return;
     }
     setView('builder');
+  }
+
+  /** Refresh runs on the open page project: open it first, then compare */
+  async function refresh() {
+    setBusy(true);
+    setError(null);
+    const r = await startBuilderProfile();
+    setBusy(false);
+    if (r.error) {
+      setError(r.error);
+      return;
+    }
+    setRefreshing(true);
   }
 
   async function unpublish() {
@@ -100,6 +115,10 @@ export function BuilderPageCard() {
               <Pencil className="size-3 mr-1" />
               Edit page
             </Button>
+            <Button size="sm" variant="outline" className="h-7 text-xs" disabled={busy} onClick={refresh}>
+              <RefreshCw className="size-3 mr-1" />
+              Refresh from RB
+            </Button>
             {confirming ? (
               <>
                 <span className="text-xs text-muted-foreground">Take it down and free the handle?</span>
@@ -129,13 +148,25 @@ export function BuilderPageCard() {
             Built with the Builder from what&apos;s already here, free (it doesn&apos;t count
             toward your weekly budget), and public only once you publish it.
           </p>
-          <Button size="sm" className="h-8 text-xs" disabled={busy} onClick={open}>
-            {busy ? <Loader2 className="size-3 mr-1 animate-spin" /> : <Sparkles className="size-3 mr-1" />}
-            {project ? 'Continue building' : 'Build your builder page'}
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" className="h-8 text-xs" disabled={busy} onClick={open}>
+              {busy ? <Loader2 className="size-3 mr-1 animate-spin" /> : <Sparkles className="size-3 mr-1" />}
+              {project ? 'Continue building' : 'Build your builder page'}
+            </Button>
+            {project && (
+              <Button size="sm" variant="outline" className="h-8 text-xs" disabled={busy} onClick={refresh}>
+                <RefreshCw className="size-3 mr-1" />
+                Refresh from RB
+              </Button>
+            )}
+          </div>
         </div>
       )}
       {error && <p className="text-xs text-destructive">{error}</p>}
+      <RefreshBuilderPageDialog
+        open={refreshing}
+        onOpenChange={v => { setRefreshing(v); if (!v) setView('builder'); }}
+      />
     </section>
   );
 }
