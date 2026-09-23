@@ -1,7 +1,7 @@
 # Public Builder Profiles — Spec
 
-*September 2026. Status: Phase 1 built (see "What shipped" at the end);
-Phases 2 and 3 open. The three owner decisions (address, free-ness, handle
+*September 2026. Status: Phases 1 and 2 built (see "What shipped" at the
+end); Phase 3 open. The three owner decisions (address, free-ness, handle
 release) are settled below.*
 
 ## The idea, in one sentence
@@ -269,8 +269,23 @@ approach); optional richer connection matching.
   unpublish); `PublishDialog` asks for the handle on a page project;
   directory and intro suggestions show "Builder page" links.
 
-Not in Phase 1: technologies inference from project files, Refresh-from-RB
-with a diff, the `commons_contributions` table, sitemap, per-page OG image.
+## What shipped in Phase 2 (September 2026)
+
+- `supabase/migrations/20260923120000_builder_profiles_phase2.sql`:
+  `commons_contributions` (own rows; the client inserts after a successful
+  `submitToCommons`) and `my_project_technologies()`, which reads bare
+  imports, Tailwind, Community Cloud, and serverless markers out of the
+  builder's project files server-side.
+- Seed: `commons.contributed` counts from the new table; `technologies`
+  from the RPC through a curated label map (React, Tailwind CSS, Leaflet
+  maps, Supabase, Community Cloud, …), so a page says "maps", not "clsx".
+- Refresh from RB: `mergeProfileSeed` updates RB-sourced facts and keeps
+  everything the builder wrote (practice highlights, ideas, sections,
+  project descriptions, hand-added technologies). `RefreshBuilderPageDialog`
+  shows the field-by-field diff before writing; opened from the Builder
+  Page card.
+
+Not yet: sitemap, per-page OG image, richer connection matching (Phase 3).
 
 ## Non-goals
 
