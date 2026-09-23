@@ -14,6 +14,13 @@
  *     PBKDF2 hash is stored; the `site` function does the gating. Previews
  *     ignore it (unlisted + expiring already).
  *
+ * Builder pages: { profile: true, slug: <handle>, name, files } publishes the
+ * builder's public page (docs/BUILDER-PROFILES.md) under kind 'profile' at
+ * /b/{handle}/. One per builder, outside the site cap; the slug is the
+ * handle, so republishing under a new handle moves the page and releases
+ * the old one, and 'delete' releases it outright. { action: 'profile' }
+ * returns the builder's page (or null).
+ *
  * Preview links: { preview: true, name, files } creates an UNLISTED preview
  * site under a random slug — outside the per-builder site cap, invisible on
  * the dashboard, expiring after PREVIEW_DAYS. Old/expired previews are
@@ -46,6 +53,15 @@ const CORS = {
 };
 
 const MAX_SITES_PER_BUILDER = 10;
+// Handles are site slugs with tighter rules: 3–32 chars, letters, digits,
+// hyphens, not starting or ending with one. A few words stay reserved so
+// a page can never impersonate the app's own addresses.
+const HANDLE_RE = /^[a-z0-9](?:[a-z0-9-]{1,30}[a-z0-9])$/;
+const RESERVED_HANDLES = new Set([
+  'admin', 'api', 'app', 'b', 'builder', 'commons', 'connect', 'gallery', 'home', 'login',
+  'new', 'profile', 'projects', 'rtp', 'relationalbuilder', 'relational-builder', 's', 'site',
+  'sites', 'steward', 'studio', 'studios', 'support', 'www',
+]);
 const MAX_PREVIEWS_PER_BUILDER = 10;
 const PREVIEW_DAYS = 30;
 const MAX_FILES = 150;
@@ -196,6 +212,27 @@ Deno.serve(async (req: Request) => {
       return json({ ok: true, sites: enriched });
     }
 
+    if (body.action === 'profile') {
+      const res = await fetch(
+        rest(`/community_sites?owner_email=eq.${encodeURIComponent(email)}&kind=eq.profile&select=id,slug,updated_at&limit=1`),
+        { headers: svc() },
+      );
+      const rows = res.ok ? await res.json() : [];
+      if (rows.length === 0) return json({ ok: true, site: null });
+      const appUrl = Deno.env.get('APP_URL') ?? 'https://relationalbuilder.org';
+      const statsRes = await fetch(rest(`/site_stats?site_id=eq.${rows[0].id}&select=views`), { headers: svc() });
+      const stats = statsRes.ok ? await statsRes.json() : [];
+      return json({
+        ok: true,
+        site: {
+          slug: rows[0].slug,
+          url: `${appUrl}/b/${rows[0].slug}/`,
+          updated_at: rows[0].updated_at,
+          total_views: stats.reduce((sum: number, s: { views: number }) => sum + Number(s.views), 0),
+        },
+      });
+    }
+
     if (body.action === 'delete' || body.action === 'versions' || body.action === 'restore_version' || body.action === 'set_passphrase') {
       const slug = slugify(String(body.slug ?? ''));
       if (!slug) return json({ error: 'Which site?' }, 400);
@@ -288,12 +325,50 @@ Deno.serve(async (req: Request) => {
     }
 
     const isPreview = body.preview === true;
+    const isProfile = body.profile === true && !isPreview;
     let slug = requestedSlug;
     let siteId: string | null = null;
     let expiresAt: string | null = null;
     let existingHash: string | null = null;
 
-    if (isPreview) {
+    if (isProfile) {
+      // The builder's page: the slug is their handle. Their existing page
+      // (any slug) is the one being republished; a new handle moves it and
+      // releases the old address. Someone else's slug is simply taken.
+      const handle = String(body.slug ?? '').trim().toLowerCase();
+      if (!HANDLE_RE.test(handle) || RESERVED_HANDLES.has(handle)) {
+        return json({ error: 'Pick a handle of 3–32 lowercase letters, digits, or hyphens' }, 400);
+      }
+      if (typeof passphraseHash === 'string') {
+        return json({ error: 'A builder page is public by design — it cannot take a passphrase' }, 400);
+      }
+      const [mineRes, takenRes] = await Promise.all([
+        fetch(rest(`/community_sites?owner_email=eq.${encodeURIComponent(email)}&kind=eq.profile&select=id,slug`), { headers: svc() }),
+        fetch(rest(`/community_sites?slug=eq.${encodeURIComponent(handle)}&select=id,owner_email,kind`), { headers: svc() }),
+      ]);
+      const mine: { id: string; slug: string }[] = mineRes.ok ? await mineRes.json() : [];
+      const taken: { id: string; owner_email: string; kind: string }[] = takenRes.ok ? await takenRes.json() : [];
+      if (taken.length > 0 && (taken[0].owner_email !== email || taken[0].kind !== 'profile')) {
+        return json({ error: `The handle "${handle}" is taken — try another` }, 409);
+      }
+      slug = handle;
+      if (mine.length > 0) {
+        siteId = mine[0].id;
+        if (mine[0].slug !== handle) {
+          await fetch(rest(`/community_sites?id=eq.${siteId}`), {
+            method: 'PATCH', headers: svc(), body: JSON.stringify({ slug: handle, name }),
+          });
+        }
+      } else {
+        const createRes = await fetch(rest('/community_sites'), {
+          method: 'POST',
+          headers: { ...svc(), Prefer: 'return=representation' },
+          body: JSON.stringify({ slug, name, owner_email: email, kind: 'profile' }),
+        });
+        if (!createRes.ok) return json({ error: 'Could not create your builder page' }, 500);
+        siteId = (await createRes.json())[0].id;
+      }
+    } else if (isPreview) {
       // Previews: always a fresh unlisted site under a random slug, outside
       // the site cap. Housekeeping first: expired previews go, and the
       // oldest go once the builder is at their preview cap.
@@ -398,6 +473,9 @@ Deno.serve(async (req: Request) => {
 
     if (isPreview) {
       return json({ ok: true, slug, url: `${appUrl}/s/${slug}/`, expires_at: expiresAt });
+    }
+    if (isProfile) {
+      return json({ ok: true, slug, url: `${appUrl}/b/${slug}/`, total_views: 0, has_passphrase: false, profile: true });
     }
 
     // Total views so far (for republish feedback)

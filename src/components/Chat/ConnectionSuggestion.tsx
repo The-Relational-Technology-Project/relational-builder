@@ -8,7 +8,7 @@ import {
 import { useAuthStore } from '@/store/auth-store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { HeartHandshake, CalendarClock, MailPlus, MapPin, X, Loader2, Check } from 'lucide-react';
+import { HeartHandshake, CalendarClock, MailPlus, MapPin, X, Loader2, Check, CircleUser } from 'lucide-react';
 
 const MEMORY_KEY = 'rb-connection-suggestions';
 
@@ -167,6 +167,17 @@ export function ConnectionSuggestion({ conversationText }: { conversationText: s
         <p className="text-xs text-muted-foreground">"{builder.note}"</p>
       )}
       <div className="flex gap-3 items-center">
+        {builder.profile_url && (
+          <a
+            href={builder.profile_url}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+          >
+            <CircleUser className="size-3" />
+            Builder page
+          </a>
+        )}
         {builder.cal_link && (
           <a
             href={builder.cal_link}

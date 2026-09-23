@@ -45,19 +45,29 @@ export function weekStartUtc(now = new Date()): string {
 /** This week's usage rows (one per day), summed the way the llm-proxy gate sums them */
 async function fetchUsedThisWeek(): Promise<number> {
   if (!builderClient) return 0;
-  const { data: usage } = await builderClient
-    .from('community_usage')
-    .select('input_tokens, output_tokens, cache_creation_tokens, cache_read_tokens')
-    .gte('day', weekStartUtc());
-  return (usage ?? []).reduce(
-    (sum, row) =>
-      sum +
-      Number(row.input_tokens ?? 0) +
-      Number(row.output_tokens ?? 0) +
-      Number(row.cache_creation_tokens ?? 0) +
-      Number(row.cache_read_tokens ?? 0),
-    0,
-  );
+  const tokensOf = (rows: Record<string, unknown>[] | null) =>
+    (rows ?? []).reduce(
+      (sum, row) =>
+        sum +
+        Number(row.input_tokens ?? 0) +
+        Number(row.output_tokens ?? 0) +
+        Number(row.cache_creation_tokens ?? 0) +
+        Number(row.cache_read_tokens ?? 0),
+      0,
+    );
+  const [{ data: usage }, { data: profileUsage }] = await Promise.all([
+    builderClient
+      .from('community_usage')
+      .select('input_tokens, output_tokens, cache_creation_tokens, cache_read_tokens')
+      .gte('day', weekStartUtc()),
+    // The builder's page builds outside the budget (metered as <model>:profile)
+    builderClient
+      .from('community_usage_models')
+      .select('input_tokens, output_tokens, cache_creation_tokens, cache_read_tokens')
+      .gte('day', weekStartUtc())
+      .like('model', '%:profile'),
+  ]);
+  return Math.max(0, tokensOf(usage) - tokensOf(profileUsage));
 }
 
 export const useCommunityStore = create<CommunityState>()((set) => ({

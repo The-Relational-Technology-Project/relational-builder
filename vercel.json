@@ -5,6 +5,10 @@
       "destination": "/api/site?path=:path"
     },
     {
+      "source": "/b/:path(.*)",
+      "destination": "/api/site?path=:path&b=1"
+    },
+    {
       "source": "/commons",
       "destination": "/api/commons?path="
     },

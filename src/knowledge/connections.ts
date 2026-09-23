@@ -18,6 +18,8 @@ export interface DirectoryBuilder {
   event_code?: string | null;
   /** Prompts this builder has shared — seeds you can grow from */
   prompts?: { title: string; slug: string }[];
+  /** Their public builder page, when they've published one */
+  profile_url?: string | null;
 }
 
 async function call(body: Record<string, unknown>): Promise<Record<string, unknown>> {

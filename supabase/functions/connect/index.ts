@@ -348,6 +348,21 @@ Deno.serve(async (req: Request) => {
         }
       }
 
+      // Public builder pages: already public by the builder's own choice to
+      // publish, so the directory links to them (docs/BUILDER-PROFILES.md)
+      const pageByEmail = new Map<string, string>();
+      if (visible.length > 0) {
+        const emails = visible.map((p: { email: string }) => `"${p.email.toLowerCase()}"`).join(',');
+        const pagesRes = await fetch(
+          rest(`/community_sites?kind=eq.profile&owner_email=in.(${emails})&select=owner_email,slug`),
+          { headers: svc() },
+        );
+        const appUrl = Deno.env.get('APP_URL') ?? 'https://relationalbuilder.org';
+        for (const row of (pagesRes.ok ? await pagesRes.json() : []) as { owner_email: string; slug: string }[]) {
+          pageByEmail.set(row.owner_email.toLowerCase(), `${appUrl}/b/${row.slug}/`);
+        }
+      }
+
       const builders = visible.map((p: Record<string, unknown>) => ({
         id: p.id,
         name: p.display_name || 'A builder',
@@ -355,6 +370,7 @@ Deno.serve(async (req: Request) => {
         note: p.connect_note ?? null,
         cal_link: p.cal_link ?? null,
         allow_requests: Boolean(p.allow_requests),
+        profile_url: pageByEmail.get(String(p.email).toLowerCase()) ?? null,
         // Which event they joined through — same-event peers get suggested
         // to each other more readily
         event_code: p.event_code ?? null,

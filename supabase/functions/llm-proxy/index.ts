@@ -289,6 +289,7 @@ async function communityOutageFallback(
   body: Record<string, unknown>,
   communityEmail: string,
   CORS_HEADERS: Record<string, string>,
+  profile = false,
 ): Promise<Response | null> {
   for (const fb of outageFallbackChain()) {
     let upstream: Response;
@@ -308,7 +309,7 @@ async function communityOutageFallback(
       await upstream.text().catch(() => {});
       continue;
     }
-    return fallbackResponse(upstream, fb, communityEmail, CORS_HEADERS, body.stream !== false);
+    return fallbackResponse(upstream, fb, communityEmail, CORS_HEADERS, body.stream !== false, profile);
   }
   return null;
 }
@@ -319,6 +320,7 @@ async function fallbackResponse(
   communityEmail: string,
   CORS_HEADERS: Record<string, string>,
   streaming: boolean,
+  profile = false,
 ): Promise<Response> {
   if (!streaming) {
     // Already OpenAI format — meter and pass through
@@ -329,7 +331,7 @@ async function fallbackResponse(
       Number(data.usage?.completion_tokens ?? 0),
       0,
       0,
-      fb.model,
+      meterModel(fb.model, profile),
     );
     return new Response(JSON.stringify(data), {
       headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
@@ -383,7 +385,7 @@ async function fallbackResponse(
         controller.error(err);
       } finally {
         if (promptTokens > 0 || completionTokens > 0) {
-          recordCommunityUsage(communityEmail, promptTokens, completionTokens, 0, 0, fb.model);
+          recordCommunityUsage(communityEmail, promptTokens, completionTokens, 0, 0, meterModel(fb.model, profile));
         }
       }
     },
@@ -399,12 +401,46 @@ async function fallbackResponse(
   });
 }
 
-type CommunityGate = { email: string } | { error: string; status: number };
+type CommunityGate =
+  | { email: string; /** Metered outside the weekly budget (a builder-page request) */ profile: boolean }
+  | { error: string; status: number };
+
+// ── Public builder pages: free to build, bounded by construction ─────
+//
+// A builder's public page (docs/BUILDER-PROFILES.md) builds outside the
+// weekly token budget. The client sends `project_id`; the exemption holds
+// only when that row is the caller's own project with lineage
+// `builder-profile` — and the database allows one such project per
+// builder. Profile requests are metered under `<model>:profile` (same
+// per-model table, prices at the model's own rates in community-monitor),
+// excluded from the weekly sum, and capped on their own by request count.
+const PROFILE_REQUESTS_PER_WEEK = Number(Deno.env.get('PROFILE_REQUESTS_PER_WEEK') ?? '300');
+const PROFILE_METER_SUFFIX = ':profile';
+
+/** The model id to meter under: profile requests carry the suffix */
+function meterModel(model: string, profile: boolean): string {
+  return profile && model && !model.endsWith(PROFILE_METER_SUFFIX) ? `${model}${PROFILE_METER_SUFFIX}` : model;
+}
+
+async function isOwnProfileProject(
+  supabaseUrl: string,
+  svc: Record<string, string>,
+  userId: string,
+  projectId: string,
+): Promise<boolean> {
+  if (!/^[0-9a-f-]{36}$/i.test(projectId)) return false;
+  const res = await fetch(
+    `${supabaseUrl}/rest/v1/projects?id=eq.${encodeURIComponent(projectId)}&owner_id=eq.${encodeURIComponent(userId)}&lineage->>source=eq.builder-profile&select=id`,
+    { headers: svc },
+  );
+  const rows = res.ok ? await res.json() : [];
+  return Array.isArray(rows) && rows.length === 1;
+}
 
 async function checkCommunityAccess(
   token: string,
   model: string,
-  opts: { requiredKeyEnv?: string; skipModelCheck?: boolean } = {},
+  opts: { requiredKeyEnv?: string; skipModelCheck?: boolean; projectId?: string } = {},
 ): Promise<CommunityGate> {
   const requiredKeyEnv = opts.requiredKeyEnv ?? 'ANTHROPIC_COMMUNITY_KEY';
   const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
@@ -457,22 +493,49 @@ async function checkCommunityAccess(
   //
   // The budget is weekly (since Sept 2026): usage rows stay per-day, and the
   // gate sums every day since Monday 00:00 UTC.
-  const usageRes = await fetch(
-    `${supabaseUrl}/rest/v1/community_usage?email=eq.${encodeURIComponent(email)}&day=gte.${weekStartUtc()}&select=input_tokens,output_tokens,cache_creation_tokens,cache_read_tokens`,
-    { headers: svc },
-  );
+  const tokensOf = (rows: unknown) =>
+    Array.isArray(rows)
+      ? rows.reduce(
+          (sum: number, row: Record<string, unknown>) =>
+            sum +
+            Number(row.input_tokens ?? 0) +
+            Number(row.output_tokens ?? 0) +
+            Number(row.cache_creation_tokens ?? 0) +
+            Number(row.cache_read_tokens ?? 0),
+          0,
+        )
+      : 0;
+  const weekStart = weekStartUtc();
+  const [usageRes, profileRes] = await Promise.all([
+    fetch(
+      `${supabaseUrl}/rest/v1/community_usage?email=eq.${encodeURIComponent(email)}&day=gte.${weekStart}&select=input_tokens,output_tokens,cache_creation_tokens,cache_read_tokens`,
+      { headers: svc },
+    ),
+    // Builder-page traffic is in the aggregate too; it comes back out here
+    fetch(
+      `${supabaseUrl}/rest/v1/community_usage_models?email=eq.${encodeURIComponent(email)}&day=gte.${weekStart}&model=like.${encodeURIComponent('*' + PROFILE_METER_SUFFIX)}&select=requests,input_tokens,output_tokens,cache_creation_tokens,cache_read_tokens`,
+      { headers: svc },
+    ),
+  ]);
   const usage = usageRes.ok ? await usageRes.json() : [];
-  const used = Array.isArray(usage)
-    ? usage.reduce(
-        (sum: number, row: Record<string, unknown>) =>
-          sum +
-          Number(row.input_tokens ?? 0) +
-          Number(row.output_tokens ?? 0) +
-          Number(row.cache_creation_tokens ?? 0) +
-          Number(row.cache_read_tokens ?? 0),
-        0,
-      )
-    : 0;
+  const profileUsage = profileRes.ok ? await profileRes.json() : [];
+  const used = tokensOf(usage) - tokensOf(profileUsage);
+
+  // The builder's own page: outside the weekly budget, under its own cap
+  const projectId = String(opts.projectId ?? '');
+  if (projectId && (await isOwnProfileProject(supabaseUrl, svc, String(user.id ?? ''), projectId))) {
+    const profileRequests = Array.isArray(profileUsage)
+      ? profileUsage.reduce((sum: number, row: Record<string, unknown>) => sum + Number(row.requests ?? 0), 0)
+      : 0;
+    if (profileRequests >= PROFILE_REQUESTS_PER_WEEK) {
+      return {
+        error: `Your builder page has had ${PROFILE_REQUESTS_PER_WEEK} free builds and edits this week — it resets Monday at midnight UTC. Everything else keeps working as usual.`,
+        status: 429,
+      };
+    }
+    return { email, profile: true };
+  }
+
   if (used >= budget) {
     return {
       error: "You've reached this week's community building budget — it resets Monday at midnight UTC (Sunday evening in the Americas). Thanks for building!",
@@ -480,7 +543,7 @@ async function checkCommunityAccess(
     };
   }
 
-  return { email };
+  return { email, profile: false };
 }
 
 /** The UTC date (YYYY-MM-DD) of the Monday that starts the current budget week */
@@ -703,9 +766,12 @@ async function proxyAnthropic(
 ): Promise<Response> {
   let apiKey = authHeader.replace(/^Bearer\s+/i, '');
   let communityEmail: string | null = null;
+  let communityProfile = false;
 
   if (!apiKey && communityToken) {
-    const gate = await checkCommunityAccess(communityToken, String(body.model ?? ''));
+    const gate = await checkCommunityAccess(communityToken, String(body.model ?? ''), {
+      projectId: typeof body.project_id === 'string' ? body.project_id : undefined,
+    });
     if ('error' in gate) {
       return new Response(JSON.stringify({ error: gate.error }), {
         status: gate.status,
@@ -713,6 +779,7 @@ async function proxyAnthropic(
       });
     }
     communityEmail = gate.email;
+    communityProfile = gate.profile;
     apiKey = Deno.env.get('ANTHROPIC_COMMUNITY_KEY') ?? '';
   }
 
@@ -729,7 +796,7 @@ async function proxyAnthropic(
   // doomed call first. If no fallback key is usable, fall through and try
   // Claude anyway.
   if (communityEmail && Deno.env.get('OUTAGE_PROVIDER')) {
-    const fallback = await communityOutageFallback(body, communityEmail, CORS_HEADERS);
+    const fallback = await communityOutageFallback(body, communityEmail, CORS_HEADERS, communityProfile);
     if (fallback) return fallback;
   }
 
@@ -953,7 +1020,7 @@ async function proxyAnthropic(
       upstream = null;
     }
     if (!upstream || upstream.status >= 500) {
-      const fallback = await communityOutageFallback(body, communityEmail, CORS_HEADERS);
+      const fallback = await communityOutageFallback(body, communityEmail, CORS_HEADERS, communityProfile);
       if (fallback) {
         if (upstream) await upstream.text().catch(() => {});
         return fallback;
@@ -991,7 +1058,7 @@ async function proxyAnthropic(
         Number(data.usage?.output_tokens ?? 0),
         Number(data.usage?.cache_creation_input_tokens ?? 0),
         Number(data.usage?.cache_read_input_tokens ?? 0),
-        String(data.model ?? anthropicBody.model ?? ''),
+        meterModel(String(data.model ?? anthropicBody.model ?? ''), communityProfile),
       );
     }
     const openaiResponse = {
@@ -1155,7 +1222,7 @@ async function proxyAnthropic(
             outputTokens,
             cacheWriteTokens,
             cacheReadTokens,
-            servedModel,
+            meterModel(servedModel, communityProfile),
           );
         }
       }

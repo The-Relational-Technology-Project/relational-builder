@@ -27,6 +27,9 @@ export async function publishToCommunityHosting(
   projectName: string,
   publicEnvVars: PublicEnvVar[],
   passphrase?: string,
+  /** The builder's public page: published under kind 'profile' at
+   *  /b/{handle}/ — one per builder, outside the site cap, never private */
+  profile?: { handle: string },
 ): Promise<CommunityPublishResult> {
   if (!builderClient) {
     throw new Error('Community hosting needs the cloud backend configured');
@@ -49,7 +52,8 @@ export async function publishToCommunityHosting(
     body: JSON.stringify({
       name: projectName,
       files: payloadFiles,
-      ...(passphrase?.trim() ? { passphrase: passphrase.trim() } : {}),
+      ...(profile ? { profile: true, slug: profile.handle } : {}),
+      ...(passphrase?.trim() && !profile ? { passphrase: passphrase.trim() } : {}),
     }),
   });
   const result = await res.json().catch(() => ({}));

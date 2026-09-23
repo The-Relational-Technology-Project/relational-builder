@@ -1,7 +1,8 @@
 # Public Builder Profiles — Spec
 
-*September 2026. Status: specced, not built. Decisions the owner needs to make
-are marked ⚑.*
+*September 2026. Status: Phase 1 built (see "What shipped" at the end);
+Phases 2 and 3 open. The three owner decisions (address, free-ness, handle
+release) are settled below.*
 
 ## The idea, in one sentence
 
@@ -114,10 +115,12 @@ A `PROFILE_PLAN_INSTRUCTIONS` variant of `PLAN_INSTRUCTIONS`, chosen when
 
 - First reply opens with what RB found ("3 projects, 2 live, drew on the
   commons 4 times, no contributions logged yet") and one
-  `## Question for you` block whose first question is the section checklist.
-  `PlanQuestionCard` is single-select today; add a `(choose any)` marker the
-  card renders as multi-select pills. Small change to
-  `extractPlanQuestions` and the card.
+  `## Question for you` block whose first question is the section checklist,
+  ending in `(choose any)`. **Built:** `extractPlanQuestions` marks such a
+  question `multi`, allows up to ten options, and `PlanQuestionCard` renders
+  toggling pills with a Done button; the answer comes back comma-joined
+  ("Which sections? → Name, Projects, Dreams"). The plan prompt tells the
+  model when to use the marker.
 - Second round prompts for the two written sections (practice highlights,
   ideas) with 2–3 example lines drawn from their projects, so a builder can
   pick, edit, or skip.
@@ -141,8 +144,9 @@ on the project:
   lineage->>'source' = 'builder-profile'`. If true, skip the weekly-budget
   check and record usage with `model` tagged `…:profile` (so stewards can see
   it) but excluded from the budget sum.
-- One profile project per builder plus a modest separate cap (⚑ suggest 300
-  requests/week on the profile project) bounds the abuse surface. A builder
+- One profile project per builder plus a modest separate cap (300
+  requests/week on the profile project, `PROFILE_REQUESTS_PER_WEEK` in the
+  proxy) bounds the abuse surface. A builder
   could still build something unrelated inside their profile project. The
   system prompt discourages it and the cap limits it; that is acceptable for
   the community plan.
@@ -152,17 +156,18 @@ on the project:
 
 ### 5. Address and SEO
 
-⚑ **Address.** Recommend `relationalbuilder.org/b/{handle}/`. It reads as
+**Address.** `relationalbuilder.org/b/{handle}/`, decided. It reads as
 "builder", sits beside `/s/` and `/commons/`, and works with the existing
 rewrite pattern in `vercel.json`. Subdomains (`{handle}.builders.…`) wait for
 `CUSTOM-DOMAINS.md` phase 1.
 
-**Handle.** New `profiles.handle` (unique, lowercase, 3–32 chars, letters,
-digits, hyphens, reserved list). Proposed at first publish from
-`display_name`, editable once before publish, and stable after (renames
-create redirects only if we ever need them; start without). Rows
-`community_sites.kind = 'profile'` and `community_sites.handle` link the
-site to the person.
+**Handle.** The handle IS the site slug: a `community_sites` row of
+`kind = 'profile'` whose `slug` is the handle (lowercase, 3–32 chars,
+letters, digits, hyphens, a reserved list). No new column: `profiles` stays
+untouched and the connections directory joins on `owner_email`. Proposed
+at first publish from `display_name`; republishing under a new handle moves
+the page and frees the old address (no redirects). Unpublishing deletes the
+row, which releases the handle.
 
 **Crawlability.** Generated apps are bundled SPAs; Google does render JS but
 previews and snippets do not. So the `site` edge function, which already
@@ -178,8 +183,8 @@ rewrites HTML at serve time, injects for `kind = 'profile'`:
 
 The values come from `/data/profile.json` in `site_files` (the function
 already reads files for the slug), so nothing new is stored. Add `/b/*` to a
-`sitemap.xml` served by a small `api/sitemap.ts`. A profile can be unpublished
-(delete the site) at any time; the handle is kept.
+`sitemap.xml` served by a small `api/sitemap.ts` (Phase 3). A profile can be
+unpublished (delete the site) at any time; that releases the handle.
 
 Publishing is the public opt-in. The publish dialog for a profile project
 states in one sentence what becomes public (the data file, nothing from the
@@ -234,12 +239,38 @@ Refresh-from-RB with diff; technologies inference from project files.
 Sitemap; OG image generated per profile (reuse `app-icon.ts` palette
 approach); optional richer connection matching.
 
-## Decisions needed ⚑
+## Decisions (settled September 2026)
 
-1. `/b/{handle}/` vs waiting for subdomains.
-2. Free means "not counted against the weekly budget with its own soft cap"
-   (recommended) vs truly unmetered.
-3. Whether unpublishing should also release the handle. Recommended: no.
+1. Address is `/b/{handle}/`; subdomains can come later.
+2. Free means outside the weekly budget, with its own reasonable cap.
+3. Unpublishing releases the handle.
+
+## What shipped in Phase 1 (September 2026)
+
+- `supabase/migrations/20260923090000_builder_profiles.sql`: `kind
+  'profile'` on `community_sites`; one profile project per owner (partial
+  unique index on `projects`); `my_commons_ref_counts()` for the seed.
+- `src/project/builder-profile.ts`: the seed (`gatherProfileSeed`), the door
+  (`startBuilderProfile`, which opens the existing page project or creates
+  one with `/data/profile.json` and a drafted first message), handle rules.
+- `context-builder.ts`: `PROFILE_PLAN_INSTRUCTIONS` for the page
+  conversation and `PROFILE_PROJECT_GUIDANCE` for build mode; the data file
+  alone doesn't count as a built project.
+- `llm-proxy`: `project_id` in the body, verified against the caller's own
+  `builder-profile` project; exempt from the weekly budget, metered as
+  `<model>:profile`, capped at `PROFILE_REQUESTS_PER_WEEK` (300). The
+  client's budget banner subtracts the same rows.
+- `publish-site`: `{ profile: true, slug }` publishes the page (no cap, no
+  passphrase); `{ action: 'profile' }` returns it; `delete` releases it.
+- `site` + `api/site.ts` + `vercel.json`: `/b/{handle}/` rewrite carrying
+  `x-rb-profile`; a page and a site never answer for each other; injected
+  title, description, OG, canonical, JSON-LD Person, and a noscript summary.
+- `BuilderPageCard` on the profile page (build / continue / edit /
+  unpublish); `PublishDialog` asks for the handle on a page project;
+  directory and intro suggestions show "Builder page" links.
+
+Not in Phase 1: technologies inference from project files, Refresh-from-RB
+with a diff, the `commons_contributions` table, sitemap, per-page OG image.
 
 ## Non-goals
 

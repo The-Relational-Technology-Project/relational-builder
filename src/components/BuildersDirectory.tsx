@@ -3,7 +3,7 @@ import { fetchDirectory, requestConnection, type DirectoryBuilder } from '@/know
 import { plantSharedPrompt } from '@/cloud/prompts';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { HeartHandshake, CalendarClock, MailPlus, Loader2, MapPin, Check, ScrollText } from 'lucide-react';
+import { HeartHandshake, CalendarClock, MailPlus, Loader2, MapPin, Check, ScrollText, CircleUser } from 'lucide-react';
 
 const STEWARD_CAL = 'https://cal.com/joshnesbit/';
 
@@ -106,6 +106,17 @@ export function BuildersDirectory() {
               </div>
             )}
             <div className="flex gap-2 pt-0.5 items-center">
+              {b.profile_url && (
+                <a
+                  href={b.profile_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                >
+                  <CircleUser className="size-3" />
+                  Builder page
+                </a>
+              )}
               {b.cal_link && (
                 <a
                   href={b.cal_link}
