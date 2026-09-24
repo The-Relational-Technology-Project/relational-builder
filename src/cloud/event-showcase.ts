@@ -19,6 +19,10 @@ export interface ShowcaseEntry {
   screenshot_url: string | null;
   deck_url: string;
   demo_url: string | null;
+  /** One way to reach the builder, only if they offered it in Share Live —
+   *  the label is theirs ("Email", "Phone", "Website", or their own word) */
+  contact_label: string | null;
+  contact_value: string | null;
   created_at: string;
 }
 
@@ -42,6 +46,7 @@ export async function pinToShowcase(entry: {
   screenshotUrl: string | null;
   deckUrl: string;
   demoUrl: string | null;
+  contact: { label: string; value: string } | null;
 }): Promise<void> {
   if (!builderClient) throw new Error('Cloud backend not configured');
   // Replace-not-upsert: an upsert would need UPDATE grants on the key
@@ -61,6 +66,8 @@ export async function pinToShowcase(entry: {
     screenshot_url: entry.screenshotUrl,
     deck_url: entry.deckUrl,
     demo_url: entry.demoUrl,
+    contact_label: entry.contact?.label ?? null,
+    contact_value: entry.contact?.value ?? null,
   });
   if (error) throw new Error(error.message);
 }

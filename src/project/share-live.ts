@@ -125,6 +125,36 @@ export async function hostScreenshot(dataUrl: string): Promise<string | null> {
   }
 }
 
+/**
+ * A way to reach the builder, offered by them in Share Live. The label is
+ * how they want it read on the slide — one of CONTACT_KINDS or their own
+ * word — and the value is what the room acts on.
+ */
+export interface BuilderContact {
+  label: string;
+  value: string;
+}
+
+/** The standard labels the Share Live dialog offers (plus "Other") */
+export const CONTACT_KINDS = ['Email', 'Phone', 'Website'] as const;
+
+/**
+ * Something a phone can act on from the value — mailto:, tel:, or https://
+ * — or null when it should stay plain text (a handle, "ask for Sam at the
+ * front table"). Judged from the value itself, so an "Other" label that
+ * holds an email still links.
+ */
+export function contactHref(contact: BuilderContact): string | null {
+  const v = contact.value.trim();
+  if (!v) return null;
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return `mailto:${v}`;
+  if (/^https?:\/\//i.test(v)) return v;
+  if (/^[a-z0-9-]+(\.[a-z0-9-]+)+(\/\S*)?$/i.test(v)) return `https://${v}`;
+  const digits = v.replace(/[\s().-]/g, '');
+  if (/^\+?\d{7,15}$/.test(digits)) return `tel:${digits}`;
+  return null;
+}
+
 function esc(s: string): string {
   return s
     .replace(/&/g, '&amp;')
@@ -143,6 +173,17 @@ export interface DeckInput {
   demoUrl: string;
   /** Inline SVG markup for the demo URL's QR code */
   qrSvg: string;
+  /** How to reach the builder, if they chose to say — on the title and last slides */
+  contact?: BuilderContact | null;
+}
+
+/** The contact line's markup: label, then the value as a link when it can be one */
+function contactMarkup(contact: BuilderContact): string {
+  const href = contactHref(contact);
+  const value = href
+    ? `<a href="${esc(href)}" target="_blank" rel="noreferrer">${esc(contact.value.trim())}</a>`
+    : esc(contact.value.trim());
+  return `<span class="contact-label">${esc(contact.label.trim() || 'Contact')}</span> ${value}`;
 }
 
 /**
@@ -151,8 +192,10 @@ export interface DeckInput {
  */
 export function buildDeckHtml(input: DeckInput): string {
   const { title, oneLiner, builderName, eventName, bullets, screenshotUrl, demoUrl, qrSvg } = input;
+  const contact = input.contact && input.contact.value.trim() ? input.contact : null;
   const byline = [builderName, eventName].filter(Boolean).map(s => esc(String(s)));
   const shortUrl = demoUrl.replace(/^https?:\/\//, '');
+  const contactLine = contact ? contactMarkup(contact) : '';
 
   return `<!doctype html>
 <html lang="en">
@@ -182,6 +225,11 @@ export function buildDeckHtml(input: DeckInput): string {
     max-width: 34ch; margin-top: 3.5vmin; }
   .byline { margin-top: 4.5vmin; font-size: clamp(13px, 2.2vmin, 24px); color: #93806F; }
   .byline strong { color: #49362B; font-weight: 600; }
+  .contact { font-size: clamp(13px, 2.2vmin, 24px); color: #93806F; word-break: break-word; max-width: 90vw; }
+  .contact a { color: #C0532F; text-decoration: none; font-weight: 600; }
+  .contact-label { text-transform: uppercase; letter-spacing: .1em; font-size: .78em; font-weight: 700; color: #B7A894; }
+  .byline + .contact { margin-top: 1.2vmin; }
+  .hint + .contact { margin-top: 2.4vmin; }
   .row { display: flex; gap: 5vmin; align-items: center; justify-content: center;
     flex-wrap: wrap; margin-top: 3vmin; max-width: 92vw; }
   .shot { max-width: min(52vw, 900px); max-height: 58vh; border-radius: 14px;
@@ -213,6 +261,7 @@ export function buildDeckHtml(input: DeckInput): string {
     <h1>${esc(title)}</h1>
     ${oneLiner ? `<p class="oneliner">${esc(oneLiner)}</p>` : ''}
     ${byline.length ? `<p class="byline">Built by <strong>${byline[0]}</strong></p>` : ''}
+    ${contactLine ? `<p class="contact">${contactLine}</p>` : ''}
   </section>
 
   <section class="slide">
@@ -228,6 +277,7 @@ export function buildDeckHtml(input: DeckInput): string {
     <div class="qr">${qrSvg}</div>
     <div class="url">${esc(shortUrl)}</div>
     <p class="hint">Point your camera at the code — no install, no signup</p>
+    ${contactLine ? `<p class="contact">Reach ${builderName ? esc(String(builderName)) : 'the builder'} · ${contactLine}</p>` : ''}
   </section>
 
   <div class="dots"><span class="on"></span><span></span><span></span></div>
