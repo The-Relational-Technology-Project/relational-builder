@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { renderToStaticMarkup } from 'react-dom/server';
 import remarkGfm from 'remark-gfm';
 import {
   SandpackProvider,
@@ -26,6 +25,7 @@ import { resolveReactEntry } from '@/preview/react-entry';
 import { detectPreviewKind } from '@/preview/detect';
 import { extractHashRoutes } from '@/preview/routes';
 import { buildStandaloneHtml } from '@/preview/standalone';
+import { renderDocHtml } from '@/preview/doc-html';
 import { FrameworkPreview } from './preview/FrameworkPreview';
 import { PointAtIt } from './preview/PointAtIt';
 import { FixBanner } from './preview/FixBanner';
@@ -502,41 +502,13 @@ function MaterialPreview({ file, files }: { file: FileEntry; files: FileEntry[] 
   );
 }
 
-/** Print styles for a rendered doc — readable serif page, print-shop friendly. */
-const DOC_PRINT_CSS = `
-  @page { margin: 0.75in; }
-  body { font: 12pt/1.6 Georgia, 'Times New Roman', serif; color: #1a1a1a; max-width: 42rem; margin: 0 auto; padding: 2rem 1.25rem; }
-  h1, h2, h3, h4 { line-height: 1.25; break-after: avoid; }
-  h1 { font-size: 22pt; } h2 { font-size: 16pt; margin-top: 1.6em; } h3 { font-size: 13pt; }
-  blockquote { border-left: 3px solid #999; margin: 1em 0; padding-left: 1em; color: #444; font-style: italic; }
-  table { border-collapse: collapse; width: 100%; font-size: 10.5pt; break-inside: avoid; }
-  th, td { border: 1px solid #bbb; padding: 5px 8px; text-align: left; vertical-align: top; }
-  code { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 0.9em; background: #f2f2f2; padding: 1px 4px; border-radius: 3px; }
-  pre { background: #f2f2f2; padding: 10px 12px; border-radius: 4px; overflow-x: auto; break-inside: avoid; }
-  pre code { background: none; padding: 0; }
-  li { margin: 0.2em 0; }
-  hr { border: 0; border-top: 1px solid #bbb; margin: 1.6em 0; }
-  a { color: inherit; }
-`;
-
-function escapeHtml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
 /** Print / Save as PDF / Copy text for the active doc — the doc itself stays
  *  a clean markdown page; the actions live in the builder chrome. */
 function DocActions({ doc }: { doc: FileEntry }) {
   const [copied, setCopied] = useState(false);
 
   function print() {
-    const body = renderToStaticMarkup(
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>{doc.content}</ReactMarkdown>,
-    );
-    const title = artifactName(doc.path, doc.content);
-    printHtml(
-      `<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(title)}</title>` +
-      `<style>${DOC_PRINT_CSS}</style></head><body>${body}</body></html>`,
-    );
+    printHtml(renderDocHtml(doc));
   }
 
   function copy() {

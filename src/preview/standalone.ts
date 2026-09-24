@@ -20,7 +20,7 @@ export function buildStandaloneHtml(files: FileEntry[], entry = 'index.html'): s
   const local = (src: string) => {
     const clean = src.replace(/^\.\//, '');
     if (clean.startsWith('/')) return byPath.get(clean.slice(1));
-    return byPath.get(dir + clean) ?? byPath.get(clean);
+    return byPath.get(normalize(dir + clean)) ?? byPath.get(clean);
   };
 
   let out = html.replace(
@@ -40,4 +40,15 @@ export function buildStandaloneHtml(files: FileEntry[], entry = 'index.html'): s
     },
   );
   return out;
+}
+
+/** Collapse "materials/../styles.css" to "styles.css" — a material one folder
+ *  down reaches the app's stylesheet with a `..` the map can't hold. */
+function normalize(path: string): string {
+  const out: string[] = [];
+  for (const seg of path.split('/')) {
+    if (seg === '..') out.pop();
+    else if (seg !== '.' && seg !== '') out.push(seg);
+  }
+  return out.join('/');
 }
