@@ -32,6 +32,14 @@ import {
   CONTACT_KINDS,
   type BuilderContact,
 } from '@/project/share-live';
+import {
+  listShareArtifacts,
+  renderArtifactHtml,
+  captureHtmlScreenshot,
+  demoFilesFor,
+  type ShareArtifact,
+} from '@/project/share-live-artifacts';
+import { artifactName } from '@/project/display-name';
 import { fetchMyEvent, pinToShowcase } from '@/cloud/event-showcase';
 import { qrSvgMarkup } from '@/lib/qr-svg';
 import QRCode from 'react-qr-code';
@@ -43,15 +51,15 @@ import {
   ExternalLink,
   Smartphone,
   ImageOff,
-  RefreshCw,
 } from 'lucide-react';
 
 /**
- * Share Live — turn the current build into a three-slide demo deck for a
- * room: title + one-liner, screenshot + what it does, QR + link. The copy
- * drafts itself from the build record and stays editable; publishing makes
- * two unlisted preview links (the running app, then the deck). Event
- * participants can pin the result to their event's demo wall in the Gallery.
+ * Share Live — turn the current build into a demo deck for a room: title +
+ * one-liner, a slide per artifact the builder picks (the app, a flyer, a
+ * plan), QR + link. The copy drafts itself from the build record and stays
+ * editable; publishing makes two unlisted preview links (the demo site,
+ * then the deck). Event participants can pin the result to their event's
+ * demo wall in the Gallery.
  */
 export function ShareLiveDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
   return (
@@ -99,8 +107,16 @@ function ShareLiveContent() {
   const [bulletsText, setBulletsText] = useState('');
   const [drafting, setDrafting] = useState(true);
   const [draftNote, setDraftNote] = useState<string | null>(null);
-  const [screenshot, setScreenshot] = useState<string | null>(null);
-  const [capturing, setCapturing] = useState(true);
+  // What the project can put in front of the room, all ticked to start.
+  // Read once: the list is for this dialog's lifetime, the files for its publish.
+  const [artifacts] = useState<ShareArtifact[]>(() => {
+    const files = getAllFiles();
+    const app = files.find(f => f.path.replace(/^\//, '') === 'index.html');
+    return listShareArtifacts(files, app ? artifactName(app.path, app.content) : projectName);
+  });
+  const [chosen, setChosen] = useState<Set<string>>(() => new Set(artifacts.map(a => a.id)));
+  const [shots, setShots] = useState<Record<string, string | null>>({});
+  const [capturing, setCapturing] = useState<Set<string>>(() => new Set(artifacts.map(a => a.id)));
   const [event, setEvent] = useState<{ code: string; name: string } | null>(null);
   const [pin, setPin] = useState(true);
   // A way to reach them — optional, empty by default: the deck and the wall
@@ -126,26 +142,35 @@ function ShareLiveContent() {
   const alive = useRef(true);
   useEffect(() => () => { alive.current = false; }, []);
 
-  // The screenshot comes from whatever the preview is showing right now —
-  // retry a few times so a still-bundling preview gets its chance
-  const capture = useCallback(async () => {
-    setCapturing(true);
-    for (let attempt = 0; attempt < 4; attempt++) {
-      const shot = await capturePreviewScreenshot();
-      if (!alive.current) return;
-      if (shot) {
-        setScreenshot(shot);
-        setCapturing(false);
-        return;
+  // The app's screenshot comes from whatever the preview is showing right
+  // now — retry a few times so a still-bundling preview gets its chance.
+  // Flyers and docs render offscreen for theirs, so a paper-only build
+  // gets pictures too.
+  const capture = useCallback(async (artifact: ShareArtifact) => {
+    setCapturing(c => new Set(c).add(artifact.id));
+    let shot: string | null = null;
+    if (artifact.kind === 'app') {
+      for (let attempt = 0; attempt < 4 && !shot; attempt++) {
+        shot = await capturePreviewScreenshot();
+        if (!alive.current) return;
+        if (!shot) await new Promise(r => setTimeout(r, 2500));
+        if (!alive.current) return;
       }
-      await new Promise(r => setTimeout(r, 2500));
+    } else {
+      const html = renderArtifactHtml(getAllFiles(), artifact);
+      shot = html ? await captureHtmlScreenshot(html) : null;
       if (!alive.current) return;
     }
-    setCapturing(false);
-  }, []);
+    setShots(prev => ({ ...prev, [artifact.id]: shot }));
+    setCapturing(c => {
+      const next = new Set(c);
+      next.delete(artifact.id);
+      return next;
+    });
+  }, [getAllFiles]);
 
   useEffect(() => {
-    void capture();
+    for (const a of artifacts) void capture(a);
     fetchMyEvent().then(e => { if (alive.current) setEvent(e); });
     draftShareLiveCopy()
       .then(copy => {
@@ -168,34 +193,55 @@ function ShareLiveContent() {
 
   const publish = useCallback(async () => {
     setError(null);
+    const picked = artifacts.filter(a => chosen.has(a.id));
+    if (picked.length === 0) {
+      setError('Pick at least one thing to share');
+      return;
+    }
+    const withApp = picked.some(a => a.kind === 'app');
+    const deckTitle = title.trim() || projectName;
     try {
-      // 1. The running app, as an unlisted preview — the deck's demo link
-      setPublishStep('Publishing the app preview…');
+      // 1. The demo site, as an unlisted preview — the deck's QR link. The
+      // app when it's chosen (plus a page per chosen doc); otherwise just
+      // the chosen pages, with the flyer itself as the front page.
+      setPublishStep(withApp ? 'Publishing the app preview…' : 'Publishing the pages…');
       const files = getAllFiles();
       const publicVars = getPublicEnvVars();
-      const builtFiles = needsBuild(files)
-        ? await buildStaticSite(files, publicVars.map(v => ({ key: v.key, value: v.value })))
-        : files;
-      const demo = await createPreviewLink(withAppIcons(builtFiles, title), title, publicVars);
+      const siteFiles = withApp
+        ? withAppIcons(
+            needsBuild(files)
+              ? await buildStaticSite(files, publicVars.map(v => ({ key: v.key, value: v.value })))
+              : files,
+            deckTitle,
+          )
+        : [];
+      const demoFiles = demoFilesFor(siteFiles, files, picked, deckTitle);
+      const demo = await createPreviewLink(demoFiles, deckTitle, withApp ? publicVars : []);
 
-      // 2. The screenshot, hosted so both deck and wall can point at it
-      let screenshotUrl: string | null = null;
-      if (screenshot) {
-        setPublishStep('Hosting the screenshot…');
-        const small = await shrinkScreenshot(screenshot);
-        if (small) screenshotUrl = await hostScreenshot(small);
+      // 2. The screenshots, hosted so both deck and wall can point at them
+      const slides: { kindLabel: string; name: string; screenshotUrl: string | null }[] = [];
+      for (const a of picked) {
+        let screenshotUrl: string | null = null;
+        const shot = shots[a.id];
+        if (shot) {
+          setPublishStep(`Hosting the ${a.kind === 'app' ? 'screenshot' : a.name + ' picture'}…`);
+          const small = await shrinkScreenshot(shot);
+          if (small) screenshotUrl = await hostScreenshot(small);
+        }
+        slides.push({ kindLabel: a.kindLabel, name: a.name, screenshotUrl });
       }
+      const screenshotUrl = slides.find(s => s.screenshotUrl)?.screenshotUrl ?? null;
 
       // 3. The deck — one self-contained page, published the same way
       setPublishStep('Composing the slides…');
       const bullets = bulletsText.split('\n').map(b => b.trim()).filter(Boolean).slice(0, 5);
       const deckHtml = buildDeckHtml({
-        title: title.trim() || projectName,
+        title: deckTitle,
         oneLiner: oneLiner.trim(),
         builderName: profile?.display_name ?? profile?.full_name ?? null,
         eventName: event?.name ?? null,
         bullets,
-        screenshotUrl,
+        artifacts: slides,
         demoUrl: demo.previewUrl,
         qrSvg: qrSvgMarkup(demo.previewUrl, 420),
         contact,
@@ -204,7 +250,7 @@ function ShareLiveContent() {
       const now = Date.now();
       const deck = await createPreviewLink(
         [{ path: '/index.html', content: deckHtml, language: 'html', createdAt: now, updatedAt: now }],
-        `${title.trim() || projectName} slides`,
+        `${deckTitle} slides`,
       );
 
       // 4. The demo wall, if they're at an event and want to be on it
@@ -218,7 +264,7 @@ function ShareLiveContent() {
             eventName: event.name,
             ownerId: user.id,
             builderName: profile?.display_name ?? profile?.full_name ?? null,
-            projectName: title.trim() || projectName,
+            projectName: deckTitle,
             oneLiner: oneLiner.trim() || null,
             screenshotUrl,
             deckUrl: deck.previewUrl,
@@ -238,7 +284,7 @@ function ShareLiveContent() {
     } finally {
       if (alive.current) setPublishStep(null);
     }
-  }, [getAllFiles, getPublicEnvVars, title, oneLiner, bulletsText, screenshot, event, pin, user, profile, projectName, contact]);
+  }, [getAllFiles, getPublicEnvVars, title, oneLiner, bulletsText, artifacts, chosen, shots, event, pin, user, profile, projectName, contact]);
 
   if (!cloudEnabled || !user) {
     return (
@@ -254,8 +300,8 @@ function ShareLiveContent() {
   return (
     <div className="space-y-3 pt-1">
       <p className="text-xs text-muted-foreground">
-        Three slides for a projector: your title and one-liner, a screenshot
-        with what it does, and a QR code the room can scan to try it live.
+        Slides for a projector: your title and one-liner, a slide for each thing
+        you're sharing, and a QR code the room can scan to open it.
       </p>
 
       <div className="space-y-1.5">
@@ -294,34 +340,80 @@ function ShareLiveContent() {
       {draftNote && <p className="text-xs text-muted-foreground">{draftNote}</p>}
 
       <div className="space-y-1.5">
-        <div className="flex items-center gap-2">
-          <label className="text-xs font-medium">Screenshot</label>
-          {capturing ? (
-            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-              <Loader2 className="size-3 animate-spin" /> capturing the preview…
-            </span>
-          ) : !screenshot ? (
-            <button
-              onClick={() => void capture()}
-              className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-            >
-              <RefreshCw className="size-3" /> retry
-            </button>
-          ) : null}
-        </div>
-        {screenshot ? (
-          <img
-            src={screenshot}
-            alt="Preview screenshot for the deck"
-            className="max-h-36 rounded-lg border object-contain"
-          />
-        ) : !capturing ? (
-          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <ImageOff className="size-3.5" />
-            No screenshot yet — make sure the preview has rendered, then retry.
-            The deck works without one.
+        <label className="text-xs font-medium">
+          {artifacts.length > 1 ? 'What to share' : 'What the room sees'}
+        </label>
+        {artifacts.length === 0 ? (
+          <p className="text-xs text-muted-foreground">
+            Nothing to show yet — build something first, then share it.
           </p>
-        ) : null}
+        ) : (
+          <ul className="space-y-1.5">
+            {artifacts.map(a => {
+              const on = chosen.has(a.id);
+              const busy = capturing.has(a.id);
+              const shot = shots[a.id];
+              return (
+                <li key={a.id}>
+                  <label
+                    className={`flex items-center gap-2.5 rounded-lg border px-2.5 py-2 ${
+                      artifacts.length > 1 ? 'cursor-pointer' : ''
+                    } ${on ? '' : 'opacity-60'}`}
+                  >
+                    {artifacts.length > 1 && (
+                      <input
+                        type="checkbox"
+                        checked={on}
+                        onChange={e =>
+                          setChosen(prev => {
+                            const next = new Set(prev);
+                            if (e.target.checked) next.add(a.id);
+                            else next.delete(a.id);
+                            return next;
+                          })
+                        }
+                        className="accent-primary"
+                      />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm truncate">{a.name}</div>
+                      <div className="text-xs text-muted-foreground">{a.kindLabel}</div>
+                    </div>
+                    {busy ? (
+                      <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                        <Loader2 className="size-3 animate-spin" /> capturing…
+                      </span>
+                    ) : shot ? (
+                      <img
+                        src={shot}
+                        alt={`${a.name} screenshot`}
+                        className="h-12 w-16 rounded border object-cover object-top bg-white"
+                      />
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={e => {
+                          e.preventDefault();
+                          void capture(a);
+                        }}
+                        className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                        title="No picture yet — the slide works without one"
+                      >
+                        <ImageOff className="size-3.5" /> retry
+                      </button>
+                    )}
+                  </label>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        {artifacts.length > 1 && (
+          <p className="text-xs text-muted-foreground">
+            Each gets its own slide. The QR opens the app if it's ticked, otherwise
+            the page{artifacts.filter(a => a.kind !== 'app').length > 1 ? 's' : ''} you chose.
+          </p>
+        )}
       </div>
 
       <div className="space-y-1.5">
@@ -387,7 +479,11 @@ function ShareLiveContent() {
         </div>
       )}
 
-      <Button onClick={publish} disabled={publishStep !== null} className="w-full gap-2">
+      <Button
+        onClick={publish}
+        disabled={publishStep !== null || artifacts.length === 0 || chosen.size === 0}
+        className="w-full gap-2"
+      >
         {publishStep ? (
           <>
             <Loader2 className="size-4 animate-spin" />
@@ -401,7 +497,7 @@ function ShareLiveContent() {
         )}
       </Button>
       <p className="text-xs text-muted-foreground text-center">
-        Makes two unlisted links — the running app and the slides — live for{' '}
+        Makes two unlisted links — what you're sharing and the slides — live for{' '}
         {PREVIEW_DAYS} days. Click or arrow keys move the slides.
       </p>
     </div>
@@ -437,7 +533,7 @@ function DeckResult({ result }: { result: DoneResult }) {
   return (
     <div className="min-w-0 space-y-4 pt-2">
       {linkRow('Slides — open this on the projector', result.deckUrl)}
-      {linkRow('Live app — what the QR on the last slide opens', result.demoUrl)}
+      {linkRow('Live link — what the QR on the last slide opens', result.demoUrl)}
 
       <div className="flex flex-col items-center gap-2 pt-1">
         {/* White card behind the code keeps it scannable in dark mode */}

@@ -6,8 +6,9 @@ import { composeStoryRecord } from '@/project/draft-story';
 /**
  * Share Live — a three-slide demo deck for showing a build to a room.
  *
- * Slide 1: project title + one-liner. Slide 2: screenshot + what it does.
- * Slide 3: QR code + link so the room can open it on their phones.
+ * Slide 1: project title + one-liner. Then one slide per artifact the
+ * builder chose (the app, a flyer, a plan): screenshot, and for the first,
+ * what it does. Last: QR code + link so the room can open it on their phones.
  *
  * The deck is one self-contained HTML page published through the same
  * unlisted preview pipeline as Share Preview (30-day link, no site-cap
@@ -163,13 +164,23 @@ function esc(s: string): string {
     .replace(/"/g, '&quot;');
 }
 
+/** One artifact's slide: the app, a flyer, a plan — picture and a line */
+export interface DeckArtifactSlide {
+  /** "The app", "Printable page", "Written doc" */
+  kindLabel: string;
+  /** The artifact's own name — heads the slide for everything but the app */
+  name: string;
+  screenshotUrl: string | null;
+}
+
 export interface DeckInput {
   title: string;
   oneLiner: string;
   builderName: string | null;
   eventName: string | null;
   bullets: string[];
-  screenshotUrl: string | null;
+  /** The chosen artifacts, in order; the first gets the bullets */
+  artifacts: DeckArtifactSlide[];
   demoUrl: string;
   /** Inline SVG markup for the demo URL's QR code */
   qrSvg: string;
@@ -191,11 +202,36 @@ function contactMarkup(contact: BuilderContact): string {
  * arrow keys to move. Warm Builder palette, type sized for a projector.
  */
 export function buildDeckHtml(input: DeckInput): string {
-  const { title, oneLiner, builderName, eventName, bullets, screenshotUrl, demoUrl, qrSvg } = input;
+  const { title, oneLiner, builderName, eventName, bullets, demoUrl, qrSvg } = input;
   const contact = input.contact && input.contact.value.trim() ? input.contact : null;
   const byline = [builderName, eventName].filter(Boolean).map(s => esc(String(s)));
   const shortUrl = demoUrl.replace(/^https?:\/\//, '');
   const contactLine = contact ? contactMarkup(contact) : '';
+  // One slide per artifact. The first carries the drafted bullets under
+  // "What it does"; a flyer or plan after it is introduced by what it is
+  // and its own name, picture beside. With nothing chosen (older callers)
+  // the bullets still get their slide.
+  const artifacts = input.artifacts.length
+    ? input.artifacts
+    : [{ kindLabel: 'The app', name: title, screenshotUrl: null }];
+  const artifactSlides = artifacts
+    .map((a, i) => {
+      const first = i === 0;
+      const kicker = first ? 'What it does' : esc(a.kindLabel);
+      const heading = first || a.name === title ? '' : `<h2>${esc(a.name)}</h2>`;
+      const shot = a.screenshotUrl
+        ? `<img class="shot" src="${esc(a.screenshotUrl)}" alt="${esc(a.name)} screenshot">`
+        : '';
+      const list = first && bullets.length ? `<ul>${bullets.map(b => `<li>${esc(b)}</li>`).join('')}</ul>` : '';
+      return `  <section class="slide">
+    <div class="kicker">${kicker}</div>
+    ${heading}
+    <div class="row">${shot}${list}</div>
+  </section>`;
+    })
+    .join('\n\n');
+  const slideCount = artifacts.length + 2;
+  const dots = Array.from({ length: slideCount }, (_, i) => `<span${i === 0 ? ' class="on"' : ''}></span>`).join('');
 
   return `<!doctype html>
 <html lang="en">
@@ -221,6 +257,7 @@ export function buildDeckHtml(input: DeckInput): string {
   .kicker { font-size: clamp(14px, 2.2vmin, 22px); letter-spacing: .14em;
     text-transform: uppercase; color: #C0532F; font-weight: 700; margin-bottom: 2.5vmin; }
   h1 { font-size: clamp(34px, 9vmin, 110px); line-height: 1.05; letter-spacing: -0.02em; max-width: 26ch; }
+  h2 { font-size: clamp(24px, 5.5vmin, 64px); line-height: 1.1; letter-spacing: -0.02em; max-width: 30ch; }
   .oneliner { font-size: clamp(18px, 3.6vmin, 42px); line-height: 1.35; color: #49362B;
     max-width: 34ch; margin-top: 3.5vmin; }
   .byline { margin-top: 4.5vmin; font-size: clamp(13px, 2.2vmin, 24px); color: #93806F; }
@@ -232,7 +269,7 @@ export function buildDeckHtml(input: DeckInput): string {
   .hint + .contact { margin-top: 2.4vmin; }
   .row { display: flex; gap: 5vmin; align-items: center; justify-content: center;
     flex-wrap: wrap; margin-top: 3vmin; max-width: 92vw; }
-  .shot { max-width: min(52vw, 900px); max-height: 58vh; border-radius: 14px;
+  .shot { max-width: min(52vw, 900px); max-height: 58vh; border-radius: 14px; object-fit: contain;
     border: 1px solid #E5DCD0; box-shadow: 0 18px 50px rgba(42,31,24,.14); }
   ul { list-style: none; text-align: left; font-size: clamp(16px, 3vmin, 36px);
     line-height: 1.45; max-width: 30ch; }
@@ -264,13 +301,7 @@ export function buildDeckHtml(input: DeckInput): string {
     ${contactLine ? `<p class="contact">${contactLine}</p>` : ''}
   </section>
 
-  <section class="slide">
-    <div class="kicker">What it does</div>
-    <div class="row">
-      ${screenshotUrl ? `<img class="shot" src="${esc(screenshotUrl)}" alt="${esc(title)} screenshot">` : ''}
-      ${bullets.length ? `<ul>${bullets.map(b => `<li>${esc(b)}</li>`).join('')}</ul>` : ''}
-    </div>
-  </section>
+${artifactSlides}
 
   <section class="slide">
     <div class="kicker">Try it on your phone</div>
@@ -280,7 +311,7 @@ export function buildDeckHtml(input: DeckInput): string {
     ${contactLine ? `<p class="contact">Reach ${builderName ? esc(String(builderName)) : 'the builder'} · ${contactLine}</p>` : ''}
   </section>
 
-  <div class="dots"><span class="on"></span><span></span><span></span></div>
+  <div class="dots">${dots}</div>
   <a class="credit" href="https://relationalbuilder.org" target="_blank" rel="noreferrer">Built with Relational Builder</a>
 
   <script>
