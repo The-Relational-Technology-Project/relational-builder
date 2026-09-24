@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -7,6 +7,13 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useProjectStore } from '@/store/project-store';
 import { useEnvStore } from '@/store/env-store';
 import { useAuthStore, cloudEnabled } from '@/store/auth-store';
@@ -22,6 +29,8 @@ import {
   shrinkScreenshot,
   hostScreenshot,
   buildDeckHtml,
+  CONTACT_KINDS,
+  type BuilderContact,
 } from '@/project/share-live';
 import { fetchMyEvent, pinToShowcase } from '@/cloud/event-showcase';
 import { qrSvgMarkup } from '@/lib/qr-svg';
@@ -60,6 +69,15 @@ export function ShareLiveDialog({ open, onOpenChange }: { open: boolean; onOpenC
   );
 }
 
+/** The Select value for a builder-named contact method */
+const OTHER_KIND = 'other';
+
+const CONTACT_PLACEHOLDERS: Record<string, string> = {
+  Email: 'you@example.org',
+  Phone: '(555) 555-0123',
+  Website: 'yourname.org',
+};
+
 interface DoneResult {
   deckUrl: string;
   demoUrl: string;
@@ -85,6 +103,21 @@ function ShareLiveContent() {
   const [capturing, setCapturing] = useState(true);
   const [event, setEvent] = useState<{ code: string; name: string } | null>(null);
   const [pin, setPin] = useState(true);
+  // A way to reach them — optional, empty by default: the deck and the wall
+  // are public enough that nothing should land there unasked
+  const [contactKind, setContactKind] = useState<string>(CONTACT_KINDS[0]);
+  const [contactOtherLabel, setContactOtherLabel] = useState('');
+  const [contactValue, setContactValue] = useState('');
+  const contact = useMemo<BuilderContact | null>(
+    () =>
+      contactValue.trim()
+        ? {
+            label: (contactKind === OTHER_KIND ? contactOtherLabel.trim() : contactKind) || 'Contact',
+            value: contactValue.trim(),
+          }
+        : null,
+    [contactKind, contactOtherLabel, contactValue],
+  );
 
   const [publishStep, setPublishStep] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -165,6 +198,7 @@ function ShareLiveContent() {
         screenshotUrl,
         demoUrl: demo.previewUrl,
         qrSvg: qrSvgMarkup(demo.previewUrl, 420),
+        contact,
       });
       setPublishStep('Publishing the deck…');
       const now = Date.now();
@@ -189,6 +223,7 @@ function ShareLiveContent() {
             screenshotUrl,
             deckUrl: deck.previewUrl,
             demoUrl: demo.previewUrl,
+            contact,
           });
           pinned = true;
         } catch (e) {
@@ -203,7 +238,7 @@ function ShareLiveContent() {
     } finally {
       if (alive.current) setPublishStep(null);
     }
-  }, [getAllFiles, getPublicEnvVars, title, oneLiner, bulletsText, screenshot, event, pin, user, profile, projectName]);
+  }, [getAllFiles, getPublicEnvVars, title, oneLiner, bulletsText, screenshot, event, pin, user, profile, projectName, contact]);
 
   if (!cloudEnabled || !user) {
     return (
@@ -287,6 +322,48 @@ function ShareLiveContent() {
             The deck works without one.
           </p>
         ) : null}
+      </div>
+
+      <div className="space-y-1.5">
+        <label className="text-xs font-medium">
+          A way to reach you <span className="font-normal text-muted-foreground">(optional)</span>
+        </label>
+        <div className="flex gap-1.5">
+          <Select value={contactKind} onValueChange={v => setContactKind(v ?? CONTACT_KINDS[0])}>
+            <SelectTrigger className="h-8 w-28 shrink-0 text-sm" aria-label="Contact method">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {CONTACT_KINDS.map(k => (
+                <SelectItem key={k} value={k}>{k}</SelectItem>
+              ))}
+              <SelectItem value={OTHER_KIND}>Other</SelectItem>
+            </SelectContent>
+          </Select>
+          {contactKind === OTHER_KIND && (
+            <Input
+              value={contactOtherLabel}
+              onChange={e => setContactOtherLabel(e.target.value)}
+              maxLength={24}
+              placeholder="Label (Signal, Instagram…)"
+              className="h-8 w-40 text-sm"
+              aria-label="Contact label"
+            />
+          )}
+          <Input
+            value={contactValue}
+            onChange={e => setContactValue(e.target.value)}
+            maxLength={120}
+            type={contactKind === 'Email' ? 'email' : contactKind === 'Phone' ? 'tel' : contactKind === 'Website' ? 'url' : 'text'}
+            placeholder={CONTACT_PLACEHOLDERS[contactKind] ?? 'How people can find you'}
+            className="h-8 min-w-0 flex-1 text-sm"
+            aria-label="Contact details"
+          />
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Goes on your slides{event ? ' and your card on the event shelf' : ''}, so people
+          in the room can follow up. Leave it blank to share the build without it.
+        </p>
       </div>
 
       {event && (

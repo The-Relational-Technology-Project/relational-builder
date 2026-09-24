@@ -1,8 +1,34 @@
 import { useCallback, useEffect, useState } from 'react';
 import { removeFromShowcase, type ShowcaseEntry } from '@/cloud/event-showcase';
 import { fetchEventShow, eventShowLink } from '@/cloud/event-join';
+import { contactHref } from '@/project/share-live';
 import { useAuthStore } from '@/store/auth-store';
-import { Presentation, ExternalLink, X, RefreshCw, Loader2 } from 'lucide-react';
+import { Presentation, ExternalLink, X, RefreshCw, Loader2, AtSign } from 'lucide-react';
+
+/**
+ * The way to reach a builder, as they offered it in Share Live: their label,
+ * then the value — a link when a phone can act on it. Nothing when they
+ * left it blank, which is the default.
+ */
+export function ShowcaseContact({ entry, className }: { entry: ShowcaseEntry; className?: string }) {
+  const value = entry.contact_value?.trim();
+  if (!value) return null;
+  const label = entry.contact_label?.trim() || 'Contact';
+  const href = contactHref({ label, value });
+  return (
+    <span className={`inline-flex min-w-0 items-center gap-1 ${className ?? ''}`}>
+      <AtSign className="size-3 shrink-0" />
+      <span className="shrink-0">{label}</span>
+      {href ? (
+        <a href={href} target="_blank" rel="noreferrer" className="truncate hover:underline underline-offset-4">
+          {value}
+        </a>
+      ) : (
+        <span className="truncate">{value}</span>
+      )}
+    </span>
+  );
+}
 
 /** The gallery's scope value for the viewer's event shelf — a token no
  *  studio slug can collide with (slugs are [a-z0-9-]) */
@@ -108,6 +134,7 @@ export function EventShelf({ code, name }: { code: string; name: string }) {
                 {entry.builder_name && (
                   <p className="text-xs text-muted-foreground/70">by {entry.builder_name}</p>
                 )}
+                <ShowcaseContact entry={entry} className="text-xs text-muted-foreground max-w-full" />
                 <div className="flex gap-3 pt-1.5 mt-auto">
                   <a
                     href={entry.deck_url}

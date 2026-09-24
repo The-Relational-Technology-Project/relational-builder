@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { fetchEventShow, type EventShow } from '@/cloud/event-join';
 import type { ShowcaseEntry } from '@/cloud/event-showcase';
+import { ShowcaseContact } from '@/components/EventShowcase';
 import { LANDING_COLORS as C } from '@/components/Landing';
 import {
   Presentation,
@@ -140,6 +141,7 @@ export function EventShowPage({ code }: { code: string }) {
                   {entry.one_liner && <p className="text-sm" style={{ color: C.body }}>{entry.one_liner}</p>}
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 text-xs" style={{ color: C.muted }}>
                     <span>{formatTime(entry.created_at)}</span>
+                    <ShowcaseContact entry={entry} className="max-w-full" />
                     <button
                       onClick={() => setPresenting(i)}
                       className="inline-flex items-center gap-1 hover:underline underline-offset-4"
