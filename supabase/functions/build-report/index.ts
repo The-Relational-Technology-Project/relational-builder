@@ -87,6 +87,7 @@ const EVENT_LABELS: Record<string, string> = {
   retrieval: 'Commons knowledge searched',
   commons_mentions: 'Reply drew on the commons',
   'civic-data': 'Live city data in context',
+  context_trimmed: 'Earlier conversation left the model\'s view',
 };
 
 /**

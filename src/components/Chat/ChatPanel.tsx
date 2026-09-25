@@ -63,6 +63,7 @@ import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
 import { CHUNK_MARKER, FILE_REQUEST_MARKER } from './display';
 import { buildPlanPrompt, isPlanApproval, shouldOfferBuild } from './plan-approval';
+import { heldPhotosNote } from '@/project/photo-intent';
 import { markFilesRequested } from '@/knowledge/snapshot-split';
 import { markReferenceDocsRequested } from '@/knowledge/references-prompt';
 import { useReferencesStore, findReferenceByPath, referencePath } from '@/store/references-store';
@@ -574,10 +575,22 @@ export function ChatPanel() {
     // before the snapshot is built, so this very turn sees them in the file
     // list — and the note tells the model which attached image is which
     // asset, and how to reference it. Their own words say where it goes.
+    // Photos for the app attached while PLANNING wait in the store (no
+    // project exists yet to hold an asset) and the message tells the model
+    // they're real; the build send that follows stores them and carries
+    // the same note a build-mode attachment would.
     let photoNote = opts?.photoNote;
-    if (opts?.photos?.length && currentMode === 'build') {
+    if (opts?.photos?.length && currentMode === 'plan') {
+      useChatStore.getState().holdPhotos(opts.photos);
+      photoNote = heldPhotosNote(opts.photos.map(p => p.name));
+    }
+    const photosToStore =
+      currentMode === 'build' && !wasFix
+        ? [...useChatStore.getState().takeHeldPhotos(), ...(opts?.photos ?? [])]
+        : (opts?.photos ?? []);
+    if (photosToStore.length > 0 && currentMode === 'build') {
       const stored: AddedAsset[] = [];
-      for (const photo of opts.photos) {
+      for (const photo of photosToStore) {
         try {
           stored.push(addPhotoAssetFromDataUrl(photo.dataUrl, photo.name));
         } catch (e) {
@@ -777,8 +790,11 @@ export function ChatPanel() {
     }
 
     // The provider payload: fresh system prompt plus the window of history —
-    // which already ends with the user message (and attachments) added above
-    const chatMessages = toChatMessages();
+    // which already ends with the user message (and attachments) added above.
+    // A Builder's own send (continuation, fix) keeps the window the person's
+    // request used, so a build's later passes still see the mockups and
+    // instructions the first pass did.
+    const chatMessages = toChatMessages(wasFix);
 
     // Attach the volatile turn context to the OUTGOING copy of the final user
     // message only — chat history in the store never carries it, so the

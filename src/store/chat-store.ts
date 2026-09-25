@@ -4,6 +4,7 @@ import { safeLocalStorage } from '@/store/safe-storage';
 import type { ChatMessage } from '@/providers/types';
 import { buildSystemPrompt } from '@/knowledge/context-builder';
 import { collapseFileBlocks } from '@/project/code-extractor';
+import { recordBuildEvent } from '@/report/build-log';
 
 /** `message` is human-to-human: a note for collaborators the AI never sees */
 export type ChatMode = 'plan' | 'build' | 'message';
@@ -97,6 +98,15 @@ interface ChatState {
   /** Attached photos (already compressed for the project) waiting to be
    * stored as assets when the queued message sends */
   queuedPhotos: QueuedPhoto[];
+  /** Photos attached while PLANNING that are for the app itself. No project
+   * file exists yet to hold them (an asset before the first build would
+   * make every "is there a project" check say yes), so they wait here and
+   * become assets on the build send that follows. Persisted: a plan can
+   * sit overnight before its build. */
+  heldPhotos: QueuedPhoto[];
+  holdPhotos: (photos: QueuedPhoto[]) => void;
+  /** Claim the held photos for a build send — the slot empties */
+  takeHeldPhotos: () => QueuedPhoto[];
   queueMessage: (content: string, attachments?: string[], photos?: QueuedPhoto[]) => void;
   clearQueuedMessage: () => void;
   /** True while the queued/current send is an error-fix request — fix
@@ -180,8 +190,19 @@ interface ChatState {
   setSystemPrompt: (prompt: string) => void;
   clearMessages: () => void;
 
-  /** Build the message array for sending to the LLM */
-  toChatMessages: () => ChatMessage[];
+  /** Where the model's view of the conversation begins — the index (into
+   * the model-facing messages) that the last person-initiated send used.
+   * Auto sends (continuations, fixes) reuse it rather than recomputing:
+   * a build's own continuation passes add messages, and a window that
+   * re-trims per pass drops the very turns the build was asked to follow.
+   * A real report showed it: the plan said "Home, as shown" over ten mockup
+   * screenshots, the first pass wrote only the shell, and by the second
+   * pass eight of the ten screens had left the window — every UI file was
+   * written blind. Transient. */
+  historyWindowStart: number | null;
+  /** Build the message array for sending to the LLM. `keepWindow` reuses
+   * the window of the previous person-initiated send (auto sends). */
+  toChatMessages: (keepWindow?: boolean) => ChatMessage[];
 }
 
 let messageCounter = 0;
@@ -207,6 +228,14 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
   queuedMessage: null,
   queuedAttachments: [],
   queuedPhotos: [],
+  heldPhotos: [],
+  holdPhotos: (photos: QueuedPhoto[]) =>
+    set(state => ({ heldPhotos: [...state.heldPhotos, ...photos].slice(0, 4) })),
+  takeHeldPhotos: () => {
+    const held = get().heldPhotos;
+    if (held.length > 0) set({ heldPhotos: [] });
+    return held;
+  },
   // A person's queued follow-up supersedes any pending auto-fix — their
   // intent wins, and it must not inherit the fix send's special handling.
   // Appends rather than replaces. A person who gets no clear acknowledgement
@@ -437,10 +466,12 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
   // conversation — and returns to plan mode, the default for new builds.
   // Paths that want a different mode set it right after (fix sends and
   // "Build this plan" already flip to build themselves).
-  clearMessages: () => set({ messages: [], mode: 'plan' }),
+  clearMessages: () => set({ messages: [], mode: 'plan', historyWindowStart: null, heldPhotos: [] }),
 
-  toChatMessages: (): ChatMessage[] => {
-    const { systemPrompt, messages: allMessages } = get();
+  historyWindowStart: null,
+
+  toChatMessages: (keepWindow = false): ChatMessage[] => {
+    const { systemPrompt, messages: allMessages, historyWindowStart } = get();
     const chatMsgs: ChatMessage[] = [];
 
     if (systemPrompt) {
@@ -463,24 +494,53 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
     // prefix byte-stable for ERA_STEP/2 turns at a time; the window breathes
     // between HISTORY_LIMIT and HISTORY_LIMIT + ERA_STEP − 1 messages, and
     // the extra breadth is mostly 0.1× cache reads.
+    //
+    // An auto send (continuation, fix) keeps the window its build request
+    // used — see historyWindowStart. Messages only append, so the index
+    // stays valid; a pin from a longer conversation than this one (cleared
+    // history) is ignored.
     const HISTORY_LIMIT = 14;
     const ERA_STEP = 8;
     let window = messages;
     let omittedNote: string | null = null;
-    const start =
+    const computed =
       messages.length > HISTORY_LIMIT
         ? Math.floor((messages.length - HISTORY_LIMIT) / ERA_STEP) * ERA_STEP
         : 0;
+    const pinned =
+      keepWindow && historyWindowStart !== null && historyWindowStart <= computed
+        ? historyWindowStart
+        : null;
+    const start = pinned ?? computed;
     if (start > 0) {
       window = messages.slice(start);
       while (window.length > 0 && window[0].role !== 'user') {
         window = window.slice(1);
       }
+      const dropped = messages.slice(0, messages.length - window.length);
+      const droppedImages = dropped.reduce((n, m) => n + (m.attachments?.length ?? 0), 0);
       const firstUser = messages.find(m => m.role === 'user');
+      // The model is told what it can no longer see — an image count in
+      // particular, so a build that was told to match screenshots knows
+      // they are gone rather than guessing that nothing was ever attached
+      const scope = `${dropped.length} earlier messages omitted to save context${
+        droppedImages > 0 ? `, including ${droppedImages} attached image${droppedImages === 1 ? '' : 's'} you can no longer see` : ''
+      }`;
       omittedNote = firstUser
-        ? `(Earlier conversation omitted to save context. The project began with this request: "${firstUser.content.slice(0, 280)}". The Current Project Files in your instructions reflect all work so far.)`
-        : '(Earlier conversation omitted to save context. The Current Project Files in your instructions reflect all work so far.)';
+        ? `(${scope}. The project began with this request: "${firstUser.content.slice(0, 280)}". The Current Project Files in your instructions reflect all work so far.)`
+        : `(${scope}. The Current Project Files in your instructions reflect all work so far.)`;
+      // The trim is a build event: a report that can't show it leaves a
+      // reader unable to tell why a build stopped matching its mockups
+      if (historyWindowStart !== start) {
+        recordBuildEvent(
+          'context_trimmed',
+          `${dropped.length} earlier messages left the model's view${
+            droppedImages > 0 ? ` (${droppedImages} image${droppedImages === 1 ? '' : 's'} among them)` : ''
+          }`,
+        );
+      }
     }
+    if (pinned === null) set({ historyWindowStart: start });
 
     let injectedNote = false;
     for (const msg of window) {
@@ -542,5 +602,6 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
       return { ...rest, ...(keep ? { attachments } : {}), isStreaming: false };
     }),
     mode: state.mode,
+    heldPhotos: state.heldPhotos,
   } as unknown as ChatState),
 }));

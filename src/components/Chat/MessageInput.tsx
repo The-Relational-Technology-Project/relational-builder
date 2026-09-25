@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { SendHorizontal, Square, Map, Hammer, ImagePlus, X, FolderOpen, Globe, Clock, MessagesSquare } from 'lucide-react';
 import { useChatStore, type ChatMode, type QueuedPhoto } from '@/store/chat-store';
+import { inferPhotoUse, type PhotoUse } from '@/project/photo-intent';
 import { useCloudStore } from '@/store/cloud-store';
 import { fileToDataUrl, isImageFile } from '@/lib/image';
 import { compressToDataUrl } from '@/project/assets';
@@ -27,7 +28,9 @@ interface ComposerImage {
   url: string;
   name: string;
   assetUrl: string | null;
-  use: 'app' | 'reference';
+  /** The person tapped the chip — their choice holds; otherwise the words
+   *  and the file name decide, live, as they type (see `imageUse`) */
+  pinnedUse?: PhotoUse;
 }
 
 interface MessageInputProps {
@@ -73,8 +76,21 @@ export function MessageInput({
     if (mode === 'message' && !hasCollaborators) onModeChange?.('build');
   }, [mode, hasCollaborators, onModeChange]);
   const messageMode = mode === 'message' && hasCollaborators;
-  // Only a build message can put a photo into the app
-  const canPlacePhotos = mode === 'build';
+  // Plan and build messages can both put a photo into the app. In plan
+  // mode nothing is written yet, so the photo waits in the store and lands
+  // as an asset on the build that follows (see ChatPanel.handleSend) — a
+  // logo attached with the very first message used to ride as reference
+  // only and never reach the built app.
+  const canPlacePhotos = mode !== 'message';
+
+  // Where each image goes is read from the words and the file name, live as
+  // they type; the chip on the image shows the reading and one tap pins a
+  // different answer. Derived, not stored: the reading follows the draft.
+  const imageUse = useCallback(
+    (a: ComposerImage): PhotoUse =>
+      a.pinnedUse ?? (canPlacePhotos && a.assetUrl ? inferPhotoUse(input, a.name, mode) : 'reference'),
+    [canPlacePhotos, input, mode],
+  );
 
   // @ mentions: candidates load on first @, popover filters as you type
   const [mentionables, setMentionables] = useState<Mentionable[] | null>(null);
@@ -137,7 +153,7 @@ export function MessageInput({
     setAttachments(
       draftAttachments
         .slice(0, MAX_ATTACHMENTS)
-        .map(url => ({ url, name: 'reference', assetUrl: null, use: 'reference' as const })),
+        .map(url => ({ url, name: 'reference', assetUrl: null })),
     );
     useChatStore.getState().setDraftAttachments(null);
   }, [draftAttachments]);
@@ -156,7 +172,7 @@ export function MessageInput({
     // them as project assets and tells the model their names
     const photos: QueuedPhoto[] = canPlacePhotos
       ? attachments
-          .flatMap(a => (a.use === 'app' && a.assetUrl ? [{ name: a.name, dataUrl: a.assetUrl }] : []))
+          .flatMap(a => (imageUse(a) === 'app' && a.assetUrl ? [{ name: a.name, dataUrl: a.assetUrl }] : []))
       : [];
     const fallbackText = photos.length > 0
       ? 'Here’s a photo for the app — put it where it fits best.'
@@ -192,7 +208,7 @@ export function MessageInput({
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
-  }, [input, attachments, disabled, isGenerating, mode, onSend, canPlacePhotos]);
+  }, [input, attachments, disabled, isGenerating, mode, onSend, canPlacePhotos, imageUse]);
 
   function handleKeyDown(e: React.KeyboardEvent) {
     if (mentionMatches.length > 0 && (e.key === 'Enter' || e.key === 'Tab')) {
@@ -239,9 +255,8 @@ export function MessageInput({
             );
           }
         }
-        const use = canPlacePhotos && assetUrl ? 'app' : 'reference';
         setAttachments(prev =>
-          prev.length < MAX_ATTACHMENTS ? [...prev, { url, name: file.name, assetUrl, use }] : prev,
+          prev.length < MAX_ATTACHMENTS ? [...prev, { url, name: file.name, assetUrl }] : prev,
         );
       } catch {
         // unsupported image — skip quietly
@@ -365,29 +380,30 @@ export function MessageInput({
               </button>
               {/* Where this image goes. A photo of the block belongs IN the
                   site; a screenshot of something they like is for the AI's
-                  eyes only. One tap flips it; the label always says which. */}
+                  eyes only. The words decide by default; one tap pins the
+                  other answer, and the label always says which. */}
               {canPlacePhotos && !messageMode && a.assetUrl && (
                 <button
                   type="button"
                   onClick={() =>
                     setAttachments(prev =>
                       prev.map((b, j) =>
-                        j === i ? { ...b, use: b.use === 'app' ? 'reference' : 'app' } : b,
+                        j === i ? { ...b, pinnedUse: imageUse(b) === 'app' ? 'reference' : 'app' } : b,
                       ),
                     )
                   }
                   className={`rounded-full border px-1.5 py-px text-[10px] leading-4 whitespace-nowrap transition-colors ${
-                    a.use === 'app'
+                    imageUse(a) === 'app'
                       ? 'border-primary/50 bg-primary/10 text-primary'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                   title={
-                    a.use === 'app'
-                      ? 'This photo is saved into your project and placed in the app. Tap to make it reference only.'
-                      : 'The AI looks at this for reference; it is not added to the app. Tap to place it in the app.'
+                    imageUse(a) === 'app'
+                      ? `This photo goes into the app${mode === 'plan' ? ' when the build starts' : ''}. Read from your words — tap to make it reference only.`
+                      : 'The AI looks at this for reference; it is not added to the app. Read from your words — tap to place it in the app.'
                   }
                 >
-                  {a.use === 'app' ? 'In the app' : 'Reference only'}
+                  {imageUse(a) === 'app' ? 'In the app' : 'Reference only'}
                 </button>
               )}
             </div>

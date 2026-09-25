@@ -74,7 +74,11 @@ export type BuildEventType =
   | 'studio_mentions'
   /** Live civic data endpoints matched this send — detail carries the
    *  cities whose MCP endpoints rode into context. */
-  | 'civic-data';
+  | 'civic-data'
+  /** The history window dropped earlier messages from the model's view —
+   *  detail carries how many, and how many attached images went with them.
+   *  Recorded when the window moves, not on every send. */
+  | 'context_trimmed';
 
 export interface BuildEvent {
   /** Epoch ms */

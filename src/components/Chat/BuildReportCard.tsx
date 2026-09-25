@@ -53,6 +53,7 @@ const EVENT_LABELS: Record<BuildEventType, string> = {
   commons_mentions: 'Reply drew on the commons',
   studio_mentions: 'Reply drew on the studio library',
   'civic-data': 'Live city data in context',
+  context_trimmed: 'Earlier conversation left the model\'s view',
 };
 
 function eventTime(e: BuildEvent, base: number): string {
