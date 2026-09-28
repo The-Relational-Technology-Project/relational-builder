@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ChevronDown, ChevronRight, HeartHandshake, Loader2, Undo2, X } from 'lucide-react';
 import { useChatStore } from '@/store/chat-store';
 import { useProjectStore } from '@/store/project-store';
+import { useAuthStore } from '@/store/auth-store';
 import { useBuildLogStore, KNOWLEDGE_EVENTS, type BuildEvent, type BuildEventType } from '@/report/build-log';
 import {
   assembleReport,
@@ -26,6 +27,10 @@ import { Button } from '@/components/ui/button';
  * - "See exactly what we'd send" shows the real payload — the same object
  *   that ships — and any chat message can be struck before sending.
  * - Decline is a first-class button, visually equal to accept.
+ * - Attribution is offered, not extracted: a signed-in builder's name and
+ *   email start filled in from their profile (clearing a box is the opt-out);
+ *   anyone else sees a plain ask, and the share button says "anonymously"
+ *   when it would go out without a name.
  * - Nothing is assembled, generated, or transmitted until the yes.
  */
 
@@ -80,8 +85,23 @@ export function BuildReportCard() {
   const [hopedFor, setHopedFor] = useState('');
   const [roughMoments, setRoughMoments] = useState('');
   const [surprises, setSurprises] = useState('');
-  const [builderName, setBuilderName] = useState('');
-  const [builderEmail, setBuilderEmail] = useState('');
+  // Signed-in builders already told us who they are — start from the
+  // profile so the report arrives with a name unless they clear it. Blank
+  // fields are the opt-out; nothing here is sent until the yes.
+  const user = useAuthStore(s => s.user);
+  const profile = useAuthStore(s => s.profile);
+  const profileName = (profile?.display_name ?? profile?.full_name ?? '').trim();
+  const [builderName, setBuilderName] = useState(profileName);
+  const [builderEmail, setBuilderEmail] = useState(user?.email ?? '');
+  // A profile that loads after the card mounts still fills an untouched field
+  const [nameTouched, setNameTouched] = useState(false);
+  const [emailTouched, setEmailTouched] = useState(false);
+  useEffect(() => {
+    if (!nameTouched && profileName && !builderName) setBuilderName(profileName);
+  }, [profileName, nameTouched, builderName]);
+  useEffect(() => {
+    if (!emailTouched && user?.email && !builderEmail) setBuilderEmail(user.email);
+  }, [user?.email, emailTouched, builderEmail]);
   // The snapshot is captured on-device the moment the card appears, so the
   // checkbox and the payload preview show the REAL image — it never travels
   // unless the box stays ticked and the builder shares.
@@ -104,7 +124,7 @@ export function BuildReportCard() {
     excluded.size > 0 ||
     Boolean(
       hopedFor.trim() || roughMoments.trim() || surprises.trim() ||
-      builderName.trim() || builderEmail.trim(),
+      (nameTouched && builderName.trim()) || (emailTouched && builderEmail.trim()),
     );
 
   // armed → pending: only after a quiet stretch. Any new activity re-runs
@@ -244,27 +264,33 @@ export function BuildReportCard() {
         </button>
       </div>
 
-      <div className="space-y-1">
-        <label className="text-xs font-medium">
-          Who's building? Your name and email travel with the report so the stewards
-          know who to thank — and can follow up (optional)
-        </label>
+      <div className="space-y-1.5 rounded-md border border-primary/20 bg-background/60 p-2.5">
+        <p className="text-sm font-medium">Who's building? Add your name so we know who to thank.</p>
         <div className="grid gap-2 sm:grid-cols-2">
           <input
             type="text"
             value={builderName}
-            onChange={e => setBuilderName(e.target.value)}
-            placeholder="Your name"
+            onChange={e => { setNameTouched(true); setBuilderName(e.target.value); }}
+            placeholder="Your first name"
+            aria-label="Your name"
             className={inputClass}
           />
           <input
             type="email"
             value={builderEmail}
-            onChange={e => setBuilderEmail(e.target.value)}
-            placeholder="you@example.org"
+            onChange={e => { setEmailTouched(true); setBuilderEmail(e.target.value); }}
+            placeholder="Email (optional, so we can follow up)"
+            aria-label="Your email"
             className={inputClass}
           />
         </div>
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          {builderName.trim()
+            ? profileName && builderName.trim() === profileName
+              ? 'Filled in from your profile. Clear the box to share without your name.'
+              : 'Both travel with the report. Clear the boxes to share without them.'
+            : 'Both optional. Left blank, the log arrives anonymously and Josh and Deb won\'t know who built this.'}
+        </p>
       </div>
 
       {screenshot && (
@@ -451,7 +477,7 @@ export function BuildReportCard() {
               Sharing…
             </>
           ) : (
-            'Share build log'
+            builderName.trim() ? 'Share build log' : 'Share anonymously'
           )}
         </Button>
         <Button
