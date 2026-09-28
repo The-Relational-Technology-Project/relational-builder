@@ -30,18 +30,15 @@ export function ShowcaseContact({ entry, className }: { entry: ShowcaseEntry; cl
   );
 }
 
-/** The gallery's scope value for the viewer's event shelf — a token no
- *  studio slug can collide with (slugs are [a-z0-9-]) */
-export const EVENT_SCOPE = 'event:wall';
-
 /**
  * An event's demo wall as a gallery shelf — what the room built, pinned by
- * the builders themselves via Share Live. Only the event's participants
- * have this shelf (RLS keeps the rows to them too). Newest first here, the
- * way a wall reads; the presentation page walks the same decks in the
- * order they were shared.
+ * the builders themselves via Share Live. Only the event's participants and
+ * its admins have this shelf (RLS keeps the rows to them too). Newest first
+ * here, the way a wall reads; the presentation page walks the same decks in
+ * the order they were shared. An admin can take any deck down, the way the
+ * delete policy already allows; everyone else only their own.
  */
-export function EventShelf({ code, name }: { code: string; name: string }) {
+export function EventShelf({ code, name, admin = false }: { code: string; name: string; admin?: boolean }) {
   const user = useAuthStore(s => s.user);
   const [entries, setEntries] = useState<ShowcaseEntry[] | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -117,12 +114,12 @@ export function EventShelf({ code, name }: { code: string; name: string }) {
               <div className="p-3 space-y-1 flex-1 flex flex-col">
                 <div className="flex items-start gap-2">
                   <span className="text-sm font-medium leading-snug">{entry.project_name}</span>
-                  {user?.id === entry.owner_id && (
+                  {(admin || user?.id === entry.owner_id) && (
                     <button
                       onClick={() => void remove(entry.id)}
                       disabled={busyId !== null}
                       className="ml-auto text-muted-foreground hover:text-destructive shrink-0"
-                      title="Take your project off the shelf"
+                      title={user?.id === entry.owner_id ? 'Take your project off the shelf' : 'Take this project off the shelf'}
                     >
                       <X className="size-3.5" />
                     </button>

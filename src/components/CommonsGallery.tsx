@@ -25,8 +25,9 @@ import {
 import { isSuperAdmin } from '@/cloud/account-requests';
 import { GalleryToolBuilders } from '@/components/GalleryToolBuilders';
 import { ContributeCallout } from '@/components/ContributeDialog';
-import { EventShelf, EVENT_SCOPE } from '@/components/EventShowcase';
-import { fetchMyEvent } from '@/cloud/event-showcase';
+import { EventShelf } from '@/components/EventShowcase';
+import { fetchMyEvent, eventScopeFor, eventCodeOfScope, type EventShelfInfo } from '@/cloud/event-showcase';
+import { fetchMyAdminEvents } from '@/cloud/event-admin';
 import { useAuthStore } from '@/store/auth-store';
 import type { Tool, Prompt, Story } from '@/knowledge/types';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -171,16 +172,34 @@ export function CommonsGallery() {
   const [semanticRank, setSemanticRank] = useState<Map<string, number>>(new Map());
   const searchSeq = useRef(0);
   const authUser = useAuthStore(s => s.user);
-  // The event this viewer joined through a room key, if any — its demo
-  // wall is a shelf only the room has
-  const [myEvent, setMyEvent] = useState<{ code: string; name: string } | null>(null);
+  // The event shelves this viewer has: the event they joined through a room
+  // key (a profile carries one), plus every live event they administer — a
+  // host runs the wall without having scanned the key themselves
+  const [eventShelves, setEventShelves] = useState<EventShelfInfo[]>([]);
   useEffect(() => {
-    if (!authUser) { setMyEvent(null); return; }
+    if (!authUser) { setEventShelves([]); return; }
     let cancelled = false;
-    fetchMyEvent().then(e => { if (!cancelled) setMyEvent(e); }).catch(() => {});
+    Promise.all([
+      fetchMyEvent().catch(() => null),
+      fetchMyAdminEvents().catch(() => []),
+    ]).then(([mine, admin]) => {
+      if (cancelled) return;
+      const shelves = new Map<string, EventShelfInfo>();
+      if (mine) shelves.set(mine.code.toUpperCase(), { code: mine.code, name: mine.name, admin: false });
+      for (const ev of admin) {
+        if (ev.archived_at) continue;
+        const key = ev.code.toUpperCase();
+        const prior = shelves.get(key);
+        shelves.set(key, { code: ev.code, name: prior?.name ?? ev.name, admin: true });
+      }
+      setEventShelves([...shelves.values()]);
+    });
     return () => { cancelled = true; };
   }, [authUser]);
-  const eventShelf = scope === EVENT_SCOPE ? myEvent : null;
+  const eventShelf = useMemo(() => {
+    const code = eventCodeOfScope(scope);
+    return code ? eventShelves.find(s => s.code.toUpperCase() === code) ?? null : null;
+  }, [scope, eventShelves]);
   const isEventScope = eventShelf !== null;
 
   useEffect(() => {
@@ -549,7 +568,7 @@ export function CommonsGallery() {
             {scope === 'commons'
               ? 'Tools, practices, and recipes from the civic commons – ready to be remixed, with attribution and lineage, for your place.'
               : isEventScope
-                ? 'What the room built — pinned by the builders themselves via Share Live. Only people at the event have this shelf.'
+                ? `What the room built — pinned by the builders themselves via Share Live. Only people at the event${eventShelf?.admin ? ' and its hosts' : ''} have this shelf.`
                 : 'Your studio’s own examples, prompts, and materials — for approved members to build from and remix, with the studio’s principles live in every build.'}
           </p>
         </div>
@@ -561,12 +580,12 @@ export function CommonsGallery() {
         {/* Which library you're browsing — the commons, or a studio you've
             been approved into. The switch only appears once you belong
             somewhere with its own shelf. */}
-        {(libraryStudios.length > 0 || myEvent) && (
+        {(libraryStudios.length > 0 || eventShelves.length > 0) && (
           <div className="flex flex-wrap items-center gap-1.5">
             <Library className="size-3.5 text-muted-foreground" />
             {[{ slug: 'commons', label: 'Commons' },
               ...libraryStudios.map(m => ({ slug: m.studio_slug, label: galleryNameFor(m.studio_label) })),
-              ...(myEvent ? [{ slug: EVENT_SCOPE, label: galleryNameFor(myEvent.name) }] : [])].map(o => (
+              ...eventShelves.map(ev => ({ slug: eventScopeFor(ev.code), label: galleryNameFor(ev.name) }))].map(o => (
               <button
                 key={o.slug}
                 onClick={() => { scopeChosen.current = true; setScope(o.slug); setCategory('all'); }}
@@ -633,7 +652,7 @@ export function CommonsGallery() {
         {/* The event shelf is its own thing — demo decks, not remixable
             cards — so it replaces the grid rather than filtering it */}
         {eventShelf ? (
-          <EventShelf code={eventShelf.code} name={eventShelf.name} />
+          <EventShelf code={eventShelf.code} name={eventShelf.name} admin={eventShelf.admin} />
         ) : !loaded ? (
           <p className="text-sm text-muted-foreground flex items-center gap-2">
             <Loader2 className="size-3.5 animate-spin" /> Loading the gallery…

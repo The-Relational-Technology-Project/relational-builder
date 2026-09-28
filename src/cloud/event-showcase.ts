@@ -26,6 +26,25 @@ export interface ShowcaseEntry {
   created_at: string;
 }
 
+/** The gallery's scope value for one event's shelf — a token no studio
+ *  slug can collide with (slugs are [a-z0-9-]; codes are uppercase) */
+const EVENT_SCOPE_PREFIX = 'event:';
+export function eventScopeFor(code: string): string {
+  return `${EVENT_SCOPE_PREFIX}${code.toUpperCase()}`;
+}
+/** The event code in a gallery scope, or null when it's a studio/commons */
+export function eventCodeOfScope(scope: string): string | null {
+  return scope.startsWith(EVENT_SCOPE_PREFIX) ? scope.slice(EVENT_SCOPE_PREFIX.length) : null;
+}
+
+/** A shelf the gallery offers: the event the viewer joined through a room
+ *  key, or one they administer (the host sees the wall without joining) */
+export interface EventShelfInfo {
+  code: string;
+  name: string;
+  admin: boolean;
+}
+
 /** The signed-in builder's event, if they joined through an event code */
 export async function fetchMyEvent(): Promise<{ code: string; name: string } | null> {
   if (!builderClient) return null;
