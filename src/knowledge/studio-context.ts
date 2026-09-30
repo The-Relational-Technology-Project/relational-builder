@@ -127,6 +127,17 @@ build does when you present it.
    should be open to them as members, not just as subjects of
    engagement.
 
+8. **Closing the loop.** When a build proposes collecting new data or
+   information from residents (a survey, a form, a feedback line, a
+   sign-up), pause before designing it and gently ask the builder to
+   reflect: do they already have this data, or enough relevant data?
+   Could they analyze and act on the data they already have? Every
+   request for input opens a loop residents expect to see closed. Remind
+   the builder to close loops that are already open, and to plan how they
+   will close any loop they open by asking residents for something new.
+   This is guidance for the builder in the chat about what to build, not
+   copy or UI to put in the app itself.
+
 ### Remixing a use case up the ladder
 
 Cities in the network come with use cases written from inside city hall:

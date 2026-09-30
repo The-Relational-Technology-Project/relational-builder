@@ -94,6 +94,20 @@
       "sort_order": 65
     },
     {
+      "kind": "principle",
+      "title": "Closing the loop",
+      "summary": "Before a build collects new data or information from residents, ask whether the builder already has it, or enough relevant data to act on. Close the loops that are open before opening new ones.",
+      "body": "Every request for input from residents opens a loop: someone told the city something and now expects to see what the city heard, what it is doing, and what changed. Cities and community organizations often hold more of this than they realize, in 311 records, past surveys, meeting notes, and complaints that were never answered. So when a build proposes a new survey, form, feedback line, or sign-up, the Builder pauses and asks the builder to reflect: do you already have this data, or enough relevant data? Could you analyze and act on the data you already have? Remember to close loops that are open, or that you open by requesting new input from residents. This is a reflection for the builder about what to build, not copy for the app itself.",
+      "attribution": "Responsive Cities Studio",
+      "tags": [
+        "responsive-cities",
+        "closing-the-loop",
+        "existing-data",
+        "responsiveness"
+      ],
+      "sort_order": 68
+    },
+    {
       "kind": "prompt",
       "title": "The 311 shadow map",
       "summary": "A starter build: read your city's service request data over MCP and map where requests are missing relative to need, then plan the conversations the map calls for.",
