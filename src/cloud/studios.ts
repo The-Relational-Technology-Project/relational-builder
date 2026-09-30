@@ -28,6 +28,8 @@ export interface StudioMembership {
 export interface StudioMemberRow extends StudioMembership {
   user_id: string;
   display_name: string | null;
+  /** Live profile email — only the studio_roster reader (admins) fills this in */
+  email?: string | null;
 }
 
 export interface StudioInviteRow {
@@ -120,9 +122,19 @@ export async function leaveStudio(slug: string): Promise<void> {
 
 // --- Studio Admin: the door of a gated studio ---
 
-/** Everyone in (or knocking on) a studio — admins see pending rows via RLS */
+/**
+ * Everyone in (or knocking on) a studio, for its admins. The studio_roster
+ * reader joins live profiles, so names reflect what people have filled in
+ * since they joined and each row carries an email. If the reader isn't
+ * there (or the caller isn't an admin) fall back to the membership rows
+ * themselves — join-time name snapshots, no emails.
+ */
 export async function listStudioMembers(slug: string): Promise<StudioMemberRow[]> {
   if (!builderClient) return [];
+  const roster = await builderClient.rpc('studio_roster', { p_slug: slug });
+  if (!roster.error && Array.isArray(roster.data) && roster.data.length > 0) {
+    return roster.data as StudioMemberRow[];
+  }
   const { data } = await builderClient
     .from('studio_memberships')
     .select('user_id, studio_slug, studio_label, display_name, joined_at, role, status')
