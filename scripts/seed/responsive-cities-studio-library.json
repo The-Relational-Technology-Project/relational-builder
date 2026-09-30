@@ -312,6 +312,42 @@
         "public-meetings"
       ],
       "sort_order": 220
+    },
+    {
+      "kind": "story",
+      "title": "The “Bilbao Effect”: The Collaborative Architecture that Powered Bilbao’s Urban Revival",
+      "summary": "HKS case (2020). Bilbao’s revival is usually credited to the Guggenheim. The real building blocks were the collaborative structures city, regional, and national governments built in the 1990s during a deep crisis — above all Bilbao Ria 2000, which captured the rising value of transformed land to fund renewal with no new budget. Design, management, and leadership of a multi-level collaboration.",
+      "body": "Harvard Kennedy School Case #2180.0, published April 30, 2020. Authors: Fernando Monge, Jorrit de Jong, and Linda Bilmes. Faculty leads: Jorrit de Jong and Linda Bilmes. Funded by the Bloomberg Harvard City Leadership Initiative. 19 pages. Setting: Spain. A practitioner guide (HKS Case 2180.4) accompanies the case. The case itself is free with educator access on the HKS Case Program site.\n\nAbstract: In 2018, Bilbao was presented with the Best European City award, adding the prize to a long list the Spanish city had collected since the mid-2000s. The success was often attributed to the Guggenheim museum, giving name to the “Guggenheim effect.” This was based on a fairly shallow assessment of the city’s transformation. In fact, the building blocks of Bilbao’s transformation are to be found in the collaborative efforts established by government entities during the 1990s, in the context of a deep economic, political, and social crisis. The analysis centers on how the collaborative building blocks and leadership styles have enabled the city’s transformation and if these building blocks also provide a solid foundation for its future. This retrospective exploration focuses on the context (crisis, necessity, and interdependence), design (governance mechanism, composition, decision rules), management (interaction between political and technical leadership, value creation versus value distribution, trust building), and leadership (decisions in the face of challenges, attitudes towards sharing credit, confidence in the vision, different leadership styles for different moments) of the collaboration.\n\nLearning objectives: (1) Multi-level and multi-sector collaboration: the governance mechanisms that enable it, through Bilbao Ria 2000’s design (composition, breadth of stakeholder representation, governance structure, institutional form, decision rules), management (mode of operation, working processes, efforts to align stakeholders and create collective impact), and leadership (dealing with conflict and setbacks, making critical choices, mobilizing people and inspiring hope). (2) Debunking the Guggenheim myth: the broader context and interdependence of urban renewal vision and implementation; the fiscal and financing mechanisms of urban transformation; how the value increases of transformed land can be captured and used by government to finance renewal with no additional budgetary spending.\n\nWhy it matters for Responsive Cities builders: the durable work behind a visible landmark was the slow, cross-government collaboration nobody photographs. Tools that make that collaboration and its funding logic legible to residents (who decides, how land value gets recycled into public goods, what was delivered) are the responsive-city counterpart to the Guggenheim story.",
+      "url": "https://case.hks.harvard.edu/the-bilbao-effect-the-collaborative-architecture-that-powered-bilbaos-urban-revival/",
+      "attribution": "Fernando Monge, Jorrit de Jong & Linda Bilmes · Harvard Kennedy School Case Program, Bloomberg Harvard City Leadership Initiative",
+      "tags": [
+        "responsive-cities",
+        "case-study",
+        "hks",
+        "collaboration",
+        "urban-renewal",
+        "governance",
+        "land-value-capture"
+      ],
+      "sort_order": 230
+    },
+    {
+      "kind": "story",
+      "title": "Operation Pufferfish: Building and Sustaining a Department of Neighborhoods and Citizen Engagement in Lansing, Michigan",
+      "summary": "HKS case (2024). Andi Crawford took over a mismanaged neighborhood grant program in Lansing, then led a new Department of Neighborhoods and Citizen Engagement created by the mayor’s first executive order. A small team built programs for neighborhood spirit and resident engagement, pivoted through COVID-19, and handed off to former organizer DeLisa Fountain, asking how to keep engagement equitable across every neighborhood.",
+      "body": "Harvard Kennedy School Case #2281.0, published September 24, 2024. Authors: Gaylen Moore, Jorrit de Jong, Hollie Russon Gilman, and Archon Fung. Faculty leads: Jorrit de Jong and Archon Fung. Funded by the Bloomberg Harvard City Leadership Initiative. 16 pages. Setting: Lansing, Michigan. An epilogue, practitioner guide, and slide deck accompany the case. The case is free with educator access on the HKS Case Program site.\n\nAbstract: Lansing native Andi Crawford returned home and took over a mismanaged and outdated neighborhood grant program, revamping grant processes, bringing in new money and capacity, and expanding eligibility. This shift became just one element of a much larger project, championed by incoming Mayor Andy Schor, that centered neighborhoods as the starting point for community building and civic engagement. His first executive order established a department of neighborhoods and citizen engagement (DNCE) with Crawford at the helm. With a small but mighty team, Crawford created a portfolio of programs and activities to build and foster neighborhood spirit, civic pride, and resident engagement. When COVID-19 arrived in Lansing in 2020, the DNCE worked tirelessly to push out information, connect residents to support, and shift its activities from in-person to virtual. Looking ahead to 2021, Crawford felt the time had come to hand over the reins to DeLisa Fountain, a former community organizer who had been working as the DNCE’s neighborhood resource officer. Fountain prepared herself to take on the new role in an uncertain environment. What could she do to keep residents engaged, connected, and safe amid lockdowns and political unrest in the capital city? And how could she use the platform of the DNCE to ensure equitable engagement across Lansing’s diverse neighborhoods?\n\nLearning objectives: understand the democratic goals of civic engagement, including building relationships and advancing equity; ask and answer key design questions for planning engagement efforts; see the breadth of options for civic engagement and make strategic choices; assess and troubleshoot civic engagement efforts.\n\nWhy it matters for Responsive Cities builders: a city department whose whole job is neighborhoods, run by people who came from organizing, is the institutional shape of “cities are made of neighborhoods.” The design questions the case poses (who is engaged, through which channels, how equity is checked, what happens when leadership changes) are the same questions a neighborhood grants tool, an engagement tracker, or a resident-facing information hub has to answer.",
+      "url": "https://case.hks.harvard.edu/operation-pufferfish-building-and-sustaining-a-department-of-neighborhoods-and-citizen-engagement-in-lansing-michigan/",
+      "attribution": "Gaylen Moore, Jorrit de Jong, Hollie Russon Gilman & Archon Fung · Harvard Kennedy School Case Program, Bloomberg Harvard City Leadership Initiative",
+      "tags": [
+        "responsive-cities",
+        "case-study",
+        "hks",
+        "civic-engagement",
+        "neighborhoods",
+        "equity",
+        "microgrants"
+      ],
+      "sort_order": 240
     }
   ]
 }
