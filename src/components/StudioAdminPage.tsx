@@ -275,8 +275,9 @@ function MembersTab({ slug, label }: { slug: string; label: string }) {
           pending.map(m => (
             <div key={m.user_id} className="rounded-lg border p-3 flex items-center gap-2.5">
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium truncate">{m.display_name || 'A builder'}</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm font-medium truncate">{m.display_name || m.email || 'A builder'}</p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {m.display_name && m.email && <>{m.email} · </>}
                   Asked to join {new Date(m.joined_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                 </p>
               </div>
@@ -315,9 +316,12 @@ function MembersTab({ slug, label }: { slug: string; label: string }) {
         {approved.map(m => (
           <div key={m.user_id} className="rounded-lg border px-3 py-2 flex items-center gap-2.5">
             <div className="min-w-0 flex-1">
-              <span className="text-sm truncate">{m.display_name || 'A builder'}</span>
+              <span className="text-sm truncate">{m.display_name || m.email || 'A builder'}</span>
               {m.role === 'admin' && (
                 <Badge variant="outline" className="ml-2 text-[10px]">admin</Badge>
+              )}
+              {m.display_name && m.email && (
+                <p className="text-xs text-muted-foreground truncate">{m.email}</p>
               )}
             </div>
             <span className="text-xs text-muted-foreground/60 shrink-0">
