@@ -138,6 +138,16 @@ export function initCloudSync() {
   });
 
   useChatStore.subscribe((state, prev) => {
+    // The reply's final edits (finalize, refs) land while isGenerating is
+    // still true, and the flip to false changes no message — so the end of
+    // a generation must schedule its own save, or a chat-only reply (a
+    // plan, an answer) never reaches the cloud. A collaborator opening the
+    // project then saw the prompt with no reply, and their first save
+    // wrote that stale chat back over the owner's.
+    if (prev.isGenerating && !state.isGenerating) {
+      scheduleSave();
+      return;
+    }
     if (state.messages !== prev.messages || state.mode !== prev.mode) {
       // Skip token-by-token streaming updates; save once generation finishes
       if (state.isGenerating) return;

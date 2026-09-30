@@ -521,6 +521,10 @@ export const useCloudStore = create<CloudState>()((set, get) => ({
     const user = useAuthStore.getState().user;
     if (!builderClient || !currentProjectId || !user) return { error: 'No cloud project open' };
 
+    // What the invitee opens is the row, not this screen — flush the
+    // debounced edits first so they see the conversation as it stands
+    await get().saveNow();
+
     const { error } = await builderClient.from('project_members').insert({
       project_id: currentProjectId,
       email: email.trim().toLowerCase(),
