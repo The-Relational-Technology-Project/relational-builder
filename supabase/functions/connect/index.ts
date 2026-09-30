@@ -35,6 +35,23 @@ const CORS = {
 
 const MAX_REQUESTS_PER_DAY = 3;
 
+/**
+ * The stewards — mirrors admin-requests and src/cloud/account-requests.ts.
+ * Stewards and Event Admins are the people running a buildathon rather than
+ * building in it, so the directory flags them as hosts and the chat never
+ * raises a host as "at your event — go find them" (a steward on a laptop
+ * elsewhere is not in the room).
+ */
+const STEWARD_EMAILS = ['joshuanesbit@gmail.com', 'deborah@relationaltechproject.org'];
+
+function stewardEmails(): Set<string> {
+  return new Set(
+    [...STEWARD_EMAILS, ...(Deno.env.get('SUPER_ADMIN_EMAILS') ?? '').split(',')]
+      .map(e => e.trim().toLowerCase())
+      .filter(Boolean),
+  );
+}
+
 function siteUrl(): string {
   return (Deno.env.get('SITE_URL') ?? 'https://relationalbuilder.org').replace(/\/$/, '');
 }
@@ -394,6 +411,21 @@ Deno.serve(async (req: Request) => {
         }
       }
 
+      // Hosts: stewards, plus anyone named an Event Admin of the event they
+      // carry. The flag is all that leaves — never the email or the role
+      const stewards = stewardEmails();
+      const adminKeys = new Set<string>();
+      const adminsRes = await fetch(rest('/event_admins?select=code,email&limit=2000'), { headers: svc() });
+      for (const a of (adminsRes.ok ? await adminsRes.json() : []) as { code: string; email: string }[]) {
+        adminKeys.add(`${a.code.toUpperCase()}|${a.email.toLowerCase()}`);
+      }
+      const isHost = (p: Record<string, unknown>) => {
+        const email = String(p.email).toLowerCase();
+        if (stewards.has(email)) return true;
+        const code = typeof p.event_code === 'string' ? p.event_code.toUpperCase() : '';
+        return !!code && adminKeys.has(`${code}|${email}`);
+      };
+
       const builders = visible.map((p: Record<string, unknown>) => ({
         id: p.id,
         name: p.display_name || 'A builder',
@@ -406,6 +438,8 @@ Deno.serve(async (req: Request) => {
         // Which event they joined through — same-event peers get suggested
         // to each other more readily
         event_code: p.event_code ?? null,
+        // Running the room rather than in it — kept out of event suggestions
+        host: isHost(p),
         prompts: promptsByOwner.get(String(p.id)) ?? [],
         // email deliberately omitted
       }));

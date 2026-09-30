@@ -16,6 +16,9 @@ export interface DirectoryBuilder {
   /** The event code they joined through, if any — same-event peers are
    *  suggested to each other more readily */
   event_code?: string | null;
+  /** A steward or Event Admin — running the room, not necessarily in it,
+   *  so never raised as an event-day introduction */
+  host?: boolean;
   /** Prompts this builder has shared — seeds you can grow from */
   prompts?: { title: string; slug: string }[];
   /** Their public builder page, when they've published one */
@@ -84,7 +87,9 @@ function meaningfulTokens(text: string): string[] {
  * When the person is at an event (selfEventCode), builders from the same
  * event clear a lower bar and win ties: you're already in the same room on
  * purpose, so one genuine topical overlap is reason enough to say
- * "go find them".
+ * "go find them". Hosts (stewards, Event Admins) sit this out entirely
+ * while the person is at an event: a steward who set the room up may be
+ * hundreds of miles from it, and "go find them" would send someone looking.
  */
 export function suggestConnection(
   conversationText: string,
@@ -99,6 +104,7 @@ export function suggestConnection(
   let bestScore = 0;
   for (const b of builders) {
     if (excludeIds.has(b.id)) continue;
+    if (selfEventCode && b.host) continue;
     if (!b.note && !b.neighborhood && !b.page_text) continue;
     const sameEvent =
       !!selfEventCode && !!b.event_code &&
