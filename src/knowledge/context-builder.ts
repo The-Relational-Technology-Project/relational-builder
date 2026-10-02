@@ -900,7 +900,14 @@ export function buildSystemPrompt(options: ContextOptions = {}): string {
 // the build itself.
 const STUDIO_PRINCIPLE_LIMIT = 16;
 const STUDIO_PRINCIPLE_CHARS = 2000;
-const STUDIO_ITEM_LIMIT = 24;
+// Examples and materials are a menu the model draws from, ~200 chars each,
+// and this whole section rides in the cacheable prompt prefix — so the cap
+// is a backstop against a runaway shelf, not a curation tool. 24 was tight
+// enough that an ordinary studio shelf (the Radically Rural models library
+// is 42) lost its tail on every turn, invisibly. 60 covers a real shelf for
+// ~3k tokens of cached prefix. Principles stay capped far lower: they are
+// instructions the model is told to act on, and they run to 2000 chars each.
+const STUDIO_ITEM_LIMIT = 60;
 const STUDIO_ITEM_CHARS = 400;
 
 function formatStudioLibraryForPrompt(
