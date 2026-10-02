@@ -3,7 +3,7 @@
     "slug": "microgrants",
     "display_name": "Microgrants",
     "home_url": "https://withneighbors.org/toolkit",
-    "notes": "Neighborhood microgrant programs: the Pizza Strip Fund remix card (the end-to-end system: applications, review, emails, payouts, reflections) and the With Neighbors organizer toolkit, distilled from real programs like Pizza Strip Fund and Long-Handled Spoons Dinners. Programs remixed from this shelf can be contributed back to it."
+    "notes": "Neighborhood microgrant programs: the Pizza Strip Fund remix card (the end-to-end system: applications, review, emails, payouts, reflections) and the With Neighbors organizer toolkit, distilled from real programs like Pizza Strip Fund and Long-Handled Spoons Dinners. Programs remixed from this shelf can be contributed back to it. Plus a dozen landing-page inspirations from programs listed at withneighbors.org/microgrants, so remixes borrow from many rather than copying one."
   },
   "items": [
     {
@@ -110,6 +110,460 @@
       },
       "license": "RCL-1.0",
       "sort_order": 21
+    },
+    {
+      "slug": "utopias-block-party-fund",
+      "kind": "story",
+      "title": "Block Party Fund (Los Angeles, CA)",
+      "summary": "UTOPIAS, a self-described 'public feelings studio', pays Los Angeles neighbors $150 to throw a block party and 'help map a friendlier LA'. Fixed $150 per host, with a photo and a short story asked for afterward.",
+      "body": "## The invitation\nThe hero is a four-line stacked headline: \"WE WANT, TO GIVE YOU, for a party with your, neighbors\" (the dollar figure sits between the lines). The one-line promise underneath: \"The Utopias Block Party Fund gives $150 to neighbors across Los Angeles to throw a block party. Meet the people on your block, get funded, and help map a friendlier LA.\" The button says **Apply Today** and repeats down the page. It is for LA residents of any hosting experience; the page names \"fast changing LA neighborhoods\" as the focus.\n\n## The grant\nFixed **$150** per host. \"Applications are open now through Sept 28. Selected hosts throw their parties in October.\" What is asked back: one photo and \"a short story\" after the party. A \"What counts as a party?\" section carries an exclusions list (the specific exclusions were not captured in the fetch).\n\n## What the landing page does well\n- Two-beat \"Here's how it works\" section: *We pay / You party*. The whole mechanic in four words.\n- Frames the city-wide effort as a map: every party is a dot on \"a friendlier LA\", so a host joins something bigger than one block.\n- A narrative section titled \"Party fever is taking over the city\" turns applicants into part of a movement, not a form queue.\n- FAQ is headed \"Tell me more\", keeping the conversational voice even in the fine print.\n- Follow-along options (Instagram, newsletter) and a media-outreach section sit below the fold so non-hosts have a next step.\n- Visual feel: text-forward and festive (specific colors not stated on the fetched page).\n\n## Source\nhttps://utopias.world/ — listed on With Neighbors (https://withneighbors.org/microgrants)",
+      "attribution": {
+        "name": "UTOPIAS",
+        "source": "https://utopias.world/",
+        "neighborhood": "Los Angeles, CA"
+      },
+      "source_url": "https://utopias.world/",
+      "tags": [
+        "block-party",
+        "landing-page-inspiration",
+        "los-angeles",
+        "microgrants",
+        "with neighbors"
+      ],
+      "image_urls": [],
+      "metadata": {
+        "maker": "UTOPIAS",
+        "hosted_url": "https://utopias.world/",
+        "local_object": "the block party, framed as mapping 'a friendlier LA'",
+        "grant_shape": "fixed",
+        "amounts": "$150 per host",
+        "place": "Los Angeles, CA",
+        "inspiration_moves": [
+          "Two-beat how-it-works (We pay / You party)",
+          "Headline that stacks the offer line by line",
+          "Movement framing: 'Party fever is taking over the city'",
+          "Repeat the Apply button at every section break"
+        ]
+      },
+      "license": "RCL-1.0",
+      "sort_order": 30
+    },
+    {
+      "slug": "island-food-with-neighbors-fund",
+      "kind": "story",
+      "title": "Food With Neighbors Fund (The Island, Austin, Chicago, IL)",
+      "summary": "The Island Civic Association in Chicago's Austin community area funds residents to host 'simple, low-lift gatherings that bring neighbors together with food'. Fixed $100 paid by Venmo or PayPal, with a three-attendee minimum and a short post-event survey.",
+      "body": "## The invitation\nHeadline: \"Food With Neighbors\" under the Island Civic Association masthead. Promise: \"Give residents of The Island funds to host simple, low-lift gatherings that bring neighbors together with food.\" The button says **Apply Now**. It is for residents of The Island neighborhood only.\n\n## The grant\nFixed **$100** per applicant, paid directly via Venmo or PayPal. Gatherings must happen by the end of October 2026; the application stays open while funds last. Asked of hosts: at least 3 attendees besides the host, a post-event survey, and an optional photo.\n\n## What the landing page does well\n- It lives inside an existing civic association site (nav with member and donation links, Nextdoor and email-list links in the footer), so the grant reads as something the neighborhood already does, not a new brand.\n- One large hero image, one intro paragraph, one offer with a button: the whole pitch fits above the FAQ.\n- A six-question FAQ covers exactly what a nervous first-time host asks: how to apply, deadline, how money arrives, what it can be spent on, how many people must come, what is owed afterward.\n- A named human contact (Nate Tubbs) rather than a generic inbox.\n- \"Doesn't have to be complicated\" is the recurring reassurance.\n- Visual feel: civic-association branding with a black-and-white logo; the hero image is the only color note (not described further on the site).\n\n## Source\nhttps://islandchicago.org/withneighbors/ — listed on With Neighbors (https://withneighbors.org/microgrants)",
+      "attribution": {
+        "name": "Island Civic Association",
+        "source": "https://islandchicago.org/withneighbors/",
+        "neighborhood": "The Island, Austin, Chicago, IL"
+      },
+      "source_url": "https://islandchicago.org/withneighbors/",
+      "tags": [
+        "chicago",
+        "civic-association",
+        "food",
+        "landing-page-inspiration",
+        "microgrants",
+        "with neighbors"
+      ],
+      "image_urls": [],
+      "metadata": {
+        "maker": "Island Civic Association",
+        "hosted_url": "https://islandchicago.org/withneighbors/",
+        "local_object": "food on the block; The Island neighborhood identity",
+        "grant_shape": "fixed",
+        "amounts": "$100 per host, via Venmo or PayPal",
+        "place": "The Island, Austin, Chicago, IL",
+        "inspiration_moves": [
+          "Host the grant page inside the association's existing site",
+          "Six-question FAQ aimed at first-time hosts",
+          "Three-attendee minimum stated plainly",
+          "Named human contact"
+        ]
+      },
+      "license": "RCL-1.0",
+      "sort_order": 30
+    },
+    {
+      "slug": "front-yard-friday-orlando",
+      "kind": "story",
+      "title": "Front Yard Friday (Orlando, FL)",
+      "summary": "Orlando Good Neighbor Week turns the front-yard wave into a county-wide date: host a front yard, porch, or sidewalk gathering on Friday, October 2 and get $100. Fixed $100 per host, with a button that reads 'I'm In — Send Me $100'.",
+      "body": "## The invitation\nHeadline: \"They wave. You wave. Time to actually meet.\" The promise is a single coordinated evening of front-yard gatherings during Good Neighbor Week, with money attached. The button says **I'm In — Send Me $100**. It is for Orlando-area residents willing to host during the event week.\n\n## The grant\nFixed **$100** per host. The event date is Friday, October 2 (inside the Sept. 28 to Oct. 4, 2026 week). Asked of hosts: hold a front yard, porch, or sidewalk gathering so neighbors can actually meet. Post-event requirements are not stated on the fetched page.\n\n## What the landing page does well\n- The headline names the exact micro-moment everyone recognizes (the wave) and promises to finish it.\n- Button copy is a first-person commitment, not an action label: \"I'm In — Send Me $100\".\n- One shared date does the hard part for hosts; nobody has to pick a night or worry about being the only one.\n- A four-photo carousel (neighbors talking, yard signage, downtown streets, the Orlando skyline) places the program in a real city, not stock suburbia.\n- \"Here's the plan\" section stays short and plain, and an \"alternative participation\" block gives non-hosts a role too.\n- Visual feel: warm, photo-led, conversational (exact colors not stated on the fetched page).\n\n## Source\nhttps://front-yard-friday.lovable.app/home — listed on With Neighbors (https://withneighbors.org/microgrants)",
+      "attribution": {
+        "name": "Orlando Good Neighbor Week",
+        "source": "https://front-yard-friday.lovable.app/home",
+        "neighborhood": "Orlando, FL"
+      },
+      "source_url": "https://front-yard-friday.lovable.app/home",
+      "tags": [
+        "front-yard",
+        "good-neighbor-week",
+        "landing-page-inspiration",
+        "microgrants",
+        "orlando",
+        "with neighbors"
+      ],
+      "image_urls": [],
+      "metadata": {
+        "maker": "Orlando Good Neighbor Week",
+        "hosted_url": "https://front-yard-friday.lovable.app/home",
+        "local_object": "the front-yard wave; one Friday evening county-wide",
+        "grant_shape": "fixed",
+        "amounts": "$100 per host",
+        "place": "Orlando, FL",
+        "inspiration_moves": [
+          "Headline built on a recognizable micro-moment (the wave)",
+          "First-person commitment button copy",
+          "One shared date instead of open scheduling",
+          "Photo carousel of the actual city"
+        ]
+      },
+      "license": "RCL-1.0",
+      "sort_order": 30
+    },
+    {
+      "slug": "peoria-hello-neighbor-gathering-fund",
+      "kind": "story",
+      "title": "Hello Neighbor Gathering Fund (Peoria, IL)",
+      "summary": "The City of Peoria's Community Development Department offers residents $100 to host a gathering that helps 'people connect with their neighbors, build relationships, and strengthen their community'. Fixed $100, 15 awards, with a seven-step how-it-works and a December feedback session.",
+      "body": "## The invitation\nHeadline: \"Hello Neighbor Gathering Fund\". Promise: funding to \"help people connect with their neighbors, build relationships, and strengthen their community.\" The form's button says **Submit**. It is for Peoria, IL residents; the program is run by the city's Community Development Department and funded by With Neighbors.\n\n## The grant\nFixed **$100** per recipient, **15 awards** total. Application window \"Tuesday, September 1 - Tuesday, September 22\"; funding notice \"before October 1, 2026\"; events held \"October 1 - November 15th\". Asked of hosts: photos, a post-event questionnaire, and attendance at a December feedback session.\n\n## What the landing page does well\n- \"Brainstorm Gathering Ideas\" comes before the rules: pizza parties, ice cream socials, pancake breakfasts. The page sells the picture of the event first.\n- A numbered seven-step \"How It Works\" runs from application to post-event feedback, so hosts see the whole arc, including the December gathering of hosts.\n- \"Resources for Hosts\" offers a guidelines document and a printable sign-in sheet, which is a concrete help that most microgrant pages skip.\n- The application form is embedded on the same page (name, email, address, event description), with no second site to visit.\n- Stating the number of awards (15) sets honest expectations.\n- Visual feel: a municipal site, blue and white, with the city logo and social icons; the warmth comes from the copy, not the design.\n\n## Source\nhttps://www.peoriagov.org/1224/Hello-Neighbor — listed on With Neighbors (https://withneighbors.org/microgrants)",
+      "attribution": {
+        "name": "City of Peoria Community Development Department",
+        "source": "https://www.peoriagov.org/1224/Hello-Neighbor",
+        "neighborhood": "Peoria, IL"
+      },
+      "source_url": "https://www.peoriagov.org/1224/Hello-Neighbor",
+      "tags": [
+        "city-government",
+        "landing-page-inspiration",
+        "microgrants",
+        "peoria",
+        "with neighbors"
+      ],
+      "image_urls": [],
+      "metadata": {
+        "maker": "City of Peoria Community Development Department",
+        "hosted_url": "https://www.peoriagov.org/1224/Hello-Neighbor",
+        "local_object": "the city hello; pizza parties, ice cream socials, pancake breakfasts",
+        "grant_shape": "fixed",
+        "amounts": "$100 per host, 15 awards",
+        "place": "Peoria, IL",
+        "inspiration_moves": [
+          "Idea list before rules",
+          "Seven-step how-it-works ending in a hosts' feedback session",
+          "Downloadable sign-in sheet and host guidelines",
+          "Form embedded on the page"
+        ]
+      },
+      "license": "RCL-1.0",
+      "sort_order": 30
+    },
+    {
+      "slug": "hey-neighbor-rome-ga",
+      "kind": "story",
+      "title": "Hey, Neighbor! Fund (Rome, GA)",
+      "summary": "'When in Rome... get to know your neighbors': a range grant of $50 to $150 for creative, neighborhood-scale gatherings in Rome, Georgia, with a spinning idea wheel on the landing page. The button says 'I'll Host'.",
+      "body": "## The invitation\nHeadline: \"WHEN IN ROME... GET TO KNOW YOUR NEIGHBORS\". Promise: \"Every neighborhood has someone worth meeting. You bring the neighbors; we'll cover $50–$150 of the snacks & supplies.\" The button says **I'll Host 🙋**. It is for Rome, Georgia residents, with Old East Rome and South Rome named as neighborhoods of focus. The With Neighbors listing credits Bobby Jones as the organizer; the site itself presents as \"Hey, Neighbor!\".\n\n## The grant\nRange **$50–$150** per event, for \"snacks & supplies\". Applicants propose an event idea and apply through the form. Deadlines and post-event requirements are not stated on the fetched page.\n\n## What the landing page does well\n- The headline is a pun on the town's name, which makes the page unmistakably local in five words.\n- An interactive spinning wheel generates a gathering idea; the page treats \"what would I even do?\" as the real barrier and answers it with play.\n- Thirty-plus idea cards (5-Minute Talent Show, Front-Yard Movie Night, and more) with a \"See all ideas\" expander: a \"grab bag of ideas\", as With Neighbors describes it.\n- Button copy is a volunteer's raised hand, emoji included.\n- The promise sentence splits labor cleanly: you bring the people, we cover the stuff.\n- Visual feel: playful and casual, wheel centered on the page; colors not stated on the fetched page.\n\n## Source\nhttps://hey-neighbor-rome.lovable.app/ — listed on With Neighbors (https://withneighbors.org/microgrants)",
+      "attribution": {
+        "name": "Hey, Neighbor! (Bobby Jones)",
+        "source": "https://hey-neighbor-rome.lovable.app/",
+        "neighborhood": "Rome, GA"
+      },
+      "source_url": "https://hey-neighbor-rome.lovable.app/",
+      "tags": [
+        "idea-generator",
+        "landing-page-inspiration",
+        "microgrants",
+        "rome-ga",
+        "with neighbors"
+      ],
+      "image_urls": [],
+      "metadata": {
+        "maker": "Hey, Neighbor! (Bobby Jones)",
+        "hosted_url": "https://hey-neighbor-rome.lovable.app/",
+        "local_object": "the 'When in Rome' pun; a spin-the-wheel grab bag of gathering ideas",
+        "grant_shape": "range",
+        "amounts": "$50–$150 per event",
+        "place": "Rome, GA",
+        "inspiration_moves": [
+          "Town-name pun headline",
+          "Interactive idea wheel",
+          "30+ idea cards with expander",
+          "'I'll Host' raised-hand button"
+        ]
+      },
+      "license": "RCL-1.0",
+      "sort_order": 30
+    },
+    {
+      "slug": "lehigh-valley-hey-there-neighbor-fund",
+      "kind": "story",
+      "title": "Hey There Neighbor! (Lehigh Valley, PA)",
+      "summary": "Bike Biscuits of Bethlehem runs the Lehigh Valley Hey There Neighbor Fund: 'Get a small grant to host a casual gathering with your neighbors.' Up to $100, bilingual page, and the landing page is the application itself.",
+      "body": "## The invitation\nHeadline: \"Lehigh Valley Hey There Neighbor Fund!\" Promise: \"Get a small grant to host a casual gathering with your neighbors.\" The button says **Submit Application**. It is for Lehigh Valley residents in Allentown, Easton, or Bethlehem.\n\n## The grant\nUp to **$100** for a simple neighbor gathering (treated here as a fixed cap). Paid by Venmo or PayPal to the email given. Asked of hosts: agree to post-event reflection questions and follow-up contact; an optional demographic checkbox. No deadline stated on the page.\n\n## What the landing page does well\n- The page is the form. There is no separate \"learn more\" layer: headline, one-sentence promise, then fields.\n- An English/Español toggle in the header, which is rare among these programs.\n- The questions double as coaching: a \"how connected do you feel\" question, a first-time-host question, a location field, and a date picker nudge the applicant to picture the event while applying.\n- A hand-drawn horse illustration beside the headline gives a tiny art-collective site more character than any stock photo would.\n- Payment method is chosen in the application, so money can move the moment a host is approved.\n- Visual feel: informal, illustrated, small-organization; specific colors not stated on the fetched page.\n\n## Source\nhttps://bikebiscuits.org/apply — listed on With Neighbors (https://withneighbors.org/microgrants)",
+      "attribution": {
+        "name": "Bike Biscuits",
+        "source": "https://bikebiscuits.org/apply",
+        "neighborhood": "Lehigh Valley (Allentown, Easton, Bethlehem), PA"
+      },
+      "source_url": "https://bikebiscuits.org/apply",
+      "tags": [
+        "art",
+        "bilingual",
+        "landing-page-inspiration",
+        "lehigh-valley",
+        "microgrants",
+        "with neighbors"
+      ],
+      "image_urls": [],
+      "metadata": {
+        "maker": "Bike Biscuits",
+        "hosted_url": "https://bikebiscuits.org/apply",
+        "local_object": "a hand-drawn horse; art-and-play gatherings",
+        "grant_shape": "fixed",
+        "amounts": "up to $100 per gathering",
+        "place": "Lehigh Valley (Allentown, Easton, Bethlehem), PA",
+        "inspiration_moves": [
+          "Landing page is the application",
+          "Bilingual toggle",
+          "Form questions that coach the host",
+          "Hand-drawn illustration instead of stock photos"
+        ]
+      },
+      "license": "RCL-1.0",
+      "sort_order": 30
+    },
+    {
+      "slug": "new-haven-know-your-neighbors-fund",
+      "kind": "story",
+      "title": "Know Your Neighbors Fund (New Haven, CT)",
+      "summary": "Civic Works' Know Your Neighbors Fund gives '$200 grants for projects that bring people together in New Haven. From morning chess clubs to block potlucks.' Fixed $200, open to any New Haven resident, with a preference for gatherings that recur.",
+      "body": "## The invitation\nHeadline: \"APPLY FOR THE Know Your Neighbors Fund.\" Promise (also the site's meta description): \"$200 grants for neighbor-led projects that bring people together in New Haven. From morning chess clubs to block potlucks — small ideas that build community connection.\" The button says **Apply Today!** It is \"Open to all New Haven residents\". The short domain knowyourneighborsfund.org redirects to the Civic Works page.\n\n## The grant\nFixed **$200**. Deadline September 30th. Rules: applicant must live in New Haven and the event must happen there; the event \"must be free of charge and open to the public\"; projects \"should ideally be recurring activities\". Afterward, \"a simple report\": answers to 3-4 questions, attendance count, 2-3 photos, and a brief story or quote. With Neighbors administers this round and may feature stories.\n\n## What the landing page does well\n- A memorable standalone domain (knowyourneighborsfund.org) that forwards to the organization's page, so the fund is shareable by name.\n- The promise sentence carries two concrete examples (morning chess club, block potluck) that set the scale instantly.\n- \"Strong communities are built one neighbor at a time\" states the belief in one line before the rules.\n- It asks for recurring traditions, not one-off parties, and says so up front.\n- The report is specified exactly (3-4 questions, headcount, 2-3 photos, a quote), which makes \"what do I owe you?\" a non-question.\n- Visual feel: clean, modern nonprofit layout with community photography; colors not stated on the fetched page.\n\n## Source\nhttps://knowyourneighborsfund.org/ (redirects to https://www.civicworksct.org/know-your-neighbors-fund-apply) — listed on With Neighbors (https://withneighbors.org/microgrants)",
+      "attribution": {
+        "name": "Civic Works",
+        "source": "https://knowyourneighborsfund.org/",
+        "neighborhood": "New Haven, CT"
+      },
+      "source_url": "https://knowyourneighborsfund.org/",
+      "tags": [
+        "civic-works",
+        "landing-page-inspiration",
+        "microgrants",
+        "new-haven",
+        "recurring",
+        "with neighbors"
+      ],
+      "image_urls": [],
+      "metadata": {
+        "maker": "Civic Works",
+        "hosted_url": "https://knowyourneighborsfund.org/",
+        "local_object": "morning chess clubs and block potlucks; recurring neighborhood traditions",
+        "grant_shape": "fixed",
+        "amounts": "$200 per project",
+        "place": "New Haven, CT",
+        "inspiration_moves": [
+          "Standalone memorable domain",
+          "Two concrete examples inside the promise",
+          "Ask for recurring, not one-off",
+          "Spell out the report exactly"
+        ]
+      },
+      "license": "RCL-1.0",
+      "sort_order": 30
+    },
+    {
+      "slug": "nofa-vt-long-handled-spoons-dinners",
+      "kind": "story",
+      "title": "Long-Handled Spoons Dinners (Vermont)",
+      "summary": "NOFA-VT's dinner micro-grants are named for the long-handled spoons parable: people can only eat by feeding each other. Meals that 'grow joy, power, and safety by building strong relationships and keeping each other fed', with ingredients from local organic farms; up to $200 on the NOFA page ($250 per the With Neighbors listing).",
+      "body": "## The invitation\nHeadline: \"Long-Handled Spoons Dinner Micro-Grants\". Promise: community-building meals that \"grow joy, power, and safety by building strong relationships and keeping each other fed.\" It is for NOFA-VT members across Vermont. At the time of fetching, the page reads \"Applications are currently closed\", so no apply button was visible.\n\n## The grant\nThe NOFA-VT page says up to **$200** per applicant; the With Neighbors listing says $250 (the discrepancy is noted here, not resolved). Asked of hosts: source ingredients from \"local, organic, and small-scale farmers\" and send a photo of the gathering. Dates for the next round are not stated on the site.\n\n## What the landing page does well\n- The name is a parable, and the page explains it with two drawings: one of people struggling to feed themselves with spoons too long to reach their own mouths, one of them feeding each other. The images carry the whole ethos.\n- \"How Does a Long-Handled Spoon Dinner Work?\" walks through the steps so the parable becomes a recipe for an evening.\n- It ties the microgrant to the host organization's mission (local farmers get the food budget), so each dinner is both a gathering and a market.\n- Sections run intro and founding context, how it works and who funds it, the illustrations, the steps, the status notice, then a donate ask: a complete arc even when applications are closed.\n- Tone: warm, justice-grounded, about collective care rather than fun for its own sake.\n- Visual feel: illustration-led; colors not stated on the fetched page.\n\n## Source\nhttps://www.nofavt.org/services-resources/other-resources/long-handled-spoons-dinner-micro-grants — listed on With Neighbors (https://withneighbors.org/microgrants)",
+      "attribution": {
+        "name": "NOFA-VT (Northeast Organic Farming Association of Vermont)",
+        "source": "https://www.nofavt.org/services-resources/other-resources/long-handled-spoons-dinner-micro-grants",
+        "neighborhood": "Vermont (statewide)"
+      },
+      "source_url": "https://www.nofavt.org/services-resources/other-resources/long-handled-spoons-dinner-micro-grants",
+      "tags": [
+        "farmers",
+        "food",
+        "landing-page-inspiration",
+        "microgrants",
+        "parable",
+        "vermont",
+        "with neighbors"
+      ],
+      "image_urls": [],
+      "metadata": {
+        "maker": "NOFA-VT (Northeast Organic Farming Association of Vermont)",
+        "hosted_url": "https://www.nofavt.org/services-resources/other-resources/long-handled-spoons-dinner-micro-grants",
+        "local_object": "the long-handled spoons parable: you can only eat by feeding each other",
+        "grant_shape": "fixed",
+        "amounts": "up to $200 per dinner on the NOFA-VT page; $250 per the With Neighbors listing",
+        "place": "Vermont (statewide)",
+        "inspiration_moves": [
+          "Name the grant after a parable and illustrate it",
+          "Turn the parable into step-by-step instructions",
+          "Route the food budget to the mission (local farmers)",
+          "Keep the page whole even when closed"
+        ]
+      },
+      "license": "RCL-1.0",
+      "sort_order": 30
+    },
+    {
+      "slug": "sf-meet-your-neighbors-fund",
+      "kind": "story",
+      "title": "Meet Your Neighbors Fund (San Francisco, CA)",
+      "summary": "SF Good Neighbor Week's 'teeny grant to make a big introduction': $100 for individuals to host simple, low-lift gatherings for the folks next door during Good Neighbor Week. Fixed $100, individuals only, backed by Civic Joy Fund and With Neighbors.",
+      "body": "## The invitation\nHeadline: \"Meet Your Neighbors Fund\". Promise: \"A teeny grant to make a big introduction\", with the descriptor \"A grant to host simple, low-lift gatherings\". It is for San Francisco residents applying as individuals (organizations and associations excluded). At the time of fetching: \"The application is now closed\", so no button text was visible.\n\n## The grant\nFixed **$100**. The application deadline was September 18, 2026; gatherings run September 26 to October 4, 2026 (SF Good Neighbor Week), extended through the end of October. Asked of hosts: introduce neighbors in your building or block with something achievable, \"a potluck in your living room, coffee on your driveway\". Post-event requirements are not stated on the fetched page.\n\n## What the landing page does well\n- \"Teeny grant, big introduction\" says the amount is small on purpose and makes the smallness part of the charm.\n- A problem statement comes first (people don't know the folks next door), then the fund as the answer.\n- Examples are deliberately tiny and indoor-friendly for a dense city: living-room potluck, driveway coffee.\n- Individuals-only eligibility keeps the money with residents instead of organizations.\n- Partner logos (Civic Joy Fund, Good Neighbor Lab, With Neighbors) and the #sfgoodneighborweek hashtag place the fund inside a city-wide week.\n- Visual feel: clean, modern, warm neighborhood photography; colors not stated on the fetched page.\n\n## Source\nhttps://www.sfgoodneighborweek.org/meet-your-neighbors — listed on With Neighbors (https://withneighbors.org/microgrants)",
+      "attribution": {
+        "name": "SF Good Neighbor Week (with Civic Joy Fund)",
+        "source": "https://www.sfgoodneighborweek.org/meet-your-neighbors",
+        "neighborhood": "San Francisco, CA"
+      },
+      "source_url": "https://www.sfgoodneighborweek.org/meet-your-neighbors",
+      "tags": [
+        "civic-joy-fund",
+        "good-neighbor-week",
+        "landing-page-inspiration",
+        "microgrants",
+        "san-francisco",
+        "with neighbors"
+      ],
+      "image_urls": [],
+      "metadata": {
+        "maker": "SF Good Neighbor Week (with Civic Joy Fund)",
+        "hosted_url": "https://www.sfgoodneighborweek.org/meet-your-neighbors",
+        "local_object": "the folks next door; a living-room potluck or driveway coffee during Good Neighbor Week",
+        "grant_shape": "fixed",
+        "amounts": "$100 per host",
+        "place": "San Francisco, CA",
+        "inspiration_moves": [
+          "'Teeny grant, big introduction' framing",
+          "Problem statement before the offer",
+          "Apartment-scale examples",
+          "Individuals-only eligibility stated plainly"
+        ]
+      },
+      "license": "RCL-1.0",
+      "sort_order": 30
+    },
+    {
+      "slug": "falls-church-neighbor-gathering-grants",
+      "kind": "story",
+      "title": "Neighbor Gathering Grants (Falls Church, VA)",
+      "summary": "Falls Church Forward asks 'People in Falls Church are meeting their neighbors. Want in?' and offers microgrants from $50 to $150 for gatherings held August through October. A range grant whose landing page leads with a photo carousel of what past hosts actually did.",
+      "body": "## The invitation\nHeadline: \"People in Falls Church are meeting their neighbors. Want in?\" Promise: \"Microgrants from $50 to $150 to help Falls Church neighbors host gatherings August–October.\" It is for residents of the greater Falls Church area. At the time of fetching, \"The application period is now closed\" and submitted applications were still under review; the live call-to-action is a \"Keep me posted\" email signup for a future round.\n\n## The grant\nRange **$50–$150** per gathering, for events in an August to October window. What is asked of hosts afterward is not stated on the fetched page.\n\n## What the landing page does well\n- The headline uses social proof and FOMO in two short sentences: others are already doing this, want in?\n- A four-photo carousel (backyard gathering, a painting activity, welcome bags, a community event) shows the range of what counts before any rules appear.\n- The page keeps working after close: a status notice plus an email signup, so the closed state still collects the next cohort.\n- Grant copy is one sentence with the amounts and the window; nothing else competes with it.\n- Visual feel: candid photographs of neighbors, inclusive and informal; colors not stated on the fetched page.\n\n## Source\nhttps://falls-church-forward-microgrant.lovable.app/home — listed on With Neighbors (https://withneighbors.org/microgrants)",
+      "attribution": {
+        "name": "Falls Church Forward",
+        "source": "https://falls-church-forward-microgrant.lovable.app/home",
+        "neighborhood": "Falls Church, VA"
+      },
+      "source_url": "https://falls-church-forward-microgrant.lovable.app/home",
+      "tags": [
+        "falls-church",
+        "landing-page-inspiration",
+        "microgrants",
+        "virginia",
+        "with neighbors"
+      ],
+      "image_urls": [],
+      "metadata": {
+        "maker": "Falls Church Forward",
+        "hosted_url": "https://falls-church-forward-microgrant.lovable.app/home",
+        "local_object": "welcome bags and backyard gatherings on the block",
+        "grant_shape": "range",
+        "amounts": "$50–$150 per gathering",
+        "place": "Falls Church, VA",
+        "inspiration_moves": [
+          "'Want in?' social-proof headline",
+          "Photo carousel of real past gatherings",
+          "Closed-state page that still captures email",
+          "One-sentence grant copy"
+        ]
+      },
+      "license": "RCL-1.0",
+      "sort_order": 30
+    },
+    {
+      "slug": "nvp-neighborhood-projects-microgrant",
+      "kind": "story",
+      "title": "Neighborhood Projects Microgrant (Boulder and Denver, CO)",
+      "summary": "Neighborhood Village Project offers '$300 for neighbor-led projects in the Boulder & Denver Metro Area': build or plant something together (a food forest, pocket park, emergency cache, bulletin board, pizza oven) and gather around it. Fixed $300, paid within 48 hours of selection.",
+      "body": "## The invitation\nHeadline: \"Neighborhood Projects Microgrant\". Promise: \"$300 for neighbor-led projects in the Boulder & Denver Metro Area\". It is for neighbors in that metro area who want to launch a small shared project. At the time of fetching the page read \"Application Deadline Has Passed\", so no apply button was visible.\n\n## The grant\nFixed **$300**, sent by Venmo, PayPal, or Visa gift card within 48 hours of selection. Deadline was August 25, 2026; projects complete by October 21, 2026; photo and reflection due October 25, 2026. Rules: projects must be \"neighbor-led\", include a \"neighborhood gathering\", and spend funds on \"supplies and materials\".\n\n## What the landing page does well\n- Five illustrated project ideas (food forest, pocket park, emergency cache, bulletin board, pizza oven) open the page, so the grant is about making a thing, not just hosting a night.\n- International examples of neighbor-led work give small local projects a lineage.\n- Paired sections \"What You'll Receive\" and \"What We Ask of You\" make the exchange explicit and symmetrical.\n- A timeline with every date (deadline, completion, reflection) and a contact for pre-application questions.\n- Tone is openly enthusiastic (\"stoked\", celebratory emoji) without being vague about rules.\n- Visual feel: warm, illustrated, neighborhood-scale; colors not stated on the fetched page.\n\n## Source\nhttps://nvp.community/microgrant — listed on With Neighbors (https://withneighbors.org/microgrants)",
+      "attribution": {
+        "name": "Neighborhood Village Project",
+        "source": "https://nvp.community/microgrant",
+        "neighborhood": "Boulder and Denver Metro Area, CO"
+      },
+      "source_url": "https://nvp.community/microgrant",
+      "tags": [
+        "colorado",
+        "landing-page-inspiration",
+        "microgrants",
+        "placemaking",
+        "projects",
+        "with neighbors"
+      ],
+      "image_urls": [],
+      "metadata": {
+        "maker": "Neighborhood Village Project",
+        "hosted_url": "https://nvp.community/microgrant",
+        "local_object": "shared building and planting projects: food forest, pocket park, emergency cache, bulletin board, pizza oven",
+        "grant_shape": "fixed",
+        "amounts": "$300 per project, paid within 48 hours of selection",
+        "place": "Boulder and Denver Metro Area, CO",
+        "inspiration_moves": [
+          "Illustrated project menu up top",
+          "'What You'll Receive' / 'What We Ask of You' pairing",
+          "Full dated timeline",
+          "Fast-payment promise (48 hours)"
+        ]
+      },
+      "license": "RCL-1.0",
+      "sort_order": 30
+    },
+    {
+      "slug": "more-parades-welcome-wagon",
+      "kind": "story",
+      "title": "Welcome Wagon (Palouse, WA)",
+      "summary": "More Parades, a rural cultural incubator in Palouse, Washington, runs the Welcome Wagon Community Microgrants: 'All the best ideas come from one another :)', small grants for neighbors gathering around special interests and community projects. $250 per the With Neighbors listing, with hands-on practical support alongside the money.",
+      "body": "## The invitation\nHeadline: \"Welcome 🌀 Wagon\" with the subhead \"Microgrant Program\" (on the home page, announced as \"BIG NEWS!\"), and on the program page \"Welcome 🌀 Wagon Community Microgrants\". Promise: \"All the best ideas come from one another :) This program awards small grants to neighbors for gathering around special interests and community projects in Palouse, Washington.\" The home page button to the program says **Read More**; an apply button and application details were not visible on the fetched pages.\n\n## The grant\nThe With Neighbors listing gives **$250** and describes a rural program \"pairing funding with hands-on practical support\"; the More Parades site itself does not state an amount or deadline (not stated on the site). The 2026 grantee pages show funded projects such as Mother Prairie and Coyote puppets for the Palouse Days parade and a Palouse City Drum Corps.\n\n## What the landing page does well\n- The program is a set of short pages (Microgrants, 2026 Projects, 2026 People, Credit, Footer) rather than one scroll: the grantees and their projects are the content.\n- Each grantee gets a bio in their own voice, so the fund reads like a roster of neighbors, not a pot of money.\n- A \"Big Thanks\" credit page names the funders (With Neighbors, Group Hug, Relational Tech Project, Connective Tissue) and frames the whole thing as \"a national neighborhood microgrant blitz\".\n- The town's own event (Palouse Days parade) anchors every project.\n- Visual feel: a Cargo site with a wheat-field wallpaper, a mustard-olive page background (#b5a635), white body copy in Optima and a typewriter display face, emoji icons in the nav. Rural, arty, handmade.\n\n## Source\nhttps://moreparades.org/welcome-wagon-1 — listed on With Neighbors (https://withneighbors.org/microgrants)",
+      "attribution": {
+        "name": "More Parades",
+        "source": "https://moreparades.org/welcome-wagon-1",
+        "neighborhood": "Palouse, WA"
+      },
+      "source_url": "https://moreparades.org/welcome-wagon-1",
+      "tags": [
+        "arts",
+        "landing-page-inspiration",
+        "microgrants",
+        "palouse",
+        "parade",
+        "rural",
+        "with neighbors"
+      ],
+      "image_urls": [],
+      "metadata": {
+        "maker": "More Parades",
+        "hosted_url": "https://moreparades.org/welcome-wagon-1",
+        "local_object": "the Palouse Days parade; puppets and a drum corps for Main Street",
+        "grant_shape": "fixed",
+        "amounts": "$250 per the With Neighbors listing (amount not stated on the site)",
+        "place": "Palouse, WA",
+        "inspiration_moves": [
+          "Grantee roster as the landing page",
+          "Bios in grantees' own voices",
+          "Credit page naming the funders and the national blitz",
+          "Strong local palette and typefaces"
+        ]
+      },
+      "license": "RCL-1.0",
+      "sort_order": 30
     }
   ]
 }
