@@ -20,9 +20,10 @@
 --
 -- The white paper lands as a `principle`, not an example — it is a stance
 -- about rural investment, and principles are what the prompt tells the model
--- to act on. Its body states the QUESTION the 2023 summit asked, in
--- Radically Rural's own framing, and says plainly that it does not summarize
--- the paper's conclusions, which nobody has read into the studio yet.
+-- to act on. Its body is written from the paper itself ("By Rural, for
+-- Rural", 17 pp., read Oct 2 2026): its findings on why federal money misses
+-- small places, and what that asks of a build. Paraphrased; the paper is
+-- linked for the full recommendations.
 --
 -- Studio-private and approved, like the first pass: visibility and status
 -- take the table defaults. Re-runnable on its own rows only.
@@ -39,34 +40,37 @@ select 'radically-rural', v.kind, v.title, v.summary, v.body, v.url,
 from (values
   ('principle',
    'Top-down investment and bottom-up initiative',
-   'Radically Rural''s 2024 white paper question: how large-scale rural investment and locally initiated work can coexist.',
-   'Radically Rural spent its 2023 summit on rural policy — two opening
-sessions, two focus groups and a closing session — asking how top-down
-approaches to rural investment can coexist with bottom-up initiative. The
-findings are published as the 2024 Radically Rural White Paper, linked
-here.
+   'Radically Rural''s 2024 white paper: rural people carry the solutions; outside money should fit how small places work, not shrink urban rules to fit them.',
+   'Radically Rural''s 2024 white paper, "By Rural, for Rural", came out of
+the 2023 Keene summit: two focus groups facilitated by Tony Pipa of
+Brookings, interviews with attendees by Keene High School students, and
+online working sessions after. Its answer to how outside investment and
+local initiative coexist: local people carry the solutions ("these people know
+what they need and how to do it, they just need to be funded"), and
+outside money should fit how small places actually work rather than
+shrink urban rules to fit them. It is explicit that fixing rural problems
+is not only government''s job, but that the conditions matter.
 
-Hold that question over builds in this studio. Large-scale rural
-investment (federal and state programs, foundation initiatives,
-regional authorities) and locally initiated work are both real, and
-tools get built for both. When a build sits near outside money or an
-outside program, it is worth asking plainly:
+What it found getting in the way:
+- Federal funds favor places that can afford specialist staff to find,
+  apply for and administer them. Small towns spend more time on paperwork
+  than on the work. Its top ask: one simple, universal application and
+  compliance process across agencies.
+- Runways of 1-3 years are too short; match requirements and
+  reimbursement-only payment shut out places without cash on hand.
+- Success measured as jobs created misses rural impact. Measure from a
+  place''s own starting point, and count solopreneurs and micro-enterprises.
+- Towns work in silos across distance. It calls for regional capacity:
+  shared hubs, multi-town partnerships, technical assistance, and
+  operating funds for the people already doing the work.
 
-- Who initiated this — the town, or a program the town is eligible for?
-- Does the tool help local people shape what arrives, or only help them
-  comply with it?
-- When the funding period ends, what is left in local hands: the data,
-  the relationships, the thing itself?
-- Does it make the local initiative legible to the funder, the funder''s
-  requirements legible to the town, or both?
-
-A build does not have to choose a side. It should know which one it is
-serving, and say so.
-
-Steward''s note: this principle states the question the summit asked, from
-Radically Rural''s own framing. It does not summarize the white paper''s
-conclusions — nobody has read the PDF into the studio yet. Rewrite it from
-the paper itself when someone has.',
+What that means for a build here:
+- Assume nobody has a grant writer. Cut steps, reuse what a town already
+  wrote, and keep a record that makes reporting easy.
+- Let people measure against their own baseline, in their own terms.
+- Design for several towns sharing one tool and one coordinator.
+- Plan for the money ending: the data and the habit should stay local.
+- Help locals shape what arrives, not only comply with it.',
    'https://radicallyrural.org/wp-content/uploads/2024/07/2024-RR-White-Paper.pdf',
    'Radically Rural 2024 White Paper',
    array['radically-rural', 'policy', 'investment']::text[],
