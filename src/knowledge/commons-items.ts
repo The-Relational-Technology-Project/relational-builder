@@ -117,13 +117,19 @@ export async function fetchLocalCivicTechCards(): Promise<CommonsCard[]> {
  * program system (described feature-by-feature, remixable without code) and
  * the With Neighbors organizer toolkit. The tool leads, the practice guide
  * follows; programs remixed from this shelf contribute back to it.
+ *
+ * The shelf is the seeded `microgrants` studio plus anything elsewhere in
+ * the commons tagged `microgrants` — the gathering recipe and reference on
+ * the canonical shelf, Sam Pressler's Charlottesville story and the older
+ * starter prompt from the Studio — so the shelf reads whole. The gallery
+ * dedupes a card that also rides another shelf.
  */
-const MICROGRANT_SHELF_ORDER: Record<string, number> = { tool: 0, framework: 1, recipe: 2, prompt: 3, story: 4 };
+const MICROGRANT_SHELF_ORDER: Record<string, number> = { tool: 0, framework: 1, recipe: 2, prompt: 3, story: 4, reference: 5 };
 
 export async function fetchMicrograntCards(): Promise<CommonsCard[]> {
   const rows = await rest<CommonsCard[]>(
     `commons_items?select=${CARD_COLUMNS}` +
-      `&source_studio_slug=eq.microgrants&status=eq.canonical&order=title.asc`,
+      `&or=(source_studio_slug.eq.microgrants,tags.cs.{microgrants})&status=eq.canonical&order=title.asc`,
   );
   return rows.sort((a, b) => (MICROGRANT_SHELF_ORDER[a.kind] ?? 9) - (MICROGRANT_SHELF_ORDER[b.kind] ?? 9));
 }

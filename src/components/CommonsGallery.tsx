@@ -470,7 +470,11 @@ export function CommonsGallery() {
             ? semanticRank.get(e.story.title.trim().toLowerCase())
             : undefined;
 
-    const all = [...toolEntries, ...civicEntries, ...neighboringEntries, ...organizingEntries, ...civicTechEntries, ...micrograntEntries, ...sharedEntries, ...kbStoryEntries];
+    // A card can ride two shelves (the microgrant gathering recipe is both a
+    // neighboring recipe and a microgrants card): the first shelf keeps it
+    const seen = new Set<string>();
+    const all = [...toolEntries, ...civicEntries, ...neighboringEntries, ...organizingEntries, ...civicTechEntries, ...micrograntEntries, ...sharedEntries, ...kbStoryEntries]
+      .filter(e => !seen.has(e.key) && (seen.add(e.key), true));
 
     if (!q) {
       // Browsing order: your studios' tools lead, then each shelf in turn
