@@ -900,7 +900,22 @@ export function buildSystemPrompt(options: ContextOptions = {}): string {
 // the build itself.
 const STUDIO_PRINCIPLE_LIMIT = 16;
 const STUDIO_PRINCIPLE_CHARS = 2000;
-const STUDIO_ITEM_LIMIT = 24;
+// Examples and materials are a menu the model draws from, ~200 chars each,
+// and this whole section rides in the cacheable prompt prefix — so the cap
+// is a backstop against a runaway shelf, not a curation tool. 24 was tight
+// enough that an ordinary studio shelf (the Radically Rural models library
+// is 42) lost its tail on every turn, invisibly.
+//
+// 200 is a ceiling, not a spend: a shelf costs what it holds, and the
+// Radically Rural one (74 items of ~200 chars) is about 3k tokens of cached
+// prefix. A shelf that actually reached 200 would cost ~13k at these
+// summary lengths and ~23k if every summary ran the full 400 chars — real
+// even cached, and worth revisiting then. The limit is global across
+// studios, so it is set for the largest shelf anyone keeps.
+//
+// Principles stay capped far lower: they are instructions the model is told
+// to act on, and they run to 2000 chars each.
+const STUDIO_ITEM_LIMIT = 200;
 const STUDIO_ITEM_CHARS = 400;
 
 function formatStudioLibraryForPrompt(
@@ -927,7 +942,16 @@ function formatStudioLibraryForPrompt(
 
   const rest = items.filter(i => i.kind !== 'principle');
   if (rest.length > 0) {
-    lines.push('', `### ${studioLabel}'s examples and materials`, '');
+    // Say so when the shelf outgrows the cap. Silent truncation here cost
+    // this studio 18 invisible items once already; a line in the prompt is
+    // cheaper than finding out from the model's behaviour.
+    const shown = Math.min(rest.length, STUDIO_ITEM_LIMIT);
+    lines.push(
+      '',
+      `### ${studioLabel}'s examples and materials`
+        + (rest.length > shown ? ` (${shown} of ${rest.length} — the shelf is larger than this prompt carries)` : ''),
+      '',
+    );
     for (const item of rest.slice(0, STUDIO_ITEM_LIMIT)) {
       const who = item.attribution ? ` — ${item.attribution}` : '';
       const gist = (item.summary ?? item.body ?? '').slice(0, STUDIO_ITEM_CHARS);

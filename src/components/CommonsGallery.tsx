@@ -25,6 +25,7 @@ import {
 import { isSuperAdmin } from '@/cloud/account-requests';
 import { GalleryToolBuilders } from '@/components/GalleryToolBuilders';
 import { ContributeCallout } from '@/components/ContributeDialog';
+import { StudioContributeDialog } from '@/components/StudioContributeDialog';
 import { EventShelf } from '@/components/EventShowcase';
 import { fetchMyEvent, eventScopeFor, eventCodeOfScope, type EventShelfInfo } from '@/cloud/event-showcase';
 import { fetchMyAdminEvents } from '@/cloud/event-admin';
@@ -43,7 +44,7 @@ import { useUIStore } from '@/store/ui-store';
 import {
   BookOpen, ExternalLink, GitBranch, GitFork, Globe, Hammer,
   HandCoins, ImageOff, Landmark, Loader2, Map as MapIcon, Newspaper, ScrollText, Sprout,
-  ChevronDown, ChevronRight, Library, Lock, KeyRound, Users,
+  ChevronDown, ChevronRight, Library, Lock, KeyRound, Users, Plus,
 } from 'lucide-react';
 
 /**
@@ -100,9 +101,16 @@ function studioKindLabel(kind: StudioLibraryItem['kind']): string {
   return STUDIO_ITEM_KINDS.find(k => k.key === kind)?.label.toLowerCase() ?? kind;
 }
 
-/** "Thread Studio" → "Thread Gallery" — the studio's shelf gets its own name */
+/**
+ * "Thread Studio" → "Thread Gallery" — the shelf gets its own name.
+ * A name that already ends in a word for a collection keeps it, so an event
+ * called "Radically Rural 2026 Contributions" doesn't become
+ * "...Contributions Gallery".
+ */
+const COLLECTION_NOUN = /\b(gallery|contributions|showcase|shelf|collection|library|wall)$/i;
 function galleryNameFor(studioLabel: string): string {
-  return `${studioLabel.replace(/\s+Studio$/i, '')} Gallery`;
+  const base = studioLabel.replace(/\s+Studio$/i, '').trim();
+  return COLLECTION_NOUN.test(base) ? base : `${base} Gallery`;
 }
 
 /** Shelf presentation for a commons card */
@@ -185,12 +193,19 @@ export function CommonsGallery() {
     ]).then(([mine, admin]) => {
       if (cancelled) return;
       const shelves = new Map<string, EventShelfInfo>();
-      if (mine) shelves.set(mine.code.toUpperCase(), { code: mine.code, name: mine.name, admin: false });
+      if (mine) shelves.set(mine.code.toUpperCase(), {
+        code: mine.code, name: mine.name, admin: false, studioSlug: mine.studioSlug,
+      });
       for (const ev of admin) {
         if (ev.archived_at) continue;
         const key = ev.code.toUpperCase();
         const prior = shelves.get(key);
-        shelves.set(key, { code: ev.code, name: prior?.name ?? ev.name, admin: true });
+        shelves.set(key, {
+          code: ev.code,
+          name: prior?.name ?? ev.name,
+          admin: true,
+          studioSlug: prior?.studioSlug ?? ev.studio_slug,
+        });
       }
       setEventShelves([...shelves.values()]);
     });
@@ -201,6 +216,29 @@ export function CommonsGallery() {
     return code ? eventShelves.find(s => s.code.toUpperCase() === code) ?? null : null;
   }, [scope, eventShelves]);
   const isEventScope = eventShelf !== null;
+  // A studio's own shelf: not the commons, not an event room. Only there
+  // does the studio contribute door make sense.
+  const isStudioScope = scope !== 'commons' && !isEventScope;
+  const [contributeOpen, setContributeOpen] = useState(false);
+
+  // Which of the viewer's event shelves belongs on THIS page. An event that
+  // carries a studio surfaces on that studio's gallery and nowhere else; an
+  // event with no studio surfaces on the commons. Never on another studio's
+  // shelf, and never on the event's own shelf (it is already the page).
+  //
+  // Nothing here widens who can see what: these are only the viewer's own
+  // events (my_event is their profile's code, my_admin_events is theirs to
+  // run), so this decides placement, not access.
+  const shelvesHere = useMemo(
+    () => (isEventScope ? [] : eventShelves.filter(ev =>
+      ev.studioSlug ? ev.studioSlug === scope : scope === 'commons')),
+    [eventShelves, scope, isEventScope],
+  );
+  // EventShelf loads its own entries, so it reports the count back up and
+  // the section stays hidden (mounted, so it can count) until there is
+  // something on it — an empty "nobody has shared yet" box is pressure
+  // nobody asked for.
+  const [shelfCounts, setShelfCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
     fetchPrompts().then(setPrompts).catch(() => {});
@@ -573,9 +611,80 @@ export function CommonsGallery() {
           </p>
         </div>
 
+        {/* What the room made, at the top of whatever shelf you're on.
+            Share Live already pins a build to its event wall, but that wall
+            lived behind a scope switch, so nobody browsing the gallery saw
+            it arrive. A participant or host now meets it first. It stays
+            hidden until something is pinned, and is skipped when you are
+            already standing on that shelf. */}
+        {shelvesHere.map(ev => (
+          <section
+            key={ev.code}
+            className={`rounded-lg border bg-muted/30 p-3 space-y-2 ${
+              shelfCounts[ev.code] ? '' : 'hidden'
+            }`}
+          >
+            <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+              <div className="min-w-0">
+                <h2 className="text-sm font-semibold">Fresh from {ev.name}</h2>
+                <p className="text-xs text-muted-foreground">
+                  Builds the room has shared, newest first — pinned by the
+                  builders themselves with Share Live.
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  scopeChosen.current = true;
+                  setScope(eventScopeFor(ev.code));
+                  setCategory('all');
+                }}
+                className="text-xs text-primary hover:underline shrink-0"
+              >
+                Open the shelf
+              </button>
+            </div>
+            <EventShelf
+              code={ev.code}
+              name={ev.name}
+              admin={ev.admin}
+              onCount={n => setShelfCounts(c => (c[ev.code] === n ? c : { ...c, [ev.code]: n }))}
+            />
+          </section>
+        ))}
+
         {/* Giving to the commons, right where people browse it — the same
             Contribute door as the header, with Deb's invitation. */}
         {scope === 'commons' && <ContributeCallout />}
+
+        {/* The same invitation for a studio's own shelf. A member browsing
+            their gallery can add to it from here without building anything
+            first — the publish flow only covers builds, and a studio
+            collects models, practices and stories too. */}
+        {isStudioScope && (
+          <div className="rounded-lg border border-dashed p-3 flex items-start gap-3">
+            <Sprout className="size-4 text-primary mt-0.5 shrink-0" />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium">Add something to this gallery</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                A model from your town, a practice that works, a prompt or a
+                story — it doesn't have to be something you built. A Studio
+                Admin reviews it before it lands on the shelf.
+              </p>
+            </div>
+            <Button size="sm" variant="outline" className="h-7 text-xs gap-1 shrink-0"
+              onClick={() => setContributeOpen(true)}>
+              <Plus className="size-3" /> Contribute
+            </Button>
+          </div>
+        )}
+        {isStudioScope && (
+          <StudioContributeDialog
+            open={contributeOpen}
+            onOpenChange={setContributeOpen}
+            studioSlug={scope}
+            studioLabel={scopeLabel(scope)}
+          />
+        )}
 
         {/* Which library you're browsing — the commons, or a studio you've
             been approved into. The switch only appears once you belong

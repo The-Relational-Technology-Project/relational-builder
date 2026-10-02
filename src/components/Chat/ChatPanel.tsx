@@ -725,9 +725,20 @@ export function ChatPanel() {
     const studioLibraryItems = activeStudio
       ? useStudioStore.getState().library
           .filter(i => i.studio_slug === activeStudio.slug && i.status === 'approved')
-          // Stable order: this section sits in the cached prompt prefix, and
-          // load-sequence-dependent ordering would silently invalidate it
-          .sort((a, b) => a.id.localeCompare(b.id))
+          // Stable AND intentional. This section sits in the cached prompt
+          // prefix, so load-sequence-dependent ordering would silently
+          // invalidate it — but the prompt only carries the first
+          // STUDIO_ITEM_LIMIT non-principle items, so whatever sorts first
+          // is what the AI gets to build from. Sorting by id was stable and
+          // arbitrary: a random 24 of the shelf reached the model and the
+          // rest were invisible. Mirror the curated order the query asks for
+          // (sort_order, then oldest first), with id only as a final
+          // tie-break so the result is still fully deterministic.
+          .sort((a, b) =>
+            a.sort_order - b.sort_order
+            || a.created_at.localeCompare(b.created_at)
+            || a.id.localeCompare(b.id),
+          )
       : [];
     const builderProfile = useAuthStore.getState().profile;
 

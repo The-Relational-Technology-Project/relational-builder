@@ -454,7 +454,23 @@ function LibraryTab({ slug, label }: { slug: string; label: string }) {
                     remix of "{items.find(x => x.id === item.remix_of)?.title ?? 'a shelf item'}"
                   </Badge>
                 )}
+                {item.offer_to_commons && (
+                  <Badge variant="outline" className="text-[9px] shrink-0 border-primary/50 text-primary">
+                    asked for the commons
+                  </Badge>
+                )}
               </div>
+              {/* The contributor's own answer to "should this travel?".
+                  Approving puts it on the shelf and nothing more — carrying
+                  it to the commons is still a separate, deliberate act, so
+                  say which way they asked rather than leaving it to guesswork. */}
+              {item.offer_to_commons && (
+                <p className="text-xs text-primary/90">
+                  They asked for this to be offered to the broader RT Commons.
+                  Approving adds it to the {label} gallery only — use Share to
+                  the commons below once it is on the shelf.
+                </p>
+              )}
               {item.attribution && (
                 <p className="text-xs text-muted-foreground">From {item.attribution}</p>
               )}
