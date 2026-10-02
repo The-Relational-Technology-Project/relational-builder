@@ -1,4 +1,7 @@
 import type { CommonsSearchResult } from './commons-search';
+import { MICROGRANT_FRAME, isMicrograntAsk } from './microgrants';
+
+export { MICROGRANT_FRAME };
 
 /**
  * Domain frames — principle sets that layer onto the base RTP principles the
@@ -86,6 +89,7 @@ export const FRAMES: Record<string, DomainFrame> = {
   [CIVIC_MEDIA_FRAME.slug]: CIVIC_MEDIA_FRAME,
   [PRACTICE_FIRST_FRAME.slug]: PRACTICE_FIRST_FRAME,
   [RELATIONAL_FRAME.slug]: RELATIONAL_FRAME,
+  [MICROGRANT_FRAME.slug]: MICROGRANT_FRAME,
 };
 
 export function framesFromSlugs(slugs: string[] | undefined | null): DomainFrame[] {
@@ -96,6 +100,8 @@ export function framesFromSlugs(slugs: string[] | undefined | null): DomainFrame
 /** The frame a commons item confers when remixed from the gallery */
 export function frameSlugsForCommonsItem(item: { source_studio_slug?: string | null; kind: string }): string[] {
   if (item.source_studio_slug === 'civic-media') return [CIVIC_MEDIA_FRAME.slug];
+  // Anything on the Microgrants shelf starts the gathering-fund plan conversation
+  if (item.source_studio_slug === 'microgrants') return [MICROGRANT_FRAME.slug];
   if (item.kind === 'recipe') return [PRACTICE_FIRST_FRAME.slug];
   return [];
 }
@@ -150,6 +156,14 @@ export function detectFrames(results: CommonsSearchResult[], query?: string): Do
   // Sensed from the ask itself — retrieval can't see intent this directly
   if (query && CONNECTION_ASK.test(query)) {
     frames.push(RELATIONAL_FRAME);
+  }
+
+  // A gathering fund: the ask names small grants / paying neighbors to host,
+  // or retrieval leads with the Microgrants shelf. This frame swaps the plan
+  // conversation for the scripted four-stage one, so it needs a clear signal.
+  const micrograntHits = top.filter(r => r.source_studio_slug === 'microgrants').length;
+  if (isMicrograntAsk(query) || (top[0]?.source_studio_slug === 'microgrants' && micrograntHits >= 2)) {
+    frames.push(MICROGRANT_FRAME);
   }
 
   if (top.length === 0) return frames;

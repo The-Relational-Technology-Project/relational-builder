@@ -125,13 +125,16 @@ export async function fetchLocalCivicTechCards(): Promise<CommonsCard[]> {
  * dedupes a card that also rides another shelf.
  */
 const MICROGRANT_SHELF_ORDER: Record<string, number> = { tool: 0, framework: 1, recipe: 2, prompt: 3, story: 4, reference: 5 };
+/** The current reference build leads the shelf — it is the card to remix from */
+const MICROGRANT_SHELF_LEAD = 'pizza-strip-fund';
 
 export async function fetchMicrograntCards(): Promise<CommonsCard[]> {
   const rows = await rest<CommonsCard[]>(
     `commons_items?select=${CARD_COLUMNS}` +
       `&or=(source_studio_slug.eq.microgrants,tags.cs.{microgrants})&status=eq.canonical&order=title.asc`,
   );
-  return rows.sort((a, b) => (MICROGRANT_SHELF_ORDER[a.kind] ?? 9) - (MICROGRANT_SHELF_ORDER[b.kind] ?? 9));
+  const rank = (c: CommonsCard) => (c.slug === MICROGRANT_SHELF_LEAD ? -1 : (MICROGRANT_SHELF_ORDER[c.kind] ?? 9));
+  return rows.sort((a, b) => rank(a) - rank(b));
 }
 
 /**

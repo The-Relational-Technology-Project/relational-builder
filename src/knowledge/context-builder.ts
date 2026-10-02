@@ -4,6 +4,7 @@ import { formatStudioForPrompt, type StudioContext } from './studio-context';
 import { formatCivicDataForPrompt, type CityDataEndpoint } from './civic-data';
 import { DEMO_DATA_EVENT_BLOCK, isDemoDataEvent } from './event-modes';
 import type { DomainFrame } from './frames';
+import { MICROGRANT_FRAME, MICROGRANT_PLAN_INSTRUCTIONS } from './microgrants';
 import { PINNED_VERSIONS } from '@/preview/bundler/versions';
 import { THEME_TEMPLATE } from '@/kit/theme';
 import type { Tool, Story } from './types';
@@ -709,13 +710,19 @@ export function buildPromptContext(
     f => !(options.builderProfilePage && /^\/?data\/profile\.json$/.test(f.path)),
   );
   const hasProject = builtFiles.length > 0;
+  // A gathering fund (microgrants) started from scratch runs the scripted
+  // four-stage plan conversation instead of open visioning
+  const micrograntPlan =
+    !hasProject && (options.frames ?? []).some(f => f.slug === MICROGRANT_FRAME.slug);
   const base =
     options.mode === 'plan'
       ? options.builderProfilePage && !hasProject
         ? PROFILE_PLAN_INSTRUCTIONS
         : hasProject
           ? PLAN_EXISTING_INSTRUCTIONS
-          : PLAN_INSTRUCTIONS
+          : micrograntPlan
+            ? MICROGRANT_PLAN_INSTRUCTIONS
+            : PLAN_INSTRUCTIONS
       : BASE_INSTRUCTIONS;
   const sections = [base, '', formatPrinciplesForPrompt()];
   if (options.builderProfilePage && base !== PROFILE_PLAN_INSTRUCTIONS) {
