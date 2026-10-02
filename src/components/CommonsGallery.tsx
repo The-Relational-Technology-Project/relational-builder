@@ -235,8 +235,9 @@ export function CommonsGallery() {
     [eventShelves, scope, isEventScope],
   );
   // EventShelf loads its own entries, so it reports the count back up and
-  // the section stays out of the DOM until there is something on it — an
-  // empty "nobody has shared yet" box is pressure nobody asked for.
+  // the section stays hidden (mounted, so it can count) until there is
+  // something on it — an empty "nobody has shared yet" box is pressure
+  // nobody asked for.
   const [shelfCounts, setShelfCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
@@ -613,9 +614,9 @@ export function CommonsGallery() {
         {/* What the room made, at the top of whatever shelf you're on.
             Share Live already pins a build to its event wall, but that wall
             lived behind a scope switch, so nobody browsing the gallery saw
-            it arrive. A participant or host now meets it first. The empty
-            state is the invitation, so this shows before anything is pinned
-            — and it is skipped when you are already standing on that shelf. */}
+            it arrive. A participant or host now meets it first. It stays
+            hidden until something is pinned, and is skipped when you are
+            already standing on that shelf. */}
         {shelvesHere.map(ev => (
           <section
             key={ev.code}
