@@ -49,15 +49,17 @@ export function StudioContributeDialog({
   const [url, setUrl] = useState('');
   const [attribution, setAttribution] = useState(profile?.display_name ?? '');
   const [tags, setTags] = useState('');
-  // Default OFF. An offer is to the studio unless its author says otherwise.
-  const [offerToCommons, setOfferToCommons] = useState(false);
+  // Default ON: the network's habit is moving what works to the next town,
+  // so travelling is the expected path. Visible, clearable, and still only
+  // an intent — a Studio Admin decides what actually goes.
+  const [offerToCommons, setOfferToCommons] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   function reset() {
     setKind('example'); setTitle(''); setSummary(''); setBody('');
-    setUrl(''); setTags(''); setOfferToCommons(false);
+    setUrl(''); setTags(''); setOfferToCommons(true);
     setDone(false); setError(null);
   }
 
@@ -162,9 +164,10 @@ export function StudioContributeDialog({
                   Also offer this to the broader RT Commons
                 </strong>
                 <br />
-                Leave unchecked and it stays inside {studioLabel}. Either way a
-                Studio Admin reviews it first — checking this doesn't publish
-                anything, it tells the admin what you'd like.
+                On by default — this network exists to move what works to the
+                next town. Uncheck it and it stays inside {studioLabel}.
+                Either way a Studio Admin reviews it first; this box tells
+                them what you'd like, it doesn't publish anything.
               </span>
             </label>
 

@@ -54,9 +54,11 @@ export function StudioSubmitCard({
   const [attribution, setAttribution] = useState(profile?.display_name ?? '');
   const [manualUrl, setManualUrl] = useState('');
   const [consented, setConsented] = useState(false);
-  // Default OFF, always: an offer is to the studio unless its author says
-  // otherwise. Checking it records intent — an admin still decides.
-  const [offerToCommons, setOfferToCommons] = useState(false);
+  // Default ON: this network's whole habit is moving what works to the next
+  // town, so the expected path is that a contribution travels. It is still a
+  // visible checkbox someone can clear, it still only records intent, and a
+  // Studio Admin still decides — nothing publishes on this alone.
+  const [offerToCommons, setOfferToCommons] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -190,9 +192,9 @@ export function StudioSubmitCard({
             />
             <span>
               Also offer it to the broader RT Commons, beyond{' '}
-              {target?.studio_label ?? 'the studio'}. Leave this unchecked and
-              it stays inside the studio. Either way a Studio Admin reviews it
-              first — nothing is published by ticking this.
+              {target?.studio_label ?? 'the studio'}. Uncheck it and it stays
+              inside the studio. Either way a Studio Admin reviews it first —
+              nothing is published by this box alone.
             </span>
           </label>
           <label className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer">
