@@ -804,10 +804,18 @@ export interface PlanQuestion {
   /** "(choose any)" questions: several pills can be on at once; the card sends
    *  them together as one comma-joined answer */
   multi: boolean;
+  /** Options the model marked as its suggestion — pre-ticked on multi cards */
+  suggested: string[];
 }
 
-/** The trailing marker that turns a question into a multi-select card */
-const MULTI_MARKER_RE = /\s*\((?:choose|pick|select|tick)\s+(?:any|all that apply|several|more than one|as many as you like)\)\s*$/i;
+/** The marker that turns a question into a multi-select card. Anywhere in
+ *  the question, not only at its end — two real builds lost multi-select
+ *  because the model wrote "Application questions (choose any). Sweet spot
+ *  is 6–8…" and a tap sent the card as a single answer. */
+const MULTI_MARKER_RE = /\s*\(\s*(?:choose|pick|select|tick)\s+(?:any|all that apply|several|more than one|as many as you like)\s*\)\s*/gi;
+/** A suggested option: the model marks it "(our suggestion)" or with a check;
+ *  on a multi-select card it starts ticked so accepting the defaults is one tap */
+const SUGGESTED_RE = /\(\s*(?:our suggestion|recommended|suggested|default)[^)]*\)|[✓✔☑]/i;
 const MAX_OPTIONS = 4;
 const MAX_MULTI_OPTIONS = 10;
 
@@ -827,17 +835,23 @@ export function extractPlanQuestions(content: string): PlanQuestion[] {
     const qMatch = /^\d+\.\s+(.+)$/.exec(line);
     if (qMatch) {
       const heading = qMatch[1].replace(/\*\*/g, '').trim();
-      const multi = MULTI_MARKER_RE.test(heading);
-      const question = heading.replace(MULTI_MARKER_RE, '').trim();
-      if (question.length > 5) questions.push({ question, options: [], multi });
+      const multi = new RegExp(MULTI_MARKER_RE.source, 'i').test(heading);
+      const question = heading.replace(MULTI_MARKER_RE, ' ').replace(/\s+([.,;:])/g, '$1').replace(/\s{2,}/g, ' ').trim();
+      if (question.length > 5) questions.push({ question, options: [], multi, suggested: [] });
       continue;
     }
     const oMatch = /^[-*]\s+(.+)$/.exec(line);
     if (oMatch && questions.length > 0) {
-      const option = oMatch[1].replace(/\*\*/g, '').trim();
       const current = questions[questions.length - 1];
+      const rawOption = oMatch[1].replace(/\*\*/g, '').trim();
+      const isSuggested = SUGGESTED_RE.test(rawOption);
+      // A check mark is the model's tick, not part of the option's words
+      const option = rawOption.replace(/\s*[✓✔☑]\s*/g, ' ').replace(/\s{2,}/g, ' ').trim();
       const cap = current.multi ? MAX_MULTI_OPTIONS : MAX_OPTIONS;
-      if (option && current.options.length < cap) current.options.push(option);
+      if (option && current.options.length < cap) {
+        current.options.push(option);
+        if (isSuggested && current.multi) current.suggested.push(option);
+      }
     }
   }
   return questions.slice(0, 3);
@@ -964,8 +978,9 @@ function PlanQuestionCard({
   const [text, setText] = useState('');
   // A tapped option waiting for its promised content ("Here's the title…")
   const [pendingOption, setPendingOption] = useState<string | null>(null);
-  // Multi-select: pills toggled on so far, sent together on Done
-  const [picked, setPicked] = useState<string[]>([]);
+  // Multi-select: pills toggled on so far, sent together on Done. The
+  // model's suggestions start ticked, so accepting the defaults is one tap
+  const [picked, setPicked] = useState<string[]>(question.multi ? question.suggested : []);
   const stagedIsCustom = !!staged && !question.options.includes(staged) && !question.multi;
 
   const typed = text.trim();
@@ -1024,6 +1039,11 @@ function PlanQuestionCard({
   const isOn = (option: string) =>
     question.multi ? picked.includes(option) : staged === option || pendingOption === option;
 
+  // Design-direction options name real colors — show them, don't make a
+  // person read hex codes (a builder asked for swatches over descriptions)
+  const swatches = (option: string): string[] =>
+    (option.match(/#(?:[0-9a-f]{6}|[0-9a-f]{3})\b/gi) ?? []).slice(0, 4);
+
   return (
     <div className="w-full rounded-lg border border-dashed border-primary/50 px-3 py-2.5 space-y-2">
       <p className="text-sm">
@@ -1040,6 +1060,17 @@ function PlanQuestionCard({
               className={pill(isOn(option))}
             >
               {isOn(option) && <Check className="size-3 shrink-0" />}
+              {swatches(option).length > 0 && (
+                <span className="inline-flex items-center gap-0.5 shrink-0" aria-hidden="true">
+                  {swatches(option).map((hex, i) => (
+                    <span
+                      key={`${hex}-${i}`}
+                      className="inline-block size-3 rounded-full border border-black/15 dark:border-white/20"
+                      style={{ backgroundColor: hex }}
+                    />
+                  ))}
+                </span>
+              )}
               {option}
             </button>
           ))}
