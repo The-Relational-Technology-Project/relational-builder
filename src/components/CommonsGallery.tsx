@@ -101,9 +101,16 @@ function studioKindLabel(kind: StudioLibraryItem['kind']): string {
   return STUDIO_ITEM_KINDS.find(k => k.key === kind)?.label.toLowerCase() ?? kind;
 }
 
-/** "Thread Studio" → "Thread Gallery" — the studio's shelf gets its own name */
+/**
+ * "Thread Studio" → "Thread Gallery" — the shelf gets its own name.
+ * A name that already ends in a word for a collection keeps it, so an event
+ * called "Radically Rural 2026 Contributions" doesn't become
+ * "...Contributions Gallery".
+ */
+const COLLECTION_NOUN = /\b(gallery|contributions|showcase|shelf|collection|library|wall)$/i;
 function galleryNameFor(studioLabel: string): string {
-  return `${studioLabel.replace(/\s+Studio$/i, '')} Gallery`;
+  const base = studioLabel.replace(/\s+Studio$/i, '').trim();
+  return COLLECTION_NOUN.test(base) ? base : `${base} Gallery`;
 }
 
 /** Shelf presentation for a commons card */
@@ -577,6 +584,37 @@ export function CommonsGallery() {
                 : 'Your studio’s own examples, prompts, and materials — for approved members to build from and remix, with the studio’s principles live in every build.'}
           </p>
         </div>
+
+        {/* What the room made, at the top of whatever shelf you're on.
+            Share Live already pins a build to its event wall, but that wall
+            lived behind a scope switch, so nobody browsing the gallery saw
+            it arrive. A participant or host now meets it first. The empty
+            state is the invitation, so this shows before anything is pinned
+            — and it is skipped when you are already standing on that shelf. */}
+        {!isEventScope && eventShelves.map(ev => (
+          <section key={ev.code} className="rounded-lg border bg-muted/30 p-3 space-y-2">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+              <div className="min-w-0">
+                <h2 className="text-sm font-semibold">Fresh from {ev.name}</h2>
+                <p className="text-xs text-muted-foreground">
+                  Builds the room has shared, newest first — pinned by the
+                  builders themselves with Share Live.
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  scopeChosen.current = true;
+                  setScope(eventScopeFor(ev.code));
+                  setCategory('all');
+                }}
+                className="text-xs text-primary hover:underline shrink-0"
+              >
+                Open the shelf
+              </button>
+            </div>
+            <EventShelf code={ev.code} name={ev.name} admin={ev.admin} />
+          </section>
+        ))}
 
         {/* Giving to the commons, right where people browse it — the same
             Contribute door as the header, with Deb's invitation. */}

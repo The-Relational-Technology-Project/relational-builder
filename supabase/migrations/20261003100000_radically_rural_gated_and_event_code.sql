@@ -25,14 +25,18 @@ update public.studio_settings
   set access = 'gated', updated_at = now(), updated_by = 'radically-rural-2026'
   where studio_slug = 'radically-rural';
 
--- `name` is the only free text an event code carries — it shows up as
--- "You're in <name>" on the join banner and as "<name> Gallery" on the
--- event shelf, so it has to read as both.
+-- `name` is the only free text an event code carries: it reads as "You're
+-- in <name>" on the join banner and as the heading of the event shelf, so
+-- it has to work in both sentences. Deliberately not "buildathon" — what
+-- happens here is people adding to a gallery, mostly models from their
+-- towns, practices and stories, sometimes a build. Naming it for the builds
+-- would tell a librarian with a good model that the room was not for her.
+-- Keene and the dates stay out of the name; the room knows where it is.
 insert into public.event_codes
   (code, name, active, event_date, expires_at, created_by, studio_slug, studio_label)
 values (
   'RURAL',
-  'Radically Rural 2026 Buildathon — Keene, NH',
+  'Radically Rural 2026 Contributions',
   true,
   date '2026-10-08',
   (date '2026-10-08' + 61) at time zone 'utc',
