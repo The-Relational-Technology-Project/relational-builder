@@ -388,7 +388,7 @@ export const RESEND_CLOUD_GUIDANCE = [
   '    return res.json();   // {ok: true} or {error: "friendly message"}',
   '  }',
   '  ```',
-  '  Rules: `to` is one address or up to 5; `subject` required; `text` and/or `html`; optional `reply_to`. Always check the response and surface `error` to the person in the UI — sends can fail (bad address, or the app hit its daily email limit, which returns a clear message). The from-address is configured in the Services tab, not in code. Only email addresses people typed into THIS app (their own, or an organizer\'s shown in the app) — never invent recipients or build bulk mailers.',
+  '  Rules: `to` is one address or up to 5; `subject` required; `text` and/or `html`; optional `reply_to`. Always check the response and surface `error` to the person in the UI — sends can fail (bad address, or the app hit its daily email limit, which returns a clear message). The from-address (name + verified-domain email) is set in the Cloud tab under the connected backend, not in code or the Services tab. Only email addresses people typed into THIS app (their own, or an organizer\'s shown in the app) — never invent recipients or build bulk mailers.',
 ].join('\n');
 
 /**
