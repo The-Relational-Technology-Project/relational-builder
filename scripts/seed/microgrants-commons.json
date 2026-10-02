@@ -7,6 +7,69 @@
   },
   "items": [
     {
+      "slug": "pizza-strip-fund",
+      "kind": "prompt",
+      "title": "Pizza Strip Fund — remix a gathering fund",
+      "summary": "The most current With Neighbors microgrant build, Rhode Island's Pizza Strip Fund ($50–$150 for neighbors who gather in a driveway or on a porch), described screen by screen as a remix prompt. Plan this and Relational Builder walks you through four short stages — story and scope, money and questions, look, payments and email — with suggested answers at every step, so your program ends up named for your neighborhood's own pizza strip.",
+      "body": "**Pizza Strip Fund** gives Rhode Islanders $50–$150 to gather their neighbors in a driveway, on a porch, around a firepit — and names itself after the state's party food instead of calling itself a grant. It is the most current With Neighbors program build, and the base other programs remix from. This card is the remix: the story, the screens, the whole system described part by part, and the prompt to start your own.\n\nPress **Plan this** and Relational Builder walks you through four short stages — the story and scope, how the money and questions work, how it looks, and how hosts get paid and emailed — with a suggested answer at every step. Accept all of them and you have a working program; change any of them and it becomes yours.\n\n## The story it tells\n\n\"You've got the *driveway*. We'll cover the pizza strips.\" One screen: a hand-drawn logo, a headline whose place-word rotates (driveway / porch / yard / cul de sac / corner), two short paragraphs about car-dependent suburbs where it's easy to go days only waving, and a wobbly red-and-tan apply button shaped like a pizza strip. The footer answers the five real questions in place: Why pizza strips? · Who are we? · What counts as \"the suburbs\"? · What gatherings qualify? · When and how do I get the money?\n\nThe lesson With Neighbors kept relearning: \"grant\", \"fund\", \"program\", \"eligibility\" make neighbors scroll past. Find your own pizza strip — the local object or tradition that becomes the invitation's face — and write every public word the way one neighbor texts another.\n\n## What neighbors see\n\n- **Apply** (`/apply`): a stepped form in English, Spanish, and Portuguese. Full name · email (\"the one on your Venmo or PayPal\") · phone · neighborhood · gathering date (must land inside the program window) · where it happens · a sentence or two about it · amount tier with hints ($50 coffee & donuts · $100 pizza party · $150 the whole block) · Venmo or PayPal · an \"if funded, do you agree?\" checklist (paid by Venmo/PayPal · gathering by the deadline · open to neighbors or focused on new people meeting · you'll send a short reflection and a photo, quote, or story) · optional \"want help knocking on doors?\" · optional demographics, collapsed. A hidden honeypot and a minimum-seconds check keep bots out with no CAPTCHA.\n- **Thank-you pages** say what happens next and when to expect an answer.\n- **Reflect** (`/reflect/:id`, linked from the funded email): how many neighbors came · the highlight · challenges · commitments or next steps that emerged · how connected you feel to your neighbors now · would you host again · how you heard about it · a quote or story, or photos (uploaded privately, shared only with a separate yes) · did people meet for the first time.\n\n## What organizers see — the desk is standardized, every program the same\n\n- **Pipeline** (`/admin`): kanban and grouped list over `pending → approved → funded → awaiting reflection → completed`, plus `denied` (reopenable). Every move says in plain words whether it emails anyone. Filters by status, payment method, language, gathering date, and text. Each application opens to its answers, admin notes, denial reason, email log, reflection and photos, and a Pay now button.\n- **Funding**: select approved rows → *Export & mark Funded* downloads a CSV named for the program and moves them along (for paying by hand or bulk upload) — or Pay now sends through PayPal Payouts to Venmo or PayPal by email, logged.\n- **Emails** (`/admin/emails`): five editable templates with `{{first_name}}` / `{{amount}}` / `{{reflect_url}}` chips — received · approved · payment on its way · how was your gathering? · update on your application — a reflection-reminder drip (start offset and interval in days), a manual send, and a master log. Sent through Resend from the program's own address.\n- **Analytics**: applications over time, status mix, payment-method mix, \"would gather again\", recent reflections, and four tiles: applied · funded · neighbors gathered · dollars out.\n- **Integrations**: PayPal keys (sandbox or live), Resend key, an applications-open switch with an interest list for when it's closed, and an email allowlist of who can sign in.\n\n## Under the hood\n\nVite + React + TypeScript, shadcn/ui, Supabase (Postgres, auth, storage, edge functions). Tables: `applications`, `reflections`, `reflection_photos`, `email_templates`, `email_logs`, `sequence_settings`, `payout_logs`, `payment_provider_settings`, `program_settings`, `interest_signups`, admin allowlist. Edge functions: submit-application, submit-reflection, send-email, send-payout, send-reflection-reminders, export-approved, claim-admin-role. Look: cream `hsl(39 59% 95%)`, navy `hsl(217 35% 18%)`, tomato `hsl(8 62% 47%)`, a display serif for headlines and DM Sans for body.\n\n## What changes when you remix (and what stays)\n\nChanges: the name and the object · who it's for and where · grant shape (one amount, host-picked tiers, or an organizer-set range) · the window and whether it's rolling · eligibility and how you choose · which application and reflection questions are on (keep the With Neighbors community-of-practice questions so programs can learn from each other: where, a description, first time hosting; neighbors who came, highlight, challenges, next steps, host again, a photo or story) · how hosts get paid (by hand, PayPal Payouts, gift cards or checks, or a CSV) · how emails go out (by hand from the desk, Resend from your domain, or sent for you by RTP) · the organizer allowlist and contact email · colors, fonts, illustration · languages.\n\nStays: the desk layout, the status flow, the five emails, anti-spam, the reflection loop.\n\n**Smaller is fine.** Under about ten gatherings, or if you'd rather not learn a desk, build only the invitation and let applications land in a Google Sheet — choose, pay, and email from there.\n\n## The codebase\n\nPizza Strip Fund's source is held at the Relational Tech Project while past participants are asked for consent to publish it. Once consented, it will be hosted and licensed as a public good and linked from here. Until then this description is the remixable unit — it is what Relational Builder reads when you press Plan this.\n\n## Lineage\n\nBuilt by With Neighbors (Rich Speeney, Tyler Heath) with Rhode Island organizers, on four years of programs: Pizza Club, Donuts in the Driveway, Friendsgiving, Long-Handled Spoons Dinners. The practice half is the [Microgrant Organizer Toolkit](/commons/e/microgrant-organizer-toolkit); the general system description is the [Microgrant Program System](/commons/e/microgrant-program-system).",
+      "attribution": {
+        "name": "With Neighbors",
+        "source": "Pizza Strip Fund (Rhode Island)",
+        "neighborhood": "Rhode Island"
+      },
+      "source_url": null,
+      "tags": [
+        "microgrants",
+        "gathering fund",
+        "with neighbors",
+        "remix",
+        "neighboring",
+        "payments",
+        "email"
+      ],
+      "image_urls": [
+        "https://relationalbuilder.org/media/commons/microgrant-program-landing.jpg",
+        "https://relationalbuilder.org/media/commons/microgrant-program-apply.jpg"
+      ],
+      "metadata": {
+        "maker": "With Neighbors",
+        "image_url": "https://relationalbuilder.org/media/commons/microgrant-program-landing.jpg",
+        "hosted_url": "https://pizza-strips.lovable.app",
+        "codebase_status": "held at RTP pending participant consent",
+        "related_slugs": [
+          "microgrant-program-system",
+          "microgrant-organizer-toolkit",
+          "microgrant-gathering",
+          "the-neighbor-gathering-microgrant"
+        ],
+        "plan_stages": [
+          "story and scope",
+          "money and questions",
+          "look",
+          "payments and email"
+        ],
+        "grant_shapes": [
+          "fixed",
+          "host-picked tiers",
+          "organizer-set range"
+        ],
+        "payout_options": [
+          "by hand (Venmo/PayPal/Zelle)",
+          "PayPal Payouts API",
+          "gift card or check",
+          "CSV export"
+        ],
+        "email_options": [
+          "by hand from the desk",
+          "Resend from your domain",
+          "sent for you by RTP"
+        ],
+        "remix_idea": "Find your neighborhood's pizza strip."
+      },
+      "license": "RCL-1.0",
+      "sort_order": 0
+    },
+    {
       "slug": "microgrant-program-system",
       "kind": "tool",
       "title": "Microgrant Program System",
@@ -64,7 +127,7 @@
         "remix_idea": "Find your neighborhood's pizza strip — the local object that becomes the program's face — then keep the machine and change the soul."
       },
       "license": "RCL-1.0",
-      "sort_order": 10
+      "sort_order": 11
     },
     {
       "slug": "microgrant-organizer-toolkit",
@@ -98,7 +161,7 @@
         "core_model": "permission / accountability / commitment"
       },
       "license": "RCL-1.0",
-      "sort_order": 20
+      "sort_order": 21
     }
   ]
 }
