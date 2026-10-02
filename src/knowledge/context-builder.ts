@@ -904,10 +904,13 @@ const STUDIO_PRINCIPLE_CHARS = 2000;
 // and this whole section rides in the cacheable prompt prefix — so the cap
 // is a backstop against a runaway shelf, not a curation tool. 24 was tight
 // enough that an ordinary studio shelf (the Radically Rural models library
-// is 42) lost its tail on every turn, invisibly. 60 covers a real shelf for
-// ~3k tokens of cached prefix. Principles stay capped far lower: they are
-// instructions the model is told to act on, and they run to 2000 chars each.
-const STUDIO_ITEM_LIMIT = 60;
+// is 42) lost its tail on every turn, invisibly. That shelf is now 61 with
+// the New Ruralism case studies, so 80 is the first number that is a
+// backstop rather than a quiet edit: ~4k tokens of cached prefix at the
+// cap, ~3k for the shelf as it actually stands. Principles stay capped far
+// lower: they are instructions the model is told to act on, and they run to
+// 2000 chars each.
+const STUDIO_ITEM_LIMIT = 80;
 const STUDIO_ITEM_CHARS = 400;
 
 function formatStudioLibraryForPrompt(
