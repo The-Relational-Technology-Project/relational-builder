@@ -43,15 +43,26 @@ export interface EventShelfInfo {
   code: string;
   name: string;
   admin: boolean;
+  /** The studio this event belongs to, if any — decides which gallery its
+   *  freshly shared builds surface on */
+  studioSlug: string | null;
 }
 
 /** The signed-in builder's event, if they joined through an event code */
-export async function fetchMyEvent(): Promise<{ code: string; name: string } | null> {
+export async function fetchMyEvent(): Promise<
+  { code: string; name: string; studioSlug: string | null } | null
+> {
   if (!builderClient) return null;
   const { data, error } = await builderClient.rpc('my_event');
   if (error) return null;
   const row = Array.isArray(data) ? data[0] : data;
-  return row?.code ? { code: String(row.code), name: String(row.name) } : null;
+  return row?.code
+    ? {
+        code: String(row.code),
+        name: String(row.name),
+        studioSlug: row.studio_slug ? String(row.studio_slug) : null,
+      }
+    : null;
 }
 
 /** Pin (or re-pin) a project to its event's wall — replaces any prior entry */

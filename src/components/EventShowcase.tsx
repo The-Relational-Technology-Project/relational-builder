@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { removeFromShowcase, type ShowcaseEntry } from '@/cloud/event-showcase';
 import { fetchEventShow, eventShowLink } from '@/cloud/event-join';
 import { contactHref } from '@/project/share-live';
@@ -38,17 +38,35 @@ export function ShowcaseContact({ entry, className }: { entry: ShowcaseEntry; cl
  * the order they were shared. An admin can take any deck down, the way the
  * delete policy already allows; everyone else only their own.
  */
-export function EventShelf({ code, name, admin = false }: { code: string; name: string; admin?: boolean }) {
+export function EventShelf({
+  code,
+  name,
+  admin = false,
+  onCount,
+}: {
+  code: string;
+  name: string;
+  admin?: boolean;
+  /** Reports how many entries are on the shelf, so a caller embedding this
+   *  somewhere else can stay collapsed until there is something to show */
+  onCount?: (count: number) => void;
+}) {
   const user = useAuthStore(s => s.user);
   const [entries, setEntries] = useState<ShowcaseEntry[] | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
+  // Held in a ref, not a dependency: callers pass an inline arrow, and a new
+  // identity each render would make `load` new each render and refetch the
+  // shelf on every parent render.
+  const onCountRef = useRef(onCount);
+  onCountRef.current = onCount;
 
   const load = useCallback(async () => {
     setRefreshing(true);
     try {
       const show = await fetchEventShow(code);
       setEntries([...show.entries].reverse());
+      onCountRef.current?.(show.entries.length);
     } finally {
       setRefreshing(false);
     }
@@ -60,7 +78,11 @@ export function EventShelf({ code, name, admin = false }: { code: string; name: 
     setBusyId(id);
     try {
       await removeFromShowcase(id);
-      setEntries(list => (list ?? []).filter(e => e.id !== id));
+      setEntries(list => {
+        const next = (list ?? []).filter(e => e.id !== id);
+        onCountRef.current?.(next.length);
+        return next;
+      });
     } finally {
       setBusyId(null);
     }

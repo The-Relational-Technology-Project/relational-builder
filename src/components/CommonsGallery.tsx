@@ -193,12 +193,19 @@ export function CommonsGallery() {
     ]).then(([mine, admin]) => {
       if (cancelled) return;
       const shelves = new Map<string, EventShelfInfo>();
-      if (mine) shelves.set(mine.code.toUpperCase(), { code: mine.code, name: mine.name, admin: false });
+      if (mine) shelves.set(mine.code.toUpperCase(), {
+        code: mine.code, name: mine.name, admin: false, studioSlug: mine.studioSlug,
+      });
       for (const ev of admin) {
         if (ev.archived_at) continue;
         const key = ev.code.toUpperCase();
         const prior = shelves.get(key);
-        shelves.set(key, { code: ev.code, name: prior?.name ?? ev.name, admin: true });
+        shelves.set(key, {
+          code: ev.code,
+          name: prior?.name ?? ev.name,
+          admin: true,
+          studioSlug: prior?.studioSlug ?? ev.studio_slug,
+        });
       }
       setEventShelves([...shelves.values()]);
     });
@@ -213,6 +220,24 @@ export function CommonsGallery() {
   // does the studio contribute door make sense.
   const isStudioScope = scope !== 'commons' && !isEventScope;
   const [contributeOpen, setContributeOpen] = useState(false);
+
+  // Which of the viewer's event shelves belongs on THIS page. An event that
+  // carries a studio surfaces on that studio's gallery and nowhere else; an
+  // event with no studio surfaces on the commons. Never on another studio's
+  // shelf, and never on the event's own shelf (it is already the page).
+  //
+  // Nothing here widens who can see what: these are only the viewer's own
+  // events (my_event is their profile's code, my_admin_events is theirs to
+  // run), so this decides placement, not access.
+  const shelvesHere = useMemo(
+    () => (isEventScope ? [] : eventShelves.filter(ev =>
+      ev.studioSlug ? ev.studioSlug === scope : scope === 'commons')),
+    [eventShelves, scope, isEventScope],
+  );
+  // EventShelf loads its own entries, so it reports the count back up and
+  // the section stays out of the DOM until there is something on it — an
+  // empty "nobody has shared yet" box is pressure nobody asked for.
+  const [shelfCounts, setShelfCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
     fetchPrompts().then(setPrompts).catch(() => {});
@@ -591,8 +616,13 @@ export function CommonsGallery() {
             it arrive. A participant or host now meets it first. The empty
             state is the invitation, so this shows before anything is pinned
             — and it is skipped when you are already standing on that shelf. */}
-        {!isEventScope && eventShelves.map(ev => (
-          <section key={ev.code} className="rounded-lg border bg-muted/30 p-3 space-y-2">
+        {shelvesHere.map(ev => (
+          <section
+            key={ev.code}
+            className={`rounded-lg border bg-muted/30 p-3 space-y-2 ${
+              shelfCounts[ev.code] ? '' : 'hidden'
+            }`}
+          >
             <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
               <div className="min-w-0">
                 <h2 className="text-sm font-semibold">Fresh from {ev.name}</h2>
@@ -612,7 +642,12 @@ export function CommonsGallery() {
                 Open the shelf
               </button>
             </div>
-            <EventShelf code={ev.code} name={ev.name} admin={ev.admin} />
+            <EventShelf
+              code={ev.code}
+              name={ev.name}
+              admin={ev.admin}
+              onCount={n => setShelfCounts(c => (c[ev.code] === n ? c : { ...c, [ev.code]: n }))}
+            />
           </section>
         ))}
 
