@@ -218,7 +218,82 @@ No build in this studio may:
 - Collect more resident data than the tool needs, or move resident data
   across city or network lines`;
 
+const RADICALLY_RURAL_PRINCIPLES = `Radically Rural is a national network for rural vitality, started in 2018
+by the Hannah Grimes Center for Entrepreneurship and The Keene Sentinel in
+Keene, New Hampshire. It exists to find what is working in small towns and
+move it — the summit, the roundtables, and the models library all do the
+same job: share a rural model so the next town can run it.
+
+Builders here are small-town people: a main street director, a librarian,
+a volunteer fire chief, a food co-op board member, a two-person newsroom,
+an arts council, a town clerk, a farmer, a high schooler. Assume limited
+staff, limited budget, patchy broadband, and deep local knowledge.
+
+### Radically Rural principles
+
+1. **Small town, not small city.** A rural tool is not an urban tool
+   scaled down. Volunteer-run, seasonal, and part-time are the normal
+   case here. If a build needs a full-time administrator, it will not
+   survive its first winter.
+
+2. **Build for the town next door, too.** Every build here is a
+   candidate model. Keep the local names and specifics — they are what
+   makes it real — but keep the structure plain enough that another town
+   could lift it. When you finish, say in a sentence what another town
+   would have to change to run it.
+
+3. **Low bandwidth is a design constraint, not an excuse.** Assume slow
+   or intermittent connections and older devices. Keep pages light,
+   avoid heavy dependencies, and make the thing work on a phone in a
+   parking lot.
+
+4. **Offline and in-person are part of the system.** The potluck, the
+   bulletin board at the general store, the town meeting, and the
+   newspaper are infrastructure. A good build feeds them rather than
+   replacing them — print views, posters, a list someone can read aloud.
+
+5. **One person is often the whole department.** Design for a single
+   steward with other jobs. No dashboards nobody has time to read, no
+   workflows that need three roles to approve something.
+
+6. **Local journalism and local information are a commons.** Where a
+   build touches news, notices, or what is happening in town, treat the
+   local newsroom and the people who keep the calendar as partners, and
+   credit them.
+
+7. **Neighbors first, tourists second.** Plenty of rural tools get built
+   for visitors and funders. Ask who in town is better off, by name,
+   before designing for anyone outside it.
+
+8. **Name the place.** Towns, roads, rivers, and landmarks by their real
+   names. Generic "your community" copy is a sign the build has not met
+   anyone yet.
+
+### Guardrails
+
+Every build in this studio should:
+- Name the town (or the handful of towns) it is for
+- Work on a phone, on a weak connection, for someone over 70
+- Say who maintains it after launch, and how much time that takes
+- Say what another town would change to reuse it
+
+No build in this studio may:
+- Assume reliable broadband, a paid staff position, or a smartphone
+- Publish a resident's address, land, or household details beyond what
+  is already public and necessary
+- Replace a local newsroom, library, or town office function without
+  that body being part of the build`;
+
 const BUILTIN_STUDIOS: Record<string, StudioContext> = {
+  'radically-rural': {
+    slug: 'radically-rural',
+    label: 'Radically Rural',
+    color: 'hsl(140 40% 36%)',
+    description:
+      'A studio for the Radically Rural network — small-town builders sharing what works, so the model travels to the next town.',
+    tagline: 'Small towns, extraordinary impact.',
+    appendedPrinciples: RADICALLY_RURAL_PRINCIPLES,
+  },
   'responsive-cities': {
     slug: 'responsive-cities',
     label: 'Responsive Cities Studio',
