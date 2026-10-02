@@ -16,8 +16,8 @@
 -- Two notes on the source page: it lists Coburns' General Store in
 -- "Stafford, VT" (the town is Strafford), corrected here; and its "Amateur
 -- Ration Toolkit" is kept verbatim though it appears to be a typo for
--- Amateur Radio. Safe Together is the one entry with no "How it works" —
--- nothing beyond the catalog line could be verified.
+-- Amateur Radio. Safe Together's "How it works" was written from its own
+-- PDF guide, read Oct 2 2026.
 --
 -- Everything lands STUDIO-PRIVATE and approved: visibility and status take
 -- the table defaults ('studio', 'approved'), so the items are on the shelf
@@ -107,6 +107,18 @@ A replicable rural model from the Radically Rural models library (All in for Hea
    '**Brainerd, MN**
 
 This interactive guide and creative report is based on findings from the Rural Minnesota Safety Project.
+
+**How it works** — *Safe Together: A Quest for Rural Community Safety* is a 54-page guide from the Rural Minnesota Community Safety Project (Nov 2022 – May 2025). Nonviolent Peaceforce ran the pilot to adapt its unarmed civilian protection work to rural places, with The Sowing Room in the Brainerd Lakes area and Northspan in Cloquet and Cook County, which border the Fond du Lac and Grand Portage Bands. The Bush Foundation supported it. The Department of Public Transformation and Voices for Rural Resilience evaluated it and wrote the guide.
+
+It is laid out like a role-playing game, in eight levels a town can enter anywhere:
+- **Readiness.** Check for a spark, an anchoring partner, and enough willingness (not consensus) to begin. Then find the convenors: trusted bridge-builders, often without formal power.
+- **Equip the core team.** De-escalation, situational awareness and upstander (CLARA) training from Nonviolent Peaceforce.
+- **Listen.** Story circles, one-on-one interviews, surveys, and showing up at council and school board meetings. The result is a safety asset map.
+- **Choose a focus together.** One example is "Who''s at Your Table?", a facilitated meal ending in a commitment pledge.
+- **Co-create offerings.** Trainings, youth initiatives, movie nights, book clubs.
+- **Make it last.** Train-the-trainer, mentorship pods, regular circles. Hand off so the work doesn''t rest on one hero.
+
+The transferable idea: start by asking "What does safety mean here?" and let the town answer before anyone designs a program.
 
 A replicable rural model from the Radically Rural models library (All in for Health). Read it as a pattern another small town could run, not a finished product: the structure travels, the local names do not.',
    'https://39fa63b4-31d2-4c7a-87ee-9a0f81d1a350.filesusr.com/ugd/954a8c_cbc71c71f9844336b3df92b03b50ee59.pdf',

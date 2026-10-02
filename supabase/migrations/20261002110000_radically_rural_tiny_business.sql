@@ -30,8 +30,9 @@
 -- are substantial resources in their own right and also get their own
 -- example rows: Endless Orchard, NMPAN's mobile slaughter units, and
 -- Lemonade Day. Their "How it works" comes from each organization's own
--- descriptions as surfaced by web search. Their sites could not be fetched
--- from here, so none of the links has been confirmed to resolve.
+-- descriptions as surfaced by web search, then checked against the live
+-- sites. All links were checked on Oct 2 2026; the smoffice domain is gone,
+-- so it points at its Wayback Machine copy.
 --
 -- Plus two examples: Tuckaway Food Commons and Farm Hack. Dorn Cox is in
 -- both, and each entry says so. Farm Hack points at farmhack.org rather
@@ -136,7 +137,7 @@ From *101 Ways to Start More Tiny Businesses in Your Town* by Becky McCray, co-f
 
 **Links from the original list**
 
-- The smoffice — an office in a display window, Durham NC: http://thesmoffice.com/
+- The smoffice — an office in a display window, Durham NC (site now offline; archived copy): https://web.archive.org/web/20250316132541/http://thesmoffice.com/
 - Aachompa gift shop at the Chickasaw Cultural Center, Sulphur OK: https://www.chickasawculturalcenter.com/explore/aachompa-gift-shop/
 
 From *101 Ways to Start More Tiny Businesses in Your Town* by Becky McCray, co-founder of SaveYour.town — grouped and reworded here, with her list the original. The full list (104 moves, each with towns that ran it) is free at saveyour.town/101ways.',
@@ -280,7 +281,7 @@ From *101 Ways to Start More Tiny Businesses in Your Town* by Becky McCray, co-f
 
 **Links from the original list**
 
-- Iowa Waste Exchange, Area II: https://www.facebook.com/Iowa-Waste-Exchange-Area-II-143290962372527/
+- Iowa Waste Exchange, the state DNR''s free materials-matching service (the PDF linked a regional Facebook page that is gone): https://www.iowadnr.gov/environmental-protection/land-quality/waste-planning-programs/iowa-waste-exchange
 
 From *101 Ways to Start More Tiny Businesses in Your Town* by Becky McCray, co-founder of SaveYour.town — grouped and reworded here, with her list the original. The full list (104 moves, each with towns that ran it) is free at saveyour.town/101ways.',
    'https://saveyour.town/101ways',
@@ -305,8 +306,8 @@ From *101 Ways to Start More Tiny Businesses in Your Town* by Becky McCray, co-f
 **Links from the original list**
 
 - Endless Orchard — a crowd-sourced map of public fruit trees (also on this shelf): https://endlessorchard.com/about/
-- Mobile slaughter and processing units (Niche Meat Processor Assistance Network; also on this shelf): http://www.nichemeatprocessing.org/mobile-unit-overview
-- Libraries that lend fishing poles, pans and people (NPR): http://www.npr.org/2013/08/13/211697593/beyond-books-libraries-lend-fishing-poles-pans-and-people
+- Mobile slaughter and processing units (Niche Meat Processor Assistance Network; also on this shelf): https://www.nichemeatprocessing.org/mobile-unit-overview/
+- Libraries that lend fishing poles, pans and people (NPR): https://www.npr.org/2013/08/13/211697593/beyond-books-libraries-lend-fishing-poles-pans-and-people
 
 From *101 Ways to Start More Tiny Businesses in Your Town* by Becky McCray, co-founder of SaveYour.town — grouped and reworded here, with her list the original. The full list (104 moves, each with towns that ran it) is free at saveyour.town/101ways.',
    'https://saveyour.town/101ways',
@@ -330,7 +331,7 @@ From *101 Ways to Start More Tiny Businesses in Your Town* by Becky McCray, co-f
 **Links from the original list**
 
 - The fix-it shop where neighbors repair clothes and electronics — Willimantic CT (YES! Magazine): https://www.yesmagazine.org/issues/50-solutions/the-fix-it-shop-where-neighbors-repair-your-clothes-and-electronics-20161220
-- Spoonflower custom fabric printing: https://www.spoonflower.com/how_it_works
+- Spoonflower custom fabric printing: https://www.spoonflower.com/en/about/how-it-works
 
 From *101 Ways to Start More Tiny Businesses in Your Town* by Becky McCray, co-founder of SaveYour.town — grouped and reworded here, with her list the original. The full list (104 moves, each with towns that ran it) is free at saveyour.town/101ways.',
    'https://saveyour.town/101ways',
@@ -421,7 +422,7 @@ Mobile Slaughter Units (and mobile poultry processing units) are a lower-cost wa
 **How it works** — A slaughter trailer operates under USDA inspection and travels to farms, which is what lets small producers sell their meat at all. The first USDA-inspected mobile unit in the U.S. was in the San Juan Islands of Washington State; units now operate around the country.
 
 Why it is here: Becky McCray''s *101 Ways to Start More Tiny Businesses* names small mobile slaughterhouses as a shared barrier worth fixing for local livestock businesses. One unit can serve many farms.',
-   'http://www.nichemeatprocessing.org/mobile-unit-overview',
+   'https://www.nichemeatprocessing.org/mobile-unit-overview/',
    'Niche Meat Processor Assistance Network · surfaced via Becky McCray''s 101 Ways',
    array['radically-rural', 'tiny-business', 'food-working-lands', 'national']::text[],
    3220),

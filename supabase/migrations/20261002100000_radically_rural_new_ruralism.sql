@@ -15,8 +15,8 @@
 -- installation model — a different model from the same organization, so it
 -- goes in with a cross-reference in the body rather than being dropped.
 --
--- King Arthur Flour's SmartCommute carries no "How it works": nothing on
--- the program could be verified beyond the catalog line.
+-- King Arthur Flour's SmartCommute "How it works" was written from the
+-- case study PDF itself, read Oct 2 2026.
 --
 -- The white paper lands as a `principle`, not an example — it is a stance
 -- about rural investment, and principles are what the prompt tells the model
@@ -110,7 +110,7 @@ A New Ruralism Initiative case study (Food & working lands) — the American Pla
 
 A statewide program working to reduce the miles traveled by food and strengthen the local agricultural economy.
 
-**How it works** — Created by the legislature in 2009 and built through an 18-month statewide public engagement process into a 10-year plan with 25 goals across all seven parts of the food system. The network grew from 125 organizations in 2011 to 300+. Over the plan''s first decade the state''s food system output rose 48% to $11.3B, added 6,560 net jobs, and local food purchases went from 5% to 13.9% of total food spending. Reauthorized in 2019; a 2021-2030 plan followed.
+**How it works** — Created by the legislature in 2009 and built through an 18-month statewide public engagement process into a 10-year plan with 25 goals across all seven parts of the food system. The network grew from 125 organizations in 2011 to more than 350. Over the plan''s first decade the state''s food system output rose 48% to $11.3B, added 6,560 net jobs, and local food purchases went from 5% to 13.9% of total food spending. Reauthorized in 2019; a 2021-2030 plan followed.
 
 A New Ruralism Initiative case study (Food & working lands) — the American Planning Association''s collection of grassroots work strengthening rural communities, surfaced through Radically Rural''s resource library. Read it as a pattern another small town could run, not a finished product: the structure travels, the local names do not.',
    'https://www.dropbox.com/s/1b89t4up3x4kzy0/Farm2Plate.pdf?dl=0',
@@ -208,7 +208,7 @@ A New Ruralism Initiative case study (Aging & youth) — the American Planning A
 
 A cultural arts center at the center of a budding arts-based economic revitalization in the region.
 
-**How it works** — Opened 2005 to grow the Black Belt economy by selling and promoting the region''s own fine art and heritage craft. It now carries work by 350+ artists (600+ shown over time) in paint, pottery, woodwork, basketry and jewellery, and has drawn visitors from all 50 states and 36 countries. The gallery funds the rest: classes and workshops for youth and adults, artist demonstrations, heritage arts lectures, and a Teaching Artist Program placing artists in schools.
+**How it works** — Opened 2005 to grow the Black Belt economy by selling and promoting the region''s own fine art and heritage craft. The case study counts over 450 regional artists selling or teaching through it in paint, pottery, woodwork, basketry and jewellery, and has drawn visitors from all 50 states and 36 countries. The gallery funds the rest: classes and workshops for youth and adults, artist demonstrations, heritage arts lectures, and a Teaching Artist Program placing artists in schools.
 
 A New Ruralism Initiative case study (Arts & local economy) — the American Planning Association''s collection of grassroots work strengthening rural communities, surfaced through Radically Rural''s resource library. Read it as a pattern another small town could run, not a finished product: the structure travels, the local names do not.',
    'https://www.dropbox.com/s/30f823dqk0gjjpv/Camden%20AL.pdf?dl=0',
@@ -236,7 +236,7 @@ A New Ruralism Initiative case study (Arts & local economy) — the American Pla
 
 A cooperative formed to keep core businesses in the hands of local workers for the benefit of the community.
 
-**How it works** — In 2014 the employees of three island businesses — a 13,000 sq ft grocery, a hardware store and pharmacy, and a convenience store — bought them from owners of 43 years who were retiring. About 42 of 62 staff opted in, making it the largest worker co-op in Maine. The fear that drove it was concrete: an outside buyer would consolidate, and the nearest comparable store is 25 miles of back road away. Financing and technical help came from the Cooperative Development Institute, CEI and the Cooperative Fund of New England.
+**How it works** — In 2014 the employees of three island businesses — a 13,000 sq ft grocery, a hardware store and pharmacy, and a convenience store — bought them from owners of 43 years who were retiring. About 42 of 62 staff opted in at the start; by the time of the case study, 45 of 60 island employees owned shares, making it Maine''s largest cooperative. The fear that drove it was concrete: an outside buyer would consolidate, and the nearest comparable store is 25 miles of back road away. Financing and technical help came from the Cooperative Development Institute, CEI and the Cooperative Fund of New England.
 
 A New Ruralism Initiative case study (Arts & local economy) — the American Planning Association''s collection of grassroots work strengthening rural communities, surfaced through Radically Rural''s resource library. Read it as a pattern another small town could run, not a finished product: the structure travels, the local names do not.',
    'https://www.dropbox.com/s/zdundle29p1s5wu/Island%20Employee%20Cooperative.pdf?dl=0',
@@ -305,6 +305,10 @@ A New Ruralism Initiative case study (Regional coordination & resilience) — th
    '**Norwich, VT**
 
 A data-driven program providing customized incentives to employees to carpool.
+
+**How it works** — Vital Communities'' Smart Commute program advises big Upper Valley employers whose staff mostly drive alone, often more than 30 miles a day. It follows community-based social marketing: survey commuters to find their barriers, write a Sustainable Commuting Plan, consult with the employer, then run a campaign asking employees to commit to trying a new way to work. At King Arthur Flour, that produced a $3/day carpool incentive, preferential carpool parking, a better bus shelter, an EV charger and an employee bike-share. Within a year, carpooling as a primary commute rose almost 23%; transit and biking/walking rose 2-3%. Funding came from a federal Energy Efficiency and Conservation Block Grant, VTrans, the High Meadows Fund and employers.
+
+Lessons from the case study: research before proposing anything. Offer each employer only the top 3-5 strategies, because too many overwhelm people. Fit the pitch to the audience: don''t sell a "green" benefit to someone who doesn''t care about green. And rural housing patterns limit walking and biking, so commuting is a land-use question too. Vital Communities later built a town-level version.
 
 A New Ruralism Initiative case study (Regional coordination & resilience) — the American Planning Association''s collection of grassroots work strengthening rural communities, surfaced through Radically Rural''s resource library. Read it as a pattern another small town could run, not a finished product: the structure travels, the local names do not.',
    'https://www.dropbox.com/s/7x0ih2w5k7fkna9/Smart%20Commute.pdf?dl=0',
