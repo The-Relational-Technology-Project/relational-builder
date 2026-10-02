@@ -1,4 +1,11 @@
 {
+  "redirects": [
+    {
+      "source": "/buildathon",
+      "destination": "/buildtogether",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/s/:path(.*)",

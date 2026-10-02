@@ -23,15 +23,17 @@ import {
   Map,
   Landmark,
   Building2,
+  Video,
 } from 'lucide-react';
 
 /**
- * /buildathon — the public page for event partners: why the build-a-thon is
- * back (anyone can contribute; working tools, built together), how one runs
- * on Relational Builder from the room key at the door to the demo wall at
- * closing, who might convene one, and a form to plan one with us. A
- * companion to the landing (same palette, its own address), reachable
- * signed in or out — Landing routes here before the app gate.
+ * /buildtogether — the public page for community build days: what one is
+ * (anyone can contribute; working tools, built together, online or in
+ * person), how one runs on Relational Builder from the room key at the door
+ * to the demo wall at closing, who might convene one, and a form to plan one
+ * with us. A companion to the landing (same palette, its own address),
+ * reachable signed in or out — Landing routes here before the app gate.
+ * /buildathon, the page's old address, redirects here.
  */
 
 const JOIN_HREF = '/#join';
@@ -136,7 +138,7 @@ function DeckPreview() {
   );
 }
 
-/** One of the two shifts from the hackathon model */
+/** One of the two shifts from the hackathon model to the community build day */
 function Shift({ icon: Icon, from, to, children }: { icon: typeof Users; from: string; to: string; children: ReactNode }) {
   return (
     <div
@@ -213,7 +215,7 @@ function Moment({
   );
 }
 
-export function BuildathonPage() {
+export function BuildTogetherPage() {
   return (
     <div
       className="min-h-dvh overflow-y-auto"
@@ -253,7 +255,7 @@ export function BuildathonPage() {
       <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 sm:py-16 space-y-12 sm:space-y-16">
         {/* Hero */}
         <header className="space-y-4 text-center">
-          <Kicker>Build-a-thons &amp; group build days</Kicker>
+          <Kicker>Community build days</Kicker>
           <h1 className="text-[1.85rem] leading-[1.15] sm:text-5xl font-semibold tracking-tight sm:leading-tight">
             This moment calls us
             <br />
@@ -273,11 +275,12 @@ export function BuildathonPage() {
             .
           </h1>
           <p className="mx-auto max-w-xl text-base sm:text-lg leading-relaxed" style={{ color: C.body }}>
-            A build-a-thon is a day when a room of people who share a place
-            make the tools that place needs. Not a competition, not a demo of
-            someone else's product. Neighbors, organizers, city staff, and
-            first-time builders, working side by side, leaving with things
-            that work.
+            A community build day is a day when people who share a place, or
+            a purpose, make the tools they need. In a library, a hall, a
+            kitchen, or a video call. Not a competition, not a demo of someone
+            else's product. Neighbors, organizers, city staff, and first-time
+            builders, working side by side, leaving with things that work and
+            with people they now know by name.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
             <a
@@ -300,12 +303,14 @@ export function BuildathonPage() {
         {/* Two shifts from the hackathon model */}
         <section className="space-y-5">
           <div className="text-center space-y-2">
-            <Kicker>Why we're bringing the build-a-thon back</Kicker>
+            <Kicker>Why a build day, not a hackathon</Kicker>
             <h2 className="text-xl sm:text-2xl font-semibold tracking-tight">Two shifts from the hackathon we all remember</h2>
             <p className="mx-auto max-w-xl text-[15px] leading-relaxed" style={{ color: C.body }}>
               Hackathons asked for a weekend, a laptop full of tooling, and a
               pitch. Most people in a neighborhood were spectators, and most of
-              what got built never shipped. Two things have changed.
+              what got built never shipped. A community build day is joyful,
+              inclusive, and ends with things that work. Two things have
+              changed.
             </p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -321,9 +326,9 @@ export function BuildathonPage() {
               What leaves the room works. Live sites, real data, sign-ups,
               email, all included and free, so a tool made at 2pm is in
               neighbors' hands by 5. And building happens together: teams
-              form in the room, the Builder points people at each other when
+              form on the day, the Builder points people at each other when
               their projects overlap, and finished work goes back to the
-              commons for the next neighborhood to remix.
+              commons for the next community to remix.
             </Shift>
           </div>
         </section>
@@ -331,13 +336,40 @@ export function BuildathonPage() {
         <Shot
           src="/media/workspace.webp"
           alt="The Relational Builder workspace: a conversation on the left building a block party app shown live on the right"
-          caption="The whole toolchain is a conversation: describe the change on the left, watch the app become real on the right. The dashed card is Relational Builder noticing that someone three tables over is building something adjacent — more on that below."
+          caption="The whole toolchain is a conversation: describe the change on the left, watch the app become real on the right. The dashed card is Relational Builder noticing that someone three tables over, or three time zones over, is building something adjacent — more on that below."
         />
+
+        {/* Online or in person */}
+        <section className="space-y-5">
+          <div className="text-center space-y-2">
+            <Kicker>Online or in person</Kicker>
+            <h2 className="text-xl sm:text-2xl font-semibold tracking-tight">Wherever your people already gather</h2>
+            <p className="mx-auto max-w-xl text-[15px] leading-relaxed" style={{ color: C.body }}>
+              Everything a build day needs lives in a browser tab, so the day
+              works the same whether everyone is at one table or on one call.
+            </p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Scenario icon={Users} who="In person">
+              A library, a church hall, a community center, a kitchen table.
+              The room key goes on the projector or the door, teams form
+              around the tables, and the demo hour ends with everyone's phone
+              open to what the room built. Bring laptops, or share them.
+            </Scenario>
+            <Scenario icon={Video} who="Online">
+              A video call with breakout rooms. The room key goes in the chat,
+              teams build in breakouts and come back to screen-share, and the
+              demo wall is the link everyone opens as the call ends. A good
+              fit for a network spread across a region, or a group that can't
+              all be in one place on one day.
+            </Scenario>
+          </div>
+        </section>
 
         {/* Why it runs well */}
         <section className="space-y-5">
           <div className="text-center space-y-2">
-            <Kicker>Why it runs well in a room</Kicker>
+            <Kicker>Why it runs well</Kicker>
             <h2 className="text-xl sm:text-2xl font-semibold tracking-tight">Built for exactly this</h2>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -348,7 +380,8 @@ export function BuildathonPage() {
             </WhyCard>
             <WhyCard icon={Users} title="Low barrier to entry">
               The whole tool is a browser tab; sign-in is a magic link. First-time
-              builders and experienced tinkerers work side by side.
+              builders and experienced tinkerers work side by side, in a room
+              or on a call.
             </WhyCard>
             <WhyCard icon={MessagesSquare} title="Natural language, all the way">
               “Neighbors should claim a dish or a setup shift” is a valid build
@@ -382,10 +415,11 @@ export function BuildathonPage() {
               <div className="space-y-3 text-[15px] leading-relaxed" style={{ color: C.body }}>
                 <p>
                   Every event gets its own <strong style={{ color: C.ink }}>event code</strong> — a
-                  room key. Put its printable page on the projector or the door:
-                  people scan the QR, request an account with the code already
-                  filled in, and are approved <em>on the spot</em>. No waiting, no
-                  walk-in bottleneck, no pre-registration spreadsheet.
+                  room key. Put its printable page on the projector or the door,
+                  or drop its link in the call's chat: people scan or tap,
+                  request an account with the code already filled in, and are
+                  approved <em>on the spot</em>. No waiting, no walk-in
+                  bottleneck, no pre-registration spreadsheet.
                 </p>
                 <p>
                   Everyone who joins is tagged as a participant, so the day's
@@ -408,12 +442,13 @@ export function BuildathonPage() {
                 Groups need nothing special: one person starts, invites teammates
                 by email, and invited collaborators walk straight in — the
                 invitation is the vouch. And while people build, Relational
-                Builder quietly does the most build-a-thon thing it can do:
+                Builder quietly does the thing a build day is for:
                 <strong style={{ color: C.ink }}> it points people at each other</strong>. When
                 someone at your event is building something adjacent to yours, a
                 card appears right in the chat — <em>“Marisol is at your event —
-                go find them”</em> — while you can still walk over. Opt-in only,
-                dismissible forever, introductions double-opt-in.
+                go find them”</em> — while you can still walk over, or hop into
+                their breakout room. Opt-in only, dismissible forever,
+                introductions double-opt-in.
               </p>
             </div>
           </Moment>
@@ -424,10 +459,10 @@ export function BuildathonPage() {
                 One click on <strong style={{ color: C.ink }}>Share Live</strong> turns any build
                 into a three-slide projector deck: the title and one-liner
                 (drafted by the AI from the build itself, editable), a screenshot
-                with what it does, and a QR code the whole audience scans to open
-                the <em>working app</em> on their phones — no install, no signup.
-                Ninety seconds per project, and the room isn't watching a demo,
-                it's using one.
+                with what it does, and a QR code the whole audience scans, or a
+                link they tap from the chat, to open the <em>working app</em> on
+                their phones — no install, no signup. Ninety seconds per
+                project, and the room isn't watching a demo, it's using one.
               </p>
               <DeckPreview />
             </div>
@@ -442,7 +477,7 @@ export function BuildathonPage() {
                 link. It's the closing-circle projector view, and the “here's
                 what happened” link you share afterward. Apps worth keeping
                 publish permanently, free; stories and tools flow back to the
-                commons for the next neighborhood.
+                commons for the next community.
               </p>
               <Shot
                 src="/media/demo-wall.webp"
@@ -459,8 +494,8 @@ export function BuildathonPage() {
             <Kicker>A sense of what's possible</Kicker>
             <h2 className="text-xl sm:text-2xl font-semibold tracking-tight">Who might build together</h2>
             <p className="mx-auto max-w-xl text-[15px] leading-relaxed" style={{ color: C.body }}>
-              A build-a-thon fits the shape of the people who call it. A few
-              of the rooms we picture:
+              A community build day fits the shape of the people who call it.
+              A few of the days we picture:
             </p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -478,7 +513,7 @@ export function BuildathonPage() {
               the demo hour ends with everyone's phone open to five new tools
               made by people they now know by name.
             </Scenario>
-            <Scenario icon={Landmark} who="A city hosting a civic build-a-thon">
+            <Scenario icon={Landmark} who="A city hosting a civic build day">
               City staff and residents at the same tables. The 311 team
               brings what they hear, residents bring what they live, and
               together they build the small tools in between: a sidewalk
@@ -486,11 +521,12 @@ export function BuildathonPage() {
               permit, a neighborhood dashboard drawn from open data.
             </Scenario>
             <Scenario icon={Building2} who="An organization moving its projects forward">
-              A community organization brings its members in for a day. Each
-              committee arrives with a project that's been stuck for lack of a
-              tool: the volunteer schedule, the intake form, the map of who
-              has what to lend. They leave with those tools live, and with
-              members who know they can make the next one themselves.
+              A community organization brings its members together for a day,
+              in a hall or on a call. Each committee arrives with a project
+              that's been stuck for lack of a tool: the volunteer schedule, the
+              intake form, the map of who has what to lend. They leave with
+              those tools live, and with members who know they can make the
+              next one themselves.
             </Scenario>
           </div>
         </section>
@@ -498,14 +534,15 @@ export function BuildathonPage() {
         {/* Plan one with us */}
         <InquiryForm
           id="plan"
-          topic="buildathon"
+          topic="build-day"
           title="Plan one with us"
           intro={
             <>
               Tell us a little about your place and the people you'd bring
-              together. We'll mint your event code, walk through the room key
-              and demo flow, and shape the day around your community, whether
-              it's twelve neighbors in a library or a hundred people in a hall.
+              together, online or in person. We'll mint your event code, walk
+              through the room key and demo flow, and shape the day around your
+              community, whether it's twelve neighbors in a library, a hundred
+              people in a hall, or a network on one video call.
             </>
           }
           placePlaceholder="Your neighborhood, city, or organization"

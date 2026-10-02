@@ -5,7 +5,7 @@ import { sendPageInquiry } from '@/cloud/contact';
 
 /**
  * The simple form at the bottom of the public site pages — "Plan one with
- * us" on /buildathon, "Create your studio" on /studios. Four fields, no
+ * us" on /buildtogether, "Create your studio" on /studios. Four fields, no
  * account, lands in the steward's inbox (josh@relationaltechproject.org)
  * through the contact function. The same shape on both pages so anyone who
  * has filled in one knows the other.
@@ -22,7 +22,7 @@ export function InquiryForm({
   aside,
 }: {
   id: string;
-  topic: 'buildathon' | 'studio';
+  topic: 'build-day' | 'studio';
   title: string;
   intro: ReactNode;
   placePlaceholder: string;

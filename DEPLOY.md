@@ -219,7 +219,7 @@ code" count.
 supabase functions deploy request-account --no-verify-jwt
 ```
 
-**e) Event codes + invite auto-join (hackathons and build-a-thons).**
+**e) Event codes + invite auto-join (community build days).**
 A steward mints a code for a whole room (dashboard → Events): custom or
 generated, optional expiry, deactivate any time. It opens the door
 exactly like a builder's referral code — `APP_URL/?ref=CODE`, approved

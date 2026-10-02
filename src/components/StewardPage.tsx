@@ -994,7 +994,7 @@ function EventsTab() {
             <Input
               value={name}
               onChange={e => setName(e.target.value)}
-              placeholder="Event name — e.g. Oakland Build-a-thon"
+              placeholder="Event name — e.g. Oakland Community Build Day"
               className="h-7 text-xs flex-1 min-w-40"
               maxLength={80}
             />

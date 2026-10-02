@@ -1,7 +1,7 @@
 import { builderClient } from '@/cloud/builder-client';
 
 /**
- * The Event Admin's side of a build-a-thon — what a host can do from the
+ * The Event Admin's side of a community build day — what a host can do from the
  * room without a steward. Every call is a security-definer function that
  * checks is_event_admin() first; this module is just the typed surface.
  * Stewards name admins by email on the Codes tab (event-codes.ts).

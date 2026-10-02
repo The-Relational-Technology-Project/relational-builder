@@ -759,7 +759,7 @@ export function buildPromptContext(
     sections.push('', formatBuilderProfileForPrompt(options.builderProfile));
   }
 
-  // A buildathon room with a relaxed data rule — stable for the session
+  // A community build day with a relaxed data rule — stable for the session
   // (the event code lives on the profile), so it rides in the cacheable half
   if (isDemoDataEvent(options.builderProfile?.event_code)) {
     sections.push('', DEMO_DATA_EVENT_BLOCK);

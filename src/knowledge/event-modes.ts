@@ -2,7 +2,7 @@
  * Per-event adjustments to how the AI works with data.
  *
  * Relational Builder's default is strict: real records come from the person
- * or a live source, never from memory. A buildathon room is a different
+ * or a live source, never from memory. A community build day is a different
  * setting — one afternoon, a demo at the end, and civic data that should
  * come from the city's own endpoints where it can and from the open web
  * where it can't. For those events (and only those) the prompt swaps the
@@ -10,10 +10,10 @@
  *
  * Keyed on the event code stored on the builder's profile (they joined the
  * event with it), so the mode follows the person, not the project. Scoped
- * to one event by agreement: it is not a setting every buildathon gets.
+ * to one event by agreement: it is not a setting every build day gets.
  */
 
-/** Event codes for the Responsive Cities Network buildathon (both rounds
+/** Event codes for the Responsive Cities Network build day (both rounds
  *  share a name and a room). Uppercase; compared case-insensitively. */
 const DEMO_DATA_EVENT_CODES = new Set(['CITIES', 'CITIES26']);
 
@@ -29,9 +29,9 @@ export function isDemoDataEvent(eventCode: string | null | undefined): boolean {
  * enforces by saying so.
  */
 export const DEMO_DATA_EVENT_BLOCK = [
-  '## Buildathon Data Mode (this event only)',
+  '## Build Day Data Mode (this event only)',
   '',
-  'This builder is in a buildathon room today: a few hours, a demo at the end, and a tool that should stand on real civic data where it can. For THIS event the "real records come from the person, never from memory" rule relaxes into the order below. Nothing else about how you work changes.',
+  'This builder is at a community build day today: a few hours, a demo at the end, and a tool that should stand on real civic data where it can. For THIS event the "real records come from the person, never from memory" rule relaxes into the order below. Nothing else about how you work changes.',
   '',
   '1. **Live data first.** When a city data endpoint is available to you (the civic-data section, queried through its MCP tools), read the real schema and pull real rows — that is always the best demo. Prefer "the app reads it live from the city endpoint" over pasting a snapshot into a file.',
   '2. **Open public data second.** If no endpoint fits or a pull fails, search the web for an open public dataset (a city open-data portal, a state or federal source, a published CSV/GeoJSON) and load it from its public URL or, when it is small, as a `/data/` file. Say where it came from, in one line, in the app and in your reply.',
