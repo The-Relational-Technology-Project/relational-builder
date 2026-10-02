@@ -25,6 +25,7 @@ import {
 import { isSuperAdmin } from '@/cloud/account-requests';
 import { GalleryToolBuilders } from '@/components/GalleryToolBuilders';
 import { ContributeCallout } from '@/components/ContributeDialog';
+import { StudioContributeDialog } from '@/components/StudioContributeDialog';
 import { EventShelf } from '@/components/EventShowcase';
 import { fetchMyEvent, eventScopeFor, eventCodeOfScope, type EventShelfInfo } from '@/cloud/event-showcase';
 import { fetchMyAdminEvents } from '@/cloud/event-admin';
@@ -43,7 +44,7 @@ import { useUIStore } from '@/store/ui-store';
 import {
   BookOpen, ExternalLink, GitBranch, GitFork, Globe, Hammer,
   HandCoins, ImageOff, Landmark, Loader2, Map as MapIcon, Newspaper, ScrollText, Sprout,
-  ChevronDown, ChevronRight, Library, Lock, KeyRound, Users,
+  ChevronDown, ChevronRight, Library, Lock, KeyRound, Users, Plus,
 } from 'lucide-react';
 
 /**
@@ -201,6 +202,10 @@ export function CommonsGallery() {
     return code ? eventShelves.find(s => s.code.toUpperCase() === code) ?? null : null;
   }, [scope, eventShelves]);
   const isEventScope = eventShelf !== null;
+  // A studio's own shelf: not the commons, not an event room. Only there
+  // does the studio contribute door make sense.
+  const isStudioScope = scope !== 'commons' && !isEventScope;
+  const [contributeOpen, setContributeOpen] = useState(false);
 
   useEffect(() => {
     fetchPrompts().then(setPrompts).catch(() => {});
@@ -576,6 +581,36 @@ export function CommonsGallery() {
         {/* Giving to the commons, right where people browse it — the same
             Contribute door as the header, with Deb's invitation. */}
         {scope === 'commons' && <ContributeCallout />}
+
+        {/* The same invitation for a studio's own shelf. A member browsing
+            their gallery can add to it from here without building anything
+            first — the publish flow only covers builds, and a studio
+            collects models, practices and stories too. */}
+        {isStudioScope && (
+          <div className="rounded-lg border border-dashed p-3 flex items-start gap-3">
+            <Sprout className="size-4 text-primary mt-0.5 shrink-0" />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium">Add something to this gallery</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                A model from your town, a practice that works, a prompt or a
+                story — it doesn't have to be something you built. A Studio
+                Admin reviews it before it lands on the shelf.
+              </p>
+            </div>
+            <Button size="sm" variant="outline" className="h-7 text-xs gap-1 shrink-0"
+              onClick={() => setContributeOpen(true)}>
+              <Plus className="size-3" /> Contribute
+            </Button>
+          </div>
+        )}
+        {isStudioScope && (
+          <StudioContributeDialog
+            open={contributeOpen}
+            onOpenChange={setContributeOpen}
+            studioSlug={scope}
+            studioLabel={scopeLabel(scope)}
+          />
+        )}
 
         {/* Which library you're browsing — the commons, or a studio you've
             been approved into. The switch only appears once you belong

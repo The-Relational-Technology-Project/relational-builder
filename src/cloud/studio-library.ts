@@ -44,6 +44,11 @@ export interface StudioLibraryItem {
   status: StudioItemStatus;
   /** Lineage within the studio: the shelf item this one was remixed from */
   remix_of: string | null;
+  /**
+   * The contributor asked for this to go beyond the studio. Intent only —
+   * an admin still has to share it, and nothing is published on this alone.
+   */
+  offer_to_commons: boolean;
   created_by: string | null;
   commons_submitted_at: string | null;
   sort_order: number;
@@ -62,11 +67,13 @@ export interface StudioItemInput {
   attribution?: string | null;
   tags?: string[];
   sort_order?: number;
+  offer_to_commons?: boolean;
 }
 
 const SELECT_COLUMNS =
   'id, studio_slug, kind, title, summary, body, url, image_url, attribution, tags, ' +
   'visibility, status, remix_of, created_by, commons_submitted_at, sort_order, ' +
+  'offer_to_commons, ' +
   'created_at, updated_at';
 
 /**

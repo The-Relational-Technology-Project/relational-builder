@@ -33,27 +33,35 @@ export function StudioSubmitCard({
   const library = useStudioStore(s => s.library);
   const loadLibrary = useStudioStore(s => s.loadLibrary);
 
-  // Only gated studios run the review loop — open studios share to the
-  // commons like everyone else
-  const gatedStudios = useMemo(
-    () => approvedMemberships(memberships).filter(m => accessMap.get(m.studio_slug) === 'gated'),
-    [memberships, accessMap],
+  // Every studio the builder belongs to, gated or open. Gating is about
+  // who gets THROUGH THE DOOR, not about whether a studio keeps a shelf: an
+  // open studio still has its own gallery and its own remix loop, and a
+  // member who just built something should be able to offer it there. This
+  // used to filter to gated studios only, which left an open studio's
+  // members with no way to contribute to their own gallery at all.
+  const myStudios = useMemo(
+    () => approvedMemberships(memberships),
+    [memberships],
   );
+  void accessMap;
 
   const [slug, setSlug] = useState<string>('');
-  const targetSlug = slug || gatedStudios[0]?.studio_slug || '';
-  const target = gatedStudios.find(m => m.studio_slug === targetSlug);
+  const targetSlug = slug || myStudios[0]?.studio_slug || '';
+  const target = myStudios.find(m => m.studio_slug === targetSlug);
 
   const [expanded, setExpanded] = useState(false);
   const [summary, setSummary] = useState('');
   const [attribution, setAttribution] = useState(profile?.display_name ?? '');
   const [manualUrl, setManualUrl] = useState('');
   const [consented, setConsented] = useState(false);
+  // Default OFF, always: an offer is to the studio unless its author says
+  // otherwise. Checking it records intent — an admin still decides.
+  const [offerToCommons, setOfferToCommons] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  if (gatedStudios.length === 0) return null;
+  if (myStudios.length === 0) return null;
 
   // The remix thread: only claim lineage the shelf can actually resolve
   const remixOf = lineage?.studioItemId
@@ -98,6 +106,7 @@ export function StudioSubmitCard({
         attribution: attribution.trim() || null,
         tags: ['relational-builder', ...(remixOf ? ['remix'] : [])],
         remix_of: remixOf?.id ?? null,
+        offer_to_commons: offerToCommons,
       });
       await loadLibrary();
       setDone(true);
@@ -115,7 +124,7 @@ export function StudioSubmitCard({
         className="flex items-center gap-1.5 text-xs font-medium w-full text-left"
       >
         <Library className="size-3.5 text-primary" />
-        Share it to {gatedStudios.length === 1 ? `the ${gatedStudios[0].studio_label} gallery` : 'your studio\'s gallery'}
+        Share it to {myStudios.length === 1 ? `the ${myStudios[0].studio_label} gallery` : 'your studio\'s gallery'}
         <span className="text-muted-foreground font-normal ml-auto">
           {expanded ? 'close' : 'optional'}
         </span>
@@ -128,9 +137,9 @@ export function StudioSubmitCard({
             reviews it; approved builds appear for studio members only — until
             an admin later shares them with the broader commons.
           </p>
-          {gatedStudios.length > 1 && (
+          {myStudios.length > 1 && (
             <div className="flex flex-wrap gap-1">
-              {gatedStudios.map(m => (
+              {myStudios.map(m => (
                 <button
                   key={m.studio_slug}
                   onClick={() => setSlug(m.studio_slug)}
@@ -172,6 +181,20 @@ export function StudioSubmitCard({
               className="h-7 text-xs"
             />
           )}
+          <label className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer">
+            <input
+              type="checkbox"
+              checked={offerToCommons}
+              onChange={e => setOfferToCommons(e.target.checked)}
+              className="mt-0.5"
+            />
+            <span>
+              Also offer it to the broader RT Commons, beyond{' '}
+              {target?.studio_label ?? 'the studio'}. Leave this unchecked and
+              it stays inside the studio. Either way a Studio Admin reviews it
+              first — nothing is published by ticking this.
+            </span>
+          </label>
           <label className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer">
             <input
               type="checkbox"
