@@ -222,16 +222,19 @@ export function CommonsGallery() {
   const [contributeOpen, setContributeOpen] = useState(false);
 
   // Which of the viewer's event shelves belongs on THIS page. An event that
-  // carries a studio surfaces on that studio's gallery and nowhere else; an
-  // event with no studio surfaces on the commons. Never on another studio's
-  // shelf, and never on the event's own shelf (it is already the page).
+  // carries a studio surfaces on that studio's gallery and nowhere else. An
+  // event with no studio surfaces nowhere but its own shelf: the commons is
+  // everyone's, and a room's wall hoisted above it reads as the commons
+  // itself (that is what CONNECT looked like to everyone who joined through
+  // it). Never on another studio's shelf, and never on the event's own shelf
+  // (it is already the page).
   //
   // Nothing here widens who can see what: these are only the viewer's own
   // events (my_event is their profile's code, my_admin_events is theirs to
   // run), so this decides placement, not access.
   const shelvesHere = useMemo(
     () => (isEventScope ? [] : eventShelves.filter(ev =>
-      ev.studioSlug ? ev.studioSlug === scope : scope === 'commons')),
+      ev.studioSlug !== null && ev.studioSlug === scope)),
     [eventShelves, scope, isEventScope],
   );
   // EventShelf loads its own entries, so it reports the count back up and
