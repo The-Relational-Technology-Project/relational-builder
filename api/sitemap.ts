@@ -19,7 +19,7 @@ const BUILDER_ANON =
   process.env.VITE_BUILDER_SUPABASE_ANON_KEY ??
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRleGFrenFxZW56cHhhd2t0Ymd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5NDczMDQsImV4cCI6MjA5ODUyMzMwNH0.NnNhDvYMPsDfC5T4QkExUtSrflG5VP76gkFY-KxiV8M';
 
-const STATIC_PAGES = ['/', '/gallery', '/commons'];
+const STATIC_PAGES = ['/', '/gallery', '/commons', '/buildtogether', '/studios'];
 
 export default async function handler(): Promise<Response> {
   let pages: { slug: string; updated_at: string }[] = [];

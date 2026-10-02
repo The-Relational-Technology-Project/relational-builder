@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 
 /**
- * The Event Admin page — running a build-a-thon room without a steward.
+ * The Event Admin page — running a community build day without a steward.
  * A steward names admins by email on the Codes tab; this is what they get:
  * the room key and the presentation link, who has joined (add by email,
  * remove), the shelf (take any deck down), and the key's on/off switch.

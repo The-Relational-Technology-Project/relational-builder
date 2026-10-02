@@ -37,7 +37,7 @@ const MAX_REQUESTS_PER_DAY = 3;
 
 /**
  * The stewards — mirrors admin-requests and src/cloud/account-requests.ts.
- * Stewards and Event Admins are the people running a buildathon rather than
+ * Stewards and Event Admins are the people running a community build day rather than
  * building in it, so the directory flags them as hosts and the chat never
  * raises a host as "at your event — go find them" (a steward on a laptop
  * elsewhere is not in the room).

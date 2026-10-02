@@ -21,7 +21,7 @@ import {
  * contexts and sources it knows, and a gallery of what its builders make.
  * Place is one shape that takes (a city, a neighborhood); a mission, a
  * network, or a practice is another. The worked example is a representative
- * San Francisco civic tech studio, not a live one. A companion to /buildathon (same shell, same form), reachable
+ * San Francisco civic tech studio, not a live one. A companion to /buildtogether (same shell, same form), reachable
  * signed in or out — Landing routes here before the app gate.
  */
 
@@ -240,8 +240,8 @@ export function StudiosPage() {
             <a href="/" className="hover:underline underline-offset-4" style={{ color: C.body }}>
               Home
             </a>
-            <a href="/buildathon" className="hidden sm:inline hover:underline underline-offset-4" style={{ color: C.body }}>
-              Build-a-thons
+            <a href="/buildtogether" className="hidden sm:inline hover:underline underline-offset-4" style={{ color: C.body }}>
+              Build Days
             </a>
             <a href="/commons" className="hidden sm:inline hover:underline underline-offset-4" style={{ color: C.body }}>
               Commons
@@ -417,7 +417,7 @@ export function StudiosPage() {
           <p>
             <a href="/" className="underline underline-offset-2">Home</a>
             {' '}·{' '}
-            <a href="/buildathon" className="underline underline-offset-2">Build-a-thons</a>
+            <a href="/buildtogether" className="underline underline-offset-2">Build Days</a>
             {' '}·{' '}
             <a href="/commons" className="underline underline-offset-2">Commons</a>
             {' '}·{' '}

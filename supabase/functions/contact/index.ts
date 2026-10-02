@@ -9,9 +9,11 @@
  * (topic: 'budget-feedback') — same table, but the email copy goes to the
  * whole team inbox, since budget sizing is a team resource question.
  *
- * The public site pages post here too: "Plan one with us" on /buildathon
- * (topic: 'buildathon') and "Create your studio" on /studios (topic:
- * 'studio'). Same table, steward inbox, a subject line that says which.
+ * The public site pages post here too: "Plan one with us" on /buildtogether
+ * (topic: 'build-day'; 'buildathon' is the same topic from builds cached
+ * before the page became "community build days") and "Create your studio"
+ * on /studios (topic: 'studio'). Same table, steward inbox, a subject line
+ * that says which.
  *
  * POST JSON: { name?, email?, neighborhood?, message, topic? }
  *   - No auth (anyone may write to us); per-IP rate limited
@@ -72,9 +74,10 @@ Deno.serve(async (req: Request) => {
     const name = String(body.name ?? '').slice(0, 120).trim() || null;
     const email = String(body.email ?? '').slice(0, 200).trim() || null;
     const neighborhood = String(body.neighborhood ?? '').slice(0, 160).trim() || null;
-    const TOPICS = ['budget-feedback', 'buildathon', 'studio'] as const;
+    const TOPICS = ['budget-feedback', 'build-day', 'studio'] as const;
     type Topic = (typeof TOPICS)[number];
-    const topic: Topic | null = (TOPICS as readonly string[]).includes(body.topic) ? body.topic : null;
+    const rawTopic = body.topic === 'buildathon' ? 'build-day' : body.topic;
+    const topic: Topic | null = (TOPICS as readonly string[]).includes(rawTopic) ? rawTopic : null;
 
     const insertRes = await fetch(rest('/contact_messages'), {
       method: 'POST',
@@ -92,16 +95,16 @@ Deno.serve(async (req: Request) => {
       const budgetFeedback = topic === 'budget-feedback';
       const who = name ?? email ?? 'someone';
       const subject =
-        topic === 'buildathon'
-          ? `Build-a-thon inquiry: ${who}`
+        topic === 'build-day'
+          ? `Community build day inquiry: ${who}`
           : topic === 'studio'
             ? `Studio inquiry: ${who}`
             : budgetFeedback
               ? `Daily budget feedback: ${name ?? email ?? 'a community builder'}`
               : `Builder contact: ${who}`;
       const intro =
-        topic === 'buildathon'
-          ? `<p><strong>${esc(name ?? 'Someone')}</strong>${email ? ` (${esc(email)})` : ''} wants to plan a build-a-thon (sent from relationalbuilder.org/buildathon).</p>`
+        topic === 'build-day'
+          ? `<p><strong>${esc(name ?? 'Someone')}</strong>${email ? ` (${esc(email)})` : ''} wants to plan a community build day (sent from relationalbuilder.org/buildtogether).</p>`
           : topic === 'studio'
             ? `<p><strong>${esc(name ?? 'Someone')}</strong>${email ? ` (${esc(email)})` : ''} wants to create a studio (sent from relationalbuilder.org/studios).</p>`
             : budgetFeedback
@@ -117,7 +120,7 @@ Deno.serve(async (req: Request) => {
           subject,
           html: [
             intro,
-            neighborhood ? `<p><strong>${topic === 'buildathon' || topic === 'studio' ? 'Place / organization' : 'Neighborhood'}:</strong> ${esc(neighborhood)}</p>` : '',
+            neighborhood ? `<p><strong>${topic === 'build-day' || topic === 'studio' ? 'Place / organization' : 'Neighborhood'}:</strong> ${esc(neighborhood)}</p>` : '',
             `<p>${esc(message).replace(/\n/g, '<br>')}</p>`,
           ].join('\n'),
         }),

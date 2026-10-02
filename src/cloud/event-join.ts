@@ -64,7 +64,7 @@ export async function joinEvent(code: string): Promise<JoinedEvent | null> {
 
 // --- The event's presentation: every pinned deck, in publish order ---
 
-/** The page a steward projects: /show/CODE, public like /buildathon */
+/** The page a steward projects: /show/CODE, public like /buildtogether */
 export const SHOW_PATH_PREFIX = '/show/';
 
 export function eventShowLink(code: string): string {

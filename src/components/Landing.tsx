@@ -11,10 +11,10 @@ import { ConfirmSignInPage } from './ConfirmSignInPage';
 import { isConfirmPath, readConfirmToken } from '@/cloud/confirm-link';
 import { stashPendingEvent, readShowCode } from '@/cloud/event-join';
 
-// The build-a-thon page is for event partners who may never sign in — its
-// own chunk, loaded only at its own address
-const BuildathonPage = lazy(() =>
-  import('./BuildathonPage').then(m => ({ default: m.BuildathonPage })),
+// The community build day page is for event partners who may never sign in —
+// its own chunk, loaded only at its own address
+const BuildTogetherPage = lazy(() =>
+  import('./BuildTogetherPage').then(m => ({ default: m.BuildTogetherPage })),
 );
 const StudiosPage = lazy(() =>
   import('./StudiosPage').then(m => ({ default: m.StudiosPage })),
@@ -29,15 +29,25 @@ const ENTERED_KEY = 'rb-entered';
 /** The landing's main nav: the site's other public pages. Each links back
  *  here as "Home" so the loop closes in one tap. */
 const LANDING_NAV = [
-  { href: '/buildathon', label: 'Build-a-thons' },
+  { href: '/buildtogether', label: 'Build Days' },
   { href: '/studios', label: 'Studios' },
   { href: '/commons', label: 'Commons' },
 ];
 
-/** /buildathon is a public companion page like #privacy — it wins over both
- *  the landing and the app, signed in or not, so partners can share the link */
-function isBuildathonPath(): boolean {
-  return window.location.pathname.replace(/\/+$/, '').toLowerCase() === '/buildathon';
+/** /buildtogether is a public companion page like #privacy — it wins over
+ *  both the landing and the app, signed in or not, so partners can share the
+ *  link. /buildathon was its address before the page became "community build
+ *  days": vercel.json redirects it in production, and this keeps the old
+ *  link working in local dev and any other host by adopting the new address. */
+const BUILD_TOGETHER_PATH = '/buildtogether';
+const LEGACY_BUILDATHON_PATH = '/buildathon';
+function isBuildTogetherPath(): boolean {
+  const p = window.location.pathname.replace(/\/+$/, '').toLowerCase();
+  if (p === LEGACY_BUILDATHON_PATH) {
+    window.history.replaceState(null, '', BUILD_TOGETHER_PATH + window.location.search + window.location.hash);
+    return true;
+  }
+  return p === BUILD_TOGETHER_PATH;
 }
 /** /studios is the same kind of page: what a Studio is, and how to start one */
 function isStudiosPath(): boolean {
@@ -122,7 +132,7 @@ export function Landing({ children }: { children: ReactNode }) {
   const [hashPage, setHashPage] = useState(getHashPage);
   // The sign-in email's link lands at /auth/confirm — a page that verifies the
   // token only when a person presses the button, so inbox link scanners can't
-  // spend it. Wins over everything else, signed in or not, like /buildathon.
+  // spend it. Wins over everything else, signed in or not, like /buildtogether.
   const [confirming, setConfirming] = useState(isConfirmPath);
 
   // App (which normally inits auth and the studio store) is gated below, so
@@ -157,12 +167,12 @@ export function Landing({ children }: { children: ReactNode }) {
     );
   }
 
-  // Same standing for the build-a-thon page, which lives at a path so it
-  // reads like the site page it is (relationalbuilder.org/buildathon)
-  if (isBuildathonPath()) {
+  // Same standing for the community build day page, which lives at a path so
+  // it reads like the site page it is (relationalbuilder.org/buildtogether)
+  if (isBuildTogetherPath()) {
     return (
       <Suspense fallback={null}>
-        <BuildathonPage />
+        <BuildTogetherPage />
       </Suspense>
     );
   }
@@ -255,7 +265,7 @@ function LandingPage({ onUnlock }: { onUnlock: () => void }) {
         </div>
 
         {/* The front door. The id is a shareable anchor (/#join) — the
-            build-a-thon page's "get an account" buttons land right here. */}
+            build day page's "get an account" buttons land right here. */}
         <section
           id="join"
           className="rounded-2xl border p-8 space-y-5 text-center scroll-mt-6"
@@ -275,13 +285,13 @@ function LandingPage({ onUnlock }: { onUnlock: () => void }) {
         {/* A quiet pointer for event partners — most visitors are here for
             the door above, so this stays a sentence, not a section */}
         <p className="text-center text-sm" style={{ color: C.muted }}>
-          Planning a build-a-thon or a group build day?{' '}
+          Planning a community build day, online or in person?{' '}
           <a
-            href="/buildathon"
+            href="/buildtogether"
             className="underline underline-offset-2"
             style={{ color: C.body, textDecorationColor: C.border }}
           >
-            See how Relational Builder supports events
+            See how Relational Builder supports build days
           </a>
           . Building with a network that shares values and a focus?{' '}
           <a
