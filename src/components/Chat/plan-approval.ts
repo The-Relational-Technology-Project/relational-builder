@@ -35,7 +35,9 @@ export function docHeadingCount(content: string): number {
  * the plan dress and carries the Build/Approve action.
  */
 export function isPlanDocument(content: string): boolean {
-  return docHeadingCount(content) >= 2;
+  // The PROJECT-NAME line every drafted plan ends with is a tell on its own —
+  // a plan written with bold labels instead of headings still needs its button
+  return docHeadingCount(content) >= 2 || /^\s*`?PROJECT-NAME:\s*\S/im.test(content);
 }
 
 /** Does a settled plan document exist anywhere in the conversation? */

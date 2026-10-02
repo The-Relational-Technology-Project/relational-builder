@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { HomeDashboard } from '@/components/HomeDashboard';
 import { MessageInput } from '@/components/Chat/MessageInput';
 import { useNeedsKey, NeedsKeyHint } from '@/components/Chat/composer-gate';
@@ -24,6 +24,11 @@ export function HomePage() {
   const setView = useUIStore(s => s.setView);
   const mode = useChatStore(s => s.mode);
   const setMode = useChatStore(s => s.setMode);
+  // The front door opens in Plan. The mode persists across sessions, and a
+  // builder who left a project in Build mode came back to a home composer
+  // that built straight from a one-line ask; the pill is right there to
+  // switch when someone really wants to skip planning.
+  useEffect(() => { setMode('plan'); }, [setMode]);
   const needsKey = useNeedsKey();
 
   const handleSend = useCallback((content: string, attachments?: string[], opts?: { photos?: QueuedPhoto[] }) => {
