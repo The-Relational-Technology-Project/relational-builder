@@ -742,7 +742,7 @@ export function CommonsGallery() {
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder={scope === 'commons' ? 'Search the commons…' : `Search the ${galleryNameFor(scopeLabel(scope))}…`}
-            className="h-8 w-56 text-sm"
+            className="h-8 w-full min-w-56 max-w-md flex-1 text-sm sm:w-auto"
           />
           {scope === 'commons' && (
             <div className="flex flex-wrap gap-1">
