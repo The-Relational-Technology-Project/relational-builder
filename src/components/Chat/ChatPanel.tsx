@@ -60,6 +60,8 @@ import { recordBuildEvent, useBuildLogStore } from '@/report/build-log';
 import { resetSubmitTracking } from '@/report/friction';
 import { BuildReportCard } from './BuildReportCard';
 import { MessageList } from './MessageList';
+import { HistoryPanel } from './HistoryPanel';
+import { useHistoryStore } from '@/store/history-store';
 import { MessageInput } from './MessageInput';
 import { CHUNK_MARKER, FILE_REQUEST_MARKER } from './display';
 import { buildPlanPrompt, isPlanApproval, shouldOfferBuild } from './plan-approval';
@@ -1352,6 +1354,7 @@ export function ChatPanel() {
   // Building: it's the chat input, pinned below the conversation.
   // A project opened with files but no chat yet is still "building".
   const fileCount = useProjectStore(s => s.getFileCount());
+  const historyOpen = useHistoryStore(s => s.open);
 
   if (messages.length === 0 && fileCount === 0) {
     return (
@@ -1367,6 +1370,13 @@ export function ChatPanel() {
         />
       </div>
     );
+  }
+
+  // History takes the chat's place (header toggle). The conversation and
+  // its composer step aside; a queued or streaming reply keeps running
+  // underneath — the effects above don't depend on what's rendered.
+  if (historyOpen) {
+    return <HistoryPanel />;
   }
 
   return (
