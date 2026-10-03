@@ -3,12 +3,14 @@ import {
   fetchDirectoryCached,
   suggestConnection,
   explainMatch,
-  type DirectoryBuilder,
+  type ConnectionMatch,
 } from '@/knowledge/connections';
 import { useAuthStore } from '@/store/auth-store';
 import { useDeskStore } from '@/store/desk-store';
 import { useLocalProjects } from '@/project/local-projects';
 import { useCloudStore } from '@/store/cloud-store';
+import { useProjectStore } from '@/store/project-store';
+import { isMicrograntAsk, MICROGRANT_FRAME } from '@/knowledge/microgrants';
 import { ConnectionActions } from './ConnectionActions';
 import { HeartHandshake, MapPin, X, NotebookPen } from 'lucide-react';
 
@@ -100,7 +102,15 @@ function countOffer(id: string): void {
 export function ConnectionSuggestion({ conversationText }: { conversationText: string }) {
   const user = useAuthStore(s => s.user);
   const eventCode = useAuthStore(s => s.profile?.event_code ?? null);
-  const [suggestion, setSuggestion] = useState<{ builder: DirectoryBuilder; matched: string[]; sameEvent: boolean } | null>(null);
+  // The kinds of thing this project is: its lineage frames, plus a
+  // gathering fund sensed from the conversation itself before any plan
+  // has stamped one
+  const lineageFrames = useProjectStore(s => s.lineage?.frames);
+  const framesKey = [
+    ...(lineageFrames ?? []),
+    ...(isMicrograntAsk(conversationText) ? [MICROGRANT_FRAME.slug] : []),
+  ].filter((f, i, a) => a.indexOf(f) === i).sort().join(',');
+  const [suggestion, setSuggestion] = useState<ConnectionMatch | null>(null);
   const [sent, setSent] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -113,18 +123,21 @@ export function ConnectionSuggestion({ conversationText }: { conversationText: s
     let cancelled = false;
     fetchDirectoryCached().then(builders => {
       if (cancelled) return;
-      const next = suggestConnection(conversationText, builders, retiredIds(readMemory()), eventCode);
+      const next = suggestConnection(
+        conversationText, builders, retiredIds(readMemory()), eventCode,
+        framesKey ? framesKey.split(',') : [],
+      );
       // Showing it is what spends an offer — a match we never render (because
       // this builder is already retired) costs nothing.
       if (next) countOffer(next.builder.id);
       setSuggestion(next);
     });
     return () => { cancelled = true; };
-  }, [active, conversationText, eventCode]);
+  }, [active, conversationText, eventCode, framesKey]);
 
   if (!active || !suggestion) return null;
-  const { builder, matched, sameEvent } = suggestion;
-  const reason = explainMatch(builder, matched, sameEvent);
+  const { builder, matched, sameEvent, sharedFrame } = suggestion;
+  const reason = explainMatch(builder, matched, sameEvent, sharedFrame);
 
   function onRequested() {
     // The introduction has been made — there is nothing left to suggest

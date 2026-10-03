@@ -26,6 +26,24 @@ export interface DirectoryBuilder {
   /** What that page says (practice, technologies, ideas, dreams) — public
    *  already, so it can feed intro matching alongside the note */
   page_text?: string | null;
+  /** The kinds of thing they're building — a domain frame (a gathering
+   *  fund, civic media) plus the project's name. Two builders on the same
+   *  kind of project are introduced on that alone. */
+  builds?: { frame: string; name: string }[];
+}
+
+/** Frames worth an introduction on their own, and how a card names them */
+export const SHARED_FRAME_LABELS: Record<string, string> = {
+  microgrants: 'a gathering fund',
+  'civic-media': 'civic media',
+};
+
+export interface ConnectionMatch {
+  builder: DirectoryBuilder;
+  matched: string[];
+  sameEvent: boolean;
+  /** The frame both are building in, when that's what raised them */
+  sharedFrame?: string;
 }
 
 async function call(body: Record<string, unknown>): Promise<Record<string, unknown>> {
@@ -96,16 +114,21 @@ export function suggestConnection(
   builders: DirectoryBuilder[],
   excludeIds: Set<string>,
   selfEventCode?: string | null,
-): { builder: DirectoryBuilder; matched: string[]; sameEvent: boolean } | null {
+  selfFrames: readonly string[] = [],
+): ConnectionMatch | null {
   const convo = new Set(meaningfulTokens(conversationText));
-  if (convo.size === 0) return null;
+  const myFrames = new Set(selfFrames.filter(f => f in SHARED_FRAME_LABELS));
+  if (convo.size === 0 && myFrames.size === 0) return null;
 
-  let best: { builder: DirectoryBuilder; matched: string[]; sameEvent: boolean } | null = null;
+  let best: ConnectionMatch | null = null;
   let bestScore = 0;
   for (const b of builders) {
     if (excludeIds.has(b.id)) continue;
     if (selfEventCode && b.host) continue;
-    if (!b.note && !b.neighborhood && !b.page_text) continue;
+    // Building the same kind of thing: a gathering fund organizer meets
+    // another gathering fund organizer, whatever their notes say
+    const sharedFrame = (b.builds ?? []).find(x => myFrames.has(x.frame))?.frame;
+    if (!b.note && !b.neighborhood && !b.page_text && !sharedFrame) continue;
     const sameEvent =
       !!selfEventCode && !!b.event_code &&
       b.event_code.toUpperCase() === selfEventCode.toUpperCase();
@@ -116,13 +139,16 @@ export function suggestConnection(
     // Bar: two topical matches, or one topical + a place match — or one
     // topical match when you're both at the same event
     const clears =
+      !!sharedFrame ||
       noteMatches.length >= 2 ||
       (noteMatches.length >= 1 && placeMatches.length >= 1) ||
       (sameEvent && noteMatches.length >= 1);
-    // Same-event peers outrank everyone: the introduction can happen today
-    const score = matched.length + (sameEvent ? 100 : 0);
+    // Same-event peers outrank everyone: the introduction can happen today.
+    // A shared kind of project outranks word overlap; a place match on top
+    // of it wins among those.
+    const score = matched.length + (sharedFrame ? 50 : 0) + (sameEvent ? 100 : 0);
     if (clears && (!best || score > bestScore)) {
-      best = { builder: b, matched, sameEvent };
+      best = { builder: b, matched, sameEvent, sharedFrame };
       bestScore = score;
     }
   }
@@ -139,6 +165,7 @@ export function explainMatch(
   builder: DirectoryBuilder,
   matched: string[],
   sameEvent: boolean,
+  sharedFrame?: string,
 ): string {
   const place = meaningfulTokens(builder.neighborhood ?? '');
   // Tokens are stemmed for matching ("libraries" → "librarie"); surface the
@@ -150,6 +177,14 @@ export function explainMatch(
     .map(t => surface.find(w => w === t || w === `${t}s` || w === `${t}es`) ?? t);
   const sharedPlace = matched.some(t => place.includes(t));
   const parts: string[] = [];
+  if (sharedFrame && SHARED_FRAME_LABELS[sharedFrame]) {
+    const theirs = (builder.builds ?? []).filter(x => x.frame === sharedFrame && x.name).map(x => x.name);
+    parts.push(
+      theirs.length > 0
+        ? `you're both building ${SHARED_FRAME_LABELS[sharedFrame]} — theirs is ${listWords(theirs.slice(0, 2))}`
+        : `you're both building ${SHARED_FRAME_LABELS[sharedFrame]}`,
+    );
+  }
   if (topics.length > 0) parts.push(`you've both been writing about ${listWords(topics)}`);
   if (sharedPlace && builder.neighborhood) parts.push(`you're both around ${builder.neighborhood}`);
   if (sameEvent) parts.push(sharedPlace || topics.length ? "you're at the same event today" : `you're both at this event and ${builder.name} is working on something close by`);
