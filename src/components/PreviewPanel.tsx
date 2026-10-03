@@ -9,6 +9,7 @@ import {
 } from '@codesandbox/sandpack-react';
 import type { FileEntry } from '@/project/virtual-fs';
 import { useProjectStore } from '@/store/project-store';
+import { useHistoryStore, usePreviewedCheckpoint, formatVersionTime } from '@/store/history-store';
 import { usePanelStore } from '@/store/panel-store';
 import { artifactName } from '@/project/display-name';
 import { useEnvStore } from '@/store/env-store';
@@ -49,7 +50,7 @@ import { Boxes, Sparkles } from 'lucide-react';
  *   of a cryptic error.
  */
 export function PreviewPanel() {
-  const version = useProjectStore(s => s.version);
+  const liveVersion = useProjectStore(s => s.version);
   const getAllFiles = useProjectStore(s => s.getAllFiles);
   const allEnvVars = useEnvStore(s => s.vars);
   const publicEnvVars = useMemo(() => allEnvVars.filter(v => !v.isSecret), [allEnvVars]);
@@ -60,7 +61,17 @@ export function PreviewPanel() {
   // (kind detection, route extraction, doc/material scans — all re-ran per
   // render).
   // eslint-disable-next-line react-hooks/exhaustive-deps -- version is the VFS change signal
-  const files = useMemo(() => getAllFiles(), [version, getAllFiles]);
+  const liveFiles = useMemo(() => getAllFiles(), [liveVersion, getAllFiles]);
+
+  // Looking at an older version (History panel): that checkpoint's files
+  // stand in for the live ones, right here and nowhere else — the working
+  // files, cloud copy, and connected repo never see it. The engines rebuild
+  // on `version`, so a previewed version gets its own number: negative, so
+  // it can never collide with a live version count, and keyed to the
+  // checkpoint so switching between versions (or back to live) rebuilds.
+  const previewed = usePreviewedCheckpoint();
+  const files = previewed ? previewed.files : liveFiles;
+  const version = previewed ? -previewed.timestamp : liveVersion;
   const kind = useMemo(() => detectPreviewKind(files), [files]);
 
   // Toolbar state: device width, engine controls, page tracking
@@ -211,14 +222,15 @@ export function PreviewPanel() {
   return (
     <div className="h-full" style={{ display: 'flex', flexDirection: 'column' }}>
       {tabsRow}
+      {previewed && <VersionBanner label={previewed.label} timestamp={previewed.timestamp} />}
       <PreviewToolbar
         device={device}
         onDevice={setDevice}
         routes={routes}
         currentRoute={currentRoute}
         handle={kind === 'framework' ? handle : sandpackHandle}
-        pointing={pointing}
-        onPointing={setPointing}
+        pointing={previewed ? false : pointing}
+        onPointing={previewed ? () => {} : setPointing}
       />
       <DeviceFrame device={device}>
         {kind === 'framework' ? (
@@ -241,6 +253,29 @@ export function PreviewPanel() {
           />
         )}
       </DeviceFrame>
+    </div>
+  );
+}
+
+/**
+ * The one line that keeps an older version from passing as the project:
+ * what you're looking at, when it's from, and the way back. Reverting lives
+ * in the History panel beside it, with its confirmation — this strip only
+ * says where you are.
+ */
+function VersionBanner({ label, timestamp }: { label: string; timestamp: number }) {
+  const clearPreview = useHistoryStore(s => s.clearPreview);
+  return (
+    <div className="shrink-0 flex items-center gap-2 border-b bg-amber-50 dark:bg-amber-950/40 px-3 py-1.5 text-xs">
+      <span className="min-w-0 flex-1 truncate text-amber-900 dark:text-amber-200">
+        Viewing <span className="font-medium">{label}</span> from {formatVersionTime(timestamp)} — not the current version
+      </span>
+      <button
+        onClick={clearPreview}
+        className="shrink-0 underline decoration-dotted text-amber-900 dark:text-amber-200 hover:opacity-80"
+      >
+        Back to current
+      </button>
     </div>
   );
 }

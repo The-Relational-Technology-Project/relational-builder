@@ -3,6 +3,7 @@ import { RBMark } from '@/components/RBMark';
 import { Separator } from '@/components/ui/separator';
 import { buttonVariants } from '@/components/ui/button';
 import { ProjectMenu } from '@/components/ProjectMenu';
+import { HistoryToggle } from '@/components/HistoryToggle';
 import { useUIStore, type AppView } from '@/store/ui-store';
 import { useCurrentProjectName } from '@/lib/use-project-name';
 
@@ -88,7 +89,11 @@ export function MainNav() {
           name, so the slot is empty and the destinations lead. */}
       {projectName !== null &&
         (view === 'builder' ? (
-          <ProjectMenu />
+          <>
+            <ProjectMenu />
+            {/* The project's versions, beside the project's name */}
+            <HistoryToggle />
+          </>
         ) : (
           <button
             onClick={go('builder')}

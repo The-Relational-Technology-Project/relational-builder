@@ -25,6 +25,7 @@ import { RBMark } from '@/components/RBMark';
 import { MainNav } from '@/components/MainNav';
 import { useCurrentProjectName } from '@/lib/use-project-name';
 import { ProjectMenu } from '@/components/ProjectMenu';
+import { HistoryToggle } from '@/components/HistoryToggle';
 import { InviteBanner } from '@/components/InviteBanner';
 import { EventJoinBanner } from '@/components/EventJoinBanner';
 
@@ -246,7 +247,10 @@ function App() {
           {/* In the project, the pill is the project's own menu; from a page
               it's the way back to it. */}
           {inProject ? (
-            <ProjectMenu />
+            <>
+              <ProjectMenu />
+              <HistoryToggle />
+            </>
           ) : projectName !== null ? (
             <button
               onClick={() => setView('builder')}
