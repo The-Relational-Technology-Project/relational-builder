@@ -1,12 +1,18 @@
--- Radically Rural: offer the seeded shelf to the whole Gallery (Oct 4 2026).
+-- Radically Rural: offer part of the seeded shelf to the whole Gallery
+-- (Oct 4 2026).
 --
 -- The three seed passes landed studio-private, leaving any wider sharing to
 -- a Studio Admin. This is that act, taken by the studio's admin (Deborah)
--- for the summit: every seeded example and recipe becomes `shared`, so it
--- appears in the Commons gallery for every signed-in builder, credited to
--- its source and badged with the studio.
+-- for the summit. 44 rows become `shared`, so they appear in the Commons
+-- gallery for every signed-in builder, credited and badged with the studio:
+-- - the 42 models from Radically Rural's own library
+-- - Dorn Cox's two: Tuckaway Food Commons and Farm Hack
 --
--- Scope, deliberately narrow:
+-- Everything else stays studio-private for now: the 19 New Ruralism case
+-- studies and the 14 Becky McCray recipes and linked resources. They aren't
+-- Radically Rural's to publish, so they wait on their owners' blessing.
+--
+-- Also narrow:
 -- - Seeded rows only (created_by is null). Members' own contributions keep
 --   whatever visibility they were given.
 -- - Not principles. The gallery never renders them as cards, and they stay
@@ -23,4 +29,6 @@ update public.studio_library_items
   set visibility = 'shared'
   where studio_slug = 'radically-rural'
     and created_by is null
-    and kind <> 'principle';
+    and kind <> 'principle'
+    and (attribution like '% · Radically Rural models library'
+         or title in ('Tuckaway Food Commons', 'Farm Hack'));
