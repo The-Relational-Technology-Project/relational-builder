@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Wrench, Loader2 } from 'lucide-react';
 import { useChatStore } from '@/store/chat-store';
+import { useHistoryStore } from '@/store/history-store';
 import { useProjectStore } from '@/store/project-store';
 import { recordBuildEvent } from '@/report/build-log';
 import { suggestLucideIcons } from '@/preview/lucide-icons';
@@ -117,6 +118,10 @@ function queueFixForError(error: string): void {
  */
 export function FixBanner({ error }: { error: string | null }) {
   const isGenerating = useChatStore(s => s.isGenerating);
+  // An older version on show (History panel): its errors were already lived
+  // through — asking the AI to fix the CURRENT files for them would be
+  // nonsense, so neither the automatic pass nor the button runs
+  const viewingOldVersion = useHistoryStore(s => s.previewCheckpointId !== null);
   const autoFixArmed = useChatStore(s => s.autoFixArmed);
   // A first build's errors are churn, not news: continuations and the auto
   // fix pass below resolve them without the person doing anything, so the
@@ -148,7 +153,7 @@ export function FixBanner({ error }: { error: string | null }) {
   // re-checking the chain state fresh, keeps the one fix pass for errors
   // that are both real and still standing.
   useEffect(() => {
-    if (!error || !autoFixArmed || isGenerating) return;
+    if (!error || !autoFixArmed || isGenerating || viewingOldVersion) return;
     const timer = setTimeout(() => {
       const chat = useChatStore.getState();
       // A continuation or any queued send is in flight — its reply (or the
@@ -161,9 +166,19 @@ export function FixBanner({ error }: { error: string | null }) {
       queueFixForError(error);
     }, 2_500);
     return () => clearTimeout(timer);
-  }, [error, autoFixArmed, isGenerating]);
+  }, [error, autoFixArmed, isGenerating, viewingOldVersion]);
 
   if (!error || cooking) return null;
+
+  if (viewingOldVersion) {
+    return (
+      <div className="shrink-0 border-t bg-muted px-3 py-2">
+        <p className="text-xs text-muted-foreground line-clamp-2" title={error}>
+          This older version had an error: {error.slice(0, 140)}
+        </p>
+      </div>
+    );
+  }
 
   const autoFixing = isGenerating;
 

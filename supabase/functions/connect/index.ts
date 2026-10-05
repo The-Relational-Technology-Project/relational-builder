@@ -411,6 +411,35 @@ Deno.serve(async (req: Request) => {
         }
       }
 
+      // What each builder is working on, by kind: the domain frames stamped
+      // on their cloud projects (a gathering fund, civic media). Two people
+      // building the same kind of thing are the strongest introduction the
+      // Builder can make, whatever their notes say. Only the frame and the
+      // project's name travel — never files, chat, or lineage details.
+      const SHARED_FRAMES = new Set(['microgrants', 'civic-media']);
+      const buildsByOwner = new Map<string, { frame: string; name: string }[]>();
+      if (visible.length > 0) {
+        const ids = visible.map((p: { id: string }) => p.id).join(',');
+        const projRes = await fetch(
+          rest(`/projects?owner_id=in.(${ids})&select=owner_id,name,lineage&order=updated_at.desc&limit=600`),
+          { headers: svc() },
+        );
+        const projects = (projRes.ok ? await projRes.json() : []) as {
+          owner_id: string; name: string | null; lineage: { frames?: unknown } | null;
+        }[];
+        for (const pr of projects) {
+          const frames = Array.isArray(pr.lineage?.frames) ? (pr.lineage!.frames as unknown[]).map(String) : [];
+          for (const frame of frames) {
+            if (!SHARED_FRAMES.has(frame)) continue;
+            const mine = buildsByOwner.get(pr.owner_id) ?? [];
+            if (mine.length < 3 && !mine.some(b => b.frame === frame && b.name === (pr.name ?? ''))) {
+              mine.push({ frame, name: (pr.name ?? '').slice(0, 80) });
+              buildsByOwner.set(pr.owner_id, mine);
+            }
+          }
+        }
+      }
+
       // Hosts: stewards, plus anyone named an Event Admin of the event they
       // carry. The flag is all that leaves — never the email or the role
       const stewards = stewardEmails();
@@ -441,6 +470,8 @@ Deno.serve(async (req: Request) => {
         // Running the room rather than in it — kept out of event suggestions
         host: isHost(p),
         prompts: promptsByOwner.get(String(p.id)) ?? [],
+        // The kinds of thing they're building (frame + project name)
+        builds: buildsByOwner.get(String(p.id)) ?? [],
         // email deliberately omitted
       }));
       return json({ builders });
