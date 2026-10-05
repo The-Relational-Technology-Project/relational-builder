@@ -138,6 +138,24 @@ export async function fetchMicrograntCards(): Promise<CommonsCard[]> {
 }
 
 /**
+ * Contributed: what builders gave back through Relational Builder and a
+ * steward approved. Every contribution that comes through the Builder is
+ * tagged `relational-builder` by the commons' own submit function, and
+ * approval publishes it as canonical under the studio it was offered from
+ * (`rt` when it came from the commons itself). The fixed shelves above
+ * each read one studio slug, so without this shelf an approved gift from
+ * any other studio — Radically Rural, Responsive Cities, the commons —
+ * was canonical but on no shelf anyone browsing could see. Newest first:
+ * the point of the shelf is that a contributor finds their own gift.
+ */
+export async function fetchContributedCards(): Promise<CommonsCard[]> {
+  return rest<CommonsCard[]>(
+    `commons_items?select=${CARD_COLUMNS}` +
+      `&tags=cs.{relational-builder}&status=eq.canonical&order=created_at.desc`,
+  );
+}
+
+/**
  * Bodies are Markdown, except the field-guide stories, which came over from
  * the Studio site as HTML. Normalized here so every reader downstream — the
  * detail dialog, a remix, the excerpts that ride into prompts — sees one
