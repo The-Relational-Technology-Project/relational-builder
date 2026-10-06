@@ -28,6 +28,7 @@ import { GalleryToolBuilders } from '@/components/GalleryToolBuilders';
 import { ContributeCallout } from '@/components/ContributeDialog';
 import { StudioContributeDialog } from '@/components/StudioContributeDialog';
 import { EventShelf } from '@/components/EventShowcase';
+import { EventInspiration } from '@/components/EventInspiration';
 import { fetchMyEvent, eventScopeFor, eventCodeOfScope, type EventShelfInfo } from '@/cloud/event-showcase';
 import { fetchMyAdminEvents } from '@/cloud/event-admin';
 import { useAuthStore } from '@/store/auth-store';
@@ -657,7 +658,7 @@ export function CommonsGallery() {
             {scope === 'commons'
               ? 'Tools, practices, and recipes from the civic commons – ready to be remixed, with attribution and lineage, for your place.'
               : isEventScope
-                ? `What the room built — pinned by the builders themselves via Share Live. Only people at the event${eventShelf?.admin ? ' and its hosts' : ''} have this shelf.`
+                ? `What the room built — pinned by the builders themselves via Share Live — with the neighborhood's own tools beneath for inspiration. Only people at the event${eventShelf?.admin ? ' and its hosts' : ''} have this shelf.`
                 : 'Your studio’s own examples, prompts, and materials — for approved members to build from and remix, with the studio’s principles live in every build.'}
           </p>
         </div>
@@ -810,9 +811,15 @@ export function CommonsGallery() {
         {error && <p className="text-sm text-destructive">{error}</p>}
 
         {/* The event shelf is its own thing — demo decks, not remixable
-            cards — so it replaces the grid rather than filtering it */}
+            cards — so it replaces the grid rather than filtering it. The
+            decks lead; a curated inspiration shelf (the neighborhood's real
+            tools) follows beneath them, and only the decks reach the
+            presentation page. */}
         {eventShelf ? (
-          <EventShelf code={eventShelf.code} name={eventShelf.name} admin={eventShelf.admin} />
+          <>
+            <EventShelf code={eventShelf.code} name={eventShelf.name} admin={eventShelf.admin} />
+            <EventInspiration code={eventShelf.code} name={eventShelf.name} />
+          </>
         ) : !loaded ? (
           <p className="text-sm text-muted-foreground flex items-center gap-2">
             <Loader2 className="size-3.5 animate-spin" /> Loading the gallery…
