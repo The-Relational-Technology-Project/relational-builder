@@ -65,7 +65,33 @@ const MAX_MESSAGE_CHARS = 20000;
  * five files "cut off mid-stream" (wrong filenames included) for a build whose
  * only genuine cutoff was one. The marker instead names what the trimmed tail
  * held, including the file that truly was cut off, if any.
+ *
+ * The prose after the last file survives the trim too. A build reply ends
+ * with its "What changed" bullets and the one line the build prompt asks for
+ * — what was left for the next pass — and a prefix-only trim dropped exactly
+ * that: the sentence a steward reading the report most wants.
  */
+const MAX_TAIL_CHARS = 1500;
+
+/** The prose after the last complete code block, or '' when the reply ends
+ *  inside a fence (a genuine cutoff) or with no prose after its files */
+export function closingProse(rest: string): string {
+  let inFence = false;
+  let tailStart = -1;
+  let offset = 0;
+  for (const line of rest.split('\n')) {
+    if (line.startsWith('```')) {
+      inFence = !inFence;
+      if (!inFence) tailStart = offset + line.length + 1;
+    }
+    offset += line.length + 1;
+  }
+  if (inFence || tailStart < 0) return '';
+  const tail = rest.slice(tailStart).trim();
+  if (tail.length <= MAX_TAIL_CHARS) return tail;
+  return '…' + tail.slice(tail.length - MAX_TAIL_CHARS).trimStart();
+}
+
 export function trimForReport(content: string): string {
   if (content.length <= MAX_MESSAGE_CHARS) return content;
   const marker = (rest: string): string => {
@@ -92,7 +118,9 @@ export function trimForReport(content: string): string {
   }
   // Degenerate content (no safe boundary in budget): fall back to a raw slice
   if (safeEnd === 0) return `${content.slice(0, budget)}\n…(trimmed for length)`;
-  return content.slice(0, safeEnd) + marker(content.slice(safeEnd));
+  const rest = content.slice(safeEnd);
+  const tail = closingProse(rest);
+  return content.slice(0, safeEnd) + marker(rest) + (tail ? `\n\n${tail}` : '');
 }
 
 export function assembleReportChat(excludedIds: ReadonlySet<string>): ReportChatMessage[] {
