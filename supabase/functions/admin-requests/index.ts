@@ -467,7 +467,9 @@ Deno.serve(async (req: Request) => {
       }
       if (!insRes.ok) return json({ error: 'Could not create the event code' }, 500);
       const [row] = await insRes.json();
-      return json({ ok: true, event_code: { ...row, joined: 0 } });
+      // Shaped like a list row: the client renders the fresh card from this
+      // without a refetch, and it maps over admins straight away
+      return json({ ok: true, event_code: { ...row, joined: 0, admins: [] } });
     }
 
     if (action === 'event_code_set') {

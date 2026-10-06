@@ -82,7 +82,11 @@ export async function adminCreateEventCode(input: {
       ? { studio_slug: input.studioSlug, studio_label: input.studioLabel ?? input.studioSlug }
       : {}),
   });
-  return result.event_code as EventCode;
+  // A fresh row carries no joiners and no admins yet; older deployments of
+  // the function leave those keys out entirely, and the steward page maps
+  // over them the moment the card renders
+  const row = result.event_code as Partial<EventCode>;
+  return { ...row, joined: row.joined ?? 0, admins: row.admins ?? [] } as EventCode;
 }
 
 export async function adminSetEventCodeActive(code: string, active: boolean): Promise<void> {
