@@ -8,7 +8,7 @@
 -- from the live pages, read Oct 6 2026. Screenshots were captured the same
 -- day and live on the public studio-library bucket.
 --
--- Repo links are left null until the hosts supply them.
+-- Repos live in the project's GitHub org.
 --
 -- Re-runnable: clears the SUNSET shelf before re-inserting.
 
@@ -18,7 +18,7 @@ insert into public.event_shelf_items
   (event_code, title, summary, body, image_url, site_url, repo_url, attribution, tags, sort_order)
 select 'SUNSET', v.title, v.summary, v.body,
        'https://texakzqqenzpxawktbgx.supabase.co/storage/v1/object/public/studio-library/event-shelf/sunset/' || v.shot,
-       v.site_url, null, v.attribution, v.tags, v.sort_order
+       v.site_url, v.repo_url, v.attribution, v.tags, v.sort_order
 from (values
   ('Outer Sunset Today',
    'Your daily dashboard for events, community life, and local happenings in San Francisco''s Outer Sunset neighborhood.',
@@ -26,6 +26,7 @@ from (values
 
 **How it works** — Events are pulled from the neighborhood''s venues, libraries and groups, with a "Submit an Event" door for anything missed. Each event has a Source link back to where it came from and an "Add to My Plan" button, so a neighbor builds their own day from the list. News is drawn from local outlets and credited. The community guide at outersunset.us points here for anything time-bound.',
    'outersunset-today.jpg', 'https://outersunset.today',
+   'https://github.com/The-Relational-Technology-Project/outer-sunset-today',
    'Outer Sunset, San Francisco · a neighborhood daily',
    array['sunset', 'events', 'local-news', 'daily']::text[], 10),
 
@@ -35,6 +36,7 @@ from (values
 
 **How it works** — Every group is a short entry with a link, nothing more. Anyone can suggest a group through a small form (name, link, a note, a quick human check), and the list gets better as more neighbors shape it. There is a Chinese-language version, a contact form, and a pointer to outersunset.today for anything happening this week. This is the real site behind the commons'' "Neighborhood Connector Site" card.',
    'outersunset-us.jpg', 'https://outersunset.us',
+   'https://github.com/The-Relational-Technology-Project/sunsetpeople',
    'Outer Sunset, San Francisco · a neighborhood guide',
    array['sunset', 'groups', 'directory', 'bilingual']::text[], 20),
 
@@ -44,6 +46,7 @@ from (values
 
 **How it works** — Three views: Nearby (the closest stops, in order), Map, and All. A Tour mode strings stops into a walk; About explains the project. Historical images are credited to their archives (OpenSFHistory and others). The design is deliberately quiet, more field guide than app, so the neighborhood stays the main thing on screen. This is the real site behind the commons'' "Neighborhood History (and Future) Walking App" card.',
    'outersunset-place.jpg', 'https://outersunset.place',
+   'https://github.com/The-Relational-Technology-Project/sunset-walking-guide',
    'Outer Sunset, San Francisco · a walking guide',
    array['sunset', 'history', 'walking', 'mobile']::text[], 30),
 
@@ -53,6 +56,7 @@ from (values
 
 **How it works** — The front page carries what the block actually needs: a "New to the Block?" welcome, this week''s neighborhood events (fed from outersunset.today), street-cleaning reminders by side of the street with a sign-up for 8am texts, and an ideas board where neighbor-driven initiatives are proposed and marked accomplished. A Prep section covers emergency readiness; Party is the block party planning tool. This is the real site behind the commons'' "Hyperlocal Neighbor Hubs" prompt.',
    'cozycorner.jpg', 'https://cozycorner.place',
+   'https://github.com/The-Relational-Technology-Project/cozy-corner',
    '48th Ave, Outer Sunset, San Francisco · a block hub',
    array['sunset', 'block', 'neighbor-hub', 'bilingual']::text[], 40),
 
@@ -62,6 +66,7 @@ from (values
 
 **How it works** — A steward starts a sharing community for their neighborhood. Members join (an "Apply" door for people the steward does not know yet) and list items. Borrowing is a conversation between neighbors, not a checkout system. The software is free and open source, and the project will help a new neighborhood get set up. Its "A Peek Inside" section links the rest of the Outer Sunset tools on this shelf.',
    'community-supplies.jpg', 'https://communitysupplies.org',
+   'https://github.com/The-Relational-Technology-Project/community-supplies',
    'Sunset & Richmond, San Francisco · a sharing community',
    array['sunset', 'sharing', 'lending-library', 'open-source']::text[], 50),
 
@@ -71,6 +76,7 @@ from (values
 
 **How it works** — A potluck sign-up (what dish or drink can you bring) and volunteer sign-ups where each role is a button: barricades setup, roaming welcome committee, bounce house monitor, art station monitor, potluck setup and takedown, pet parade facilitator. Both are optional, so showing up is still the main ask. The same page carries the Prep and Contact sections of the hub, so the party sits inside the block''s ongoing life rather than as a one-off. This is the real page behind the commons'' "Block Party Organizing" prompt.',
    'block-party.jpg', 'https://cozycorner.place/block-party',
+   'https://github.com/The-Relational-Technology-Project/cozy-corner',
    '48th Ave, Outer Sunset, San Francisco · a block party page',
    array['sunset', 'block-party', 'sign-ups', 'volunteers']::text[], 60)
-) as v(title, summary, body, shot, site_url, attribution, tags, sort_order);
+) as v(title, summary, body, shot, site_url, repo_url, attribution, tags, sort_order);
