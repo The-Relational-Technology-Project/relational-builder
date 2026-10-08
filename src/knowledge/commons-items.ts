@@ -113,6 +113,23 @@ export async function fetchLocalCivicTechCards(): Promise<CommonsCard[]> {
 }
 
 /**
+ * Deliberation: neighborhood-scale deliberation tools, the stages they
+ * serve, field stories, and remixable patterns — Metagov's Deliberative
+ * Tools Gallery plus RTP field picks (moved here from the Builder's
+ * experimental deliberation branch). The frameworks and practice lead,
+ * then the tools, the starter prompts, the stories, references last.
+ */
+const DELIBERATION_SHELF_ORDER: Record<string, number> = { framework: 0, methodology: 1, recipe: 2, tool: 3, prompt: 4, story: 5, reference: 6 };
+
+export async function fetchDeliberationCards(): Promise<CommonsCard[]> {
+  const rows = await rest<CommonsCard[]>(
+    `commons_items?select=${CARD_COLUMNS}` +
+      `&source_studio_slug=eq.deliberation&status=eq.canonical&order=sort_order.asc,title.asc`,
+  );
+  return rows.sort((a, b) => (DELIBERATION_SHELF_ORDER[a.kind] ?? 9) - (DELIBERATION_SHELF_ORDER[b.kind] ?? 9));
+}
+
+/**
  * Microgrants: the neighborhood microgrant program shelf — the end-to-end
  * program system (described feature-by-feature, remixable without code) and
  * the With Neighbors organizer toolkit. The tool leads, the practice guide

@@ -87,6 +87,14 @@ The loop a gated studio runs, end to end:
 Pending offers are never injected into anyone's AI context and never leave
 the studio; members see their own pending offers badged "awaiting approval."
 
+## Pinning commons shelves onto a studio gallery
+
+A studio can pin whole commons shelves onto its own gallery
+(`STUDIO_COMMONS_PINS` in `src/knowledge/studio-context.ts`; Bloom pins
+`deliberation`). Pinned cards stay commons cards with commons lineage and
+attribution; they simply appear under the studio's own shelf so members find
+them where they look.
+
 ## Sharing to the commons
 
 A Studio Admin shares per-item (Studio admin → Library → share icon):

@@ -129,6 +129,8 @@ export function frameSlugsForCommonsItem(item: { source_studio_slug?: string | n
   if (item.source_studio_slug === 'civic-media') return [CIVIC_MEDIA_FRAME.slug];
   // Anything on the Microgrants shelf starts the gathering-fund plan conversation
   if (item.source_studio_slug === 'microgrants') return [MICROGRANT_FRAME.slug];
+  // The deliberation shelf's tools, prompts, and stories start a deliberation build
+  if (item.source_studio_slug === 'deliberation') return [DELIBERATIVE_FRAME.slug];
   if (item.kind === 'recipe') return [PRACTICE_FIRST_FRAME.slug];
   return [];
 }

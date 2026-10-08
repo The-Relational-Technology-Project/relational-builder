@@ -9,10 +9,11 @@ import { searchCommons } from '@/knowledge/commons-search';
 import { STUDIO_ITEM_KINDS, type StudioLibraryItem } from '@/cloud/studio-library';
 import { startFromStudioItem } from '@/project/start-from-studio-item';
 import { studioLineageChain, formatLineageChain } from '@/knowledge/studio-lineage';
-import { studioPartnerCredit } from '@/knowledge/studio-context';
+import { studioPartnerCredit, studioCommonsPins } from '@/knowledge/studio-context';
 import {
   fetchCivicMediaCards, fetchNeighboringRecipeCards,
   fetchCommunityOrganizingCards, fetchLocalCivicTechCards, fetchMicrograntCards, fetchContributedCards,
+  fetchDeliberationCards,
   fetchCommonsItemDetail,
   type CommonsCard, type CommonsItemDetail,
 } from '@/knowledge/commons-items';
@@ -74,6 +75,7 @@ const CATEGORIES = [
   { key: 'organizing', label: 'Community organizing' },
   { key: 'civic_tech', label: 'Local civic tech' },
   { key: 'microgrants', label: 'Microgrants' },
+  { key: 'deliberation', label: 'Deliberation' },
   { key: 'contributed', label: 'From builders' },
   { key: 'stories', label: 'Local stories' },
 ] as const;
@@ -126,7 +128,7 @@ const SHELF_ICONS: Record<ShelfIconKey, typeof Newspaper> = {
 
 /** The canonical shelves: a studio slug that is one of these is a fixed
  *  shelf of the commons. Anything else came in as a contribution. */
-const CANONICAL_SHELVES = new Set(['civic-media', 'rtp-canonical', 'community-organizing', 'local-civic-tech', 'microgrants']);
+const CANONICAL_SHELVES = new Set(['civic-media', 'rtp-canonical', 'community-organizing', 'local-civic-tech', 'microgrants', 'deliberation']);
 
 function isContributed(card: CommonsCard): boolean {
   return !CANONICAL_SHELVES.has(card.source_studio_slug ?? '');
@@ -143,6 +145,7 @@ function shelfFor(card: CommonsCard, studioLabel?: string): { label: string; ico
     case 'community-organizing': return { label: 'Community Organizing', icon: 'users' };
     case 'local-civic-tech': return { label: 'Local Civic Tech', icon: 'landmark' };
     case 'microgrants': return { label: 'Microgrants', icon: 'coins' };
+    case 'deliberation': return { label: 'Deliberation', icon: 'users' };
     case 'rtp-canonical': return { label: 'Neighboring', icon: 'sprout' };
     default: return { label: studioLabel ?? 'From builders', icon: 'gift' };
   }
@@ -159,7 +162,7 @@ function kindLabel(card: CommonsCard): string {
 /** Human-facing tags only — the namespaced enums are retrieval filters,
  *  and each item's own shelf tag just repeats the card header */
 const SHELF_TAGS = new Set([
-  'civic-media', 'community-organizing', 'local-civic-tech', 'microgrants',
+  'civic-media', 'community-organizing', 'local-civic-tech', 'microgrants', 'deliberation',
   // the commons' own provenance tags on a contribution — the card header says it
   'relational-builder', 'contributed-tool', 'contributed-resource', 'contributed-program', 'contributed-story', 'contributed-prompt',
 ]);
@@ -197,6 +200,7 @@ export function CommonsGallery() {
   const [organizingCards, setOrganizingCards] = useState<CommonsCard[]>([]);
   const [civicTechCards, setCivicTechCards] = useState<CommonsCard[]>([]);
   const [micrograntCards, setMicrograntCards] = useState<CommonsCard[]>([]);
+  const [deliberationCards, setDeliberationCards] = useState<CommonsCard[]>([]);
   const [contributedCards, setContributedCards] = useState<CommonsCard[]>([]);
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -275,6 +279,7 @@ export function CommonsGallery() {
     fetchCommunityOrganizingCards().then(setOrganizingCards).catch(() => {});
     fetchLocalCivicTechCards().then(setCivicTechCards).catch(() => {});
     fetchMicrograntCards().then(setMicrograntCards).catch(() => {});
+    fetchDeliberationCards().then(setDeliberationCards).catch(() => {});
     fetchContributedCards().then(setContributedCards).catch(() => {});
     loadGalleryReferences().then(setReferences).catch(() => {});
   }, []);
@@ -439,7 +444,13 @@ export function CommonsGallery() {
       const studioGifts: GalleryEntry[] = contributedCards
         .filter(c => c.source_studio_slug === scope)
         .map(c => ({ key: `commons-${c.slug}`, type: 'commons' as const, card: c }));
-      const all = [...studioGifts, ...shelf, ...studioTools];
+      // Commons shelves the studio pins onto its gallery (studio-context):
+      // commons cards with commons lineage, placed where members look
+      const pins = studioCommonsPins(scope);
+      const pinned: GalleryEntry[] = pins.includes('deliberation')
+        ? deliberationCards.map(c => ({ key: `commons-${c.slug}`, type: 'commons' as const, card: c }))
+        : [];
+      const all = [...studioGifts, ...shelf, ...studioTools, ...pinned];
       return q ? all.filter(substringHit) : all;
     }
 
@@ -476,6 +487,8 @@ export function CommonsGallery() {
       .map(c => ({ key: `commons-${c.slug}`, type: 'commons' as const, card: c }));
     const micrograntEntries: GalleryEntry[] = storyCut(micrograntCards, 'microgrants')
       .map(c => ({ key: `commons-${c.slug}`, type: 'commons' as const, card: c }));
+    const deliberationEntries: GalleryEntry[] = storyCut(deliberationCards, 'deliberation')
+      .map(c => ({ key: `commons-${c.slug}`, type: 'commons' as const, card: c }));
     // Approved contributions from builders, whatever studio they came from.
     // One that also rides a fixed shelf (a microgrant program offered back)
     // is deduped below in favour of that shelf.
@@ -509,7 +522,7 @@ export function CommonsGallery() {
     // A card can ride two shelves (the microgrant gathering recipe is both a
     // neighboring recipe and a microgrants card): the first shelf keeps it
     const seen = new Set<string>();
-    const all = [...toolEntries, ...civicEntries, ...neighboringEntries, ...organizingEntries, ...civicTechEntries, ...micrograntEntries, ...contributedEntries, ...sharedEntries, ...kbStoryEntries]
+    const all = [...toolEntries, ...civicEntries, ...neighboringEntries, ...organizingEntries, ...civicTechEntries, ...micrograntEntries, ...deliberationEntries, ...contributedEntries, ...sharedEntries, ...kbStoryEntries]
       .filter(e => !seen.has(e.key) && (seen.add(e.key), true));
 
     if (!q) {
@@ -528,7 +541,7 @@ export function CommonsGallery() {
       .filter(x => x.rank !== undefined || x.sub)
       .sort((a, b) => (a.rank ?? 999) - (b.rank ?? 999))
       .map(x => x.e);
-  }, [galleryTools, civicCards, neighboringCards, organizingCards, civicTechCards, micrograntCards, contributedCards, stories, category, query, badgesFor, semanticRank, scope, studioLibrary, links]);
+  }, [galleryTools, civicCards, neighboringCards, organizingCards, civicTechCards, micrograntCards, deliberationCards, contributedCards, stories, category, query, badgesFor, semanticRank, scope, studioLibrary, links]);
 
   const promptsFor = (tool: Tool) => prompts.filter(p => p.parent_tool_id === tool.id);
 
@@ -594,6 +607,9 @@ export function CommonsGallery() {
       ...micrograntCards.map(c => ({
         source: 'commons' as const, id: c.slug, title: c.title, kind: c.kind, group: 'Microgrants',
       })),
+      ...deliberationCards.map(c => ({
+        source: 'commons' as const, id: c.slug, title: c.title, kind: c.kind, group: 'Deliberation',
+      })),
       ...studioLibrary.map(i => ({
         source: 'studio' as const, id: i.id, title: i.title, kind: i.kind, group: 'Studio libraries',
       })),
@@ -603,7 +619,7 @@ export function CommonsGallery() {
       loadGalleryReferences().then(setReferences).catch(() => {});
     };
     return { options, onChanged };
-  }, [authUser, galleryTools, stories, civicCards, neighboringCards, organizingCards, civicTechCards, micrograntCards, contributedCards, studioLibrary]);
+  }, [authUser, galleryTools, stories, civicCards, neighboringCards, organizingCards, civicTechCards, micrograntCards, deliberationCards, contributedCards, studioLibrary]);
 
   /** Open a connection's other end, whichever shelf it lives on */
   function openRef(source: RefSource, id: string): boolean {
@@ -624,7 +640,7 @@ export function CommonsGallery() {
       return s ? open(() => setStoryDetail(s)) : false;
     }
     if (source === 'commons') {
-      const c = [...civicCards, ...neighboringCards, ...organizingCards, ...civicTechCards, ...micrograntCards, ...contributedCards].find(x => x.slug === id);
+      const c = [...civicCards, ...neighboringCards, ...organizingCards, ...civicTechCards, ...micrograntCards, ...deliberationCards, ...contributedCards].find(x => x.slug === id);
       return c ? open(() => setCommonsDetail(c)) : false;
     }
     const i = studioLibrary.find(x => x.id === id);

@@ -1,0 +1,314 @@
+{
+  "studio": {
+    "slug": "deliberation",
+    "display_name": "Deliberation",
+    "home_url": "https://metagov.org/delib-tools",
+    "notes": "Neighborhood-scale deliberation: the tools, the stages they serve, the field stories, and the patterns a block can remix. Source collection: Metagov's Deliberative Tools Gallery (metagov.org/delib-tools), curated by the Interoperable Deliberative Tools project (Liz Barry, Aviv Ovadya, Amy Zhang, Joshua Tan, Eugene Leventhal); stage taxonomy theirs verbatim. Field picks added by RTP with the builders named. Moved here from the Builder's experimental deliberation branch (Oct 2026) so every deliberation build can draw on it."
+  },
+  "items": [
+    {
+      "slug": "deliberation-cycle-eight-stages",
+      "kind": "framework",
+      "title": "The deliberation cycle: eight stages",
+      "summary": "Metagov's governance-cycle taxonomy for deliberative tools: framing, eliciting, learning, deliberating, proposing, deciding, actuating, reflecting. Name which stage a build serves and design the hand-off to the next.",
+      "body": "Metagov's Deliberative Tools Gallery maps \"digital tools that go beyond basic voting and commenting\" across a governance cycle. The eight stages, verbatim:\n\n- **Framing**: naming the question so it can be worked on together\n- **Eliciting**: gathering what people actually think and need\n- **Learning**: building a shared picture before opinions harden\n- **Deliberating**: weighing options together, tensions on the table\n- **Proposing**: turning what was heard into concrete options\n- **Deciding**: choosing together, with a method everyone can see\n- **Actuating**: carrying the decision into action\n- **Reflecting**: looking back at what the process taught\n\nA block or neighborhood usually lives in the middle five: eliciting, learning, deliberating, proposing, deciding. The useful discipline for a build: say which stage(s) it serves, and design the hand-off so every stage's output is the next stage's input, with the last output landing back with people (a meeting, a flyer, a decision someone carries forward).",
+      "attribution": { "name": "Metagov, Interoperable Deliberative Tools project (Liz Barry, Aviv Ovadya, Amy Zhang, Joshua Tan, Eugene Leventhal)", "source": "metagov.org/delib-tools" },
+      "source_url": "https://metagov.org/delib-tools",
+      "tags": ["deliberation", "framework", "stages", "metagov"],
+      "metadata": { "curator_url": "https://metagov.org/projects/interop", "repo_url": "https://github.com/metagov/interop" },
+      "sort_order": 10
+    },
+    {
+      "slug": "deliberation-starting-tensions",
+      "kind": "framework",
+      "title": "Starting tensions: name the one your question sits on",
+      "summary": "A neighborhood question almost always sits on a real tension. Naming it early keeps the process honest instead of adversarial: belonging and freedom, care and self-reliance, voice and speed, safety and welcome, preservation and change, privacy and knowing each other.",
+      "body": "Before designing prompts or picking a tool, name the tension underneath the question, and design so both poles stay respectable. The goal is a room that can disagree well, not a poll that declares a winner.\n\n- **Belonging and freedom**: everyone's welcome, nobody's obligated. How do we hold both?\n- **Care and self-reliance**: leaning on each other without anyone feeling managed.\n- **Voice and speed**: hearing everyone, and still deciding in time to matter.\n- **Safety and welcome**: feeling secure without turning the block inward.\n- **Preservation and change**: what we keep, what we let grow.\n- **Privacy and knowing each other**: being known without being watched.\n\nRough cues: newcomers, gentrification, cliques point at belonging and freedom; elders, check-ins, meals at care and self-reliance; meetings, committees, consensus at voice and speed; traffic, cameras, patrols at safety and welcome; housing, zoning, trees at preservation and change; cameras, data, Nextdoor at privacy and knowing each other. A suggestion the group can override, never a classification.\n\nThe first three come from RTP's Deliberation Studio work; the rest extend the same move.",
+      "attribution": { "name": "Relational Tech Project, Deliberation Studio", "source": "relationaltechproject.org" },
+      "source_url": null,
+      "tags": ["deliberation", "framework", "tensions", "facilitation"],
+      "metadata": {},
+      "sort_order": 20
+    },
+    {
+      "slug": "results-as-flatfiles-interop",
+      "kind": "methodology",
+      "title": "Results are commons: export flatfiles so processes hand off",
+      "summary": "Metagov's interop practice: every deliberative tool publishes its results as open flatfiles (JSON or CSV) so the next stage, or the next tool, can pick them up. A visible \"Export results\" affordance on anything built here.",
+      "body": "The Interoperable Deliberative Tools project asks every tool to publish results in open flatfiles so processes can hand off to each other: a poll's statements and votes feed a report generator; a report feeds an assembly's briefing; an assembly's recommendations feed the decision record.\n\nIn practice for a neighborhood build:\n\n- Expose \"Export results\" where results appear, writing JSON (and CSV where tabular).\n- Keep the shape plain and documented in the app: participants (and who was not heard), statements, votes or agreement by group, themes with quotes, decisions.\n- Import the same shape, so a tool can start from another tool's export.\n- Say in the UI when the shape is a placeholder pending a partner's real schema.\n\nWhat this neighborhood learns should be able to travel.",
+      "attribution": { "name": "Metagov, Interoperable Deliberative Tools project", "source": "github.com/metagov/interop" },
+      "source_url": "https://github.com/metagov/interop",
+      "tags": ["deliberation", "interop", "export", "methodology", "metagov"],
+      "metadata": { "license": "MIT (interop repo)" },
+      "sort_order": 30
+    },
+    {
+      "slug": "four-output-deliberation-kit",
+      "kind": "methodology",
+      "title": "The four-output deliberation kit",
+      "summary": "A deliberation build ships as a kit: the app, a timeboxed facilitation agenda, an outreach plan, and a printable flyer with a QR code. Programs without software are valid deliberation builds too.",
+      "body": "What a deliberation build produces, so the software never arrives alone:\n\n1. **The app**: the tool that serves the stage(s) named, with ground rules on the page, plain language, a named host, and Export results.\n2. **program/agenda.md**: a timeboxed facilitation agenda with the tension and the starting prompts written in; small-group formats over open microphones.\n3. **program/outreach.md**: who invites whom, where flyers go, which doors get knocked, which languages, and the weekly rhythm for whoever keeps organizing between sessions.\n4. **materials/flyer.html**: a standalone printable flyer with inline styles and room for a QR code to the tool.\n\nBridge on-land and online in both directions: the flyer carries the block in; a printable summary carries the conversation back to the bulletin board. Say who was heard and who was not wherever results appear, and treat early rounds as growing the corpus, not settling the question.",
+      "attribution": { "name": "Relational Tech Project, Deliberation Studio", "source": "relationaltechproject.org" },
+      "source_url": null,
+      "tags": ["deliberation", "kit", "facilitation", "outreach", "flyer", "methodology"],
+      "metadata": {},
+      "sort_order": 40
+    },
+    {
+      "slug": "delib-polis",
+      "kind": "tool",
+      "title": "Pol.is",
+      "summary": "Opinion mapping that finds the common ground a room can't see. People respond to short statements (agree, disagree, pass) and write their own; the math surfaces opinion groups and the statements that bridge them.",
+      "body": "More organic than a survey, lighter than a focus group, built for the moments when a community suspects it agrees more than it argues. Open source (AGPL-3.0) from the Computational Democracy Project; listed in Metagov's gallery for eliciting, deliberating, and reflecting.\n\n**Neighborhood use:** a \"listening wall\" for one question your neighborhood is sitting with, seeded with a dozen starting statements, open for two weeks, flyer with a QR code on every corner. The consensus report becomes the agenda for the in-person conversation.\n\n**Remix pattern:** a single-conversation listening wall: one neighborhood question, statement voting with agree/disagree/pass, neighbors add their own statements, a live view of where the block agrees, and a printable consensus summary for the next meeting.\n\n**Connects:** The Flyer localizes Pol.is conversations to one neighborhood, on paper first. Talk to the City can read a Pol.is export and write the plain-language report. vTaiwan's pattern: opinion map online, then work the hard parts face-to-face.",
+      "attribution": { "name": "The Computational Democracy Project (Colin Megill)", "source": "pol.is" },
+      "source_url": "https://pol.is",
+      "tags": ["deliberation", "tool", "open-source", "eliciting", "deliberating", "reflecting", "opinion-mapping"],
+      "metadata": {
+        "maker": "The Computational Democracy Project",
+        "license": "AGPL-3.0",
+        "repo_url": "https://github.com/compdemocracy/polis",
+        "stages": ["eliciting", "deliberating", "reflecting"],
+        "metagov_listed": true,
+        "remix_idea": "A single-conversation listening wall for one neighborhood question, with a printable consensus summary.",
+        "image_url": "https://texakzqqenzpxawktbgx.supabase.co/storage/v1/object/public/studio-library/tool-screenshots/delib-polis-2026-08.jpg",
+        "practice_kind": "tool"
+      },
+      "sort_order": 100
+    },
+    {
+      "slug": "delib-the-flyer",
+      "kind": "tool",
+      "title": "The Flyer",
+      "summary": "A North Oakland zine that walks neighbors into online conversation: a print zine on poles and porches, local events, a newsletter, and localized Pol.is conversations behind the QR codes.",
+      "body": "A hub for North Oakland neighbors, by Humphrey Obuobi (LETS Studio, Metagov). The block's attention flows from paper to a shared question and back; everyone is welcome to contribute ideas and events. Stages (our mapping, not Metagov's): eliciting, learning, deliberating.\n\n**Neighborhood use:** the whole loop at block scale: the zine carries the question out, the QR code carries neighbors in, the conversation runs online, and the next issue carries back what the neighborhood heard.\n\n**Remix pattern:** a neighborhood hub with a print-first front door: a zine or newsletter page, a local events board, and one live neighborhood conversation, plus a printable flyer with a QR code that is the real distribution system.\n\n**Connects:** runs Pol.is underneath for the conversation layer. Flyers, zines, and QR codes bridge on-land attention into online deliberation. A newsletter is the return path: what the conversation found goes back to porches.",
+      "attribution": { "name": "Humphrey Obuobi (LETS Studio, Metagov)", "source": "theflyer.org" },
+      "source_url": "https://www.theflyer.org",
+      "tags": ["deliberation", "tool", "print-first", "eliciting", "learning", "deliberating", "zine"],
+      "metadata": {
+        "maker": "Humphrey Obuobi",
+        "stages": ["eliciting", "learning", "deliberating"],
+        "metagov_listed": false,
+        "remix_idea": "A neighborhood hub with a print-first front door and one live conversation behind a QR code.",
+        "image_url": "https://texakzqqenzpxawktbgx.supabase.co/storage/v1/object/public/studio-library/tool-screenshots/delib-the-flyer-2026-08.jpg",
+        "practice_kind": "tool"
+      },
+      "sort_order": 110
+    },
+    {
+      "slug": "delib-heard",
+      "kind": "tool",
+      "title": "Heard",
+      "summary": "A participatory survey platform inspired by Polis, vTaiwan, and Participativo Brazil, designed for the feed generation: neighbors respond to each other's questions and watch results form in real time. Grown hyperlocal-first in Washington, DC.",
+      "body": "Open source (MIT). Stages (our mapping): eliciting, deliberating.\n\n**Neighborhood use:** the standing question box for a block or an ANC-scale neighborhood: what should we take up next, how do people actually feel about the proposal, a quick pulse before the meeting so the meeting starts warm.\n\n**Remix pattern:** a neighborhood question board: anyone poses a question, neighbors respond and see live results, recent questions stay browsable, tuned to one place, with the steward deciding what carries forward to the in-person agenda.\n\n**Connects:** carries the Pol.is / vTaiwan lineage into a phone-native, feed-style format. Pairs with printed meeting notices going out and public minutes coming back.\n\nBuilder credit to confirm before wider publishing: the platform is open source at github.com/Heard-Platform/heard.",
+      "attribution": { "name": "Alex and the Heard team (credit to confirm)", "source": "heard.vote" },
+      "source_url": "https://heard.vote",
+      "tags": ["deliberation", "tool", "open-source", "eliciting", "deliberating", "survey"],
+      "metadata": {
+        "maker": "Heard Platform",
+        "license": "MIT",
+        "repo_url": "https://github.com/Heard-Platform/heard",
+        "stages": ["eliciting", "deliberating"],
+        "metagov_listed": false,
+        "attribution_note": "Builder credit to confirm with the makers.",
+        "remix_idea": "A neighborhood question board with live results and a steward who carries questions to the agenda.",
+        "image_url": "https://texakzqqenzpxawktbgx.supabase.co/storage/v1/object/public/studio-library/tool-screenshots/delib-heard-2026-08.jpg",
+        "practice_kind": "tool"
+      },
+      "sort_order": 120
+    },
+    {
+      "slug": "delib-civicos",
+      "kind": "tool",
+      "title": "CivicOS (BLOOM Project)",
+      "summary": "Infrastructure for public problem-solving: an Open Poll maps the opinion landscape, small-group community conversations work through tradeoffs, and a civic assembly of residents produces recommendations. The platform under BLOOM's live deployments.",
+      "body": "BLOOM Project builds public infrastructure for democratic co-governance; CivicOS is the stack under its deployments, run with a local civic host. Its shape is a relay: a broad anonymous Open Poll (agree, disagree, unsure; add your own statement) seeds facilitated community conversations (transcribed and themed), which seed a report and an assembly of residents who produce concrete recommendations. Stages (our mapping): eliciting, learning, deliberating, proposing, deciding.\n\n**Neighborhood use:** the pattern scales down: a two-week neighborhood poll, then three living-room conversations, then a representative group that writes the proposal everyone responds to. Each stage hands its output to the next; someone keeps organizing between and after the sessions so recommendations land.\n\n**Remix pattern:** a phased civic process in one small app: an open statement poll with opinion groups and consensus by group, a schedule of small-group conversations with shared prompts, and a final report page showing themes with quotes, what the process concluded, and who deliberated.\n\n**Connects:** a poll seeds conversations, conversations seed an assembly, nothing is a dead end. Partners' existing convenings (colleges, libraries, civic groups, health orgs) are the on-land infrastructure.\n\nSee the public report of the Central Oregon deployment: report.bloomproject.us/central-oregon-ai. Builds that draw on this model carry \"In partnership with BLOOM\".",
+      "attribution": { "name": "BLOOM Project", "source": "bloomproject.us" },
+      "source_url": "https://report.bloomproject.us/central-oregon-ai",
+      "tags": ["deliberation", "tool", "civic-host", "open-poll", "assembly", "eliciting", "learning", "deliberating", "proposing", "deciding"],
+      "metadata": {
+        "maker": "BLOOM Project",
+        "stages": ["eliciting", "learning", "deliberating", "proposing", "deciding"],
+        "metagov_listed": false,
+        "live_poll": "https://all.bloomproject.us/contribute",
+        "remix_idea": "A poll to conversations to report relay for one neighborhood question, with Export results in the report's shape.",
+        "image_url": "https://texakzqqenzpxawktbgx.supabase.co/storage/v1/object/public/studio-library/bloom/open-poll.png",
+        "practice_kind": "tool"
+      },
+      "sort_order": 130
+    },
+    {
+      "slug": "delib-talk-to-the-city",
+      "kind": "tool",
+      "title": "Talk to the City",
+      "summary": "An open-source LLM pipeline that distills large-scale public input (transcripts, surveys, free text) into interactive reports, clustering themes while keeping the diversity of views visible. A report a whole community can read, not a spreadsheet only staff can.",
+      "body": "By the AI Objectives Institute (program lead Colleen McKenzie). Listed in Metagov's gallery for framing and eliciting.\n\n**Neighborhood use:** after the listening: pour in the room-session notes, the survey answers, the conversation export, and get back a readable map of what the neighborhood said: themes, quotes, and the minority views that would otherwise vanish.\n\n**Remix pattern:** a \"what we heard\" report page for one process: themes with real quotes under them, prominence without erasure for minority views, and a plain-language summary a flyer can carry back to the block.\n\n**Connects:** reads exports from Pol.is conversations, room sessions, and plain survey flatfiles. Reports give assemblies and stewards a shared learning base before deliberation.",
+      "attribution": { "name": "AI Objectives Institute (Colleen McKenzie)", "source": "ai.objectives.institute" },
+      "source_url": "https://ai.objectives.institute/talk-to-the-city",
+      "tags": ["deliberation", "tool", "open-source", "framing", "eliciting", "reports", "ai"],
+      "metadata": {
+        "maker": "AI Objectives Institute",
+        "repo_url": "https://github.com/AIObjectives/talk-to-the-city-reports",
+        "stages": ["framing", "eliciting"],
+        "metagov_listed": true,
+        "remix_idea": "A what-we-heard report page: themes with quotes, minority views kept visible, a summary for the flyer.",
+        "image_url": "https://texakzqqenzpxawktbgx.supabase.co/storage/v1/object/public/studio-library/tool-screenshots/delib-talk-to-the-city-2026-08.jpg",
+        "practice_kind": "tool"
+      },
+      "sort_order": 140
+    },
+    {
+      "slug": "delib-decidim",
+      "kind": "tool",
+      "title": "Decidim",
+      "summary": "The free participation platform cities and cooperatives run themselves: proposals, assemblies, participatory budgeting, consultations. Born from Barcelona's city platform, stewarded by the Decidim Free Software Association.",
+      "body": "Open source (AGPL-3.0), used by hundreds of cities, cooperatives, and organizations. Listed in Metagov's gallery for framing, eliciting, deliberating, deciding.\n\n**Neighborhood use:** the horizon a neighborhood process can grow toward: when a block's deliberations mature into standing assemblies with budgets, Decidim is the city-grade commons they can move into without leaving open source.\n\n**Remix pattern:** a small-scale proposals-and-assemblies flow: neighbors post proposals, endorse each other's, and the assembly page shows what advanced, a garden-plot version of the Decidim pattern.\n\n**Connects:** a whole-city participation OS that neighborhood processes can plug into as they grow. Proposals travel from block assemblies up to formal city process.",
+      "attribution": { "name": "Decidim Free Software Association (grown from Barcelona City Council)", "source": "decidim.org" },
+      "source_url": "https://decidim.org",
+      "tags": ["deliberation", "tool", "open-source", "framing", "eliciting", "deliberating", "deciding", "participatory-budgeting"],
+      "metadata": {
+        "maker": "Decidim Free Software Association",
+        "license": "AGPL-3.0",
+        "repo_url": "https://github.com/decidim/decidim",
+        "stages": ["framing", "eliciting", "deliberating", "deciding"],
+        "metagov_listed": true,
+        "remix_idea": "A small proposals-and-assemblies flow for one neighborhood.",
+        "image_url": "https://texakzqqenzpxawktbgx.supabase.co/storage/v1/object/public/studio-library/tool-screenshots/delib-decidim-2026-08.jpg",
+        "practice_kind": "tool"
+      },
+      "sort_order": 150
+    },
+    {
+      "slug": "delib-maple",
+      "kind": "tool",
+      "title": "MAPLE",
+      "summary": "The Massachusetts Platform for Legislative Engagement, a Code for Boston project: residents submit testimony on real bills and read everyone else's, a public archive that demystifies a process most people never see inside.",
+      "body": "Open source (MIT). Listed in Metagov's gallery for deliberating.\n\n**Neighborhood use:** the learning stage with teeth: when a neighborhood's question turns out to be a policy question, MAPLE's pattern shows what your neighbors already told the legislature, and turns block concerns into testimony.\n\n**Remix pattern:** a neighborhood testimony page for one local decision (a rezoning, a school change): a plain-language explainer of what's being decided, everyone's submitted statements in public, and how to carry them to the hearing.\n\n**Connects:** neighborhood concerns become testimony on real bills. A learning layer for deliberation: read what others said before adding your voice.",
+      "attribution": { "name": "Code for Boston volunteers", "source": "mapletestimony.org" },
+      "source_url": "https://mapletestimony.org",
+      "tags": ["deliberation", "tool", "open-source", "deliberating", "testimony", "policy"],
+      "metadata": {
+        "maker": "Code for Boston",
+        "license": "MIT",
+        "repo_url": "https://github.com/codeforboston/maple",
+        "stages": ["deliberating"],
+        "metagov_listed": true,
+        "remix_idea": "A neighborhood testimony page for one local decision, with a plain explainer and public statements.",
+        "image_url": "https://texakzqqenzpxawktbgx.supabase.co/storage/v1/object/public/studio-library/tool-screenshots/delib-maple-2026-08.jpg",
+        "practice_kind": "tool"
+      },
+      "sort_order": 160
+    },
+    {
+      "slug": "neighborhood-listening-wall",
+      "kind": "prompt",
+      "title": "A listening wall for one neighborhood question",
+      "summary": "Build prompt: a Pol.is-style listening wall for one question, two weeks open, QR flyer on every corner, with a printable consensus summary for the meeting that follows.",
+      "body": "Our neighborhood is sitting with one question: [the question, in plain words]. The tension underneath it feels like [belonging and freedom / care and self-reliance / voice and speed / safety and welcome / preservation and change / privacy and knowing each other].\n\nBuild a listening wall in the Pol.is pattern (credit the Computational Democracy Project, surfaced via Metagov's Deliberative Tools Gallery): a dozen seed statements we write together, agree / disagree / pass one statement at a time, neighbors add their own (steward-reviewed before they enter the deck), and a results view that opens at a threshold and shows where the block agrees, by opinion group, honest about who was heard. Include Export results (JSON and CSV), a facilitation agenda for the conversation that follows (program/agenda.md), an outreach plan (program/outreach.md), and a printable flyer with a QR code (materials/flyer.html). Ship labeled sample data so we can walk the whole flow before the poll opens.",
+      "attribution": { "name": "Relational Tech Project, pattern by the Computational Democracy Project", "source": "relationaltechproject.org" },
+      "source_url": "https://pol.is",
+      "tags": ["deliberation", "prompt", "starter", "listening-wall", "eliciting"],
+      "metadata": { "practice_kind": "prompt" },
+      "sort_order": 200
+    },
+    {
+      "slug": "what-we-heard-report",
+      "kind": "prompt",
+      "title": "A \"what we heard\" report page",
+      "summary": "Build prompt: after the listening, a report page in the Talk to the City pattern: themes with real quotes, minority views kept visible, a plain-language summary a flyer can carry back.",
+      "body": "We ran [a poll / three living-room conversations / a listening session] on [the question] and have [the export / the notes / the transcript]. Build a \"what we heard\" report page in the Talk to the City pattern (credit the AI Objectives Institute, surfaced via Metagov's Deliberative Tools Gallery): themes with real quotes under them, prominence without erasure for minority views, percent agreement by opinion group where we have votes, a who-was-heard section that names who was not, and a one-paragraph plain-language summary for the next flyer. Import the results JSON a listening wall exports; export the report as JSON too so an assembly can use it as its briefing. Add a printable one-page summary (materials/summary.html).",
+      "attribution": { "name": "Relational Tech Project, pattern by the AI Objectives Institute", "source": "relationaltechproject.org" },
+      "source_url": "https://ai.objectives.institute/talk-to-the-city",
+      "tags": ["deliberation", "prompt", "starter", "report", "learning"],
+      "metadata": { "practice_kind": "prompt" },
+      "sort_order": 210
+    },
+    {
+      "slug": "poll-conversations-assembly",
+      "kind": "prompt",
+      "title": "Poll, conversations, assembly: a phased process in one small app",
+      "summary": "Build prompt: the CivicOS relay at neighborhood scale: an open statement poll, a schedule of small-group conversations with shared prompts, and a final report with what the process concluded and who deliberated.",
+      "body": "Our civic host is [organization and the person who answers for it], in [place], and the question is [the question]. Recommendations go to [the decision-maker] by [date]; [who] keeps organizing between sessions.\n\nBuild a phased process in one small app in the pattern BLOOM Project runs with civic hosts (credit BLOOM; see report.bloomproject.us/central-oregon-ai): (1) an Open Poll that maps the opinion landscape (agree / disagree / unsure, add your own, opinion groups and consensus by group), (2) a schedule of small-group conversations with the tension and three shared prompts written in, where people work through tradeoffs toward supermajority agreement, (3) a report page with who participated, opinion groups, consensus statements with percent agree by group, and themes with statements and quotes, ending with the next step (an assembly, a hearing, a vote). Include Export results in that shape, labeled sample data for a demo walk-through, program/agenda.md, program/outreach.md, and materials/flyer.html. Credit \"In partnership with BLOOM\" in the footer, the agenda, and the flyer.",
+      "attribution": { "name": "Relational Tech Project, pattern by BLOOM Project", "source": "relationaltechproject.org" },
+      "source_url": "https://report.bloomproject.us/central-oregon-ai",
+      "tags": ["deliberation", "prompt", "starter", "civic-host", "assembly", "bloom"],
+      "metadata": { "practice_kind": "prompt" },
+      "sort_order": 220
+    },
+    {
+      "slug": "vtaiwan-consensus-at-scale",
+      "kind": "story",
+      "title": "vTaiwan: consensus at national scale",
+      "summary": "Taiwan's vTaiwan process pairs Pol.is opinion mapping with face-to-face deliberation: crowdsourced statements reveal rough consensus, then stakeholders meet to work the remaining tensions. It shaped national policy, most famously the ride-sharing rules.",
+      "body": "**Place:** Taiwan.\n\nvTaiwan remains the reference case for scaling listening without flattening it. Statements are crowdsourced and voted on in Pol.is until the opinion groups and the bridging statements are visible; then the people who disagree meet in person to work the parts the map could not settle. The ride-sharing (Uber) rules are the best-known outcome.\n\n**The pattern a neighborhood can borrow:** opinion map online first, then work the hard parts face to face. The map is the agenda, not the decision.",
+      "attribution": { "name": "Computational Democracy Project case study", "source": "compdemocracy.org/case-studies/vtaiwan" },
+      "source_url": "https://compdemocracy.org/case-studies/vtaiwan/",
+      "tags": ["deliberation", "story", "taiwan", "polis", "consensus"],
+      "metadata": { "place": "Taiwan", "sources": ["https://compdemocracy.org/case-studies/vtaiwan/", "https://compdemocracy.org/knowledge-base/"] },
+      "sort_order": 300
+    },
+    {
+      "slug": "the-flyer-north-oakland",
+      "kind": "story",
+      "title": "The Flyer: zine issues as the neighborhood's front page",
+      "summary": "In North Oakland, a print zine on poles and porches carries community food resources, a park discussion, back-to-school support, and local music, with the deliberative layer arriving inside something neighbors already want to pick up.",
+      "body": "**Place:** North Oakland, California. **Builder:** Humphrey Obuobi (LETS Studio, Metagov).\n\nRecent issues carried community food resources, a park discussion, back-to-school support, and local music. Behind the QR codes sit localized Pol.is conversations, so the physical, place-based hubs link to online, interactive spaces, and back again: the next issue carries what the neighborhood heard.\n\n**The pattern a neighborhood can borrow:** put the question inside something people already pick up. The flyer is the distribution system; the conversation is what it points at; the newsletter is the return path.",
+      "attribution": { "name": "Humphrey Obuobi (LETS Studio, Metagov)", "source": "theflyer.org" },
+      "source_url": "https://www.theflyer.org",
+      "tags": ["deliberation", "story", "oakland", "zine", "print-first"],
+      "metadata": { "place": "North Oakland, California", "sources": ["https://www.theflyer.org", "https://metagov.org/people/humphrey-obuobi"] },
+      "sort_order": 310
+    },
+    {
+      "slug": "central-oregon-ai-civic-assembly",
+      "kind": "story",
+      "title": "AI and Central Oregon: 400+ residents, one Open Poll, six sessions, a civic assembly",
+      "summary": "Central Oregon Civic Action Project and partners, on BLOOM's stack: 400+ residents through an Open Poll and six listening sessions, seven themes, three opinion groups, common ground on transparency and community involvement, and a Civic Assembly in December 2026.",
+      "body": "**Place:** Central Oregon (Deschutes, Crook, Jefferson counties and Warm Springs). **Host:** Central Oregon Civic Action Project (COCAP) and partners. **Report:** report.bloomproject.us/central-oregon-ai.\n\nAn anonymous Open Poll and six live listening sessions reached 400+ people across the region (Bend, Redmond, Sisters, Prineville, Madras, La Pine and smaller places). Voting patterns found three opinion groups: Optimists (51 people, see AI's arrival as inevitable and are least convinced it's already doing harm), Pragmatists (235, agree AI already delivers real benefits but want real accountability from AI companies), and Skeptics (113). Despite their differences, almost everyone agreed on transparency and community involvement in AI-related decisions: the top consensus statement, on transparency about AI in the education system, drew 92% agreement overall and 96%, 92%, and 95% by group. Responses were sorted into seven themes (Governance and Decision-Making, Data Centers, Education and Children, Mental Health, Workforce and Labor, Existential Risk, Access to Quality Information), each holding poll statements and session quotes.\n\nNext: a Civic Assembly in December 2026 where 30 to 40 residents develop policies to make sure the public has a meaningful role in the government's AI-related decisions; selected delegates receive a stipend. A 2024 assembly on youth homelessness saw its recommendations adopted by local government and school districts. \"We're not talking for talk's sake,\" says COCAP's Josh Burgess. \"The poll and the conversations are the foundation.\"\n\n**The pattern a neighborhood can borrow:** map the landscape, deliberate on tradeoffs, report back, and hand the result to a group that carries it forward.",
+      "attribution": { "name": "Central Oregon Civic Action Project with BLOOM Project", "source": "report.bloomproject.us/central-oregon-ai" },
+      "source_url": "https://report.bloomproject.us/central-oregon-ai",
+      "tags": ["deliberation", "story", "central-oregon", "ai", "civic-assembly", "bloom"],
+      "metadata": {
+        "place": "Central Oregon",
+        "sources": ["https://report.bloomproject.us/central-oregon-ai", "https://centraloregonian.com/2026/05/21/a-new-civic-assembly-on-ai-launches-in-deschutes-crook-and-jefferson-counties/", "https://ktvz.com/news/local-news/2026/04/01/deliberative-democracy-takes-center-stage-at-central-oregon-summit/"],
+        "image_url": "https://texakzqqenzpxawktbgx.supabase.co/storage/v1/object/public/studio-library/bloom/reporting-layer.png"
+      },
+      "sort_order": 320
+    },
+    {
+      "slug": "talk-to-the-city-taiwan-tokyo",
+      "kind": "story",
+      "title": "Talk to the City: from Taiwan's ministries to a healthcare union",
+      "summary": "Taiwan's Ministry of Digital Affairs used Talk to the City for national consultations (AI policy among them); Tokyo polled residents on policy priorities in the 2024 gubernatorial season; a California healthcare workers' union used it to hear its members.",
+      "body": "**Places:** Taiwan, Tokyo, United States.\n\nSame pattern each time: masses of voice in, one readable, navigable report out. Themes cluster, quotes stay attached, and the minority views that a summary would flatten remain visible.\n\n**The pattern a neighborhood can borrow:** the report is a thing a whole community can read. Build the report page before the assembly, and bring it on paper.",
+      "attribution": { "name": "AI Objectives Institute", "source": "ai.objectives.institute/talk-to-the-city" },
+      "source_url": "https://ai.objectives.institute/talk-to-the-city",
+      "tags": ["deliberation", "story", "taiwan", "tokyo", "reports", "ai"],
+      "metadata": { "place": "Taiwan, Tokyo, United States", "sources": ["https://ai.objectives.institute/talk-to-the-city", "https://github.com/AIObjectives/talk-to-the-city-reports"] },
+      "sort_order": 330
+    },
+    {
+      "slug": "metagov-deliberative-tools-gallery",
+      "kind": "reference",
+      "title": "Metagov's Deliberative Tools Gallery",
+      "summary": "The source collection for this shelf: digital tools that go beyond basic voting and commenting, mapped across the governance cycle. Seventeen more tools beyond the ones featured here, each with its stages.",
+      "body": "Curated by Metagov's Interoperable Deliberative Tools project (research directors Liz Barry, Aviv Ovadya, Amy Zhang, Joshua Tan, Eugene Leventhal). Stages verbatim from the gallery's cards.\n\nMore in the gallery, by stage: Deliberative Canvas (reflecting); Ethelo (deliberating); Evocracy (deliberating); Global Brain Algorithm (deliberating); Go Vocal (deliberating); Harmonica (framing, eliciting, deliberating); Interoperable Co-operative Governance (framing, deliberating, deciding); Iswe Foundation (framing, eliciting); Ize (eliciting); Micropublishing (learning); Moral Graph Elicitation (eliciting); Pairwise (deciding); PolicyCraft (deliberating, eliciting, reflecting); Power Ranker (eliciting, reflecting, deciding); Stanford Participatory Budgeting Platform (deciding); Swarmcheck (framing, learning, deliberating); Voice to Vision (eliciting).\n\nWhen a build borrows a pattern, name the tool and its builders in the plan and in the app's about or credits. Attribution travels.",
+      "attribution": { "name": "Metagov, Interoperable Deliberative Tools project", "source": "metagov.org/delib-tools" },
+      "source_url": "https://metagov.org/delib-tools",
+      "tags": ["deliberation", "reference", "metagov", "catalog"],
+      "metadata": { "project_url": "https://metagov.org/projects/interop", "repo_url": "https://github.com/metagov/interop" },
+      "sort_order": 400
+    },
+    {
+      "slug": "facilitation-guardrails-deliberation",
+      "kind": "recipe",
+      "title": "Facilitation guardrails for a neighborhood deliberation",
+      "summary": "What keeps a deliberative tool honest: ground rules on the page, plain language, small groups over open microphones, a named host, room for the quiet and the offline, and a tool that informs decisions but never makes them.",
+      "body": "Guardrails to build into the tool and the room, not bolt on after:\n\n- **Ground rules on the page.** One voice at a time; disagree with ideas, not people; what is said here is summarized, not attributed, unless someone asks to be named.\n- **Plain language throughout.** The statement deck, the report, and the flyer all read at a middle-school level, in every language the block speaks.\n- **Small-group formats over open microphones.** Tables of four to six with a shared prompt beat a line at the mic.\n- **A named host and steward.** A person and an organization on every public page: who convenes, who answers, who carries the result forward.\n- **Room for the quiet and the offline.** Paper ballots, large print, a phone number, a table at the library; the tool is one door, not the only one.\n- **Never let the tool auto-decide.** It informs and records human decisions; the people name the groups, write the summary, and choose what goes to the decision-maker.\n- **Honest about signal.** Participation is not representativeness. Say who was heard and who was not wherever results appear.\n- **Close the loop.** Read the report aloud where it matters, carry it to the hearing, bring it back to the people who took part.",
+      "attribution": { "name": "Relational Tech Project, Deliberation Studio", "source": "relationaltechproject.org" },
+      "source_url": null,
+      "tags": ["deliberation", "recipe", "facilitation", "guardrails", "practice"],
+      "metadata": { "practice_kind": "recipe" },
+      "sort_order": 50
+    }
+  ]
+}

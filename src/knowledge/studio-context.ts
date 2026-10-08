@@ -373,6 +373,21 @@ function withBuiltin(ctx: StudioContext): StudioContext {
   };
 }
 
+/**
+ * Commons shelves a studio pins onto its own gallery. The cards stay commons
+ * cards (commons lineage, commons attribution); the studio simply puts them
+ * where its members look. BLOOM pins the deliberation shelf: every
+ * deliberation build for a host draws on both.
+ */
+const STUDIO_COMMONS_PINS: Record<string, string[]> = {
+  bloom: ['deliberation'],
+};
+
+export function studioCommonsPins(slug: string | null | undefined): string[] {
+  if (!slug) return [];
+  return STUDIO_COMMONS_PINS[slug] ?? [];
+}
+
 /** The credit a studio asks for on what grows from its shelf (BLOOM: "In partnership with BLOOM") */
 export function studioPartnerCredit(slug: string | null | undefined): string | null {
   if (!slug) return null;

@@ -81,6 +81,30 @@ with BLOOM"`.
   gallery. Before this, the deep link only switched the frame and the person
   had to find "Build here" on their profile.
 
+## The deliberation shelf in the commons
+
+The experimental deliberation branch's registry (Metagov's Deliberative
+Tools Gallery picks plus RTP field picks) now lives in the RT Commons as the
+`deliberation` shelf: `scripts/seed/deliberation-commons.json`, 20 items
+(frameworks for the eight stages and the starting tensions, the interop
+flatfile practice, the four-output kit, facilitation guardrails, seven
+tools, three starter prompts, four field stories, the Metagov gallery
+reference). Seeded with `seed-commons-shelf.mjs --apply` and embedded, so
+retrieval surfaces them for any deliberation-shaped ask, for anyone.
+
+For BLOOM members the shelf is also pinned onto the Bloom Gallery
+(`studioCommonsPins` in `src/knowledge/studio-context.ts`): the cards sit
+under the studio's own shelf, keep their commons lineage and attribution,
+and "Build with this" on them stamps the deliberative frame. So a host's
+deliberation build draws on the deliberation shelf, BLOOM's principles, and
+the Bloom shelf together. The shelf also has its own "Deliberation" category
+in the Commons Gallery.
+
+Two items on it deserve BLOOM's eye: the CivicOS tool card (written from
+Rahmin's messages and the Central Oregon report, with the live poll's
+screenshot) and the Central Oregon story. Heard's builder credit is still
+flagged "to confirm" from the branch.
+
 ## Demo accounts and the walkthrough
 
 `scripts/demo/bloom-demo.mjs` keeps two test accounts, both plus-addresses on
