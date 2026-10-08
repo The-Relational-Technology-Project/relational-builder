@@ -4,8 +4,8 @@
     {
       "kind": "principle",
       "title": "Civic host led engagement",
-      "summary": "Draft for BLOOM to edit: a local civic host convenes the community and holds the question; BLOOM brings the stack and the stewardship. Every build names its host.",
-      "body": "In BLOOM's civic-host model, a named local organization with standing in the place (a school community, a library, a neighborhood group, a civic action project) convenes residents around a public question. The host owns the relationships and the follow-through; BLOOM brings the full stack behind them and stewards the practice across hosts.\n\nBLOOM is building product over the next few months for a national civic host cohort (sub-grants, capacity building, peer learning). What a host builds and learns in this studio feeds straight into that cohort, and whatever the cohort learns flows back here.\n\nWorking in this frame:\n\n- Every build names its civic host and the question the host is holding before the first screen is designed.\n- The host is a person and an organization, not a platform. Put a name, a role, and a way to reach them on every public page.\n- Design for the host's capacity: a weekly standing meeting, a small editorial trio, volunteers. Not a full-time data team.\n- Say which decision-maker the recommendations are meant to land with (a school board, a city council, a county) and when they decide.",
+      "summary": "Draft for BLOOM to edit: a locally rooted civic host brings neighbors together across difference and holds the question; BLOOM brings funding, methods, tools, and a peer network. Every build names its host.",
+      "body": "BLOOM partners with locally rooted organizations, called Civic Hosts, \"that can bring neighbors together across difference to work through hard choices on AI and turn them into proposals decision makers can't ignore\" (bloom-project.org). Local partners run the process; BLOOM brings the funding, methods, tools (CivicOS), coaching, and a peer network. In Utah the host was a coalition (Utah Common Ground, with Mormon Women for Ethical Government and others); in Central Oregon it is the Central Oregon Civic Action Project with local partners.\n\nBLOOM's founding Civic Host cohort runs assemblies in 2027 (RFP out October 2026). What a host builds and learns in this studio feeds that cohort, and what the cohort learns flows back here.\n\nWorking in this frame:\n\n- Every build names its civic host and the question the host is holding before the first screen is designed.\n- The host is a person and an organization, not a platform. Put a name, a role, and a way to reach them on every public page.\n- Design for the host's capacity: a small team, partners, volunteers, a few months. Not a full-time data team.\n- \"Across difference\" is the point. Ask who in the place is unlikely to show up (by politics, age, geography, income, language) and make reaching them part of the build.",
       "attribution": "BLOOM Project",
       "tags": [
         "bloom",
@@ -16,13 +16,14 @@
     },
     {
       "kind": "principle",
-      "title": "Map the opinion landscape first, then deliberate on tradeoffs",
-      "summary": "Draft for BLOOM to edit: an Open Poll is good at mapping the initial opinion landscape. Then more deliberative engagements grapple with tradeoffs and find supermajority synthesis across opinion groups.",
-      "body": "In Rahmin's words: \"Open Poll is good at mapping the initial opinion landscape. We'll want more deliberative engagements to grapple with tradeoffs, find supermajority synthesis across them.\"\n\nThe two stages, and the hand-off between them:\n\n1. **Map the landscape.** An Open Poll puts short statements in front of people (agree, disagree, pass; add your own). Voting patterns surface opinion groups and show where the groups already agree. In Central Oregon this found three groups across 400+ residents and strong common ground on transparency and community involvement.\n2. **Deliberate on tradeoffs.** Facilitated neighborhood conversations take the landscape as their starting map and work through the hard tradeoffs in small groups. The aim is supermajority agreement across opinion groups, not a majority that outvotes a minority.\n\nWorking in this frame:\n\n- Build for both stages and make the hand-off explicit: poll results become the agenda for the conversations; conversation themes become the report.\n- Show results by opinion group, not just overall. Common ground means every group agrees, and the page should make that visible (percent who agree, by group).\n- Keep results honest: say who was heard, lock reports until enough people have taken part, and never show made-up groups.",
+      "title": "Listen widely, then deliberate representatively",
+      "summary": "Draft for BLOOM to edit: open participation (an Open Poll and community conversations) maps where people stand; a representative assembly chosen by civic lottery then works through the tradeoffs and writes the recommendations.",
+      "body": "BLOOM's processes move through layers, each feeding the next. In Rahmin's words: \"Open Poll is good at mapping the initial opinion landscape. We'll want more deliberative engagements to grapple with tradeoffs, find supermajority synthesis across them.\"\n\n1. **Open participation.** Anyone can take part. An Open Poll puts short statements in front of people (agree, disagree, pass; add your own) and surfaces opinion groups. Community conversations, hosted by local partners in person and online, dig into the themes. Central Oregon: 400+ residents, six listening sessions, three opinion groups, strong common ground on transparency and community involvement.\n2. **Representative deliberation.** A civic assembly selected by civic lottery (\"a random, representative draw, much like a jury\") to reflect the place's mix of age, geography, income, and political views. Delegates hear evidence, consider competing perspectives, work through tradeoffs, and write proposals together. Utah: 600+ Utahns in conversations, then 38 delegates over two days. Delegates are supported to take part (Central Oregon offers a stipend).\n3. **Recommendations.** Proposals with their level of support, carried to the people who decide.\n\nWorking in this frame:\n\n- Say which layer a build serves and design the hand-off: poll results and conversation themes become the assembly's briefing; the assembly's proposals become the report.\n- The open layers welcome everyone. The assembly is representative by design: build lottery recruitment and support (stipends, childcare, transport, language) as carefully as the sessions themselves.\n- Keep results honest: say who was heard and who was not, and lock reports until enough people have taken part.",
       "attribution": "BLOOM Project",
       "tags": [
         "bloom",
         "open-poll",
+        "civic-assembly",
         "deliberation",
         "draft-for-bloom-review"
       ],
@@ -30,30 +31,89 @@
     },
     {
       "kind": "principle",
-      "title": "A backbone effort keeps organizing",
-      "summary": "Draft for BLOOM to edit: someone keeps organizing between and after the sessions so recommendations actually land with the decision-maker. Decide who, early.",
-      "body": "In Rahmin's words: \"The backbone question: who keeps organizing between and after the sessions so recommendations actually land with SFUSD? Worth deciding early.\" And: \"The backbone question ties to a question about organizing across the civic hosts: who is helping coordinate and support that?\"\n\nA poll and a set of conversations are not the work. The work is what happens the week after the last session: the report gets written, read aloud where it matters, carried to the board meeting, followed up on, and brought back to the people who took part.\n\nWorking in this frame:\n\n- Every plan names the backbone: the person or small group who keeps organizing between sessions and after the last one, and what they do each week.\n- Build the closing of the loop into the kit: a results page people can return to, a printable summary for the bulletin board, a date when the recommendations go to the decision-maker.\n- Across hosts, name who coordinates and supports the hosts themselves (BLOOM's cohort role), so no host is organizing alone.",
+      "title": "Work through real differences",
+      "summary": "Draft for BLOOM to edit: the goal is not agreement on everything. Bring different perspectives into the room, give people information and time, and find where there is enough common ground to act.",
+      "body": "From BLOOM's \"How we work\": \"We don't ask people to agree on everything. We bring different experiences and perspectives into the room, give people the information and time to wrestle with real trade-offs, and find where there is enough common ground to act.\"\n\nUtah showed what that can look like: 10 recommendations, each backed by at least 82% of a group chosen to reflect Utah's political makeup, and 92% support for the full package. A delegate: \"I have a better outlook on my fellow citizens.\"\n\nRahmin's design lens for a people-powered process: start with story (of me, of us, of now), surface shared values and priorities before getting into policy, then let table-level conversations aggregate upward into a shared declaration.\n\nWorking in this frame:\n\n- Show results by opinion group, not just overall. Common ground means every group agrees; make that visible (percent who agree, by group).\n- Aim for supermajority agreement across groups, not a majority that outvotes a minority. Report the support level for every recommendation, including the ones that fell short.\n- Give people the considerations behind a choice (evidence, competing views, tradeoffs) before asking them to decide.\n- Never manufacture consensus: no made-up groups, no synthetic voices, no smoothing away the disagreement that remains.",
       "attribution": "BLOOM Project",
       "tags": [
         "bloom",
-        "backbone",
-        "organizing",
+        "bridging",
+        "deliberation",
         "draft-for-bloom-review"
       ],
       "sort_order": 30
     },
     {
       "kind": "principle",
+      "title": "AI in the loop, people hold the judgment",
+      "summary": "Draft for BLOOM to edit: technology helps more people take part and helps everyone see what was said, without replacing human deliberation. AI synthesizes; it is never the authority, and its work is traceable.",
+      "body": "From BLOOM's \"How we work\": \"We use technology to help more people participate, make sense of what we're hearing, and connect work across communities without replacing human deliberation. We build openly, show our work, and keep learning as we go.\"\n\nRahmin's Carnegie piece (\"How AI Can Unlock Public Wisdom\", 2025) sets the bar: AI should strengthen human judgment, not replace it; \"AI analysis must be auditable and explainable\"; and the main risk is participation-washing, input that looks impressive but changes nothing.\n\nWorking in this frame:\n\n- Use AI to transcribe, theme, translate, and summarize. People facilitate, deliberate, and decide. Say plainly in the build where AI is used and where a person checks it.\n- Every theme or summary traces back to the statements and quotes it came from, and a participant can say \"that's not what we meant.\"\n- Never let AI generate participant positions, votes, or quotes. Sample data is labeled sample.\n- Prefer open-source, public-interest infrastructure, and keep participants' data with the host, shared onward only with their consent.",
+      "attribution": "BLOOM Project",
+      "tags": [
+        "bloom",
+        "ai",
+        "sensemaking",
+        "transparency",
+        "draft-for-bloom-review"
+      ],
+      "sort_order": 40
+    },
+    {
+      "kind": "principle",
+      "title": "A path to action, and a backbone to carry it",
+      "summary": "Draft for BLOOM to edit: people don't just want to be heard; they want what they decide together to matter. Name the decision-maker and the date before building, and decide early who keeps organizing after the last session.",
+      "body": "From bloom-project.org: \"People don't just want to be heard. They want what they decide together to matter.\" BLOOM designs assemblies \"around a path to action connecting what communities decide to the people and institutions that can act on it.\" Utah's delegates carried their recommendations to a legislative reception; Central Oregon's assembly feeds policy work in January.\n\nIn Rahmin's words: \"The backbone question: who keeps organizing between and after the sessions so recommendations actually land? Worth deciding early.\" And across hosts: \"who is helping coordinate and support that?\"\n\nWorking in this frame:\n\n- Every plan names the decision-maker (a school board, a city council, a county, a legislature), when they decide, and how the recommendations will reach them.\n- Every plan names the backbone: the person or small group who keeps organizing between sessions and after the last one, and what they do the week after.\n- Close the loop with participants: a results page people can return to, a printable summary, and updates on what decision-makers did with the recommendations.\n- Across hosts, name who coordinates and supports the hosts themselves (BLOOM's cohort role), so no host organizes alone.",
+      "attribution": "BLOOM Project",
+      "tags": [
+        "bloom",
+        "path-to-action",
+        "backbone",
+        "organizing",
+        "draft-for-bloom-review"
+      ],
+      "sort_order": 50
+    },
+    {
+      "kind": "principle",
+      "title": "Trust starts close to home, and connects upward",
+      "summary": "Draft for BLOOM to edit: communities take on the questions they can act on locally; questions that need more scale become the agenda for state and national assemblies. Each process leaves capacity behind.",
+      "body": "From bloom-project.org: \"Trust starts close to home. Communities take on the questions they can act on locally; questions that require more scale become the agenda for state and national assemblies.\" Each local assembly connects into the Public Assembly on AI, \"a growing network of in-person and online assemblies.\" And each one should leave behind \"local organizations and residents with greater capacity to work through future public problems together.\"\n\nWorking in this frame:\n\n- Name the scope a question belongs at. Build for the local decision first, and mark which findings should travel up to a state or national agenda.\n- Keep \"Export results\" visible so a host's results can join BLOOM's reporting layer and the wider network. (The export shape is a placeholder until BLOOM shares its schema.)\n- Build so the next host can run it: real local names and specifics, with a plain structure another place could lift. Say in a sentence what another host would change.\n- Count capacity as an outcome: who learned to facilitate, which partners now work together, what the host can run again without outside help.",
+      "attribution": "BLOOM Project",
+      "tags": [
+        "bloom",
+        "network",
+        "federation",
+        "capacity",
+        "draft-for-bloom-review"
+      ],
+      "sort_order": 60
+    },
+    {
+      "kind": "principle",
+      "title": "Build what people decided",
+      "summary": "Draft for BLOOM to edit: builds help people see and test what an assembly envisions. Buildathons follow or sit inside a deliberative process, start from its recommendations, and never get ahead of what people decided.",
+      "body": "Rahmin's idea, being explored for Utah (attached to the assembly's published recommendations) and Central Oregon (after the December assembly): pair buildathons with deliberative processes so residents can see what they are envisioning and co-create it from shared values. Many recommendations are buildable: Utah's top proposal was a public information hub on AI decisions, alongside AI literacy through community libraries.\n\nWorking in this frame:\n\n- Start from a recommendation, cite it, and show its level of support. The build serves what people decided; it does not stand in for deciding.\n- Bring delegates and participants into the build, not just technologists. \"Buildathon\" lands better than \"hackathon\" (learned in Utah).\n- Show the prototype back to the assembly, host, and decision-maker as a way to keep the recommendation moving.\n- Do not build an answer to a question that is still being deliberated. Before an assembly decides, build for the process (participation, learning, sensemaking), not for an outcome.",
+      "attribution": "BLOOM Project",
+      "tags": [
+        "bloom",
+        "buildathon",
+        "recommendations",
+        "draft-for-bloom-review"
+      ],
+      "sort_order": 70
+    },
+    {
+      "kind": "principle",
       "title": "\"In partnership with BLOOM\" on derived materials",
-      "summary": "Draft for BLOOM to edit: since builds here draw on BLOOM's model, derived materials and proposals carry an \"in partnership with BLOOM\" credit. It matters for how the work keeps getting resourced.",
-      "body": "In Rahmin's words: \"Attribution: since this draws on BLOOM's model, we'd want 'in partnership with BLOOM' credited on materials and in the proposal. It matters for how we keep resourcing the work.\"\n\nWorking in this frame:\n\n- Apps, agendas, outreach plans, flyers, reports, and proposals that grow from this studio's shelf carry the line \"In partnership with BLOOM\" (footer, about page, or title block).\n- Lineage travels with every remix: a build says what it grew from, and the studio gallery shows the chain.\n- Credit the civic host alongside BLOOM. Partnership runs both ways.",
+      "summary": "Draft for BLOOM to edit: since builds here draw on BLOOM's model, derived materials and proposals carry an \"In partnership with BLOOM\" credit, alongside the civic host. It matters for how the work keeps getting resourced.",
+      "body": "In Rahmin's words: \"Attribution: since this draws on BLOOM's model, we'd want 'in partnership with BLOOM' credited on materials and in the proposal. It matters for how we keep resourcing the work.\"\n\nWorking in this frame:\n\n- Apps, agendas, outreach plans, flyers, reports, and proposals that grow from this studio's shelf carry the line \"In partnership with BLOOM\" (footer, about page, or title block).\n- Credit the civic host and its partners first and by name. BLOOM's own framing is \"bigger than any one organization.\"\n- Lineage travels with every remix: a build says what it grew from, and the studio gallery shows the chain.",
       "attribution": "BLOOM Project",
       "tags": [
         "bloom",
         "attribution",
         "draft-for-bloom-review"
       ],
-      "sort_order": 40
+      "sort_order": 80
     },
     {
       "kind": "tool",

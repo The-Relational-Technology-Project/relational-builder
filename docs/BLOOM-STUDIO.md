@@ -17,8 +17,12 @@ is BLOOM-specific.
 | Kind | Title | Notes |
 |---|---|---|
 | principle | Civic host led engagement | Rahmin's civic-host model and the national cohort |
-| principle | Map the opinion landscape first, then deliberate on tradeoffs | Rahmin's words on Open Poll, tradeoffs, supermajority synthesis |
-| principle | A backbone effort keeps organizing | Rahmin's "backbone question" |
+| principle | Listen widely, then deliberate representatively | Open Poll + conversations, then a civic-lottery assembly (Utah, Central Oregon) |
+| principle | Work through real differences | BLOOM's "How we work"; Utah support levels; Rahmin's story-to-values lens |
+| principle | AI in the loop, people hold the judgment | BLOOM's "How we work"; Rahmin's Carnegie piece |
+| principle | A path to action, and a backbone to carry it | BLOOM's "path to action"; Rahmin's "backbone question" |
+| principle | Trust starts close to home, and connects upward | Local to state to national; capacity left behind |
+| principle | Build what people decided | Rahmin's buildathons-with-assemblies idea |
 | principle | "In partnership with BLOOM" on derived materials | Rahmin's attribution ask |
 | tool | Open Poll | What the name says, plus what the Central Oregon report shows |
 | tool | Community conversation transcription | Same |
@@ -41,6 +45,13 @@ report at report.bloomproject.us/central-oregon-ai. Nothing about BLOOM's
 tools beyond their names and what the report makes visible was invented.
 The "Export results" shape in the kit and the frame is a placeholder until
 Humphrey shares the real schema, and says so in the generated UI.
+
+Principles were revised on Oct 8 from BLOOM's public site, the Utah and
+Central Oregon results, and Rahmin's Carnegie piece. Two items were retitled
+("Map the opinion landscape first, then deliberate on tradeoffs" and "A
+backbone effort keeps organizing"), so a re-seed adds the new titles beside
+the old ones: delete the two old items in Studio admin → Library after
+re-seeding.
 
 Re-seeding is idempotent (matched on kind + title):
 
