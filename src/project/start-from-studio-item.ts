@@ -4,6 +4,7 @@ import { useCloudStore } from '@/store/cloud-store';
 import { useProjectStore } from '@/store/project-store';
 import { useChatStore } from '@/store/chat-store';
 import { useEnvStore } from '@/store/env-store';
+import { useStudioStore } from '@/store/studio-store';
 import type { StudioLibraryItem } from '@/cloud/studio-library';
 
 /**
@@ -22,13 +23,19 @@ export function startFromStudioItem(item: StudioLibraryItem, studioLabel: string
       : item.kind === 'principle'
         ? `I'd like to build something grounded in ${studioLabel}'s principle "${item.title}"${who}.`
         : `I'd like to bring ${studioLabel}'s ${item.kind} "${item.title}"${who} to life for my community.`;
+  // A prompt item IS its body: the shelf's compact entry in the AI's context
+  // only carries the summary, so the full prompt has to travel in the draft
+  const promptBody = item.kind === 'prompt' && item.body?.trim() ? `\n${item.body.trim()}` : '';
   const draft = [
     opening,
     item.summary ? `\nWhat it is: ${item.summary}` : '',
+    promptBody,
     // A shelf item backed by a public repo carries that pointer into the
     // draft, so the model can reference the real implementation
     referenceCodebaseNote(item.url),
-    '\nHelp me plan this — where would we start?',
+    promptBody
+      ? '\nHelp me plan this for my place — fill in the bracketed parts with me, then we build.'
+      : '\nHelp me plan this — where would we start?',
     // The shelf item's screenshot rides along as a visible attachment, same
     // as the relational tech tools' remix flow: the model sees what the
     // original actually looks like, and the person sees what context travels
@@ -36,6 +43,9 @@ export function startFromStudioItem(item: StudioLibraryItem, studioLabel: string
       ? '\nThe attached screenshot shows the original. Use it as the visual reference: keep the parts that transfer close to the original, and adapt the look and details to my place.'
       : '',
   ].join('\n').trim();
+
+  const active = useStudioStore.getState().activeStudio;
+  const studioFrames = active?.slug === item.studio_slug ? (active.frames ?? []) : [];
 
   // Never destructive: open work goes to the local shelf first
   stashAndStartFresh();
@@ -52,6 +62,9 @@ export function startFromStudioItem(item: StudioLibraryItem, studioLabel: string
     // Remembering the shelf item closes the loop: sharing this build back
     // to the studio records it as a remix of what it grew from
     studioItemId: item.id,
+    // The studio's own frames ride from the first message (ChatPanel also
+    // re-adds them each turn for approved members)
+    ...(studioFrames.length > 0 ? { frames: studioFrames } : {}),
   });
   useChatStore.getState().setDraftMessage(draft);
   useChatStore.getState().setDraftAttachments(item.image_url ? [item.image_url] : null);

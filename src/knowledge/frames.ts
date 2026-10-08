@@ -85,11 +85,38 @@ export const RELATIONAL_FRAME: DomainFrame = {
   ].join('\n'),
 };
 
+/**
+ * Ported from the neighborhood-deliberation branch: the frame and the kit
+ * contract only (no tools registry digest, no /deliberate page). It layers
+ * into context through a studio that carries it (see studio-context.ts —
+ * the BLOOM studio does) or when an ask reads as deliberation-shaped.
+ */
+export const DELIBERATIVE_FRAME: DomainFrame = {
+  slug: 'deliberative',
+  label: 'Deliberative',
+  principles: [
+    '## Deliberative Frame',
+    '',
+    'This project helps neighbors work through a question *together* — eliciting what people think, learning a shared picture, deliberating, proposing, deciding. The tool serves the conversation, never replaces it. Working in this frame:',
+    '',
+    '- **Name the tension first.** Neighborhood questions sit on real tensions (belonging & freedom; care & self-reliance; voice & speed; safety & welcome; preservation & change). Say which one this question holds and design prompts that keep both poles respectable — the goal is a room that can disagree well, not a poll that declares a winner.',
+    '- **Map the opinion landscape first, then deliberate on tradeoffs.** An open poll (people vote agree / disagree / pass on short statements and add their own) maps where a community stands and surfaces opinion groups. Live conversations then work through the tradeoffs toward supermajority agreement. Say which stage(s) the build serves — eliciting, learning, deliberating, proposing, or deciding — and design the hand-off: every stage\'s output is the next stage\'s input, and the last output lands back with people (a meeting, a flyer, a decision someone carries forward).',
+    '- **Facilitation guardrails are part of the build.** Ground rules on the page, plain language throughout, small-group formats over open microphones, a named host/steward, room for the quiet and the offline (paper ballots, large print, more languages when asked). Never let the tool auto-decide: it informs and records human decisions.',
+    '- **Honest about signal.** Participation is not representativeness — say who was heard and who wasn\'t wherever results appear, and treat early rounds as growing the corpus, not settling the question.',
+    '- **The full kit ships together.** A deliberation build usually wants four outputs, arriving across the conversation: the app itself; a facilitation agenda as `program/agenda.md` (timeboxed, with the tension and prompts written in); an outreach plan as `program/outreach.md` (who invites whom, where flyers go, which doors get knocked); and a printable flyer as `materials/flyer.html` (standalone, inline styles, QR-ready — it gets its own preview tab). Programs without software are valid deliberation builds too.',
+    '- **Demo-friendly out of the box.** Every generated tool ships with a clearly labeled sample dataset (a "Sample data" switch or a seeded demo question) so a host can walk the whole flow in two minutes without real participants: poll → opinion groups → consensus statements → themes → report. Label sample data as sample everywhere it appears, and make clearing it one click.',
+    '- **Results are commons: export flatfiles.** Every deliberative tool exposes a visible "Export results" affordance that writes JSON (and CSV where tabular) so the next stage — or the next tool, or a partner\'s report layer — can pick them up. Until a partner shares a real schema, use this placeholder shape and say in the UI that it is a placeholder: `{ "participants": { "total", "by_place": [{ "place", "count" }], "by_channel": { "poll", "sessions" } }, "opinion_groups": [{ "id", "name", "size", "description" }], "consensus_statements": [{ "id", "text", "agree_overall_pct", "agree_by_group": { "<group id>": pct }, "source": "poll" | "session" }], "themes": [{ "name", "statements": [{ "id", "text" }], "quotes": [{ "text", "attribution" }] }] }`.',
+    '- **Bridge on-land and online, both directions.** A flyer with a QR code carries the block in; a printable summary carries the conversation back to the bulletin board. Every deliberative build names its physical touchpoints.',
+    '- **Attribution travels.** When a build draws on a partner\'s model or a tool\'s pattern, credit it — in the plan and in the app\'s footer or about page.',
+  ].join('\n'),
+};
+
 export const FRAMES: Record<string, DomainFrame> = {
   [CIVIC_MEDIA_FRAME.slug]: CIVIC_MEDIA_FRAME,
   [PRACTICE_FIRST_FRAME.slug]: PRACTICE_FIRST_FRAME,
   [RELATIONAL_FRAME.slug]: RELATIONAL_FRAME,
   [MICROGRANT_FRAME.slug]: MICROGRANT_FRAME,
+  [DELIBERATIVE_FRAME.slug]: DELIBERATIVE_FRAME,
 };
 
 export function framesFromSlugs(slugs: string[] | undefined | null): DomainFrame[] {
@@ -142,6 +169,30 @@ const CONNECTION_ASK = new RegExp(
 );
 
 /**
+ * The deliberative frame's signal: language about a group working a question
+ * or decision THROUGH TOGETHER — weighing, hearing, and deciding, not just
+ * meeting. Phrase-level like CONNECTION_ASK.
+ */
+const DELIBERATION_ASK = new RegExp(
+  [
+    'deliberation|deliberative|deliberate together',
+    "(citizens?'?|community|neighborhood|resident|civic) assembl(y|ies)",
+    'town hall',
+    'work(ing)? through (a|the|this|our) (question|issue|decision|disagreement|tension|conflict)',
+    'decide (together|as a (neighborhood|community|block|group))',
+    'reach (consensus|agreement)|find (common ground|consensus)',
+    'listening (session|campaign|wall|project|tour)',
+    'open poll|opinion (groups?|landscape)',
+    'participatory budget',
+    'facilitat\\w* (a|the|our) (conversation|meeting|assembly|deliberation|discussion)',
+    'gather (input|voices|opinions|perspectives)',
+    'hear (from )?(everyone|all sides|the whole (block|neighborhood|community))',
+    'weigh in on|have a say',
+  ].join('|'),
+  'i',
+);
+
+/**
  * Implicit sensing: infer frames from the person's ask and what retrieval
  * surfaced for it. No mode switch — when the ask is about people connecting,
  * the relational principles ride along; when a practice recipe clearly
@@ -164,6 +215,9 @@ export function detectFrames(results: CommonsSearchResult[], query?: string): Do
   const micrograntHits = top.filter(r => r.source_studio_slug === 'microgrants').length;
   if (isMicrograntAsk(query) || (top[0]?.source_studio_slug === 'microgrants' && micrograntHits >= 2)) {
     frames.push(MICROGRANT_FRAME);
+  }
+  if (query && DELIBERATION_ASK.test(query)) {
+    frames.push(DELIBERATIVE_FRAME);
   }
 
   if (top.length === 0) return frames;

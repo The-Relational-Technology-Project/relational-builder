@@ -122,6 +122,38 @@ export async function leaveStudio(slug: string): Promise<void> {
 
 // --- Studio Admin: the door of a gated studio ---
 
+export interface StudioCohortRow {
+  user_id: string;
+  display_name: string | null;
+  email: string | null;
+  place: string | null;
+  role: StudioRole;
+  status: MembershipStatus;
+  joined_at: string;
+  project_id: string | null;
+  project_name: string | null;
+  project_updated_at: string | null;
+  grew_from_item_id: string | null;
+  grew_from_title: string | null;
+  published_slug: string | null;
+  pending_offers: number;
+}
+
+/**
+ * The cohort view: one row per (member, studio-framed project), with the
+ * shelf item each build grew from, its published site, and the member's
+ * pending offers. Admin-only, checked inside the definer function.
+ */
+export async function listStudioCohort(slug: string): Promise<StudioCohortRow[]> {
+  if (!builderClient) return [];
+  const { data, error } = await builderClient.rpc('studio_cohort', { p_slug: slug });
+  if (error) throw new Error(error.message);
+  return (Array.isArray(data) ? data : []).map(r => ({
+    ...(r as StudioCohortRow),
+    pending_offers: Number((r as { pending_offers: unknown }).pending_offers ?? 0),
+  }));
+}
+
 /**
  * Everyone in (or knocking on) a studio, for its admins. The studio_roster
  * reader joins live profiles, so names reflect what people have filled in

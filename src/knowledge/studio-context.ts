@@ -21,6 +21,14 @@ export interface StudioContext {
   tagline: string | null;
   /** Steward-added principles, layered on the base (multi-tenant schema; null until applied) */
   appendedPrinciples: string | null;
+  /**
+   * Domain frames (knowledge/frames.ts slugs) the studio carries: they layer
+   * into an approved member's context on every turn and are stamped into the
+   * project's lineage. Code-defined per studio for now.
+   */
+  frames?: string[];
+  /** A credit line the studio asks for on everything that grows from its shelf */
+  partnerCredit?: string;
 }
 
 /** Future-schema column candidates, in preference order */
@@ -284,7 +292,52 @@ No build in this studio may:
 - Replace a local newsroom, library, or town office function without
   that body being part of the build`;
 
+const BLOOM_PRINCIPLES = `BLOOM Project runs a civic host model: a local civic host (a community
+organization, a school community, a library, a neighborhood group) convenes
+residents to work through a public question, with BLOOM's stack and
+stewardship behind them. BLOOM is building toward a national civic host
+cohort (sub-grants, capacity building, peer learning); what hosts build and
+learn here flows back into that cohort.
+
+### BLOOM's model, in the builder's hands
+
+1. **Civic host led engagement.** The host is a named local organization
+   with standing in the place, not a platform. Every build names its host
+   and the question the host is holding.
+2. **Map the opinion landscape first, then deliberate on tradeoffs.**
+   An Open Poll maps where people stand and surfaces opinion groups;
+   facilitated conversations then grapple with tradeoffs and look for
+   supermajority agreement across groups. Build for both stages and the
+   hand-off between them.
+3. **A backbone effort keeps organizing.** Someone keeps organizing
+   between and after sessions so recommendations actually land with the
+   decision-maker (a school district, a city, a board). Every plan says
+   who that is and what they do the week after the last session.
+4. **"In partnership with BLOOM."** Since builds here draw on BLOOM's
+   model, derived materials (apps, agendas, flyers, reports, proposals)
+   carry an "in partnership with BLOOM" credit. It matters for how the
+   work keeps getting resourced.
+
+### Guardrails
+
+- Never fabricate participant voices. Sample data is labeled sample.
+- Results pages always say who was heard and who was not.
+- Keep "Export results" visible so a host's data can travel to BLOOM's
+  reporting layer; mark the export shape as a placeholder until BLOOM
+  shares its real schema.`;
+
 const BUILTIN_STUDIOS: Record<string, StudioContext> = {
+  bloom: {
+    slug: 'bloom',
+    label: 'Bloom Studio',
+    color: 'hsl(330 60% 60%)',
+    description:
+      'Shared infrastructure for BLOOM Project\'s civic hosts — the Open Poll to deliberation to report loop, stewarded by BLOOM, remixable by every host.',
+    tagline: 'Map the landscape, then deliberate.',
+    appendedPrinciples: BLOOM_PRINCIPLES,
+    frames: ['deliberative'],
+    partnerCredit: 'In partnership with BLOOM',
+  },
   'radically-rural': {
     slug: 'radically-rural',
     label: 'Radically Rural',
@@ -315,7 +368,15 @@ function withBuiltin(ctx: StudioContext): StudioContext {
     description: ctx.description ?? base.description,
     tagline: ctx.tagline ?? base.tagline,
     appendedPrinciples: ctx.appendedPrinciples ?? base.appendedPrinciples,
+    frames: ctx.frames ?? base.frames,
+    partnerCredit: ctx.partnerCredit ?? base.partnerCredit,
   };
+}
+
+/** The credit a studio asks for on what grows from its shelf (BLOOM: "In partnership with BLOOM") */
+export function studioPartnerCredit(slug: string | null | undefined): string | null {
+  if (!slug) return null;
+  return BUILTIN_STUDIOS[slug]?.partnerCredit ?? null;
 }
 
 /**

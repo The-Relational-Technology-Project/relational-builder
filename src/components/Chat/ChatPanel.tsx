@@ -45,7 +45,7 @@ import {
   COMMUNITY_PLAN_MODEL,
   type CommunityModelStage,
 } from '@/store/community-store';
-import { useStudioStore } from '@/store/studio-store';
+import { useStudioStore, approvedMemberships } from '@/store/studio-store';
 import { useAuthStore } from '@/store/auth-store';
 import { useCloudStore } from '@/store/cloud-store';
 import { retrieveCommonsContext, findMentionedResults, slugForMention } from '@/knowledge/retrieval';
@@ -751,7 +751,15 @@ export function ChatPanel() {
     // the commons answering with civic media entries is the signal itself
     const lineageFrameSlugs = useProjectStore.getState().lineage?.frames ?? [];
     const sensedFrames = detectFrames(commonsResults, content);
-    const frameSlugs = [...new Set([...lineageFrameSlugs, ...sensedFrames.map(f => f.slug)])];
+    // A studio can carry frames of its own (BLOOM carries the deliberative
+    // frame): they ride for approved members building inside that studio,
+    // and persist in lineage like any other frame
+    const studioFrameSlugs =
+      activeStudio?.frames && approvedMemberships(useStudioStore.getState().memberships)
+        .some(m => m.studio_slug === activeStudio.slug)
+        ? activeStudio.frames
+        : [];
+    const frameSlugs = [...new Set([...lineageFrameSlugs, ...studioFrameSlugs, ...sensedFrames.map(f => f.slug)])];
     const frames = framesFromSlugs(frameSlugs);
 
     // Anthropic server-side web tools ride Claude chats only — the model can

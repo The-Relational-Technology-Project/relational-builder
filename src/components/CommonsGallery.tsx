@@ -8,6 +8,8 @@ import { fetchGalleryLinks, studioSlugsForTool, type GalleryLink } from '@/cloud
 import { searchCommons } from '@/knowledge/commons-search';
 import { STUDIO_ITEM_KINDS, type StudioLibraryItem } from '@/cloud/studio-library';
 import { startFromStudioItem } from '@/project/start-from-studio-item';
+import { studioLineageChain, formatLineageChain } from '@/knowledge/studio-lineage';
+import { studioPartnerCredit } from '@/knowledge/studio-context';
 import {
   fetchCivicMediaCards, fetchNeighboringRecipeCards,
   fetchCommunityOrganizingCards, fetchLocalCivicTechCards, fetchMicrograntCards, fetchContributedCards,
@@ -704,6 +706,18 @@ export function CommonsGallery() {
           </section>
         ))}
 
+        {/* Waiting at a studio's door: the request is on file (an invite
+            link or the profile page put it there), and a Studio Admin's
+            approval is what opens the shelf. Say so where the shelf would be. */}
+        {activeStudio && memberships.some(m => m.studio_slug === activeStudio.slug && m.status === 'pending') && (
+          <section className="rounded-xl border border-dashed px-4 py-3 text-sm">
+            <span className="font-medium">Your request to join {activeStudio.label} is waiting for a Studio Admin.</span>
+            <span className="text-muted-foreground">
+              {' '}Once it's approved, the studio's own gallery appears here and its principles ride in your builds.
+            </span>
+          </section>
+        )}
+
         {/* Giving to the commons, right where people browse it — the same
             Contribute door as the header, with Deb's invitation. */}
         {scope === 'commons' && <ContributeCallout />}
@@ -850,6 +864,8 @@ export function CommonsGallery() {
                   key={entry.key}
                   item={entry.item}
                   studioLabel={scopeLabel(entry.item.studio_slug)}
+                  lineage={formatLineageChain(studioLineageChain(entry.item, studioLibrary))}
+                  credit={studioPartnerCredit(entry.item.studio_slug)}
                   anyBusy={busyKey !== null}
                   onOpen={() => setStudioDetail(entry.item)}
                   onPlan={() => planStudioItem(entry.item)}
@@ -920,6 +936,8 @@ export function CommonsGallery() {
               ? studioLibrary.find(x => x.id === studioDetail.remix_of)?.title ?? null
               : null
           }
+          lineage={formatLineageChain(studioLineageChain(studioDetail, studioLibrary))}
+          credit={studioPartnerCredit(studioDetail.studio_slug)}
           references={references}
           curation={curation}
           onOpenRef={openRef}
@@ -994,9 +1012,14 @@ function StudioPrinciplesPanel({
 
 /** A studio library card — the studio's own shelf, marked private or shared */
 function StudioItemCard({
-  item, studioLabel, anyBusy, onOpen, onPlan,
+  item, studioLabel, lineage, credit, anyBusy, onOpen, onPlan,
 }: {
-  item: StudioLibraryItem; studioLabel: string; anyBusy: boolean;
+  item: StudioLibraryItem; studioLabel: string;
+  /** The readable remix chain, when the item grew from something on the shelf */
+  lineage?: string | null;
+  /** The studio's partnership credit line, when it asks for one */
+  credit?: string | null;
+  anyBusy: boolean;
   onOpen: () => void; onPlan: () => void;
 }) {
   const [imgBroken, setImgBroken] = useState(false);
@@ -1039,9 +1062,18 @@ function StudioItemCard({
         {item.attribution && (
           <p className="text-xs text-muted-foreground -mt-0.5">{item.attribution}</p>
         )}
+        {lineage && (
+          <p className="text-xs text-muted-foreground flex items-start gap-1 leading-snug">
+            <GitBranch className="size-3 shrink-0 mt-0.5" />
+            <span>{lineage}</span>
+          </p>
+        )}
         <p className="text-sm text-muted-foreground line-clamp-4 flex-1">
           {item.summary ?? item.body?.slice(0, 200)}
         </p>
+        {credit && (
+          <p className="text-[11px] font-medium text-primary/90">{credit}</p>
+        )}
         {item.tags.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {item.tags.slice(0, 5).map(t => (
@@ -1066,9 +1098,10 @@ function StudioItemCard({
 }
 
 function StudioItemDetailDialog({
-  item, studioLabel, remixOfTitle, references, curation, onOpenRef, onPlan, onOpenChange,
+  item, studioLabel, remixOfTitle, lineage, credit, references, curation, onOpenRef, onPlan, onOpenChange,
 }: {
   item: StudioLibraryItem; studioLabel: string; remixOfTitle?: string | null;
+  lineage?: string | null; credit?: string | null;
   references: GalleryReference[];
   curation?: ConnectionsCuration;
   onOpenRef: (source: RefSource, id: string) => boolean;
@@ -1100,11 +1133,16 @@ function StudioItemDetailDialog({
             {studioLabel}
           </p>
           {item.attribution && <p>{item.attribution}</p>}
-          {remixOfTitle && (
+          {lineage ? (
+            <p className="text-muted-foreground text-xs flex items-start gap-1">
+              <GitBranch className="size-3 shrink-0 mt-0.5" /> <span>{lineage}</span>
+            </p>
+          ) : remixOfTitle ? (
             <p className="text-muted-foreground text-xs flex items-center gap-1">
               <GitBranch className="size-3" /> Remixed from "{remixOfTitle}"
             </p>
-          )}
+          ) : null}
+          {credit && <p className="text-xs font-medium text-primary/90">{credit}</p>}
           <p className="text-muted-foreground text-xs">
             {item.status === 'pending'
               ? `Offered to ${studioLabel} — waiting for a Studio Admin's approval`
