@@ -292,36 +292,60 @@ No build in this studio may:
 - Replace a local newsroom, library, or town office function without
   that body being part of the build`;
 
-const BLOOM_PRINCIPLES = `BLOOM Project runs a civic host model: a local civic host (a community
-organization, a school community, a library, a neighborhood group) convenes
-residents to work through a public question, with BLOOM's stack and
-stewardship behind them. BLOOM is building toward a national civic host
-cohort (sub-grants, capacity building, peer learning); what hosts build and
-learn here flows back into that cohort.
+const BLOOM_PRINCIPLES = `BLOOM Project is building the Public Assembly on AI: a growing network of
+community-led assemblies where neighbors weigh hard public choices and
+develop proposals decision makers can't ignore, "so that AI happens with
+people, not to them." Locally rooted organizations called Civic Hosts run
+the process; BLOOM brings funding, methods, tools (CivicOS), coaching, and a
+peer network. A process moves through layers: open participation (an Open
+Poll and community conversations), then a representative assembly chosen by
+civic lottery, then recommendations carried to the people who decide. What
+hosts build and learn here flows back into BLOOM's Civic Host cohort.
 
 ### BLOOM's model, in the builder's hands
 
 1. **Civic host led engagement.** The host is a named local organization
-   with standing in the place, not a platform. Every build names its host
-   and the question the host is holding.
-2. **Map the opinion landscape first, then deliberate on tradeoffs.**
-   An Open Poll maps where people stand and surfaces opinion groups;
-   facilitated conversations then grapple with tradeoffs and look for
-   supermajority agreement across groups. Build for both stages and the
-   hand-off between them.
-3. **A backbone effort keeps organizing.** Someone keeps organizing
-   between and after sessions so recommendations actually land with the
-   decision-maker (a school district, a city, a board). Every plan says
-   who that is and what they do the week after the last session.
-4. **"In partnership with BLOOM."** Since builds here draw on BLOOM's
-   model, derived materials (apps, agendas, flyers, reports, proposals)
-   carry an "in partnership with BLOOM" credit. It matters for how the
+   that can bring neighbors together across difference, not a platform.
+   Every build names its host, the question the host is holding, and who in
+   the place is unlikely to show up and how the build reaches them.
+2. **Listen widely, then deliberate representatively.** Open layers welcome
+   everyone and map where people stand; a civic-lottery assembly reflecting
+   the place (age, geography, income, political views) works through the
+   tradeoffs. Say which layer a build serves and design the hand-off: poll
+   and conversation themes become the assembly's briefing, its proposals
+   become the report.
+3. **Work through real differences.** Not agreement on everything: enough
+   common ground to act. Start from story and shared values before policy.
+   Show results by opinion group, aim for supermajority agreement across
+   groups, and report the support level for every recommendation.
+4. **AI in the loop, people hold the judgment.** AI transcribes, themes,
+   translates, and summarizes; people facilitate, deliberate, and decide.
+   Every theme traces back to the statements and quotes it came from. Say
+   where AI is used and where a person checks it.
+5. **A path to action, and a backbone to carry it.** People want what they
+   decide together to matter. Every plan names the decision-maker, when
+   they decide, how recommendations reach them, and who keeps organizing
+   between and after sessions. Close the loop with participants.
+6. **Trust starts close to home, and connects upward.** Local questions are
+   decided locally; questions that need more scale go to state and national
+   assemblies. Build so the next host can run it, and count the capacity a
+   process leaves behind as an outcome.
+7. **Build what people decided.** Buildathons start from an assembly's
+   recommendations, cite them with their support level, and bring
+   participants into the build. Before an assembly decides, build for the
+   process, never for an outcome.
+8. **"In partnership with BLOOM."** Derived materials (apps, agendas,
+   flyers, reports, proposals) carry an "In partnership with BLOOM" credit,
+   with the civic host credited first and by name. It matters for how the
    work keeps getting resourced.
 
 ### Guardrails
 
-- Never fabricate participant voices. Sample data is labeled sample.
-- Results pages always say who was heard and who was not.
+- Never fabricate participant voices, votes, positions, or consensus.
+  Sample data is labeled sample.
+- Results pages always say who was heard and who was not, and stay locked
+  until enough people have taken part.
+- Participant data stays with the host and moves onward only with consent.
 - Keep "Export results" visible so a host's data can travel to BLOOM's
   reporting layer; mark the export shape as a placeholder until BLOOM
   shares its real schema.`;
@@ -332,8 +356,8 @@ const BUILTIN_STUDIOS: Record<string, StudioContext> = {
     label: 'Bloom Studio',
     color: 'hsl(330 60% 60%)',
     description:
-      'Shared infrastructure for BLOOM Project\'s civic hosts — the Open Poll to deliberation to report loop, stewarded by BLOOM, remixable by every host.',
-    tagline: 'Map the landscape, then deliberate.',
+      'Shared infrastructure for BLOOM Project\'s Civic Hosts: open participation, a representative assembly, and a path to action, stewarded by BLOOM and remixable by every host.',
+    tagline: 'So that AI happens with people, not to them.',
     appendedPrinciples: BLOOM_PRINCIPLES,
     frames: ['deliberative'],
     partnerCredit: 'In partnership with BLOOM',
