@@ -28,6 +28,14 @@ is BLOOM-specific.
 | prompt | Neighborhood deliberation kit | "Build with this" yields the four-output kit |
 | example | Sunset Schools Deliberation | `remix_of` the kit; screenshot in the `studio-library` bucket; url is the GitHub repo |
 
+Images: the Open Poll card uses a capture of the live poll
+(all.bloomproject.us/contribute); the report, story, themer, and kit cards
+use screenshots of the Central Oregon report. All live in the
+`studio-library` bucket under `bloom/`. A card's image also rides into
+"Build with this" as the visual reference, so the kit shows the consensus
+view and the Open Poll shows the vote screen. No CivicOS imagery exists on
+the public web as of Oct 2026, so the transcription tool has no image.
+
 Facts in the tools and story items come from Rahmin's messages and the
 report at report.bloomproject.us/central-oregon-ai. Nothing about BLOOM's
 tools beyond their names and what the report makes visible was invented.

@@ -7,7 +7,11 @@
       "summary": "Draft for BLOOM to edit: a local civic host convenes the community and holds the question; BLOOM brings the stack and the stewardship. Every build names its host.",
       "body": "In BLOOM's civic-host model, a named local organization with standing in the place (a school community, a library, a neighborhood group, a civic action project) convenes residents around a public question. The host owns the relationships and the follow-through; BLOOM brings the full stack behind them and stewards the practice across hosts.\n\nBLOOM is building product over the next few months for a national civic host cohort (sub-grants, capacity building, peer learning). What a host builds and learns in this studio feeds straight into that cohort, and whatever the cohort learns flows back here.\n\nWorking in this frame:\n\n- Every build names its civic host and the question the host is holding before the first screen is designed.\n- The host is a person and an organization, not a platform. Put a name, a role, and a way to reach them on every public page.\n- Design for the host's capacity: a weekly standing meeting, a small editorial trio, volunteers. Not a full-time data team.\n- Say which decision-maker the recommendations are meant to land with (a school board, a city council, a county) and when they decide.",
       "attribution": "BLOOM Project",
-      "tags": ["bloom", "civic-host", "draft-for-bloom-review"],
+      "tags": [
+        "bloom",
+        "civic-host",
+        "draft-for-bloom-review"
+      ],
       "sort_order": 10
     },
     {
@@ -16,7 +20,12 @@
       "summary": "Draft for BLOOM to edit: an Open Poll is good at mapping the initial opinion landscape. Then more deliberative engagements grapple with tradeoffs and find supermajority synthesis across opinion groups.",
       "body": "In Rahmin's words: \"Open Poll is good at mapping the initial opinion landscape. We'll want more deliberative engagements to grapple with tradeoffs, find supermajority synthesis across them.\"\n\nThe two stages, and the hand-off between them:\n\n1. **Map the landscape.** An Open Poll puts short statements in front of people (agree, disagree, pass; add your own). Voting patterns surface opinion groups and show where the groups already agree. In Central Oregon this found three groups across 400+ residents and strong common ground on transparency and community involvement.\n2. **Deliberate on tradeoffs.** Facilitated neighborhood conversations take the landscape as their starting map and work through the hard tradeoffs in small groups. The aim is supermajority agreement across opinion groups, not a majority that outvotes a minority.\n\nWorking in this frame:\n\n- Build for both stages and make the hand-off explicit: poll results become the agenda for the conversations; conversation themes become the report.\n- Show results by opinion group, not just overall. Common ground means every group agrees, and the page should make that visible (percent who agree, by group).\n- Keep results honest: say who was heard, lock reports until enough people have taken part, and never show made-up groups.",
       "attribution": "BLOOM Project",
-      "tags": ["bloom", "open-poll", "deliberation", "draft-for-bloom-review"],
+      "tags": [
+        "bloom",
+        "open-poll",
+        "deliberation",
+        "draft-for-bloom-review"
+      ],
       "sort_order": 20
     },
     {
@@ -25,7 +34,12 @@
       "summary": "Draft for BLOOM to edit: someone keeps organizing between and after the sessions so recommendations actually land with the decision-maker. Decide who, early.",
       "body": "In Rahmin's words: \"The backbone question: who keeps organizing between and after the sessions so recommendations actually land with SFUSD? Worth deciding early.\" And: \"The backbone question ties to a question about organizing across the civic hosts: who is helping coordinate and support that?\"\n\nA poll and a set of conversations are not the work. The work is what happens the week after the last session: the report gets written, read aloud where it matters, carried to the board meeting, followed up on, and brought back to the people who took part.\n\nWorking in this frame:\n\n- Every plan names the backbone: the person or small group who keeps organizing between sessions and after the last one, and what they do each week.\n- Build the closing of the loop into the kit: a results page people can return to, a printable summary for the bulletin board, a date when the recommendations go to the decision-maker.\n- Across hosts, name who coordinates and supports the hosts themselves (BLOOM's cohort role), so no host is organizing alone.",
       "attribution": "BLOOM Project",
-      "tags": ["bloom", "backbone", "organizing", "draft-for-bloom-review"],
+      "tags": [
+        "bloom",
+        "backbone",
+        "organizing",
+        "draft-for-bloom-review"
+      ],
       "sort_order": 30
     },
     {
@@ -34,18 +48,28 @@
       "summary": "Draft for BLOOM to edit: since builds here draw on BLOOM's model, derived materials and proposals carry an \"in partnership with BLOOM\" credit. It matters for how the work keeps getting resourced.",
       "body": "In Rahmin's words: \"Attribution: since this draws on BLOOM's model, we'd want 'in partnership with BLOOM' credited on materials and in the proposal. It matters for how we keep resourcing the work.\"\n\nWorking in this frame:\n\n- Apps, agendas, outreach plans, flyers, reports, and proposals that grow from this studio's shelf carry the line \"In partnership with BLOOM\" (footer, about page, or title block).\n- Lineage travels with every remix: a build says what it grew from, and the studio gallery shows the chain.\n- Credit the civic host alongside BLOOM. Partnership runs both ways.",
       "attribution": "BLOOM Project",
-      "tags": ["bloom", "attribution", "draft-for-bloom-review"],
+      "tags": [
+        "bloom",
+        "attribution",
+        "draft-for-bloom-review"
+      ],
       "sort_order": 40
     },
     {
       "kind": "tool",
       "title": "Open Poll",
       "summary": "Draft for BLOOM to edit: BLOOM's tool for mapping the opinion landscape. People vote on short statements and add their own; voting patterns surface opinion groups and the statements every group agrees on.",
-      "body": "The first stage of BLOOM's stack. An Open Poll puts short statements in front of a community (agree, disagree, pass) and lets people add statements of their own. Analysis of voting patterns finds opinion groups and shows, for each statement, the percent who agree overall and by group.\n\nIn Central Oregon the Open Poll ran alongside six listening sessions and reached 400+ residents across the region. See the report: https://report.bloomproject.us/central-oregon-ai\n\nIn the Builder: a generated poll tool should produce results that can hand off to the deliberation stage and export as JSON/CSV (participants, opinion groups, statements with percent agree by group).",
+      "body": "The first stage of BLOOM's stack. An Open Poll puts short statements in front of a community (agree, disagree, pass) and lets people add statements of their own. Analysis of voting patterns finds opinion groups and shows, for each statement, the percent who agree overall and by group.\n\nIn Central Oregon the Open Poll ran alongside six listening sessions and reached 400+ residents across the region. See the report: https://report.bloomproject.us/central-oregon-ai\n\nIn the Builder: a generated poll tool should produce results that can hand off to the deliberation stage and export as JSON/CSV (participants, opinion groups, statements with percent agree by group).\n\n**What the live poll looks like** (all.bloomproject.us, Oct 2026): a location tag (USA, Utah), the question as a header (\"AI and the future of our communities\"), one statement at a time in quotes with a \"10 left\" counter, three buttons: Agree, Disagree, Unsure, a \"Something wrong? Report this statement\" link, and a \"Share your perspective...\" box at the bottom. Adding a perspective opens instructions first (share a belief, concern, or value in your own words; one idea per submission; keep it respectful; no links or URLs; a shared space with Terms of Use and a Moderation Policy; \"don't overthink it, there's no wrong answer\"), then a 240-character box under the poll's question. Screenshot of that flow: https://texakzqqenzpxawktbgx.supabase.co/storage/v1/object/public/studio-library/bloom/open-poll-perspective.png",
       "url": "https://report.bloomproject.us/central-oregon-ai",
       "attribution": "BLOOM Project",
-      "tags": ["bloom", "open-poll", "eliciting", "draft-for-bloom-review"],
-      "sort_order": 50
+      "tags": [
+        "bloom",
+        "open-poll",
+        "eliciting",
+        "draft-for-bloom-review"
+      ],
+      "sort_order": 50,
+      "image_url": "https://texakzqqenzpxawktbgx.supabase.co/storage/v1/object/public/studio-library/bloom/open-poll.png"
     },
     {
       "kind": "tool",
@@ -54,28 +78,45 @@
       "body": "The second stage of BLOOM's stack begins with the live conversations: listening sessions and neighborhood conversations where people work through tradeoffs in small groups. Transcription turns what is said at the tables into text, so the host can theme it, quote it, and report on it alongside the poll.\n\nIn Central Oregon, six listening sessions around the region fed quotes into the report next to the poll statements (each theme shows poll statements and session quotes side by side). See: https://report.bloomproject.us/central-oregon-ai\n\nIn the Builder: a kit should plan where and how conversations get recorded, with consent, and leave room for the transcript to flow into the themer.",
       "url": "https://report.bloomproject.us/central-oregon-ai",
       "attribution": "BLOOM Project",
-      "tags": ["bloom", "transcription", "deliberating", "draft-for-bloom-review"],
+      "tags": [
+        "bloom",
+        "transcription",
+        "deliberating",
+        "draft-for-bloom-review"
+      ],
       "sort_order": 60
     },
     {
       "kind": "tool",
       "title": "Table themer",
       "summary": "Draft for BLOOM to edit: BLOOM's theming for table conversations. Statements and quotes from the tables get sorted into themes the host can name and work with.",
-      "body": "Theming is how the raw material from the tables (and the poll) becomes a shape a community can read. BLOOM's table themer sorts statements and quotes into themes; the host reads what sets each theme apart and names it.\n\nIn Central Oregon, 400+ people's responses were sorted into seven themes: Governance & Decision-Making, Data Centers, Education & Children, Mental Health, Workforce & Labor, Existential Risk, and Access to Quality Information. Each theme holds poll statements and session quotes. See: https://report.bloomproject.us/central-oregon-ai\n\nRahmin notes that BLOOM has also built admin interfaces for hosts to do composition, analysis, and sense-making; those are not described here.",
+      "body": "Theming is how the raw material from the tables (and the poll) becomes a shape a community can read. BLOOM's table themer sorts statements and quotes into themes; the host reads what sets each theme apart and names it.\n\nIn Central Oregon, 400+ people's responses were sorted into seven themes: Governance & Decision-Making, Data Centers, Education & Children, Mental Health, Workforce & Labor, Existential Risk, and Access to Quality Information. Each theme holds poll statements and session quotes. See: https://report.bloomproject.us/central-oregon-ai\n\nRahmin notes that BLOOM has also built admin interfaces for hosts to do composition, analysis, and sense-making; those are not described here.\n\n**What the themed output looks like** in the report's Data Explorer: one colored card per theme with the theme name, \"N statements · M quotes\", and a row of small squares (filled for a poll statement, outlined for a session quote) that open the underlying text.",
       "url": "https://report.bloomproject.us/central-oregon-ai",
       "attribution": "BLOOM Project",
-      "tags": ["bloom", "theming", "sense-making", "draft-for-bloom-review"],
-      "sort_order": 70
+      "tags": [
+        "bloom",
+        "theming",
+        "sense-making",
+        "draft-for-bloom-review"
+      ],
+      "sort_order": 70,
+      "image_url": "https://texakzqqenzpxawktbgx.supabase.co/storage/v1/object/public/studio-library/bloom/table-themer.png"
     },
     {
       "kind": "tool",
       "title": "Reporting and insights layer",
       "summary": "Draft for BLOOM to edit: BLOOM's public report. Who participated, the opinion groups, the consensus statements with percent agree by group, the themes with statements and quotes, and a call to action.",
-      "body": "The last stage of BLOOM's stack: a public report that carries what a community said back to the community and to the decision-maker. The Central Oregon report walks five steps: Who participated (a map of 400+ people by town), Opinion Groups (three groups with a sentence on what distinguishes each), Consensus (statements with percent agree overall and by group), Call to Action (a Civic Assembly), and a Data Explorer (seven themes, each with poll statements and session quotes). See: https://report.bloomproject.us/central-oregon-ai\n\nIn the Builder: every generated deliberation tool exposes \"Export results\" as JSON/CSV in a placeholder shape (participants, opinion groups, consensus statements with percent agree by group, themes with statements and quotes) so a host's results can travel into BLOOM's report layer. The placeholder stays a placeholder until BLOOM shares the real schema.",
+      "body": "The last stage of BLOOM's stack: a public report that carries what a community said back to the community and to the decision-maker. The Central Oregon report walks five steps: Who participated (a map of 400+ people by town), Opinion Groups (three groups with a sentence on what distinguishes each), Consensus (statements with percent agree overall and by group), Call to Action (a Civic Assembly), and a Data Explorer (seven themes, each with poll statements and session quotes). See: https://report.bloomproject.us/central-oregon-ai\n\nIn the Builder: every generated deliberation tool exposes \"Export results\" as JSON/CSV in a placeholder shape (participants, opinion groups, consensus statements with percent agree by group, themes with statements and quotes) so a host's results can travel into BLOOM's report layer. The placeholder stays a placeholder until BLOOM shares the real schema.\n\n**What the report looks like:** a hero (\"What did Central Oregonians have to say about AI?\", a Dive In button), then a fixed step bar (1/5 Who participated? ... 5/5 Data Explorer) with arrows. Opinion groups are stacked cards with a name, a people count pill, and one sentence on what distinguishes the group. Consensus is a card per statement: a green \"Consensus (92% agree)\" bar, the statement in quotes, who said it, then percent who agree by opinion group with a bar each.",
       "url": "https://report.bloomproject.us/central-oregon-ai",
       "attribution": "BLOOM Project",
-      "tags": ["bloom", "reporting", "insights", "draft-for-bloom-review"],
-      "sort_order": 80
+      "tags": [
+        "bloom",
+        "reporting",
+        "insights",
+        "draft-for-bloom-review"
+      ],
+      "sort_order": 80,
+      "image_url": "https://texakzqqenzpxawktbgx.supabase.co/storage/v1/object/public/studio-library/bloom/reporting-layer.png"
     },
     {
       "kind": "story",
@@ -84,17 +125,31 @@
       "body": "**Who:** Central Oregon Civic Action Project (COCAP) and its partners, with BLOOM's stack. Report: https://report.bloomproject.us/central-oregon-ai\n\n**Question:** What did Central Oregonians have to say about AI, and what should be done about it?\n\n**Who participated:** 400+ people across the region, through the Open Poll and six live listening sessions. The report maps participation by town: Bend (largest), Redmond, Sisters, Prineville, Madras, La Pine, and smaller places like Culver, Terrebonne, Camp Sherman, and Antelope.\n\n**Opinion groups:** analysis of voting patterns found three.\n- Optimists (51 people): see AI's arrival as inevitable, and are the least convinced it's already doing harm.\n- Pragmatists (235 people): agree that AI already delivers real benefits, but want real accountability from AI companies.\n- Skeptics (113 people).\n\n**Common ground:** despite their differences, almost everyone agreed on the importance of transparency and community involvement in AI-related decision-making. The top consensus statement, 92% agree: \"We need stronger transparency around how AI is being used in the education system, by teachers, administrators, and students\" (a man from Sisters). By group: Optimists 96%, Pragmatists 92%, Skeptics 95%. A second consensus statement sits at 91% agree.\n\n**Seven themes** (poll statements and session quotes in each): Governance & Decision-Making (25 statements, 4 quotes); Data Centers (12, 3); Education & Children (15, 6); Mental Health (3, 9); Workforce & Labor (19, 0); Existential Risk (10, 3); Access to Quality Information (14, 7).\n\n**What's next:** a Civic Assembly in December 2026 where 30 to 40 residents will develop policies to make sure the public has a meaningful role in the government's AI-related decisions. Residents are invited to register; selected delegates receive a $250 stipend. The report ends with Register, Share this with a friend, and Explore the Data.\n\n**Why it matters for hosts:** this is the whole loop in one place: map the landscape, deliberate, report, and hand the result to an assembly that carries it forward.",
       "url": "https://report.bloomproject.us/central-oregon-ai",
       "attribution": "BLOOM Project",
-      "tags": ["bloom", "story", "central-oregon", "ai", "draft-for-bloom-review"],
-      "sort_order": 90
+      "tags": [
+        "bloom",
+        "story",
+        "central-oregon",
+        "ai",
+        "draft-for-bloom-review"
+      ],
+      "sort_order": 90,
+      "image_url": "https://texakzqqenzpxawktbgx.supabase.co/storage/v1/object/public/studio-library/bloom/central-oregon-story.png"
     },
     {
       "kind": "prompt",
       "title": "Neighborhood deliberation kit",
       "summary": "Draft for BLOOM to edit: build with this to get the whole kit for one neighborhood question: a poll-to-report app with sample data and an \"Export results\" placeholder for BLOOM's report layer, plus program/agenda.md, program/outreach.md, and materials/flyer.html.",
-      "body": "Our civic host: [the organization convening this, and the person who answers for it]\nOur place: [neighborhood, school community, or town]\nThe question we're working through together: [one public question, in plain words]\nWho needs to be heard: [parents and teachers? renters and owners? youth and elders? which languages?]\nThe decision-maker and their date: [who the recommendations go to, and when they decide]\nThe backbone: [who keeps organizing between and after the sessions]\n\nPlease produce the full kit, across this conversation:\n\n1. **The app** (the Open Poll to report flow, demo-friendly out of the box). People pick a role, vote agree / disagree / pass on short statements one at a time, and add their own (new statements wait in a steward queue). Results open at a threshold and show opinion groups, consensus statements with percent agree overall and by group, and themes with statements and quotes. Ship a clearly labeled sample dataset (a \"Sample data\" switch) so a host can walk poll, opinion groups, consensus, themes, and report in two minutes without real participants; clearing it is one click. Include a visible \"Export results\" button that writes JSON and CSV in this placeholder shape, and say in the UI that it is a placeholder until BLOOM shares the real schema: participants (total, by place, by channel: poll or sessions), opinion_groups (id, name, size, description), consensus_statements (id, text, agree_overall_pct, agree_by_group, source), themes (name, statements, quotes with attribution).\n2. **program/agenda.md**: a timeboxed facilitation agenda for a 90-minute neighborhood conversation, with the tension underneath the question and three starting prompts written in, small-group format, ground rules, and a named host.\n3. **program/outreach.md**: who invites whom, where flyers go, which doors get knocked, which languages, and the weekly rhythm for the backbone.\n4. **materials/flyer.html**: a printable, standalone flyer with inline styles and room for a QR code to the poll.\n\nCredit \"In partnership with BLOOM\" in the app footer, the agenda, and the flyer. Say who was heard and who wasn't wherever results appear. Keep the stages visible: map the landscape first, then deliberate on tradeoffs toward supermajority agreement, then report back to the people and to the decision-maker.",
+      "body": "Our civic host: [the organization convening this, and the person who answers for it]\nOur place: [neighborhood, school community, or town]\nThe question we're working through together: [one public question, in plain words]\nWho needs to be heard: [parents and teachers? renters and owners? youth and elders? which languages?]\nThe decision-maker and their date: [who the recommendations go to, and when they decide]\nThe backbone: [who keeps organizing between and after the sessions]\n\nPlease produce the full kit, across this conversation:\n\n1. **The app** (the Open Poll to report flow, demo-friendly out of the box). People pick a role, vote agree / disagree / pass on short statements one at a time, and add their own (new statements wait in a steward queue). Results open at a threshold and show opinion groups, consensus statements with percent agree overall and by group, and themes with statements and quotes. Ship a clearly labeled sample dataset (a \"Sample data\" switch) so a host can walk poll, opinion groups, consensus, themes, and report in two minutes without real participants; clearing it is one click. Include a visible \"Export results\" button that writes JSON and CSV in this placeholder shape, and say in the UI that it is a placeholder until BLOOM shares the real schema: participants (total, by place, by channel: poll or sessions), opinion_groups (id, name, size, description), consensus_statements (id, text, agree_overall_pct, agree_by_group, source), themes (name, statements, quotes with attribution).\n2. **program/agenda.md**: a timeboxed facilitation agenda for a 90-minute neighborhood conversation, with the tension underneath the question and three starting prompts written in, small-group format, ground rules, and a named host.\n3. **program/outreach.md**: who invites whom, where flyers go, which doors get knocked, which languages, and the weekly rhythm for the backbone.\n4. **materials/flyer.html**: a printable, standalone flyer with inline styles and room for a QR code to the poll.\n\nCredit \"In partnership with BLOOM\" in the app footer, the agenda, and the flyer. Say who was heard and who wasn't wherever results appear. Keep the stages visible: map the landscape first, then deliberate on tradeoffs toward supermajority agreement, then report back to the people and to the decision-maker.\n\n**Visual references** (BLOOM's real tools, for the look and the shape of results, not to copy pixel for pixel): the poll screen https://texakzqqenzpxawktbgx.supabase.co/storage/v1/object/public/studio-library/bloom/open-poll.png, the add-a-perspective flow https://texakzqqenzpxawktbgx.supabase.co/storage/v1/object/public/studio-library/bloom/open-poll-perspective.png, opinion groups https://texakzqqenzpxawktbgx.supabase.co/storage/v1/object/public/studio-library/bloom/reporting-layer.png, consensus by group (attached), themes https://texakzqqenzpxawktbgx.supabase.co/storage/v1/object/public/studio-library/bloom/table-themer.png.",
       "attribution": "BLOOM Project",
-      "tags": ["bloom", "kit", "build-with-this", "deliberation", "draft-for-bloom-review"],
-      "sort_order": 100
+      "tags": [
+        "bloom",
+        "kit",
+        "build-with-this",
+        "deliberation",
+        "draft-for-bloom-review"
+      ],
+      "sort_order": 100,
+      "image_url": "https://texakzqqenzpxawktbgx.supabase.co/storage/v1/object/public/studio-library/bloom/deliberation-kit.png"
     },
     {
       "kind": "example",
@@ -104,7 +159,15 @@
       "url": "https://github.com/joshnesbit/sunset-delib",
       "image_url": "https://texakzqqenzpxawktbgx.supabase.co/storage/v1/object/public/studio-library/bloom/sunset-schools-deliberation.png",
       "attribution": "BLOOM Project",
-      "tags": ["bloom", "example", "remix", "schools", "ai", "san-francisco", "draft-for-bloom-review"],
+      "tags": [
+        "bloom",
+        "example",
+        "remix",
+        "schools",
+        "ai",
+        "san-francisco",
+        "draft-for-bloom-review"
+      ],
       "remix_of_title": "Neighborhood deliberation kit",
       "sort_order": 110
     }
