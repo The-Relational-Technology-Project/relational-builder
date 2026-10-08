@@ -131,9 +131,14 @@ ones.
    "<name>, remix of … from the Neighborhood deliberation kit" with "In
    partnership with BLOOM"; Details shows the same chain.
 
-A headless Playwright version of the same steps lives in the session's
-scratchpad and was run once end to end before the demo; it is not committed
-because it depends on a local Playwright install and the service key.
+A headless Playwright version of the same steps was run before the demo
+(Oct 8). Steps 1 to 4 ran live, including a real plan reply framed by
+BLOOM's principles; steps 5 to 8 ran with a pre-generated Mission kit
+written into the project in place of the build, because live generation
+hung twice behind the sandbox's proxy (it completed once in 51s). The
+publish, offer, approve, cohort, and lineage steps all passed on that run.
+The script is not committed: it depends on a local Playwright install and
+the service key.
 
 ## Handing Studio Admin to BLOOM
 
