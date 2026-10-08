@@ -170,6 +170,26 @@ function readableTags(card: CommonsCard): string[] {
   return [...new Set((card.tags ?? []).filter(t => !t.includes(':') && !SHELF_TAGS.has(t)))].slice(0, 5);
 }
 
+/** Spread the shorter list evenly through the longer one, keeping each list's own order */
+function interleave<T>(a: T[], b: T[]): T[] {
+  if (a.length === 0) return b;
+  if (b.length === 0) return a;
+  const [short, long] = a.length <= b.length ? [a, b] : [b, a];
+  const shortFirst = short === a;
+  const out: T[] = [];
+  const step = (long.length + 1) / (short.length + 1);
+  let si = 0;
+  for (let li = 0; li < long.length; li++) {
+    while (si < short.length && li >= Math.round(step * (si + 1)) - 1) {
+      if (shortFirst || out.length > 0) out.push(short[si++]);
+      else break;
+    }
+    out.push(long[li]);
+  }
+  while (si < short.length) out.push(short[si++]);
+  return out;
+}
+
 export function CommonsGallery() {
   const setView = useUIStore(s => s.setView);
   const tools = useKnowledgeStore(s => s.tools);
@@ -450,7 +470,20 @@ export function CommonsGallery() {
       const pinned: GalleryEntry[] = pins.includes('deliberation')
         ? deliberationCards.map(c => ({ key: `commons-${c.slug}`, type: 'commons' as const, card: c }))
         : [];
-      const all = [...studioGifts, ...shelf, ...studioTools, ...pinned];
+      // Browsing order on a studio shelf with pins: members' own remixes
+      // lead (they are the loop's proof, and carry lineage), then everything
+      // with a screenshot, then the text-only cards — with the studio's own
+      // items spread evenly among the pinned commons cards in each band, so
+      // the shelf reads as one gallery rather than two stacked lists.
+      const hasImage = (e: GalleryEntry) =>
+        e.type === 'studio' ? !!e.item.image_url : e.type === 'commons' ? !!e.card.image_url : true;
+      const remixes = shelf.filter(e => e.type === 'studio' && e.item.remix_of && e.item.created_by);
+      const own = [...studioGifts, ...shelf.filter(e => !remixes.includes(e)), ...studioTools];
+      const band = (test: (e: GalleryEntry) => boolean) =>
+        interleave(own.filter(test), pinned.filter(test));
+      const all = pinned.length > 0
+        ? [...remixes, ...band(hasImage), ...band(e => !hasImage(e))]
+        : [...studioGifts, ...shelf, ...studioTools];
       return q ? all.filter(substringHit) : all;
     }
 
