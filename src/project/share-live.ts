@@ -4,11 +4,14 @@ import { builderClient } from '@/cloud/builder-client';
 import { composeStoryRecord } from '@/project/draft-story';
 
 /**
- * Share Live — a three-slide demo deck for showing a build to a room.
+ * Share Live — a short demo deck for showing a build to a room.
  *
- * Slide 1: project title + one-liner. Then one slide per artifact the
- * builder chose (the app, a flyer, a plan): screenshot, and for the first,
- * what it does. Last: QR code + link so the room can open it on their phones.
+ * Slide 1: project title + one-liner. Then one slide per thing the builder
+ * chose: the app (its screenshot, large, beside a few short feature lines),
+ * any further views of the app the builder captured (one big picture each),
+ * a flyer (its picture), a plan doc (what's inside, as a few lines of text —
+ * a screenshot of a page of prose reads as nothing from the back of a room).
+ * Last: QR code + link so the room can open it on their phones.
  *
  * The deck is one self-contained HTML page published through the same
  * unlisted preview pipeline as Share Preview (30-day link, no site-cap
@@ -19,16 +22,71 @@ import { composeStoryRecord } from '@/project/draft-story';
 export interface ShareLiveCopy {
   oneLiner: string;
   bullets: string[];
+  /** What each plan doc holds, a few short lines per doc, keyed by its path (no leading slash) */
+  docHighlights: Record<string, string[]>;
 }
+
+/** Slide copy limits — a projector slide holds a few short lines, not a paragraph */
+export const MAX_BULLETS = 4;
+export const MAX_BULLET_CHARS = 48;
+export const MAX_DOC_HIGHLIGHTS = 4;
+export const MAX_HIGHLIGHT_CHARS = 60;
 
 const COPY_SYSTEM = [
   'You write demo-day slide copy for a small community-built web app, from the build record you are given.',
   'Plain, warm, specific words — say what the tool actually does for real people. No marketing fluff, no exclamation marks, no jargon.',
+  'The slides are read from the back of a room: every line is a headline, not a sentence. Fragments are good. No trailing periods.',
   'Reply in EXACTLY this format and nothing else:',
-  'ONE-LINER: <one sentence, under 140 characters, that tells a room of strangers what this is>',
-  'BULLET: <a main feature or capability, under 70 characters>',
-  'Give 3 to 5 BULLET lines.',
+  'ONE-LINER: <one sentence, under 120 characters, that tells a room of strangers what this is>',
+  'BULLET: <one thing it does, 3 to 6 words, under 40 characters>',
+  'Give 3 or 4 BULLET lines, the most important first.',
+  'Then, for each plan doc excerpt in the record (the "--- name (plan doc excerpt) ---" sections), 2 to 4 lines:',
+  'DOC <name exactly as given>: <one thing the doc gives its reader, 3 to 8 words, under 55 characters>',
+  'Skip the DOC lines when the record has no plan doc excerpts.',
 ].join('\n');
+
+/** Trim a drafted line to slide length: drop a trailing period, cut at a word boundary */
+export function tidyLine(raw: string, max: number): string {
+  const t = raw.replace(/^[-*•]\s*/, '').replace(/[.。]\s*$/, '').trim();
+  if (t.length <= max) return t;
+  const cut = t.slice(0, max);
+  const atWord = cut.lastIndexOf(' ');
+  return (atWord > max * 0.6 ? cut.slice(0, atWord) : cut).trimEnd() + '…';
+}
+
+/**
+ * The lines a doc slide shows when nobody drafted any: its section
+ * headings (what the reader finds inside), or failing those, the first
+ * sentences of its opening paragraphs. Short enough for a projector.
+ */
+export function docHighlightsFromMarkdown(markdown: string): string[] {
+  const lines = markdown.split(/\r?\n/);
+  const unmark = (s: string) =>
+    s
+      .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
+      .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+      .replace(/[*_`~]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  const headings = lines
+    .map(l => l.match(/^#{2,3}\s+(.+)$/)?.[1])
+    .filter((h): h is string => Boolean(h))
+    .map(h => tidyLine(unmark(h).replace(/^\d+[.)]\s*/, ''), MAX_HIGHLIGHT_CHARS))
+    .filter(Boolean);
+  if (headings.length >= 2) return headings.slice(0, MAX_DOC_HIGHLIGHTS);
+
+  const sentences: string[] = [];
+  let inFence = false;
+  for (const line of lines) {
+    if (/^```/.test(line)) { inFence = !inFence; continue; }
+    if (inFence || !line.trim() || /^(#|>|\||[-*+]\s|\d+[.)]\s|---)/.test(line.trim())) continue;
+    const text = unmark(line);
+    const first = text.split(/(?<=[.!?])\s+/)[0];
+    if (first && first.length > 12) sentences.push(tidyLine(first, MAX_HIGHLIGHT_CHARS));
+    if (sentences.length >= MAX_DOC_HIGHLIGHTS) break;
+  }
+  return [...headings, ...sentences].slice(0, MAX_DOC_HIGHLIGHTS);
+}
 
 /** Draft the deck copy from the build record — same provider path as stories */
 export async function draftShareLiveCopy(): Promise<ShareLiveCopy> {
@@ -57,13 +115,21 @@ export async function draftShareLiveCopy(): Promise<ShareLiveCopy> {
 
   const oneLiner = (reply.match(/^ONE-LINER:\s*(.+)$/m)?.[1] ?? '').trim().slice(0, 160);
   const bullets = [...reply.matchAll(/^BULLET:\s*(.+)$/gm)]
-    .map(m => m[1].trim().slice(0, 90))
+    .map(m => tidyLine(m[1], MAX_BULLET_CHARS))
     .filter(Boolean)
-    .slice(0, 5);
+    .slice(0, MAX_BULLETS);
+  const docHighlights: Record<string, string[]> = {};
+  for (const m of reply.matchAll(/^DOC\s+(.+?):\s*(.+)$/gm)) {
+    const key = m[1].trim().replace(/^\//, '');
+    const line = tidyLine(m[2], MAX_HIGHLIGHT_CHARS);
+    if (!line) continue;
+    const list = (docHighlights[key] ??= []);
+    if (list.length < MAX_DOC_HIGHLIGHTS) list.push(line);
+  }
   if (!oneLiner && bullets.length === 0) {
     throw new Error('The draft came back empty — you can fill the copy in by hand');
   }
-  return { oneLiner, bullets };
+  return { oneLiner, bullets, docHighlights };
 }
 
 /**
@@ -164,13 +230,17 @@ function esc(s: string): string {
     .replace(/"/g, '&quot;');
 }
 
-/** One artifact's slide: the app, a flyer, a plan — picture and a line */
+/** One artifact's slide: the app, a further view of it, a flyer, a plan */
 export interface DeckArtifactSlide {
   /** "The app", "Printable page", "Written doc" */
   kindLabel: string;
   /** The artifact's own name — heads the slide for everything but the app */
   name: string;
   screenshotUrl: string | null;
+  /** For a doc: what's inside, a few short lines, shown instead of a picture */
+  highlights?: string[];
+  /** For a further view of the app: what this page is ("Host sign-up") */
+  caption?: string | null;
 }
 
 export interface DeckInput {
@@ -208,29 +278,50 @@ export function buildDeckHtml(input: DeckInput): string {
   const shortUrl = demoUrl.replace(/^https?:\/\//, '');
   const contactLine = contact ? contactMarkup(contact) : '';
   // One slide per artifact. The first carries the drafted bullets under
-  // "What it does"; a flyer or plan after it is introduced by what it is
-  // and its own name, picture beside. With nothing chosen (older callers)
-  // the bullets still get their slide.
+  // "What it does", picture beside. A doc with highlights is text: what's
+  // inside, as a few lines. Anything else is its picture, big, headed by
+  // what it is. With nothing chosen (older callers) the bullets still get
+  // their slide.
   const artifacts = input.artifacts.length
     ? input.artifacts
-    : [{ kindLabel: 'The app', name: title, screenshotUrl: null }];
-  const artifactSlides = artifacts
-    .map((a, i) => {
-      const first = i === 0;
-      const kicker = first ? 'What it does' : esc(a.kindLabel);
-      const heading = first || a.name === title ? '' : `<h2>${esc(a.name)}</h2>`;
-      const shot = a.screenshotUrl
-        ? `<img class="shot" src="${esc(a.screenshotUrl)}" alt="${esc(a.name)} screenshot">`
-        : '';
-      const list = first && bullets.length ? `<ul>${bullets.map(b => `<li>${esc(b)}</li>`).join('')}</ul>` : '';
+    : [{ kindLabel: 'The app', name: title, screenshotUrl: null } as DeckArtifactSlide];
+  // The lead slide is the first artifact with a picture to put beside the
+  // bullets; when everything chosen is a doc, the bullets open on their own.
+  const leadIndex = artifacts.findIndex(a => !(a.highlights?.some(h => h.trim())));
+  const bulletList = bullets.length ? `<ul>${bullets.map(b => `<li>${esc(b)}</li>`).join('')}</ul>` : '';
+  const slideHtml = artifacts.map((a, i) => {
+    const shot = a.screenshotUrl
+      ? `<img class="shot" src="${esc(a.screenshotUrl)}" alt="${esc(a.caption || a.name)} screenshot">`
+      : '';
+    const highlights = (a.highlights ?? []).map(h => h.trim()).filter(Boolean).slice(0, MAX_DOC_HIGHLIGHTS);
+    if (i === leadIndex) {
       return `  <section class="slide">
-    <div class="kicker">${kicker}</div>
-    ${heading}
-    <div class="row">${shot}${list}</div>
+    <div class="kicker">What it does</div>
+    <div class="row">${shot}${bulletList}</div>
   </section>`;
-    })
-    .join('\n\n');
-  const slideCount = artifacts.length + 2;
+    }
+    if (highlights.length) {
+      return `  <section class="slide">
+    <div class="kicker">${esc(a.kindLabel)}</div>
+    <h2>${esc(a.name)}</h2>
+    <ul class="doc">${highlights.map(h => `<li>${esc(h)}</li>`).join('')}</ul>
+  </section>`;
+    }
+    const heading = a.caption?.trim() || (a.name === title ? '' : a.name);
+    return `  <section class="slide">
+    <div class="kicker">${esc(a.kindLabel)}</div>
+    ${heading ? `<h2>${esc(heading)}</h2>` : ''}
+    <div class="hero">${shot}</div>
+  </section>`;
+  });
+  if (leadIndex < 0 && bulletList) {
+    slideHtml.unshift(`  <section class="slide">
+    <div class="kicker">What it does</div>
+    <div class="row">${bulletList}</div>
+  </section>`);
+  }
+  const artifactSlides = slideHtml.join('\n\n');
+  const slideCount = slideHtml.length + 2;
   const dots = Array.from({ length: slideCount }, (_, i) => `<span${i === 0 ? ' class="on"' : ''}></span>`).join('');
 
   return `<!doctype html>
@@ -251,11 +342,11 @@ export function buildDeckHtml(input: DeckInput): string {
   .slide {
     position: absolute; inset: 0; display: none; flex-direction: column;
     align-items: center; justify-content: center; text-align: center;
-    padding: 6vmin 8vmin 10vmin;
+    padding: 5vmin 5vmin 9vmin;
   }
   .slide.on { display: flex; }
   .kicker { font-size: clamp(14px, 2.2vmin, 22px); letter-spacing: .14em;
-    text-transform: uppercase; color: #C0532F; font-weight: 700; margin-bottom: 2.5vmin; }
+    text-transform: uppercase; color: #C0532F; font-weight: 700; margin-bottom: 2vmin; }
   h1 { font-size: clamp(34px, 9vmin, 110px); line-height: 1.05; letter-spacing: -0.02em; max-width: 26ch; }
   h2 { font-size: clamp(24px, 5.5vmin, 64px); line-height: 1.1; letter-spacing: -0.02em; max-width: 30ch; }
   .oneliner { font-size: clamp(18px, 3.6vmin, 42px); line-height: 1.35; color: #49362B;
@@ -267,16 +358,31 @@ export function buildDeckHtml(input: DeckInput): string {
   .contact-label { text-transform: uppercase; letter-spacing: .1em; font-size: .78em; font-weight: 700; color: #B7A894; }
   .byline + .contact { margin-top: 1.2vmin; }
   .hint + .contact { margin-top: 2.4vmin; }
-  .row { display: flex; gap: 5vmin; align-items: center; justify-content: center;
-    flex-wrap: wrap; margin-top: 3vmin; max-width: 92vw; }
-  .shot { max-width: min(52vw, 900px); max-height: 58vh; border-radius: 14px; object-fit: contain;
+  /* The picture is the slide: as tall as the screen allows, copy beside it */
+  .row { display: flex; gap: 6vmin; align-items: center; justify-content: center;
+    margin-top: 1vmin; width: 100%; min-height: 0; }
+  .shot { display: block; max-width: 100%; max-height: 74vh; border-radius: 14px; object-fit: contain;
     border: 1px solid #E5DCD0; box-shadow: 0 18px 50px rgba(42,31,24,.14); }
-  ul { list-style: none; text-align: left; font-size: clamp(16px, 3vmin, 36px);
-    line-height: 1.45; max-width: 30ch; }
-  li { padding: 1.2vmin 0 1.2vmin 4.2vmin; position: relative; }
-  li::before { content: ''; position: absolute; left: 0; top: calc(1.2vmin + .52em);
+  .row .shot { flex: 0 1 auto; max-width: 58vw; }
+  .row ul { flex: 0 1 auto; }
+  .hero { margin-top: 1vmin; display: flex; justify-content: center; width: 100%; min-height: 0; }
+  .hero .shot { max-width: 92vw; max-height: 70vh; }
+  h2 + .hero .shot { max-height: 64vh; }
+  ul { list-style: none; text-align: left; font-size: clamp(18px, 3.6vmin, 46px);
+    line-height: 1.3; max-width: 22ch; }
+  li { padding: 1.5vmin 0 1.5vmin 4.4vmin; position: relative; }
+  li::before { content: ''; position: absolute; left: 0; top: calc(1.5vmin + .5em);
     width: 2.2vmin; height: 2.2vmin; max-width: 18px; max-height: 18px;
     border-radius: 50%; background: #C0532F; transform: translateY(-50%); }
+  /* A doc slide: a few lines of what's inside, centered, nothing to squint at */
+  ul.doc { margin-top: 3vmin; max-width: 30ch; font-size: clamp(20px, 4.2vmin, 54px); }
+  ul.doc li { padding: 1.8vmin 0 1.8vmin 5vmin; }
+  ul.doc li::before { top: calc(1.8vmin + .5em); width: 2.6vmin; height: 2.6vmin; max-width: 22px; max-height: 22px; }
+  @media (max-aspect-ratio: 1/1) {
+    .row { flex-direction: column; gap: 3vmin; }
+    .row .shot { max-width: 88vw; max-height: 48vh; }
+    .row ul { max-width: 30ch; }
+  }
   .qr { background: #ffffff; border-radius: 20px; padding: 3vmin;
     box-shadow: 0 18px 50px rgba(42,31,24,.14); display: inline-block; line-height: 0; }
   .qr svg { width: min(44vmin, 420px); height: min(44vmin, 420px); }

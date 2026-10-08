@@ -41,10 +41,13 @@ function DialogContent({
   className,
   children,
   showCloseButton = true,
+  showOverlay = true,
   initialFocus,
   ...props
 }: DialogPrimitive.Popup.Props & {
   showCloseButton?: boolean
+  /* A non-modal dialog that leaves the page usable behind it skips the backdrop */
+  showOverlay?: boolean
 }) {
   /* Focus the dialog surface on open (Radix's behavior), not the first
      tabbable element — Base UI's default scrolls long dialogs down to
@@ -52,7 +55,7 @@ function DialogContent({
   const popupRef = React.useRef<HTMLDivElement>(null)
   return (
     <DialogPortal>
-      <DialogOverlay />
+      {showOverlay && <DialogOverlay />}
       <DialogPrimitive.Popup
         data-slot="dialog-content"
         ref={popupRef}

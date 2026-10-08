@@ -26,11 +26,15 @@ import { suggestProjectName } from '@/project/suggest-name';
 import { capturePreviewScreenshot } from '@/preview/screenshot';
 import {
   draftShareLiveCopy,
+  docHighlightsFromMarkdown,
   shrinkScreenshot,
   hostScreenshot,
   buildDeckHtml,
   CONTACT_KINDS,
+  MAX_BULLETS,
+  MAX_DOC_HIGHLIGHTS,
   type BuilderContact,
+  type DeckArtifactSlide,
 } from '@/project/share-live';
 import {
   listShareArtifacts,
@@ -51,6 +55,8 @@ import {
   ExternalLink,
   Smartphone,
   ImageOff,
+  Camera,
+  X,
 } from 'lucide-react';
 
 /**
@@ -60,11 +66,18 @@ import {
  * editable; publishing makes two unlisted preview links (the demo site,
  * then the deck). Event participants can pin the result to their event's
  * demo wall in the Gallery.
+ *
+ * The dialog is non-modal and sits over the chat column, so the preview
+ * beside it stays usable: a builder can move the app to another page and
+ * capture that view for its own slide.
  */
 export function ShareLiveDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+    <Dialog open={open} onOpenChange={onOpenChange} modal={false} disablePointerDismissal>
+      <DialogContent
+        showOverlay={false}
+        className="sm:max-w-lg max-h-[85vh] overflow-y-auto sm:left-6 sm:translate-x-0 shadow-xl"
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Presentation className="size-4" />
@@ -93,6 +106,18 @@ interface DoneResult {
   pinError: string | null;
 }
 
+/** A further view of the app the builder captured — a page beyond the first */
+interface AppView {
+  id: string;
+  shot: string;
+  caption: string;
+}
+
+/** Textarea text → the slide's lines */
+function linesOf(text: string, max: number): string[] {
+  return text.split('\n').map(l => l.trim()).filter(Boolean).slice(0, max);
+}
+
 function ShareLiveContent() {
   const getAllFiles = useProjectStore(s => s.getAllFiles);
   const getPublicEnvVars = useEnvStore(s => s.getPublic);
@@ -117,6 +142,22 @@ function ShareLiveContent() {
   const [chosen, setChosen] = useState<Set<string>>(() => new Set(artifacts.map(a => a.id)));
   const [shots, setShots] = useState<Record<string, string | null>>({});
   const [capturing, setCapturing] = useState<Set<string>>(() => new Set(artifacts.map(a => a.id)));
+  // A doc's slide is text — what's inside, a few lines — never a screenshot
+  // of prose. Headings from the doc itself to start; the draft refines them.
+  const [docHighlights, setDocHighlights] = useState<Record<string, string>>(() => {
+    const files = getAllFiles();
+    const out: Record<string, string> = {};
+    for (const a of artifacts) {
+      if (a.kind !== 'doc') continue;
+      const file = files.find(f => f.path === a.path);
+      out[a.id] = file ? docHighlightsFromMarkdown(file.content).join('\n') : '';
+    }
+    return out;
+  });
+  // Further views of the app, each its own picture slide
+  const [views, setViews] = useState<AppView[]>([]);
+  const [capturingView, setCapturingView] = useState(false);
+  const [viewNote, setViewNote] = useState<string | null>(null);
   const [event, setEvent] = useState<{ code: string; name: string } | null>(null);
   const [pin, setPin] = useState(true);
   // A way to reach them — optional, empty by default: the deck and the wall
@@ -169,6 +210,20 @@ function ShareLiveContent() {
     });
   }, [getAllFiles]);
 
+  // Whatever the preview shows right now becomes another slide
+  const captureView = useCallback(async () => {
+    setCapturingView(true);
+    setViewNote(null);
+    const shot = await capturePreviewScreenshot();
+    if (!alive.current) return;
+    if (shot) {
+      setViews(v => [...v, { id: `view-${Date.now()}`, shot, caption: '' }]);
+    } else {
+      setViewNote('Nothing to capture yet — wait for the preview to finish, then try again.');
+    }
+    setCapturingView(false);
+  }, []);
+
   useEffect(() => {
     for (const a of artifacts) void capture(a);
     fetchMyEvent().then(e => { if (alive.current) setEvent(e); });
@@ -177,6 +232,14 @@ function ShareLiveContent() {
         if (!alive.current) return;
         setOneLiner(copy.oneLiner);
         setBulletsText(copy.bullets.join('\n'));
+        setDocHighlights(prev => {
+          const next = { ...prev };
+          for (const a of artifacts) {
+            const drafted = a.path ? copy.docHighlights[a.path.replace(/^\//, '')] : undefined;
+            if (drafted?.length) next[a.id] = drafted.join('\n');
+          }
+          return next;
+        });
       })
       .catch(e => {
         if (!alive.current) return;
@@ -218,23 +281,48 @@ function ShareLiveContent() {
       const demoFiles = demoFilesFor(siteFiles, files, picked, deckTitle);
       const demo = await createPreviewLink(demoFiles, deckTitle, withApp ? publicVars : []);
 
-      // 2. The screenshots, hosted so both deck and wall can point at them
-      const slides: { kindLabel: string; name: string; screenshotUrl: string | null }[] = [];
+      // 2. The screenshots, hosted so both deck and wall can point at them.
+      // Docs travel as text instead; further app views follow the app.
+      const host = async (shot: string | null | undefined, what: string): Promise<string | null> => {
+        if (!shot) return null;
+        setPublishStep(`Hosting the ${what}…`);
+        const small = await shrinkScreenshot(shot);
+        return small ? await hostScreenshot(small) : null;
+      };
+      const slides: DeckArtifactSlide[] = [];
       for (const a of picked) {
-        let screenshotUrl: string | null = null;
-        const shot = shots[a.id];
-        if (shot) {
-          setPublishStep(`Hosting the ${a.kind === 'app' ? 'screenshot' : a.name + ' picture'}…`);
-          const small = await shrinkScreenshot(shot);
-          if (small) screenshotUrl = await hostScreenshot(small);
+        if (a.kind === 'doc') {
+          const highlights = linesOf(docHighlights[a.id] ?? '', MAX_DOC_HIGHLIGHTS);
+          slides.push({
+            kindLabel: a.kindLabel,
+            name: a.name,
+            highlights,
+            // Only a doc with nothing to say falls back to its picture
+            screenshotUrl: highlights.length ? null : await host(shots[a.id], `${a.name} picture`),
+          });
+          continue;
         }
-        slides.push({ kindLabel: a.kindLabel, name: a.name, screenshotUrl });
+        slides.push({
+          kindLabel: a.kindLabel,
+          name: a.name,
+          screenshotUrl: await host(shots[a.id], a.kind === 'app' ? 'screenshot' : `${a.name} picture`),
+        });
+        if (a.kind === 'app') {
+          for (const [i, v] of views.entries()) {
+            slides.push({
+              kindLabel: a.kindLabel,
+              name: a.name,
+              caption: v.caption.trim() || null,
+              screenshotUrl: await host(v.shot, `screenshot of view ${i + 2}`),
+            });
+          }
+        }
       }
       const screenshotUrl = slides.find(s => s.screenshotUrl)?.screenshotUrl ?? null;
 
       // 3. The deck — one self-contained page, published the same way
       setPublishStep('Composing the slides…');
-      const bullets = bulletsText.split('\n').map(b => b.trim()).filter(Boolean).slice(0, 5);
+      const bullets = linesOf(bulletsText, MAX_BULLETS);
       const deckHtml = buildDeckHtml({
         title: deckTitle,
         oneLiner: oneLiner.trim(),
@@ -284,7 +372,7 @@ function ShareLiveContent() {
     } finally {
       if (alive.current) setPublishStep(null);
     }
-  }, [getAllFiles, getPublicEnvVars, title, oneLiner, bulletsText, artifacts, chosen, shots, event, pin, user, profile, projectName, contact]);
+  }, [getAllFiles, getPublicEnvVars, title, oneLiner, bulletsText, artifacts, chosen, shots, docHighlights, views, event, pin, user, profile, projectName, contact]);
 
   if (!cloudEnabled || !user) {
     return (
@@ -328,7 +416,9 @@ function ShareLiveContent() {
       </div>
 
       <div className="space-y-1.5">
-        <label className="text-xs font-medium">Main features — one per line</label>
+        <label className="text-xs font-medium">
+          What it does — up to {MAX_BULLETS} lines, a few words each
+        </label>
         <textarea
           value={bulletsText}
           onChange={e => setBulletsText(e.target.value)}
@@ -403,6 +493,69 @@ function ShareLiveContent() {
                       </button>
                     )}
                   </label>
+                  {on && a.kind === 'doc' && (
+                    <div className="mt-1.5 ml-1 space-y-1">
+                      <textarea
+                        value={docHighlights[a.id] ?? ''}
+                        onChange={e => setDocHighlights(prev => ({ ...prev, [a.id]: e.target.value }))}
+                        rows={3}
+                        placeholder={'What the doc gives its reader, one line each'}
+                        aria-label={`What's inside ${a.name}`}
+                        className="w-full resize-none rounded-md border bg-background px-2.5 py-1.5 text-sm placeholder:text-muted-foreground/70"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Its slide is these lines, big — not a picture of the page.
+                      </p>
+                    </div>
+                  )}
+                  {on && a.kind === 'app' && (
+                    <div className="mt-1.5 ml-1 space-y-1.5">
+                      {views.map((v, i) => (
+                        <div key={v.id} className="flex items-center gap-2">
+                          <img
+                            src={v.shot}
+                            alt={`App view ${i + 2}`}
+                            className="h-10 w-14 shrink-0 rounded border object-cover object-top bg-white"
+                          />
+                          <Input
+                            value={v.caption}
+                            onChange={e =>
+                              setViews(vs => vs.map(x => (x.id === v.id ? { ...x, caption: e.target.value } : x)))
+                            }
+                            maxLength={60}
+                            placeholder="What this page is (optional)"
+                            aria-label={`Caption for app view ${i + 2}`}
+                            className="h-8 min-w-0 flex-1 text-sm"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setViews(vs => vs.filter(x => x.id !== v.id))}
+                            className="shrink-0 rounded p-1 text-muted-foreground hover:text-foreground"
+                            aria-label={`Remove app view ${i + 2}`}
+                          >
+                            <X className="size-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="h-7 gap-1.5 text-xs"
+                          onClick={captureView}
+                          disabled={capturingView}
+                        >
+                          {capturingView ? <Loader2 className="size-3 animate-spin" /> : <Camera className="size-3" />}
+                          {views.length ? 'Capture another view' : 'Add another view'}
+                        </Button>
+                        <span className="text-xs text-muted-foreground">
+                          Move the preview to another page first — each view gets its own slide.
+                        </span>
+                      </div>
+                      {viewNote && <p className="text-xs text-muted-foreground">{viewNote}</p>}
+                    </div>
+                  )}
                 </li>
               );
             })}
