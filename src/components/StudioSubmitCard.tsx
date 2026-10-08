@@ -46,7 +46,13 @@ export function StudioSubmitCard({
   void accessMap;
 
   const [slug, setSlug] = useState<string>('');
-  const targetSlug = slug || myStudios[0]?.studio_slug || '';
+  // Default to the studio this build is happening in (its frame is already
+  // in the lineage); a member of several studios can still pick another
+  const activeSlug = useStudioStore(s => s.activeStudio?.slug);
+  const homeSlug =
+    myStudios.find(m => m.studio_slug === (lineage?.studioSlug ?? activeSlug))?.studio_slug ??
+    myStudios[0]?.studio_slug ?? '';
+  const targetSlug = slug || homeSlug;
   const target = myStudios.find(m => m.studio_slug === targetSlug);
 
   const [expanded, setExpanded] = useState(false);

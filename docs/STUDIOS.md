@@ -59,8 +59,10 @@ Studio identity (label, color) stays in the KB project's `studios` table, as bef
    request (the steward sees "via Thread Studio" in the queue), and at first
    sign-in a trigger files their request to join the studio automatically —
    it's already waiting in the Studio Admin's "Waiting at the door" list.
-   For someone signed in, the gallery banner offers **Ask to join**. Either
-   way, Studio Admin approval unlocks the library.
+   For someone signed in, arriving through the link files the join request
+   itself (the gallery says it is waiting for a Studio Admin), and the
+   profile page's "Your studio" section is the other way in. Either way,
+   Studio Admin approval unlocks the library.
 
 ## The remix loop
 

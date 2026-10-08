@@ -7,8 +7,10 @@ import {
   listStudioInvites,
   inviteStudioMember,
   withdrawStudioInvite,
+  listStudioCohort,
   type StudioMemberRow,
   type StudioInviteRow,
+  type StudioCohortRow,
 } from '@/cloud/studios';
 import {
   createStudioItem,
@@ -39,7 +41,7 @@ import {
   SelectTrigger,
 } from '@/components/ui/select';
 import {
-  Check, X, Loader2, Plus, Pencil, Trash2, Share2, Lock, KeyRound, Users, BookOpen, Mail,
+  Check, X, Loader2, Plus, Pencil, Trash2, Share2, Lock, KeyRound, Users, BookOpen, Mail, Table2, ExternalLink,
 } from 'lucide-react';
 
 /**
@@ -106,6 +108,9 @@ export function StudioAdminPage() {
               <TabsTrigger value="library" className="text-xs px-3 sm:px-4 gap-1.5">
                 <BookOpen className="size-3.5" /> Library
               </TabsTrigger>
+              <TabsTrigger value="cohort" className="text-xs px-3 sm:px-4 gap-1.5">
+                <Table2 className="size-3.5" /> Cohort
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="members" className="pt-4">
               <MembersTab slug={current.studio_slug} label={current.studio_label} />
@@ -113,9 +118,126 @@ export function StudioAdminPage() {
             <TabsContent value="library" className="pt-4">
               <LibraryTab slug={current.studio_slug} label={current.studio_label} />
             </TabsContent>
+            <TabsContent value="cohort" className="pt-4">
+              <CohortTab slug={current.studio_slug} label={current.studio_label} />
+            </TabsContent>
           </Tabs>
         )}
       </div>
+    </div>
+  );
+}
+
+// --- Cohort: who built what, from which shelf item, and where it lives ---
+
+const SITE_ORIGIN = (import.meta.env.VITE_SITE_URL as string | undefined)?.replace(/\/$/, '') || 'https://relationalbuilder.org';
+
+function CohortTab({ slug, label }: { slug: string; label: string }) {
+  const [rows, setRows] = useState<StudioCohortRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      setRows(await listStudioCohort(slug));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not load the cohort');
+    } finally {
+      setLoading(false);
+    }
+  }, [slug]);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  if (loading) {
+    return (
+      <p className="text-sm text-muted-foreground flex items-center gap-2">
+        <Loader2 className="size-3.5 animate-spin" /> Loading the cohort…
+      </p>
+    );
+  }
+  if (error) return <p className="text-xs text-destructive">{error}</p>;
+
+  const approved = rows.filter(r => r.status === 'approved');
+  const people = new Set(approved.map(r => r.user_id)).size;
+  const builds = approved.filter(r => r.project_id).length;
+  const date = (iso: string | null) =>
+    iso ? new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
+
+  return (
+    <div className="space-y-3">
+      <p className="text-xs text-muted-foreground">
+        Everyone building in {label}: {people} {people === 1 ? 'member' : 'members'}, {builds} {builds === 1 ? 'build' : 'builds'} inside
+        the studio frame. One row per build; a member with nothing built yet still has a row.
+      </p>
+      {approved.length === 0 ? (
+        <p className="text-sm text-muted-foreground">No approved members yet.</p>
+      ) : (
+        <div className="overflow-x-auto rounded-lg border">
+          <table className="w-full text-xs">
+            <thead className="bg-muted/50 text-left text-[10px] uppercase tracking-wide text-muted-foreground">
+              <tr>
+                <th className="px-3 py-2 font-medium">Member</th>
+                <th className="px-3 py-2 font-medium">Place</th>
+                <th className="px-3 py-2 font-medium">Built</th>
+                <th className="px-3 py-2 font-medium">Grew from</th>
+                <th className="px-3 py-2 font-medium">Published</th>
+                <th className="px-3 py-2 font-medium">Pending offers</th>
+              </tr>
+            </thead>
+            <tbody>
+              {approved.map(r => (
+                <tr key={`${r.user_id}-${r.project_id ?? 'none'}`} className="border-t align-top">
+                  <td className="px-3 py-2">
+                    <div className="font-medium">{r.display_name ?? 'A builder'}</div>
+                    <div className="text-muted-foreground">{r.email ?? ''}</div>
+                    {r.role === 'admin' && <Badge variant="outline" className="text-[9px] mt-0.5">admin</Badge>}
+                  </td>
+                  <td className="px-3 py-2 text-muted-foreground">{r.place ?? '—'}</td>
+                  <td className="px-3 py-2">
+                    {r.project_name ? (
+                      <>
+                        <div>{r.project_name}</div>
+                        <div className="text-muted-foreground">{date(r.project_updated_at)}</div>
+                      </>
+                    ) : (
+                      <span className="text-muted-foreground">nothing yet</span>
+                    )}
+                  </td>
+                  <td className="px-3 py-2 text-muted-foreground">{r.grew_from_title ?? (r.project_name ? 'a blank start' : '—')}</td>
+                  <td className="px-3 py-2">
+                    {r.published_slug ? (
+                      <a
+                        href={`${SITE_ORIGIN}/s/${r.published_slug}/`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 underline decoration-dotted hover:text-primary"
+                      >
+                        /s/{r.published_slug}/ <ExternalLink className="size-3" />
+                      </a>
+                    ) : (
+                      <span className="text-muted-foreground">{r.project_name ? 'not yet' : '—'}</span>
+                    )}
+                  </td>
+                  <td className="px-3 py-2">
+                    {r.pending_offers > 0 ? (
+                      <Badge variant="outline" className="text-[9px] text-amber-600 border-amber-600/40">
+                        {r.pending_offers} waiting
+                      </Badge>
+                    ) : (
+                      <span className="text-muted-foreground">none</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

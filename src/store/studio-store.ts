@@ -39,6 +39,14 @@ interface StudioState {
   studioChosen: boolean;
   /** init() ran (or is running) — it's called from both Landing and App */
   initStarted: boolean;
+  /**
+   * The studio a ?studio= link brought this visitor to, until their join is
+   * on file. A studio's invite link is its door: arriving through it asks
+   * to join (instant for open studios, a pending request for gated ones),
+   * the same way the landing page's request form carries the studio for
+   * someone without an account yet. Not persisted — a door is for arriving.
+   */
+  doorwaySlug: string | null;
   studios: StudioContext[];
   loaded: boolean;
   /** Studios this builder belongs to — including pending gated requests */
@@ -74,6 +82,7 @@ export const useStudioStore = create<StudioState>()(
       activeStudio: null,
       studioChosen: false,
       initStarted: false,
+      doorwaySlug: null,
       studios: [],
       loaded: false,
       memberships: [],
@@ -95,7 +104,7 @@ export const useStudioStore = create<StudioState>()(
         if (param) {
           const studio = await fetchStudio(param);
           if (studio) {
-            set({ activeStudio: studio, studioChosen: true });
+            set({ activeStudio: studio, studioChosen: true, doorwaySlug: studio.slug });
             // Tidy the URL so refreshes don't re-trigger
             const url = new URL(window.location.href);
             url.searchParams.delete('studio');
@@ -138,7 +147,20 @@ export const useStudioStore = create<StudioState>()(
       },
 
       loadMemberships: async () => {
-        const memberships = await listMyStudioMemberships();
+        let memberships = await listMyStudioMemberships();
+        // Through the door: a signed-in arrival via ?studio=slug who doesn't
+        // belong yet asks to join right here — admins see them "waiting at
+        // the door" without the person hunting for a button
+        const doorway = get().doorwaySlug;
+        if (doorway && !memberships.some(m => m.studio_slug === doorway)) {
+          const studio = get().activeStudio?.slug === doorway
+            ? get().activeStudio
+            : await fetchStudio(doorway);
+          if (studio && await joinStudioCloud(studio.slug, studio.label)) {
+            memberships = await listMyStudioMemberships();
+          }
+        }
+        if (doorway) set({ doorwaySlug: null });
         set({ memberships, membershipsLoaded: true });
         // Approved membership makes a studio yours even when it isn't listed
         // publicly — pull its config so the switcher and gallery can show it
