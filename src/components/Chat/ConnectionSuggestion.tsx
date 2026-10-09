@@ -102,6 +102,16 @@ function countOffer(id: string): void {
 export function ConnectionSuggestion({ conversationText }: { conversationText: string }) {
   const user = useAuthStore(s => s.user);
   const eventCode = useAuthStore(s => s.profile?.event_code ?? null);
+  // The people already on this project. An introduction to your own
+  // teammate is no introduction — on a build-a-thon team the chat matches
+  // them better than anyone, and the card would raise them every time.
+  const members = useCloudStore(s => s.members);
+  const currentProjectId = useCloudStore(s => s.currentProjectId);
+  const projects = useCloudStore(s => s.projects);
+  const circleKey = [
+    ...members.map(m => m.user_id).filter((id): id is string => !!id),
+    ...(currentProjectId ? [projects.find(p => p.id === currentProjectId)?.owner_id ?? ''] : []),
+  ].filter(Boolean).sort().join(',');
   // The kinds of thing this project is: its lineage frames, plus a
   // gathering fund sensed from the conversation itself before any plan
   // has stamped one
@@ -123,8 +133,10 @@ export function ConnectionSuggestion({ conversationText }: { conversationText: s
     let cancelled = false;
     fetchDirectoryCached().then(builders => {
       if (cancelled) return;
+      const exclude = retiredIds(readMemory());
+      for (const id of circleKey ? circleKey.split(',') : []) exclude.add(id);
       const next = suggestConnection(
-        conversationText, builders, retiredIds(readMemory()), eventCode,
+        conversationText, builders, exclude, eventCode,
         framesKey ? framesKey.split(',') : [],
       );
       // Showing it is what spends an offer — a match we never render (because
@@ -133,7 +145,7 @@ export function ConnectionSuggestion({ conversationText }: { conversationText: s
       setSuggestion(next);
     });
     return () => { cancelled = true; };
-  }, [active, conversationText, eventCode, framesKey]);
+  }, [active, conversationText, eventCode, framesKey, circleKey]);
 
   if (!active || !suggestion) return null;
   const { builder, matched, sameEvent, sharedFrame } = suggestion;
