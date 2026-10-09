@@ -67,16 +67,21 @@ import {
  * then the deck). Event participants can pin the result to their event's
  * demo wall in the Gallery.
  *
- * The dialog is non-modal and sits over the chat column, so the preview
- * beside it stays usable: a builder can move the app to another page and
- * capture that view for its own slide.
+ * The dialog is non-modal — no backdrop, no click-outside dismissal — so
+ * the preview beside it stays usable: a builder can move the app to another
+ * page and capture that view for its own slide. It sits centered and wide
+ * enough to read the artifact list and thumbnails at a glance.
+ *
+ * The content column is pinned to the dialog's width (minmax(0,1fr)): a
+ * dialog's grid otherwise lets one long unbreakable string — a URL in an
+ * error, a token in a note — push every field past the right edge.
  */
 export function ShareLiveDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange} modal={false} disablePointerDismissal>
       <DialogContent
         showOverlay={false}
-        className="sm:max-w-lg max-h-[85vh] overflow-y-auto sm:left-6 sm:translate-x-0 shadow-xl"
+        className="sm:max-w-2xl max-h-[85vh] overflow-y-auto grid-cols-[minmax(0,1fr)] shadow-2xl"
       >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -401,7 +406,7 @@ function ShareLiveContent() {
   if (done) return <DeckResult result={done} />;
 
   return (
-    <div className="space-y-3 pt-1">
+    <div className="space-y-3 pt-1 break-words">
       <p className="text-xs text-muted-foreground">
         Slides for a projector: your title and one-liner, a slide for each thing
         you're sharing, and a QR code the room can scan to open it.
@@ -492,7 +497,7 @@ function ShareLiveContent() {
                       <img
                         src={shot}
                         alt={`${a.name} screenshot`}
-                        className="h-12 w-16 rounded border object-cover object-top bg-white"
+                        className="h-16 w-24 rounded border object-cover object-top bg-white"
                       />
                     ) : (
                       <button
@@ -530,7 +535,7 @@ function ShareLiveContent() {
                           <img
                             src={v.shot}
                             alt={`App view ${i + 2}`}
-                            className="h-10 w-14 shrink-0 rounded border object-cover object-top bg-white"
+                            className="h-12 w-16 shrink-0 rounded border object-cover object-top bg-white"
                           />
                           <Input
                             value={v.caption}
