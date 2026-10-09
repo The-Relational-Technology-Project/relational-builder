@@ -124,6 +124,8 @@ function ShareLiveContent() {
   const user = useAuthStore(s => s.user);
   const profile = useAuthStore(s => s.profile);
   const cloudProjectName = useCloudStore(s => s.currentProjectName);
+  const cloudProjectId = useCloudStore(s => s.currentProjectId);
+  const members = useCloudStore(s => s.members);
   const localProjectName = useLocalProjects(s => s.currentName);
   const projectName = cloudProjectName || localProjectName || suggestProjectName() || 'My build';
 
@@ -320,13 +322,25 @@ function ShareLiveContent() {
       }
       const screenshotUrl = slides.find(s => s.screenshotUrl)?.screenshotUrl ?? null;
 
+      // A shared project is the team's work: the deck and the card say so.
+      // Members are known by email only (profiles are private), so the
+      // credit is the pinner plus a count rather than a list of names.
+      const myName = profile?.display_name ?? profile?.full_name ?? null;
+      const myEmail = user?.email?.toLowerCase();
+      const teammates = cloudProjectId
+        ? members.filter(m => m.email.toLowerCase() !== myEmail && m.user_id).length
+        : 0;
+      const credit = teammates > 0
+        ? `${myName ?? 'A neighbor'} + ${teammates} teammate${teammates === 1 ? '' : 's'}`
+        : myName;
+
       // 3. The deck — one self-contained page, published the same way
       setPublishStep('Composing the slides…');
       const bullets = linesOf(bulletsText, MAX_BULLETS);
       const deckHtml = buildDeckHtml({
         title: deckTitle,
         oneLiner: oneLiner.trim(),
-        builderName: profile?.display_name ?? profile?.full_name ?? null,
+        builderName: credit,
         eventName: event?.name ?? null,
         bullets,
         artifacts: slides,
@@ -351,7 +365,8 @@ function ShareLiveContent() {
             eventCode: event.code,
             eventName: event.name,
             ownerId: user.id,
-            builderName: profile?.display_name ?? profile?.full_name ?? null,
+            projectId: cloudProjectId,
+            builderName: credit,
             projectName: deckTitle,
             oneLiner: oneLiner.trim() || null,
             screenshotUrl,
@@ -372,7 +387,7 @@ function ShareLiveContent() {
     } finally {
       if (alive.current) setPublishStep(null);
     }
-  }, [getAllFiles, getPublicEnvVars, title, oneLiner, bulletsText, artifacts, chosen, shots, docHighlights, views, event, pin, user, profile, projectName, contact]);
+  }, [getAllFiles, getPublicEnvVars, title, oneLiner, bulletsText, artifacts, chosen, shots, docHighlights, views, event, pin, user, profile, projectName, contact, cloudProjectId, members]);
 
   if (!cloudEnabled || !user) {
     return (
@@ -622,6 +637,9 @@ function ShareLiveContent() {
           <span>
             Add it to the <strong className="font-medium">{event.name}</strong> shelf
             in the Gallery — screenshot, one-liner, and links, for everyone at the event.
+            {cloudProjectId && members.length > 0 && (
+              <> Anyone on this project can share it; the shelf keeps one card for the team.</>
+            )}
           </span>
         </label>
       )}

@@ -2,7 +2,7 @@ import { useProjectStore } from '@/store/project-store';
 import { useChatStore } from '@/store/chat-store';
 import { useAuthStore } from '@/store/auth-store';
 import {
-  useCloudStore, readCloudAttachment,
+  useCloudStore, readCloudAttachment, trackBuilding, flushPendingRemote,
   notepadColumnKnownMissing, markNotepadColumnMissing,
   referenceDocsColumnKnownMissing, markReferenceDocsColumnMissing, isMissingReferenceDocsColumnError,
 } from '@/store/cloud-store';
@@ -144,8 +144,19 @@ export function initCloudSync() {
     // plan, an answer) never reaches the cloud. A collaborator opening the
     // project then saw the prompt with no reply, and their first save
     // wrote that stale chat back over the owner's.
+    if (!prev.isGenerating && state.isGenerating) {
+      // Tell the room: one build at a time, and this is the one
+      const asked = [...state.messages].reverse().find(m => m.role === 'user' && !m.isAuto);
+      trackBuilding(true, asked?.content ?? '');
+      return;
+    }
     if (prev.isGenerating && !state.isGenerating) {
-      scheduleSave();
+      // A teammate's save that arrived mid-build is folded in first, so the
+      // closing save carries both sides. The merge raises the echo guard for
+      // a beat; the save is scheduled once it drops.
+      flushPendingRemote();
+      trackBuilding(false);
+      setTimeout(scheduleSave, 150);
       return;
     }
     if (state.messages !== prev.messages || state.mode !== prev.mode) {

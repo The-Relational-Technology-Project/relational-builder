@@ -4,6 +4,7 @@ import { Separator } from '@/components/ui/separator';
 import { buttonVariants } from '@/components/ui/button';
 import { ProjectMenu } from '@/components/ProjectMenu';
 import { HistoryToggle } from '@/components/HistoryToggle';
+import { PresenceRow } from '@/components/PresenceRow';
 import { useUIStore, type AppView } from '@/store/ui-store';
 import { useCurrentProjectName } from '@/lib/use-project-name';
 
@@ -93,6 +94,8 @@ export function MainNav() {
             <ProjectMenu />
             {/* The project's versions, beside the project's name */}
             <HistoryToggle />
+            {/* Teammates with it open right now, and who is building */}
+            <PresenceRow />
           </>
         ) : (
           <button

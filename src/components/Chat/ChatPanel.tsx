@@ -47,7 +47,7 @@ import {
 } from '@/store/community-store';
 import { useStudioStore, approvedMemberships } from '@/store/studio-store';
 import { useAuthStore } from '@/store/auth-store';
-import { useCloudStore } from '@/store/cloud-store';
+import { useCloudStore, useRemoteBuilder } from '@/store/cloud-store';
 import { retrieveCommonsContext, findMentionedResults, slugForMention } from '@/knowledge/retrieval';
 import { loadGalleryReferences } from '@/cloud/gallery-references';
 import { detectFrames, framesFromSlugs } from '@/knowledge/frames';
@@ -1305,8 +1305,18 @@ export function ChatPanel() {
   // Messages queued while the AI was busy: error fixes always run in build
   // mode; a person's queued follow-up keeps whatever mode they were in.
   const queuedMessage = useChatStore(s => s.queuedMessage);
+  // One build at a time across the team: a prompt queued behind a teammate's
+  // build sends once their flag drops — after a beat, so their saved row has
+  // had time to arrive and the next build starts from their files
+  const remoteBuilder = useRemoteBuilder();
+  const [remoteSettled, setRemoteSettled] = useState(remoteBuilder === null);
   useEffect(() => {
-    if (!queuedMessage || isGenerating) return;
+    if (remoteBuilder) { setRemoteSettled(false); return; }
+    const t = setTimeout(() => setRemoteSettled(true), 1500);
+    return () => clearTimeout(t);
+  }, [remoteBuilder]);
+  useEffect(() => {
+    if (!queuedMessage || isGenerating || !remoteSettled) return;
     // Claim the queue from the store, not the render closure: a mount-time
     // queue (home composer, prompt deep link) runs this effect twice under
     // StrictMode with the same stale `queuedMessage`, and the second run
@@ -1322,7 +1332,7 @@ export function ChatPanel() {
       attachments.length > 0 ? attachments : undefined,
       photos.length > 0 ? { photos } : undefined,
     );
-  }, [queuedMessage, isGenerating, setMode, handleSend]);
+  }, [queuedMessage, isGenerating, remoteSettled, setMode, handleSend]);
 
   const handleBuildPlan = useCallback(() => {
     // A gathering fund's first build is worth a cheer to its commons stewards
