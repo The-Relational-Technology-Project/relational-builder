@@ -9,6 +9,7 @@ import { useNotepadStore, captureNotepad, type NotepadSnapshot } from '@/store/n
 import { useReferencesStore, captureReferences, type ReferencesSnapshot } from '@/store/references-store';
 import { useEnvStore } from '@/store/env-store';
 import type { FileEntry } from '@/project/virtual-fs';
+import { mergeById, mergeFiles, mergeMessages, mergeNotes, mergeStory } from '@/project/merge-workspace';
 
 export interface CloudProjectSummary {
   id: string;
@@ -25,6 +26,23 @@ export interface ProjectMember {
 }
 
 export type SyncStatus = 'idle' | 'saving' | 'saved' | 'error';
+
+/**
+ * Someone with this project open right now — Supabase Realtime Presence on
+ * the project's channel, so it needs no table and clears itself when a tab
+ * goes. `building` is the heart of it: a team on four devices used to run
+ * four builds at once and the last save won. Now one person builds at a
+ * time, and everyone can see who and what.
+ */
+export interface Peer {
+  userId: string;
+  name: string;
+  /** Set while this person's build (or its closing save) is in flight */
+  building: { since: number; prompt: string } | null;
+}
+
+/** A `building` flag older than this is a tab that closed mid-build */
+export const STALE_BUILD_MS = 4 * 60_000;
 
 /**
  * The cloud attachment persists across reloads: which project owns the
@@ -97,11 +115,15 @@ interface CloudState {
   currentProjectName: string;
   isOwner: boolean;
   projects: CloudProjectSummary[];
+  /** The same list as a set of ids — "is this project one of mine" */
+  projectIds: Set<string>;
   members: ProjectMember[];
   syncStatus: SyncStatus;
   syncError: string | null;
   /** True while applying a remote update — suppresses the auto-save echo */
   applyingRemote: boolean;
+  /** Teammates with the project open (never includes this device) */
+  peers: Peer[];
 
   refreshProjects: () => Promise<void>;
   createProject: (name: string) => Promise<{ error: string | null }>;
@@ -211,18 +233,165 @@ function applyWorkspace(row: CloudProjectRow) {
 let channel: RealtimeChannel | null = null;
 let resumeInFlight = false;
 
+/** What this device tells the room about itself */
+let myPresence: { userId: string; name: string; building: Peer['building'] } | null = null;
+/** A teammate's row that arrived while a build was running here — merged
+ *  the moment the build ends, before its closing save */
+let pendingRemoteRow: CloudProjectRow | null = null;
+/** When the build running here started — files written since are ours */
+let buildStartedAt: number | null = null;
+
 function unsubscribe() {
   if (channel) {
+    void channel.untrack();
     builderClient?.removeChannel(channel);
     channel = null;
   }
+  pendingRemoteRow = null;
+  useCloudStore.setState({ peers: [] });
+}
+
+function myDisplayName(): string {
+  const { profile, user } = useAuthStore.getState();
+  return (
+    profile?.display_name?.trim() ||
+    profile?.full_name?.trim() ||
+    user?.email?.split('@')[0] ||
+    'Someone'
+  );
+}
+
+function readPeers(): Peer[] {
+  if (!channel) return [];
+  const me = useAuthStore.getState().user?.id;
+  const out: Peer[] = [];
+  const state = channel.presenceState<{ userId: string; name: string; building: Peer['building'] }>();
+  for (const entries of Object.values(state)) {
+    for (const e of entries) {
+      if (!e.userId || e.userId === me) continue;
+      // The same person in two tabs is one peer; a build in either counts
+      const existing = out.find(p => p.userId === e.userId);
+      if (existing) {
+        if (!existing.building && e.building) existing.building = e.building;
+      } else {
+        out.push({ userId: e.userId, name: e.name, building: e.building ?? null });
+      }
+    }
+  }
+  return out;
+}
+
+function track() {
+  if (!channel || !myPresence) return;
+  void channel.track(myPresence);
+}
+
+/**
+ * Say whether a build is running on this device. `prompt` is what was asked,
+ * shortened — the thing a teammate sees under "Maya is building". The flag
+ * stays up through the closing save (see saveNow), so a queued prompt on
+ * another device sends only once the new files are there to build on.
+ */
+export function trackBuilding(building: boolean, prompt?: string) {
+  if (!myPresence) return;
+  if (building) {
+    buildStartedAt = Date.now();
+    myPresence = {
+      ...myPresence,
+      building: { since: Date.now(), prompt: (prompt ?? '').trim().slice(0, 120) },
+    };
+    track();
+  } else if (!useCloudStore.getState().currentProjectId) {
+    clearBuilding();
+  } else {
+    // The closing save clears it (saveNow). If that save never runs — an
+    // echo guard swallowed it, the row was unchanged — nobody should wait
+    // on a flag that means nothing any more.
+    if (buildClearFallback) clearTimeout(buildClearFallback);
+    buildClearFallback = setTimeout(clearBuilding, 8_000);
+  }
+}
+let buildClearFallback: ReturnType<typeof setTimeout> | null = null;
+
+function clearBuilding() {
+  buildStartedAt = null;
+  if (buildClearFallback) {
+    clearTimeout(buildClearFallback);
+    buildClearFallback = null;
+  }
+  if (myPresence?.building) {
+    myPresence = { ...myPresence, building: null };
+    track();
+  }
+}
+
+/**
+ * The teammate whose build everyone else is waiting on, or null. Stale
+ * flags (a tab closed mid-build) don't count — presence usually clears them
+ * itself, but a dropped connection can leave one behind for a while.
+ */
+export function remoteBuilderOf(peers: Peer[], now: number = Date.now()): Peer | null {
+  return (
+    peers.find(p => p.building && now - p.building.since < STALE_BUILD_MS) ?? null
+  );
+}
+
+export function useRemoteBuilder(): Peer | null {
+  return useCloudStore(s => remoteBuilderOf(s.peers));
+}
+
+/**
+ * Fold a teammate's snapshot into the workspace — union, newer wins — rather
+ * than replacing it (see merge-workspace.ts for the rules). The echo guard
+ * around it keeps the merged result from saving back instantly; the next
+ * local edit carries it up, and until then our copy is a superset anyway.
+ */
+function mergeRemote(row: CloudProjectRow) {
+  const remoteAt = Date.parse(row.updated_at);
+  const project = useProjectStore.getState();
+  const chat = useChatStore.getState();
+  const notepad = useNotepadStore.getState();
+  const refs = useReferencesStore.getState();
+
+  const files = mergeFiles(project.fs.toJSON(), row.files ?? [], {
+    remoteAt,
+    protectAfter: buildStartedAt ?? undefined,
+  });
+  const messages = mergeMessages(chat.messages, row.chat ?? []);
+  const notes = mergeNotes(notepad.notes, row.notepad?.notes ?? []);
+  const story = mergeStory(notepad.story, row.notepad?.story ?? null);
+  const docs = mergeById(refs.docs, row.reference_docs ?? []);
+
+  useCloudStore.setState({ applyingRemote: true, currentProjectName: row.name });
+  writeAttachment({ id: row.id, name: row.name, syncedAt: row.updated_at });
+  try {
+    project.hydrateFiles(files, row.lineage ?? project.lineage);
+    // Mode is how *this* person is working — a teammate flipping to plan
+    // mode shouldn't flip the composer under someone mid-sentence
+    chat.hydrateChat(messages, chat.mode);
+    notepad.hydrateNotepad(notes, story);
+    refs.hydrateReferences(docs);
+  } finally {
+    // Give the store subscriptions a beat before re-enabling auto-save
+    setTimeout(() => useCloudStore.setState({ applyingRemote: false }), 100);
+  }
+}
+
+/** A build just ended here: bring in anything a teammate saved meanwhile,
+ *  before this device's closing save would have written over it */
+export function flushPendingRemote() {
+  const row = pendingRemoteRow;
+  pendingRemoteRow = null;
+  if (row && useCloudStore.getState().currentProjectId === row.id) mergeRemote(row);
 }
 
 function subscribeToProject(projectId: string) {
   if (!builderClient) return;
   unsubscribe();
+  const user = useAuthStore.getState().user;
+  myPresence = user ? { userId: user.id, name: myDisplayName(), building: null } : null;
   channel = builderClient
-    .channel(`project-${projectId}`)
+    .channel(`project-${projectId}`, { config: { presence: { key: user?.id ?? 'anon' } } })
     .on(
       'postgres_changes',
       { event: 'UPDATE', schema: 'public', table: 'projects', filter: `id=eq.${projectId}` },
@@ -231,17 +400,22 @@ function subscribeToProject(projectId: string) {
         const me = useAuthStore.getState().user;
         // Ignore our own writes echoed back
         if (me && row.updated_by === me.id) return;
-        useCloudStore.setState({ applyingRemote: true, currentProjectName: row.name });
-        writeAttachment({ id: row.id, name: row.name, syncedAt: row.updated_at });
-        try {
-          applyWorkspace(row);
-        } finally {
-          // Give the store subscriptions a beat before re-enabling auto-save
-          setTimeout(() => useCloudStore.setState({ applyingRemote: false }), 100);
+        // A build is streaming here: hold the row rather than pull the
+        // reply out from under it (the stream appends by message id, and a
+        // wholesale replace used to make the reply vanish). Merged on end.
+        if (useChatStore.getState().isGenerating) {
+          pendingRemoteRow = row;
+          return;
         }
+        mergeRemote(row);
       },
     )
-    .subscribe();
+    .on('presence', { event: 'sync' }, () => {
+      useCloudStore.setState({ peers: readPeers() });
+    })
+    .subscribe(status => {
+      if (status === 'SUBSCRIBED') track();
+    });
 }
 
 export const useCloudStore = create<CloudState>()((set, get) => ({
@@ -249,10 +423,12 @@ export const useCloudStore = create<CloudState>()((set, get) => ({
   currentProjectName: '',
   isOwner: false,
   projects: [],
+  projectIds: new Set(),
   members: [],
   syncStatus: 'idle',
   syncError: null,
   applyingRemote: false,
+  peers: [],
 
   refreshProjects: async () => {
     if (!builderClient) return;
@@ -260,7 +436,10 @@ export const useCloudStore = create<CloudState>()((set, get) => ({
       .from('projects')
       .select('id, name, owner_id, updated_at')
       .order('updated_at', { ascending: false });
-    if (!error && data) set({ projects: data as CloudProjectSummary[] });
+    if (!error && data) {
+      const projects = data as CloudProjectSummary[];
+      set({ projects, projectIds: new Set(projects.map(p => p.id)) });
+    }
   },
 
   createProject: async (name: string) => {
@@ -504,6 +683,9 @@ export const useCloudStore = create<CloudState>()((set, get) => ({
         syncedAt: data?.updated_at ?? null,
       });
     }
+    // The build's files are on the row now (or the save failed and holding
+    // the room any longer helps nobody): teammates' queued prompts may go
+    if (!useChatStore.getState().isGenerating) clearBuilding();
   },
 
   refreshMembers: async () => {

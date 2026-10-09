@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { SendHorizontal, Square, Map, Hammer, ImagePlus, X, FolderOpen, Globe, Clock, MessagesSquare } from 'lucide-react';
 import { useChatStore, type ChatMode, type QueuedPhoto } from '@/store/chat-store';
 import { inferPhotoUse, type PhotoUse } from '@/project/photo-intent';
-import { useCloudStore } from '@/store/cloud-store';
+import { useCloudStore, useRemoteBuilder } from '@/store/cloud-store';
 import { fileToDataUrl, isImageFile } from '@/lib/image';
 import { compressToDataUrl } from '@/project/assets';
 import { addReferenceDoc, isReferenceFile, REFERENCE_ACCEPT } from '@/project/references';
@@ -161,7 +161,11 @@ export function MessageInput({
   // A follow-up typed mid-generation queues instead of being lost — it
   // sends the moment the current reply finishes (Lovable's best trick)
   const queuedMessage = useChatStore(s => s.queuedMessage);
-  const queuedFollowUp = isGenerating && queuedMessage !== null ? queuedMessage : null;
+  // A teammate mid-build counts as busy too: one build at a time keeps a
+  // shared project from saving over itself. Their name goes on the wait.
+  const remoteBuilder = useRemoteBuilder();
+  const busy = isGenerating || remoteBuilder !== null;
+  const queuedFollowUp = busy && queuedMessage !== null ? queuedMessage : null;
 
   const handleSubmit = useCallback(() => {
     const trimmed = input.trim();
@@ -186,7 +190,7 @@ export function MessageInput({
       if (textareaRef.current) textareaRef.current.style.height = 'auto';
       return;
     }
-    if (isGenerating) {
+    if (busy) {
       // Everything queues, images included. This branch used to return
       // silently for an attachment or an empty-after-trim send: the person
       // pressed send, the app did nothing, and nothing explained why. One
@@ -208,7 +212,7 @@ export function MessageInput({
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
-  }, [input, attachments, disabled, isGenerating, mode, onSend, canPlacePhotos, imageUse]);
+  }, [input, attachments, disabled, busy, mode, onSend, canPlacePhotos, imageUse]);
 
   function handleKeyDown(e: React.KeyboardEvent) {
     if (mentionMatches.length > 0 && (e.key === 'Enter' || e.key === 'Tab')) {
@@ -444,7 +448,9 @@ export function MessageInput({
           <Clock className="size-3.5 shrink-0 mt-0.5 text-primary" />
           <div className="min-w-0 flex-1">
             <p className="font-medium text-foreground">
-              Got it — still finishing the last one. This sends next.
+              {isGenerating
+                ? 'Got it — still finishing the last one. This sends next.'
+                : `Got it — ${remoteBuilder?.name ?? 'a teammate'} is building. This sends when theirs lands.`}
             </p>
             <p className="mt-0.5 line-clamp-2 text-muted-foreground">{queuedFollowUp}</p>
           </div>

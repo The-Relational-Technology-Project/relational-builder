@@ -3,6 +3,7 @@ import { removeFromShowcase, type ShowcaseEntry } from '@/cloud/event-showcase';
 import { fetchEventShow, eventShowLink } from '@/cloud/event-join';
 import { contactHref } from '@/project/share-live';
 import { useAuthStore } from '@/store/auth-store';
+import { useCloudStore } from '@/store/cloud-store';
 import { Presentation, ExternalLink, X, RefreshCw, Loader2, AtSign } from 'lucide-react';
 
 /**
@@ -52,6 +53,8 @@ export function EventShelf({
   onCount?: (count: number) => void;
 }) {
   const user = useAuthStore(s => s.user);
+  // Projects this person can open — a teammate's card is theirs to remove too
+  const mine = useCloudStore(s => s.projectIds);
   const [entries, setEntries] = useState<ShowcaseEntry[] | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -136,12 +139,12 @@ export function EventShelf({
               <div className="p-3 space-y-1 flex-1 flex flex-col">
                 <div className="flex items-start gap-2">
                   <span className="text-sm font-medium leading-snug">{entry.project_name}</span>
-                  {(admin || user?.id === entry.owner_id) && (
+                  {(admin || user?.id === entry.owner_id || mine.has(entry.project_id ?? '')) && (
                     <button
                       onClick={() => void remove(entry.id)}
                       disabled={busyId !== null}
                       className="ml-auto text-muted-foreground hover:text-destructive shrink-0"
-                      title={user?.id === entry.owner_id ? 'Take your project off the shelf' : 'Take this project off the shelf'}
+                      title={admin && user?.id !== entry.owner_id && !mine.has(entry.project_id ?? '') ? 'Take this project off the shelf' : 'Take your project off the shelf'}
                     >
                       <X className="size-3.5" />
                     </button>

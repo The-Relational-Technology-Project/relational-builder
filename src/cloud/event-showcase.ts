@@ -13,6 +13,9 @@ export interface ShowcaseEntry {
   id: string;
   event_name: string;
   owner_id: string;
+  /** The cloud project this deck came from — the team's key on the wall.
+   *  Null for decks made from a device-local project. */
+  project_id: string | null;
   builder_name: string | null;
   project_name: string;
   one_liner: string | null;
@@ -65,11 +68,13 @@ export async function fetchMyEvent(): Promise<
     : null;
 }
 
-/** Pin (or re-pin) a project to its event's wall — replaces any prior entry */
+/** Pin (or re-pin) a project to its event's wall — replaces any prior
+ *  entry for the same project, whichever teammate pinned it */
 export async function pinToShowcase(entry: {
   eventCode: string;
   eventName: string;
   ownerId: string;
+  projectId: string | null;
   builderName: string | null;
   projectName: string;
   oneLiner: string | null;
@@ -81,15 +86,18 @@ export async function pinToShowcase(entry: {
   if (!builderClient) throw new Error('Cloud backend not configured');
   // Replace-not-upsert: an upsert would need UPDATE grants on the key
   // columns; delete-then-insert stays inside the simple policy set
-  await builderClient
-    .from('event_showcase')
-    .delete()
-    .eq('owner_id', entry.ownerId)
-    .eq('project_name', entry.projectName);
+  // A saved project is the team's: its card is replaced whoever pinned it
+  // last (RLS lets any member delete it). A local-only project keeps the
+  // old per-person key.
+  const prior = builderClient.from('event_showcase').delete();
+  await (entry.projectId
+    ? prior.eq('project_id', entry.projectId)
+    : prior.eq('owner_id', entry.ownerId).eq('project_name', entry.projectName));
   const { error } = await builderClient.from('event_showcase').insert({
     event_code: entry.eventCode,
     event_name: entry.eventName,
     owner_id: entry.ownerId,
+    project_id: entry.projectId,
     builder_name: entry.builderName,
     project_name: entry.projectName,
     one_liner: entry.oneLiner,
@@ -102,7 +110,7 @@ export async function pinToShowcase(entry: {
   if (error) throw new Error(error.message);
 }
 
-/** Take an entry off the wall — only works on your own */
+/** Take an entry off the wall — your own, or your team's */
 export async function removeFromShowcase(id: string): Promise<void> {
   if (!builderClient) throw new Error('Cloud backend not configured');
   const { error } = await builderClient.from('event_showcase').delete().eq('id', id);
