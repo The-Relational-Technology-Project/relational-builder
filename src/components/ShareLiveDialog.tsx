@@ -67,29 +67,42 @@ import {
  * then the deck). Event participants can pin the result to their event's
  * demo wall in the Gallery.
  *
- * The dialog is non-modal — no backdrop, no click-outside dismissal — so
- * the preview beside it stays usable: a builder can move the app to another
- * page and capture that view for its own slide. It sits centered and wide
- * enough to read the artifact list and thumbnails at a glance.
+ * The dialog is non-modal — no backdrop, no click-outside dismissal — and
+ * sits centered, wide enough to read the artifact list and thumbnails at a
+ * glance. Centered means it covers the preview, so capturing a further app
+ * view is a two-step: "Add another view" folds the dialog down to a small
+ * capture bar in the corner, the builder drives the preview to the page
+ * they want, and "Capture this view" brings the full dialog back with the
+ * new slide in the list. The form's state lives through the fold.
  *
  * The content column is pinned to the dialog's width (minmax(0,1fr)): a
  * dialog's grid otherwise lets one long unbreakable string — a URL in an
  * error, a token in a note — push every field past the right edge.
  */
 export function ShareLiveDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
+  // Folded down to the capture bar while the builder drives the preview
+  const [picking, setPicking] = useState(false);
   return (
     <Dialog open={open} onOpenChange={onOpenChange} modal={false} disablePointerDismissal>
       <DialogContent
         showOverlay={false}
-        className="sm:max-w-2xl max-h-[85vh] overflow-y-auto grid-cols-[minmax(0,1fr)] shadow-2xl"
+        showCloseButton={!picking}
+        className={
+          picking
+            ? 'top-auto bottom-6 left-6 w-auto max-w-[calc(100%-3rem)] sm:max-w-none translate-x-0 translate-y-0 p-3 grid-cols-[minmax(0,1fr)] shadow-2xl'
+            : 'sm:max-w-2xl max-h-[85vh] overflow-y-auto grid-cols-[minmax(0,1fr)] shadow-2xl'
+        }
       >
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Presentation className="size-4" />
-            Share with the room
-          </DialogTitle>
-        </DialogHeader>
-        <ShareLiveContent />
+        {!picking && (
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Presentation className="size-4" />
+              Share with the room
+            </DialogTitle>
+          </DialogHeader>
+        )}
+        {picking && <DialogTitle className="sr-only">Capture a view of the app</DialogTitle>}
+        <ShareLiveContent picking={picking} onPickingChange={setPicking} />
       </DialogContent>
     </Dialog>
   );
@@ -123,7 +136,13 @@ function linesOf(text: string, max: number): string[] {
   return text.split('\n').map(l => l.trim()).filter(Boolean).slice(0, max);
 }
 
-function ShareLiveContent() {
+function ShareLiveContent({
+  picking,
+  onPickingChange,
+}: {
+  picking: boolean;
+  onPickingChange: (v: boolean) => void;
+}) {
   const getAllFiles = useProjectStore(s => s.getAllFiles);
   const getPublicEnvVars = useEnvStore(s => s.getPublic);
   const user = useAuthStore(s => s.user);
@@ -217,7 +236,9 @@ function ShareLiveContent() {
     });
   }, [getAllFiles]);
 
-  // Whatever the preview shows right now becomes another slide
+  // Whatever the preview shows right now becomes another slide. A capture
+  // unfolds the dialog so the new view (and its caption) is right there;
+  // a miss keeps the bar up with a note, so the builder can try again.
   const captureView = useCallback(async () => {
     setCapturingView(true);
     setViewNote(null);
@@ -225,11 +246,17 @@ function ShareLiveContent() {
     if (!alive.current) return;
     if (shot) {
       setViews(v => [...v, { id: `view-${Date.now()}`, shot, caption: '' }]);
+      onPickingChange(false);
     } else {
       setViewNote('Nothing to capture yet — wait for the preview to finish, then try again.');
     }
     setCapturingView(false);
-  }, []);
+  }, [onPickingChange]);
+
+  const startPicking = useCallback(() => {
+    setViewNote(null);
+    onPickingChange(true);
+  }, [onPickingChange]);
 
   useEffect(() => {
     for (const a of artifacts) void capture(a);
@@ -393,6 +420,33 @@ function ShareLiveContent() {
       if (alive.current) setPublishStep(null);
     }
   }, [getAllFiles, getPublicEnvVars, title, oneLiner, bulletsText, artifacts, chosen, shots, docHighlights, views, event, pin, user, profile, projectName, contact, cloudProjectId, members]);
+
+  if (picking) {
+    return (
+      <div className="flex max-w-md flex-col gap-2">
+        <p className="text-sm">
+          Move the preview to the page you want on a slide, then capture it.
+        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button type="button" size="sm" className="h-8 gap-1.5" onClick={captureView} disabled={capturingView}>
+            {capturingView ? <Loader2 className="size-3.5 animate-spin" /> : <Camera className="size-3.5" />}
+            Capture this view
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            className="h-8"
+            onClick={() => onPickingChange(false)}
+            disabled={capturingView}
+          >
+            Back to the deck
+          </Button>
+        </div>
+        {viewNote && <p className="text-xs text-muted-foreground">{viewNote}</p>}
+      </div>
+    );
+  }
 
   if (!cloudEnabled || !user) {
     return (
@@ -563,14 +617,13 @@ function ShareLiveContent() {
                           size="sm"
                           variant="outline"
                           className="h-7 gap-1.5 text-xs"
-                          onClick={captureView}
-                          disabled={capturingView}
+                          onClick={startPicking}
                         >
-                          {capturingView ? <Loader2 className="size-3 animate-spin" /> : <Camera className="size-3" />}
-                          {views.length ? 'Capture another view' : 'Add another view'}
+                          <Camera className="size-3" />
+                          {views.length ? 'Add another view' : 'Add another view of the app'}
                         </Button>
                         <span className="text-xs text-muted-foreground">
-                          Move the preview to another page first — each view gets its own slide.
+                          Each page you capture gets its own slide.
                         </span>
                       </div>
                       {viewNote && <p className="text-xs text-muted-foreground">{viewNote}</p>}
