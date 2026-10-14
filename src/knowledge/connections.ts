@@ -81,11 +81,48 @@ export async function fetchDirectoryCached(): Promise<DirectoryBuilder[]> {
   return directoryCache;
 }
 
+/**
+ * Words that say nothing about what someone is actually working on. A match
+ * has to rest on content, not filler: "Open to all styles of on or off line
+ * communication" once raised a builder for "open, styles, and line". Listed
+ * in singular form; tokens are stemmed of a trailing "s" before the check.
+ */
 const STOP_WORDS = new Set([
+  // the Builder's own vocabulary — every conversation here has these
   'happy', 'talk', 'talking', 'build', 'builds', 'building', 'builder', 'builders',
-  'help', 'helping', 'with', 'about', 'love', 'would', 'like', 'that', 'this',
-  'community', 'neighborhood', 'neighbors', 'local', 'people', 'things', 'make',
+  'help', 'helping', 'community', 'neighborhood', 'neighbor', 'neighbors', 'local',
+  'people', 'project', 'tool', 'idea', 'website', 'site', 'page', 'user',
+  'connect', 'connecting', 'connection', 'collaboration', 'collaborate',
+  'communication', 'communicate', 'together', 'share', 'sharing', 'support',
+  'create', 'creating', 'group', 'team', 'member', 'space', 'design', 'system',
+  'online', 'offline', 'line', 'digital', 'tech', 'technology', 'relational',
+  // generic English
+  'with', 'about', 'love', 'would', 'like', 'that', 'this', 'thing', 'make',
   'making', 'want', 'from', 'your', 'their', 'them', 'have', 'been', 'also',
+  'open', 'style', 'kind', 'type', 'sort', 'other', 'some', 'many', 'more',
+  'most', 'much', 'very', 'really', 'just', 'only', 'even', 'well', 'still',
+  'every', 'each', 'both', 'such', 'what', 'when', 'where', 'which', 'while',
+  'will', 'there', 'here', 'these', 'those', 'then', 'than', 'they', 'were',
+  'into', 'onto', 'over', 'through', 'around', 'across', 'between', 'after',
+  'before', 'during', 'without', 'within', 'toward', 'towards', 'under',
+  'good', 'great', 'best', 'better', 'new', 'different', 'small', 'little',
+  'big', 'simple', 'easy', 'able', 'sure', 'first', 'last', 'next', 'same',
+  'time', 'year', 'week', 'today', 'way', 'part', 'place', 'world', 'life',
+  'work', 'working', 'need', 'know', 'think', 'feel', 'look', 'looking',
+  'keep', 'give', 'take', 'come', 'going', 'doing', 'does', 'done', 'made',
+  'being', 'back', 'start', 'starting', 'find', 'using', 'used', 'something',
+  'anything', 'everything', 'someone', 'anyone', 'everyone', 'interested',
+  'interest', 'excited', 'passionate', 'curious', 'focus', 'focused',
+  'please', 'thank', 'thanks', 'maybe', 'could', 'should', 'might', 'let',
+  'yes', 'okay', 'right', 'lot', 'lots', 'add', 'adding', 'show',
+]);
+
+/** Words in a place name that don't place anyone: "Outer" Sunset, "North" Beach */
+const GENERIC_PLACE_WORDS = new Set([
+  'north', 'south', 'east', 'west', 'outer', 'inner', 'upper', 'lower',
+  'central', 'downtown', 'uptown', 'midtown', 'city', 'town', 'county',
+  'district', 'area', 'side', 'heights', 'village', 'valley', 'hill',
+  'park', 'beach', 'point', 'lake', 'river', 'saint', 'fort', 'mount',
 ]);
 
 function meaningfulTokens(text: string): string[] {
@@ -94,6 +131,29 @@ function meaningfulTokens(text: string): string[] {
       .map(w => w.replace(/s$/, ''))
       .filter(w => w.length > 3 && !STOP_WORDS.has(w) && !STOP_WORDS.has(w + 's')),
   )];
+}
+
+function placeTokens(neighborhood: string | null | undefined): string[] {
+  return meaningfulTokens(neighborhood ?? '').filter(t => !GENERIC_PLACE_WORDS.has(t));
+}
+
+function builderText(b: DirectoryBuilder): string {
+  return `${b.note ?? ''} ${b.page_text ?? ''}`;
+}
+
+/**
+ * Words too many builders use to tell any one of them apart. With a big
+ * enough directory, a word in more than a fifth of everyone's notes is
+ * the community's shared vocabulary, not a reason to introduce two people.
+ */
+function commonAcrossDirectory(builders: DirectoryBuilder[]): Set<string> {
+  if (builders.length < 10) return new Set();
+  const counts = new Map<string, number>();
+  for (const b of builders) {
+    for (const t of meaningfulTokens(builderText(b))) counts.set(t, (counts.get(t) ?? 0) + 1);
+  }
+  const limit = Math.max(3, builders.length * 0.2);
+  return new Set([...counts].filter(([, n]) => n > limit).map(([t]) => t));
 }
 
 /**
@@ -120,6 +180,7 @@ export function suggestConnection(
   const myFrames = new Set(selfFrames.filter(f => f in SHARED_FRAME_LABELS));
   if (convo.size === 0 && myFrames.size === 0) return null;
 
+  const common = commonAcrossDirectory(builders);
   let best: ConnectionMatch | null = null;
   let bestScore = 0;
   for (const b of builders) {
@@ -133,8 +194,9 @@ export function suggestConnection(
       !!selfEventCode && !!b.event_code &&
       b.event_code.toUpperCase() === selfEventCode.toUpperCase();
     // Topical text: the connect note, plus the builder's published page
-    const noteMatches = [...new Set(meaningfulTokens(`${b.note ?? ''} ${b.page_text ?? ''}`))].filter(t => convo.has(t));
-    const placeMatches = meaningfulTokens(b.neighborhood ?? '').filter(t => convo.has(t));
+    const placeMatches = placeTokens(b.neighborhood).filter(t => convo.has(t));
+    const noteMatches = meaningfulTokens(builderText(b))
+      .filter(t => convo.has(t) && !common.has(t) && !placeMatches.includes(t));
     const matched = [...new Set([...noteMatches, ...placeMatches])];
     // Bar: two topical matches, or one topical + a place match — or one
     // topical match when you're both at the same event
@@ -167,10 +229,10 @@ export function explainMatch(
   sameEvent: boolean,
   sharedFrame?: string,
 ): string {
-  const place = meaningfulTokens(builder.neighborhood ?? '');
+  const place = placeTokens(builder.neighborhood);
   // Tokens are stemmed for matching ("libraries" → "librarie"); surface the
   // word as the builder actually wrote it so the sentence reads like one
-  const surface = (`${builder.note ?? ''} ${builder.page_text ?? ''}`).toLowerCase().split(/[^a-z]+/);
+  const surface = builderText(builder).toLowerCase().split(/[^a-z]+/);
   const topics = matched
     .filter(t => !place.includes(t))
     .slice(0, 3)
