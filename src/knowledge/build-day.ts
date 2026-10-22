@@ -248,6 +248,8 @@ export const BUILD_DAY_CARD: CommonsItemDetail = {
     neighborhood: 'The Sunset, San Francisco',
     source: 'Sunset Neighborhood Build-a-thon, October 2026',
   },
+  // The Sunset, where the first one happened — the card is Nearby there
+  location: { lat: 37.7541, lng: -122.4950, label: 'The Sunset, San Francisco, California', precision: 'neighborhood', basis: 'attribution' },
   source_studio_slug: BUILD_DAY_SHELF,
   source_url: SUNSET_RECAP_URL,
   license: 'RCL-1.0',

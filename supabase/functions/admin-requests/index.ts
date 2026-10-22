@@ -396,6 +396,25 @@ Deno.serve(async (req: Request) => {
      *  keeps using the shelf and the presentation well after demo day */
     const EVENT_CODE_GRACE_DAYS = 60;
     /** YYYY-MM-DD → the same string; empty/null → null; anything else → undefined */
+    /**
+     * A place for an event, as the gallery's geo shape: lat/lng in range, a
+     * label, a precision word. null clears it; undefined means malformed.
+     */
+    function parseLocationInput(raw: unknown): Record<string, unknown> | null | undefined {
+      if (raw === null) return null;
+      if (!raw || typeof raw !== 'object') return undefined;
+      const r = raw as Record<string, unknown>;
+      const lat = Number(r.lat);
+      const lng = Number(r.lng);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) return undefined;
+      const label = String(r.label ?? '').trim().slice(0, 120);
+      if (!label) return undefined;
+      const precision = ['neighborhood', 'city', 'region', 'country', 'origin'].includes(String(r.precision))
+        ? String(r.precision)
+        : 'city';
+      return { lat, lng, label, precision, basis: 'manual' };
+    }
+
     function parseEventDate(raw: unknown): string | null | undefined {
       const s = String(raw ?? '').trim();
       if (!s) return null;
@@ -482,6 +501,11 @@ Deno.serve(async (req: Request) => {
         if (eventDate === undefined) return json({ error: 'Dates are YYYY-MM-DD' }, 400);
         patch.event_date = eventDate;
         patch.expires_at = expiryFor(eventDate);
+      }
+      if ('location' in body) {
+        const loc = parseLocationInput(body.location);
+        if (loc === undefined) return json({ error: 'A location is {lat, lng, label} or null' }, 400);
+        patch.location = loc;
       }
       if (typeof body.archived === 'boolean') {
         patch.archived_at = body.archived ? new Date().toISOString() : null;

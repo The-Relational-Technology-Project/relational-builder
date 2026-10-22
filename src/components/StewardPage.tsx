@@ -38,6 +38,7 @@ import {
   adminSetEventCodeActive,
   adminSetEventCodeArchived,
   adminSetEventCodeDate,
+  adminSetEventCodeLocation,
   adminSetEventAdmin,
   adminReferralStats,
   eventInviteLink,
@@ -51,7 +52,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Check, X, Loader2, ChevronDown, ChevronRight, ShieldCheck, KeyRound, Lock, LockOpen, Ticket, Copy, Printer, Trophy, Presentation, Archive, ArchiveRestore, CalendarDays, UserPlus } from 'lucide-react';
+import { Check, X, Loader2, ChevronDown, ChevronRight, ShieldCheck, KeyRound, Lock, LockOpen, Ticket, Copy, Printer, Trophy, Presentation, Archive, ArchiveRestore, CalendarDays, UserPlus, MapPin } from 'lucide-react';
+import { locationFromPlace } from '@/knowledge/geo';
 
 /**
  * The Steward page — every steward task in one full-width space (these
@@ -816,6 +818,9 @@ function EventsTab() {
   const [showArchived, setShowArchived] = useState(false);
   // Which code's date is being edited inline, and the draft value
   const [dateEdit, setDateEdit] = useState<{ code: string; value: string } | null>(null);
+  // Which code's place is being edited inline — where the event is, so its
+  // wall reads as Nearby there in the gallery
+  const [placeEdit, setPlaceEdit] = useState<{ code: string; value: string } | null>(null);
   // Which code is getting a new Event Admin, and the address being typed
   const [adminEdit, setAdminEdit] = useState<{ code: string; value: string } | null>(null);
   // The studio the event lives in ('' = none): joiners become members on
@@ -913,6 +918,29 @@ function EventsTab() {
         list.map(c => (c.code === code.code ? { ...c, event_date: value || null, expires_at: expiresAt } : c)),
       );
       setDateEdit(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'That change did not save');
+    } finally {
+      setBusyKey(null);
+    }
+  }
+
+  async function savePlace(code: EventCode, value: string) {
+    setBusyKey(`place-${code.code}`);
+    setError(null);
+    try {
+      const place = value.trim();
+      const parts = place.split(',').filter(p => p.trim()).length;
+      const location = place
+        ? await locationFromPlace(place, parts >= 3 ? 'neighborhood' : parts === 2 ? 'city' : 'region')
+        : null;
+      if (place && !location) {
+        setError(`Couldn't find "${place}" on the map. Try a neighborhood, town and state.`);
+        return;
+      }
+      await adminSetEventCodeLocation(code.code, location);
+      setCodes(list => list.map(c => (c.code === code.code ? { ...c, location } : c)));
+      setPlaceEdit(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'That change did not save');
     } finally {
@@ -1098,6 +1126,37 @@ function EventsTab() {
                     {c.event_date
                       ? <>{fmtDay(c.event_date)}{c.expires_at ? ` · open until ${fmtDay(c.expires_at)}` : ''}</>
                       : 'no date'}
+                  </button>
+                )}
+                {placeEdit?.code === c.code ? (
+                  <span className="inline-flex items-center gap-1 shrink-0">
+                    <Input
+                      value={placeEdit.value}
+                      onChange={e => setPlaceEdit({ code: c.code, value: e.target.value })}
+                      onKeyDown={e => { if (e.key === 'Enter') void savePlace(c, placeEdit.value); }}
+                      placeholder="Neighborhood, town, state"
+                      className="h-6 w-52 text-xs"
+                      autoFocus
+                    />
+                    <button
+                      onClick={() => void savePlace(c, placeEdit.value)}
+                      disabled={busyKey === `place-${c.code}`}
+                      className="text-xs text-primary hover:underline"
+                    >
+                      {busyKey === `place-${c.code}` ? <Loader2 className="size-3 animate-spin" /> : 'save'}
+                    </button>
+                    <button onClick={() => setPlaceEdit(null)} className="text-xs text-muted-foreground hover:text-foreground">
+                      cancel
+                    </button>
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => setPlaceEdit({ code: c.code, value: c.location?.label ?? '' })}
+                    className="inline-flex items-center gap-1 text-xs text-muted-foreground/70 hover:text-foreground shrink-0"
+                    title={c.location ? 'Change where the event is (clear it for no place)' : 'Place the event — its wall shows up in the gallery\'s Nearby filter there'}
+                  >
+                    <MapPin className="size-3" />
+                    {c.location ? c.location.label : 'no place'}
                   </button>
                 )}
                 <div className="ml-auto flex items-center gap-2 shrink-0">

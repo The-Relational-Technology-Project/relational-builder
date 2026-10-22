@@ -1,0 +1,1541 @@
+{
+ "Brooklyn, New York, USA": {
+  "lat": 40.6526006,
+  "lng": -73.9497211,
+  "label": "Brooklyn, New York",
+  "osm": "relation/9691750"
+ },
+ "Boston, Massachusetts, USA": {
+  "lat": 42.3588336,
+  "lng": -71.0578303,
+  "label": "Boston, Massachusetts",
+  "osm": "relation/2315704"
+ },
+ "Honolulu, Hawaii, USA": {
+  "lat": 21.304547,
+  "lng": -157.855676,
+  "label": "Honolulu, Hawaii",
+  "osm": "relation/119231"
+ },
+ "San Francisco, California, USA": {
+  "lat": 37.7879363,
+  "lng": -122.4075201,
+  "label": "San Francisco, California",
+  "osm": "relation/111968"
+ },
+ "Chicago, Illinois, USA": {
+  "lat": 41.8755616,
+  "lng": -87.6244212,
+  "label": "Chicago, Illinois",
+  "osm": "relation/122604"
+ },
+ "Seattle, Washington, USA": {
+  "lat": 47.6038321,
+  "lng": -122.330062,
+  "label": "Seattle, Washington",
+  "osm": "relation/237385"
+ },
+ "Sacramento, California, USA": {
+  "lat": 38.5810606,
+  "lng": -121.493895,
+  "label": "Sacramento, California",
+  "osm": "relation/6232940"
+ },
+ "Denver, Colorado, USA": {
+  "lat": 39.7392364,
+  "lng": -104.984862,
+  "label": "Denver, Colorado",
+  "osm": "relation/1411339"
+ },
+ "Eugene, Oregon, USA": {
+  "lat": 44.0505054,
+  "lng": -123.0950506,
+  "label": "Eugene, Oregon",
+  "osm": "relation/186706"
+ },
+ "Outer Sunset, San Francisco, California, USA": {
+  "lat": 37.7541496,
+  "lng": -122.5061507,
+  "label": "Sunset District, San Francisco, California",
+  "osm": "node/11903199251"
+ },
+ "Cleveland, Ohio, USA": {
+  "lat": 41.4996574,
+  "lng": -81.6936772,
+  "label": "Cleveland, Ohio",
+  "osm": "relation/182130"
+ },
+ "Evanston, Illinois, USA": {
+  "lat": 42.0693991,
+  "lng": -87.682932,
+  "label": "Evanston, Illinois",
+  "osm": "node/10582292121"
+ },
+ "Berwyn, Illinois, USA": {
+  "lat": 41.8505874,
+  "lng": -87.7936685,
+  "label": "Berwyn, Illinois",
+  "osm": "relation/123130"
+ },
+ "Cicero, Illinois, USA": {
+  "lat": 41.8455398,
+  "lng": -87.7540199,
+  "label": "Cicero, Illinois",
+  "osm": "relation/123129"
+ },
+ "Queens University of Charlotte, Charlotte, North Carolina, USA": {
+  "lat": 35.2272086,
+  "lng": -80.8430827,
+  "label": "Charlotte, North Carolina",
+  "osm": "relation/177415",
+  "via": "Charlotte, North Carolina, USA"
+ },
+ "Monteagle, Tennessee, USA": {
+  "lat": 35.2403119,
+  "lng": -85.8349902,
+  "label": "Monteagle, Tennessee",
+  "osm": "relation/197400"
+ },
+ "Johns Island, South Carolina, USA": {
+  "lat": 32.7024009,
+  "lng": -80.0481488,
+  "label": "Johns Island, Charleston County, South Carolina",
+  "osm": "node/357085304"
+ },
+ "London, England, UK": {
+  "lat": 51.5074456,
+  "lng": -0.1277653,
+  "label": "Greater London, England, United Kingdom",
+  "osm": "relation/175342"
+ },
+ "Bedford-Stuyvesant, Brooklyn, New York, USA": {
+  "lat": 40.6834364,
+  "lng": -73.9412488,
+  "label": "Bedford-Stuyvesant, New York",
+  "osm": "node/158876393"
+ },
+ "Atlanta, Georgia, USA": {
+  "lat": 33.7544657,
+  "lng": -84.3898151,
+  "label": "Atlanta, Georgia",
+  "osm": "relation/119557"
+ },
+ "Highlands, Edmonton, Alberta, Canada": {
+  "lat": 53.5671735,
+  "lng": -113.431604,
+  "label": "Highlands, Edmonton, Alberta, Canada",
+  "osm": "relation/7827111"
+ },
+ "Roxbury, Boston, Massachusetts, USA": {
+  "lat": 42.3289067,
+  "lng": -71.0850853,
+  "label": "Roxbury, Boston, Massachusetts",
+  "osm": "relation/4033679"
+ },
+ "Dorchester, Boston, Massachusetts, USA": {
+  "lat": 42.2973205,
+  "lng": -71.0744952,
+  "label": "Dorchester, Boston, Massachusetts",
+  "osm": "relation/4033668"
+ },
+ "Jamaica Plain, Boston, Massachusetts, USA": {
+  "lat": 42.3116046,
+  "lng": -71.1143838,
+  "label": "Jamaica Plain, Boston, Massachusetts",
+  "osm": "relation/4033674"
+ },
+ "Mattapan, Boston, Massachusetts, USA": {
+  "lat": 42.2723208,
+  "lng": -71.0869953,
+  "label": "Mattapan, Boston, Massachusetts",
+  "osm": "relation/4033675"
+ },
+ "Boulder, Colorado, USA": {
+  "lat": 40.0149856,
+  "lng": -105.270545,
+  "label": "Boulder, Colorado",
+  "osm": "relation/112298"
+ },
+ "Louisville, Colorado, USA": {
+  "lat": 39.977763,
+  "lng": -105.1319296,
+  "label": "Louisville, Colorado",
+  "osm": "relation/112284"
+ },
+ "Superior, Colorado, USA": {
+  "lat": 39.9527634,
+  "lng": -105.1685977,
+  "label": "Superior, Colorado",
+  "osm": "relation/19685321"
+ },
+ "Cambridge, Massachusetts, USA": {
+  "lat": 42.3656347,
+  "lng": -71.1040018,
+  "label": "Cambridge, Massachusetts",
+  "osm": "relation/1933745"
+ },
+ "East Rock, New Haven, Connecticut, USA": {
+  "lat": 41.3271114,
+  "lng": -72.9043331,
+  "label": "New Haven, Connecticut",
+  "osm": "node/359262702"
+ },
+ "Beaverton, Oregon, USA": {
+  "lat": 45.4871723,
+  "lng": -122.80378,
+  "label": "Beaverton, Oregon",
+  "osm": "relation/423111"
+ },
+ "Victoria, British Columbia, Canada": {
+  "lat": 48.4283182,
+  "lng": -123.364953,
+  "label": "Victoria, British Columbia, Canada",
+  "osm": "relation/2221062"
+ },
+ "Bainbridge Island, Washington, USA": {
+  "lat": 47.6515096,
+  "lng": -122.5246791,
+  "label": "Bainbridge Island, Washington",
+  "osm": "relation/237327"
+ },
+ "Sheffield, England, United Kingdom": {
+  "lat": 53.3806626,
+  "lng": -1.4702278,
+  "label": "Sheffield, England, United Kingdom",
+  "osm": "relation/106956"
+ },
+ "New York, New York, USA": {
+  "lat": 40.7127281,
+  "lng": -74.0060152,
+  "label": "New York",
+  "osm": "relation/175905"
+ },
+ "Paris, France": {
+  "lat": 48.8534951,
+  "lng": 2.3483915,
+  "label": "Paris, Ile-de-France, France",
+  "osm": "relation/71525"
+ },
+ "Central Oregon, Oregon, USA": {
+  "lat": 45.4881569,
+  "lng": -122.807836,
+  "label": "Central Beaverton, Beaverton, Oregon",
+  "osm": "node/3339163038"
+ },
+ "Bend, Oregon, USA": {
+  "lat": 44.0581728,
+  "lng": -121.3153096,
+  "label": "Bend, Oregon",
+  "osm": "relation/186761"
+ },
+ "Warm Springs, Oregon, USA": {
+  "lat": 44.7628855,
+  "lng": -121.2595919,
+  "label": "Warm Springs, Oregon",
+  "osm": "relation/186429"
+ },
+ "Los Angeles, California, USA": {
+  "lat": 34.0536923,
+  "lng": -118.2427676,
+  "label": "Los Angeles, California",
+  "osm": "relation/207359"
+ },
+ "Hamilton, Ontario, Canada": {
+  "lat": 43.2560802,
+  "lng": -79.8728583,
+  "label": "Hamilton, Ontario, Canada",
+  "osm": "relation/7034910"
+ },
+ "Albuquerque, New Mexico, USA": {
+  "lat": 35.0841034,
+  "lng": -106.650985,
+  "label": "Albuquerque, New Mexico",
+  "osm": "relation/171262"
+ },
+ "Sellwood, Portland, Oregon, USA": {
+  "lat": 45.4652622,
+  "lng": -122.6530035,
+  "label": "Sellwood-Moreland, Portland, Oregon",
+  "osm": "node/150979451"
+ },
+ "Washington, District of Columbia, USA": {
+  "lat": 38.8950982,
+  "lng": -77.0363849,
+  "label": "Washington, District of Columbia",
+  "osm": "relation/5396194"
+ },
+ "Wellington, New Zealand": {
+  "lat": -41.2887953,
+  "lng": 174.7772114,
+  "label": "Wellington, New Zealand",
+  "osm": "node/204648"
+ },
+ "Denmark": {
+  "lat": 55.670249,
+  "lng": 10.3333283,
+  "label": "Denmark",
+  "osm": "relation/50046"
+ },
+ "New York City, New York, USA": {
+  "lat": 40.7127281,
+  "lng": -74.0060152,
+  "label": "New York",
+  "osm": "relation/175905"
+ },
+ "Lincoln Square, Chicago, Illinois, USA": {
+  "lat": 41.9685896,
+  "lng": -87.688505,
+  "label": "Lincoln Square, Chicago, Illinois",
+  "osm": "relation/10115240"
+ },
+ "Portland, Oregon, USA": {
+  "lat": 45.5202471,
+  "lng": -122.674194,
+  "label": "Portland, Oregon",
+  "osm": "relation/186579"
+ },
+ "Sunset District, San Francisco, California, USA": {
+  "lat": 37.7535418,
+  "lng": -122.4952495,
+  "label": "Sunset District, San Francisco, California",
+  "osm": "node/140983336"
+ },
+ "Greensboro, North Carolina, USA": {
+  "lat": 36.0726355,
+  "lng": -79.7919754,
+  "label": "Greensboro, North Carolina",
+  "osm": "relation/180261"
+ },
+ "Detroit, Michigan, USA": {
+  "lat": 42.3315509,
+  "lng": -83.0466403,
+  "label": "Detroit, Michigan",
+  "osm": "relation/134591"
+ },
+ "Baltimore, Maryland, USA": {
+  "lat": 39.2908816,
+  "lng": -76.610759,
+  "label": "Baltimore, Maryland",
+  "osm": "relation/133345"
+ },
+ "Albany, Georgia, USA": {
+  "lat": 31.5782062,
+  "lng": -84.1556809,
+  "label": "Albany, Georgia",
+  "osm": "relation/119877"
+ },
+ "Meadowview, Sacramento, California, USA": {
+  "lat": 38.4831762,
+  "lng": -121.467131,
+  "label": "Meadowview, Sacramento, California",
+  "osm": "node/6159583685"
+ },
+ "Govanhill, Glasgow, Scotland, UK": {
+  "lat": 55.8377427,
+  "lng": -4.256413,
+  "label": "Govanhill, Glasgow, Scotland, United Kingdom",
+  "osm": "node/373441939"
+ },
+ "Maine, USA": {
+  "lat": 45.709097,
+  "lng": -68.8590201,
+  "label": "Maine",
+  "osm": "relation/63512"
+ },
+ "Columbia, Missouri, USA": {
+  "lat": 38.951883,
+  "lng": -92.3337366,
+  "label": "Columbia, Missouri",
+  "osm": "relation/141403"
+ },
+ "Cincinnati, Ohio, USA": {
+  "lat": 39.1012809,
+  "lng": -84.5127405,
+  "label": "Cincinnati, Ohio",
+  "osm": "relation/183453"
+ },
+ "Lawrence, Kansas, USA": {
+  "lat": 38.9719137,
+  "lng": -95.2359403,
+  "label": "Lawrence, Kansas",
+  "osm": "relation/129955"
+ },
+ "Helsinki, Finland": {
+  "lat": 60.1666204,
+  "lng": 24.9435408,
+  "label": "Helsinki, Uusimaa, Finland",
+  "osm": "relation/34914"
+ },
+ "Madrid, Spain": {
+  "lat": 40.416782,
+  "lng": -3.703507,
+  "label": "Madrid, Community of Madrid, Spain",
+  "osm": "relation/5326784"
+ },
+ "Woodstock, New York, USA": {
+  "lat": 42.0410578,
+  "lng": -74.1182492,
+  "label": "Town of Woodstock, New York",
+  "osm": "relation/3173436"
+ },
+ "Palo Alto, California, USA": {
+  "lat": 37.4443293,
+  "lng": -122.1598465,
+  "label": "Palo Alto, California",
+  "osm": "relation/1544955"
+ },
+ "West Side, San Antonio, Texas, USA": {
+  "lat": 29.4246002,
+  "lng": -98.4951405,
+  "label": "San Antonio, Texas",
+  "osm": "relation/253556",
+  "via": "San Antonio, Texas, USA"
+ },
+ "Oakland, California, USA": {
+  "lat": 37.8044557,
+  "lng": -122.271356,
+  "label": "Oakland, California",
+  "osm": "relation/2833530"
+ },
+ "Darebin, Melbourne, Victoria, Australia": {
+  "lat": -37.7747529,
+  "lng": 145.0386786,
+  "label": "Ivanhoe, Melbourne, Victoria, Australia",
+  "osm": "node/30226366"
+ },
+ "Davis, California, USA": {
+  "lat": 38.5435526,
+  "lng": -121.739005,
+  "label": "Davis, California",
+  "osm": "relation/11049243"
+ },
+ "London, England, United Kingdom": {
+  "lat": 51.5074456,
+  "lng": -0.1277653,
+  "label": "Greater London, England, United Kingdom",
+  "osm": "relation/175342"
+ },
+ "Switzerland": {
+  "lat": 46.7985624,
+  "lng": 8.2319736,
+  "label": "Switzerland",
+  "osm": "relation/51701"
+ },
+ "Barcelona, Catalonia, Spain": {
+  "lat": 41.3825802,
+  "lng": 2.177073,
+  "label": "Barcelona, Catalonia, Spain",
+  "osm": "relation/347950"
+ },
+ "Massachusetts, USA": {
+  "lat": 42.3788774,
+  "lng": -72.032366,
+  "label": "Massachusetts",
+  "osm": "relation/61315"
+ },
+ "North Oakland, Oakland, California, USA": {
+  "lat": 37.8406581,
+  "lng": -122.2638015,
+  "label": "North Oakland, Oakland, California",
+  "osm": "node/10139029525"
+ },
+ "Tucson, Arizona, USA": {
+  "lat": 32.2228765,
+  "lng": -110.974847,
+  "label": "Tucson, Arizona",
+  "osm": "relation/253824"
+ },
+ "San Jose, California, USA": {
+  "lat": 37.3361663,
+  "lng": -121.890591,
+  "label": "San Jose, California",
+  "osm": "relation/112143"
+ },
+ "Berkeley, California, USA": {
+  "lat": 37.8708393,
+  "lng": -122.272863,
+  "label": "Berkeley, California",
+  "osm": "relation/2833528"
+ },
+ "Taiwan": {
+  "lat": 23.9739374,
+  "lng": 120.9820179,
+  "label": "Taiwan",
+  "osm": "relation/449220"
+ },
+ "Dudley Street, Roxbury, Boston, Massachusetts, USA": {
+  "lat": 42.3294113,
+  "lng": -71.0887127,
+  "label": "Roxbury Crossing, Boston, Massachusetts",
+  "osm": "way/8640517"
+ },
+ "Cedar-Riverside, Minneapolis, Minnesota, USA": {
+  "lat": 44.9696027,
+  "lng": -93.2469098,
+  "label": "Cedar-Riverside, Minneapolis, Minnesota",
+  "osm": "relation/20599586"
+ },
+ "Frogtown, Saint Paul, Minnesota, USA": {
+  "lat": 44.9593583,
+  "lng": -93.1263071,
+  "label": "Frogtown, Saint Paul, Minnesota",
+  "osm": "relation/13248265"
+ },
+ "Edmonton, Alberta, Canada": {
+  "lat": 53.5462055,
+  "lng": -113.491241,
+  "label": "Edmonton, Alberta, Canada",
+  "osm": "relation/2564500"
+ },
+ "Ann Arbor, Michigan, USA": {
+  "lat": 42.2813722,
+  "lng": -83.7484616,
+  "label": "Ann Arbor, Michigan",
+  "osm": "relation/135130"
+ },
+ "Falls Church, Virginia, USA": {
+  "lat": 38.882334,
+  "lng": -77.1710914,
+  "label": "Falls Church, Virginia",
+  "osm": "relation/206642"
+ },
+ "Five Sisters, Burlington, Vermont, USA": {
+  "lat": 44.4653059,
+  "lng": -73.2110756,
+  "label": "Five Sisters, Burlington, Vermont",
+  "osm": "node/11601232828"
+ },
+ "Vermont, USA": {
+  "lat": 44.5990718,
+  "lng": -72.5002608,
+  "label": "Vermont",
+  "osm": "relation/60759"
+ },
+ "Frome, Somerset, England, United Kingdom": {
+  "lat": 51.2294852,
+  "lng": -2.3198467,
+  "label": "Frome, Somerset, England, United Kingdom",
+  "osm": "relation/2932349"
+ },
+ "France": {
+  "lat": 46.603354,
+  "lng": 1.8883335,
+  "label": "France",
+  "osm": "relation/2202162"
+ },
+ "Burlington, Vermont, USA": {
+  "lat": 44.4761601,
+  "lng": -73.212906,
+  "label": "Burlington, Vermont",
+  "osm": "relation/199071"
+ },
+ "Orlando, Florida, USA": {
+  "lat": 28.5421218,
+  "lng": -81.379045,
+  "label": "Orlando, Florida",
+  "osm": "relation/1128379"
+ },
+ "Dallas, Texas, USA": {
+  "lat": 32.7762719,
+  "lng": -96.7968559,
+  "label": "Dallas, Texas",
+  "osm": "relation/6571629"
+ },
+ "Amsterdam, Netherlands": {
+  "lat": 52.3730796,
+  "lng": 4.8924534,
+  "label": "Amsterdam, North Holland, Netherlands",
+  "osm": "relation/271110"
+ },
+ "Indianapolis, Indiana, USA": {
+  "lat": 39.7683331,
+  "lng": -86.1583502,
+  "label": "Indianapolis, Indiana",
+  "osm": "relation/18438530"
+ },
+ "Capitol Hill, Denver, Colorado, USA": {
+  "lat": 39.7358754,
+  "lng": -104.9799213,
+  "label": "Capitol Hill, Denver, Colorado",
+  "osm": "relation/21428331"
+ },
+ "Savannah, Georgia, USA": {
+  "lat": 32.0790074,
+  "lng": -81.0921335,
+  "label": "Savannah, Georgia",
+  "osm": "relation/119867"
+ },
+ "Delano, California, USA": {
+  "lat": 35.7688425,
+  "lng": -119.247053,
+  "label": "Delano, California",
+  "osm": "relation/113008"
+ },
+ "SoHo, Manhattan, New York, USA": {
+  "lat": 40.72288,
+  "lng": -73.9987505,
+  "label": "SoHo, New York",
+  "osm": "node/158809984"
+ },
+ "Northampton, Massachusetts, USA": {
+  "lat": 42.3178989,
+  "lng": -72.6311006,
+  "label": "Northampton, Massachusetts",
+  "osm": "relation/1839161"
+ },
+ "Rome, Georgia, USA": {
+  "lat": 34.257038,
+  "lng": -85.1646726,
+  "label": "Rome, Georgia",
+  "osm": "relation/119515"
+ },
+ "South Rome, Rome, Georgia, USA": {
+  "lat": 34.2486338,
+  "lng": -85.1833072,
+  "label": "South Rome, Rome, Georgia",
+  "osm": "node/11380663755"
+ },
+ "Park Slope, Brooklyn, New York, USA": {
+  "lat": 40.6701033,
+  "lng": -73.9859723,
+  "label": "Park Slope, New York",
+  "osm": "way/351304122"
+ },
+ "Edinburgh, Scotland, UK": {
+  "lat": 55.9533456,
+  "lng": -3.1883749,
+  "label": "City of Edinburgh, Scotland, United Kingdom",
+  "osm": "relation/1920901"
+ },
+ "Glasgow, Scotland, UK": {
+  "lat": 55.861155,
+  "lng": -4.2501687,
+  "label": "Glasgow, Scotland, United Kingdom",
+  "osm": "node/11127374"
+ },
+ "Manchester, England, UK": {
+  "lat": 53.4424618,
+  "lng": -2.2324547,
+  "label": "Manchester, England, United Kingdom",
+  "osm": "relation/146656"
+ },
+ "York, England, UK": {
+  "lat": 53.9656579,
+  "lng": -1.0743052,
+  "label": "York, England, United Kingdom",
+  "osm": "relation/134353"
+ },
+ "Ireland": {
+  "lat": 52.865196,
+  "lng": -7.9794599,
+  "label": "Ireland",
+  "osm": "relation/62273"
+ },
+ "The Island, Austin, Chicago, Illinois, USA": {
+  "lat": 41.8678597,
+  "lng": -87.7716454,
+  "label": "The Island, Chicago, Illinois",
+  "osm": "way/1100955927"
+ },
+ "Toronto, Ontario, Canada": {
+  "lat": 43.6534817,
+  "lng": -79.3839347,
+  "label": "Toronto, Ontario, Canada",
+  "osm": "relation/324211"
+ },
+ "Kansas City, Missouri, USA": {
+  "lat": 39.100105,
+  "lng": -94.5781416,
+  "label": "Kansas City, Missouri",
+  "osm": "relation/141008"
+ },
+ "Guntersville, Alabama, USA": {
+  "lat": 34.3581474,
+  "lng": -86.2947041,
+  "label": "Guntersville, Alabama",
+  "osm": "relation/110444"
+ },
+ "Englewood, Chicago, Illinois, USA": {
+  "lat": 41.7797559,
+  "lng": -87.6458836,
+  "label": "Englewood, Chicago, Illinois",
+  "osm": "relation/10048760"
+ },
+ "Lehigh Valley, Pennsylvania, USA": {
+  "lat": 40.5947552,
+  "lng": -75.5679786,
+  "label": "Crackersport, South Whitehall Township, Pennsylvania",
+  "osm": "node/165335529"
+ },
+ "Bethlehem, Pennsylvania, USA": {
+  "lat": 40.6178915,
+  "lng": -75.3786521,
+  "label": "Bethlehem, Pennsylvania",
+  "osm": "relation/188220"
+ },
+ "Allentown, Pennsylvania, USA": {
+  "lat": 40.6022552,
+  "lng": -75.4716115,
+  "label": "Allentown, Pennsylvania",
+  "osm": "relation/188525"
+ },
+ "Easton, Pennsylvania, USA": {
+  "lat": 40.6916081,
+  "lng": -75.2099866,
+  "label": "Easton, Pennsylvania",
+  "osm": "relation/188008"
+ },
+ "Fayetteville, Arkansas, USA": {
+  "lat": 36.0625843,
+  "lng": -94.1574328,
+  "label": "Fayetteville, Arkansas",
+  "osm": "relation/111477"
+ },
+ "Buffalo, New York, USA": {
+  "lat": 42.8864163,
+  "lng": -78.8781493,
+  "label": "Buffalo, New York",
+  "osm": "relation/175031"
+ },
+ "Medford, Massachusetts, USA": {
+  "lat": 42.4184296,
+  "lng": -71.1061639,
+  "label": "Medford, Massachusetts",
+  "osm": "relation/1931997"
+ },
+ "Somerville, Massachusetts, USA": {
+  "lat": 42.3875968,
+  "lng": -71.0994968,
+  "label": "Somerville, Massachusetts",
+  "osm": "relation/1933746"
+ },
+ "Washington State, USA": {
+  "lat": 47.2868352,
+  "lng": -120.212613,
+  "label": "Washington",
+  "osm": "relation/165479"
+ },
+ "Pastaza, Ecuador": {
+  "lat": -1.916667,
+  "lng": -77,
+  "label": "Pastaza, Ecuador",
+  "osm": "relation/113869"
+ },
+ "Melbourne, Victoria, Australia": {
+  "lat": -37.8142454,
+  "lng": 144.9631732,
+  "label": "Melbourne, Victoria, Australia",
+  "osm": "relation/4246124"
+ },
+ "Coliseum, Oakland, California, USA": {
+  "lat": 37.7539702,
+  "lng": -122.1972051,
+  "label": "Oakland, California",
+  "osm": "node/6131716479"
+ },
+ "Charlottesville, Virginia, USA": {
+  "lat": 38.029306,
+  "lng": -78.4766781,
+  "label": "Charlottesville, Virginia",
+  "osm": "relation/2504948"
+ },
+ "Lyon, France": {
+  "lat": 45.7578137,
+  "lng": 4.8320114,
+  "label": "Lyon, Auvergne-Rhône-Alpes, France",
+  "osm": "relation/120965"
+ },
+ "West Oakland, Oakland, California, USA": {
+  "lat": 37.8048919,
+  "lng": -122.2951752,
+  "label": "South Prescott, Oakland, California",
+  "osm": "node/5783081359"
+ },
+ "Montgomery, Alabama, USA": {
+  "lat": 32.3777111,
+  "lng": -86.3090775,
+  "label": "Montgomery, Alabama",
+  "osm": "relation/110842"
+ },
+ "Palouse, Washington, USA": {
+  "lat": 46.9099519,
+  "lng": -117.0755847,
+  "label": "Palouse, Washington",
+  "osm": "relation/237726"
+ },
+ "Madison, Wisconsin, USA": {
+  "lat": 43.07469,
+  "lng": -89.3841663,
+  "label": "Madison, Wisconsin",
+  "osm": "relation/3352040"
+ },
+ "Rapid City, South Dakota, USA": {
+  "lat": 44.0806041,
+  "lng": -103.228023,
+  "label": "Rapid City, South Dakota",
+  "osm": "relation/195005"
+ },
+ "California, USA": {
+  "lat": 36.7014631,
+  "lng": -118.755997,
+  "label": "California",
+  "osm": "relation/165475"
+ },
+ "Lawrence, Massachusetts, USA": {
+  "lat": 42.7070354,
+  "lng": -71.1631137,
+  "label": "Lawrence, Massachusetts",
+  "osm": "relation/1840197"
+ },
+ "United States": {
+  "lat": 39.7837304,
+  "lng": -100.445882,
+  "label": "United States",
+  "osm": "relation/148838"
+ },
+ "Ohio, USA": {
+  "lat": 40.2253569,
+  "lng": -82.6881395,
+  "label": "Ohio",
+  "osm": "relation/162061"
+ },
+ "New Orleans, Louisiana, USA": {
+  "lat": 29.9574657,
+  "lng": -90.0629493,
+  "label": "New Orleans, Louisiana",
+  "osm": "relation/131885"
+ },
+ "Marin County, California, USA": {
+  "lat": 38.0409144,
+  "lng": -122.6199638,
+  "label": "Marin County, California",
+  "osm": "relation/396461"
+ },
+ "New Haven, Connecticut, USA": {
+  "lat": 41.3082138,
+  "lng": -72.9250518,
+  "label": "New Haven, Connecticut",
+  "osm": "relation/270191"
+ },
+ "Potomac, Maryland, USA": {
+  "lat": 39.0180508,
+  "lng": -77.1956331,
+  "label": "Potomac, Maryland",
+  "osm": "relation/133605"
+ },
+ "Vancouver, British Columbia, Canada": {
+  "lat": 49.2608724,
+  "lng": -123.113952,
+  "label": "Vancouver, British Columbia, Canada",
+  "osm": "relation/1852574"
+ },
+ "Logan Square, Chicago, Illinois, USA": {
+  "lat": 41.9283727,
+  "lng": -87.7067636,
+  "label": "Logan Square, Chicago, Illinois",
+  "osm": "node/153509185"
+ },
+ "England, UK": {
+  "lat": 52.5310214,
+  "lng": -1.2649062,
+  "label": "England, United Kingdom",
+  "osm": "relation/58447"
+ },
+ "Wales, UK": {
+  "lat": 52.2928116,
+  "lng": -3.73893,
+  "label": "Wales, United Kingdom",
+  "osm": "relation/58437"
+ },
+ "Porto Alegre, Rio Grande do Sul, Brazil": {
+  "lat": -30.0324999,
+  "lng": -51.2303767,
+  "label": "Porto Alegre, Rio Grande do Sul, Brazil",
+  "osm": "relation/20676578"
+ },
+ "Rogers Park, Chicago, Illinois, USA": {
+  "lat": 42.0090367,
+  "lng": -87.6768492,
+  "label": "Rogers Park, Chicago, Illinois",
+  "osm": "relation/122575"
+ },
+ "Saint Paul, Minnesota, USA": {
+  "lat": 44.9497487,
+  "lng": -93.0931028,
+  "label": "Saint Paul, Minnesota",
+  "osm": "relation/136612"
+ },
+ "Peoria, Illinois, USA": {
+  "lat": 40.6938609,
+  "lng": -89.5891008,
+  "label": "Peoria, Illinois",
+  "osm": "relation/126009"
+ },
+ "Rhode Island, USA": {
+  "lat": 41.7962409,
+  "lng": -71.5992372,
+  "label": "Rhode Island",
+  "osm": "relation/392915"
+ },
+ "University of California, Berkeley, Berkeley, California, USA": {
+  "lat": 37.8707751,
+  "lng": -122.2656754,
+  "label": "Downtown Berkeley, Berkeley, California",
+  "osm": "node/14141376704"
+ },
+ "Tenderloin, San Francisco, California, USA": {
+  "lat": 37.7842493,
+  "lng": -122.4139933,
+  "label": "Tenderloin, San Francisco, California",
+  "osm": "node/4609282250"
+ },
+ "Recife, Pernambuco, Brazil": {
+  "lat": -8.0584933,
+  "lng": -34.8848193,
+  "label": "Recife, Pernambuco, Brazil",
+  "osm": "relation/303585"
+ },
+ "Fall Creek, Ithaca, New York, USA": {
+  "lat": 42.4548964,
+  "lng": -76.5008764,
+  "label": "Ward 5, City of Ithaca, New York",
+  "osm": "way/1187505167"
+ },
+ "Oakland, Pittsburgh, Pennsylvania, USA": {
+  "lat": 40.4389972,
+  "lng": -79.9557454,
+  "label": "Oakland, Pittsburgh, Pennsylvania",
+  "osm": "node/158623661"
+ },
+ "Wilkinsburg, Allegheny County, Pennsylvania, USA": {
+  "lat": 40.4418068,
+  "lng": -79.8819609,
+  "label": "Wilkinsburg, Pennsylvania",
+  "osm": "relation/187499"
+ },
+ "Brownsville, Brooklyn, New York, USA": {
+  "lat": 40.665306,
+  "lng": -73.9124755,
+  "label": "Brownsville, New York",
+  "osm": "way/1373161887"
+ },
+ "Birmingham, Alabama, USA": {
+  "lat": 33.5206824,
+  "lng": -86.8024326,
+  "label": "Birmingham, Alabama",
+  "osm": "relation/111031"
+ },
+ "Red Hook, Brooklyn, New York, USA": {
+  "lat": 40.6751032,
+  "lng": -74.0095841,
+  "label": "Red Hook, New York",
+  "osm": "node/158823151"
+ },
+ "Mapleton-Fall Creek, Indianapolis, Indiana, USA": {
+  "lat": 39.7683331,
+  "lng": -86.1583502,
+  "label": "Indianapolis, Indiana",
+  "osm": "relation/18438530",
+  "via": "Indianapolis, Indiana, USA"
+ },
+ "Georgia, USA": {
+  "lat": 32.3293809,
+  "lng": -83.1137366,
+  "label": "Georgia",
+  "osm": "relation/161957"
+ },
+ "Mayfair, East San Jose, San Jose, California, USA": {
+  "lat": 37.3361663,
+  "lng": -121.890591,
+  "label": "San Jose, California",
+  "osm": "photon:R/112143"
+ },
+ "New Jersey, USA": {
+  "lat": 40.0757384,
+  "lng": -74.4041622,
+  "label": "New Jersey",
+  "osm": "relation/224951"
+ },
+ "Dupont Circle, Washington, District of Columbia, USA": {
+  "lat": 38.9109436,
+  "lng": -77.0427259,
+  "label": "Dupont Circle, Washington, District of Columbia",
+  "osm": "relation/4638652"
+ },
+ "Philadelphia, Pennsylvania, USA": {
+  "lat": 39.9527237,
+  "lng": -75.1635262,
+  "label": "Philadelphia, Pennsylvania",
+  "osm": "relation/188022"
+ },
+ "South Australia, Australia": {
+  "lat": -30.5343665,
+  "lng": 135.6301212,
+  "label": "South Australia, Australia",
+  "osm": "relation/2316596"
+ },
+ "Stanford, California, USA": {
+  "lat": 37.4265407,
+  "lng": -122.1703055,
+  "label": "Palo Alto, California",
+  "osm": "relation/1546085"
+ },
+ "Inner Richmond, San Francisco, California, USA": {
+  "lat": 37.7786189,
+  "lng": -122.4641875,
+  "label": "Richmond District, San Francisco, California",
+  "osm": "node/11903199253"
+ },
+ "Tokyo, Japan": {
+  "lat": 35.6768601,
+  "lng": 139.7638947,
+  "label": "Tokyo, Japan",
+  "osm": "relation/1543125"
+ },
+ "Saramacca, Suriname": {
+  "lat": 5.7870805,
+  "lng": -55.6064574,
+  "label": "Saramacca, Suriname",
+  "osm": "relation/5740856"
+ },
+ "Bushwick, Brooklyn, New York, USA": {
+  "lat": 40.6942696,
+  "lng": -73.9187482,
+  "label": "Brooklyn, New York",
+  "osm": "way/271286173"
+ },
+ "Bloomington, Indiana, USA": {
+  "lat": 39.1670396,
+  "lng": -86.5342881,
+  "label": "Bloomington, Indiana",
+  "osm": "relation/127716"
+ },
+ "Monrovia, Liberia": {
+  "lat": 6.3203562,
+  "lng": -10.8060492,
+  "label": "Monrovia, Montserrado County, Liberia",
+  "osm": "node/27564980"
+ },
+ "Boyle Heights, Los Angeles, California, USA": {
+  "lat": 34.0436892,
+  "lng": -118.2097684,
+  "label": "Boyle Heights, Los Angeles, California",
+  "osm": "node/150959732"
+ },
+ "Chelsea, Manhattan, New York, USA": {
+  "lat": 40.7464906,
+  "lng": -74.0015283,
+  "label": "Chelsea District, New York",
+  "osm": "way/399256097"
+ },
+ "Portsmouth, Ohio, USA": {
+  "lat": 38.7345374,
+  "lng": -82.9962742,
+  "label": "Portsmouth, Ohio",
+  "osm": "relation/182207"
+ },
+ "Tallahassee, Florida, USA": {
+  "lat": 30.4380832,
+  "lng": -84.2809332,
+  "label": "Tallahassee, Florida",
+  "osm": "relation/119009"
+ },
+ "Wrigleyville, Chicago, Illinois, USA": {
+  "lat": 41.947022,
+  "lng": -87.6564773,
+  "label": "Wrigleyville, Chicago, Illinois",
+  "osm": "node/6027666436"
+ },
+ "Granite Falls, Minnesota, USA": {
+  "lat": 44.8099575,
+  "lng": -95.5455752,
+  "label": "Granite Falls, Minnesota",
+  "osm": "relation/137338"
+ },
+ "Dublin, Ireland": {
+  "lat": 53.3493795,
+  "lng": -6.2605593,
+  "label": "Dublin, Ireland",
+  "osm": "relation/1109531"
+ },
+ "Lower East Side, Manhattan, New York, USA": {
+  "lat": 40.7159357,
+  "lng": -73.9868057,
+  "label": "Lower East Side, New York",
+  "osm": "node/158853595"
+ },
+ "Totnes, Devon, England, UK": {
+  "lat": 50.4322816,
+  "lng": -3.6871525,
+  "label": "Dartington, South Hams, England, United Kingdom",
+  "osm": "relation/3531842"
+ },
+ "Totnes, Devon, England, United Kingdom": {
+  "lat": 50.4322816,
+  "lng": -3.6871525,
+  "label": "Dartington, South Hams, England, United Kingdom",
+  "osm": "relation/3531842"
+ },
+ "Memphis, Tennessee, USA": {
+  "lat": 35.146026,
+  "lng": -90.0517786,
+  "label": "Memphis, Tennessee",
+  "osm": "relation/197239"
+ },
+ "Nairobi, Kenya": {
+  "lat": -1.302398,
+  "lng": 36.8288509,
+  "label": "Nairobi County, Kenya",
+  "osm": "relation/9721587"
+ },
+ "Beacon Hill, Boston, Massachusetts, USA": {
+  "lat": 42.3587085,
+  "lng": -71.067829,
+  "label": "Beacon Hill, Boston, Massachusetts",
+  "osm": "relation/4033665"
+ },
+ "Downtown, Providence, Rhode Island, USA": {
+  "lat": 41.8234695,
+  "lng": -71.4130257,
+  "label": "Downtown, Providence, Rhode Island",
+  "osm": "relation/19516885"
+ },
+ "Geneva, Switzerland": {
+  "lat": 46.2017559,
+  "lng": 6.1466014,
+  "label": "Geneva, Switzerland",
+  "osm": "relation/1685488"
+ },
+ "Mill Valley, California, USA": {
+  "lat": 37.9060368,
+  "lng": -122.5449763,
+  "label": "Mill Valley, California",
+  "osm": "relation/112703"
+ },
+ "Plymouth, New Hampshire, USA": {
+  "lat": 43.7440651,
+  "lng": -71.7238393,
+  "label": "Plymouth, New Hampshire",
+  "osm": "relation/2044246"
+ },
+ "New Haven, Indiana, USA": {
+  "lat": 41.0733059,
+  "lng": -85.0173125,
+  "label": "New Haven, Indiana",
+  "osm": "relation/127525"
+ },
+ "Allen County, Indiana, USA": {
+  "lat": 41.0975573,
+  "lng": -85.0562084,
+  "label": "Allen County, Indiana",
+  "osm": "relation/1527345"
+ },
+ "Waitsfield, Vermont, USA": {
+  "lat": 44.1926416,
+  "lng": -72.822106,
+  "label": "Waitsfield, Vermont",
+  "osm": "relation/8897602"
+ },
+ "Warren, Vermont, USA": {
+  "lat": 44.1139265,
+  "lng": -72.8555364,
+  "label": "Warren, Vermont",
+  "osm": "relation/8898129"
+ },
+ "Fayston, Vermont, USA": {
+  "lat": 44.2420023,
+  "lng": -72.8381728,
+  "label": "Fayston, Washington County, Vermont",
+  "osm": "relation/8898128"
+ },
+ "Wardensville, West Virginia, USA": {
+  "lat": 39.0755642,
+  "lng": -78.594453,
+  "label": "Wardensville, West Virginia",
+  "osm": "relation/240106"
+ },
+ "Pennsylvania Wilds, Pennsylvania, USA": {
+  "lat": 40.9935397,
+  "lng": -78.5935613,
+  "label": "Bloom Township, Pennsylvania",
+  "osm": "node/14025346825"
+ },
+ "Hopeton, Woods County, Oklahoma, USA": {
+  "lat": 36.6880876,
+  "lng": -98.6659183,
+  "label": "Hopeton, Woods County, Oklahoma",
+  "osm": "node/151898775"
+ },
+ "Lubec, Maine, USA": {
+  "lat": 44.861172,
+  "lng": -66.983501,
+  "label": "Lubec, Maine",
+  "osm": "relation/12199300"
+ },
+ "Perry, New York, USA": {
+  "lat": 42.7156175,
+  "lng": -78.0055618,
+  "label": "Village of Perry, New York",
+  "osm": "relation/176197"
+ },
+ "Stonington, Maine, USA": {
+  "lat": 44.156593,
+  "lng": -68.667297,
+  "label": "Stonington, Maine",
+  "osm": "relation/12199965"
+ },
+ "Deer Isle, Maine, USA": {
+  "lat": 44.224044,
+  "lng": -68.677597,
+  "label": "Deer Isle, Maine",
+  "osm": "relation/12199972"
+ },
+ "Water Street, Northfield, Vermont, USA": {
+  "lat": 44.1417632,
+  "lng": -72.6663346,
+  "label": "Northfield Center, Northfield, Vermont",
+  "osm": "way/19724157"
+ },
+ "Fergus Falls, Minnesota, USA": {
+  "lat": 46.2834757,
+  "lng": -96.0777906,
+  "label": "Fergus Falls, Minnesota",
+  "osm": "relation/137747"
+ },
+ "Norwich, Vermont, USA": {
+  "lat": 43.7136654,
+  "lng": -72.3081535,
+  "label": "Norwich, Vermont",
+  "osm": "relation/2030456"
+ },
+ "White River Junction, Vermont, USA": {
+  "lat": 43.6505307,
+  "lng": -72.3309258,
+  "label": "White River Junction, Hartford, Vermont",
+  "osm": "relation/18204284"
+ },
+ "Grand Lake Stream, Maine, USA": {
+  "lat": 45.1788905,
+  "lng": -67.7750251,
+  "label": "Grand Lake Stream, Washington County, Maine",
+  "osm": "relation/12243271"
+ },
+ "Cumby, Texas, USA": {
+  "lat": 33.1373366,
+  "lng": -95.8394083,
+  "label": "Cumby, Texas",
+  "osm": "relation/6603584"
+ },
+ "Bethlehem, New Hampshire, USA": {
+  "lat": 44.2804632,
+  "lng": -71.6869928,
+  "label": "Bethlehem, New Hampshire",
+  "osm": "relation/2047647"
+ },
+ "Lexington, Kentucky, USA": {
+  "lat": 38.0464066,
+  "lng": -84.4970393,
+  "label": "Lexington, Kentucky",
+  "osm": "relation/11078268"
+ },
+ "Nicholasville, Kentucky, USA": {
+  "lat": 37.8806341,
+  "lng": -84.5729961,
+  "label": "Nicholasville, Kentucky",
+  "osm": "relation/130704"
+ },
+ "Windham County, Vermont, USA": {
+  "lat": 42.9948675,
+  "lng": -72.7342584,
+  "label": "Windham County, Vermont",
+  "osm": "relation/60807"
+ },
+ "Jamaica, Vermont, USA": {
+  "lat": 43.1001334,
+  "lng": -72.7784018,
+  "label": "Jamaica, Vermont",
+  "osm": "relation/2017759"
+ },
+ "Londonderry, Vermont, USA": {
+  "lat": 43.193006,
+  "lng": -72.8150391,
+  "label": "Londonderry, Windham County, Vermont",
+  "osm": "relation/2017760"
+ },
+ "Weston, Vermont, USA": {
+  "lat": 43.2917153,
+  "lng": -72.7932204,
+  "label": "Weston, Vermont",
+  "osm": "relation/2030037"
+ },
+ "Winhall, Vermont, USA": {
+  "lat": 43.1590479,
+  "lng": -72.9351055,
+  "label": "Winhall, Vermont",
+  "osm": "relation/8906730"
+ },
+ "Warsaw, New York, USA": {
+  "lat": 42.7401871,
+  "lng": -78.1325548,
+  "label": "Village of Warsaw, New York",
+  "osm": "relation/176200"
+ },
+ "Mentor, Ohio, USA": {
+  "lat": 41.6664781,
+  "lng": -81.3399769,
+  "label": "Mentor, Ohio",
+  "osm": "relation/181987"
+ },
+ "Strafford, Vermont, USA": {
+  "lat": 43.8662782,
+  "lng": -72.3776201,
+  "label": "Strafford, Vermont",
+  "osm": "relation/9100918"
+ },
+ "Bilbao, Basque Country, Spain": {
+  "lat": 43.2630018,
+  "lng": -2.9350039,
+  "label": "Bilbao, Autonomous Community of the Basque Country, Spain",
+  "osm": "relation/339549"
+ },
+ "Bowdoinham, Maine, USA": {
+  "lat": 44.0098907,
+  "lng": -69.8969355,
+  "label": "Bowdoinham, Maine",
+  "osm": "relation/12180955"
+ },
+ "New Britain, Connecticut, USA": {
+  "lat": 41.6611881,
+  "lng": -72.7795594,
+  "label": "New Britain, Connecticut",
+  "osm": "relation/5963846"
+ },
+ "New England, USA": {
+  "lat": 44.2057083,
+  "lng": -70.7537839,
+  "label": "New England",
+  "osm": "relation/9660059"
+ },
+ "New York, USA": {
+  "lat": 40.7127281,
+  "lng": -74.0060152,
+  "label": "New York",
+  "osm": "relation/175905"
+ },
+ "Kodiak, Alaska, USA": {
+  "lat": 57.7901661,
+  "lng": -152.4067073,
+  "label": "Kodiak, Alaska",
+  "osm": "relation/16770736"
+ },
+ "Concord, New Hampshire, USA": {
+  "lat": 43.207178,
+  "lng": -71.537476,
+  "label": "Concord, New Hampshire",
+  "osm": "relation/170182"
+ },
+ "Longmont, Colorado, USA": {
+  "lat": 40.1672117,
+  "lng": -105.101928,
+  "label": "Longmont, Colorado",
+  "osm": "relation/112304"
+ },
+ "Johnston, Rhode Island, USA": {
+  "lat": 41.8310404,
+  "lng": -71.5412101,
+  "label": "Johnston, Rhode Island",
+  "osm": "relation/7670016"
+ },
+ "Peterborough, New Hampshire, USA": {
+  "lat": 42.8776166,
+  "lng": -71.949383,
+  "label": "Peterborough, New Hampshire",
+  "osm": "relation/361448"
+ },
+ "Port Clyde, Maine, USA": {
+  "lat": 43.9263509,
+  "lng": -69.2586064,
+  "label": "Port Clyde, Maine",
+  "osm": "node/158862481"
+ },
+ "Laverne, Oklahoma, USA": {
+  "lat": 36.7095328,
+  "lng": -99.8934936,
+  "label": "Laverne, Oklahoma",
+  "osm": "relation/184811"
+ },
+ "Graham, Alamance County, North Carolina, USA": {
+  "lat": 36.0690258,
+  "lng": -79.4005756,
+  "label": "Graham, North Carolina",
+  "osm": "relation/179966"
+ },
+ "Campton, New Hampshire, USA": {
+  "lat": 43.8235868,
+  "lng": -71.6389687,
+  "label": "Campton, New Hampshire",
+  "osm": "relation/2047648"
+ },
+ "Dorchester, New Hampshire, USA": {
+  "lat": 43.7565057,
+  "lng": -71.9490529,
+  "label": "Dorchester, New Hampshire",
+  "osm": "relation/2045470"
+ },
+ "Frewsburg, New York, USA": {
+  "lat": 42.060185,
+  "lng": -79.1462866,
+  "label": "Frewsburg, New York",
+  "osm": "relation/176264"
+ },
+ "Thetford, Vermont, USA": {
+  "lat": 43.8286805,
+  "lng": -72.2462023,
+  "label": "Thetford, Orange County, Vermont",
+  "osm": "relation/9100919"
+ },
+ "Ithaca, New York, USA": {
+  "lat": 42.4374175,
+  "lng": -76.5483724,
+  "label": "Town of Ithaca, New York",
+  "osm": "relation/9155213"
+ },
+ "Forsyth, Montana, USA": {
+  "lat": 46.266384,
+  "lng": -106.677812,
+  "label": "Forsyth, Montana",
+  "osm": "relation/142496"
+ },
+ "Grundy County, Illinois, USA": {
+  "lat": 41.2747363,
+  "lng": -88.4119361,
+  "label": "Grundy County, Illinois",
+  "osm": "relation/1800061"
+ },
+ "Mendocino, California, USA": {
+  "lat": 39.3176491,
+  "lng": -123.4126399,
+  "label": "Mendocino County, California",
+  "osm": "relation/396489"
+ },
+ "Traverse City, Michigan, USA": {
+  "lat": 44.7606481,
+  "lng": -85.6165976,
+  "label": "Traverse City, Michigan",
+  "osm": "relation/134757"
+ },
+ "Tionesta, Pennsylvania, USA": {
+  "lat": 41.49534,
+  "lng": -79.4558798,
+  "label": "Tionesta, Pennsylvania",
+  "osm": "relation/188767"
+ },
+ "Pitt County, North Carolina, USA": {
+  "lat": 35.611481,
+  "lng": -77.3707461,
+  "label": "Pitt County, North Carolina",
+  "osm": "relation/2528734"
+ },
+ "Greenville, North Carolina, USA": {
+  "lat": 35.613224,
+  "lng": -77.3724593,
+  "label": "Greenville, North Carolina",
+  "osm": "relation/179983"
+ },
+ "Port Townsend, Washington, USA": {
+  "lat": 48.1179702,
+  "lng": -122.769544,
+  "label": "Port Townsend, Washington",
+  "osm": "relation/237889"
+ },
+ "Letchworth State Park, Castile, New York, USA": {
+  "lat": 42.6555999,
+  "lng": -77.9675478,
+  "label": "Town of Mount Morris, New York",
+  "osm": "relation/6442288"
+ },
+ "Lansing, Michigan, USA": {
+  "lat": 42.7338254,
+  "lng": -84.5546295,
+  "label": "Lansing, Michigan",
+  "osm": "relation/134997"
+ },
+ "Taipei, Taiwan": {
+  "lat": 25.0375198,
+  "lng": 121.5636796,
+  "label": "Taipei, Taiwan",
+  "osm": "relation/1293250"
+ },
+ "Shickley, Nebraska, USA": {
+  "lat": 40.416674,
+  "lng": -97.722545,
+  "label": "Shickley, Nebraska",
+  "osm": "relation/169496"
+ },
+ "Minneapolis, Minnesota, USA": {
+  "lat": 44.9772995,
+  "lng": -93.2654692,
+  "label": "Minneapolis, Minnesota",
+  "osm": "relation/136712"
+ },
+ "New Ulm, Minnesota, USA": {
+  "lat": 44.3140261,
+  "lng": -94.4614177,
+  "label": "New Ulm, Minnesota",
+  "osm": "relation/136996"
+ },
+ "Lee, New Hampshire, USA": {
+  "lat": 43.12354,
+  "lng": -71.011505,
+  "label": "Lee, New Hampshire",
+  "osm": "relation/67079"
+ },
+ "Houston, Texas, USA": {
+  "lat": 29.7589382,
+  "lng": -95.3676974,
+  "label": "Houston, Texas",
+  "osm": "relation/2688911"
+ },
+ "Puerto Rico, USA": {
+  "lat": 18.2247706,
+  "lng": -66.4858295,
+  "label": "Puerto Rico",
+  "osm": "relation/4422604"
+ },
+ "Bemidji, Minnesota, USA": {
+  "lat": 47.4723148,
+  "lng": -94.8832791,
+  "label": "Bemidji, Minnesota",
+  "osm": "relation/137369"
+ },
+ "Camden, Alabama, USA": {
+  "lat": 31.9909813,
+  "lng": -87.2905456,
+  "label": "Camden, Alabama",
+  "osm": "relation/7444670"
+ },
+ "Brainerd, Minnesota, USA": {
+  "lat": 46.3580221,
+  "lng": -94.2008288,
+  "label": "Brainerd, Minnesota",
+  "osm": "relation/137576"
+ },
+ "Skowhegan, Maine, USA": {
+  "lat": 44.7558635,
+  "lng": -69.6656301,
+  "label": "Skowhegan, Maine",
+  "osm": "relation/132565"
+ },
+ "Akwesasne, New York, USA": {
+  "lat": 44.9662565,
+  "lng": -74.6712875,
+  "label": "Town of Bombay, New York",
+  "osm": "relation/14367214"
+ },
+ "Paul Smiths, New York, USA": {
+  "lat": 44.4381348,
+  "lng": -74.2523995,
+  "label": "Paul Smiths, Town of Brighton, New York",
+  "osm": "relation/14393393"
+ }
+}

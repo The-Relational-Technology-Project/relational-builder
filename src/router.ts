@@ -93,7 +93,34 @@ export function isStudioBriefPath(pathname: string): boolean {
  * it's either a page that isn't ours (#privacy) or a spent magic-link token.
  */
 function urlFor(path: string): string {
-  return path + window.location.search;
+  // The gallery's shelf (?shelf=) is the gallery's own: it rides reloads
+  // and back/forward there, and is dropped on the way to any other page
+  const params = new URLSearchParams(window.location.search);
+  if (normalize(path) !== VIEW_PATHS.gallery) params.delete(SHELF_PARAM);
+  const q = params.toString();
+  return path + (q ? `?${q}` : '');
+}
+
+/**
+ * Which shelf the gallery is open on: the commons when absent, a studio's
+ * slug, or an event's `event:CODE`. A studio or event gallery is a place
+ * people link to and come back from, so it has an address.
+ */
+const SHELF_PARAM = 'shelf';
+
+export function readShelfParam(): string | null {
+  const v = new URLSearchParams(window.location.search).get(SHELF_PARAM)?.trim();
+  return v ? v : null;
+}
+
+/** Write the shelf into the address as a new history entry (null = the commons) */
+export function writeShelfParam(shelf: string | null): void {
+  const params = new URLSearchParams(window.location.search);
+  if (shelf) params.set(SHELF_PARAM, shelf); else params.delete(SHELF_PARAM);
+  const q = params.toString();
+  const next = window.location.pathname + (q ? `?${q}` : '');
+  if (next === window.location.pathname + window.location.search) return;
+  window.history.pushState(null, '', next);
 }
 
 export function pushPath(path: string): void {

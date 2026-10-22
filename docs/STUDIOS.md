@@ -105,3 +105,21 @@ A Studio Admin shares per-item (Studio admin → Library → share icon):
 - **Also submit to RT Commons** — additionally files the item into the
   commons contribution queue (steward reviews as usual), with a
   `studio:<slug>` tag and the studio's attribution.
+
+## Event galleries
+
+An event (a build day, a buildathon) has a gallery of its own in the same
+switcher as the studios: its demo wall (what the room pinned with Share
+Live) with the curated inspiration shelf beneath. The gallery outlives the
+event. `event_participations` remembers every event a person has joined
+(filled by a trigger on the profile's `event_code`, which is the one door
+everything comes through), so a builder who goes to two build days keeps
+both shelves, and a host keeps an archived event's gallery too
+(`my_events()` / `my_admin_events()` on the Builder backend). Each shelf is
+an address — `/gallery?shelf=event:SUNSET`, `/gallery?shelf=thread` — so it
+can be linked to and walked back from, and every shelf carries the same
+header: the way back to the commons and the switcher across.
+
+A steward places the event on the Steward page's Codes tab (`event_codes.location`),
+and the gallery's Nearby filter then counts the whole wall as rooted there.
+

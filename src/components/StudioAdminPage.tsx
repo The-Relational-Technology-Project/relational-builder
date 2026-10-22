@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
+import { locationFromPlace, type GeoLocation, type GeoPrecision } from '@/knowledge/geo';
 import { useStudioStore, adminMemberships } from '@/store/studio-store';
 import {
   listStudioMembers,
@@ -472,6 +473,12 @@ function MembersTab({ slug, label }: { slug: string; label: string }) {
 
 // --- Library: the studio's shelf ---
 
+/** Three parts reads as a neighborhood, two as a town, one as a region */
+function placePrecision(place: string): GeoPrecision {
+  const parts = place.split(',').filter(p => p.trim()).length;
+  return parts >= 3 ? 'neighborhood' : parts === 2 ? 'city' : 'region';
+}
+
 const EMPTY_DRAFT = {
   kind: 'principle' as StudioItemKind,
   title: '',
@@ -480,6 +487,7 @@ const EMPTY_DRAFT = {
   url: '',
   image_url: '',
   attribution: '',
+  place: '',
   tags: '',
 };
 
@@ -754,6 +762,7 @@ function ItemEditorDialog({
           url: item.url ?? '',
           image_url: item.image_url ?? '',
           attribution: item.attribution ?? '',
+          place: item.location?.label ?? '',
           tags: item.tags.join(', '),
         }
       : EMPTY_DRAFT,
@@ -776,9 +785,24 @@ function ItemEditorDialog({
       attribution: draft.attribution.trim() || null,
       tags: draft.tags.split(',').map(t => t.trim()).filter(Boolean),
     };
+    // The place, looked up only when it changed: typed words become a point
+    // the gallery's Nearby filter can measure to. A place that can't be
+    // found stops the save with a message rather than saving nothing.
+    const place = draft.place.trim();
+    let location: GeoLocation | null | undefined;
+    if (!place) location = null;
+    else if (place !== (item?.location?.label ?? '')) {
+      location = await locationFromPlace(place, placePrecision(place));
+      if (!location) {
+        setError(`Couldn't find "${place}" on the map. Try a town and state, or a city.`);
+        setSaving(false);
+        return;
+      }
+    }
     try {
-      if (item) await updateStudioItem(item.id, payload);
-      else await createStudioItem(payload);
+      const withPlace = location === undefined ? payload : { ...payload, location };
+      if (item) await updateStudioItem(item.id, withPlace);
+      else await createStudioItem(withPlace);
       onClose(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not save the item');
@@ -845,6 +869,10 @@ function ItemEditorDialog({
               <Label className="text-xs">Link (optional)</Label>
               <Input {...field('url')} placeholder="https://…" />
             </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Place (optional) — where this is rooted, for the gallery's Nearby filter</Label>
+            <Input {...field('place')} placeholder="Neighborhood, town, state" />
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs">Screenshot URL (optional) — shown on the gallery card</Label>

@@ -1,4 +1,5 @@
 import { builderClient } from '@/cloud/builder-client';
+import { parseLocation, type GeoLocation } from '@/knowledge/geo';
 
 /**
  * The Event Admin's side of a community build day — what a host can do from the
@@ -17,6 +18,8 @@ export interface AdminEvent {
   studio_slug: string | null;
   studio_label: string | null;
   joined: number;
+  /** Where the event is — the gallery's Nearby filter places its wall there */
+  location: GeoLocation | null;
 }
 
 export interface EventParticipant {
@@ -48,6 +51,7 @@ export async function fetchMyAdminEvents(): Promise<AdminEvent[]> {
     studio_slug: r.studio_slug ? String(r.studio_slug) : null,
     studio_label: r.studio_label ? String(r.studio_label) : null,
     joined: Number(r.joined ?? 0),
+    location: parseLocation(r.location),
   }));
 }
 

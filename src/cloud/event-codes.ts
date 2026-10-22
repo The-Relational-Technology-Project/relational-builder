@@ -1,4 +1,5 @@
 import { adminCall } from '@/cloud/account-requests';
+import type { GeoLocation } from '@/knowledge/geo';
 
 /**
  * Event codes — the steward's side. An event code is a ?ref=CODE that works
@@ -23,6 +24,8 @@ export interface EventCode {
    *  gated or not, and the invite link opens that studio's doorway */
   studio_slug: string | null;
   studio_label: string | null;
+  /** Where the event is (knowledge/geo.ts) — its wall reads as local there */
+  location: GeoLocation | null;
   created_by: string;
   created_at: string;
   /** Profiles carrying this code — people who joined AND signed in */
@@ -101,6 +104,11 @@ export async function adminSetEventCodeArchived(code: string, archived: boolean)
 /** Change or clear the event's day; the expiry follows (60 days past it) */
 export async function adminSetEventCodeDate(code: string, eventDate: string | null): Promise<void> {
   await adminCall({ action: 'event_code_set', code, event_date: eventDate });
+}
+
+/** Place (or clear) the event on the map — its wall and shelf read as Nearby there */
+export async function adminSetEventCodeLocation(code: string, location: GeoLocation | null): Promise<void> {
+  await adminCall({ action: 'event_code_set', code, location });
 }
 
 /** Name (or drop) an Event Admin — the host who runs the room without a steward */

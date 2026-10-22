@@ -1,0 +1,3610 @@
+{
+ "commons": {
+  "12-empowering-ways-to-engage-in-civic-affairs": null,
+  "24-hour-cafe-guestbook": null,
+  "29-ways-to-increase-participation-in-gatherings": null,
+  "596-acres": {
+   "lat": 40.6526006,
+   "lng": -73.9497211,
+   "label": "Brooklyn, New York",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "7-ideas-to-jumpstart-community-practice": null,
+  "a-community-library-for-my-coworking-space": null,
+  "a-megalist-of-tools-for-building-community": null,
+  "a-playful-path": null,
+  "a-relational-tech-practice": null,
+  "aarp-experience-corps-intergenerational-volunteer-tutoring": null,
+  "abundant-community-book": null,
+  "access-intimacy-mia-mingus": null,
+  "action-over-dialogue-report": null,
+  "adopt-a-hydrant-remixes": {
+   "lat": 42.3588336,
+   "lng": -71.0578303,
+   "label": "Boston, Massachusetts",
+   "precision": "city",
+   "basis": "attribution",
+   "also": [
+    {
+     "lat": 21.304547,
+     "lng": -157.855676,
+     "label": "Honolulu, Hawaii"
+    },
+    {
+     "lat": 37.7879363,
+     "lng": -122.4075201,
+     "label": "San Francisco, California"
+    },
+    {
+     "lat": 41.8755616,
+     "lng": -87.6244212,
+     "label": "Chicago, Illinois"
+    }
+   ]
+  },
+  "affinity-groups-forming-groups-for-mutual-aid": {
+   "lat": 47.6038321,
+   "lng": -122.330062,
+   "label": "Seattle, Washington",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "after-the-assault": {
+   "lat": 38.5810606,
+   "lng": -121.493895,
+   "label": "Sacramento, California",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "all-america-conversations-toolkit": {
+   "lat": 39.7392364,
+   "lng": -104.984862,
+   "label": "Denver, Colorado",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "alternatives-to-policing-community-safety-programs": {
+   "lat": 44.0505054,
+   "lng": -123.0950506,
+   "label": "Eugene, Oregon",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "an-accelerator-for-community-builders": {
+   "lat": 37.7879363,
+   "lng": -122.4075201,
+   "label": "San Francisco, California",
+   "precision": "city",
+   "basis": "text"
+  },
+  "an-invitation-to-a-new-civic-future": null,
+  "an-outer-sunset-story": {
+   "lat": 37.7541496,
+   "lng": -122.5061507,
+   "label": "Sunset District, San Francisco, California",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "appreciative-inquiry": {
+   "lat": 41.4996574,
+   "lng": -81.6936772,
+   "label": "Cleveland, Ohio",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "appreciative-inquiry-for-community-development": {
+   "lat": 41.4996574,
+   "lng": -81.6936772,
+   "label": "Cleveland, Ohio",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "art-of-hosting": null,
+  "asking-for-help-offering-support": null,
+  "asset-based-community-development-abcd": {
+   "lat": 42.0693991,
+   "lng": -87.682932,
+   "label": "Evanston, Illinois",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "asset-framing-post-it-notes": {
+   "lat": 41.8505874,
+   "lng": -87.7936685,
+   "label": "Berwyn, Illinois",
+   "precision": "neighborhood",
+   "basis": "attribution",
+   "also": [
+    {
+     "lat": 41.8455398,
+     "lng": -87.7540199,
+     "label": "Cicero, Illinois"
+    }
+   ]
+  },
+  "axioms-for-organizers": null,
+  "babysitting-co-op": null,
+  "barbershop-and-beauty-salon-as-community-anchor": null,
+  "barbershop-talk": {
+   "lat": 35.2272086,
+   "lng": -80.8430827,
+   "label": "Charlotte, North Carolina",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "beautician-and-bus-driver": {
+   "lat": 35.2403119,
+   "lng": -85.8349902,
+   "label": "Monteagle, Tennessee",
+   "precision": "neighborhood",
+   "basis": "attribution",
+   "also": [
+    {
+     "lat": 32.7024009,
+     "lng": -80.0481488,
+     "label": "Johns Island, Charleston County, South Carolina"
+    }
+   ]
+  },
+  "beautiful-news": {
+   "lat": 51.5074456,
+   "lng": -0.1277653,
+   "label": "Greater London, England, United Kingdom",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "beautiful-trouble-a-toolbox-for-revolution": null,
+  "becoming-a-high-agency-person": null,
+  "bed-stuy-strong": {
+   "lat": 40.6834364,
+   "lng": -73.9412488,
+   "label": "Bedford-Stuyvesant, New York",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "beloved-community-mlk-vision-practice": {
+   "lat": 33.7544657,
+   "lng": -84.3898151,
+   "label": "Atlanta, Georgia",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "big-door-brigade-mutual-aid-toolbox": {
+   "lat": 47.6038321,
+   "lng": -122.330062,
+   "label": "Seattle, Washington",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "block-connectors-edmonton": {
+   "lat": 53.5671735,
+   "lng": -113.431604,
+   "label": "Highlands, Edmonton, Alberta, Canada",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "block-party": null,
+  "block-party-organizing": {
+   "lat": 37.7541496,
+   "lng": -122.5061507,
+   "label": "Sunset District, San Francisco, California",
+   "precision": "neighborhood",
+   "basis": "research"
+  },
+  "block-party-usa-free-tools-templates": null,
+  "block-stewards": null,
+  "block-stewards-common-agency": null,
+  "boston-ujima-project": {
+   "lat": 42.3588336,
+   "lng": -71.0578303,
+   "label": "Boston, Massachusetts",
+   "precision": "city",
+   "basis": "text",
+   "also": [
+    {
+     "lat": 42.3289067,
+     "lng": -71.0850853,
+     "label": "Roxbury, Boston, Massachusetts"
+    },
+    {
+     "lat": 42.2973205,
+     "lng": -71.0744952,
+     "label": "Dorchester, Boston, Massachusetts"
+    },
+    {
+     "lat": 42.3116046,
+     "lng": -71.1143838,
+     "label": "Jamaica Plain, Boston, Massachusetts"
+    },
+    {
+     "lat": 42.2723208,
+     "lng": -71.0869953,
+     "label": "Mattapan, Boston, Massachusetts"
+    }
+   ]
+  },
+  "boulder-reporting-lab-pop-up-newsroom": {
+   "lat": 40.0149856,
+   "lng": -105.270545,
+   "label": "Boulder, Colorado",
+   "precision": "city",
+   "basis": "attribution",
+   "also": [
+    {
+     "lat": 39.977763,
+     "lng": -105.1319296,
+     "label": "Louisville, Colorado"
+    },
+    {
+     "lat": 39.9527634,
+     "lng": -105.1685977,
+     "label": "Superior, Colorado"
+    }
+   ]
+  },
+  "bowling-alone-the-collapse-and-revival-of-american-community": {
+   "lat": 42.3656347,
+   "lng": -71.1040018,
+   "label": "Cambridge, Massachusetts",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "bradley-street-bicycle-co-op-new-haven": {
+   "lat": 41.3271114,
+   "lng": -72.9043331,
+   "label": "New Haven, Connecticut",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "braver-angels-skills-workshops-bridging-across-polarization": null,
+  "bridge-meadows-intergenerational-housing": {
+   "lat": 45.4871723,
+   "lng": -122.80378,
+   "label": "Beaverton, Oregon",
+   "precision": "city",
+   "basis": "text"
+  },
+  "build-adopt-a-thing": null,
+  "build-block-scale-pb": null,
+  "build-commitment-ledger": null,
+  "build-debrief-ritual": null,
+  "build-front-porch-digest": null,
+  "build-living-asset-map": null,
+  "build-local-ushahidi-third-places": null,
+  "build-mutual-aid-intake": null,
+  "build-power-map-canvas": null,
+  "build-prompt-neighbor-hub": null,
+  "build-prompt-promise-tracker": null,
+  "build-public-narrative-workshop": null,
+  "build-relational-map": null,
+  "build-todays-news-section": {
+   "lat": 37.7541496,
+   "lng": -122.5061507,
+   "label": "Sunset District, San Francisco, California",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "building-communities-inside-out": {
+   "lat": 42.0693991,
+   "lng": -87.682932,
+   "label": "Evanston, Illinois",
+   "precision": "origin",
+   "basis": "attribution"
+  },
+  "building-relational-place-based-technology": null,
+  "building-resilient-neighbourhoods-brn-neighbour-to-neighbour-preparedness": {
+   "lat": 48.4283182,
+   "lng": -123.364953,
+   "label": "Victoria, British Columbia, Canada",
+   "precision": "city",
+   "basis": "research"
+  },
+  "buy-nothing-group": {
+   "lat": 47.6515096,
+   "lng": -122.5246791,
+   "label": "Bainbridge Island, Washington",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "camerados-and-public-living-rooms": {
+   "lat": 53.3806626,
+   "lng": -1.4702278,
+   "label": "Sheffield, England, United Kingdom",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "campaign-timeline-peaks": {
+   "lat": 42.3656347,
+   "lng": -71.1040018,
+   "label": "Cambridge, Massachusetts",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "car-free-megacities": {
+   "lat": 51.5074456,
+   "lng": -0.1277653,
+   "label": "Greater London, England, United Kingdom",
+   "precision": "city",
+   "basis": "attribution",
+   "also": [
+    {
+     "lat": 40.7127281,
+     "lng": -74.0060152,
+     "label": "New York"
+    },
+    {
+     "lat": 48.8534951,
+     "lng": 2.3483915,
+     "label": "Paris, Ile-de-France, France"
+    }
+   ]
+  },
+  "care-webs": null,
+  "central-oregon-ai-civic-assembly": {
+   "lat": 45.4881569,
+   "lng": -122.807836,
+   "label": "Central Beaverton, Beaverton, Oregon",
+   "precision": "region",
+   "basis": "attribution",
+   "also": [
+    {
+     "lat": 44.0581728,
+     "lng": -121.3153096,
+     "label": "Bend, Oregon"
+    },
+    {
+     "lat": 44.7628855,
+     "lng": -121.2595919,
+     "label": "Warm Springs, Oregon"
+    }
+   ]
+  },
+  "cert-community-emergency-response-team": {
+   "lat": 34.0536923,
+   "lng": -118.2427676,
+   "label": "Los Angeles, California",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "chicago-early-voting-finder": {
+   "lat": 41.8755616,
+   "lng": -87.6244212,
+   "label": "Chicago, Illinois",
+   "precision": "city",
+   "basis": "text"
+  },
+  "circles-of-support-accountability-cosa": {
+   "lat": 43.2560802,
+   "lng": -79.8728583,
+   "label": "Hamilton, Ontario, Canada",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "circles-usa": {
+   "lat": 35.0841034,
+   "lng": -106.650985,
+   "label": "Albuquerque, New Mexico",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "circles-usa-bridging-class-divides": null,
+  "citizens-assemblies-from-ancient-athens-to-your-town-hall": null,
+  "city-repair-and-intersection-painting-portland": {
+   "lat": 45.4652622,
+   "lng": -122.6530035,
+   "label": "Sellwood-Moreland, Portland, Oregon",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "civic-experiment-grants": null,
+  "civic-health-index": {
+   "lat": 38.8950982,
+   "lng": -77.0363849,
+   "label": "Washington, District of Columbia",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "civic-needs-cheat-sheet": null,
+  "civic-saturday": {
+   "lat": 47.6038321,
+   "lng": -122.330062,
+   "label": "Seattle, Washington",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "civic-tech-field-guide": null,
+  "civicwell-participation-tools-for-better-community-planning": {
+   "lat": 38.5810606,
+   "lng": -121.493895,
+   "label": "Sacramento, California",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "claude-code": null,
+  "coaching-five-steps": {
+   "lat": 42.3656347,
+   "lng": -71.1040018,
+   "label": "Cambridge, Massachusetts",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "cobudget": {
+   "lat": -41.2887953,
+   "lng": 174.7772114,
+   "label": "Wellington, New Zealand",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "cohousing": {
+   "lat": 55.670249,
+   "lng": 10.3333283,
+   "label": "Denmark",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "cohousing-cohousing-association-of-us": null,
+  "collective-imagination-practices-toolkit-tools-for-envisioning-futures": null,
+  "come-out-play": {
+   "lat": 40.7127281,
+   "lng": -74.0060152,
+   "label": "New York",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "come-out-play-festival": {
+   "lat": 40.7127281,
+   "lng": -74.0060152,
+   "label": "New York",
+   "precision": "city",
+   "basis": "research"
+  },
+  "commuity-calendar": {
+   "lat": 41.9685896,
+   "lng": -87.688505,
+   "label": "Lincoln Square, Chicago, Illinois",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "community-acupuncture": {
+   "lat": 45.5202471,
+   "lng": -122.674194,
+   "label": "Portland, Oregon",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "community-acupuncture-with-sliding-scale": {
+   "lat": 42.3588336,
+   "lng": -71.0578303,
+   "label": "Boston, Massachusetts",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "community-agreements": null,
+  "community-agreements-group-agreements": null,
+  "community-apps-dashboard": {
+   "lat": 37.7541496,
+   "lng": -122.5061507,
+   "label": "Sunset District, San Francisco, California",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "community-babysitting-co-op": null,
+  "community-bail-funds": null,
+  "community-build-day": {
+   "lat": 37.7535418,
+   "lng": -122.4952495,
+   "label": "Sunset District, San Francisco, California",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "community-built-playspace": {
+   "lat": 38.8950982,
+   "lng": -77.0363849,
+   "label": "Washington, District of Columbia",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "community-built-playspace-kaboom": {
+   "lat": 38.8950982,
+   "lng": -77.0363849,
+   "label": "Washington, District of Columbia",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "community-bulletin-of-the-ccc-of-nc": {
+   "lat": 36.0726355,
+   "lng": -79.7919754,
+   "label": "Greensboro, North Carolina",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "community-clubs-platform": {
+   "lat": 37.7879363,
+   "lng": -122.4075201,
+   "label": "San Francisco, California",
+   "precision": "origin",
+   "basis": "attribution"
+  },
+  "community-fridge": null,
+  "community-fridges-mutual-aid-network": {
+   "lat": 40.7127281,
+   "lng": -74.0060152,
+   "label": "New York",
+   "precision": "city",
+   "basis": "research"
+  },
+  "community-fridges-public-food-sharing": null,
+  "community-garden": null,
+  "community-gardens-as-social-infrastructure": null,
+  "community-help-desk": {
+   "lat": 42.3315509,
+   "lng": -83.0466403,
+   "label": "Detroit, Michigan",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "community-income-sharing": {
+   "lat": 39.2908816,
+   "lng": -76.610759,
+   "label": "Baltimore, Maryland",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "community-land-trust": {
+   "lat": 31.5782062,
+   "lng": -84.1556809,
+   "label": "Albany, Georgia",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "community-land-trusts": null,
+  "community-lore": null,
+  "community-lore-storytelling-and-newcomer-integration": null,
+  "community-mapping": {
+   "lat": 38.4831762,
+   "lng": -121.467131,
+   "label": "Meadowview, Sacramento, California",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "community-mapping-asset-mapping": null,
+  "community-newsroom": {
+   "lat": 55.8377427,
+   "lng": -4.256413,
+   "label": "Govanhill, Glasgow, Scotland, United Kingdom",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "community-plate-story-sharing-supper": {
+   "lat": 45.709097,
+   "lng": -68.8590201,
+   "label": "Maine",
+   "precision": "region",
+   "basis": "research"
+  },
+  "community-research-teams": null,
+  "community-safety-response": {
+   "lat": 44.0505054,
+   "lng": -123.0950506,
+   "label": "Eugene, Oregon",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "community-sports-reporting": {
+   "lat": 38.951883,
+   "lng": -92.3337366,
+   "label": "Columbia, Missouri",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "community-stewarded-stories": null,
+  "community-supplies": null,
+  "community-support-spaces": null,
+  "community-supported-agriculture-csa": null,
+  "community-the-structure-of-belonging": {
+   "lat": 39.1012809,
+   "lng": -84.5127405,
+   "label": "Cincinnati, Ohio",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "community-tool-box-free-guidance-for-community-development": {
+   "lat": 38.9719137,
+   "lng": -95.2359403,
+   "label": "Lawrence, Kansas",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "community-visioning-handbook-how-to-imagine-and-create-a-better-future": {
+   "lat": 45.709097,
+   "lng": -68.8590201,
+   "label": "Maine",
+   "precision": "region",
+   "basis": "text"
+  },
+  "community-wealth-building-democracy-collaborative": {
+   "lat": 38.8950982,
+   "lng": -77.0363849,
+   "label": "Washington, District of Columbia",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "compassionate-communities-movement": null,
+  "complaints-choir": {
+   "lat": 60.1666204,
+   "lng": 24.9435408,
+   "label": "Helsinki, Uusimaa, Finland",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "congregation-8-design-patterns-for-gathering": null,
+  "connection-grift-critique-of-the-connection-industry": null,
+  "connection-infrastructure": null,
+  "connectors-table": {
+   "lat": 42.0693991,
+   "lng": -87.682932,
+   "label": "Evanston, Illinois",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "consul-democracy": {
+   "lat": 40.416782,
+   "lng": -3.703507,
+   "label": "Madrid, Community of Madrid, Spain",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "cool-block": {
+   "lat": 42.0410578,
+   "lng": -74.1182492,
+   "label": "Town of Woodstock, New York",
+   "precision": "origin",
+   "basis": "research",
+   "also": [
+    {
+     "lat": 37.4443293,
+     "lng": -122.1598465,
+     "label": "Palo Alto, California"
+    }
+   ]
+  },
+  "cops-thousand-conversations": {
+   "lat": 29.4246002,
+   "lng": -98.4951405,
+   "label": "San Antonio, Texas",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "courage-before-hope-weaving-emotional-and-economic-microsolidarity": null,
+  "crafting-tech-as-care": null,
+  "creative-interventions": {
+   "lat": 37.8044557,
+   "lng": -122.271356,
+   "label": "Oakland, California",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "creative-interventions-community-accountability": null,
+  "crisis-activation": null,
+  "darebin-participatory-budgeting": {
+   "lat": -37.7747529,
+   "lng": 145.0386786,
+   "label": "Ivanhoe, Melbourne, Victoria, Australia",
+   "precision": "city",
+   "basis": "text"
+  },
+  "daviswiki": {
+   "lat": 38.5435526,
+   "lng": -121.739005,
+   "label": "Davis, California",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "death-cafe": {
+   "lat": 51.5074456,
+   "lng": -0.1277653,
+   "label": "Greater London, England, United Kingdom",
+   "precision": "origin",
+   "basis": "research",
+   "also": [
+    {
+     "lat": 46.7985624,
+     "lng": 8.2319736,
+     "label": "Switzerland"
+    }
+   ]
+  },
+  "death-cafs": {
+   "lat": 51.5074456,
+   "lng": -0.1277653,
+   "label": "Greater London, England, United Kingdom",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "decidim": {
+   "lat": 41.3825802,
+   "lng": 2.177073,
+   "label": "Barcelona, Catalonia, Spain",
+   "precision": "origin",
+   "basis": "attribution"
+  },
+  "decidim-barcelona-neighborhoods": {
+   "lat": 41.3825802,
+   "lng": 2.177073,
+   "label": "Barcelona, Catalonia, Spain",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "deep-canvassing": {
+   "lat": 34.0536923,
+   "lng": -118.2427676,
+   "label": "Los Angeles, California",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "delib-civicos": null,
+  "delib-decidim": {
+   "lat": 41.3825802,
+   "lng": 2.177073,
+   "label": "Barcelona, Catalonia, Spain",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "delib-heard": {
+   "lat": 38.8950982,
+   "lng": -77.0363849,
+   "label": "Washington, District of Columbia",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "delib-maple": {
+   "lat": 42.3788774,
+   "lng": -72.032366,
+   "label": "Massachusetts",
+   "precision": "region",
+   "basis": "text",
+   "also": [
+    {
+     "lat": 42.3588336,
+     "lng": -71.0578303,
+     "label": "Boston, Massachusetts"
+    }
+   ]
+  },
+  "delib-polis": {
+   "lat": 47.6038321,
+   "lng": -122.330062,
+   "label": "Seattle, Washington",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "delib-talk-to-the-city": {
+   "lat": 37.7879363,
+   "lng": -122.4075201,
+   "label": "San Francisco, California",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "delib-the-flyer": {
+   "lat": 37.8406581,
+   "lng": -122.2638015,
+   "label": "North Oakland, Oakland, California",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "deliberation-cycle-eight-stages": null,
+  "deliberation-starting-tensions": null,
+  "democracy-101": {
+   "lat": 32.2228765,
+   "lng": -110.974847,
+   "label": "Tucson, Arizona",
+   "precision": "city",
+   "basis": "research"
+  },
+  "denver-community-museum": {
+   "lat": 39.7392364,
+   "lng": -104.984862,
+   "label": "Denver, Colorado",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "desi-connect": {
+   "lat": 37.3361663,
+   "lng": -121.890591,
+   "label": "San Jose, California",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "design-for-care-not-enforcement": null,
+  "developing-in-person-content-formats": {
+   "lat": 33.7544657,
+   "lng": -84.3898151,
+   "label": "Atlanta, Georgia",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "dialogue-circles": null,
+  "dinner-party-grief": {
+   "lat": 34.0536923,
+   "lng": -118.2427676,
+   "label": "Los Angeles, California",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "disability-justice-10-principles-sins-invalid": {
+   "lat": 37.8708393,
+   "lng": -122.272863,
+   "label": "Berkeley, California",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "disability-visibility-project": {
+   "lat": 37.7879363,
+   "lng": -122.4075201,
+   "label": "San Francisco, California",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "disfactory": {
+   "lat": 23.9739374,
+   "lng": 120.9820179,
+   "label": "Taiwan",
+   "precision": "country",
+   "basis": "attribution"
+  },
+  "documenters-network": {
+   "lat": 41.8755616,
+   "lng": -87.6244212,
+   "label": "Chicago, Illinois",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "dosomethingorg": {
+   "lat": 40.7127281,
+   "lng": -74.0060152,
+   "label": "New York",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "dudley-street-how-many-of-you-live-here": {
+   "lat": 42.3294113,
+   "lng": -71.0887127,
+   "label": "Roxbury Crossing, Boston, Massachusetts",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "dyad": null,
+  "e-democracy-doorsteps": {
+   "lat": 44.9696027,
+   "lng": -93.2469098,
+   "label": "Cedar-Riverside, Minneapolis, Minnesota",
+   "precision": "neighborhood",
+   "basis": "attribution",
+   "also": [
+    {
+     "lat": 44.9593583,
+     "lng": -93.1263071,
+     "label": "Frogtown, Saint Paul, Minnesota"
+    }
+   ]
+  },
+  "east-bay-permanent-real-estate-cooperative-oakland": {
+   "lat": 37.8044557,
+   "lng": -122.271356,
+   "label": "Oakland, California",
+   "precision": "city",
+   "basis": "text"
+  },
+  "edmonton-s-community-league-system": {
+   "lat": 53.5462055,
+   "lng": -113.491241,
+   "label": "Edmonton, Alberta, Canada",
+   "precision": "city",
+   "basis": "text"
+  },
+  "ella-baker-center-resource-organizing-peer-to-peer-toolkit": {
+   "lat": 37.8044557,
+   "lng": -122.271356,
+   "label": "Oakland, California",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "embedded-design-a-guide-for-builders": null,
+  "emergent-strategy": {
+   "lat": 42.3315509,
+   "lng": -83.0466403,
+   "label": "Detroit, Michigan",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "encoreorg-purposeful-aging-and-encore-careers": {
+   "lat": 37.7879363,
+   "lng": -122.4075201,
+   "label": "San Francisco, California",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "facilitation-guardrails-deliberation": null,
+  "faith-community-care-connector": {
+   "lat": 42.2813722,
+   "lng": -83.7484616,
+   "label": "Ann Arbor, Michigan",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "faith-in-action-community-organizing-model": {
+   "lat": 37.8044557,
+   "lng": -122.271356,
+   "label": "Oakland, California",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "falls-church-neighbor-gathering-grants": {
+   "lat": 38.882334,
+   "lng": -77.1710914,
+   "label": "Falls Church, Virginia",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "fema-community-recovery-management-toolkit": null,
+  "field-papers": null,
+  "firecrawl": null,
+  "five-sisters-forum": {
+   "lat": 44.4653059,
+   "lng": -73.2110756,
+   "label": "Five Sisters, Burlington, Vermont",
+   "precision": "neighborhood",
+   "basis": "attribution",
+   "also": [
+    {
+     "lat": 44.5990718,
+     "lng": -72.5002608,
+     "label": "Vermont"
+    }
+   ]
+  },
+  "fixmystreet-platform": {
+   "lat": 51.5074456,
+   "lng": -0.1277653,
+   "label": "Greater London, England, United Kingdom",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "flatpack-democracy-frome-england": {
+   "lat": 51.2294852,
+   "lng": -2.3198467,
+   "label": "Frome, Somerset, England, United Kingdom",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "footer-component": {
+   "lat": 37.7541496,
+   "lng": -122.5061507,
+   "label": "Sunset District, San Francisco, California",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "format-neighborhood-newsletter": null,
+  "format-public-board": null,
+  "format-public-dashboard": null,
+  "format-story-circle": null,
+  "format-two-way-sms": null,
+  "format-walking-tour": null,
+  "foundation-for-intentional-community-fic": null,
+  "four-output-deliberation-kit": null,
+  "france-s-convention-citoyenne-pour-le-climat": {
+   "lat": 46.603354,
+   "lng": 1.8883335,
+   "label": "France",
+   "precision": "country",
+   "basis": "text"
+  },
+  "free-store": {
+   "lat": 37.7879363,
+   "lng": -122.4075201,
+   "label": "San Francisco, California",
+   "precision": "origin",
+   "basis": "text",
+   "also": [
+    {
+     "lat": 40.7127281,
+     "lng": -74.0060152,
+     "label": "New York"
+    }
+   ]
+  },
+  "free-stores-freecycling": null,
+  "front-porch-forum": {
+   "lat": 44.4761601,
+   "lng": -73.212906,
+   "label": "Burlington, Vermont",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "front-porch-forum-and-what-to-do-if-you-cant-have-one": {
+   "lat": 44.4761601,
+   "lng": -73.212906,
+   "label": "Burlington, Vermont",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "front-yard-friday-orlando": {
+   "lat": 28.5421218,
+   "lng": -81.379045,
+   "label": "Orlando, Florida",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "fylpro-covid-19-task-force": {
+   "lat": 32.7762719,
+   "lng": -96.7968559,
+   "label": "Dallas, Texas",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "games-for-cities": {
+   "lat": 52.3730796,
+   "lng": 4.8924534,
+   "label": "Amsterdam, North Holland, Netherlands",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "gathio": null,
+  "generations-united-intergenerational-shared-sites": {
+   "lat": 38.8950982,
+   "lng": -77.0363849,
+   "label": "Washington, District of Columbia",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "gift-conversations": {
+   "lat": 42.0693991,
+   "lng": -87.682932,
+   "label": "Evanston, Illinois",
+   "precision": "origin",
+   "basis": "research",
+   "also": [
+    {
+     "lat": 39.7683331,
+     "lng": -86.1583502,
+     "label": "Indianapolis, Indiana"
+    }
+   ]
+  },
+  "github": null,
+  "give-us-your-two-cents": {
+   "lat": 32.2228765,
+   "lng": -110.974847,
+   "label": "Tucson, Arizona",
+   "precision": "city",
+   "basis": "research"
+  },
+  "good-neighbor-agreement": {
+   "lat": 39.7358754,
+   "lng": -104.9799213,
+   "label": "Capitol Hill, Denver, Colorado",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "grandfamilies-kinship-support-network": null,
+  "grants-for-blocks": {
+   "lat": 32.0790074,
+   "lng": -81.0921335,
+   "label": "Savannah, Georgia",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "grape-boycott-boycott-houses": {
+   "lat": 35.7688425,
+   "lng": -119.247053,
+   "label": "Delano, California",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "greene-street": {
+   "lat": 40.72288,
+   "lng": -73.9987505,
+   "label": "SoHo, New York",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "grow-food-northampton-massachusetts": {
+   "lat": 42.3178989,
+   "lng": -72.6311006,
+   "label": "Northampton, Massachusetts",
+   "precision": "city",
+   "basis": "text"
+  },
+  "healing-justice-kindred-southern-healing-justice-collective-model": {
+   "lat": 33.7544657,
+   "lng": -84.3898151,
+   "label": "Atlanta, Georgia",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "hey-neighbor-rome-ga": {
+   "lat": 34.257038,
+   "lng": -85.1646726,
+   "label": "Rome, Georgia",
+   "precision": "city",
+   "basis": "attribution",
+   "also": [
+    {
+     "lat": 34.2486338,
+     "lng": -85.1833072,
+     "label": "South Rome, Rome, Georgia"
+    }
+   ]
+  },
+  "hidden-hunger-storybooth": {
+   "lat": 38.5810606,
+   "lng": -121.493895,
+   "label": "Sacramento, California",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "hierarchy-of-needs": null,
+  "high-agency-in-community-building": null,
+  "hosting-a-civic-saturday": {
+   "lat": 47.6038321,
+   "lng": -122.330062,
+   "label": "Seattle, Washington",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "how-cities-cultivate-membership-and-belonging": null,
+  "how-our-online-lives-shape-our-community": null,
+  "how-to-hold-collective-grief-priya-parker": null,
+  "how-to-make-and-celebrate-a-podcast-with-community": {
+   "lat": 38.4831762,
+   "lng": -121.467131,
+   "label": "Meadowview, Sacramento, California",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "how-to-organize-a-skillshare": null,
+  "how-to-reinvent-the-potluck": null,
+  "how-to-think-structurally-about-connection": null,
+  "human-essentials": {
+   "lat": 45.5202471,
+   "lng": -122.674194,
+   "label": "Portland, Oregon",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "hyperlocal-neighbor-hub": {
+   "lat": 37.7541496,
+   "lng": -122.5061507,
+   "label": "Sunset District, San Francisco, California",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "hyperlocal-neighbor-hubs": null,
+  "improv-games-for-community-building": null,
+  "in-it-together-conflict-transformation-for-groups": null,
+  "inclusive-local-ancestry-posters": {
+   "lat": 40.6701033,
+   "lng": -73.9859723,
+   "label": "Park Slope, New York",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "indigenous-community-care-traditions-of-reciprocity": null,
+  "industrial-areas-foundation-relational-organizing-network": {
+   "lat": 41.8755616,
+   "lng": -87.6244212,
+   "label": "Chicago, Illinois",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "interdependence-is-a-survival-skill-building-sustainable-mutual-support": null,
+  "interfaith-america-bridge-curriculum-building-regular-interfaith-dialogue": {
+   "lat": 41.8755616,
+   "lng": -87.6244212,
+   "label": "Chicago, Illinois",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "interfaith-bridge": null,
+  "intersection-repair": {
+   "lat": 45.4652622,
+   "lng": -122.6530035,
+   "label": "Sellwood-Moreland, Portland, Oregon",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "intersection-repair-city-repair-project": {
+   "lat": 45.5202471,
+   "lng": -122.674194,
+   "label": "Portland, Oregon",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "invisible-cities": {
+   "lat": 55.9533456,
+   "lng": -3.1883749,
+   "label": "City of Edinburgh, Scotland, United Kingdom",
+   "precision": "city",
+   "basis": "research",
+   "also": [
+    {
+     "lat": 55.861155,
+     "lng": -4.2501687,
+     "label": "Glasgow, Scotland, United Kingdom"
+    },
+    {
+     "lat": 53.4424618,
+     "lng": -2.2324547,
+     "label": "Manchester, England, United Kingdom"
+    },
+    {
+     "lat": 53.9656579,
+     "lng": -1.0743052,
+     "label": "York, England, United Kingdom"
+    }
+   ]
+  },
+  "ireland-s-citizens-assembly-on-the-eighth-amendment": {
+   "lat": 52.865196,
+   "lng": -7.9794599,
+   "label": "Ireland",
+   "precision": "country",
+   "basis": "text"
+  },
+  "island-food-with-neighbors-fund": {
+   "lat": 41.8678597,
+   "lng": -87.7716454,
+   "label": "The Island, Chicago, Illinois",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "janes-walk": {
+   "lat": 43.6534817,
+   "lng": -79.3839347,
+   "label": "Toronto, Ontario, Canada",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "jesse-evers-and-highside-workshop-brooklyn": {
+   "lat": 40.6526006,
+   "lng": -73.9497211,
+   "label": "Brooklyn, New York",
+   "precision": "city",
+   "basis": "text"
+  },
+  "join-or-die-documentary": null,
+  "kalw-voter-turnout-project": {
+   "lat": 37.7879363,
+   "lng": -122.4075201,
+   "label": "San Francisco, California",
+   "precision": "city",
+   "basis": "research"
+  },
+  "karrot": null,
+  "kc-tenants": {
+   "lat": 39.100105,
+   "lng": -94.5781416,
+   "label": "Kansas City, Missouri",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "lamplight-summer-camp": {
+   "lat": 34.3581474,
+   "lng": -86.2947041,
+   "label": "Guntersville, Alabama",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "large-lots-chicago": {
+   "lat": 41.7797559,
+   "lng": -87.6458836,
+   "label": "Englewood, Chicago, Illinois",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "launch-a-team": {
+   "lat": 42.3656347,
+   "lng": -71.1040018,
+   "label": "Cambridge, Massachusetts",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "leadership-as-hospitality": null,
+  "learn-from-the-graveyard": null,
+  "lehigh-valley-hey-there-neighbor-fund": {
+   "lat": 40.5947552,
+   "lng": -75.5679786,
+   "label": "Crackersport, South Whitehall Township, Pennsylvania",
+   "precision": "region",
+   "basis": "attribution",
+   "also": [
+    {
+     "lat": 40.6178915,
+     "lng": -75.3786521,
+     "label": "Bethlehem, Pennsylvania"
+    },
+    {
+     "lat": 40.6022552,
+     "lng": -75.4716115,
+     "label": "Allentown, Pennsylvania"
+    },
+    {
+     "lat": 40.6916081,
+     "lng": -75.2099866,
+     "label": "Easton, Pennsylvania"
+    }
+   ]
+  },
+  "libraries-transforming-communities": {
+   "lat": 41.8755616,
+   "lng": -87.6244212,
+   "label": "Chicago, Illinois",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "library-of-things-toolkit": null,
+  "listen-first-project-coalition-for-bridging-and-dialogue": null,
+  "little-free-pantry": {
+   "lat": 36.0625843,
+   "lng": -94.1574328,
+   "label": "Fayetteville, Arkansas",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "little-free-pantry-community-fridge": {
+   "lat": 36.0625843,
+   "lng": -94.1574328,
+   "label": "Fayetteville, Arkansas",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "littlesis-oligrapher": {
+   "lat": 42.8864163,
+   "lng": -78.8781493,
+   "label": "Buffalo, New York",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "living-room-conversations": {
+   "lat": 37.8708393,
+   "lng": -122.272863,
+   "label": "Berkeley, California",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "living-room-conversations-150-structured-dialogue-guides": null,
+  "local-supplies-sharing": {
+   "lat": 37.7541496,
+   "lng": -122.5061507,
+   "label": "Sunset District, San Francisco, California",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "localwiki": {
+   "lat": 38.5435526,
+   "lng": -121.739005,
+   "label": "Davis, California",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "loomio": {
+   "lat": -41.2887953,
+   "lng": 174.7772114,
+   "label": "Wellington, New Zealand",
+   "precision": "origin",
+   "basis": "attribution"
+  },
+  "lovable": null,
+  "lunch-and-listens": {
+   "lat": 38.5810606,
+   "lng": -121.493895,
+   "label": "Sacramento, California",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "making-invisible-visible": null,
+  "mamas-pods": {
+   "lat": 42.4184296,
+   "lng": -71.1061639,
+   "label": "Medford, Massachusetts",
+   "precision": "city",
+   "basis": "attribution",
+   "also": [
+    {
+     "lat": 42.3875968,
+     "lng": -71.0994968,
+     "label": "Somerville, Massachusetts"
+    }
+   ]
+  },
+  "map-your-neighborhood": {
+   "lat": 47.2868352,
+   "lng": -120.212613,
+   "label": "Washington",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "mapeo-comapeo": {
+   "lat": 37.8044557,
+   "lng": -122.271356,
+   "label": "Oakland, California",
+   "precision": "origin",
+   "basis": "research",
+   "also": [
+    {
+     "lat": -1.916667,
+     "lng": -77,
+     "label": "Pastaza, Ecuador"
+    }
+   ]
+  },
+  "mcp-servers": null,
+  "meadowview-community-fair": {
+   "lat": 38.4831762,
+   "lng": -121.467131,
+   "label": "Meadowview, Sacramento, California",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "meal-train": null,
+  "measuring-what-matters-agency-belonging-trust": null,
+  "melbourne-people-s-panel": {
+   "lat": -37.8142454,
+   "lng": 144.9631732,
+   "label": "Melbourne, Victoria, Australia",
+   "precision": "city",
+   "basis": "text"
+  },
+  "memories-of-the-market": {
+   "lat": 37.7539702,
+   "lng": -122.1972051,
+   "label": "Oakland, California",
+   "precision": "neighborhood",
+   "basis": "research"
+  },
+  "mens-council": null,
+  "mens-council-program-journeymen": null,
+  "meshtastic": null,
+  "metagov-deliberative-tools-gallery": null,
+  "mhp-salud-community-health-worker-promotoras-program": null,
+  "microgrant-gathering": null,
+  "microgrant-management": {
+   "lat": 38.029306,
+   "lng": -78.4766781,
+   "label": "Charlottesville, Virginia",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "microgrant-neighborhood-gathering": null,
+  "microgrant-organizer-toolkit": {
+   "lat": 37.7879363,
+   "lng": -122.4075201,
+   "label": "San Francisco, California",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "microgrants-tool": null,
+  "microsolidarity-crew": null,
+  "midwest-academy-50-year-legacy-of-organizer-training": {
+   "lat": 41.8755616,
+   "lng": -87.6244212,
+   "label": "Chicago, Illinois",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "minimal-viable-structure": null,
+  "mobilizon": {
+   "lat": 45.7578137,
+   "lng": 4.8320114,
+   "label": "Lyon, Auvergne-Rhône-Alpes, France",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "moms-4-housing": {
+   "lat": 37.8048919,
+   "lng": -122.2951752,
+   "label": "South Prescott, Oakland, California",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "montgomery-381-days": {
+   "lat": 32.3777111,
+   "lng": -86.3090775,
+   "label": "Montgomery, Alabama",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "more-parades-welcome-wagon": {
+   "lat": 46.9099519,
+   "lng": -117.0755847,
+   "label": "Palouse, Washington",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "more-perfect-union-brickyard-service-based-bridge-building": null,
+  "more-structure-more-community-minimal-viable-structure": null,
+  "mutual-aid-101-program": null,
+  "mutual-aid-building-solidarity-during-this-crisis-and-the-next": {
+   "lat": 47.6038321,
+   "lng": -122.330062,
+   "label": "Seattle, Washington",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "mutual-aid-disaster-relief-grassroots-solidarity-response": null,
+  "mutual-aid-hub": null,
+  "mutual-aid-networks-mans": {
+   "lat": 43.07469,
+   "lng": -89.3841663,
+   "label": "Madison, Wisconsin",
+   "precision": "city",
+   "basis": "text"
+  },
+  "mutual-aid-pod": null,
+  "my-oakland-agenda": {
+   "lat": 37.8044557,
+   "lng": -122.271356,
+   "label": "Oakland, California",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "nafcm-national-association-for-community-mediation-network": null,
+  "nap-ministry": {
+   "lat": 33.7544657,
+   "lng": -84.3898151,
+   "label": "Atlanta, Georgia",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "narrative-arts-storytelling-for-social-change": null,
+  "nate-tubbs-and-the-island-chicago": {
+   "lat": 41.8678597,
+   "lng": -87.7716454,
+   "label": "The Island, Chicago, Illinois",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "navigating-common-challenges": null,
+  "navigation-networks": null,
+  "ndn-collective": {
+   "lat": 44.0806041,
+   "lng": -103.228023,
+   "label": "Rapid City, South Dakota",
+   "precision": "city",
+   "basis": "text"
+  },
+  "neighbor-story-sharing": {
+   "lat": 37.7541496,
+   "lng": -122.5061507,
+   "label": "Sunset District, San Francisco, California",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "neighbor-to-neighbor-california-community-resilience-through-connection": {
+   "lat": 36.7014631,
+   "lng": -118.755997,
+   "label": "California",
+   "precision": "region",
+   "basis": "text"
+  },
+  "neighborcircles-lawrence-massachusetts": {
+   "lat": 42.7070354,
+   "lng": -71.1631137,
+   "label": "Lawrence, Massachusetts",
+   "precision": "city",
+   "basis": "text"
+  },
+  "neighborhood-api": {
+   "lat": 37.7541496,
+   "lng": -122.5061507,
+   "label": "Sunset District, San Francisco, California",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "neighborhood-asset-map": {
+   "lat": 42.0693991,
+   "lng": -87.682932,
+   "label": "Evanston, Illinois",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "neighborhood-association": null,
+  "neighborhood-association-hub": null,
+  "neighborhood-associations-and-councils": {
+   "lat": 45.5202471,
+   "lng": -122.674194,
+   "label": "Portland, Oregon",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "neighborhood-connector-site": {
+   "lat": 37.7541496,
+   "lng": -122.5061507,
+   "label": "Sunset District, San Francisco, California",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "neighborhood-groups-directory": {
+   "lat": 37.7541496,
+   "lng": -122.5061507,
+   "label": "Sunset District, San Francisco, California",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "neighborhood-history-and-future-walking-app": {
+   "lat": 37.7541496,
+   "lng": -122.5061507,
+   "label": "Sunset District, San Francisco, California",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "neighborhood-listening-wall": null,
+  "neighborhood-teams-2008": {
+   "lat": 39.7837304,
+   "lng": -100.445882,
+   "label": "United States",
+   "precision": "country",
+   "basis": "attribution",
+   "also": [
+    {
+     "lat": 40.2253569,
+     "lng": -82.6881395,
+     "label": "Ohio"
+    }
+   ]
+  },
+  "neighborhood-today-calendar": null,
+  "neighborhoods-as-systems-toolkit": {
+   "lat": 39.1012809,
+   "lng": -84.5127405,
+   "label": "Cincinnati, Ohio",
+   "precision": "city",
+   "basis": "text"
+  },
+  "neighborland": {
+   "lat": 29.9574657,
+   "lng": -90.0629493,
+   "label": "New Orleans, Louisiana",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "network-community-connections": null,
+  "networks-beyond-borders": {
+   "lat": 40.7127281,
+   "lng": -74.0060152,
+   "label": "New York",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "new-games-movement": {
+   "lat": 38.0409144,
+   "lng": -122.6199638,
+   "label": "Marin County, California",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "new-haven-know-your-neighbors-fund": {
+   "lat": 41.3082138,
+   "lng": -72.9250518,
+   "label": "New Haven, Connecticut",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "news-futures-charter": null,
+  "nofa-vt-long-handled-spoons-dinners": {
+   "lat": 44.5990718,
+   "lng": -72.5002608,
+   "label": "Vermont",
+   "precision": "region",
+   "basis": "attribution"
+  },
+  "nuns-nones-and-sacred-hospitality": {
+   "lat": 40.6526006,
+   "lng": -73.9497211,
+   "label": "Brooklyn, New York",
+   "precision": "city",
+   "basis": "text"
+  },
+  "nuns-nones-interspiritual-community-for-justice": null,
+  "nvp-neighborhood-projects-microgrant": {
+   "lat": 40.0149856,
+   "lng": -105.270545,
+   "label": "Boulder, Colorado",
+   "precision": "city",
+   "basis": "attribution",
+   "also": [
+    {
+     "lat": 39.7392364,
+     "lng": -104.984862,
+     "label": "Denver, Colorado"
+    }
+   ]
+  },
+  "oakland-lowdown-endless-storefronts": {
+   "lat": 37.8044557,
+   "lng": -122.271356,
+   "label": "Oakland, California",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "one-to-one-relational-meeting": {
+   "lat": 42.3656347,
+   "lng": -71.1040018,
+   "label": "Cambridge, Massachusetts",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "open-food-network": {
+   "lat": -37.8142454,
+   "lng": 144.9631732,
+   "label": "Melbourne, Victoria, Australia",
+   "precision": "origin",
+   "basis": "attribution"
+  },
+  "open-referral-hsds": {
+   "lat": 38.8950982,
+   "lng": -77.0363849,
+   "label": "Washington, District of Columbia",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "open-space": {
+   "lat": 39.0180508,
+   "lng": -77.1956331,
+   "label": "Potomac, Maryland",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "open-space-technology": null,
+  "organizing-people-power-change-guide": {
+   "lat": 49.2608724,
+   "lng": -123.113952,
+   "label": "Vancouver, British Columbia, Canada",
+   "precision": "origin",
+   "basis": "research",
+   "also": [
+    {
+     "lat": 42.3656347,
+     "lng": -71.1040018,
+     "label": "Cambridge, Massachusetts"
+    }
+   ]
+  },
+  "organizing-six-questions": null,
+  "our-neighborhood-today": {
+   "lat": 37.7541496,
+   "lng": -122.5061507,
+   "label": "Sunset District, San Francisco, California",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "outer-sunset-field-guide": {
+   "lat": 37.7541496,
+   "lng": -122.5061507,
+   "label": "Sunset District, San Francisco, California",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "palaces-for-the-people-social-infrastructure-framework": {
+   "lat": 40.7127281,
+   "lng": -74.0060152,
+   "label": "New York",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "parent-cooperative-preschools-international-50000-cooperative-families": null,
+  "parent-mentors-logan-square": {
+   "lat": 41.9283727,
+   "lng": -87.7067636,
+   "label": "Logan Square, Chicago, Illinois",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "parish-collective-neighborhood-church-network": null,
+  "parklets-for-communities": {
+   "lat": 52.5310214,
+   "lng": -1.2649062,
+   "label": "England, United Kingdom",
+   "precision": "region",
+   "basis": "attribution",
+   "also": [
+    {
+     "lat": 52.2928116,
+     "lng": -3.73893,
+     "label": "Wales, United Kingdom"
+    }
+   ]
+  },
+  "participation-tactics": null,
+  "participatory-budgeting": {
+   "lat": -30.0324999,
+   "lng": -51.2303767,
+   "label": "Porto Alegre, Rio Grande do Sul, Brazil",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "participatory-investigation-process": {
+   "lat": 51.5074456,
+   "lng": -0.1277653,
+   "label": "Greater London, England, United Kingdom",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "pattern-amplifying-unheard-voices": null,
+  "pattern-building-civic-muscle": null,
+  "pattern-creating-shared-understanding": null,
+  "pattern-deepening-understanding-of-place": null,
+  "pattern-making-power-visible": null,
+  "pattern-mobilizing-collective-response": null,
+  "pattern-preserving-community-knowledge": null,
+  "pattern-reimagining-public-resources": null,
+  "pb-49th-ward": {
+   "lat": 42.0090367,
+   "lng": -87.6768492,
+   "label": "Rogers Park, Chicago, Illinois",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "peacemaking-circles": {
+   "lat": 44.9497487,
+   "lng": -93.0931028,
+   "label": "Saint Paul, Minnesota",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "people-power-change": {
+   "lat": 42.3656347,
+   "lng": -71.1040018,
+   "label": "Cambridge, Massachusetts",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "people-practices-place-community-design-framework": null,
+  "people-s-supper": null,
+  "peoria-hello-neighbor-gathering-fund": {
+   "lat": 40.6938609,
+   "lng": -89.5891008,
+   "label": "Peoria, Illinois",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "photovoice": null,
+  "pizza-strip-fund": {
+   "lat": 41.7962409,
+   "lng": -71.5992372,
+   "label": "Rhode Island",
+   "precision": "region",
+   "basis": "attribution"
+  },
+  "pla-civic-community-engagement-toolkit": null,
+  "place-as-canvas": null,
+  "placemaking": {
+   "lat": 40.7127281,
+   "lng": -74.0060152,
+   "label": "New York",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "placemaking-project-for-public-spaces": {
+   "lat": 40.7127281,
+   "lng": -74.0060152,
+   "label": "New York",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "playbooks-for-common-builder-needs": null,
+  "playworks": {
+   "lat": 37.8044557,
+   "lng": -122.271356,
+   "label": "Oakland, California",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "playworks-intentional-school-recess": {
+   "lat": 37.8044557,
+   "lng": -122.271356,
+   "label": "Oakland, California",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "poetry-for-the-people": {
+   "lat": 37.8707751,
+   "lng": -122.2656754,
+   "label": "Downtown Berkeley, Berkeley, California",
+   "precision": "neighborhood",
+   "basis": "attribution",
+   "also": [
+    {
+     "lat": 37.7842493,
+     "lng": -122.4139933,
+     "label": "Tenderloin, San Francisco, California"
+    }
+   ]
+  },
+  "polis": {
+   "lat": 47.6038321,
+   "lng": -122.330062,
+   "label": "Seattle, Washington",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "poll-conversations-assembly": null,
+  "popular-education-freirean-pedagogy": {
+   "lat": -8.0584933,
+   "lng": -34.8848193,
+   "label": "Recife, Pernambuco, Brazil",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "porch-conversations": null,
+  "porch-conversations-and-front-porch-culture": null,
+  "porchfest-ithaca-to-everywhere": {
+   "lat": 42.4548964,
+   "lng": -76.5008764,
+   "label": "Ward 5, City of Ithaca, New York",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "potluck-style-resource-sharing-international-food-sharing-practices": null,
+  "power-mapping-and-analysis-strategic-campaign-planning": null,
+  "priority-setting": null,
+  "prison-journalism-project-collections": null,
+  "privacy-and-terms-page": {
+   "lat": 37.7541496,
+   "lng": -122.5061507,
+   "label": "Sunset District, San Francisco, California",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "promise-tracker": {
+   "lat": 34.0536923,
+   "lng": -118.2427676,
+   "label": "Los Angeles, California",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "prosocial-design-network-library": null,
+  "psd-accuracy-prompts": null,
+  "psd-adding-balanced-news": null,
+  "psd-ask-users-to-write-something-substantive-when-sharing-content": null,
+  "psd-batching-notifications": null,
+  "psd-bridging-based-ranking": null,
+  "psd-caution-about-increasing-toxicity": null,
+  "psd-challenging-stereotypes": null,
+  "psd-commitment-pledges": null,
+  "psd-cooling-down-prompt": null,
+  "psd-crowdsourcing-contextual-information-community-notes": null,
+  "psd-default-quote-reshare": null,
+  "psd-delay-by-default-posting": null,
+  "psd-digital-self-control-apps": null,
+  "psd-disallow-sharing-of-unclicked-links": null,
+  "psd-down-votes": null,
+  "psd-downranking-toxic-political-content": null,
+  "psd-filtering-offensive-comments": null,
+  "psd-give-audio-option-for-user-input": null,
+  "psd-hide-edge-case-content-behind-warning": null,
+  "psd-highlight-consensus-posts": null,
+  "psd-highlighting-high-quality-comments": null,
+  "psd-label-misleading-content-add-links-to-reliable-related-content": null,
+  "psd-labeling-source-credibility": null,
+  "psd-let-mods-suggest-edits-to-users": null,
+  "psd-list-tips-for-checking-accuracy-of-shared-headlines": null,
+  "psd-messages-prebunking-misinformation-on-controversial-topics": null,
+  "psd-moderation-tool-for-ban-appeals": null,
+  "psd-nudging-conversations-to-groups": null,
+  "psd-nudging-counter-partisan-news": null,
+  "psd-open-minded-badge": null,
+  "psd-peer-awards": null,
+  "psd-peer-review-of-comments": null,
+  "psd-positive-background-imagery": null,
+  "psd-post-guidance": null,
+  "psd-pre-approving-posts": null,
+  "psd-preliminary-flagging-before-posting": null,
+  "psd-prompt-explaining-trolls-present-but-outnumbered": null,
+  "psd-prompt-suggesting-letting-others-post": null,
+  "psd-quality-scores": null,
+  "psd-regional-identity-tags": null,
+  "psd-reminder-of-norms": null,
+  "psd-removal-explanations": null,
+  "psd-removing-rule-breaking-comments": null,
+  "psd-respect-button": null,
+  "psd-reverse-chronological-feeds": null,
+  "psd-shared-humanity-memes": null,
+  "psd-show-content-reach": null,
+  "psd-slowdown-modes": null,
+  "psd-social-reference-cues": null,
+  "psd-suggest-constructive-rephrased-messages": null,
+  "psd-symbolic-contribution-awards": null,
+  "psd-thank-you-button-module": null,
+  "psd-thought-provoking-questions": null,
+  "psd-toggle-to-focus-mode": null,
+  "psd-up-votes": null,
+  "psd-upranking-civility": null,
+  "psd-warning-that-topic-is-sensitive": null,
+  "public-narrative-marshall-ganz": {
+   "lat": 42.3656347,
+   "lng": -71.1040018,
+   "label": "Cambridge, Massachusetts",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "public-source-community-zine": {
+   "lat": 40.4389972,
+   "lng": -79.9557454,
+   "label": "Oakland, Pittsburgh, Pennsylvania",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "public-source-points-of-pride": {
+   "lat": 40.4418068,
+   "lng": -79.8819609,
+   "label": "Wilkinsburg, Pennsylvania",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "putting-belonging-reciprocity-and-care-into-practice-gatherfor-in-brownsville": {
+   "lat": 40.665306,
+   "lng": -73.9124755,
+   "label": "Brownsville, New York",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "putting-the-neighbor-back-in-the-neighborhood-renew-birmingham": {
+   "lat": 33.5206824,
+   "lng": -86.8024326,
+   "label": "Birmingham, Alabama",
+   "precision": "city",
+   "basis": "text"
+  },
+  "radio-ambulante-listening-clubs": null,
+  "recipes-for-connection": null,
+  "reciprocity-game": null,
+  "red-hook-wifi": {
+   "lat": 40.6751032,
+   "lng": -74.0095841,
+   "label": "Red Hook, New York",
+   "precision": "neighborhood",
+   "basis": "attribution",
+   "also": [
+    {
+     "lat": 42.3315509,
+     "lng": -83.0466403,
+     "label": "Detroit, Michigan"
+    }
+   ]
+  },
+  "reinvent-the-potluck": null,
+  "relational-design": null,
+  "relational-organizing": null,
+  "relational-tech-process-guide": {
+   "lat": 37.7541496,
+   "lng": -122.5061507,
+   "label": "Sunset District, San Francisco, California",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "remix-at-neighborhood-scale": null,
+  "repair-caf": {
+   "lat": 52.3730796,
+   "lng": 4.8924534,
+   "label": "Amsterdam, North Holland, Netherlands",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "repair-cafe": {
+   "lat": 52.3730796,
+   "lng": 4.8924534,
+   "label": "Amsterdam, North Holland, Netherlands",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "replit": null,
+  "repower-grassroots-organizing-school-for-bipoc-organizers": null,
+  "resend": null,
+  "resilience-hub": null,
+  "results-as-flatfiles-interop": null,
+  "rhihub-community-health-worker-toolkit-rural-implementation": null,
+  "roving-listener": {
+   "lat": 39.7683331,
+   "lng": -86.1583502,
+   "label": "Indianapolis, Indiana",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "sacred-harp-and-shape-note-singing": {
+   "lat": 32.3293809,
+   "lng": -83.1137366,
+   "label": "Georgia",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "sal-si-puedes": {
+   "lat": 37.3361663,
+   "lng": -121.890591,
+   "label": "San Jose, California",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "sandy-storyline": {
+   "lat": 40.7127281,
+   "lng": -74.0060152,
+   "label": "New York",
+   "precision": "city",
+   "basis": "attribution",
+   "also": [
+    {
+     "lat": 40.0757384,
+     "lng": -74.4041622,
+     "label": "New Jersey"
+    }
+   ]
+  },
+  "savannah-kruger-and-the-neighborhood-accelerator-boulder": {
+   "lat": 40.0149856,
+   "lng": -105.270545,
+   "label": "Boulder, Colorado",
+   "precision": "city",
+   "basis": "text"
+  },
+  "seattle-neighborhood-matching-fund": {
+   "lat": 47.6038321,
+   "lng": -122.330062,
+   "label": "Seattle, Washington",
+   "precision": "city",
+   "basis": "text"
+  },
+  "seven-generations-principle": null,
+  "sf-meet-your-neighbors-fund": {
+   "lat": 37.7879363,
+   "lng": -122.4075201,
+   "label": "San Francisco, California",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "shareables-top-20-how-to-share-guides": null,
+  "six-lessons-neighborhood-tech": null,
+  "skillshare": {
+   "lat": 42.3875968,
+   "lng": -71.0994968,
+   "label": "Somerville, Massachusetts",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "skillshare-event": null,
+  "snowflake-model": {
+   "lat": 42.3656347,
+   "lng": -71.1040018,
+   "label": "Cambridge, Massachusetts",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "snowmageddon-cleanup": {
+   "lat": 38.9109436,
+   "lng": -77.0427259,
+   "label": "Dupont Circle, Washington, District of Columbia",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "social-capital-isnt-meant-to-be-hoarded": null,
+  "sound-off": {
+   "lat": 39.9527237,
+   "lng": -75.1635262,
+   "label": "Philadelphia, Pennsylvania",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "south-australia-citizens-jury-on-nuclear-waste": {
+   "lat": -30.5343665,
+   "lng": 135.6301212,
+   "label": "South Australia, Australia",
+   "precision": "region",
+   "basis": "text"
+  },
+  "stanford-pb-platform": {
+   "lat": 37.4265407,
+   "lng": -122.1703055,
+   "label": "Palo Alto, California",
+   "precision": "origin",
+   "basis": "attribution"
+  },
+  "starting-a-microsolidarity-crew": null,
+  "starting-something-new-vs-joining-existing-groups-ecosystem-health": null,
+  "story-circles": null,
+  "story-of-self-us-now": {
+   "lat": 42.3656347,
+   "lng": -71.1040018,
+   "label": "Cambridge, Massachusetts",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "story-sharing-potluck-supper": {
+   "lat": 45.709097,
+   "lng": -68.8590201,
+   "label": "Maine",
+   "precision": "region",
+   "basis": "research"
+  },
+  "storycorps-diy": {
+   "lat": 40.6526006,
+   "lng": -73.9497211,
+   "label": "Brooklyn, New York",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "street-beat-newsletter-generator": {
+   "lat": 37.7786189,
+   "lng": -122.4641875,
+   "label": "Richmond District, San Francisco, California",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "streetmix": {
+   "lat": 37.7879363,
+   "lng": -122.4075201,
+   "label": "San Francisco, California",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "structural-thinking-about-connection": null,
+  "sunday-assembly": {
+   "lat": 51.5074456,
+   "lng": -0.1277653,
+   "label": "Greater London, England, United Kingdom",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "sunday-assembly-start-your-own-chapter": {
+   "lat": 51.5074456,
+   "lng": -0.1277653,
+   "label": "Greater London, England, United Kingdom",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "supabase": null,
+  "swapping-stories": null,
+  "sweet-spot-tactics": {
+   "lat": 42.3656347,
+   "lng": -71.1040018,
+   "label": "Cambridge, Massachusetts",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "talk-to-the-city-taiwan-tokyo": {
+   "lat": 23.9739374,
+   "lng": 120.9820179,
+   "label": "Taiwan",
+   "precision": "country",
+   "basis": "attribution",
+   "also": [
+    {
+     "lat": 35.6768601,
+     "lng": 139.7638947,
+     "label": "Tokyo, Japan"
+    },
+    {
+     "lat": 36.7014631,
+     "lng": -118.755997,
+     "label": "California"
+    }
+   ]
+  },
+  "talking-circle": null,
+  "talking-circles-indigenous-dialogue-practice": null,
+  "terrastories": {
+   "lat": 37.8044557,
+   "lng": -122.271356,
+   "label": "Oakland, California",
+   "precision": "origin",
+   "basis": "research",
+   "also": [
+    {
+     "lat": 5.7870805,
+     "lng": -55.6064574,
+     "label": "Saramacca, Suriname"
+    }
+   ]
+  },
+  "text-by-tag": null,
+  "the-5-cs-of-community": null,
+  "the-5-cs-of-community-framework": null,
+  "the-abundant-community": {
+   "lat": 42.0693991,
+   "lng": -87.682932,
+   "label": "Evanston, Illinois",
+   "precision": "origin",
+   "basis": "research",
+   "also": [
+    {
+     "lat": 39.1012809,
+     "lng": -84.5127405,
+     "label": "Cincinnati, Ohio"
+    }
+   ]
+  },
+  "the-abundant-community-awakening-the-gifts-in-your-neighborhood": null,
+  "the-art-of-gathering": {
+   "lat": 40.7127281,
+   "lng": -74.0060152,
+   "label": "New York",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "the-builder-spectrum": null,
+  "the-bushwick-collective-brooklyn": {
+   "lat": 40.6942696,
+   "lng": -73.9187482,
+   "label": "Brooklyn, New York",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "the-claypole-commons": {
+   "lat": 39.1012809,
+   "lng": -84.5127405,
+   "label": "Cincinnati, Ohio",
+   "precision": "city",
+   "basis": "text"
+  },
+  "the-commons-elinor-ostrom-framework": {
+   "lat": 39.1670396,
+   "lng": -86.5342881,
+   "label": "Bloomington, Indiana",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "the-connection-opportunity-how-social-connection-reduces-polarization": null,
+  "the-daily-talk": {
+   "lat": 6.3203562,
+   "lng": -10.8060492,
+   "label": "Monrovia, Montserrado County, Liberia",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "the-debrief": {
+   "lat": 42.3656347,
+   "lng": -71.1040018,
+   "label": "Cambridge, Massachusetts",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "the-dinner-party-grief-community": {
+   "lat": 34.0536923,
+   "lng": -118.2427676,
+   "label": "Los Angeles, California",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "the-flyer-north-oakland": {
+   "lat": 37.8406581,
+   "lng": -122.2638015,
+   "label": "North Oakland, Oakland, California",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "the-folded-map": {
+   "lat": 41.8755616,
+   "lng": -87.6244212,
+   "label": "Chicago, Illinois",
+   "precision": "city",
+   "basis": "text",
+   "also": [
+    {
+     "lat": 41.7797559,
+     "lng": -87.6458836,
+     "label": "Englewood, Chicago, Illinois"
+    }
+   ]
+  },
+  "the-great-good-place-third-places-framework": null,
+  "the-hard-ask": {
+   "lat": 42.3656347,
+   "lng": -71.1040018,
+   "label": "Cambridge, Massachusetts",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "the-hidden-tribes-of-america": null,
+  "the-house-meeting": {
+   "lat": 34.0436892,
+   "lng": -118.2097684,
+   "label": "Boyle Heights, Los Angeles, California",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "the-jar-is-an-arts-centric-initiative-that-takes-a-unique-approach-to-attendees-": {
+   "lat": 42.3588336,
+   "lng": -71.0578303,
+   "label": "Boston, Massachusetts",
+   "precision": "city",
+   "basis": "research"
+  },
+  "the-kindness-party": {
+   "lat": 40.665306,
+   "lng": -73.9124755,
+   "label": "Brownsville, New York",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "the-longest-table": null,
+  "the-longest-table-community-meal": {
+   "lat": 40.7464906,
+   "lng": -74.0015283,
+   "label": "Chelsea District, New York",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "the-nap-ministry-rest-as-resistance-communal-rest": {
+   "lat": 33.7544657,
+   "lng": -84.3898151,
+   "label": "Atlanta, Georgia",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "the-neighbor-gathering-microgrant": {
+   "lat": 38.029306,
+   "lng": -78.4766781,
+   "label": "Charlottesville, Virginia",
+   "precision": "city",
+   "basis": "text"
+  },
+  "the-organizing-sentence": {
+   "lat": 42.3656347,
+   "lng": -71.1040018,
+   "label": "Cambridge, Massachusetts",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "the-pain-clinic": {
+   "lat": 38.7345374,
+   "lng": -82.9962742,
+   "label": "Portsmouth, Ohio",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "the-perception-gap-interactive-tool-for-understanding-polarization": null,
+  "the-reciprocity-game-a-crew-practice": null,
+  "the-relational-commons": null,
+  "the-resilience-we-want-guide": null,
+  "the-school-for-grassroots-leaders": {
+   "lat": 39.9527237,
+   "lng": -75.1635262,
+   "label": "Philadelphia, Pennsylvania",
+   "precision": "city",
+   "basis": "text"
+  },
+  "the-search-to-belong-rethinking-intimacy-community-and-connection": null,
+  "the-shared-clipboard": null,
+  "the-shared-spine-civic-media-and-relational-tech": null,
+  "the-village-square-tallahassee": {
+   "lat": 30.4380832,
+   "lng": -84.2809332,
+   "label": "Tallahassee, Florida",
+   "precision": "city",
+   "basis": "text"
+  },
+  "the-wall-of-wrigley-field": {
+   "lat": 41.947022,
+   "lng": -87.6564773,
+   "label": "Wrigleyville, Chicago, Illinois",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "the-well-played-game-bernard-dekoven": null,
+  "the-world-caf": null,
+  "the-yes-house-granite-falls-minnesota": {
+   "lat": 44.8099575,
+   "lng": -95.5455752,
+   "label": "Granite Falls, Minnesota",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "theory-of-change-sentence": {
+   "lat": 42.3656347,
+   "lng": -71.1040018,
+   "label": "Cambridge, Massachusetts",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "theory-of-groups-and-groups-of-groups": null,
+  "three-layers-of-neighborhood-infrastructure": null,
+  "time-banking": {
+   "lat": 38.8950982,
+   "lng": -77.0363849,
+   "label": "Washington, District of Columbia",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "to-for-with-by": {
+   "lat": 53.3493795,
+   "lng": -6.2605593,
+   "label": "Dublin, Ireland",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "todays-news-local-news-by-need": {
+   "lat": 37.7541496,
+   "lng": -122.5061507,
+   "label": "Sunset District, San Francisco, California",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "tool-libraries-and-maker-spaces": null,
+  "tool-library": null,
+  "topic-index": null,
+  "tracking-down-the-power": {
+   "lat": 42.3656347,
+   "lng": -71.1040018,
+   "label": "Cambridge, Massachusetts",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "trade-school-new-york-to-everywhere": {
+   "lat": 40.7159357,
+   "lng": -73.9868057,
+   "label": "Lower East Side, New York",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "training-for-change-cross-movement-organizing-school": {
+   "lat": 39.9527237,
+   "lng": -75.1635262,
+   "label": "Philadelphia, Pennsylvania",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "transformharmorg": null,
+  "transition-network-transition-towns": {
+   "lat": 50.4322816,
+   "lng": -3.6871525,
+   "label": "Dartington, South Hams, England, United Kingdom",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "transition-town": {
+   "lat": 50.4322816,
+   "lng": -3.6871525,
+   "label": "Dartington, South Hams, England, United Kingdom",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "trauma-informed-community-building": {
+   "lat": 37.7879363,
+   "lng": -122.4075201,
+   "label": "San Francisco, California",
+   "precision": "origin",
+   "basis": "text",
+   "also": [
+    {
+     "lat": 39.2908816,
+     "lng": -76.610759,
+     "label": "Baltimore, Maryland"
+    },
+    {
+     "lat": 35.146026,
+     "lng": -90.0517786,
+     "label": "Memphis, Tennessee"
+    }
+   ]
+  },
+  "twilio": null,
+  "two-components": null,
+  "up-the-block": {
+   "lat": 39.9527237,
+   "lng": -75.1635262,
+   "label": "Philadelphia, Pennsylvania",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "uri-interfaith-dialogue-tips-designing-and-facilitating-dialogue": null,
+  "ushahidi": {
+   "lat": -1.302398,
+   "lng": 36.8288509,
+   "label": "Nairobi County, Kenya",
+   "precision": "origin",
+   "basis": "attribution"
+  },
+  "utopias-block-party-fund": {
+   "lat": 34.0536923,
+   "lng": -118.2427676,
+   "label": "Los Angeles, California",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "vercel": null,
+  "village-movement-aging-in-community": {
+   "lat": 42.3587085,
+   "lng": -71.067829,
+   "label": "Beacon Hill, Boston, Massachusetts",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "village-movement-virtual-villages": {
+   "lat": 42.3587085,
+   "lng": -71.067829,
+   "label": "Beacon Hill, Boston, Massachusetts",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "vtaiwan-and-digital-democracy": {
+   "lat": 23.9739374,
+   "lng": 120.9820179,
+   "label": "Taiwan",
+   "precision": "country",
+   "basis": "text"
+  },
+  "vtaiwan-consensus-at-scale": {
+   "lat": 23.9739374,
+   "lng": 120.9820179,
+   "label": "Taiwan",
+   "precision": "country",
+   "basis": "attribution"
+  },
+  "warmingcooling-center": null,
+  "warmingcooling-centers-as-community-hubs": {
+   "lat": 34.0536923,
+   "lng": -118.2427676,
+   "label": "Los Angeles, California",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "weave-learning-center-training-for-community-weavers": {
+   "lat": 38.8950982,
+   "lng": -77.0363849,
+   "label": "Washington, District of Columbia",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "weave-the-social-fabric-project": {
+   "lat": 38.8950982,
+   "lng": -77.0363849,
+   "label": "Washington, District of Columbia",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "welcome-group-program": {
+   "lat": 43.6534817,
+   "lng": -79.3839347,
+   "label": "Toronto, Ontario, Canada",
+   "precision": "city",
+   "basis": "research"
+  },
+  "welcome-groups-training-manual": {
+   "lat": 43.6534817,
+   "lng": -79.3839347,
+   "label": "Toronto, Ontario, Canada",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "welcome-wagon": null,
+  "welcome-wagon-practices-new-neighbor-welcoming": null,
+  "welcoming-newcomers": null,
+  "westminster-stories": {
+   "lat": 41.8234695,
+   "lng": -71.4130257,
+   "label": "Downtown, Providence, Rhode Island",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "weve-squeezed-the-life-out-of-civic-life-professionalization-critique": null,
+  "what-is-a-civic-hub": null,
+  "what-s-on-your-ballot": {
+   "lat": 32.2228765,
+   "lng": -110.974847,
+   "label": "Tucson, Arizona",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "what-we-heard-report": null,
+  "what-we-lose-when-optimizing-community": null,
+  "who-age-friendly-cities-framework": {
+   "lat": 46.2017559,
+   "lng": 6.1466014,
+   "label": "Geneva, Switzerland",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "why-stories-matter-ganz": {
+   "lat": 42.3656347,
+   "lng": -71.1040018,
+   "label": "Cambridge, Massachusetts",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "worksheet-community-needs": null,
+  "worksheet-impact-tracker": null,
+  "worksheet-recipe-builder": null,
+  "world-cafe": {
+   "lat": 37.9060368,
+   "lng": -122.5449763,
+   "label": "Mill Valley, California",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "yard-parties-and-sweat-equity": {
+   "lat": 33.5206824,
+   "lng": -86.8024326,
+   "label": "Birmingham, Alabama",
+   "precision": "city",
+   "basis": "text"
+  },
+  "youth-participatory-action-research-ypar": {
+   "lat": 37.8708393,
+   "lng": -122.272863,
+   "label": "Berkeley, California",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "youthbuild": {
+   "lat": 42.3289067,
+   "lng": -71.0850853,
+   "label": "Roxbury, Boston, Massachusetts",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "zinester-s-guide-to-nyc": {
+   "lat": 40.7127281,
+   "lng": -74.0060152,
+   "label": "New York",
+   "precision": "city",
+   "basis": "attribution"
+  }
+ },
+ "studio_items": {
+  "0404c8e5-e067-4090-9eb8-96dfe4281611": {
+   "lat": 44.5990718,
+   "lng": -72.5002608,
+   "label": "Vermont",
+   "precision": "region",
+   "basis": "text"
+  },
+  "04690655-fcd8-4a6e-8075-c2012a13fd24": {
+   "lat": 23.9739374,
+   "lng": 120.9820179,
+   "label": "Taiwan",
+   "precision": "country",
+   "basis": "text"
+  },
+  "06182529-8f31-4415-a638-ec54341bbae9": {
+   "lat": 37.7879363,
+   "lng": -122.4075201,
+   "label": "San Francisco, California",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "06c15ac5-c238-40c4-a2ec-781319da6248": {
+   "lat": 37.7541496,
+   "lng": -122.5061507,
+   "label": "Sunset District, San Francisco, California",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "0821876b-4d97-4cbf-a804-a9e858128099": null,
+  "0888ee0f-1ff0-4b5e-b61f-e614fc8a775f": {
+   "lat": 43.7440651,
+   "lng": -71.7238393,
+   "label": "Plymouth, New Hampshire",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "0bc754b8-3fdc-4a0d-84b7-0fd616429c3a": {
+   "lat": 41.0733059,
+   "lng": -85.0173125,
+   "label": "New Haven, Indiana",
+   "precision": "region",
+   "basis": "text",
+   "also": [
+    {
+     "lat": 41.0975573,
+     "lng": -85.0562084,
+     "label": "Allen County, Indiana"
+    }
+   ]
+  },
+  "0dcf377e-d48b-438a-89e8-6953e3d49e4a": {
+   "lat": 44.1926416,
+   "lng": -72.822106,
+   "label": "Waitsfield, Vermont",
+   "precision": "region",
+   "basis": "text",
+   "also": [
+    {
+     "lat": 44.1139265,
+     "lng": -72.8555364,
+     "label": "Warren, Vermont"
+    },
+    {
+     "lat": 44.2420023,
+     "lng": -72.8381728,
+     "label": "Fayston, Washington County, Vermont"
+    }
+   ]
+  },
+  "0e1df5c9-e3a5-40a3-88dd-886f74e014bd": {
+   "lat": 39.0755642,
+   "lng": -78.594453,
+   "label": "Wardensville, West Virginia",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "0f69ff06-d08f-43e1-ac4f-ce8979caf194": {
+   "lat": 40.9935397,
+   "lng": -78.5935613,
+   "label": "Bloom Township, Pennsylvania",
+   "precision": "region",
+   "basis": "text"
+  },
+  "1125f0c2-bc69-4fc0-969b-d7e8c70f54aa": null,
+  "13685058-c5ae-4c9e-8fd9-38011298370d": {
+   "lat": 45.4881569,
+   "lng": -122.807836,
+   "label": "Central Beaverton, Beaverton, Oregon",
+   "precision": "region",
+   "basis": "text",
+   "also": [
+    {
+     "lat": 44.0581728,
+     "lng": -121.3153096,
+     "label": "Bend, Oregon"
+    }
+   ]
+  },
+  "149447fb-89ee-40de-829b-b2f1cf166896": {
+   "lat": 36.6880876,
+   "lng": -98.6659183,
+   "label": "Hopeton, Woods County, Oklahoma",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "187bc379-0668-4b9a-8296-38523a1deefd": null,
+  "1aa9762e-f90f-4823-96db-f96170b0d5ee": null,
+  "1ca5066e-3a47-422d-81e1-766e021eada8": {
+   "lat": 39.2908816,
+   "lng": -76.610759,
+   "label": "Baltimore, Maryland",
+   "precision": "city",
+   "basis": "research"
+  },
+  "1e36676f-ad51-4404-b06f-004174d23bf2": {
+   "lat": 36.6880876,
+   "lng": -98.6659183,
+   "label": "Hopeton, Woods County, Oklahoma",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "1f25497a-209f-4f05-8b2b-7924c0074aaa": {
+   "lat": 40.416782,
+   "lng": -3.703507,
+   "label": "Madrid, Community of Madrid, Spain",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "214a2cbc-1c8c-4e72-a63e-5f642b6374c8": {
+   "lat": 44.861172,
+   "lng": -66.983501,
+   "label": "Lubec, Maine",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "22d57198-112b-402a-a4b6-188c2ea6fa8c": {
+   "lat": 42.7156175,
+   "lng": -78.0055618,
+   "label": "Village of Perry, New York",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "24845248-8ee5-4169-a826-e4a64651292f": {
+   "lat": 44.156593,
+   "lng": -68.667297,
+   "label": "Stonington, Maine",
+   "precision": "neighborhood",
+   "basis": "text",
+   "also": [
+    {
+     "lat": 44.224044,
+     "lng": -68.677597,
+     "label": "Deer Isle, Maine"
+    }
+   ]
+  },
+  "25fb7772-11d1-4752-b4bf-4bba48da9e8f": {
+   "lat": 44.1417632,
+   "lng": -72.6663346,
+   "label": "Northfield Center, Northfield, Vermont",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "27b203d3-619b-49fd-8111-b21b518154db": {
+   "lat": 46.2834757,
+   "lng": -96.0777906,
+   "label": "Fergus Falls, Minnesota",
+   "precision": "region",
+   "basis": "research"
+  },
+  "2bf0002f-0e1f-4be3-b99d-201db10be460": {
+   "lat": 43.7136654,
+   "lng": -72.3081535,
+   "label": "Norwich, Vermont",
+   "precision": "neighborhood",
+   "basis": "text",
+   "also": [
+    {
+     "lat": 43.6505307,
+     "lng": -72.3309258,
+     "label": "White River Junction, Hartford, Vermont"
+    }
+   ]
+  },
+  "3040738e-6618-46d1-8347-9c11be015d91": {
+   "lat": 45.1788905,
+   "lng": -67.7750251,
+   "label": "Grand Lake Stream, Washington County, Maine",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "32048b61-f08d-4ce6-99d5-9f5e0e3c2243": {
+   "lat": 33.1373366,
+   "lng": -95.8394083,
+   "label": "Cumby, Texas",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "35b2ab43-cbef-42f4-bf18-dcf5f0ed1c97": {
+   "lat": 44.2804632,
+   "lng": -71.6869928,
+   "label": "Bethlehem, New Hampshire",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "3796bd5b-5ead-4862-ac3e-757190d0ea5f": {
+   "lat": 38.0464066,
+   "lng": -84.4970393,
+   "label": "Lexington, Kentucky",
+   "precision": "city",
+   "basis": "text",
+   "also": [
+    {
+     "lat": 37.8806341,
+     "lng": -84.5729961,
+     "label": "Nicholasville, Kentucky"
+    }
+   ]
+  },
+  "3a137dd1-ce5c-44db-ae1b-068078b6a434": {
+   "lat": 42.9948675,
+   "lng": -72.7342584,
+   "label": "Windham County, Vermont",
+   "precision": "region",
+   "basis": "text",
+   "also": [
+    {
+     "lat": 43.1001334,
+     "lng": -72.7784018,
+     "label": "Jamaica, Vermont"
+    },
+    {
+     "lat": 43.193006,
+     "lng": -72.8150391,
+     "label": "Londonderry, Windham County, Vermont"
+    },
+    {
+     "lat": 43.2917153,
+     "lng": -72.7932204,
+     "label": "Weston, Vermont"
+    },
+    {
+     "lat": 43.1590479,
+     "lng": -72.9351055,
+     "label": "Winhall, Vermont"
+    }
+   ]
+  },
+  "3a881d53-8ca2-489a-9c46-9b8e55d5dca2": {
+   "lat": 41.3082138,
+   "lng": -72.9250518,
+   "label": "New Haven, Connecticut",
+   "precision": "city",
+   "basis": "text"
+  },
+  "3f596087-9e7e-4881-9e10-b9752c278d78": {
+   "lat": 42.7401871,
+   "lng": -78.1325548,
+   "label": "Village of Warsaw, New York",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "48213e37-2480-4ef9-9ef3-53d5eba66f27": {
+   "lat": 51.5074456,
+   "lng": -0.1277653,
+   "label": "Greater London, England, United Kingdom",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "4b9ee9d5-42f4-4de8-bb61-a4ec4b41a3a6": {
+   "lat": 38.8950982,
+   "lng": -77.0363849,
+   "label": "Washington, District of Columbia",
+   "precision": "city",
+   "basis": "text"
+  },
+  "4e634fe5-2b4a-45b7-898b-32b6c97e0c3d": null,
+  "4f35c09f-b520-485d-9538-50757e17d7c6": {
+   "lat": 43.7440651,
+   "lng": -71.7238393,
+   "label": "Plymouth, New Hampshire",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "5288755b-015c-41ff-bf1c-997b760dcc8a": {
+   "lat": 42.0090367,
+   "lng": -87.6768492,
+   "label": "Rogers Park, Chicago, Illinois",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "54782294-8b86-49b3-b7ef-0bfe74c4cf64": {
+   "lat": 41.6664781,
+   "lng": -81.3399769,
+   "label": "Mentor, Ohio",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "548a7b9a-d078-4e41-aeb0-d846118c66b0": null,
+  "54c76c15-d5ba-4476-9d2e-4a8db410136d": {
+   "lat": 39.2908816,
+   "lng": -76.610759,
+   "label": "Baltimore, Maryland",
+   "precision": "city",
+   "basis": "research"
+  },
+  "580ac5e1-337f-40dd-ba92-a619c88d2ee4": {
+   "lat": 43.8662782,
+   "lng": -72.3776201,
+   "label": "Strafford, Vermont",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "58841053-d7d8-4806-aab7-4364f03e78d8": {
+   "lat": -1.302398,
+   "lng": 36.8288509,
+   "label": "Nairobi County, Kenya",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "59c6e475-a49a-4bb3-8012-b8638d6f49e3": {
+   "lat": 43.2630018,
+   "lng": -2.9350039,
+   "label": "Bilbao, Autonomous Community of the Basque Country, Spain",
+   "precision": "city",
+   "basis": "text"
+  },
+  "5c6fd5e0-08f6-4c23-994c-4e98f24ca85c": null,
+  "5ca9c0b2-94f9-49b3-9271-1e9147cf7b67": {
+   "lat": 36.6880876,
+   "lng": -98.6659183,
+   "label": "Hopeton, Woods County, Oklahoma",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "5e2d54cd-e59a-4491-b140-39bef6f7445f": {
+   "lat": 36.6880876,
+   "lng": -98.6659183,
+   "label": "Hopeton, Woods County, Oklahoma",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "5ec03877-8154-4e55-a852-66b8cc777a74": {
+   "lat": 44.0098907,
+   "lng": -69.8969355,
+   "label": "Bowdoinham, Maine",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "63249379-2d35-4c3b-908c-615b05ae9498": {
+   "lat": 41.6611881,
+   "lng": -72.7795594,
+   "label": "New Britain, Connecticut",
+   "precision": "city",
+   "basis": "text"
+  },
+  "63bd5fd0-988a-4729-ab2d-2d2ea1599df3": {
+   "lat": 44.2057083,
+   "lng": -70.7537839,
+   "label": "New England",
+   "precision": "region",
+   "basis": "text",
+   "also": [
+    {
+     "lat": 40.7127281,
+     "lng": -74.0060152,
+     "label": "New York"
+    }
+   ]
+  },
+  "65e29f19-18bf-4b4e-82a8-892ec9c21663": {
+   "lat": 57.7901661,
+   "lng": -152.4067073,
+   "label": "Kodiak, Alaska",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "67795baf-8a4c-4070-92b1-f94667988139": {
+   "lat": 34.0536923,
+   "lng": -118.2427676,
+   "label": "Los Angeles, California",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "6b8f372e-7729-4ff6-8689-97bae3bb38fe": null,
+  "6e15831c-1325-4695-be98-b57b72f17f76": {
+   "lat": 41.3825802,
+   "lng": 2.177073,
+   "label": "Barcelona, Catalonia, Spain",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "74e02068-5f4a-4a82-a90b-ad527f16752a": {
+   "lat": 43.207178,
+   "lng": -71.537476,
+   "label": "Concord, New Hampshire",
+   "precision": "city",
+   "basis": "text"
+  },
+  "7ac66884-2333-435f-a4a5-dece649d9d6f": null,
+  "82c9cbfe-3661-40dd-948a-d31680870082": {
+   "lat": 40.1672117,
+   "lng": -105.101928,
+   "label": "Longmont, Colorado",
+   "precision": "city",
+   "basis": "text"
+  },
+  "8640f8a1-477b-4e84-ba6a-e040004ed7d3": {
+   "lat": 43.7440651,
+   "lng": -71.7238393,
+   "label": "Plymouth, New Hampshire",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "8798359e-468d-4ae2-b232-eaaadf283a14": {
+   "lat": 39.2908816,
+   "lng": -76.610759,
+   "label": "Baltimore, Maryland",
+   "precision": "city",
+   "basis": "research"
+  },
+  "8986a7c6-998d-4f70-997d-485f5a84d6ac": {
+   "lat": 41.8310404,
+   "lng": -71.5412101,
+   "label": "Johnston, Rhode Island",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "89b8d4a9-787b-49da-b27b-4dd061d67810": null,
+  "8b145ba1-43a3-4733-9bdb-52f44384cb50": {
+   "lat": 42.8776166,
+   "lng": -71.949383,
+   "label": "Peterborough, New Hampshire",
+   "precision": "region",
+   "basis": "research"
+  },
+  "8ba6631f-37ed-4091-a52b-d4a414549448": {
+   "lat": 36.6880876,
+   "lng": -98.6659183,
+   "label": "Hopeton, Woods County, Oklahoma",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "8bb698bd-9aeb-47e2-9338-84e96a72b833": {
+   "lat": 43.9263509,
+   "lng": -69.2586064,
+   "label": "Port Clyde, Maine",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "8c056d45-4ca0-4f58-abd2-34e03468ff72": {
+   "lat": 36.7095328,
+   "lng": -99.8934936,
+   "label": "Laverne, Oklahoma",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "8cff2aea-acbd-4cc0-a0c6-46b52a925aef": {
+   "lat": 37.4265407,
+   "lng": -122.1703055,
+   "label": "Palo Alto, California",
+   "precision": "origin",
+   "basis": "attribution",
+   "also": [
+    {
+     "lat": 40.7127281,
+     "lng": -74.0060152,
+     "label": "New York"
+    }
+   ]
+  },
+  "8e7c8d8a-4a59-4980-872b-07898d0ffbbd": {
+   "lat": 39.2908816,
+   "lng": -76.610759,
+   "label": "Baltimore, Maryland",
+   "precision": "city",
+   "basis": "research"
+  },
+  "8fe72351-7b83-45ab-aea7-74a07322fe36": {
+   "lat": 36.0690258,
+   "lng": -79.4005756,
+   "label": "Graham, North Carolina",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "91cbe0c9-b752-45a1-b60c-4ede51ed4da0": {
+   "lat": 43.7440651,
+   "lng": -71.7238393,
+   "label": "Plymouth, New Hampshire",
+   "precision": "region",
+   "basis": "text",
+   "also": [
+    {
+     "lat": 43.8235868,
+     "lng": -71.6389687,
+     "label": "Campton, New Hampshire"
+    },
+    {
+     "lat": 43.7565057,
+     "lng": -71.9490529,
+     "label": "Dorchester, New Hampshire"
+    }
+   ]
+  },
+  "94bc07e2-792b-49d7-83c2-b899fbd8f260": {
+   "lat": 42.060185,
+   "lng": -79.1462866,
+   "label": "Frewsburg, New York",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "95da482c-3ccf-415c-8c52-def1e6e9c743": {
+   "lat": 39.2908816,
+   "lng": -76.610759,
+   "label": "Baltimore, Maryland",
+   "precision": "city",
+   "basis": "research"
+  },
+  "992393dd-72bd-41ee-8788-a70795ca3816": {
+   "lat": 39.2908816,
+   "lng": -76.610759,
+   "label": "Baltimore, Maryland",
+   "precision": "city",
+   "basis": "text"
+  },
+  "9ad04193-ba1b-4678-bcab-b3d88fa27536": {
+   "lat": 43.8286805,
+   "lng": -72.2462023,
+   "label": "Thetford, Orange County, Vermont",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "9f61dc49-f78c-473b-b8c7-cb9cd4bc2f65": {
+   "lat": 42.4374175,
+   "lng": -76.5483724,
+   "label": "Town of Ithaca, New York",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "a71c94bc-3c80-4dd2-974c-50009925624d": {
+   "lat": 39.2908816,
+   "lng": -76.610759,
+   "label": "Baltimore, Maryland",
+   "precision": "city",
+   "basis": "text"
+  },
+  "af3412d7-8f67-4a1b-bd9b-fab22e7bf16a": {
+   "lat": 46.266384,
+   "lng": -106.677812,
+   "label": "Forsyth, Montana",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "afdb38dc-d330-4995-9f5b-82ca2bf39dee": {
+   "lat": 37.7541496,
+   "lng": -122.5061507,
+   "label": "Sunset District, San Francisco, California",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "b07d9472-ce91-42cf-9124-22e32fc9aa20": {
+   "lat": 41.2747363,
+   "lng": -88.4119361,
+   "label": "Grundy County, Illinois",
+   "precision": "region",
+   "basis": "text"
+  },
+  "b5c05ce1-9a5c-4370-95ae-92d9ad9760e1": {
+   "lat": 39.2908816,
+   "lng": -76.610759,
+   "label": "Baltimore, Maryland",
+   "precision": "city",
+   "basis": "research"
+  },
+  "b6cf38e8-ee51-4fe4-9e31-62bb1d07be6d": {
+   "lat": 39.3176491,
+   "lng": -123.4126399,
+   "label": "Mendocino County, California",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "b6e8d707-0ebe-4c27-8427-90a6a56159ec": {
+   "lat": 44.7606481,
+   "lng": -85.6165976,
+   "label": "Traverse City, Michigan",
+   "precision": "city",
+   "basis": "text"
+  },
+  "ba3008aa-cc03-4de3-a7fa-d381fde3ccc7": {
+   "lat": 36.6880876,
+   "lng": -98.6659183,
+   "label": "Hopeton, Woods County, Oklahoma",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "ba916fbf-bbe1-4d5a-8746-89fe141e15e7": {
+   "lat": 41.49534,
+   "lng": -79.4558798,
+   "label": "Tionesta, Pennsylvania",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "baeb8b8a-d006-43a4-b0d4-1708faaf381b": {
+   "lat": 47.6038321,
+   "lng": -122.330062,
+   "label": "Seattle, Washington",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "bbf30c14-868e-4eeb-9f3b-2b2201de56ca": {
+   "lat": 36.6880876,
+   "lng": -98.6659183,
+   "label": "Hopeton, Woods County, Oklahoma",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "bd708be0-178a-41ff-8f78-c32d931071c3": {
+   "lat": 39.2908816,
+   "lng": -76.610759,
+   "label": "Baltimore, Maryland",
+   "precision": "city",
+   "basis": "text"
+  },
+  "c175214c-991c-49a0-8872-2f3d0ec784c9": {
+   "lat": 35.611481,
+   "lng": -77.3707461,
+   "label": "Pitt County, North Carolina",
+   "precision": "region",
+   "basis": "text",
+   "also": [
+    {
+     "lat": 35.613224,
+     "lng": -77.3724593,
+     "label": "Greenville, North Carolina"
+    }
+   ]
+  },
+  "c2ce2919-0158-4541-bebe-61cf97daabfd": {
+   "lat": 43.7440651,
+   "lng": -71.7238393,
+   "label": "Plymouth, New Hampshire",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "c4ba2d1d-4ac8-4339-88ba-a13b607be15e": {
+   "lat": 48.1179702,
+   "lng": -122.769544,
+   "label": "Port Townsend, Washington",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "c80a2515-05f3-4cfc-a9fe-f3c0a028fcdb": {
+   "lat": 42.6555999,
+   "lng": -77.9675478,
+   "label": "Town of Mount Morris, New York",
+   "precision": "neighborhood",
+   "basis": "text",
+   "also": [
+    {
+     "lat": 42.7156175,
+     "lng": -78.0055618,
+     "label": "Village of Perry, New York"
+    }
+   ]
+  },
+  "cb37a951-eb2e-4f5f-a280-c89439fb68e9": {
+   "lat": 42.7338254,
+   "lng": -84.5546295,
+   "label": "Lansing, Michigan",
+   "precision": "city",
+   "basis": "text"
+  },
+  "ceee7d1e-0cbe-4fa3-9065-d565fd50160f": {
+   "lat": 41.3825802,
+   "lng": 2.177073,
+   "label": "Barcelona, Catalonia, Spain",
+   "precision": "city",
+   "basis": "text"
+  },
+  "cfc0b20b-81b3-4b06-bd7b-7bc4ab260e44": {
+   "lat": 25.0375198,
+   "lng": 121.5636796,
+   "label": "Taipei, Taiwan",
+   "precision": "country",
+   "basis": "text"
+  },
+  "d1aed93a-7070-4c8e-b1f6-5c648c652e12": {
+   "lat": 40.416674,
+   "lng": -97.722545,
+   "label": "Shickley, Nebraska",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "d3936889-1e79-45af-833d-0b128bdf25c7": {
+   "lat": 36.6880876,
+   "lng": -98.6659183,
+   "label": "Hopeton, Woods County, Oklahoma",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "d402a672-7f0e-433a-9618-2a7aa49cf72c": {
+   "lat": 33.5206824,
+   "lng": -86.8024326,
+   "label": "Birmingham, Alabama",
+   "precision": "city",
+   "basis": "text"
+  },
+  "d5c6d159-1fab-4d6b-b6dc-9b5b81667701": {
+   "lat": 36.6880876,
+   "lng": -98.6659183,
+   "label": "Hopeton, Woods County, Oklahoma",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "d6d9663a-2899-44bc-9980-e7e4455e78f1": {
+   "lat": 44.9772995,
+   "lng": -93.2654692,
+   "label": "Minneapolis, Minnesota",
+   "precision": "city",
+   "basis": "text",
+   "also": [
+    {
+     "lat": 44.9497487,
+     "lng": -93.0931028,
+     "label": "Saint Paul, Minnesota"
+    }
+   ]
+  },
+  "d8ef64ae-2e7e-4005-b601-789597e89258": {
+   "lat": 41.8755616,
+   "lng": -87.6244212,
+   "label": "Chicago, Illinois",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "db93942f-1c6f-41b6-9477-5b00a0610958": {
+   "lat": 44.3140261,
+   "lng": -94.4614177,
+   "label": "New Ulm, Minnesota",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "dd17f180-4413-44ec-8c30-b1918b3cadf1": {
+   "lat": 43.12354,
+   "lng": -71.011505,
+   "label": "Lee, New Hampshire",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "e19d8032-920d-4654-ae37-188b346347b0": null,
+  "e31ddfe6-b3e7-49bc-8d90-fd9dfba7940f": {
+   "lat": 39.2908816,
+   "lng": -76.610759,
+   "label": "Baltimore, Maryland",
+   "precision": "city",
+   "basis": "text"
+  },
+  "e3582411-eec0-4ec7-af46-d5fd0693a706": {
+   "lat": 29.7589382,
+   "lng": -95.3676974,
+   "label": "Houston, Texas",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "e3b168bc-83ee-415d-a0de-0cb05f71b347": {
+   "lat": 18.2247706,
+   "lng": -66.4858295,
+   "label": "Puerto Rico",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "e52f5c86-5247-4d3f-b885-2fde1556286c": {
+   "lat": 47.4723148,
+   "lng": -94.8832791,
+   "label": "Bemidji, Minnesota",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "e97c8891-9be4-46a9-9a50-9c27fbb6c639": {
+   "lat": 39.2908816,
+   "lng": -76.610759,
+   "label": "Baltimore, Maryland",
+   "precision": "city",
+   "basis": "research"
+  },
+  "ea0d73eb-47ec-4334-bac4-dda2143dd654": {
+   "lat": 39.2908816,
+   "lng": -76.610759,
+   "label": "Baltimore, Maryland",
+   "precision": "city",
+   "basis": "research"
+  },
+  "ea39c72c-5d03-48ec-86bc-53018627402e": {
+   "lat": 31.9909813,
+   "lng": -87.2905456,
+   "label": "Camden, Alabama",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "eddbe1f2-51d6-465a-85ba-52a7c2fd329a": {
+   "lat": 36.6880876,
+   "lng": -98.6659183,
+   "label": "Hopeton, Woods County, Oklahoma",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "efa9f877-dddc-4129-8d3c-998a414328ef": {
+   "lat": 46.3580221,
+   "lng": -94.2008288,
+   "label": "Brainerd, Minnesota",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "f543ce83-4793-41ee-a2d0-f51965cfeb8a": {
+   "lat": 44.5990718,
+   "lng": -72.5002608,
+   "label": "Vermont",
+   "precision": "region",
+   "basis": "text"
+  },
+  "f5dd7b5b-963e-4d6b-83b1-6018cda4cb70": {
+   "lat": 44.7558635,
+   "lng": -69.6656301,
+   "label": "Skowhegan, Maine",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "f733a039-8da3-45c8-93e7-30806c151f9f": {
+   "lat": 44.9662565,
+   "lng": -74.6712875,
+   "label": "Town of Bombay, New York",
+   "precision": "neighborhood",
+   "basis": "text",
+   "also": [
+    {
+     "lat": 44.4381348,
+     "lng": -74.2523995,
+     "label": "Paul Smiths, Town of Brighton, New York"
+    }
+   ]
+  },
+  "f7443221-396b-4ec8-a6af-3063e0b7ef8e": null,
+  "f897faf2-e53b-4a6b-9b44-1436d87b3326": {
+   "lat": 36.6880876,
+   "lng": -98.6659183,
+   "label": "Hopeton, Woods County, Oklahoma",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "fd6ca3c7-74fb-40f6-9fd6-03d311788e31": {
+   "lat": 38.8950982,
+   "lng": -77.0363849,
+   "label": "Washington, District of Columbia",
+   "precision": "origin",
+   "basis": "research"
+  }
+ }
+}

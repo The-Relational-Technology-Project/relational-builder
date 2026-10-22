@@ -1,0 +1,4053 @@
+{
+ "_readme": "Where each gallery item is rooted. Keyed by commons slug and by studio_library_items id. precision: neighborhood|city|region|country|origin|none. Edit this file, then run geocode.mjs and apply.mjs (see docs/GEO-COMMONS.md).",
+ "commons": {
+  "12-empowering-ways-to-engage-in-civic-affairs": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "24-hour-cafe-guestbook": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "29-ways-to-increase-participation-in-gatherings": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "596-acres": {
+   "place": "Brooklyn, New York, USA",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "7-ideas-to-jumpstart-community-practice": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "a-community-library-for-my-coworking-space": {
+   "place": null,
+   "precision": "none",
+   "basis": "research",
+   "note": "Z-Space's location could not be established"
+  },
+  "a-megalist-of-tools-for-building-community": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "a-playful-path": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "a-relational-tech-practice": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "aarp-experience-corps-intergenerational-volunteer-tutoring": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "abundant-community-book": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Two authors in different cities (McKnight, Evanston; Block, Cincinnati); no single confident base"
+  },
+  "access-intimacy-mia-mingus": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "action-over-dialogue-report": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "adopt-a-hydrant-remixes": {
+   "place": "Boston, Massachusetts, USA",
+   "precision": "city",
+   "basis": "attribution",
+   "also": [
+    "Honolulu, Hawaii, USA",
+    "San Francisco, California, USA",
+    "Chicago, Illinois, USA"
+   ]
+  },
+  "affinity-groups-forming-groups-for-mutual-aid": {
+   "place": "Seattle, Washington, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Big Door Brigade is Dean Spade's Seattle-based project"
+  },
+  "after-the-assault": {
+   "place": "Sacramento, California, USA",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "all-america-conversations-toolkit": {
+   "place": "Denver, Colorado, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "National Civic League is based in Denver"
+  },
+  "alternatives-to-policing-community-safety-programs": {
+   "place": "Eugene, Oregon, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Generic practice; the cited model is CAHOOTS in Eugene"
+  },
+  "an-accelerator-for-community-builders": {
+   "place": "San Francisco, California, USA",
+   "precision": "city",
+   "basis": "text"
+  },
+  "an-invitation-to-a-new-civic-future": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "an-outer-sunset-story": {
+   "place": "Outer Sunset, San Francisco, California, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "appreciative-inquiry": {
+   "place": "Cleveland, Ohio, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Cooperrider's Case Western Reserve University"
+  },
+  "appreciative-inquiry-for-community-development": {
+   "place": "Cleveland, Ohio, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Appreciative Inquiry originated at Case Western Reserve"
+  },
+  "art-of-hosting": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "asking-for-help-offering-support": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Archetype story, no place"
+  },
+  "asset-based-community-development-abcd": {
+   "place": "Evanston, Illinois, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "McKnight and Kretzmann at Northwestern University"
+  },
+  "asset-framing-post-it-notes": {
+   "place": "Berwyn, Illinois, USA",
+   "precision": "neighborhood",
+   "basis": "attribution",
+   "also": [
+    "Cicero, Illinois, USA"
+   ]
+  },
+  "axioms-for-organizers": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Ross's aphorisms circulate freely; no single home base beyond 'California'"
+  },
+  "babysitting-co-op": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "barbershop-and-beauty-salon-as-community-anchor": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "barbershop-talk": {
+   "place": "Queens University of Charlotte, Charlotte, North Carolina, USA",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "beautician-and-bus-driver": {
+   "place": "Monteagle, Tennessee, USA",
+   "precision": "neighborhood",
+   "basis": "attribution",
+   "also": [
+    "Johns Island, South Carolina, USA"
+   ]
+  },
+  "beautiful-news": {
+   "place": "London, England, UK",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Global data-viz project; Information is Beautiful is London-based"
+  },
+  "beautiful-trouble-a-toolbox-for-revolution": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "becoming-a-high-agency-person": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "bed-stuy-strong": {
+   "place": "Bedford-Stuyvesant, Brooklyn, New York, USA",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "beloved-community-mlk-vision-practice": {
+   "place": "Atlanta, Georgia, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "The King Center, Atlanta"
+  },
+  "big-door-brigade-mutual-aid-toolbox": {
+   "place": "Seattle, Washington, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Dean Spade's Seattle-based project"
+  },
+  "block-connectors-edmonton": {
+   "place": "Highlands, Edmonton, Alberta, Canada",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "block-party": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "block-party-organizing": {
+   "place": "Outer Sunset, San Francisco, California, USA",
+   "precision": "neighborhood",
+   "basis": "research",
+   "note": "Slug covers both the prompt (48thAveBlockParty example) and the live tool at cozycorner.place, the 48th Ave block hub in the Outer Sunset"
+  },
+  "block-party-usa-free-tools-templates": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "block-stewards": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "block-stewards-common-agency": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Could not establish Common Agency's home base"
+  },
+  "boston-ujima-project": {
+   "place": "Boston, Massachusetts, USA",
+   "precision": "city",
+   "basis": "text",
+   "also": [
+    "Roxbury, Boston, Massachusetts, USA",
+    "Dorchester, Boston, Massachusetts, USA",
+    "Jamaica Plain, Boston, Massachusetts, USA",
+    "Mattapan, Boston, Massachusetts, USA"
+   ]
+  },
+  "boulder-reporting-lab-pop-up-newsroom": {
+   "place": "Boulder, Colorado, USA",
+   "precision": "city",
+   "basis": "attribution",
+   "also": [
+    "Louisville, Colorado, USA",
+    "Superior, Colorado, USA"
+   ],
+   "note": "Marshall Fire hit Louisville and Superior in Boulder County"
+  },
+  "bowling-alone-the-collapse-and-revival-of-american-community": {
+   "place": "Cambridge, Massachusetts, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Putnam at Harvard"
+  },
+  "bradley-street-bicycle-co-op-new-haven": {
+   "place": "East Rock, New Haven, Connecticut, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "braver-angels-skills-workshops-bridging-across-polarization": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "bridge-meadows-intergenerational-housing": {
+   "place": "Beaverton, Oregon, USA",
+   "precision": "city",
+   "basis": "text",
+   "note": "recipe is a specific named program; text says Beaverton"
+  },
+  "build-adopt-a-thing": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "build-block-scale-pb": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "build-commitment-ledger": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "build-debrief-ritual": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "build-front-porch-digest": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Starter prompt; Front Porch Forum lineage is the referenced story's pin, not this template's"
+  },
+  "build-living-asset-map": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "build-local-ushahidi-third-places": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "build-mutual-aid-intake": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "build-power-map-canvas": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "build-prompt-neighbor-hub": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "build-prompt-promise-tracker": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "build-public-narrative-workshop": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "build-relational-map": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "build-todays-news-section": {
+   "place": "Outer Sunset, San Francisco, California, USA",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "building-communities-inside-out": {
+   "place": "Evanston, Illinois, USA",
+   "precision": "origin",
+   "basis": "attribution",
+   "note": "Published by Northwestern's Institute for Policy Research"
+  },
+  "building-relational-place-based-technology": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "building-resilient-neighbourhoods-brn-neighbour-to-neighbour-preparedness": {
+   "place": "Victoria, British Columbia, Canada",
+   "precision": "city",
+   "basis": "research",
+   "note": "Body names British Columbia; BRN is based in Victoria"
+  },
+  "buy-nothing-group": {
+   "place": "Bainbridge Island, Washington, USA",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "camerados-and-public-living-rooms": {
+   "place": "Sheffield, England, United Kingdom",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Global movement; first Public Living Room opened in Sheffield in 2016"
+  },
+  "campaign-timeline-peaks": {
+   "place": "Cambridge, Massachusetts, USA",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "car-free-megacities": {
+   "place": "London, England, UK",
+   "precision": "city",
+   "basis": "attribution",
+   "also": [
+    "New York, New York, USA",
+    "Paris, France"
+   ]
+  },
+  "care-webs": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Recipe synthesized from many newsrooms in many cities; no single root place"
+  },
+  "central-oregon-ai-civic-assembly": {
+   "place": "Central Oregon, Oregon, USA",
+   "precision": "region",
+   "basis": "attribution",
+   "also": [
+    "Bend, Oregon, USA",
+    "Warm Springs, Oregon, USA"
+   ]
+  },
+  "cert-community-emergency-response-team": {
+   "place": "Los Angeles, California, USA",
+   "precision": "origin",
+   "basis": "text",
+   "note": "National FEMA program; conceived by LA Fire Department per the text"
+  },
+  "chicago-early-voting-finder": {
+   "place": "Chicago, Illinois, USA",
+   "precision": "city",
+   "basis": "text"
+  },
+  "circles-of-support-accountability-cosa": {
+   "place": "Hamilton, Ontario, Canada",
+   "precision": "origin",
+   "basis": "research",
+   "note": "CoSA originated in Hamilton, Ontario in 1994"
+  },
+  "circles-usa": {
+   "place": "Albuquerque, New Mexico, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Circles USA national office; moderately confident"
+  },
+  "circles-usa-bridging-class-divides": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "citizens-assemblies-from-ancient-athens-to-your-town-hall": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Worldwide method overview"
+  },
+  "city-repair-and-intersection-painting-portland": {
+   "place": "Sellwood, Portland, Oregon, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "civic-experiment-grants": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "civic-health-index": {
+   "place": "Washington, District of Columbia, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "National Conference on Citizenship is in Washington DC"
+  },
+  "civic-needs-cheat-sheet": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Universal Cookbook framework; News Futures is a distributed working group with no single home base"
+  },
+  "civic-saturday": {
+   "place": "Seattle, Washington, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Citizen University's home"
+  },
+  "civic-tech-field-guide": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "World-spanning directory; no single home base worth pinning"
+  },
+  "civicwell-participation-tools-for-better-community-planning": {
+   "place": "Sacramento, California, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "CivicWell (formerly Local Government Commission) is in Sacramento"
+  },
+  "claude-code": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "developer tool; no neighborhood place"
+  },
+  "coaching-five-steps": {
+   "place": "Cambridge, Massachusetts, USA",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "cobudget": {
+   "place": "Wellington, New Zealand",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Enspiral network lineage is Wellington-based"
+  },
+  "cohousing": {
+   "place": "Denmark",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "cohousing-cohousing-association-of-us": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "collective-imagination-practices-toolkit-tools-for-envisioning-futures": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "come-out-play": {
+   "place": "New York City, New York, USA",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "come-out-play-festival": {
+   "place": "New York, New York, USA",
+   "precision": "city",
+   "basis": "research",
+   "note": "Festival founded and held in New York City"
+  },
+  "commuity-calendar": {
+   "place": "Lincoln Square, Chicago, Illinois, USA",
+   "precision": "neighborhood",
+   "basis": "attribution",
+   "note": "Greater Rockwell calendar, contributed from Lincoln Square"
+  },
+  "community-acupuncture": {
+   "place": "Portland, Oregon, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "model originated at Working Class Acupuncture / POCA"
+  },
+  "community-acupuncture-with-sliding-scale": {
+   "place": "Boston, Massachusetts, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Guidelines are from Boston Acupuncture Project"
+  },
+  "community-agreements": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "community-agreements-group-agreements": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "community-apps-dashboard": {
+   "place": "Outer Sunset, San Francisco, California, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "byfor-us RTP repo; 'by us, for us' is the Sunset tagline, but no place is named in the item"
+  },
+  "community-babysitting-co-op": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "community-bail-funds": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "community-build-day": {
+   "place": "Sunset District, San Francisco, California, USA",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "community-built-playspace": {
+   "place": "Washington, District of Columbia, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "KABOOM! headquarters"
+  },
+  "community-built-playspace-kaboom": {
+   "place": "Washington, District of Columbia, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "KABOOM! headquarters"
+  },
+  "community-bulletin-of-the-ccc-of-nc": {
+   "place": "Greensboro, North Carolina, USA",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "community-clubs-platform": {
+   "place": "San Francisco, California, USA",
+   "precision": "origin",
+   "basis": "attribution",
+   "note": "Slug covers both prompt and tool; BuildIRL was created in San Francisco, platform is general-purpose"
+  },
+  "community-fridge": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "community-fridges-mutual-aid-network": {
+   "place": "New York, New York, USA",
+   "precision": "city",
+   "basis": "research",
+   "note": "In Our Hearts NYC fridge network"
+  },
+  "community-fridges-public-food-sharing": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "community-garden": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "community-gardens-as-social-infrastructure": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "community-help-desk": {
+   "place": "Detroit, Michigan, USA",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "community-income-sharing": {
+   "place": "Baltimore, Maryland, USA",
+   "precision": "city",
+   "basis": "attribution",
+   "note": "Slug covers both prompt and tool; the club and its Baltimore chapter are the named deployment"
+  },
+  "community-land-trust": {
+   "place": "Albany, Georgia, USA",
+   "precision": "origin",
+   "basis": "text",
+   "note": "New Communities Inc."
+  },
+  "community-land-trusts": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "community-lore": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "community-lore-storytelling-and-newcomer-integration": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "community-mapping": {
+   "place": "Meadowview, Sacramento, California, USA",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "community-mapping-asset-mapping": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "community-newsroom": {
+   "place": "Govanhill, Glasgow, Scotland, UK",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "community-plate-story-sharing-supper": {
+   "place": "Maine, USA",
+   "precision": "region",
+   "basis": "research",
+   "note": "Community Plate is a Maine nonprofit (Gray, ME) running suppers statewide"
+  },
+  "community-research-teams": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Recipe synthesized from many newsrooms in many cities; no single root place"
+  },
+  "community-safety-response": {
+   "place": "Eugene, Oregon, USA",
+   "precision": "origin",
+   "basis": "text",
+   "note": "CAHOOTS is the cited model"
+  },
+  "community-sports-reporting": {
+   "place": "Columbia, Missouri, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "National toolkit; Reynolds Journalism Institute is at the University of Missouri"
+  },
+  "community-stewarded-stories": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Recipe synthesized from many newsrooms in many cities; no single root place"
+  },
+  "community-supplies": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Slug covers the generic prompt and an archetype story; the live tool is keyed local-supplies-sharing"
+  },
+  "community-support-spaces": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Recipe synthesized from many newsrooms in many cities; no single root place"
+  },
+  "community-supported-agriculture-csa": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "community-the-structure-of-belonging": {
+   "place": "Cincinnati, Ohio, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Peter Block is based in Cincinnati"
+  },
+  "community-tool-box-free-guidance-for-community-development": {
+   "place": "Lawrence, Kansas, USA",
+   "precision": "origin",
+   "basis": "text",
+   "note": "University of Kansas"
+  },
+  "community-visioning-handbook-how-to-imagine-and-create-a-better-future": {
+   "place": "Maine, USA",
+   "precision": "region",
+   "basis": "text",
+   "note": "Maine state handbook for Maine communities"
+  },
+  "community-wealth-building-democracy-collaborative": {
+   "place": "Washington, District of Columbia, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Democracy Collaborative base"
+  },
+  "compassionate-communities-movement": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "complaints-choir": {
+   "place": "Helsinki, Finland",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Worldwide format; the artists are Helsinki-based (first choir was Birmingham, UK, 2005)"
+  },
+  "congregation-8-design-patterns-for-gathering": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "connection-grift-critique-of-the-connection-industry": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "connection-infrastructure": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Recipe synthesized from many newsrooms in many cities; no single root place"
+  },
+  "connectors-table": {
+   "place": "Evanston, Illinois, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "McKnight's definition; Russell's Nurture Development (Dublin) is the secondary source"
+  },
+  "consul-democracy": {
+   "place": "Madrid, Spain",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "cool-block": {
+   "place": "Woodstock, New York, USA",
+   "precision": "origin",
+   "basis": "research",
+   "also": [
+    "Palo Alto, California, USA"
+   ],
+   "note": "Empowerment Institute is in Woodstock, NY; program ran mainly in Palo Alto, SF and LA"
+  },
+  "cops-thousand-conversations": {
+   "place": "West Side, San Antonio, Texas, USA",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "courage-before-hope-weaving-emotional-and-economic-microsolidarity": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "crafting-tech-as-care": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Archetype story, no place"
+  },
+  "creative-interventions": {
+   "place": "Oakland, California, USA",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "creative-interventions-community-accountability": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "crisis-activation": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Recipe synthesized from many newsrooms in many cities; no single root place"
+  },
+  "darebin-participatory-budgeting": {
+   "place": "Darebin, Melbourne, Victoria, Australia",
+   "precision": "city",
+   "basis": "text"
+  },
+  "daviswiki": {
+   "place": "Davis, California, USA",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "death-cafe": {
+   "place": "London, England, United Kingdom",
+   "precision": "origin",
+   "basis": "research",
+   "also": [
+    "Switzerland"
+   ],
+   "note": "Jon Underwood's Death Cafe is London-based; text credits Swiss origin"
+  },
+  "death-cafs": {
+   "place": "London, England, UK",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Death Cafe started by Jon Underwood in Hackney, London"
+  },
+  "decidim": {
+   "place": "Barcelona, Catalonia, Spain",
+   "precision": "origin",
+   "basis": "attribution"
+  },
+  "decidim-barcelona-neighborhoods": {
+   "place": "Barcelona, Catalonia, Spain",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "deep-canvassing": {
+   "place": "Los Angeles, California, USA",
+   "precision": "origin",
+   "basis": "text",
+   "note": "Los Angeles LGBT Center named as originator"
+  },
+  "delib-civicos": {
+   "place": null,
+   "precision": "none",
+   "basis": "research",
+   "note": "BLOOM Project's home base could not be established by search; its named deployment (Central Oregon) is carried by the story card"
+  },
+  "delib-decidim": {
+   "place": "Barcelona, Catalonia, Spain",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "delib-heard": {
+   "place": "Washington, District of Columbia, USA",
+   "precision": "origin",
+   "basis": "text",
+   "note": "Summary says grown hyperlocal-first in Washington, DC"
+  },
+  "delib-maple": {
+   "place": "Massachusetts, USA",
+   "precision": "region",
+   "basis": "text",
+   "also": [
+    "Boston, Massachusetts, USA"
+   ],
+   "note": "Built for Massachusetts bills by Code for Boston"
+  },
+  "delib-polis": {
+   "place": "Seattle, Washington, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Pol.is / Computational Democracy Project developed in Seattle"
+  },
+  "delib-talk-to-the-city": {
+   "place": "San Francisco, California, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "AI Objectives Institute is Bay Area-based; search only surfaced a Covina, CA registration, so moderate confidence"
+  },
+  "delib-the-flyer": {
+   "place": "North Oakland, Oakland, California, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "deliberation-cycle-eight-stages": {
+   "place": null,
+   "precision": "none",
+   "basis": "research",
+   "note": "Metagov is a distributed research collective with no home base"
+  },
+  "deliberation-starting-tensions": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "democracy-101": {
+   "place": "Tucson, Arizona, USA",
+   "precision": "city",
+   "basis": "research",
+   "note": "AZPM is Tucson's public media; Pascua Yaqui tribe is in the Tucson area"
+  },
+  "denver-community-museum": {
+   "place": "Denver, Colorado, USA",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "desi-connect": {
+   "place": "San Jose, California, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "National diaspora WhatsApp network; India Currents is based in the South Bay"
+  },
+  "design-for-care-not-enforcement": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Universal design framework; Oakland is only a cited example"
+  },
+  "developing-in-person-content-formats": {
+   "place": "Atlanta, Georgia, USA",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "dialogue-circles": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "dinner-party-grief": {
+   "place": "Los Angeles, California, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "The Dinner Party was founded in LA"
+  },
+  "disability-justice-10-principles-sins-invalid": {
+   "place": "Berkeley, California, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Sins Invalid is Bay Area based"
+  },
+  "disability-visibility-project": {
+   "place": "San Francisco, California, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Alice Wong, San Francisco"
+  },
+  "disfactory": {
+   "place": "Taiwan",
+   "precision": "country",
+   "basis": "attribution",
+   "note": "Rural townships across Taiwan; no single township named"
+  },
+  "documenters-network": {
+   "place": "Chicago, Illinois, USA",
+   "precision": "city",
+   "basis": "attribution",
+   "note": "Born on Chicago's South Side at City Bureau; now a national network"
+  },
+  "dosomethingorg": {
+   "place": "New York, New York, USA",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "dudley-street-how-many-of-you-live-here": {
+   "place": "Dudley Street, Roxbury, Boston, Massachusetts, USA",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "dyad": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "developer tool; no neighborhood place"
+  },
+  "e-democracy-doorsteps": {
+   "place": "Cedar-Riverside, Minneapolis, Minnesota, USA",
+   "precision": "neighborhood",
+   "basis": "attribution",
+   "also": [
+    "Frogtown, Saint Paul, Minnesota, USA"
+   ]
+  },
+  "east-bay-permanent-real-estate-cooperative-oakland": {
+   "place": "Oakland, California, USA",
+   "precision": "city",
+   "basis": "text"
+  },
+  "edmonton-s-community-league-system": {
+   "place": "Edmonton, Alberta, Canada",
+   "precision": "city",
+   "basis": "text"
+  },
+  "ella-baker-center-resource-organizing-peer-to-peer-toolkit": {
+   "place": "Oakland, California, USA",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "embedded-design-a-guide-for-builders": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "emergent-strategy": {
+   "place": "Detroit, Michigan, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "adrienne maree brown wrote it while based in Detroit"
+  },
+  "encoreorg-purposeful-aging-and-encore-careers": {
+   "place": "San Francisco, California, USA",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "facilitation-guardrails-deliberation": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "faith-community-care-connector": {
+   "place": "Ann Arbor, Michigan, USA",
+   "precision": "origin",
+   "basis": "text",
+   "note": "Template contributed by an Ann Arbor community member"
+  },
+  "faith-in-action-community-organizing-model": {
+   "place": "Oakland, California, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "PICO founded in Oakland in 1972"
+  },
+  "falls-church-neighbor-gathering-grants": {
+   "place": "Falls Church, Virginia, USA",
+   "precision": "neighborhood",
+   "basis": "attribution",
+   "note": "Small independent city; treated as town-scale"
+  },
+  "fema-community-recovery-management-toolkit": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "field-papers": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Stewarded by OpenStreetMap US, a distributed community; no home base"
+  },
+  "firecrawl": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "developer tool; no neighborhood place"
+  },
+  "five-sisters-forum": {
+   "place": "Five Sisters, Burlington, Vermont, USA",
+   "precision": "neighborhood",
+   "basis": "attribution",
+   "also": [
+    "Vermont, USA"
+   ]
+  },
+  "fixmystreet-platform": {
+   "place": "London, England, United Kingdom",
+   "precision": "origin",
+   "basis": "research",
+   "note": "mySociety is a UK charity based in London"
+  },
+  "flatpack-democracy-frome-england": {
+   "place": "Frome, Somerset, England, United Kingdom",
+   "precision": "neighborhood",
+   "basis": "text",
+   "note": "Small town"
+  },
+  "footer-component": {
+   "place": "Outer Sunset, San Francisco, California, USA",
+   "precision": "origin",
+   "basis": "text",
+   "note": "Slug covers prompt and tool; 'Made in the Sunset' copy, live at outersunset.us; template is remixable anywhere"
+  },
+  "format-neighborhood-newsletter": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "format-public-board": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "format-public-dashboard": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "format-story-circle": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "format-two-way-sms": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "format-walking-tour": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "foundation-for-intentional-community-fic": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "four-output-deliberation-kit": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "france-s-convention-citoyenne-pour-le-climat": {
+   "place": "France",
+   "precision": "country",
+   "basis": "text"
+  },
+  "free-store": {
+   "place": "San Francisco, California, USA",
+   "precision": "origin",
+   "basis": "text",
+   "also": [
+    "New York City, New York, USA"
+   ]
+  },
+  "free-stores-freecycling": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "front-porch-forum": {
+   "place": "Burlington, Vermont, USA",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "front-porch-forum-and-what-to-do-if-you-cant-have-one": {
+   "place": "Burlington, Vermont, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "text names Vermont; FPF is based in Burlington"
+  },
+  "front-yard-friday-orlando": {
+   "place": "Orlando, Florida, USA",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "fylpro-covid-19-task-force": {
+   "place": "Dallas, Texas, USA",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "games-for-cities": {
+   "place": "Amsterdam, Netherlands",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Play the City initiative, Amsterdam"
+  },
+  "gathio": {
+   "place": null,
+   "precision": "none",
+   "basis": "research",
+   "note": "Solo maintainer's base not established"
+  },
+  "generations-united-intergenerational-shared-sites": {
+   "place": "Washington, District of Columbia, USA",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "gift-conversations": {
+   "place": "Evanston, Illinois, USA",
+   "precision": "origin",
+   "basis": "research",
+   "also": [
+    "Indianapolis, Indiana, USA"
+   ],
+   "note": "McKnight's four questions (ABCD, Northwestern); the named practice example is Broadway UMC in Indianapolis"
+  },
+  "github": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "developer tool; no neighborhood place"
+  },
+  "give-us-your-two-cents": {
+   "place": "Tucson, Arizona, USA",
+   "precision": "city",
+   "basis": "research",
+   "note": "Arizona Luminaria is a Tucson newsroom"
+  },
+  "good-neighbor-agreement": {
+   "place": "Capitol Hill, Denver, Colorado, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Generic practice; source is Capitol Hill United Neighborhoods, Denver"
+  },
+  "grandfamilies-kinship-support-network": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "grants-for-blocks": {
+   "place": "Savannah, Georgia, USA",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "grape-boycott-boycott-houses": {
+   "place": "Delano, California, USA",
+   "precision": "city",
+   "basis": "attribution",
+   "note": "Boycott houses spanned North America; Delano is the root"
+  },
+  "greene-street": {
+   "place": "SoHo, Manhattan, New York, USA",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "grow-food-northampton-massachusetts": {
+   "place": "Northampton, Massachusetts, USA",
+   "precision": "city",
+   "basis": "text"
+  },
+  "healing-justice-kindred-southern-healing-justice-collective-model": {
+   "place": "Atlanta, Georgia, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Kindred Southern HJ Collective is Atlanta based"
+  },
+  "hey-neighbor-rome-ga": {
+   "place": "Rome, Georgia, USA",
+   "precision": "city",
+   "basis": "attribution",
+   "also": [
+    "South Rome, Rome, Georgia, USA"
+   ]
+  },
+  "hidden-hunger-storybooth": {
+   "place": "Sacramento, California, USA",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "hierarchy-of-needs": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Universal Cookbook framework; News Futures is a distributed working group with no single home base"
+  },
+  "high-agency-in-community-building": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "hosting-a-civic-saturday": {
+   "place": "Seattle, Washington, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Citizen University, Seattle"
+  },
+  "how-cities-cultivate-membership-and-belonging": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "how-our-online-lives-shape-our-community": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "how-to-hold-collective-grief-priya-parker": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "how-to-make-and-celebrate-a-podcast-with-community": {
+   "place": "Meadowview, Sacramento, California, USA",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "how-to-organize-a-skillshare": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "how-to-reinvent-the-potluck": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "how-to-think-structurally-about-connection": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "human-essentials": {
+   "place": "Portland, Oregon, USA",
+   "precision": "origin",
+   "basis": "text",
+   "note": "Built with PDX Diaper Bank; Ruby for Good is a distributed volunteer community"
+  },
+  "hyperlocal-neighbor-hub": {
+   "place": "Outer Sunset, San Francisco, California, USA",
+   "precision": "neighborhood",
+   "basis": "text",
+   "note": "cozycorner.place, the single-block hub in San Francisco (48th Ave, Outer Sunset)"
+  },
+  "hyperlocal-neighbor-hubs": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "improv-games-for-community-building": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "in-it-together-conflict-transformation-for-groups": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "inclusive-local-ancestry-posters": {
+   "place": "Park Slope, Brooklyn, New York, USA",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "indigenous-community-care-traditions-of-reciprocity": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "industrial-areas-foundation-relational-organizing-network": {
+   "place": "Chicago, Illinois, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Founded by Alinsky in Chicago, 1940"
+  },
+  "interdependence-is-a-survival-skill-building-sustainable-mutual-support": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "interfaith-america-bridge-curriculum-building-regular-interfaith-dialogue": {
+   "place": "Chicago, Illinois, USA",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "interfaith-bridge": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "intersection-repair": {
+   "place": "Sellwood, Portland, Oregon, USA",
+   "precision": "origin",
+   "basis": "text",
+   "note": "Share-It Square at SE 9th & Sherrett is in Sellwood"
+  },
+  "intersection-repair-city-repair-project": {
+   "place": "Portland, Oregon, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "City Repair Project, Portland"
+  },
+  "invisible-cities": {
+   "place": "Edinburgh, Scotland, UK",
+   "precision": "city",
+   "basis": "research",
+   "also": [
+    "Glasgow, Scotland, UK",
+    "Manchester, England, UK",
+    "York, England, UK"
+   ],
+   "note": "Founded in Edinburgh 2016; runs in several UK cities"
+  },
+  "ireland-s-citizens-assembly-on-the-eighth-amendment": {
+   "place": "Ireland",
+   "precision": "country",
+   "basis": "text"
+  },
+  "island-food-with-neighbors-fund": {
+   "place": "The Island, Austin, Chicago, Illinois, USA",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "janes-walk": {
+   "place": "Toronto, Ontario, Canada",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Jane's Walk began in Toronto in 2007"
+  },
+  "jesse-evers-and-highside-workshop-brooklyn": {
+   "place": "Brooklyn, New York, USA",
+   "precision": "city",
+   "basis": "text",
+   "note": "Neighborhood of the warehouse not named"
+  },
+  "join-or-die-documentary": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "kalw-voter-turnout-project": {
+   "place": "San Francisco, California, USA",
+   "precision": "city",
+   "basis": "research",
+   "note": "KALW is San Francisco's station; attribution says Bay Area"
+  },
+  "karrot": {
+   "place": null,
+   "precision": "none",
+   "basis": "research",
+   "note": "European foodsaving movement; team is distributed (Kanthaus near Leipzig at one point), not confidently placeable"
+  },
+  "kc-tenants": {
+   "place": "Kansas City, Missouri, USA",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "lamplight-summer-camp": {
+   "place": "Guntersville, Alabama, USA",
+   "precision": "neighborhood",
+   "basis": "text",
+   "note": "Camp on Lake Guntersville"
+  },
+  "large-lots-chicago": {
+   "place": "Englewood, Chicago, Illinois, USA",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "launch-a-team": {
+   "place": "Cambridge, Massachusetts, USA",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "leadership-as-hospitality": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "learn-from-the-graveyard": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "lehigh-valley-hey-there-neighbor-fund": {
+   "place": "Lehigh Valley, Pennsylvania, USA",
+   "precision": "region",
+   "basis": "attribution",
+   "also": [
+    "Bethlehem, Pennsylvania, USA",
+    "Allentown, Pennsylvania, USA",
+    "Easton, Pennsylvania, USA"
+   ]
+  },
+  "libraries-transforming-communities": {
+   "place": "Chicago, Illinois, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "American Library Association"
+  },
+  "library-of-things-toolkit": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "listen-first-project-coalition-for-bridging-and-dialogue": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "little-free-pantry": {
+   "place": "Fayetteville, Arkansas, USA",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "little-free-pantry-community-fridge": {
+   "place": "Fayetteville, Arkansas, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Little Free Pantry began in Fayetteville, AR in 2016"
+  },
+  "littlesis-oligrapher": {
+   "place": "Buffalo, New York, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Public Accountability Initiative is Buffalo-based"
+  },
+  "living-room-conversations": {
+   "place": "Berkeley, California, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Joan Blades is Berkeley-based; the practice is nationwide"
+  },
+  "living-room-conversations-150-structured-dialogue-guides": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "local-supplies-sharing": {
+   "place": "Outer Sunset, San Francisco, California, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "communitysupplies.org says 'Built in the Outer Sunset'; now 120+ communities"
+  },
+  "localwiki": {
+   "place": "Davis, California, USA",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "loomio": {
+   "place": "Wellington, New Zealand",
+   "precision": "origin",
+   "basis": "attribution"
+  },
+  "lovable": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "developer tool; no neighborhood place"
+  },
+  "lunch-and-listens": {
+   "place": "Sacramento, California, USA",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "making-invisible-visible": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Recipe synthesized from many newsrooms in many cities; no single root place"
+  },
+  "mamas-pods": {
+   "place": "Medford, Massachusetts, USA",
+   "precision": "city",
+   "basis": "attribution",
+   "also": [
+    "Somerville, Massachusetts, USA"
+   ]
+  },
+  "map-your-neighborhood": {
+   "place": "Washington State, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "program of Washington State Emergency Management Division; text says Pacific Northwest"
+  },
+  "mapeo-comapeo": {
+   "place": "Oakland, California, USA",
+   "precision": "origin",
+   "basis": "research",
+   "also": [
+    "Pastaza, Ecuador"
+   ],
+   "note": "Awana Digital (ex Digital Democracy) was Oakland-based, now partly remote; Waorani deployment in Pastaza, Ecuador"
+  },
+  "mcp-servers": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "developer tool; no neighborhood place"
+  },
+  "meadowview-community-fair": {
+   "place": "Meadowview, Sacramento, California, USA",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "meal-train": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "measuring-what-matters-agency-belonging-trust": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "melbourne-people-s-panel": {
+   "place": "Melbourne, Victoria, Australia",
+   "precision": "city",
+   "basis": "text"
+  },
+  "memories-of-the-market": {
+   "place": "Coliseum, Oakland, California, USA",
+   "precision": "neighborhood",
+   "basis": "research",
+   "note": "La Pulga is the Coliseum Swap Meet in East Oakland (El Timpano, 2023)"
+  },
+  "mens-council": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "mens-council-program-journeymen": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "journeymen.us base not established (a different Journeymen is in Asheville)"
+  },
+  "meshtastic": {
+   "place": null,
+   "precision": "none",
+   "basis": "research",
+   "note": "Distributed open-source project; contributor's Kitsap base is not the project's"
+  },
+  "metagov-deliberative-tools-gallery": {
+   "place": null,
+   "precision": "none",
+   "basis": "research",
+   "note": "World-spanning catalog by a distributed collective"
+  },
+  "mhp-salud-community-health-worker-promotoras-program": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Sources conflict on headquarters (Weslaco TX vs Orlando FL)"
+  },
+  "microgrant-gathering": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "microgrant-management": {
+   "place": "Charlottesville, Virginia, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "withneighbors.org grew from the Charlottesville microgrant pilot; now funds programs nationally (e.g. Peoria)"
+  },
+  "microgrant-neighborhood-gathering": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "microgrant-organizer-toolkit": {
+   "place": "San Francisco, California, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "With Neighbors listed as a San Francisco-based nonprofit (RTP parent) in the Civic Tech Field Guide"
+  },
+  "microgrants-tool": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "microsolidarity-crew": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "midwest-academy-50-year-legacy-of-organizer-training": {
+   "place": "Chicago, Illinois, USA",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "minimal-viable-structure": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "mobilizon": {
+   "place": "Lyon, France",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Framasoft is based in Lyon"
+  },
+  "moms-4-housing": {
+   "place": "West Oakland, Oakland, California, USA",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "montgomery-381-days": {
+   "place": "Montgomery, Alabama, USA",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "more-parades-welcome-wagon": {
+   "place": "Palouse, Washington, USA",
+   "precision": "neighborhood",
+   "basis": "attribution",
+   "note": "Small rural town"
+  },
+  "more-perfect-union-brickyard-service-based-bridge-building": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "more-structure-more-community-minimal-viable-structure": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "mutual-aid-101-program": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "mutual-aid-building-solidarity-during-this-crisis-and-the-next": {
+   "place": "Seattle, Washington, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Dean Spade, Seattle University"
+  },
+  "mutual-aid-disaster-relief-grassroots-solidarity-response": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "mutual-aid-hub": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "mutual-aid-networks-mans": {
+   "place": "Madison, Wisconsin, USA",
+   "precision": "city",
+   "basis": "text"
+  },
+  "mutual-aid-pod": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "my-oakland-agenda": {
+   "place": "Oakland, California, USA",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "nafcm-national-association-for-community-mediation-network": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "nap-ministry": {
+   "place": "Atlanta, Georgia, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Tricia Hersey's base"
+  },
+  "narrative-arts-storytelling-for-social-change": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "nate-tubbs-and-the-island-chicago": {
+   "place": "The Island, Austin, Chicago, Illinois, USA",
+   "precision": "neighborhood",
+   "basis": "text",
+   "note": "The Island is a micro-neighborhood within Austin on the West Side"
+  },
+  "navigating-common-challenges": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "navigation-networks": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Recipe synthesized from many newsrooms in many cities; no single root place"
+  },
+  "ndn-collective": {
+   "place": "Rapid City, South Dakota, USA",
+   "precision": "city",
+   "basis": "text"
+  },
+  "neighbor-story-sharing": {
+   "place": "Outer Sunset, San Francisco, California, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Slug covers the generic prompt and the sunset-story-boxes tool built in the Outer Sunset"
+  },
+  "neighbor-to-neighbor-california-community-resilience-through-connection": {
+   "place": "California, USA",
+   "precision": "region",
+   "basis": "text"
+  },
+  "neighborcircles-lawrence-massachusetts": {
+   "place": "Lawrence, Massachusetts, USA",
+   "precision": "city",
+   "basis": "text"
+  },
+  "neighborhood-api": {
+   "place": "Outer Sunset, San Francisco, California, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "RTP open spec developed from the Outer Sunset sites"
+  },
+  "neighborhood-asset-map": {
+   "place": "Evanston, Illinois, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Kretzmann & McKnight at Northwestern's Institute for Policy Research"
+  },
+  "neighborhood-association": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "neighborhood-association-hub": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Slug covers prompt and tool; neither names a place"
+  },
+  "neighborhood-associations-and-councils": {
+   "place": "Portland, Oregon, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Generic practice; cited page is Portland's neighborhood system"
+  },
+  "neighborhood-connector-site": {
+   "place": "Outer Sunset, San Francisco, California, USA",
+   "precision": "origin",
+   "basis": "text",
+   "note": "Slug covers the template prompt and the tool live at outersunset.us (sunsetpeople)"
+  },
+  "neighborhood-groups-directory": {
+   "place": "Outer Sunset, San Francisco, California, USA",
+   "precision": "origin",
+   "basis": "text",
+   "note": "Contributed by Josh from the Outer Sunset; template for any neighborhood"
+  },
+  "neighborhood-history-and-future-walking-app": {
+   "place": "Outer Sunset, San Francisco, California, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "neighborhood-listening-wall": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Prompt template with no place in it"
+  },
+  "neighborhood-teams-2008": {
+   "place": "United States",
+   "precision": "country",
+   "basis": "attribution",
+   "also": [
+    "Ohio, USA"
+   ],
+   "note": "A national campaign structure; Ohio is the documented case"
+  },
+  "neighborhood-today-calendar": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "neighborhoods-as-systems-toolkit": {
+   "place": "Cincinnati, Ohio, USA",
+   "precision": "city",
+   "basis": "text",
+   "note": "Co-created with Cincinnati neighborhoods"
+  },
+  "neighborland": {
+   "place": "New Orleans, Louisiana, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "National platform; started in New Orleans by Candy Chang in 2010"
+  },
+  "network-community-connections": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "networks-beyond-borders": {
+   "place": "New York, New York, USA",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "new-games-movement": {
+   "place": "Marin County, California, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "First New Games Tournament held in Marin County, 1973"
+  },
+  "new-haven-know-your-neighbors-fund": {
+   "place": "New Haven, Connecticut, USA",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "news-futures-charter": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Universal Cookbook framework; News Futures is a distributed working group with no single home base"
+  },
+  "nofa-vt-long-handled-spoons-dinners": {
+   "place": "Vermont, USA",
+   "precision": "region",
+   "basis": "attribution"
+  },
+  "nuns-nones-and-sacred-hospitality": {
+   "place": "Brooklyn, New York, USA",
+   "precision": "city",
+   "basis": "text",
+   "note": "The story's moment is a Brooklyn rooftop; Nuns and Nones is a national gathering"
+  },
+  "nuns-nones-interspiritual-community-for-justice": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "nvp-neighborhood-projects-microgrant": {
+   "place": "Boulder, Colorado, USA",
+   "precision": "city",
+   "basis": "attribution",
+   "also": [
+    "Denver, Colorado, USA"
+   ]
+  },
+  "oakland-lowdown-endless-storefronts": {
+   "place": "Oakland, California, USA",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "one-to-one-relational-meeting": {
+   "place": "Cambridge, Massachusetts, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Ganz version; the IAF relational-meeting lineage is Chicago-born"
+  },
+  "open-food-network": {
+   "place": "Melbourne, Victoria, Australia",
+   "precision": "origin",
+   "basis": "attribution"
+  },
+  "open-referral-hsds": {
+   "place": "Washington, District of Columbia, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Conceived as DC Open 211 at Bread for the City; initiative is now distributed"
+  },
+  "open-space": {
+   "place": "Potomac, Maryland, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Harrison Owen's long-time base"
+  },
+  "open-space-technology": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "organizing-people-power-change-guide": {
+   "place": "Vancouver, British Columbia, Canada",
+   "precision": "origin",
+   "basis": "research",
+   "also": [
+    "Cambridge, Massachusetts, USA"
+   ],
+   "note": "Adapted by BC organizations (Dogwood, Leadnow, David Suzuki Foundation, One Cowichan) from Ganz's Harvard work"
+  },
+  "organizing-six-questions": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "RTP's own arrangement of the Ganz arc; no place"
+  },
+  "our-neighborhood-today": {
+   "place": "Outer Sunset, San Francisco, California, USA",
+   "precision": "neighborhood",
+   "basis": "text",
+   "note": "outersunset.today"
+  },
+  "outer-sunset-field-guide": {
+   "place": "Outer Sunset, San Francisco, California, USA",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "palaces-for-the-people-social-infrastructure-framework": {
+   "place": "New York, New York, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Klinenberg at NYU"
+  },
+  "parent-cooperative-preschools-international-50000-cooperative-families": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "parent-mentors-logan-square": {
+   "place": "Logan Square, Chicago, Illinois, USA",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "parish-collective-neighborhood-church-network": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "parklets-for-communities": {
+   "place": "England, UK",
+   "precision": "region",
+   "basis": "attribution",
+   "also": [
+    "Wales, UK"
+   ]
+  },
+  "participation-tactics": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "participatory-budgeting": {
+   "place": "Porto Alegre, Rio Grande do Sul, Brazil",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "participatory-investigation-process": {
+   "place": "London, England, UK",
+   "precision": "origin",
+   "basis": "research",
+   "note": "UK-wide method; Bureau of Investigative Journalism is London-based"
+  },
+  "pattern-amplifying-unheard-voices": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Universal Cookbook framework; News Futures is a distributed working group with no single home base"
+  },
+  "pattern-building-civic-muscle": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Universal Cookbook framework; News Futures is a distributed working group with no single home base"
+  },
+  "pattern-creating-shared-understanding": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Universal Cookbook framework; News Futures is a distributed working group with no single home base"
+  },
+  "pattern-deepening-understanding-of-place": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Universal Cookbook framework; News Futures is a distributed working group with no single home base"
+  },
+  "pattern-making-power-visible": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Universal Cookbook framework; News Futures is a distributed working group with no single home base"
+  },
+  "pattern-mobilizing-collective-response": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Universal Cookbook framework; News Futures is a distributed working group with no single home base"
+  },
+  "pattern-preserving-community-knowledge": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Universal Cookbook framework; News Futures is a distributed working group with no single home base"
+  },
+  "pattern-reimagining-public-resources": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Universal Cookbook framework; News Futures is a distributed working group with no single home base"
+  },
+  "pb-49th-ward": {
+   "place": "Rogers Park, Chicago, Illinois, USA",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "peacemaking-circles": {
+   "place": "Saint Paul, Minnesota, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Living Justice Press / Kay Pranis, St. Paul"
+  },
+  "people-power-change": {
+   "place": "Cambridge, Massachusetts, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Ganz framework; the 2014 handbook adaptation is from British Columbia but the definitions are Ganz's"
+  },
+  "people-practices-place-community-design-framework": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "people-s-supper": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Runs in 100+ US cities with no single home base"
+  },
+  "peoria-hello-neighbor-gathering-fund": {
+   "place": "Peoria, Illinois, USA",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "photovoice": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "pizza-strip-fund": {
+   "place": "Rhode Island, USA",
+   "precision": "region",
+   "basis": "attribution"
+  },
+  "pla-civic-community-engagement-toolkit": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "place-as-canvas": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Recipe synthesized from many newsrooms in many cities; no single root place"
+  },
+  "placemaking": {
+   "place": "New York City, New York, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Project for Public Spaces"
+  },
+  "placemaking-project-for-public-spaces": {
+   "place": "New York, New York, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Project for Public Spaces"
+  },
+  "playbooks-for-common-builder-needs": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "playworks": {
+   "place": "Oakland, California, USA",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "playworks-intentional-school-recess": {
+   "place": "Oakland, California, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Playworks national HQ"
+  },
+  "poetry-for-the-people": {
+   "place": "University of California, Berkeley, Berkeley, California, USA",
+   "precision": "neighborhood",
+   "basis": "attribution",
+   "also": [
+    "Tenderloin, San Francisco, California, USA"
+   ],
+   "note": "Campus program; also at Glide Memorial in the Tenderloin"
+  },
+  "polis": {
+   "place": "Seattle, Washington, USA",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "poll-conversations-assembly": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Prompt template; the Central Oregon reference is the story card's place, not this prompt's"
+  },
+  "popular-education-freirean-pedagogy": {
+   "place": "Recife, Pernambuco, Brazil",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Paulo Freire's home city"
+  },
+  "porch-conversations": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "porch-conversations-and-front-porch-culture": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "porchfest-ithaca-to-everywhere": {
+   "place": "Fall Creek, Ithaca, New York, USA",
+   "precision": "neighborhood",
+   "basis": "text",
+   "note": "Founding story; now 230+ locations"
+  },
+  "potluck-style-resource-sharing-international-food-sharing-practices": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "power-mapping-and-analysis-strategic-campaign-planning": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "priority-setting": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Recipe synthesized from many newsrooms in many cities; no single root place"
+  },
+  "prison-journalism-project-collections": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "National program for incarcerated writers; no local base named"
+  },
+  "privacy-and-terms-page": {
+   "place": "Outer Sunset, San Francisco, California, USA",
+   "precision": "origin",
+   "basis": "text",
+   "note": "Slug covers prompt and tool; live example at outersunset.today, template is generic"
+  },
+  "promise-tracker": {
+   "place": "Los Angeles, California, USA",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "prosocial-design-network-library": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-accuracy-prompts": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-adding-balanced-news": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-ask-users-to-write-something-substantive-when-sharing-content": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-batching-notifications": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-bridging-based-ranking": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-caution-about-increasing-toxicity": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-challenging-stereotypes": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-commitment-pledges": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-cooling-down-prompt": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-crowdsourcing-contextual-information-community-notes": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-default-quote-reshare": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-delay-by-default-posting": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-digital-self-control-apps": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-disallow-sharing-of-unclicked-links": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-down-votes": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-downranking-toxic-political-content": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-filtering-offensive-comments": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-give-audio-option-for-user-input": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-hide-edge-case-content-behind-warning": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-highlight-consensus-posts": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-highlighting-high-quality-comments": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-label-misleading-content-add-links-to-reliable-related-content": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-labeling-source-credibility": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-let-mods-suggest-edits-to-users": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-list-tips-for-checking-accuracy-of-shared-headlines": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-messages-prebunking-misinformation-on-controversial-topics": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-moderation-tool-for-ban-appeals": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-nudging-conversations-to-groups": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-nudging-counter-partisan-news": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-open-minded-badge": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-peer-awards": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-peer-review-of-comments": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-positive-background-imagery": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-post-guidance": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-pre-approving-posts": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-preliminary-flagging-before-posting": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-prompt-explaining-trolls-present-but-outnumbered": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-prompt-suggesting-letting-others-post": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-quality-scores": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-regional-identity-tags": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-reminder-of-norms": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-removal-explanations": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-removing-rule-breaking-comments": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-respect-button": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-reverse-chronological-feeds": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-shared-humanity-memes": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-show-content-reach": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-slowdown-modes": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-social-reference-cues": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-suggest-constructive-rephrased-messages": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-symbolic-contribution-awards": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-thank-you-button-module": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-thought-provoking-questions": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-toggle-to-focus-mode": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-up-votes": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-upranking-civility": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "psd-warning-that-topic-is-sensitive": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "public-narrative-marshall-ganz": {
+   "place": "Cambridge, Massachusetts, USA",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "public-source-community-zine": {
+   "place": "Oakland, Pittsburgh, Pennsylvania, USA",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "public-source-points-of-pride": {
+   "place": "Wilkinsburg, Allegheny County, Pennsylvania, USA",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "putting-belonging-reciprocity-and-care-into-practice-gatherfor-in-brownsville": {
+   "place": "Brownsville, Brooklyn, New York, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "putting-the-neighbor-back-in-the-neighborhood-renew-birmingham": {
+   "place": "Birmingham, Alabama, USA",
+   "precision": "city",
+   "basis": "text"
+  },
+  "radio-ambulante-listening-clubs": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Global listener-run clubs; no single place"
+  },
+  "recipes-for-connection": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "reciprocity-game": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "red-hook-wifi": {
+   "place": "Red Hook, Brooklyn, New York, USA",
+   "precision": "neighborhood",
+   "basis": "attribution",
+   "also": [
+    "Detroit, Michigan, USA"
+   ]
+  },
+  "reinvent-the-potluck": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "relational-design": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Victor Udoewa's papers are universal; contributor's Toronto base is not the work's"
+  },
+  "relational-organizing": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "relational-tech-process-guide": {
+   "place": "Outer Sunset, San Francisco, California, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "RTP guide; practice is universal"
+  },
+  "remix-at-neighborhood-scale": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "repair-caf": {
+   "place": "Amsterdam, Netherlands",
+   "precision": "origin",
+   "basis": "research",
+   "note": "First Repair Cafe, Amsterdam 2009"
+  },
+  "repair-cafe": {
+   "place": "Amsterdam, Netherlands",
+   "precision": "origin",
+   "basis": "text",
+   "note": "Global movement; story is its Amsterdam founding"
+  },
+  "replit": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "developer tool; no neighborhood place"
+  },
+  "repower-grassroots-organizing-school-for-bipoc-organizers": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "resend": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "developer tool; no neighborhood place"
+  },
+  "resilience-hub": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "results-as-flatfiles-interop": {
+   "place": null,
+   "precision": "none",
+   "basis": "research",
+   "note": "Metagov, distributed"
+  },
+  "rhihub-community-health-worker-toolkit-rural-implementation": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "roving-listener": {
+   "place": "Mapleton-Fall Creek, Indianapolis, Indiana, USA",
+   "precision": "neighborhood",
+   "basis": "attribution",
+   "note": "Broadway UMC sits in the Mapleton-Fall Creek neighborhood; meta says 'Fall Creek area'"
+  },
+  "sacred-harp-and-shape-note-singing": {
+   "place": "Georgia, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "The Sacred Harp was published in Georgia in 1844; tradition rooted in the Deep South"
+  },
+  "sal-si-puedes": {
+   "place": "Mayfair, East San Jose, San Jose, California, USA",
+   "precision": "neighborhood",
+   "basis": "attribution",
+   "note": "Sal Si Puedes was the barrio in San Jose's Mayfair district; spelled for the geocoder"
+  },
+  "sandy-storyline": {
+   "place": "New York, New York, USA",
+   "precision": "city",
+   "basis": "attribution",
+   "also": [
+    "New Jersey, USA"
+   ],
+   "note": "Hurricane Sandy rebuilding across NYC and the Jersey shore"
+  },
+  "savannah-kruger-and-the-neighborhood-accelerator-boulder": {
+   "place": "Boulder, Colorado, USA",
+   "precision": "city",
+   "basis": "text"
+  },
+  "seattle-neighborhood-matching-fund": {
+   "place": "Seattle, Washington, USA",
+   "precision": "city",
+   "basis": "text"
+  },
+  "seven-generations-principle": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "sf-meet-your-neighbors-fund": {
+   "place": "San Francisco, California, USA",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "shareables-top-20-how-to-share-guides": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "six-lessons-neighborhood-tech": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "skillshare": {
+   "place": "Somerville, Massachusetts, USA",
+   "precision": "origin",
+   "basis": "text",
+   "note": "general practice; Somerville named as early model"
+  },
+  "skillshare-event": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "snowflake-model": {
+   "place": "Cambridge, Massachusetts, USA",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "snowmageddon-cleanup": {
+   "place": "Dupont Circle, Washington, District of Columbia, USA",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "social-capital-isnt-meant-to-be-hoarded": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "sound-off": {
+   "place": "Philadelphia, Pennsylvania, USA",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "south-australia-citizens-jury-on-nuclear-waste": {
+   "place": "South Australia, Australia",
+   "precision": "region",
+   "basis": "text"
+  },
+  "stanford-pb-platform": {
+   "place": "Stanford, California, USA",
+   "precision": "origin",
+   "basis": "attribution"
+  },
+  "starting-a-microsolidarity-crew": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "starting-something-new-vs-joining-existing-groups-ecosystem-health": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "story-circles": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "story-of-self-us-now": {
+   "place": "Cambridge, Massachusetts, USA",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "story-sharing-potluck-supper": {
+   "place": "Maine, USA",
+   "precision": "region",
+   "basis": "research",
+   "note": "Community Plate suppers across Maine"
+  },
+  "storycorps-diy": {
+   "place": "Brooklyn, New York, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "StoryCorps headquarters"
+  },
+  "street-beat-newsletter-generator": {
+   "place": "Inner Richmond, San Francisco, California, USA",
+   "precision": "origin",
+   "basis": "text",
+   "note": "Contributed by Grant from Inner Richmond; tool is for any neighborhood"
+  },
+  "streetmix": {
+   "place": "San Francisco, California, USA",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "structural-thinking-about-connection": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "sunday-assembly": {
+   "place": "London, England, United Kingdom",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "sunday-assembly-start-your-own-chapter": {
+   "place": "London, England, UK",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "supabase": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "developer tool; no neighborhood place"
+  },
+  "swapping-stories": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "US-wide format; author's base not established"
+  },
+  "sweet-spot-tactics": {
+   "place": "Cambridge, Massachusetts, USA",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "talk-to-the-city-taiwan-tokyo": {
+   "place": "Taiwan",
+   "precision": "country",
+   "basis": "attribution",
+   "also": [
+    "Tokyo, Japan",
+    "California, USA"
+   ]
+  },
+  "talking-circle": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "talking-circles-indigenous-dialogue-practice": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "terrastories": {
+   "place": "Oakland, California, USA",
+   "precision": "origin",
+   "basis": "research",
+   "also": [
+    "Saramacca, Suriname"
+   ],
+   "note": "Awana Digital's base; first built with Matawai communities on the Saramacca River"
+  },
+  "text-by-tag": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "the-5-cs-of-community": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "the-5-cs-of-community-framework": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "the-abundant-community": {
+   "place": "Evanston, Illinois, USA",
+   "precision": "origin",
+   "basis": "research",
+   "also": [
+    "Cincinnati, Ohio, USA"
+   ],
+   "note": "McKnight's base at Northwestern; Block's in Cincinnati"
+  },
+  "the-abundant-community-awakening-the-gifts-in-your-neighborhood": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "the-art-of-gathering": {
+   "place": "New York, New York, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Priya Parker is New York based"
+  },
+  "the-builder-spectrum": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "the-bushwick-collective-brooklyn": {
+   "place": "Bushwick, Brooklyn, New York, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "the-claypole-commons": {
+   "place": "Cincinnati, Ohio, USA",
+   "precision": "city",
+   "basis": "text",
+   "note": "One block of 25 houses in Cincinnati; the neighborhood is not named"
+  },
+  "the-commons-elinor-ostrom-framework": {
+   "place": "Bloomington, Indiana, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Ostrom at Indiana University"
+  },
+  "the-connection-opportunity-how-social-connection-reduces-polarization": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "the-daily-talk": {
+   "place": "Monrovia, Liberia",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "the-debrief": {
+   "place": "Cambridge, Massachusetts, USA",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "the-dinner-party-grief-community": {
+   "place": "Los Angeles, California, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Founded in Los Angeles; now national"
+  },
+  "the-flyer-north-oakland": {
+   "place": "North Oakland, Oakland, California, USA",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "the-folded-map": {
+   "place": "Chicago, Illinois, USA",
+   "precision": "city",
+   "basis": "text",
+   "also": [
+    "Englewood, Chicago, Illinois, USA"
+   ],
+   "note": "Pairs North and South Side addresses citywide; artist is from Englewood"
+  },
+  "the-great-good-place-third-places-framework": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "the-hard-ask": {
+   "place": "Cambridge, Massachusetts, USA",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "the-hidden-tribes-of-america": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "the-house-meeting": {
+   "place": "Boyle Heights, Los Angeles, California, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Fred Ross refined the house meeting with the CSO, founded in Boyle Heights in 1947"
+  },
+  "the-jar-is-an-arts-centric-initiative-that-takes-a-unique-approach-to-attendees-": {
+   "place": "Boston, Massachusetts, USA",
+   "precision": "city",
+   "basis": "research",
+   "note": "The Jar is a Boston-area arts nonprofit (Boston Globe); contributor is in Kitsap"
+  },
+  "the-kindness-party": {
+   "place": "Brownsville, Brooklyn, New York, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "the-longest-table": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "the-longest-table-community-meal": {
+   "place": "Chelsea, Manhattan, New York, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Began on West 21st Street in Chelsea, 2022; now held in 50 cities"
+  },
+  "the-nap-ministry-rest-as-resistance-communal-rest": {
+   "place": "Atlanta, Georgia, USA",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "the-neighbor-gathering-microgrant": {
+   "place": "Charlottesville, Virginia, USA",
+   "precision": "city",
+   "basis": "text"
+  },
+  "the-organizing-sentence": {
+   "place": "Cambridge, Massachusetts, USA",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "the-pain-clinic": {
+   "place": "Portsmouth, Ohio, USA",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "the-perception-gap-interactive-tool-for-understanding-polarization": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "the-reciprocity-game-a-crew-practice": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "the-relational-commons": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Archetype story, no place"
+  },
+  "the-resilience-we-want-guide": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "the-school-for-grassroots-leaders": {
+   "place": "Philadelphia, Pennsylvania, USA",
+   "precision": "city",
+   "basis": "text"
+  },
+  "the-search-to-belong-rethinking-intimacy-community-and-connection": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "the-shared-clipboard": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Archetype story, no place"
+  },
+  "the-shared-spine-civic-media-and-relational-tech": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Universal Cookbook framework; News Futures is a distributed working group with no single home base"
+  },
+  "the-village-square-tallahassee": {
+   "place": "Tallahassee, Florida, USA",
+   "precision": "city",
+   "basis": "text"
+  },
+  "the-wall-of-wrigley-field": {
+   "place": "Wrigleyville, Chicago, Illinois, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "the-well-played-game-bernard-dekoven": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "the-world-caf": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "the-yes-house-granite-falls-minnesota": {
+   "place": "Granite Falls, Minnesota, USA",
+   "precision": "neighborhood",
+   "basis": "text",
+   "note": "Small prairie town"
+  },
+  "theory-of-change-sentence": {
+   "place": "Cambridge, Massachusetts, USA",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "theory-of-groups-and-groups-of-groups": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "three-layers-of-neighborhood-infrastructure": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "time-banking": {
+   "place": "Washington, District of Columbia, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Edgar Cahn / TimeBanks USA"
+  },
+  "to-for-with-by": {
+   "place": "Dublin, Ireland",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Cormac Russell / Nurture Development is Dublin-based"
+  },
+  "todays-news-local-news-by-need": {
+   "place": "Outer Sunset, San Francisco, California, USA",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "tool-libraries-and-maker-spaces": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "tool-library": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "topic-index": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "tracking-down-the-power": {
+   "place": "Cambridge, Massachusetts, USA",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "trade-school-new-york-to-everywhere": {
+   "place": "Lower East Side, Manhattan, New York, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "training-for-change-cross-movement-organizing-school": {
+   "place": "Philadelphia, Pennsylvania, USA",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "transformharmorg": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "transition-network-transition-towns": {
+   "place": "Totnes, Devon, England, UK",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "transition-town": {
+   "place": "Totnes, Devon, England, United Kingdom",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "trauma-informed-community-building": {
+   "place": "San Francisco, California, USA",
+   "precision": "origin",
+   "basis": "text",
+   "also": [
+    "Baltimore, Maryland, USA",
+    "Memphis, Tennessee, USA"
+   ],
+   "note": "framework developed by BRIDGE Housing in SF; text lists practitioner cities"
+  },
+  "twilio": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "developer tool; no neighborhood place"
+  },
+  "two-components": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Universal Cookbook framework; News Futures is a distributed working group with no single home base"
+  },
+  "up-the-block": {
+   "place": "Philadelphia, Pennsylvania, USA",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "uri-interfaith-dialogue-tips-designing-and-facilitating-dialogue": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "ushahidi": {
+   "place": "Nairobi, Kenya",
+   "precision": "origin",
+   "basis": "attribution"
+  },
+  "utopias-block-party-fund": {
+   "place": "Los Angeles, California, USA",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "vercel": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "developer tool; no neighborhood place"
+  },
+  "village-movement-aging-in-community": {
+   "place": "Beacon Hill, Boston, Massachusetts, USA",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "village-movement-virtual-villages": {
+   "place": "Beacon Hill, Boston, Massachusetts, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Beacon Hill Village was the first village, 2002"
+  },
+  "vtaiwan-and-digital-democracy": {
+   "place": "Taiwan",
+   "precision": "country",
+   "basis": "text"
+  },
+  "vtaiwan-consensus-at-scale": {
+   "place": "Taiwan",
+   "precision": "country",
+   "basis": "attribution"
+  },
+  "warmingcooling-center": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "warmingcooling-centers-as-community-hubs": {
+   "place": "Los Angeles, California, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Generic practice; source is Climate Resolve, Los Angeles"
+  },
+  "weave-learning-center-training-for-community-weavers": {
+   "place": "Washington, District of Columbia, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Aspen Institute"
+  },
+  "weave-the-social-fabric-project": {
+   "place": "Washington, District of Columbia, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Aspen Institute"
+  },
+  "welcome-group-program": {
+   "place": "Toronto, Ontario, Canada",
+   "precision": "city",
+   "basis": "research",
+   "note": "Together Project operates in the Greater Toronto Area"
+  },
+  "welcome-groups-training-manual": {
+   "place": "Toronto, Ontario, Canada",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Together Project, Toronto"
+  },
+  "welcome-wagon": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "welcome-wagon-practices-new-neighbor-welcoming": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "welcoming-newcomers": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Archetype story, no place"
+  },
+  "westminster-stories": {
+   "place": "Downtown, Providence, Rhode Island, USA",
+   "precision": "neighborhood",
+   "basis": "text",
+   "note": "One street: Westminster Street in downtown Providence"
+  },
+  "weve-squeezed-the-life-out-of-civic-life-professionalization-critique": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "what-is-a-civic-hub": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "what-s-on-your-ballot": {
+   "place": "Tucson, Arizona, USA",
+   "precision": "city",
+   "basis": "attribution"
+  },
+  "what-we-heard-report": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Prompt template with no place in it"
+  },
+  "what-we-lose-when-optimizing-community": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "who-age-friendly-cities-framework": {
+   "place": "Geneva, Switzerland",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "why-stories-matter-ganz": {
+   "place": "Cambridge, Massachusetts, USA",
+   "precision": "origin",
+   "basis": "research"
+  },
+  "worksheet-community-needs": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Universal Cookbook framework; News Futures is a distributed working group with no single home base"
+  },
+  "worksheet-impact-tracker": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Universal Cookbook framework; News Futures is a distributed working group with no single home base"
+  },
+  "worksheet-recipe-builder": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "Universal Cookbook framework; News Futures is a distributed working group with no single home base"
+  },
+  "world-cafe": {
+   "place": "Mill Valley, California, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Brown & Isaacs' base"
+  },
+  "yard-parties-and-sweat-equity": {
+   "place": "Birmingham, Alabama, USA",
+   "precision": "city",
+   "basis": "text"
+  },
+  "youth-participatory-action-research-ypar": {
+   "place": "Berkeley, California, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "YPAR Hub, UC Berkeley"
+  },
+  "youthbuild": {
+   "place": "Roxbury, Boston, Massachusetts, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "YouthBuild USA headquarters"
+  },
+  "zinester-s-guide-to-nyc": {
+   "place": "New York, New York, USA",
+   "precision": "city",
+   "basis": "attribution"
+  }
+ },
+ "studio_items": {
+  "0404c8e5-e067-4090-9eb8-96dfe4281611": {
+   "place": "Vermont, USA",
+   "precision": "region",
+   "basis": "text"
+  },
+  "04690655-fcd8-4a6e-8075-c2012a13fd24": {
+   "place": "Taiwan",
+   "precision": "country",
+   "basis": "text",
+   "note": "rural farmland across Taiwan; no single county named"
+  },
+  "06182529-8f31-4415-a638-ec54341bbae9": {
+   "place": "San Francisco, California, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "national membership program founded in San Francisco"
+  },
+  "06c15ac5-c238-40c4-a2ec-781319da6248": {
+   "place": "Outer Sunset, San Francisco, California, USA",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "0821876b-4d97-4cbf-a804-a9e858128099": {
+   "place": null,
+   "precision": "none",
+   "basis": "text",
+   "note": "national practice record; NMPAN is a network, not a place"
+  },
+  "0888ee0f-1ff0-4b5e-b61f-e614fc8a775f": {
+   "place": "Plymouth, New Hampshire, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "0bc754b8-3fdc-4a0d-84b7-0fd616429c3a": {
+   "place": "New Haven, Indiana, USA",
+   "precision": "region",
+   "basis": "text",
+   "also": [
+    "Allen County, Indiana, USA"
+   ],
+   "note": "eastern Allen County alliance; New Haven is its largest member"
+  },
+  "0dcf377e-d48b-438a-89e8-6953e3d49e4a": {
+   "place": "Waitsfield, Vermont, USA",
+   "precision": "region",
+   "basis": "text",
+   "also": [
+    "Warren, Vermont, USA",
+    "Fayston, Vermont, USA"
+   ],
+   "note": "Mad River Valley; the planning district sits in Waitsfield"
+  },
+  "0e1df5c9-e3a5-40a3-88dd-886f74e014bd": {
+   "place": "Wardensville, West Virginia, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "0f69ff06-d08f-43e1-ac4f-ce8979caf194": {
+   "place": "Pennsylvania Wilds, Pennsylvania, USA",
+   "precision": "region",
+   "basis": "text",
+   "note": "a 13-county north-central Pennsylvania region"
+  },
+  "1125f0c2-bc69-4fc0-969b-d7e8c70f54aa": {
+   "place": null,
+   "precision": "none",
+   "basis": "research",
+   "note": "BLOOM's tool; its home base could not be established, Central Oregon is only the worked example"
+  },
+  "13685058-c5ae-4c9e-8fd9-38011298370d": {
+   "place": "Central Oregon, Oregon, USA",
+   "precision": "region",
+   "basis": "text",
+   "also": [
+    "Bend, Oregon, USA"
+   ],
+   "note": "COCAP works out of Bend; participants spanned Deschutes, Crook and Jefferson counties"
+  },
+  "149447fb-89ee-40de-829b-b2f1cf166896": {
+   "place": "Hopeton, Woods County, Oklahoma, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "generic recipe from Becky McCray's 101 Ways; she is based in Hopeton, near Alva, Oklahoma"
+  },
+  "187bc379-0668-4b9a-8296-38523a1deefd": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "1aa9762e-f90f-4823-96db-f96170b0d5ee": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "1ca5066e-3a47-422d-81e1-766e021eada8": {
+   "place": "Baltimore, Maryland, USA",
+   "precision": "city",
+   "basis": "research",
+   "note": "Thread is a Baltimore organization"
+  },
+  "1e36676f-ad51-4404-b06f-004174d23bf2": {
+   "place": "Hopeton, Woods County, Oklahoma, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "generic recipe from Becky McCray's 101 Ways; she is based in Hopeton, near Alva, Oklahoma"
+  },
+  "1f25497a-209f-4f05-8b2b-7924c0074aaa": {
+   "place": "Madrid, Spain",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "214a2cbc-1c8c-4e72-a63e-5f642b6374c8": {
+   "place": "Lubec, Maine, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "22d57198-112b-402a-a4b6-188c2ea6fa8c": {
+   "place": "Perry, New York, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "24845248-8ee5-4169-a826-e4a64651292f": {
+   "place": "Stonington, Maine, USA",
+   "precision": "neighborhood",
+   "basis": "text",
+   "also": [
+    "Deer Isle, Maine, USA"
+   ]
+  },
+  "25fb7772-11d1-4752-b4bf-4bba48da9e8f": {
+   "place": "Water Street, Northfield, Vermont, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "27b203d3-619b-49fd-8111-b21b518154db": {
+   "place": "Fergus Falls, Minnesota, USA",
+   "precision": "region",
+   "basis": "research",
+   "note": "West Central Initiative's nine-county region; its office is in Fergus Falls"
+  },
+  "2bf0002f-0e1f-4be3-b99d-201db10be460": {
+   "place": "Norwich, Vermont, USA",
+   "precision": "neighborhood",
+   "basis": "text",
+   "also": [
+    "White River Junction, Vermont, USA"
+   ],
+   "note": "Vital Communities' Upper Valley program; King Arthur is in Norwich"
+  },
+  "3040738e-6618-46d1-8347-9c11be015d91": {
+   "place": "Grand Lake Stream, Maine, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "32048b61-f08d-4ce6-99d5-9f5e0e3c2243": {
+   "place": "Cumby, Texas, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "35b2ab43-cbef-42f4-bf18-dcf5f0ed1c97": {
+   "place": "Bethlehem, New Hampshire, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "3796bd5b-5ead-4862-ac3e-757190d0ea5f": {
+   "place": "Lexington, Kentucky, USA",
+   "precision": "city",
+   "basis": "text",
+   "also": [
+    "Nicholasville, Kentucky, USA"
+   ],
+   "note": "item says Lexington; Taylor Made Farm is just south in Nicholasville"
+  },
+  "3a137dd1-ce5c-44db-ae1b-068078b6a434": {
+   "place": "Windham County, Vermont, USA",
+   "precision": "region",
+   "basis": "text",
+   "also": [
+    "Jamaica, Vermont, USA",
+    "Londonderry, Vermont, USA",
+    "Weston, Vermont, USA",
+    "Winhall, Vermont, USA"
+   ]
+  },
+  "3a881d53-8ca2-489a-9c46-9b8e55d5dca2": {
+   "place": "New Haven, Connecticut, USA",
+   "precision": "city",
+   "basis": "text"
+  },
+  "3f596087-9e7e-4881-9e10-b9752c278d78": {
+   "place": "Warsaw, New York, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "48213e37-2480-4ef9-9ef3-53d5eba66f27": {
+   "place": "London, England, United Kingdom",
+   "precision": "origin",
+   "basis": "research",
+   "note": "mySociety is UK-based; the platform is forked worldwide"
+  },
+  "4b9ee9d5-42f4-4de8-bb61-a4ec4b41a3a6": {
+   "place": "Washington, District of Columbia, USA",
+   "precision": "city",
+   "basis": "text",
+   "note": "a general practice; DC is the example the item names"
+  },
+  "4e634fe5-2b4a-45b7-898b-32b6c97e0c3d": {
+   "place": null,
+   "precision": "none",
+   "basis": "research",
+   "note": "BLOOM's tool; home base not established"
+  },
+  "4f35c09f-b520-485d-9538-50757e17d7c6": {
+   "place": "Plymouth, New Hampshire, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "5288755b-015c-41ff-bf1c-997b760dcc8a": {
+   "place": "Rogers Park, Chicago, Illinois, USA",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "54782294-8b86-49b3-b7ef-0bfe74c4cf64": {
+   "place": "Mentor, Ohio, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "national curriculum from the Entrepreneurial Learning Initiative, based in Mentor, Ohio"
+  },
+  "548a7b9a-d078-4e41-aeb0-d846118c66b0": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "54c76c15-d5ba-4476-9d2e-4a8db410136d": {
+   "place": "Baltimore, Maryland, USA",
+   "precision": "city",
+   "basis": "research",
+   "note": "Thread is a Baltimore organization"
+  },
+  "580ac5e1-337f-40dd-ba92-a619c88d2ee4": {
+   "place": "Strafford, Vermont, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "58841053-d7d8-4806-aab7-4364f03e78d8": {
+   "place": "Nairobi, Kenya",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "59c6e475-a49a-4bb3-8012-b8638d6f49e3": {
+   "place": "Bilbao, Basque Country, Spain",
+   "precision": "city",
+   "basis": "text"
+  },
+  "5c6fd5e0-08f6-4c23-994c-4e98f24ca85c": {
+   "place": null,
+   "precision": "none",
+   "basis": "research",
+   "note": "BLOOM's tool; home base not established, Central Oregon is only the worked example"
+  },
+  "5ca9c0b2-94f9-49b3-9271-1e9147cf7b67": {
+   "place": "Hopeton, Woods County, Oklahoma, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "generic recipe from Becky McCray's 101 Ways; she is based in Hopeton, near Alva, Oklahoma"
+  },
+  "5e2d54cd-e59a-4491-b140-39bef6f7445f": {
+   "place": "Hopeton, Woods County, Oklahoma, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "generic recipe from Becky McCray's 101 Ways; she is based in Hopeton, near Alva, Oklahoma"
+  },
+  "5ec03877-8154-4e55-a852-66b8cc777a74": {
+   "place": "Bowdoinham, Maine, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "63249379-2d35-4c3b-908c-615b05ae9498": {
+   "place": "New Britain, Connecticut, USA",
+   "precision": "city",
+   "basis": "text"
+  },
+  "63bd5fd0-988a-4729-ab2d-2d2ea1599df3": {
+   "place": "New England, USA",
+   "precision": "region",
+   "basis": "text",
+   "also": [
+    "New York, USA"
+   ]
+  },
+  "65e29f19-18bf-4b4e-82a8-892ec9c21663": {
+   "place": "Kodiak, Alaska, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "67795baf-8a4c-4070-92b1-f94667988139": {
+   "place": "Los Angeles, California, USA",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "6b8f372e-7729-4ff6-8689-97bae3bb38fe": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "6e15831c-1325-4695-be98-b57b72f17f76": {
+   "place": "Barcelona, Catalonia, Spain",
+   "precision": "origin",
+   "basis": "text"
+  },
+  "74e02068-5f4a-4a82-a90b-ad527f16752a": {
+   "place": "Concord, New Hampshire, USA",
+   "precision": "city",
+   "basis": "text"
+  },
+  "7ac66884-2333-435f-a4a5-dece649d9d6f": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "82c9cbfe-3661-40dd-948a-d31680870082": {
+   "place": "Longmont, Colorado, USA",
+   "precision": "city",
+   "basis": "text"
+  },
+  "8640f8a1-477b-4e84-ba6a-e040004ed7d3": {
+   "place": "Plymouth, New Hampshire, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "8798359e-468d-4ae2-b232-eaaadf283a14": {
+   "place": "Baltimore, Maryland, USA",
+   "precision": "city",
+   "basis": "research",
+   "note": "Thread is a Baltimore organization"
+  },
+  "8986a7c6-998d-4f70-997d-485f5a84d6ac": {
+   "place": "Johnston, Rhode Island, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "national service; Mobile Beacon is based in Johnston, RI"
+  },
+  "89b8d4a9-787b-49da-b27b-4dd061d67810": {
+   "place": null,
+   "precision": "none",
+   "basis": "research",
+   "note": "BLOOM's tool; home base not established"
+  },
+  "8b145ba1-43a3-4733-9bdb-52f44384cb50": {
+   "place": "Peterborough, New Hampshire, USA",
+   "precision": "region",
+   "basis": "research",
+   "note": "serves eleven towns in the eastern Monadnock Region around Peterborough and Jaffrey"
+  },
+  "8ba6631f-37ed-4091-a52b-d4a414549448": {
+   "place": "Hopeton, Woods County, Oklahoma, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "generic recipe from Becky McCray's 101 Ways; she is based in Hopeton, near Alva, Oklahoma"
+  },
+  "8bb698bd-9aeb-47e2-9338-84e96a72b833": {
+   "place": "Port Clyde, Maine, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "8c056d45-4ca0-4f58-abd2-34e03468ff72": {
+   "place": "Laverne, Oklahoma, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "8cff2aea-acbd-4cc0-a0c6-46b52a925aef": {
+   "place": "Stanford, California, USA",
+   "precision": "origin",
+   "basis": "attribution",
+   "also": [
+    "New York, New York, USA"
+   ]
+  },
+  "8e7c8d8a-4a59-4980-872b-07898d0ffbbd": {
+   "place": "Baltimore, Maryland, USA",
+   "precision": "city",
+   "basis": "research",
+   "note": "Thread is a Baltimore organization"
+  },
+  "8fe72351-7b83-45ab-aea7-74a07322fe36": {
+   "place": "Graham, Alamance County, North Carolina, USA",
+   "precision": "neighborhood",
+   "basis": "text",
+   "note": "item says Alamance County; the farm is in Graham"
+  },
+  "91cbe0c9-b752-45a1-b60c-4ede51ed4da0": {
+   "place": "Plymouth, New Hampshire, USA",
+   "precision": "region",
+   "basis": "text",
+   "also": [
+    "Campton, New Hampshire, USA",
+    "Dorchester, New Hampshire, USA"
+   ],
+   "note": "watershed-wide trust based in Plymouth"
+  },
+  "94bc07e2-792b-49d7-83c2-b899fbd8f260": {
+   "place": "Frewsburg, New York, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "95da482c-3ccf-415c-8c52-def1e6e9c743": {
+   "place": "Baltimore, Maryland, USA",
+   "precision": "city",
+   "basis": "research",
+   "note": "Thread is a Baltimore organization"
+  },
+  "992393dd-72bd-41ee-8788-a70795ca3816": {
+   "place": "Baltimore, Maryland, USA",
+   "precision": "city",
+   "basis": "text"
+  },
+  "9ad04193-ba1b-4678-bcab-b3d88fa27536": {
+   "place": "Thetford, Vermont, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "9f61dc49-f78c-473b-b8c7-cb9cd4bc2f65": {
+   "place": "Ithaca, New York, USA",
+   "precision": "origin",
+   "basis": "text",
+   "note": "global platform run by the Cornell Lab of Ornithology"
+  },
+  "a71c94bc-3c80-4dd2-974c-50009925624d": {
+   "place": "Baltimore, Maryland, USA",
+   "precision": "city",
+   "basis": "text"
+  },
+  "af3412d7-8f67-4a1b-bd9b-fab22e7bf16a": {
+   "place": "Forsyth, Montana, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "afdb38dc-d330-4995-9f5b-82ca2bf39dee": {
+   "place": "Outer Sunset, San Francisco, California, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "b07d9472-ce91-42cf-9124-22e32fc9aa20": {
+   "place": "Grundy County, Illinois, USA",
+   "precision": "region",
+   "basis": "text"
+  },
+  "b5c05ce1-9a5c-4370-95ae-92d9ad9760e1": {
+   "place": "Baltimore, Maryland, USA",
+   "precision": "city",
+   "basis": "research",
+   "note": "Thread is a Baltimore organization"
+  },
+  "b6cf38e8-ee51-4fe4-9e31-62bb1d07be6d": {
+   "place": "Mendocino, California, USA",
+   "precision": "origin",
+   "basis": "text",
+   "note": "a toolkit for any newsroom, written out of Mendocino County"
+  },
+  "b6e8d707-0ebe-4c27-8427-90a6a56159ec": {
+   "place": "Traverse City, Michigan, USA",
+   "precision": "city",
+   "basis": "text"
+  },
+  "ba3008aa-cc03-4de3-a7fa-d381fde3ccc7": {
+   "place": "Hopeton, Woods County, Oklahoma, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "generic recipe from Becky McCray's 101 Ways; she is based in Hopeton, near Alva, Oklahoma"
+  },
+  "ba916fbf-bbe1-4d5a-8746-89fe141e15e7": {
+   "place": "Tionesta, Pennsylvania, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "baeb8b8a-d006-43a4-b0d4-1708faaf381b": {
+   "place": "Seattle, Washington, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "Computational Democracy Project is based in Seattle"
+  },
+  "bbf30c14-868e-4eeb-9f3b-2b2201de56ca": {
+   "place": "Hopeton, Woods County, Oklahoma, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "generic recipe from Becky McCray's 101 Ways; she is based in Hopeton, near Alva, Oklahoma"
+  },
+  "bd708be0-178a-41ff-8f78-c32d931071c3": {
+   "place": "Baltimore, Maryland, USA",
+   "precision": "city",
+   "basis": "text"
+  },
+  "c175214c-991c-49a0-8872-2f3d0ec784c9": {
+   "place": "Pitt County, North Carolina, USA",
+   "precision": "region",
+   "basis": "text",
+   "also": [
+    "Greenville, North Carolina, USA"
+   ]
+  },
+  "c2ce2919-0158-4541-bebe-61cf97daabfd": {
+   "place": "Plymouth, New Hampshire, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "c4ba2d1d-4ac8-4339-88ba-a13b607be15e": {
+   "place": "Port Townsend, Washington, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "c80a2515-05f3-4cfc-a9fe-f3c0a028fcdb": {
+   "place": "Letchworth State Park, Castile, New York, USA",
+   "precision": "neighborhood",
+   "basis": "text",
+   "also": [
+    "Perry, New York, USA"
+   ]
+  },
+  "cb37a951-eb2e-4f5f-a280-c89439fb68e9": {
+   "place": "Lansing, Michigan, USA",
+   "precision": "city",
+   "basis": "text"
+  },
+  "ceee7d1e-0cbe-4fa3-9065-d565fd50160f": {
+   "place": "Barcelona, Catalonia, Spain",
+   "precision": "city",
+   "basis": "text"
+  },
+  "cfc0b20b-81b3-4b06-bd7b-7bc4ab260e44": {
+   "place": "Taipei, Taiwan",
+   "precision": "country",
+   "basis": "text",
+   "note": "national-scale process run from Taipei"
+  },
+  "d1aed93a-7070-4c8e-b1f6-5c648c652e12": {
+   "place": "Shickley, Nebraska, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "d3936889-1e79-45af-833d-0b128bdf25c7": {
+   "place": "Hopeton, Woods County, Oklahoma, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "generic recipe from Becky McCray's 101 Ways; she is based in Hopeton, near Alva, Oklahoma"
+  },
+  "d402a672-7f0e-433a-9618-2a7aa49cf72c": {
+   "place": "Birmingham, Alabama, USA",
+   "precision": "city",
+   "basis": "text"
+  },
+  "d5c6d159-1fab-4d6b-b6dc-9b5b81667701": {
+   "place": "Hopeton, Woods County, Oklahoma, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "generic recipe from Becky McCray's 101 Ways; she is based in Hopeton, near Alva, Oklahoma"
+  },
+  "d6d9663a-2899-44bc-9980-e7e4455e78f1": {
+   "place": "Minneapolis, Minnesota, USA",
+   "precision": "city",
+   "basis": "text",
+   "also": [
+    "Saint Paul, Minnesota, USA"
+   ]
+  },
+  "d8ef64ae-2e7e-4005-b601-789597e89258": {
+   "place": "Chicago, Illinois, USA",
+   "precision": "city",
+   "basis": "attribution",
+   "note": "City Bureau's home program; the model now runs in a national network"
+  },
+  "db93942f-1c6f-41b6-9477-5b00a0610958": {
+   "place": "New Ulm, Minnesota, USA",
+   "precision": "neighborhood",
+   "basis": "text",
+   "note": "New Ulm is the worked example; the program itself runs across rural Minnesota and beyond"
+  },
+  "dd17f180-4413-44ec-8c30-b1918b3cadf1": {
+   "place": "Lee, New Hampshire, USA",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "e19d8032-920d-4654-ae37-188b346347b0": {
+   "place": null,
+   "precision": "none",
+   "basis": "research",
+   "note": "national fellowship; sources split its HQ between Wichita, Dodge City and Chapel Hill"
+  },
+  "e31ddfe6-b3e7-49bc-8d90-fd9dfba7940f": {
+   "place": "Baltimore, Maryland, USA",
+   "precision": "city",
+   "basis": "text"
+  },
+  "e3582411-eec0-4ec7-af46-d5fd0693a706": {
+   "place": "Houston, Texas, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "founded in Houston in 2007; runs in hundreds of towns"
+  },
+  "e3b168bc-83ee-415d-a0de-0cb05f71b347": {
+   "place": "Puerto Rico, USA",
+   "precision": "origin",
+   "basis": "text",
+   "note": "a toolkit written out of Hurricane María; usable anywhere"
+  },
+  "e52f5c86-5247-4d3f-b885-2fde1556286c": {
+   "place": "Bemidji, Minnesota, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "e97c8891-9be4-46a9-9a50-9c27fbb6c639": {
+   "place": "Baltimore, Maryland, USA",
+   "precision": "city",
+   "basis": "research",
+   "note": "Thread is a Baltimore organization"
+  },
+  "ea0d73eb-47ec-4334-bac4-dda2143dd654": {
+   "place": "Baltimore, Maryland, USA",
+   "precision": "city",
+   "basis": "research",
+   "note": "Thread is a Baltimore organization"
+  },
+  "ea39c72c-5d03-48ec-86bc-53018627402e": {
+   "place": "Camden, Alabama, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "eddbe1f2-51d6-465a-85ba-52a7c2fd329a": {
+   "place": "Hopeton, Woods County, Oklahoma, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "generic recipe from Becky McCray's 101 Ways; she is based in Hopeton, near Alva, Oklahoma"
+  },
+  "efa9f877-dddc-4129-8d3c-998a414328ef": {
+   "place": "Brainerd, Minnesota, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "f543ce83-4793-41ee-a2d0-f51965cfeb8a": {
+   "place": "Vermont, USA",
+   "precision": "region",
+   "basis": "text"
+  },
+  "f5dd7b5b-963e-4d6b-83b1-6018cda4cb70": {
+   "place": "Skowhegan, Maine, USA",
+   "precision": "neighborhood",
+   "basis": "text"
+  },
+  "f733a039-8da3-45c8-93e7-30806c151f9f": {
+   "place": "Akwesasne, New York, USA",
+   "precision": "neighborhood",
+   "basis": "text",
+   "also": [
+    "Paul Smiths, New York, USA"
+   ],
+   "note": "built at Paul Smith's College, delivers to Akwesasne"
+  },
+  "f7443221-396b-4ec8-a6af-3063e0b7ef8e": {
+   "place": null,
+   "precision": "none",
+   "basis": "text"
+  },
+  "f897faf2-e53b-4a6b-9b44-1436d87b3326": {
+   "place": "Hopeton, Woods County, Oklahoma, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "generic recipe from Becky McCray's 101 Ways; she is based in Hopeton, near Alva, Oklahoma"
+  },
+  "fd6ca3c7-74fb-40f6-9fd6-03d311788e31": {
+   "place": "Washington, District of Columbia, USA",
+   "precision": "origin",
+   "basis": "research",
+   "note": "international relief org headquartered in DC"
+  }
+ }
+}

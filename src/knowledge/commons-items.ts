@@ -3,6 +3,7 @@ import { resolveStudioAssetUrl } from './queries';
 import { toMarkdown } from '@/lib/rich-text';
 import { BUILD_DAY_CARD, BUILD_DAY_CARD_SLUG, BUILD_DAY_CARD_SUMMARY, BUILD_DAY_SHELF } from './build-day';
 import { STUDIO_BRIEF_CARD, STUDIO_BRIEF_CARD_SLUG } from './studio-brief';
+import { parseLocation, type GeoLocation } from './geo';
 
 /**
  * Direct reads of commons_items for the Commons Gallery — the remixable
@@ -35,6 +36,9 @@ export interface CommonsCard {
    *  metadata.image_url (the shared commons schema stays column-stable);
    *  the card select aliases it out so lists stay light. */
   image_url: string | null;
+  /** Where the item is rooted (metadata.location, see knowledge/geo.ts) —
+   *  the Nearby filter reads it; null for the universal and the untagged */
+  location: GeoLocation | null;
 }
 
 export interface CommonsItemDetail extends CommonsCard {
@@ -42,7 +46,12 @@ export interface CommonsItemDetail extends CommonsCard {
   metadata: Record<string, unknown> | null;
 }
 
-const CARD_COLUMNS = 'id,slug,kind,title,summary,attribution,source_studio_slug,source_url,license,tags,image_url:metadata->>image_url';
+const CARD_COLUMNS = 'id,slug,kind,title,summary,attribution,source_studio_slug,source_url,license,tags,image_url:metadata->>image_url,location:metadata->location';
+
+/** The location arrives as raw JSON; read it once at the door */
+function withLocation<T extends { location: unknown }>(row: T): T {
+  return { ...row, location: parseLocation(row.location) };
+}
 
 async function rest<T>(path: string, signal?: AbortSignal): Promise<T> {
   const res = await fetch(`${COMMONS_URL}/rest/v1/${path}`, {
@@ -50,7 +59,28 @@ async function rest<T>(path: string, signal?: AbortSignal): Promise<T> {
     signal,
   });
   if (!res.ok) throw new Error(`Commons read failed (${res.status})`);
-  return res.json() as Promise<T>;
+  const data = (await res.json()) as T;
+  return (Array.isArray(data) ? data.map(r => (r && typeof r === 'object' && 'location' in r ? withLocation(r) : r)) : data) as T;
+}
+
+/**
+ * Where the Studio KB's tools and stories are rooted. The gallery reads
+ * those from the Studio's own database (read-only from here), but the
+ * commons mirrors every one of them on its `rt-studio` shelf with the KB id
+ * in source_local_id — so the mirror carries the location and this map
+ * joins it back: KB id → location.
+ */
+export async function fetchStudioLocations(): Promise<Map<string, GeoLocation>> {
+  const rows = await rest<{ source_local_id: string | null; location: unknown }[]>(
+    'commons_items?select=source_local_id,location:metadata->location' +
+      '&source_studio_slug=eq.rt-studio&status=eq.canonical&metadata->>location=not.is.null',
+  );
+  const map = new Map<string, GeoLocation>();
+  for (const r of rows) {
+    const loc = parseLocation(r.location);
+    if (r.source_local_id && loc) map.set(r.source_local_id, loc);
+  }
+  return map;
 }
 
 /**

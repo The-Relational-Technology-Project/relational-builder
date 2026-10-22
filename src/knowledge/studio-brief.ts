@@ -222,6 +222,7 @@ export const STUDIO_BRIEF_CARD: CommonsItemDetail = {
   license: 'RCL-1.0',
   tags: ['studio', 'network partners', 'principles', 'brief', 'landing page'],
   image_url: null,
+  location: null,
   body: [
     'A Studio is a home for a community of builders inside Relational Builder: its own values and principles layered on the shared relational tech principles, the practices and guardrails it wants in every build, the contexts and sources it knows, a gallery shelf of what its builders make, and a door with stewards.',
     '',

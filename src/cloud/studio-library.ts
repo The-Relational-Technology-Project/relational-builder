@@ -1,4 +1,5 @@
 import { builderClient } from '@/cloud/builder-client';
+import type { GeoLocation } from '@/knowledge/geo';
 import { useAuthStore } from '@/store/auth-store';
 import { submitToCommons } from '@/project/commons-submit';
 
@@ -38,6 +39,8 @@ export interface StudioLibraryItem {
   url: string | null;
   image_url: string | null;
   attribution: string | null;
+  /** Where the item is rooted, for the gallery's Nearby filter (knowledge/geo.ts) */
+  location: GeoLocation | null;
   tags: string[];
   visibility: StudioItemVisibility;
   /** pending = a member's offer awaiting a Studio Admin; approved = on the shelf */
@@ -65,13 +68,14 @@ export interface StudioItemInput {
   url?: string | null;
   image_url?: string | null;
   attribution?: string | null;
+  location?: GeoLocation | null;
   tags?: string[];
   sort_order?: number;
   offer_to_commons?: boolean;
 }
 
 const SELECT_COLUMNS =
-  'id, studio_slug, kind, title, summary, body, url, image_url, attribution, tags, ' +
+  'id, studio_slug, kind, title, summary, body, url, image_url, attribution, location, tags, ' +
   'visibility, status, remix_of, created_by, commons_submitted_at, sort_order, ' +
   'offer_to_commons, ' +
   'created_at, updated_at';

@@ -1,4 +1,5 @@
 import { builderClient } from '@/cloud/builder-client';
+import { parseLocation, type GeoLocation } from '@/knowledge/geo';
 
 /**
  * The event demo wall — showcase entries pinned by event participants
@@ -63,6 +64,51 @@ export interface EventShelfInfo {
   /** The studio this event belongs to, if any — decides which gallery its
    *  freshly shared builds surface on */
   studioSlug: string | null;
+  /** Where the event was — every build on its wall is Nearby there */
+  location: GeoLocation | null;
+  /** The day, when the steward recorded one */
+  eventDate: string | null;
+  /** A finished event: its gallery stays, its door is closed */
+  archived: boolean;
+}
+
+/** An event the signed-in builder has been part of — any of them, ever */
+export interface MyEvent {
+  code: string;
+  name: string;
+  studioSlug: string | null;
+  location: GeoLocation | null;
+  eventDate: string | null;
+  archived: boolean;
+  /** The one their profile carries right now (the wall they can pin to) */
+  current: boolean;
+}
+
+/**
+ * Every event this builder has joined, newest first. A room's gallery
+ * outlives the room: the shelf is theirs after the event, after they join
+ * the next one, after the steward archives the code.
+ */
+export async function fetchMyEvents(): Promise<MyEvent[]> {
+  if (!builderClient) return [];
+  const { data, error } = await builderClient.rpc('my_events');
+  if (error) return [];
+  return ((data as Array<Record<string, unknown>>) ?? []).map(r => ({
+    code: String(r.code),
+    name: String(r.name),
+    studioSlug: r.studio_slug ? String(r.studio_slug) : null,
+    location: parseLocation(r.location),
+    eventDate: r.event_date ? String(r.event_date) : null,
+    archived: !!r.archived_at,
+    current: r.current === true,
+  }));
+}
+
+/** The event's place, for a shelf opened by code */
+export async function fetchEventLocation(code: string): Promise<GeoLocation | null> {
+  if (!builderClient) return null;
+  const { data, error } = await builderClient.rpc('event_location_for', { p_code: code });
+  return error ? null : parseLocation(data);
 }
 
 /** The signed-in builder's event, if they joined through an event code */

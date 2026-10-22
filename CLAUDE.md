@@ -125,6 +125,13 @@ Chat/Builder Panel  |  Preview Sandbox (iframe)  |  RTP Knowledge Base Panel
   `supabase/functions/commons-bridge/` is the server's door into the
   Builder (build day wall, civic endpoints, seeds, the build day inbox) —
   see `docs/MCP-SERVER.md`
+- `src/knowledge/geo.ts` — places for the commons: the location shape every
+  gallery item can carry (`metadata.location` on commons rows, a `location`
+  column on studio items and event codes), distance math, and the browser
+  geocoder behind the gallery's **Nearby** filter (`src/store/nearby-store.ts`
+  remembers where a person measures from). `scripts/geotag/` is the tagging
+  pipeline (`places.json` is the curated truth; geocode, then apply); see
+  `docs/GEO-COMMONS.md`
 - `src/components/` — React components (UI lives here)
 - `src/components/Chat/` — Chat interface (panel, messages, input, code blocks)
 - `src/components/ui/` — shadcn/ui primitives (don't edit directly)

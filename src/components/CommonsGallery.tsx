@@ -14,7 +14,7 @@ import {
   fetchCivicMediaCards, fetchNeighboringRecipeCards,
   fetchCommunityOrganizingCards, fetchLocalCivicTechCards, fetchMicrograntCards, fetchContributedCards,
   fetchDeliberationCards, fetchProsocialDesignCards, fetchBuildDayCards,
-  fetchCommonsItemDetail,
+  fetchCommonsItemDetail, fetchStudioLocations,
   type CommonsCard, type CommonsItemDetail,
 } from '@/knowledge/commons-items';
 import { startFromStudioTool } from '@/project/start-from-tool';
@@ -29,11 +29,19 @@ import {
 } from './GalleryConnections';
 import { isSuperAdmin } from '@/cloud/account-requests';
 import { GalleryToolBuilders } from '@/components/GalleryToolBuilders';
-import { ContributeCallout } from '@/components/ContributeDialog';
 import { StudioContributeDialog } from '@/components/StudioContributeDialog';
 import { EventShelf } from '@/components/EventShowcase';
 import { EventInspiration } from '@/components/EventInspiration';
-import { fetchMyEvent, eventScopeFor, eventCodeOfScope, type EventShelfInfo } from '@/cloud/event-showcase';
+import { fetchMyEvents, eventScopeFor, eventCodeOfScope, type EventShelfInfo } from '@/cloud/event-showcase';
+import { useNearbyStore } from '@/store/nearby-store';
+import {
+  formatMiles, isPlaceRooted, nearestLabel, nearestMiles, NEARBY_RADII_MILES, type GeoLocation,
+} from '@/knowledge/geo';
+import { readShelfParam, writeShelfParam } from '@/router';
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
+  DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { fetchMyAdminEvents } from '@/cloud/event-admin';
 import { useAuthStore } from '@/store/auth-store';
 import type { Tool, Prompt, Story } from '@/knowledge/types';
@@ -51,7 +59,9 @@ import {
   BookOpen, ExternalLink, Gift, GitBranch, GitFork, Globe, Hammer,
   HandCoins, ImageOff, Landmark, Loader2, Map as MapIcon, Newspaper, ScrollText, Sprout,
   ChevronDown, ChevronRight, Library, Lock, KeyRound, Users, Plus,
+  ArrowLeft, LocateFixed, MapPin, Search, X,
 } from 'lucide-react';
+import { ContributeDialog } from '@/components/ContributeDialog';
 
 /**
  * The Commons Gallery — the civic commons as a first-class space in the
@@ -122,6 +132,11 @@ function galleryNameFor(studioLabel: string): string {
   const base = studioLabel.replace(/\s+Studio$/i, '').trim();
   return COLLECTION_NOUN.test(base) ? base : `${base} Gallery`;
 }
+
+/** Within this many miles of a pin's centre, "in <place>" is the honest
+ *  distance: the pin is no finer than the place itself */
+const PRECISION_SCALE_MILES: Record<string, number> = { neighborhood: 1, city: 12, region: 80, country: 500, origin: 12 };
+interface PlaceHit { miles: number; label: string; origin: boolean; precision: string }
 
 /** Shelf presentation for a commons card */
 type ShelfIconKey = 'newspaper' | 'sprout' | 'users' | 'landmark' | 'coins' | 'gift' | 'hammer';
@@ -210,11 +225,30 @@ export function CommonsGallery() {
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<string>('all');
   // Which library is on the shelves: the commons, or one of the viewer's studios
-  const [scope, setScope] = useState<string>('commons');
-  // True once the viewer picked a shelf themselves — until then the gallery
-  // opens on the studio they're building in (a Responsive Cities member
-  // lands on the Responsive Cities Gallery), falling back to the commons
-  const scopeChosen = useRef(false);
+  // The address names the shelf (/gallery?shelf=responsive-cities), so a
+  // studio or event gallery can be linked to, reloaded, and walked back
+  // from with the browser's own back button
+  const [scope, setScope] = useState<string>(() => readShelfParam() ?? 'commons');
+  // True once the viewer picked a shelf themselves (or arrived at one by
+  // address) — until then the gallery opens on the studio they're building
+  // in (a Responsive Cities member lands on the Responsive Cities Gallery),
+  // falling back to the commons
+  const scopeChosen = useRef(readShelfParam() !== null);
+  /** Change shelves: the person's choice, written to the address */
+  const chooseScope = useCallback((next: string) => {
+    scopeChosen.current = true;
+    setScope(next);
+    setCategory('all');
+    writeShelfParam(next === 'commons' ? null : next);
+  }, []);
+  // Nearby: the one filter that cuts across every shelf. It rides alongside
+  // search and the shelf picker rather than replacing them.
+  const [nearby, setNearby] = useState(false);
+  const nearbyPoint = useNearbyStore(s => s.point);
+  const nearbyRadius = useNearbyStore(s => s.radiusMiles);
+  // Where the Studio KB's tools and stories are rooted (the commons mirror
+  // carries it; see fetchStudioLocations)
+  const [studioLocations, setStudioLocations] = useState<Map<string, GeoLocation>>(new Map());
   const [detail, setDetail] = useState<Tool | null>(null);
   const [commonsDetail, setCommonsDetail] = useState<CommonsCard | null>(null);
   const [studioDetail, setStudioDetail] = useState<StudioLibraryItem | null>(null);
@@ -237,24 +271,30 @@ export function CommonsGallery() {
   const [semanticRank, setSemanticRank] = useState<Map<string, number>>(new Map());
   const searchSeq = useRef(0);
   const authUser = useAuthStore(s => s.user);
-  // The event shelves this viewer has: the event they joined through a room
-  // key (a profile carries one), plus every live event they administer — a
-  // host runs the wall without having scanned the key themselves
+  // The event galleries this viewer has: every event they have ever joined
+  // through a room key, plus every event they administer — a host runs the
+  // wall without having scanned the key themselves. A gallery outlives its
+  // event: archived rooms stay on the list, the way a studio's shelf does.
   const [eventShelves, setEventShelves] = useState<EventShelfInfo[]>([]);
+  // Settled once the viewer's events are known (or there is no viewer), so
+  // an event address can tell "still loading" from "not yours to open"
+  const [eventShelvesLoaded, setEventShelvesLoaded] = useState(false);
   useEffect(() => {
-    if (!authUser) { setEventShelves([]); return; }
+    if (!authUser) { setEventShelves([]); setEventShelvesLoaded(true); return; }
     let cancelled = false;
     Promise.all([
-      fetchMyEvent().catch(() => null),
+      fetchMyEvents().catch(() => []),
       fetchMyAdminEvents().catch(() => []),
     ]).then(([mine, admin]) => {
       if (cancelled) return;
       const shelves = new Map<string, EventShelfInfo>();
-      if (mine) shelves.set(mine.code.toUpperCase(), {
-        code: mine.code, name: mine.name, admin: false, studioSlug: mine.studioSlug,
-      });
+      for (const ev of mine) {
+        shelves.set(ev.code.toUpperCase(), {
+          code: ev.code, name: ev.name, admin: false, studioSlug: ev.studioSlug,
+          location: ev.location, eventDate: ev.eventDate, archived: ev.archived,
+        });
+      }
       for (const ev of admin) {
-        if (ev.archived_at) continue;
         const key = ev.code.toUpperCase();
         const prior = shelves.get(key);
         shelves.set(key, {
@@ -262,9 +302,13 @@ export function CommonsGallery() {
           name: prior?.name ?? ev.name,
           admin: true,
           studioSlug: prior?.studioSlug ?? ev.studio_slug,
+          location: prior?.location ?? ev.location,
+          eventDate: prior?.eventDate ?? ev.event_date,
+          archived: !!ev.archived_at,
         });
       }
       setEventShelves([...shelves.values()]);
+      setEventShelvesLoaded(true);
     });
     return () => { cancelled = true; };
   }, [authUser]);
@@ -272,7 +316,10 @@ export function CommonsGallery() {
     const code = eventCodeOfScope(scope);
     return code ? eventShelves.find(s => s.code.toUpperCase() === code) ?? null : null;
   }, [scope, eventShelves]);
-  const isEventScope = eventShelf !== null;
+  // An event address is an event scope even before the viewer's shelves
+  // arrive (or when the event isn't theirs): the page says so, rather than
+  // dressing the code up as a studio
+  const isEventScope = eventCodeOfScope(scope) !== null;
   // A studio's own shelf: not the commons, not an event room. Only there
   // does the studio contribute door make sense.
   const isStudioScope = scope !== 'commons' && !isEventScope;
@@ -291,7 +338,7 @@ export function CommonsGallery() {
   // run), so this decides placement, not access.
   const shelvesHere = useMemo(
     () => (isEventScope ? [] : eventShelves.filter(ev =>
-      ev.studioSlug !== null && ev.studioSlug === scope)),
+      !ev.archived && ev.studioSlug !== null && ev.studioSlug === scope)),
     [eventShelves, scope, isEventScope],
   );
   // EventShelf loads its own entries, so it reports the count back up and
@@ -312,7 +359,19 @@ export function CommonsGallery() {
     fetchProsocialDesignCards().then(setProsocialCards).catch(() => {});
     fetchContributedCards().then(setContributedCards).catch(() => {});
     fetchBuildDayCards().then(setBuildDayCards).catch(() => {});
+    fetchStudioLocations().then(setStudioLocations).catch(() => {});
     loadGalleryReferences().then(setReferences).catch(() => {});
+  }, []);
+
+  // The browser's back/forward button moving between shelves
+  useEffect(() => {
+    const onPop = () => {
+      const next = readShelfParam() ?? 'commons';
+      scopeChosen.current = true;
+      setScope(next);
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
   }, []);
 
   // Arriving with a specific entry in hand (a "Drew on the commons" chip in
@@ -594,6 +653,56 @@ export function CommonsGallery() {
       .map(x => x.e);
   }, [galleryTools, civicCards, neighboringCards, organizingCards, civicTechCards, micrograntCards, deliberationCards, prosocialCards, contributedCards, buildDayCards, stories, category, query, badgesFor, semanticRank, scope, studioLibrary, links]);
 
+  /** Where an entry is rooted, whichever shelf it came from */
+  const locationOf = useCallback((e: GalleryEntry): GeoLocation | null => {
+    if (e.type === 'commons') return e.card.location;
+    if (e.type === 'studio') return e.item.location;
+    if (e.type === 'tool') return studioLocations.get(e.tool.id) ?? null;
+    return studioLocations.get(e.story.id) ?? null;
+  }, [studioLocations]);
+
+  // Nearby: what is rooted within the radius of the person's place, closest
+  // first. Things only MADE near them (a book, a framework pinned to its
+  // author's city) follow in a second band, so a Buy Nothing recipe never
+  // reads as a Bainbridge Island program to someone in Bainbridge Island.
+  const placed = useMemo(() => {
+    if (!nearby || !nearbyPoint) return { entries, miles: new Map<string, PlaceHit>() };
+    const miles = new Map<string, PlaceHit>();
+    const near: { e: GalleryEntry; d: number; origin: boolean }[] = [];
+    for (const e of entries) {
+      const loc = locationOf(e);
+      if (!loc) continue;
+      const d = nearestMiles(loc, nearbyPoint);
+      if (d > nearbyRadius) continue;
+      const origin = !isPlaceRooted(loc);
+      near.push({ e, d, origin });
+      miles.set(e.key, { miles: d, label: nearestLabel(loc, nearbyPoint), origin, precision: loc.precision });
+    }
+    near.sort((a, b) => Number(a.origin) - Number(b.origin) || a.d - b.d);
+    return { entries: near.map(x => x.e), miles };
+  }, [entries, nearby, nearbyPoint, nearbyRadius, locationOf]);
+  const visibleEntries = placed.entries;
+  /** "12 mi · Logan Square, Chicago" for a card in Nearby. A pin only as
+   *  fine as a city is measured to the city's centre, so inside that
+   *  scale it reads "in Chicago, Illinois" rather than "under a mile". */
+  const placeLineFor = (e: GalleryEntry): string | undefined => {
+    const hit = placed.miles.get(e.key);
+    if (!hit) return undefined;
+    const made = hit.origin ? ' (made there)' : '';
+    const within = PRECISION_SCALE_MILES[hit.precision] ?? 0;
+    if (hit.miles < within) return `in ${hit.label}${made}`;
+    return `${formatMiles(hit.miles)} · ${hit.label}${made}`;
+  };
+  // The viewer's own shelves that sit inside the radius — a build day's
+  // wall is the most local thing the gallery holds
+  const nearbyShelves = useMemo(() => {
+    if (!nearby || !nearbyPoint) return [];
+    return eventShelves
+      .filter(ev => ev.location && nearestMiles(ev.location, nearbyPoint) <= nearbyRadius && eventScopeFor(ev.code) !== scope)
+      .map(ev => ({ scope: eventScopeFor(ev.code), label: galleryNameFor(ev.name), miles: nearestMiles(ev.location!, nearbyPoint) }))
+      .sort((a, b) => a.miles - b.miles);
+  }, [nearby, nearbyPoint, nearbyRadius, eventShelves, scope]);
+
   const promptsFor = (tool: Tool) => prompts.filter(p => p.parent_tool_id === tool.id);
 
   const scopeLabel = (slug: string) =>
@@ -718,17 +827,58 @@ export function CommonsGallery() {
     }
   }
 
+  // The shelves this viewer can stand on: the commons, their studios, and
+  // every event they have been part of — a past event's gallery included
+  const shelfOptions = useMemo<ShelfOption[]>(() => [
+    { scope: 'commons', label: 'Commons', group: 'commons' as const },
+    ...libraryStudios.map(m => ({ scope: m.studio_slug, label: galleryNameFor(m.studio_label), group: 'studio' as const })),
+    ...eventShelves.map(ev => ({
+      scope: eventScopeFor(ev.code), label: galleryNameFor(ev.name), group: 'event' as const,
+      note: ev.archived ? 'past' : undefined,
+    })),
+  ], [libraryStudios, eventShelves]);
+  const shelfCategories = useMemo(
+    () => [...CATEGORIES, ...(anyStudioTools ? [{ key: 'mine', label: 'Your studios' } as const] : [])],
+    [anyStudioTools],
+  );
+
   return (
     <div className="h-full overflow-y-auto">
       <div className="max-w-5xl mx-auto px-4 md:px-6 py-6 space-y-5">
-        <div className="min-w-0">
-          <h1 className="text-xl font-semibold tracking-tight">
-            {scope === 'commons'
-              ? 'Commons Gallery'
-              : eventShelf
-                ? galleryNameFor(eventShelf.name)
-                : galleryNameFor(scopeLabel(scope))}
-          </h1>
+        {/* Where you are — the commons, or one of your own shelves — with
+            the way back and the way across right here, the same on every
+            shelf, so opening a studio or an event never strands anyone */}
+        <div className="min-w-0 space-y-1.5">
+          {scope !== 'commons' && (
+            <button
+              onClick={() => chooseScope('commons')}
+              className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+            >
+              <ArrowLeft className="size-3" /> Back to the Commons Gallery
+            </button>
+          )}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+            <h1 className="text-xl font-semibold tracking-tight">
+              {scope === 'commons'
+                ? 'Commons Gallery'
+                : eventShelf
+                  ? galleryNameFor(eventShelf.name)
+                  : isEventScope
+                    ? 'Event Gallery'
+                    : galleryNameFor(scopeLabel(scope))}
+            </h1>
+            {shelfOptions.length > 1 && (
+              <ShelfSwitcher options={shelfOptions} scope={scope} onChoose={chooseScope} />
+            )}
+            {isStudioScope && myAdminSlugs.has(scope) && (
+              <button
+                onClick={() => setView('studio-admin')}
+                className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+              >
+                <KeyRound className="size-3" /> Manage library
+              </button>
+            )}
+          </div>
           <p className="text-sm text-muted-foreground">
             {scope === 'commons'
               ? 'Tools, practices, and recipes from the civic commons – ready to be remixed, with attribution and lineage, for your place.'
@@ -736,6 +886,17 @@ export function CommonsGallery() {
                 ? `What the room built — pinned by the builders themselves via Share Live — with the neighborhood's own tools beneath for inspiration. Only people at the event${eventShelf?.admin ? ' and its hosts' : ''} have this shelf.`
                 : 'Your studio’s own examples, prompts, and materials — for approved members to build from and remix, with the studio’s principles live in every build.'}
           </p>
+          {eventShelf && (eventShelf.location || eventShelf.eventDate || eventShelf.archived) && (
+            <p className="text-xs text-muted-foreground flex flex-wrap items-center gap-x-2 gap-y-0.5">
+              {eventShelf.location && (
+                <span className="inline-flex items-center gap-1">
+                  <MapPin className="size-3" /> {eventShelf.location.label}
+                </span>
+              )}
+              {eventShelf.eventDate && <span>{formatEventDay(eventShelf.eventDate)}</span>}
+              {eventShelf.archived && <span>· a past event; the shelf stays</span>}
+            </p>
+          )}
         </div>
 
         {/* What the room made, at the top of whatever shelf you're on.
@@ -760,11 +921,7 @@ export function CommonsGallery() {
                 </p>
               </div>
               <button
-                onClick={() => {
-                  scopeChosen.current = true;
-                  setScope(eventScopeFor(ev.code));
-                  setCategory('all');
-                }}
+                onClick={() => chooseScope(eventScopeFor(ev.code))}
                 className="text-xs text-primary hover:underline shrink-0"
               >
                 Open the shelf
@@ -790,10 +947,6 @@ export function CommonsGallery() {
             </span>
           </section>
         )}
-
-        {/* Giving to the commons, right where people browse it — the same
-            Contribute door as the header, with Deb's invitation. */}
-        {scope === 'commons' && <ContributeCallout />}
 
         {/* The same invitation for a studio's own shelf. A member browsing
             their gallery can add to it from here without building anything
@@ -825,38 +978,6 @@ export function CommonsGallery() {
           />
         )}
 
-        {/* Which library you're browsing — the commons, or a studio you've
-            been approved into. The switch only appears once you belong
-            somewhere with its own shelf. */}
-        {(libraryStudios.length > 0 || eventShelves.length > 0) && (
-          <div className="flex flex-wrap items-center gap-1.5">
-            <Library className="size-3.5 text-muted-foreground" />
-            {[{ slug: 'commons', label: 'Commons' },
-              ...libraryStudios.map(m => ({ slug: m.studio_slug, label: galleryNameFor(m.studio_label) })),
-              ...eventShelves.map(ev => ({ slug: eventScopeFor(ev.code), label: galleryNameFor(ev.name) }))].map(o => (
-              <button
-                key={o.slug}
-                onClick={() => { scopeChosen.current = true; setScope(o.slug); setCategory('all'); }}
-                className={`rounded-full border px-3 py-1 text-xs transition-colors ${
-                  scope === o.slug
-                    ? 'bg-foreground text-background border-foreground'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                {o.label}
-              </button>
-            ))}
-            {scope !== 'commons' && !isEventScope && myAdminSlugs.has(scope) && (
-              <button
-                onClick={() => setView('studio-admin')}
-                className="inline-flex items-center gap-1 text-xs text-primary hover:underline ml-1"
-              >
-                <KeyRound className="size-3" /> Manage library
-              </button>
-            )}
-          </div>
-        )}
-
         {/* The studio's principles aren't cards to remix — they're the live
             frame every member build carries, layered on the base RTP
             principles. Shown here so members know what's active. */}
@@ -869,31 +990,70 @@ export function CommonsGallery() {
           />
         )}
 
-        {!isEventScope && <div className="flex flex-wrap items-center gap-2">
-          <Input
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            placeholder={scope === 'commons' ? 'Search the commons…' : `Search the ${galleryNameFor(scopeLabel(scope))}…`}
-            className="h-8 w-full min-w-56 max-w-md flex-1 text-sm sm:w-auto"
-          />
-          {scope === 'commons' && (
-            <div className="flex flex-wrap gap-1">
-              {[...CATEGORIES, ...(anyStudioTools ? [{ key: 'mine', label: 'Your studios' } as const] : [])].map(c => (
-                <button
-                  key={c.key}
-                  onClick={() => setCategory(c.key)}
-                  className={`rounded-full border px-3 py-1 text-xs transition-colors ${
-                    category === c.key
-                      ? 'bg-foreground text-background border-foreground'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  {c.label}
-                </button>
-              ))}
+        {/* One quiet toolbar: search first (it is the fastest way through
+            six hundred cards), Nearby beside it, and the shelves behind one
+            picker instead of a wall of chips. */}
+        {!isEventScope && (
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="relative flex-1 min-w-56">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
+                <Input
+                  value={query}
+                  onChange={e => setQuery(e.target.value)}
+                  placeholder={scope === 'commons' ? 'Search the commons…' : `Search the ${galleryNameFor(scopeLabel(scope))}…`}
+                  className="h-9 w-full pl-8 pr-8 text-sm"
+                />
+                {query && (
+                  <button
+                    onClick={() => setQuery('')}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    title="Clear the search"
+                  >
+                    <X className="size-3.5" />
+                  </button>
+                )}
+              </div>
+              <button
+                onClick={() => setNearby(v => !v)}
+                className={`inline-flex h-9 items-center gap-1.5 rounded-full border px-3 text-xs transition-colors ${
+                  nearby ? 'bg-foreground text-background border-foreground' : 'text-muted-foreground hover:text-foreground'
+                }`}
+                title="Only what is rooted near a place — your own, or one you type"
+              >
+                <MapPin className="size-3.5" /> Nearby
+              </button>
+              {scope === 'commons' && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    className="inline-flex h-9 items-center gap-1.5 rounded-full border px-3 text-xs text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    title="Which shelf of the commons to browse"
+                  >
+                    <Library className="size-3.5" />
+                    {shelfCategories.find(c => c.key === category)?.label ?? 'Everything'}
+                    <ChevronDown className="size-3 opacity-60" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="min-w-52">
+                    <DropdownMenuLabel>Shelves</DropdownMenuLabel>
+                    <DropdownMenuRadioGroup value={category} onValueChange={v => setCategory(String(v))}>
+                      {shelfCategories.map(c => (
+                        <DropdownMenuRadioItem key={c.key} value={c.key}>{c.label}</DropdownMenuRadioItem>
+                      ))}
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
-          )}
-        </div>}
+            {nearby && (
+              <NearbyBar
+                shelves={nearbyShelves}
+                onOpenShelf={chooseScope}
+                placedCount={nearbyPoint ? visibleEntries.length : null}
+              />
+            )}
+            {scope === 'commons' && <ContributeLine />}
+          </div>
+        )}
 
         {error && <p className="text-sm text-destructive">{error}</p>}
 
@@ -902,31 +1062,50 @@ export function CommonsGallery() {
             decks lead; a curated inspiration shelf (the neighborhood's real
             tools) follows beneath them, and only the decks reach the
             presentation page. */}
-        {eventShelf ? (
-          <>
-            <EventShelf code={eventShelf.code} name={eventShelf.name} admin={eventShelf.admin} />
-            <EventInspiration code={eventShelf.code} name={eventShelf.name} />
-          </>
+        {isEventScope ? (
+          eventShelf ? (
+            <>
+              <EventShelf code={eventShelf.code} name={eventShelf.name} admin={eventShelf.admin} />
+              <EventInspiration code={eventShelf.code} name={eventShelf.name} />
+            </>
+          ) : !eventShelvesLoaded ? (
+            <p className="text-sm text-muted-foreground flex items-center gap-2">
+              <Loader2 className="size-3.5 animate-spin" /> Opening the event's gallery…
+            </p>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {authUser
+                ? 'This event’s gallery belongs to the people who were there and its hosts. If that’s you, join it with the room key and it appears here.'
+                : 'Sign in to open an event’s gallery — it belongs to the people who were there and its hosts.'}
+            </p>
+          )
         ) : !loaded ? (
           <p className="text-sm text-muted-foreground flex items-center gap-2">
             <Loader2 className="size-3.5 animate-spin" /> Loading the gallery…
           </p>
-        ) : entries.length === 0 ? (
+        ) : nearby && !nearbyPoint ? (
           <p className="text-sm text-muted-foreground">
-            {query.trim()
-              ? 'Nothing matches that search.'
-              : scope !== 'commons'
-                ? 'This studio’s shelf is empty so far.'
-                : 'Nothing here yet.'}
+            Tell the gallery where you are, and it will show what is rooted nearby.
+          </p>
+        ) : visibleEntries.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            {nearby
+              ? `Nothing on this shelf is placed within ${nearbyRadius} miles of ${nearbyPoint?.label ?? 'there'} yet. Widen the circle, or be the first: share something from your neighborhood.`
+              : query.trim()
+                ? 'Nothing matches that search.'
+                : scope !== 'commons'
+                  ? 'This studio’s shelf is empty so far.'
+                  : 'Nothing here yet.'}
           </p>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {entries.map(entry =>
+            {visibleEntries.map(entry =>
               entry.type === 'tool' ? (
                 <ToolCard
                   key={entry.key}
                   tool={entry.tool}
                   studioBadges={badgesFor(entry.tool)}
+                  placeLine={placeLineFor(entry)}
                   busy={busyKey === entry.key}
                   anyBusy={busyKey !== null}
                   onOpen={() => setDetail(entry.tool)}
@@ -939,6 +1118,7 @@ export function CommonsGallery() {
                   studioLabel={scopeLabel(entry.item.studio_slug)}
                   lineage={formatLineageChain(studioLineageChain(entry.item, studioLibrary))}
                   credit={studioPartnerCredit(entry.item.studio_slug)}
+                  placeLine={placeLineFor(entry)}
                   anyBusy={busyKey !== null}
                   onOpen={() => setStudioDetail(entry.item)}
                   onPlan={() => planStudioItem(entry.item)}
@@ -947,6 +1127,7 @@ export function CommonsGallery() {
                 <KBStoryCard
                   key={entry.key}
                   story={entry.story}
+                  placeLine={placeLineFor(entry)}
                   onOpen={() => setStoryDetail(entry.story)}
                 />
               ) : (
@@ -954,6 +1135,7 @@ export function CommonsGallery() {
                   key={entry.key}
                   card={entry.card}
                   shelfLabel={isContributed(entry.card) ? contributedLabel(entry.card) : undefined}
+                  placeLine={placeLineFor(entry)}
                   busy={busyKey === entry.key}
                   anyBusy={busyKey !== null}
                   onOpen={() => setCommonsDetail(entry.card)}
@@ -1031,6 +1213,205 @@ export function CommonsGallery() {
   );
 }
 
+interface ShelfOption {
+  scope: string;
+  label: string;
+  group: 'commons' | 'studio' | 'event';
+  /** "past" for an event that has ended — the shelf stays, the door is shut */
+  note?: string;
+}
+
+/**
+ * Which shelf you're standing on, and the way to any other: the commons,
+ * your studios, every event you've been part of. One picker in the header
+ * so the move across is the same from every shelf.
+ */
+function ShelfSwitcher({ options, scope, onChoose }: {
+  options: ShelfOption[]; scope: string; onChoose: (scope: string) => void;
+}) {
+  const current = options.find(o => o.scope === scope);
+  const studios = options.filter(o => o.group === 'studio');
+  const events = options.filter(o => o.group === 'event');
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        className="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        title="Switch between the commons, your studios, and your events"
+      >
+        <Library className="size-3" />
+        {current?.scope === 'commons' ? 'Your galleries' : 'Switch gallery'}
+        <ChevronDown className="size-3 opacity-60" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="min-w-56">
+        <DropdownMenuItem onClick={() => onChoose('commons')} className={scope === 'commons' ? 'font-medium' : ''}>
+          Commons Gallery
+        </DropdownMenuItem>
+        {studios.length > 0 && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel>Your studios</DropdownMenuLabel>
+            {studios.map(o => (
+              <DropdownMenuItem key={o.scope} onClick={() => onChoose(o.scope)} className={scope === o.scope ? 'font-medium' : ''}>
+                {o.label}
+              </DropdownMenuItem>
+            ))}
+          </>
+        )}
+        {events.length > 0 && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel>Your events</DropdownMenuLabel>
+            {events.map(o => (
+              <DropdownMenuItem key={o.scope} onClick={() => onChoose(o.scope)} className={scope === o.scope ? 'font-medium' : ''}>
+                <span className="truncate">{o.label}</span>
+                {o.note && <span className="ml-auto text-[10px] text-muted-foreground pl-2">{o.note}</span>}
+              </DropdownMenuItem>
+            ))}
+          </>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+/** "Fri, Oct 9, 2026" from a YYYY-MM-DD */
+function formatEventDay(iso: string): string {
+  const d = new Date(`${iso}T12:00:00`);
+  return Number.isNaN(d.getTime())
+    ? iso
+    : d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+/**
+ * Where Nearby measures from. No place yet: the browser's, or a typed town.
+ * A place set: the circle's size, and the ways to change it. Remembered in
+ * this browser (nearby-store), so it is set once.
+ */
+function NearbyBar({ shelves, onOpenShelf, placedCount }: {
+  shelves: { scope: string; label: string; miles: number }[];
+  onOpenShelf: (scope: string) => void;
+  /** How many cards the circle holds right now; null before a place is set */
+  placedCount: number | null;
+}) {
+  const point = useNearbyStore(s => s.point);
+  const radius = useNearbyStore(s => s.radiusMiles);
+  const busy = useNearbyStore(s => s.busy);
+  const error = useNearbyStore(s => s.error);
+  const setRadius = useNearbyStore(s => s.setRadius);
+  const locate = useNearbyStore(s => s.locate);
+  const findPlace = useNearbyStore(s => s.findPlace);
+  const [typed, setTyped] = useState('');
+  const [editing, setEditing] = useState(false);
+  const showForm = !point || editing;
+
+  async function submit() {
+    if (!typed.trim()) return;
+    if (await findPlace(typed)) { setTyped(''); setEditing(false); }
+  }
+
+  return (
+    <div className="rounded-lg border bg-muted/30 px-3 py-2 text-xs space-y-1.5">
+      {showForm ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-muted-foreground">Near</span>
+          <Input
+            value={typed}
+            onChange={e => setTyped(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') void submit(); }}
+            placeholder="a town, neighborhood, or zip"
+            className="h-7 w-56 text-xs"
+            autoFocus={editing}
+          />
+          <Button size="sm" variant="outline" className="h-7 text-xs" disabled={busy || !typed.trim()} onClick={() => void submit()}>
+            {busy ? <Loader2 className="size-3 animate-spin" /> : 'Go'}
+          </Button>
+          <span className="text-muted-foreground">or</span>
+          <button
+            onClick={() => { void locate().then(ok => { if (ok) setEditing(false); }); }}
+            disabled={busy}
+            className="inline-flex items-center gap-1 text-primary hover:underline disabled:opacity-50"
+          >
+            <LocateFixed className="size-3" /> use my location
+          </button>
+          {point && (
+            <button onClick={() => setEditing(false)} className="text-muted-foreground hover:text-foreground">
+              cancel
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <MapPin className="size-3 text-primary" />
+          <span>
+            Within
+            <select
+              value={radius}
+              onChange={e => setRadius(Number(e.target.value))}
+              className="mx-1 rounded border bg-background px-1 py-0.5 text-xs"
+              title="How wide a circle"
+            >
+              {NEARBY_RADII_MILES.map(r => <option key={r} value={r}>{r} mi</option>)}
+            </select>
+            of <span className="font-medium">{point.label}</span>
+            {placedCount !== null && <span className="text-muted-foreground"> · {placedCount} {placedCount === 1 ? 'card' : 'cards'}</span>}
+          </span>
+          <button onClick={() => setEditing(true)} className="text-primary hover:underline">change</button>
+          <button
+            onClick={() => { void locate(); }}
+            disabled={busy}
+            className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground disabled:opacity-50"
+          >
+            {busy ? <Loader2 className="size-3 animate-spin" /> : <LocateFixed className="size-3" />} my location
+          </button>
+        </div>
+      )}
+      {error && <p className="text-destructive">{error}</p>}
+      {shelves.length > 0 && (
+        <p className="text-muted-foreground">
+          Galleries near here:{' '}
+          {shelves.map((sh, i) => (
+            <span key={sh.scope}>
+              {i > 0 && ', '}
+              <button onClick={() => onOpenShelf(sh.scope)} className="text-primary hover:underline">{sh.label}</button>
+              {' '}({formatMiles(sh.miles)})
+            </span>
+          ))}
+        </p>
+      )}
+      <p className="text-muted-foreground/80">
+        Closest first. Things only <em>made</em> near here (a book, a method pinned to its author's town) come after what is rooted here.
+        {' '}Places from OpenStreetMap.
+      </p>
+    </div>
+  );
+}
+
+/** The Contribute door, in a line — the header holds the button too */
+function ContributeLine() {
+  const [open, setOpen] = useState(false);
+  return (
+    <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+      <Sprout className="size-3.5 text-green-600 mt-0.5 shrink-0" />
+      <span>
+        Have a link, doc, or story from your neighborhood?{' '}
+        <button onClick={() => setOpen(true)} className="text-primary hover:underline">Contribute it to the commons</button>
+        {' '}— stewards shelve it, and it shapes other neighborhoods' journeys.
+      </span>
+      {open && <ContributeDialog open={open} onOpenChange={setOpen} />}
+    </p>
+  );
+}
+
+/** A card's place, in Nearby: the distance and the closest of its places */
+function PlaceLine({ text }: { text?: string }) {
+  if (!text) return null;
+  return (
+    <p className="text-[11px] text-primary/90 inline-flex items-center gap-1 -mt-0.5">
+      <MapPin className="size-3 shrink-0" /> {text}
+    </p>
+  );
+}
+
 /**
  * The studio's live frame: its principles, always on for member builds.
  * A quiet banner with the names; each expands to its full text on tap.
@@ -1085,9 +1466,9 @@ function StudioPrinciplesPanel({
 
 /** A studio library card — the studio's own shelf, marked private or shared */
 function StudioItemCard({
-  item, studioLabel, lineage, credit, anyBusy, onOpen, onPlan,
+  item, studioLabel, lineage, credit, placeLine, anyBusy, onOpen, onPlan,
 }: {
-  item: StudioLibraryItem; studioLabel: string;
+  item: StudioLibraryItem; studioLabel: string; placeLine?: string;
   /** The readable remix chain, when the item grew from something on the shelf */
   lineage?: string | null;
   /** The studio's partnership credit line, when it asks for one */
@@ -1135,6 +1516,7 @@ function StudioItemCard({
         {item.attribution && (
           <p className="text-xs text-muted-foreground -mt-0.5">{item.attribution}</p>
         )}
+        <PlaceLine text={placeLine} />
         {lineage && (
           <p className="text-xs text-muted-foreground flex items-start gap-1 leading-snug">
             <GitBranch className="size-3 shrink-0 mt-0.5" />
@@ -1268,7 +1650,7 @@ function StudioItemDetailDialog({
 }
 
 /** A community story from the Studio KB — narrative to learn from, not code to remix */
-function KBStoryCard({ story, onOpen }: { story: Story; onOpen: () => void }) {
+function KBStoryCard({ story, placeLine, onOpen }: { story: Story; placeLine?: string; onOpen: () => void }) {
   return (
     <div className="group border rounded-xl overflow-hidden flex flex-col bg-background hover:border-foreground/25 transition-colors">
       <div className="p-3.5 flex-1 flex flex-col gap-1.5">
@@ -1281,6 +1663,7 @@ function KBStoryCard({ story, onOpen }: { story: Story; onOpen: () => void }) {
           {story.title ?? 'Community story'}
         </button>
         <p className="text-xs text-muted-foreground -mt-0.5">{story.attribution}</p>
+        <PlaceLine text={placeLine} />
         <p className="text-sm text-muted-foreground line-clamp-4 flex-1">{story.story_text}</p>
         <div className="flex gap-1.5 pt-1">
           <Button variant="outline" size="sm" className="h-7 text-xs flex-1" onClick={onOpen}>
@@ -1342,9 +1725,9 @@ function KBStoryDetailDialog({
 }
 
 function ToolCard({
-  tool, studioBadges, busy, anyBusy, onOpen, onBuild,
+  tool, studioBadges, placeLine, busy, anyBusy, onOpen, onBuild,
 }: {
-  tool: Tool; studioBadges: StudioBadge[]; busy: boolean; anyBusy: boolean;
+  tool: Tool; studioBadges: StudioBadge[]; placeLine?: string; busy: boolean; anyBusy: boolean;
   onOpen: () => void; onBuild: () => void;
 }) {
   const highlight = studioBadges[0]?.color ?? null;
@@ -1382,6 +1765,7 @@ function ToolCard({
         {tool.creator_name && (
           <p className="text-xs text-muted-foreground -mt-1">by {tool.creator_name}</p>
         )}
+        <PlaceLine text={placeLine} />
         {studioBadges.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {studioBadges.map(b => (
@@ -1421,9 +1805,9 @@ function ToolCard({
  *  screenshot; an open tool shows its real interface when the commons
  *  holds one. */
 function RecipeCard({
-  card, shelfLabel, busy, anyBusy, onOpen, onPlan,
+  card, shelfLabel, placeLine, busy, anyBusy, onOpen, onPlan,
 }: {
-  card: CommonsCard; shelfLabel?: string; busy: boolean; anyBusy: boolean;
+  card: CommonsCard; shelfLabel?: string; placeLine?: string; busy: boolean; anyBusy: boolean;
   onOpen: () => void; onPlan: () => void;
 }) {
   const shelf = shelfFor(card, shelfLabel);
@@ -1463,6 +1847,7 @@ function RecipeCard({
         {card.attribution?.source && (
           <p className="text-[11px] text-muted-foreground/70 -mt-1">{card.attribution.source}</p>
         )}
+        <PlaceLine text={placeLine} />
         <p className="text-sm text-muted-foreground line-clamp-4 flex-1">{card.summary}</p>
         {readableTags(card).length > 0 && (
           <div className="flex flex-wrap gap-1">
