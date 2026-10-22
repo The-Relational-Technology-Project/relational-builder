@@ -115,7 +115,10 @@ Chat/Builder Panel  |  Preview Sandbox (iframe)  |  RTP Knowledge Base Panel
   `vercel.json`. `#privacy` / `#contact` stay hash pages, above the app shell
 - `src/knowledge/` — Supabase client, RTP principles, context builder, queries.
   `build-day.ts` is the community build day journey (frame, scripted plan,
-  featured gallery card, `/buildday`); see `docs/BUILD-DAY-JOURNEY.md`
+  featured gallery card, `/buildday`); see `docs/BUILD-DAY-JOURNEY.md`.
+  `studio-brief.ts` is the network partner's "design your studio" journey
+  (frame, scripted plan, `/studiobrief`, the opt-in share to Josh via
+  `src/report/studio-brief-share.ts`); see `docs/STUDIO-BRIEF-JOURNEY.md`
   `builder-practice.ts` holds the Builder's practices written for other
   tools; `scripts/export-builder-knowledge.mjs` renders it, the principles,
   and the frames to `public/knowledge/*.md` (prebuild) for the RT MCP server.

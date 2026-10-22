@@ -2,6 +2,7 @@ import { COMMONS_URL, COMMONS_ANON_KEY } from './commons-search';
 import { resolveStudioAssetUrl } from './queries';
 import { toMarkdown } from '@/lib/rich-text';
 import { BUILD_DAY_CARD, BUILD_DAY_CARD_SLUG, BUILD_DAY_CARD_SUMMARY, BUILD_DAY_SHELF } from './build-day';
+import { STUDIO_BRIEF_CARD, STUDIO_BRIEF_CARD_SLUG } from './studio-brief';
 
 /**
  * Direct reads of commons_items for the Commons Gallery — the remixable
@@ -223,7 +224,11 @@ export async function fetchCommonsItemDetail(
   );
   const item = rows[0];
   // The featured build day card reads the same whether or not the commons
-  // holds it yet
-  if (!item) return slug === BUILD_DAY_CARD_SLUG ? BUILD_DAY_CARD : null;
+  // holds it yet; the studio door's card is the Builder's own
+  if (!item) {
+    if (slug === BUILD_DAY_CARD_SLUG) return BUILD_DAY_CARD;
+    if (slug === STUDIO_BRIEF_CARD_SLUG) return STUDIO_BRIEF_CARD;
+    return null;
+  }
   return { ...item, body: item.body ? toMarkdown(item.body, BODY_ASSETS) : item.body };
 }

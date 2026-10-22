@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import {
   isBuildDayPath,
   isNewProjectPath,
+  isStudioBriefPath,
   pathForView,
   pushPath,
   replacePath,
@@ -97,6 +98,13 @@ function applyLocation(initial: boolean): void {
   // (the composer fills as the card's detail arrives) and sit at the builder
   if (isBuildDayPath(pathname)) {
     void import('@/project/start-build-day').then(m => m.startBuildDay());
+    useUIStore.setState({ view: 'builder' });
+    replacePath(pathForView('builder'));
+    return;
+  }
+  // /studiobrief: a network partner designing their Studio, the same way
+  if (isStudioBriefPath(pathname)) {
+    void import('@/project/start-studio-brief').then(m => m.startStudioBrief());
     useUIStore.setState({ view: 'builder' });
     replacePath(pathForView('builder'));
     return;

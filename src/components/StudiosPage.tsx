@@ -11,6 +11,10 @@ import {
   ArrowRight,
   Sparkles,
   Users,
+  MessagesSquare,
+  FileText,
+  Globe,
+  Send,
 } from 'lucide-react';
 
 /**
@@ -27,6 +31,9 @@ import {
 
 const JOIN_HREF = '/#join';
 const CREATE_HREF = '#create';
+/** The Builder's door: the four-step "design your studio" conversation that
+ *  ends in a Studio Brief and a one-page site (see /studiobrief in router.ts) */
+const STUDIO_BRIEF_HREF = '/studiobrief';
 
 // The representative studio. Illustrative on purpose: no live studio is
 // named here, so the page stays true as the real roster changes.
@@ -276,20 +283,23 @@ export function StudiosPage() {
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
             <a
-              href={CREATE_HREF}
+              href={STUDIO_BRIEF_HREF}
               className="rounded-full px-5 py-2 text-sm font-semibold"
               style={{ background: C.orangeDeep, color: '#FFF6EE' }}
             >
-              Create your studio
+              Design your studio with Relational Builder
             </a>
             <a
-              href={JOIN_HREF}
+              href={CREATE_HREF}
               className="rounded-full border px-5 py-2 text-sm font-semibold"
               style={{ borderColor: C.border, color: C.body, background: C.card }}
             >
-              Get a builder account
+              Create one with us
             </a>
           </div>
+          <p className="text-xs" style={{ color: C.muted }}>
+            The Builder walks you through four short steps and writes your Studio Brief and a one-page site in your brand, ready to share with Josh.
+          </p>
         </header>
 
         {/* What a studio enables */}
@@ -379,6 +389,60 @@ export function StudiosPage() {
           </div>
         </section>
 
+        {/* Design it in the Builder */}
+        <section className="space-y-5">
+          <div className="text-center space-y-2">
+            <Kicker>Design it in the Builder</Kicker>
+            <h2 className="text-xl sm:text-2xl font-semibold tracking-tight">Shape your studio in one conversation</h2>
+            <p className="mx-auto max-w-xl text-[15px] leading-relaxed" style={{ color: C.body }}>
+              Relational Builder asks the questions the stewards would ask,
+              with a suggested answer at every step, and writes down what you
+              decide. You leave with the two things that start a studio.
+            </p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Enables icon={MessagesSquare} title="Four short steps">
+              Who builds here and what they hold in common. Your frame: the
+              values, principles, and practices every build should carry.
+              What the Builder should know: contexts, sources, your first
+              shelf, your door. Your brand.
+            </Enables>
+            <Enables icon={FileText} title="A Studio Brief">
+              The document we set your studio up from: name and tagline,
+              stewards, open or gated, principles with what each one changes,
+              practices and guardrails, contexts, sources, the first seeds on
+              your shelf, the look.
+            </Enables>
+            <Enables icon={Globe} title="A one-page site, in your brand">
+              Your color, your type, your voice. What the studio is, how it
+              builds, what it knows, what it will make first, how to join.
+              Publish it from the Builder and hand your people the link.
+            </Enables>
+            <Enables icon={Send} title="Share it with Josh in one click">
+              When you are ready, a card in the chat sends the brief and the
+              page to Josh at the Relational Tech Project, with your name and a
+              note. Nothing goes until you press it. He replies within a few
+              days and you set the studio up together.
+            </Enables>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
+            <a
+              href={STUDIO_BRIEF_HREF}
+              className="inline-flex items-center gap-1.5 rounded-full px-5 py-2 text-sm font-semibold"
+              style={{ background: C.orangeDeep, color: '#FFF6EE' }}
+            >
+              Start your Studio Brief <ArrowRight className="size-3.5" />
+            </a>
+            <a
+              href={CREATE_HREF}
+              className="rounded-full border px-5 py-2 text-sm font-semibold"
+              style={{ borderColor: C.border, color: C.body, background: C.card }}
+            >
+              Or write to us first
+            </a>
+          </div>
+        </section>
+
         {/* Create your studio */}
         <InquiryForm
           id="create"
@@ -398,13 +462,22 @@ export function StudiosPage() {
           submitLabel="Create your studio"
           sentNote="Thank you. Josh will reply soon so we can start shaping your studio together."
           aside={
-            <a
-              href={JOIN_HREF}
-              className="inline-flex items-center gap-1.5 rounded-full border px-5 py-2 text-sm font-semibold"
-              style={{ borderColor: C.border, color: C.body }}
-            >
-              Get a builder account <ArrowRight className="size-3.5" />
-            </a>
+            <div className="flex flex-wrap gap-2">
+              <a
+                href={STUDIO_BRIEF_HREF}
+                className="inline-flex items-center gap-1.5 rounded-full border px-5 py-2 text-sm font-semibold"
+                style={{ borderColor: C.border, color: C.body }}
+              >
+                Design it in the Builder <ArrowRight className="size-3.5" />
+              </a>
+              <a
+                href={JOIN_HREF}
+                className="inline-flex items-center gap-1.5 rounded-full border px-5 py-2 text-sm font-semibold"
+                style={{ borderColor: C.border, color: C.body }}
+              >
+                Get a builder account <ArrowRight className="size-3.5" />
+              </a>
+            </div>
           }
         />
 

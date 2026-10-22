@@ -20,7 +20,8 @@ import { PromptDialog } from '@/components/PromptDialog';
 import { SharePreview } from '@/components/SharePreview';
 import { CollaborateDialog } from '@/components/CollaborateDialog';
 import { ShareLiveDialog } from '@/components/ShareLiveDialog';
-import { Share2, Upload, ScrollText, Eye, Users, ChevronDown, Presentation, Globe } from 'lucide-react';
+import { Share2, Upload, ScrollText, Eye, Users, ChevronDown, Presentation, Globe, Send } from 'lucide-react';
+import { isStudioBriefProject, readStudioBrief, useStudioShareStore } from '@/report/studio-brief-share';
 import { cn } from '@/lib/utils';
 
 /**
@@ -42,6 +43,12 @@ export function ShareMenu({ mobile }: { mobile?: boolean }) {
   const setLiveSite = useDeployStore(s => s.setLiveSite);
   const signedIn = useAuthStore(s => Boolean(s.user));
   const publishLabel = liveSite ? 'Update live site' : 'Publish';
+  // A studio being designed: the chat card that sends the brief to RTP can
+  // be put away, and this is the way to bring it back
+  const lineageFrames = useProjectStore(s => s.lineage?.frames);
+  const studioBriefReady = Boolean(lineageFrames) && fileCount > 0 && isStudioBriefProject() && Boolean(readStudioBrief());
+  const setShareStatus = useStudioShareStore(s => s.setStatus);
+  const offerStudioBrief = () => setShareStatus(projectKey, 'offered');
 
   // Sites published before the Builder kept the link locally: look it up
   // once by the remembered publish name so the menu can offer it
@@ -130,6 +137,12 @@ export function ShareMenu({ mobile }: { mobile?: boolean }) {
             Collaborate
           </Button>
         )}
+        {studioBriefReady && (
+          <Button variant="outline" size="sm" className="h-8 gap-1 text-xs" onClick={offerStudioBrief}>
+            <Send className="size-3" />
+            Send to Josh at RTP
+          </Button>
+        )}
         {dialogs}
       </>
     );
@@ -200,6 +213,15 @@ export function ShareMenu({ mobile }: { mobile?: boolean }) {
               <Users className="size-3.5 text-muted-foreground" />
               Collaborate
             </DropdownMenuItem>
+          )}
+          {studioBriefReady && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={offerStudioBrief} className="gap-2 text-xs">
+                <Send className="size-3.5 text-muted-foreground" />
+                Send to Josh at RTP
+              </DropdownMenuItem>
+            </>
           )}
         </DropdownMenuContent>
       </DropdownMenu>

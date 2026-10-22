@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-14T06:36:14.490Z",
+  "generated_at": "2026-10-22T17:17:59.076Z",
   "documents": [
     {
       "slug": "builder-principles",
@@ -39,6 +39,10 @@
         {
           "slug": "build-day",
           "label": "Community Build Day"
+        },
+        {
+          "slug": "studio-brief",
+          "label": "Design your Studio"
         }
       ]
     }

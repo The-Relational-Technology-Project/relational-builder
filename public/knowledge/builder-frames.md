@@ -194,3 +194,62 @@ A standalone page, remixed from the Sunset Build-a-thon recap (https://dearcrisi
 10. **Footer**: the event name, the date, who made the page.
 Every photo is one the organizer attached (drop them in the Files tab or into the chat); names and faces appear only with consent, so the page asks the organizer once before naming anyone who did not share at the mic. The wall's cards and the event page supply the projects and the numbers; the organizer supplies the quotes and the photos.
 
+<!-- frame: studio-brief -->
+## Design your Studio Frame
+
+This project is a **Studio being designed**: a network partner is shaping a home for their community of builders inside Relational Builder, and the project holds what they will hand to RTP's stewards — a **Studio Brief** and a **one-page site in the studio's own brand**. The person building this is the partner (soon a steward); the brief is for them and for Josh at RTP, and the page is for their people. Working in this frame:
+
+- **The community is the unit; the studio serves it.** A studio exists so the people who share a place, a mission, a network, or a practice start every build from what they already hold in common. Lead with who builds here and what they are trying to make; the configuration follows from that.
+- **Principles are theirs, in their words.** Draw them out of what the partner says about their people and their work; offer drafts, never a template. Each principle is a sentence a builder could act on, with a line on what it changes in a build. They layer on the five shared relational tech principles and never repeat them.
+- **Say plainly what the Builder will do with each line.** A context becomes something the AI already knows when a builder names the place; a source becomes somewhere the Builder reaches without being told; a guardrail becomes something every plan checks. The partner should be able to picture a builder's first conversation in the studio.
+- **The door is a decision, and the stewards are people.** Open or gated changes who sees the shelf and the library; name the first Studio Admins with emails in the brief (and only first names on the public page unless told otherwise).
+- **Brand belongs to the studio.** The page carries the partner's color, type, and mood — from a logo, a photo, or the place — and credits Relational Builder in one small line. Nothing on it should read as RTP's.
+- **The brief is what the stewards set the studio up from.** Every decision lands in the Studio brief block with its exact label; the page reads from the same brief. A line that is not in the brief does not exist for the stewards.
+- **Sharing with RTP is the partner's call, made in the Builder.** Once the brief exists, a card in the chat offers to send the brief and the page to Josh at the Relational Tech Project (josh@relationaltechproject.org) with the partner's name and a note; nothing goes until they press it. Say so in the plan and in the brief's Next step line. The page goes live from Share → Publish, and its address belongs in the brief once it exists.
+- **Credit the lineage.** The brief and the page name relationalbuilder.org/studios as what they grew from, and the partner's own organization or network as theirs.
+
+### The artifacts
+
+Build what the plan's **Studio brief** chose (by default both, together): `studio/brief.md` and `index.html`. Each is its own file and its own preview tab. After the first build, changes flow brief → page: when the partner changes a principle, the page's principle changes too.
+
+### What a Studio carries inside Relational Builder (what the brief must name)
+
+A Studio is a home for a community of builders with something in common. Everyone who builds in it starts from what the community holds in common, not from a blank page. RTP's stewards set a studio up by hand from the brief, so every line below is a line they will read:
+- **The frame**: the studio's own values and principles, layered on the five shared relational tech principles (they add, never replace). The AI plans, critiques, and presents every build through them. Three to seven, in the community's own words, each a sentence a builder could act on.
+- **Practices and guardrails**: what every build made here should do, or never do — languages a tool must work in, who must be able to use it offline, a consent rule, a tone, a hand-off to a person. Things the stewards want present in every conversation, not re-explained each time.
+- **Contexts**: who the studio's builders serve and the settings a tool has to fit — neighborhoods and their textures, chapters, the people a service reaches last, what those people have been asking for. Written once by the stewards, present in every build after.
+- **Sources**: the data, research, directories, curricula, and feeds the studio trusts, with where each lives (a URL when there is one), so a builder asks for what they want and the Builder already knows where it is.
+- **The shelf**: the studio's own gallery in the Commons Gallery. It starts with seeds — the first examples, prompts, or dreams the stewards want the next builder to open and remix.
+- **The door**: how people arrive (a studio link, an invitation, a build day), whether it is **open** (anyone with a Builder account joins) or **gated** (a Studio Admin approves each request), and who the first **stewards** (Studio Admins) are, by name and email.
+- **The identity**: the studio's name, its tagline, a color, and the look its page and its builders recognize as theirs.
+
+Studios are free to start. The public explanation is https://relationalbuilder.org/studios; the stewards reply to a brief within a few days.
+
+### The Studio Brief (`studio/brief.md`)
+
+A markdown document the partner can read in two minutes and the stewards can set a studio up from without a second call. Written in the community's voice, plain and concrete. Sections, in order:
+1. **The studio in a paragraph**: who builds here, what they hold in common, and what they hope to make. The name and the tagline as the heading.
+2. **Studio brief** — a block of bold-labelled lines, exactly these labels, one per line, so people and software can both read it: **Studio name:** · **Tagline:** · **What we hold in common:** a place, a mission, a network, or a practice, in a phrase · **Who builds here:** · **Stewards:** names and emails of the first Studio Admins · **Door:** open or gated, and how people arrive · **Principles:** the count, and "see below" · **Practices & guardrails:** the count, and "see below" · **Contexts:** the count · **Sources:** the count · **First shelf:** the count of seeds · **Brand:** the main color as a hex value, the type, the mood in three words · **Public page:** the page's path (and its live address once published) · **Contact:** the email the page shows · **Next step:** "share this brief and the page with Josh at RTP (josh@relationaltechproject.org) from the card in the chat, or paste the brief into an email".
+3. **Values and principles**: numbered, each one sentence a builder could act on, with a line under each on what it changes in a build. Say in a line that they layer on the five shared relational tech principles.
+4. **Practices and guardrails**: a short list of "every build here…" and "no build here…" lines.
+5. **Contexts**: one short paragraph per context — a neighborhood, a chapter, a kind of person — with the two or three facts a builder should not have to discover alone.
+6. **Sources**: a list with name, what it holds, where it lives, and how often it changes.
+7. **The first shelf**: three to six seeds, each a title and a line (a tool to remix, a prompt to start from, a dream someone shared), so the shelf is not empty on day one.
+8. **The door and the stewards**: open or gated, where the link will be shared, who approves, what a new member should see first.
+9. **Look and feel**: the color (hex), the type, the mood, where the look came from (a logo, a photo, a place), and what the page uses.
+10. **Open questions**: what the partner still wants to decide with the stewards.
+End with a credit line: drafted with Relational Builder, from relationalbuilder.org/studios.
+
+### The one-page site (`index.html`)
+
+A single standalone HTML page with inline CSS and no build step (it previews instantly and publishes as-is from Share → Publish). The studio's own look from the plan's Look & feel: its color as the accent, its type, its mood — never the Builder's or RTP's branding beyond one small credit line. Readable on a phone, with a 16px gutter and no horizontal scroll. Sections, in order, each a short block a visitor can read in a minute:
+1. **Hero**: the studio's name, the tagline, and one line on who it is for. A logo or photo when the partner attached one; a color field otherwise. One button that is the door: "Join the studio" linking to the studio link once RTP issues it (until then, a mailto to the studio's contact with the subject "Join <studio name>").
+2. **What we hold in common**: the paragraph from the brief, in the community's voice.
+3. **Our principles**: the numbered principles, each with its one-line "what it changes". A line that they layer on the shared relational tech principles.
+4. **How we build**: the practices and guardrails, as a short list.
+5. **What we know**: the contexts and the sources, as two compact columns or stacked blocks.
+6. **What we'll make first**: the seeds from the first shelf as cards — title and a line each.
+7. **Stewards and the door**: who stewards the studio (first names and roles are enough on a public page; emails only when the partner says so), how to join, and what happens after you ask.
+8. **Footer**: the contact email, the organization or network behind the studio, and one small credit: "A Studio inside Relational Builder · relationalbuilder.org/studios".
+Everything on the page comes from the brief; when the brief changes, the page changes with it. Names and faces appear only with consent, so the page asks the partner once before naming any steward it did not already name.
+

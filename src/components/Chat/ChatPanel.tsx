@@ -59,6 +59,7 @@ import { adoptDraftedProjectName } from '@/project/drafted-name';
 import { recordBuildEvent, useBuildLogStore } from '@/report/build-log';
 import { resetSubmitTracking } from '@/report/friction';
 import { BuildReportCard } from './BuildReportCard';
+import { StudioBriefShareCard } from './StudioBriefShareCard';
 import { MessageList } from './MessageList';
 import { HistoryPanel } from './HistoryPanel';
 import { useHistoryStore } from '@/store/history-store';
@@ -1410,6 +1411,8 @@ export function ChatPanel() {
       {/* Always mounted: the card itself picks its calm moment to appear
           (and retires the ask if the person builds on past it) */}
       <BuildReportCard />
+      {/* A studio being designed: once its brief exists, the door to send it to RTP */}
+      <StudioBriefShareCard />
       {!isGenerating && !cooking && <CommunityBudgetBanner />}
       {!isGenerating && !cooking && <UndoLastChange />}
       {needsKey && (

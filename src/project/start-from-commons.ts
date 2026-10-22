@@ -7,6 +7,7 @@ import { useEnvStore } from '@/store/env-store';
 import { fetchCommonsItemDetail, type CommonsCard } from '@/knowledge/commons-items';
 import { frameSlugsForCommonsItem } from '@/knowledge/frames';
 import { BUILD_DAY_FRAME, buildDayOpening } from '@/knowledge/build-day';
+import { STUDIO_BRIEF_FRAME, studioBriefOpening } from '@/knowledge/studio-brief';
 
 /**
  * Remixing a commons practice — the gallery path for the commons shelves
@@ -37,8 +38,12 @@ export async function startFromCommonsItem(card: CommonsCard): Promise<void> {
             : `I'd like to bring the practice "${card.title}"${who} to my neighborhood.`;
   const frames = frameSlugsForCommonsItem(card);
   // A build day remix opens the organizer's own conversation, not a
-  // practice-adaptation ask
-  const draft = frames.includes(BUILD_DAY_FRAME.slug) ? buildDayOpening() : [
+  // practice-adaptation ask; the studio door opens the partner's
+  const draft = frames.includes(BUILD_DAY_FRAME.slug)
+    ? buildDayOpening()
+    : frames.includes(STUDIO_BRIEF_FRAME.slug)
+      ? studioBriefOpening()
+      : [
     opening,
     summary ? `\nWhat it is: ${summary}` : '',
     // When the original's source is a public repo, say so — the model can

@@ -50,6 +50,13 @@ export const NEW_PROJECT_PATH = '/new';
  */
 export const BUILD_DAY_PATH = '/buildday';
 
+/**
+ * And a third: opening it starts the "design your studio" conversation for a
+ * network partner (a Studio Brief and a one-page site to share with RTP).
+ * The /studios page links here.
+ */
+export const STUDIO_BRIEF_PATH = '/studiobrief';
+
 export function pathForView(view: AppView): string {
   return VIEW_PATHS[view] ?? '/';
 }
@@ -74,6 +81,10 @@ export function isNewProjectPath(pathname: string): boolean {
 
 export function isBuildDayPath(pathname: string): boolean {
   return normalize(pathname) === BUILD_DAY_PATH;
+}
+
+export function isStudioBriefPath(pathname: string): boolean {
+  return normalize(pathname) === STUDIO_BRIEF_PATH;
 }
 
 /**
