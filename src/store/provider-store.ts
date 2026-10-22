@@ -11,6 +11,8 @@ interface ProviderState {
   activeProviderId: string;
   activeModelId: string;
   apiKeys: ApiKeyConfig;
+  /** Endpoint overrides for providers whose URL a person can set (the local preset) */
+  baseUrls: Record<string, string>;
   availableModels: ModelInfo[];
   /** True when the person picked the current model themselves (via the model
    *  picker) for this project — automatic defaults must respect it. Cleared
@@ -24,6 +26,7 @@ interface ProviderState {
   clearModelPin: () => void;
   setApiKey: (providerId: string, key: string) => void;
   removeApiKey: (providerId: string) => void;
+  setBaseUrl: (providerId: string, url: string) => Promise<void>;
   refreshModels: () => Promise<void>;
 }
 
@@ -33,6 +36,7 @@ export const useProviderStore = create<ProviderState>()(
       activeProviderId: 'claude',
       activeModelId: 'claude-opus-5-5',
       apiKeys: {},
+      baseUrls: {},
       availableModels: [],
       modelPinned: false,
 
@@ -78,19 +82,34 @@ export const useProviderStore = create<ProviderState>()(
         });
       },
 
+      setBaseUrl: async (providerId: string, url: string) => {
+        const clean = url.trim().replace(/\/$/, '');
+        if (!clean) return;
+        registry.setBaseUrl(providerId, clean);
+        set(state => ({ baseUrls: { ...state.baseUrls, [providerId]: clean } }));
+        // The endpoint's installed models replace the curated defaults
+        await get().refreshModels();
+      },
+
       refreshModels: async () => {
-        // Restore API keys from persisted state into the registry
-        const { apiKeys } = get();
+        // Restore API keys and endpoint overrides from persisted state into
+        // the registry (it is rebuilt fresh on every load)
+        const { apiKeys, baseUrls } = get();
         for (const [pid, key] of Object.entries(apiKeys)) {
           registry.setApiKey(pid, key);
         }
-        const models = await registry.getAllModels();
+        for (const [pid, url] of Object.entries(baseUrls)) {
+          registry.setBaseUrl(pid, url);
+        }
+        // Only probe the local endpoint once someone has chosen it or set its URL
+        const localChosen = get().activeProviderId === 'local' || !!baseUrls['local'];
+        const models = await registry.getAllModels(localChosen ? [] : ['local']);
         set({ availableModels: models });
       },
     }),
     {
       name: 'rb-provider-config',
-      version: 7,
+      version: 8,
       migrate: (persisted, version) => {
         const state = persisted as Partial<ProviderState>;
 
@@ -168,12 +187,16 @@ export const useProviderStore = create<ProviderState>()(
           state.activeModelId = 'claude-opus-5-5';
         }
 
+        // v8: the local-model preset adds persisted endpoint overrides
+        if (!state.baseUrls) state.baseUrls = {};
+
         return state as ProviderState;
       },
       partialize: (state) => ({
         activeProviderId: state.activeProviderId,
         activeModelId: state.activeModelId,
         apiKeys: state.apiKeys,
+        baseUrls: state.baseUrls,
         // Survives reloads mid-project; cleared on project clear/open
         modelPinned: state.modelPinned,
       }),

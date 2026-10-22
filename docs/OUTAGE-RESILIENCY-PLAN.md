@@ -192,7 +192,7 @@ improvised one:
 | 1 | Community fallback chain + proxy failover | ~1 day | ✅ shipped 7/29 | Room survives any Anthropic outage, hands-free |
 | 2 | `OUTAGE_PROVIDER` lever + runbook curl | ~1 hour | ✅ shipped 7/29 | Operator control with no deploy and no AI |
 | 3 | Outage-aware banner + health probe | ~half day | open | Calm rooms; facilitator sees it coming |
-| 4 | Ollama preset + facilitator kit | ~half day + doc | open | Survives a correlated everything-down outage |
+| 4 | Ollama preset + facilitator kit | ~half day + doc | ✅ shipped 10/22 (`LOCAL-MODEL.md`) | Survives a correlated everything-down outage |
 | 5 | Build replay demo | ~1 day | open | Demo always works, even fully offline |
 | 6 | Recovery notifier | ~half day | open | Automates the "tell me when it's back" loop |
 | 7 | Tier 1 vLLM go-live | weeks + $ | open | Community-owned inference at scale |
