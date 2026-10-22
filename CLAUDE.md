@@ -89,6 +89,9 @@ Chat/Builder Panel  |  Preview Sandbox (iframe)  |  RTP Knowledge Base Panel
 - **Models:** Three-tier provider system
   - Tier 1: RTP-hosted open-source model (free default, no API key)
   - Tier 2: BYOK cloud models (Claude, OpenAI, OpenRouter)
+  - Local: Ollama / LM Studio / any OpenAI-compatible server on the person's
+    machine or a box in the room (`createLocalProvider`, keyless, URL set in
+    Settings); see `docs/LOCAL-MODEL.md`
   - Tier 3: RTP-subsidized cloud access (for workshops/pilots)
 
 ## Key Directories

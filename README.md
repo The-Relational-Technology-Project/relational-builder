@@ -64,7 +64,7 @@ Relational Builder combines three things that don't yet exist together:
 - **Custom domains** -- attach your own domain (e.g. myapp.ourneighborhood.org) when deploying to Netlify or Vercel, with DNS setup instructions
 - **Resizable panels** -- drag dividers to resize the chat, preview, and knowledge panels
 - **Session persistence** -- your chat and project files survive page refreshes via localStorage (and the cloud when signed in)
-- **Model-agnostic** -- latest models from Anthropic (Claude Opus 5.5 by default, plus Fable 5.1, Opus 5, Opus 4.8, Sonnet 5, Haiku 4.5), Google (Gemini 3.5), OpenAI (GPT-5.5), Together AI, OpenRouter, or any OpenAI-compatible endpoint
+- **Model-agnostic** -- latest models from Anthropic (Claude Opus 5.5 by default, plus Fable 5.1, Opus 5, Opus 4.8, Sonnet 5, Haiku 4.5), Google (Gemini 3.5), OpenAI (GPT-5.5), Together AI, OpenRouter, a local model via Ollama or LM Studio on your own machine (see `docs/LOCAL-MODEL.md`), or any OpenAI-compatible endpoint
 
 ## Guiding Principles
 

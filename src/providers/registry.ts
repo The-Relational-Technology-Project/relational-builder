@@ -9,6 +9,7 @@ import {
   createZaiProvider,
   createMoonshotProvider,
   createMistralProvider,
+  createLocalProvider,
   OpenAICompatibleProvider,
 } from './openai-compatible';
 import { ClaudeProvider, CLAUDE_MODELS } from './claude';
@@ -42,6 +43,10 @@ class ProviderRegistry {
     this.register(createMistralProvider(), 2, true);
     this.register(createTogetherProvider(), 2, true);
     this.register(createOpenRouterProvider(), 2, true);
+
+    // Local: a model on this computer or a box in the room. Keyless, but not
+    // Tier 1 — nothing is hosted for you; Settings gives it its own section.
+    this.register(createLocalProvider(), 2, false);
   }
 
   private register(provider: LLMProvider, tier: 1 | 2 | 3, requiresApiKey: boolean) {
@@ -77,12 +82,26 @@ class ProviderRegistry {
     }
   }
 
-  /** Get all available models across configured providers (async — hits APIs) */
-  async getAllModels(): Promise<ModelInfo[]> {
+  /** Point an OpenAI-compatible provider at a different endpoint (the local preset) */
+  setBaseUrl(providerId: string, url: string) {
+    const p = this.providers.get(providerId)?.provider;
+    if (p instanceof OpenAICompatibleProvider && url.trim()) p.setBaseUrl(url.trim());
+  }
+
+  getBaseUrl(providerId: string): string | undefined {
+    const p = this.providers.get(providerId)?.provider;
+    return p instanceof OpenAICompatibleProvider ? p.getBaseUrl() : undefined;
+  }
+
+  /** Get all available models across configured providers (async — hits APIs).
+   *  `skip` leaves providers out of the probe — the keyless local preset is
+   *  always "configured", and nobody wants their console full of refused
+   *  connections to localhost:11434 until they've actually chosen it. */
+  async getAllModels(skip: string[] = []): Promise<ModelInfo[]> {
     // In parallel, and one slow or failing provider doesn't hide the others'
     // models — this used to await each provider in sequence
-    const configured = Array.from(this.providers.values()).filter(({ provider }) =>
-      provider.isConfigured(),
+    const configured = Array.from(this.providers.values()).filter(
+      ({ provider }) => provider.isConfigured() && !skip.includes(provider.id),
     );
     const settled = await Promise.allSettled(configured.map(({ provider }) => provider.getModels()));
     return settled.flatMap(r => (r.status === 'fulfilled' ? r.value : []));

@@ -90,7 +90,7 @@ endpoint, and the llm-proxy already has a dormant `rtp` tier (`RTP_MODEL_URL` +
 `proxyRTP`). So the plumbing for both a local model and an RTP-hosted open model
 mostly **exists** — it's just not pointed at anything or surfaced nicely.
 
-- **(a) A friendly "Local model" provider — mostly UX, works today underneath.**
+- **(a) A friendly "Local model" provider — ✅ shipped Oct 22, 2026 (`docs/LOCAL-MODEL.md`).**
   Someone running Ollama / LM Studio / vLLM / llama.cpp exposes an OpenAI-
   compatible endpoint; the Builder can already use it via a custom URL. What's
   missing is a real option that pre-fills `http://localhost:11434/v1`, checks

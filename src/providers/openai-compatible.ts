@@ -59,6 +59,10 @@ export class OpenAICompatibleProvider implements LLMProvider {
     this.baseUrl = url.replace(/\/$/, '');
   }
 
+  getBaseUrl(): string {
+    return this.baseUrl;
+  }
+
   /** Return hardcoded default models (sync, no API calls) */
   getDefaultModelsList(): ModelInfo[] {
     return this.defaultModels;
@@ -193,6 +197,43 @@ export function createRTPProvider(): OpenAICompatibleProvider | null {
     requiresKey: false,
     defaultModels: [
       { id: 'qwen2.5-coder-32b', name: 'Qwen 2.5 Coder 32B', provider: 'rtp-hosted' },
+    ],
+  });
+}
+
+/** Where Ollama listens out of the box; LM Studio uses :1234, llama.cpp :8080 */
+export const LOCAL_MODEL_DEFAULT_URL = 'http://localhost:11434';
+
+/**
+ * Pre-configured: a model running on this computer or a box on the same
+ * network (Ollama, LM Studio, llama.cpp, vLLM — anything that speaks the
+ * OpenAI protocol). No key, no cloud: the sovereignty and outage backstop.
+ *
+ * The browser calls the endpoint directly, so two things have to hold:
+ *  - CORS: Ollama allows localhost origins by default; a hosted Builder
+ *    origin needs `OLLAMA_ORIGINS=https://relationalbuilder.org`.
+ *  - Mixed content: an https page may call http://localhost (browsers exempt
+ *    it) but not http://<LAN IP>. For a shared box in a room, serve the
+ *    Builder from that box too, or put https in front of the model.
+ * Settings surfaces both when a check fails. See docs/LOCAL-MODEL.md.
+ *
+ * Expectations are set honestly in the UI: a model that fits on one machine
+ * keeps simple tools and edits working; it will not match the cloud default
+ * on a full multi-file build.
+ */
+export function createLocalProvider(): OpenAICompatibleProvider {
+  return new OpenAICompatibleProvider({
+    id: 'local',
+    name: 'Local model (Ollama)',
+    baseUrl: LOCAL_MODEL_DEFAULT_URL,
+    requiresKey: false,
+    // Curated, not exhaustive: a few coder models that fit on one machine.
+    // Once the endpoint answers, its real installed list replaces these.
+    defaultModels: [
+      { id: 'qwen3-coder:30b', name: 'Qwen3 Coder 30B', provider: 'local' },
+      { id: 'qwen2.5-coder:14b', name: 'Qwen 2.5 Coder 14B', provider: 'local' },
+      { id: 'qwen2.5-coder:7b', name: 'Qwen 2.5 Coder 7B', provider: 'local' },
+      { id: 'gemma3:12b', name: 'Gemma 3 12B', provider: 'local' },
     ],
   });
 }

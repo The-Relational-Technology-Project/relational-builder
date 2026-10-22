@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useProviderStore } from '@/store/provider-store';
 import { useCommunityStore } from '@/store/community-store';
 import { registry } from '@/providers/registry';
+import { LOCAL_MODEL_DEFAULT_URL } from '@/providers/openai-compatible';
 import {
   Dialog,
   DialogContent,
@@ -44,7 +45,8 @@ export function ProviderSettings({ open: controlledOpen, onOpenChange, hideTrigg
 
   const entries = registry.getAllEntries();
   const freeEntries = entries.filter(e => e.tier === 1);
-  const byokEntries = entries.filter(e => e.tier !== 1);
+  const localEntry = entries.find(e => e.provider.id === 'local');
+  const byokEntries = entries.filter(e => e.tier !== 1 && e.provider.id !== 'local');
   const communityActive = useCommunityStore(s => s.active);
   const weeklyBudget = useCommunityStore(s => s.weeklyBudget);
   const usedThisWeek = useCommunityStore(s => s.usedThisWeek);
@@ -163,6 +165,21 @@ export function ProviderSettings({ open: controlledOpen, onOpenChange, hideTrigg
             </div>
           )}
 
+          {/* Local: a model on this computer or a box in the room. No key and
+              no cloud, so it gets its own section with a URL instead of a key */}
+          {localEntry && (
+            <div className="space-y-2">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                On your computer or network
+              </p>
+              <LocalModelRow
+                name={localEntry.provider.name}
+                active={rowActive('local')}
+                onUse={() => setActiveProvider('local')}
+              />
+            </div>
+          )}
+
           {/* Every BYOK provider has the same shape — Claude (Anthropic) is
               simply one of them */}
           <div className="space-y-4">
@@ -226,4 +243,105 @@ export function ProviderSettings({ open: controlledOpen, onOpenChange, hideTrigg
       </DialogContent>
     </Dialog>
   );
+}
+
+type LocalCheck =
+  | { state: 'idle' }
+  | { state: 'checking' }
+  | { state: 'ok'; models: string[] }
+  | { state: 'fail'; reason: string };
+
+/**
+ * The local preset's row: where the model server is, a one-click check that
+ * it answers, and honest expectations. The check runs the same request the
+ * model picker uses, so "found 3 models" means the picker will show them.
+ */
+function LocalModelRow({ name, active, onUse }: { name: string; active: boolean; onUse: () => void }) {
+  const savedUrl = useProviderStore(s => s.baseUrls['local']);
+  const setBaseUrl = useProviderStore(s => s.setBaseUrl);
+  const [url, setUrl] = useState(savedUrl ?? LOCAL_MODEL_DEFAULT_URL);
+  const [check, setCheck] = useState<LocalCheck>({ state: 'idle' });
+
+  const cleanUrl = url.trim().replace(/\/$/, '');
+
+  async function save() {
+    if (cleanUrl && cleanUrl !== (savedUrl ?? LOCAL_MODEL_DEFAULT_URL)) await setBaseUrl('local', cleanUrl);
+  }
+
+  async function runCheck() {
+    await save();
+    setCheck({ state: 'checking' });
+    try {
+      const res = await fetch(`${cleanUrl}/v1/models`, { signal: AbortSignal.timeout(5000) });
+      if (!res.ok) throw new Error(`the server answered ${res.status}`);
+      const data = await res.json();
+      const models: string[] = (data.data ?? []).map((m: { id: string }) => m.id);
+      setCheck({ state: 'ok', models });
+    } catch (err) {
+      setCheck({ state: 'fail', reason: explainLocalFailure(cleanUrl, err) });
+    }
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <span className="font-medium text-sm">{name}</span>
+        <Button variant={active ? 'default' : 'outline'} size="sm" onClick={onUse}>
+          {active ? 'Active' : 'Use'}
+        </Button>
+      </div>
+      <div className="flex gap-2">
+        <div className="flex-1">
+          <Label htmlFor="local-url" className="sr-only">Model server address</Label>
+          <Input
+            id="local-url"
+            type="url"
+            placeholder={LOCAL_MODEL_DEFAULT_URL}
+            value={url}
+            onChange={e => setUrl(e.target.value)}
+            onBlur={() => { void save(); }}
+            onKeyDown={e => { if (e.key === 'Enter') void runCheck(); }}
+          />
+        </div>
+        <Button variant="ghost" size="sm" onClick={() => { void runCheck(); }} disabled={check.state === 'checking'}>
+          {check.state === 'checking' ? 'Checking…' : 'Check'}
+        </Button>
+      </div>
+      {check.state === 'ok' && (
+        <p className="text-xs text-foreground">
+          {check.models.length === 0
+            ? 'Connected, but no models are installed yet. In a terminal: ollama pull qwen2.5-coder:7b'
+            : `Connected. ${check.models.length} model${check.models.length === 1 ? '' : 's'} ready: ${check.models.slice(0, 6).join(', ')}${check.models.length > 6 ? '…' : ''}`}
+        </p>
+      )}
+      {check.state === 'fail' && (
+        <p className="text-xs text-destructive">{check.reason}</p>
+      )}
+      <p className="text-xs text-muted-foreground">
+        Runs Ollama, LM Studio, or any OpenAI-compatible server on your machine or a box on
+        the same network. No key, no cloud, keeps working in an outage. A model that fits on
+        one computer handles simple tools and edits well; expect less than the cloud default
+        on a big multi-file build.
+      </p>
+    </div>
+  );
+}
+
+/** Turn a failed probe into the one thing the person should try next */
+function explainLocalFailure(url: string, err: unknown): string {
+  const pageIsHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
+  const target = (() => { try { return new URL(url); } catch { return null; } })();
+  if (!target) return 'That address does not look like a URL. Try http://localhost:11434';
+  const isLocalhost = ['localhost', '127.0.0.1', '[::1]'].includes(target.hostname);
+  if (pageIsHttps && target.protocol === 'http:' && !isLocalhost) {
+    return `Browsers block this https page from calling http://${target.host}. Either open the Builder from that same machine, or put https in front of the model server.`;
+  }
+  if (err instanceof Error && err.name === 'TimeoutError') {
+    return `No answer from ${target.host} after 5 seconds. Is the model server running, and is this the right address?`;
+  }
+  const detail = err instanceof Error ? err.message : String(err);
+  if (/failed to fetch|networkerror|load failed/i.test(detail)) {
+    return `Could not reach ${target.host}. If Ollama is running, it may need to allow this site: set OLLAMA_ORIGINS=${window.location.origin} and restart it.`;
+  }
+  return `Could not reach ${target.host}: ${detail}`;
 }
