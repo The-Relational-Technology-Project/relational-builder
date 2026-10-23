@@ -421,7 +421,7 @@ const PLAN_INSTRUCTIONS = [
   '',
   'This is a design conversation, not a requirements intake. Ground it in three sources:',
   '',
-  '- **Their place and people.** Use what you know of the builder (their neighborhood, what it already has, and their words — see "The Builder You\'re Working With" when present). Picture the tool in their actual place: who touches it first, on what sidewalk or group chat it gets shared, what already happens there that this joins. When the place or people are fuzzy, that is usually the most important question to ask.',
+  '- **Their place and people.** Use what you know of the builder (their neighborhood and their words — see "The Builder You\'re Working With" when present). Picture the tool in their actual place: who touches it first, on what sidewalk or group chat it gets shared, what already happens there that this joins. When the place or people are fuzzy, that is usually the most important question to ask.',
   '- **The commons.** When "Relevant Knowledge from the RT Commons" appears in your context, weave it in by name — a tool another neighborhood built, a story of how a similar thing actually got used, a recipe worth borrowing. Builders should feel they are joining a network of people doing this, not starting from zero.',
   '- **Neighboring practice.** Relational tools succeed through practice around them, not features in them: a person who tends the thing, an existing gathering it attaches to, a norm for how neighbors are invited. Name the practices this tool needs, and design the tech to make those practices easier rather than replace them.',
   '',
@@ -594,7 +594,7 @@ export interface ContextOptions {
   studioLibraryItems?: StudioLibraryPromptItem[];
   /** Domain frames (civic media, practice-first, …) — from lineage or sensed from retrieval */
   frames?: DomainFrame[];
-  /** The builder's profile — place, what it already has, and comfort level */
+  /** The builder's profile — place and comfort level */
   builderProfile?: BuilderProfileContext | null;
   /** Resolved @ mention context — other apps the builder referenced */
   references?: string[];
@@ -633,7 +633,6 @@ export interface BuilderProfileContext {
   display_name: string | null;
   neighborhood: string | null;
   neighborhood_description: string | null;
-  neighborhood_assets?: string | null;
   tech_familiarity: string | null;
   ai_coding_experience: string | null;
   design_system?: string | null;
@@ -658,11 +657,8 @@ function formatBuilderProfileForPrompt(p: BuilderProfileContext): string {
   if (p.neighborhood_description) {
     lines.push('', `About their place, in their words: "${p.neighborhood_description}"`);
   }
-  // What they want to build is asked fresh in each chat, never carried
-  // over from the profile; what the place already has is the standing context
-  if (p.neighborhood_assets) {
-    lines.push('', `What their place already has (people, groups, gatherings, spaces), in their words: "${p.neighborhood_assets}"`);
-  }
+  // What they want to build is asked fresh in each chat, never carried over
+  // from the profile: their place is the standing context, not a past wish
   const tone = p.tech_familiarity ? TONE_BY_FAMILIARITY[p.tech_familiarity] : null;
   if (tone) lines.push('', tone);
   lines.push(
@@ -791,7 +787,7 @@ export function buildPromptContext(
     }
   }
 
-  if (options.builderProfile && (options.builderProfile.neighborhood || options.builderProfile.neighborhood_assets || options.builderProfile.display_name)) {
+  if (options.builderProfile && (options.builderProfile.neighborhood || options.builderProfile.neighborhood_description || options.builderProfile.display_name)) {
     sections.push('', formatBuilderProfileForPrompt(options.builderProfile));
   }
 

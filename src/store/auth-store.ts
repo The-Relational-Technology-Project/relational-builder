@@ -62,7 +62,6 @@ export interface BuilderProfile {
   neighborhood: string | null;
   neighborhood_description: string | null;
   dreams: string | null;
-  neighborhood_assets: string | null;
   tech_familiarity: string | null;
   ai_coding_experience: string | null;
   email_opt_in: boolean | null;
@@ -247,7 +246,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     }
     const { data, error } = await builderClient
       .from('profiles')
-      .select('display_name, full_name, neighborhood, neighborhood_description, dreams, neighborhood_assets, tech_familiarity, ai_coding_experience, email_opt_in, terms_accepted_at, profile_completed, design_system, local_tech_ecosystem, open_to_connecting, connect_note, cal_link, allow_requests, referral_code, event_code')
+      .select('display_name, full_name, neighborhood, neighborhood_description, dreams, tech_familiarity, ai_coding_experience, email_opt_in, terms_accepted_at, profile_completed, design_system, local_tech_ecosystem, open_to_connecting, connect_note, cal_link, allow_requests, referral_code, event_code')
       .eq('id', user.id)
       .maybeSingle();
     // The account changed while we were fetching — this row isn't theirs

@@ -13,17 +13,16 @@ import { RBMark } from '@/components/RBMark';
 import { ReferralCard } from '@/components/ReferralCard';
 import { Loader2, ArrowRight, ArrowLeft, MapPin, User, Cpu, Trees, Shield, Package, Users, Gift } from 'lucide-react';
 
-type Step = 'welcome' | 'studio' | 'about' | 'assets' | 'tech' | 'connect' | 'consent' | 'share';
-const STEPS: Step[] = ['welcome', 'about', 'assets', 'tech', 'connect', 'consent', 'share'];
+type Step = 'welcome' | 'studio' | 'about' | 'place' | 'tech' | 'connect' | 'consent' | 'share';
+const STEPS: Step[] = ['welcome', 'about', 'place', 'tech', 'connect', 'consent', 'share'];
 
 const textareaClass =
   'w-full rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs outline-none placeholder:text-muted-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:border-ring';
 
 /**
  * First-sign-in onboarding, adapted from RT Studio's builder profile flow.
- * Grounds the builder in a place — that place, and what it already has
- * (people, groups, spaces, the tools it runs on), becomes context for every
- * build chat. What to build is never asked here: that's the start screen's
+ * Grounds the builder in a place — that place, in their own words, becomes
+ * context for every build chat. What to build is never asked here: that's the start screen's
  * question, asked fresh each time. Lands on the builder home.
  */
 export function BuilderOnboarding({ onDone }: { onDone?: () => void }) {
@@ -47,8 +46,6 @@ export function BuilderOnboarding({ onDone }: { onDone?: () => void }) {
   const [displayName, setDisplayName] = useState(profile?.display_name ?? '');
   const [neighborhood, setNeighborhood] = useState(profile?.neighborhood ?? '');
   const [neighborhoodDescription, setNeighborhoodDescription] = useState(profile?.neighborhood_description ?? '');
-  const [assets, setAssets] = useState(profile?.neighborhood_assets ?? '');
-  const [ecosystem, setEcosystem] = useState(profile?.local_tech_ecosystem ?? '');
   const [techFamiliarity, setTechFamiliarity] = useState(profile?.tech_familiarity ?? '');
   const [aiCodingExperience, setAiCodingExperience] = useState(profile?.ai_coding_experience ?? '');
   const [emailOptIn, setEmailOptIn] = useState<'yes' | 'no' | ''>(
@@ -71,7 +68,7 @@ export function BuilderOnboarding({ onDone }: { onDone?: () => void }) {
   }, []);
 
   const steps: Step[] = studio
-    ? ['welcome', 'studio', 'about', 'assets', 'tech', 'connect', 'consent', 'share']
+    ? ['welcome', 'studio', 'about', 'place', 'tech', 'connect', 'consent', 'share']
     : STEPS;
   const index = steps.indexOf(step);
   const goNext = () => setStep(steps[Math.min(index + 1, steps.length - 1)]);
@@ -113,8 +110,6 @@ export function BuilderOnboarding({ onDone }: { onDone?: () => void }) {
       display_name: displayName.trim() || null,
       neighborhood: neighborhood.trim() || null,
       neighborhood_description: neighborhoodDescription.trim() || null,
-      neighborhood_assets: assets.trim() || null,
-      local_tech_ecosystem: ecosystem.trim() || null,
       tech_familiarity: techFamiliarity || null,
       ai_coding_experience: aiCodingExperience || null,
       email_opt_in: emailOptIn === 'yes',
@@ -288,58 +283,32 @@ export function BuilderOnboarding({ onDone }: { onDone?: () => void }) {
                   </Label>
                   <Input id="ob-neighborhood" value={neighborhood} onChange={e => setNeighborhood(e.target.value)} placeholder="e.g., Outer Sunset, San Francisco" />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="ob-place">Tell us a bit about it (optional)</Label>
-                  <textarea
-                    id="ob-place"
-                    value={neighborhoodDescription}
-                    onChange={e => setNeighborhoodDescription(e.target.value)}
-                    placeholder="What makes your neighborhood special?"
-                    rows={3}
-                    className={textareaClass}
-                  />
-                </div>
               </div>
               <StepNav onBack={goBack} onNext={goNext} />
             </div>
           )}
 
-          {step === 'assets' && (
+          {step === 'place' && (
             <div className="space-y-6">
               <div className="text-center space-y-2">
                 <div className="mx-auto rounded-full bg-primary/10 p-3 w-fit">
                   <Trees className="size-6 text-primary" />
                 </div>
-                <h2 className="text-xl font-semibold">What's already there</h2>
+                <h2 className="text-xl font-semibold">Your neighborhood</h2>
                 <p className="text-muted-foreground text-sm">
-                  Every place has things holding it together. Knowing them helps
-                  what you build connect to them instead of starting from scratch.
+                  Share whatever you'd like about it: who and what is there,
+                  what it's like, what potential it holds.
                 </p>
               </div>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="ob-assets">People, groups, and places (optional)</Label>
-                  <textarea
-                    id="ob-assets"
-                    value={assets}
-                    onChange={e => setAssets(e.target.value)}
-                    placeholder="A tenants' association, the library, a corner café where people linger, a weekly farmers market, the neighbor who knows everyone..."
-                    rows={4}
-                    className={textareaClass}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="ob-ecosystem">How people stay in touch (optional)</Label>
-                  <textarea
-                    id="ob-ecosystem"
-                    value={ecosystem}
-                    onChange={e => setEcosystem(e.target.value)}
-                    placeholder="Group chats, a listserv, Nextdoor, a community website, flyers on the laundromat board..."
-                    rows={3}
-                    className={textareaClass}
-                  />
-                </div>
-              </div>
+              <textarea
+                id="ob-place"
+                aria-label="About your neighborhood (optional)"
+                value={neighborhoodDescription}
+                onChange={e => setNeighborhoodDescription(e.target.value)}
+                placeholder="Optional. The people, groups, and places here, what a good day feels like, what's missing, what could be..."
+                rows={6}
+                className={textareaClass}
+              />
               <StepNav onBack={goBack} onNext={goNext} />
             </div>
           )}
