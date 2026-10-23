@@ -11,18 +11,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RBMark } from '@/components/RBMark';
 import { ReferralCard } from '@/components/ReferralCard';
-import { Loader2, ArrowRight, ArrowLeft, MapPin, User, Cpu, Sparkles, Shield, Package, Users, Gift } from 'lucide-react';
+import { Loader2, ArrowRight, ArrowLeft, MapPin, User, Cpu, Trees, Shield, Package, Users, Gift } from 'lucide-react';
 
-type Step = 'welcome' | 'studio' | 'about' | 'dreams' | 'tech' | 'connect' | 'consent' | 'share';
-const STEPS: Step[] = ['welcome', 'about', 'dreams', 'tech', 'connect', 'consent', 'share'];
+type Step = 'welcome' | 'studio' | 'about' | 'place' | 'tech' | 'connect' | 'consent' | 'share';
+const STEPS: Step[] = ['welcome', 'about', 'place', 'tech', 'connect', 'consent', 'share'];
 
 const textareaClass =
   'w-full rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs outline-none placeholder:text-muted-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:border-ring';
 
 /**
  * First-sign-in onboarding, adapted from RT Studio's builder profile flow.
- * Grounds the builder in a place — that place (and their dreams for it)
- * becomes context for every build chat. Lands on the builder home.
+ * Grounds the builder in a place — that place, in their own words, becomes
+ * context for every build chat. What to build is never asked here: that's the start screen's
+ * question, asked fresh each time. Lands on the builder home.
  */
 export function BuilderOnboarding({ onDone }: { onDone?: () => void }) {
   const profile = useAuthStore(s => s.profile);
@@ -45,7 +46,6 @@ export function BuilderOnboarding({ onDone }: { onDone?: () => void }) {
   const [displayName, setDisplayName] = useState(profile?.display_name ?? '');
   const [neighborhood, setNeighborhood] = useState(profile?.neighborhood ?? '');
   const [neighborhoodDescription, setNeighborhoodDescription] = useState(profile?.neighborhood_description ?? '');
-  const [dreams, setDreams] = useState(profile?.dreams ?? '');
   const [techFamiliarity, setTechFamiliarity] = useState(profile?.tech_familiarity ?? '');
   const [aiCodingExperience, setAiCodingExperience] = useState(profile?.ai_coding_experience ?? '');
   const [emailOptIn, setEmailOptIn] = useState<'yes' | 'no' | ''>(
@@ -68,7 +68,7 @@ export function BuilderOnboarding({ onDone }: { onDone?: () => void }) {
   }, []);
 
   const steps: Step[] = studio
-    ? ['welcome', 'studio', 'about', 'dreams', 'tech', 'connect', 'consent', 'share']
+    ? ['welcome', 'studio', 'about', 'place', 'tech', 'connect', 'consent', 'share']
     : STEPS;
   const index = steps.indexOf(step);
   const goNext = () => setStep(steps[Math.min(index + 1, steps.length - 1)]);
@@ -88,7 +88,6 @@ export function BuilderOnboarding({ onDone }: { onDone?: () => void }) {
         if (p.neighborhood_description && !neighborhoodDescription.trim()) {
           setNeighborhoodDescription(p.neighborhood_description);
         }
-        if (p.dreams && !dreams.trim()) setDreams(p.dreams);
         if (p.tech_familiarity && !techFamiliarity) setTechFamiliarity(p.tech_familiarity);
         if (p.ai_coding_experience && !aiCodingExperience) setAiCodingExperience(p.ai_coding_experience);
         setStudioImported(r.imported_prompts);
@@ -111,7 +110,6 @@ export function BuilderOnboarding({ onDone }: { onDone?: () => void }) {
       display_name: displayName.trim() || null,
       neighborhood: neighborhood.trim() || null,
       neighborhood_description: neighborhoodDescription.trim() || null,
-      dreams: dreams.trim() || null,
       tech_familiarity: techFamiliarity || null,
       ai_coding_experience: aiCodingExperience || null,
       email_opt_in: emailOptIn === 'yes',
@@ -285,38 +283,30 @@ export function BuilderOnboarding({ onDone }: { onDone?: () => void }) {
                   </Label>
                   <Input id="ob-neighborhood" value={neighborhood} onChange={e => setNeighborhood(e.target.value)} placeholder="e.g., Outer Sunset, San Francisco" />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="ob-place">Tell us a bit about it (optional)</Label>
-                  <textarea
-                    id="ob-place"
-                    value={neighborhoodDescription}
-                    onChange={e => setNeighborhoodDescription(e.target.value)}
-                    placeholder="What makes your neighborhood special?"
-                    rows={3}
-                    className={textareaClass}
-                  />
-                </div>
               </div>
               <StepNav onBack={goBack} onNext={goNext} />
             </div>
           )}
 
-          {step === 'dreams' && (
+          {step === 'place' && (
             <div className="space-y-6">
               <div className="text-center space-y-2">
                 <div className="mx-auto rounded-full bg-primary/10 p-3 w-fit">
-                  <Sparkles className="size-6 text-primary" />
+                  <Trees className="size-6 text-primary" />
                 </div>
-                <h2 className="text-xl font-semibold">Your dreams</h2>
+                <h2 className="text-xl font-semibold">Your neighborhood</h2>
                 <p className="text-muted-foreground text-sm">
-                  What are you hoping to build or create for your community?
+                  Share whatever you'd like about it: who and what is there,
+                  what it's like, what potential it holds.
                 </p>
               </div>
               <textarea
-                value={dreams}
-                onChange={e => setDreams(e.target.value)}
-                placeholder="A tool for neighbors to share meals, a website for our community garden, a way to organize block parties..."
-                rows={5}
+                id="ob-place"
+                aria-label="About your neighborhood (optional)"
+                value={neighborhoodDescription}
+                onChange={e => setNeighborhoodDescription(e.target.value)}
+                placeholder="Optional. The people, groups, and places here, what a good day feels like, what's missing, what could be..."
+                rows={6}
                 className={textareaClass}
               />
               <StepNav onBack={goBack} onNext={goNext} />

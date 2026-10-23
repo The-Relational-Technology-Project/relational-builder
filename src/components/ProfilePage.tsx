@@ -12,7 +12,6 @@ import { Badge } from '@/components/ui/badge';
 import {
   CircleUser,
   MapPin,
-  Sparkles,
   Cpu,
   Shield,
   Check,
@@ -41,7 +40,6 @@ export function ProfilePage() {
   const [displayName, setDisplayName] = useState('');
   const [neighborhood, setNeighborhood] = useState('');
   const [neighborhoodDescription, setNeighborhoodDescription] = useState('');
-  const [dreams, setDreams] = useState('');
   const [localTechEcosystem, setLocalTechEcosystem] = useState('');
   const [techFamiliarity, setTechFamiliarity] = useState('');
   const [aiCodingExperience, setAiCodingExperience] = useState('');
@@ -60,7 +58,6 @@ export function ProfilePage() {
     setDisplayName(profile.display_name ?? '');
     setNeighborhood(profile.neighborhood ?? '');
     setNeighborhoodDescription(profile.neighborhood_description ?? '');
-    setDreams(profile.dreams ?? '');
     setLocalTechEcosystem(profile.local_tech_ecosystem ?? '');
     setTechFamiliarity(profile.tech_familiarity ?? '');
     setAiCodingExperience(profile.ai_coding_experience ?? '');
@@ -89,7 +86,6 @@ export function ProfilePage() {
       display_name: displayName.trim() || null,
       neighborhood: neighborhood.trim() || null,
       neighborhood_description: neighborhoodDescription.trim() || null,
-      dreams: dreams.trim() || null,
       local_tech_ecosystem: localTechEcosystem.trim() || null,
       tech_familiarity: techFamiliarity || null,
       ai_coding_experience: aiCodingExperience || null,
@@ -146,35 +142,16 @@ export function ProfilePage() {
             <Input id="pf-neighborhood" value={neighborhood} onChange={e => setNeighborhood(e.target.value)} placeholder="e.g., Outer Sunset, San Francisco" className="h-9 text-sm" />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="pf-place" className="text-xs">A bit about it (optional)</Label>
+            <Label htmlFor="pf-place" className="text-xs">About your neighborhood (optional)</Label>
             <textarea
               id="pf-place"
               value={neighborhoodDescription}
               onChange={e => setNeighborhoodDescription(e.target.value)}
-              placeholder="What makes your neighborhood special?"
-              rows={2}
+              placeholder="Who and what is there, what it's like, what potential it holds..."
+              rows={4}
               className={textareaClass}
             />
           </div>
-        </section>
-
-        {/* Dreams */}
-        <section className="space-y-3">
-          <h2 className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground uppercase tracking-wide">
-            <Sparkles className="size-3.5" />
-            Your dreams
-          </h2>
-          <p className="text-xs text-muted-foreground">
-            What you're hoping to build or create for your community — this
-            becomes context for every build chat.
-          </p>
-          <textarea
-            value={dreams}
-            onChange={e => setDreams(e.target.value)}
-            placeholder="A tool for neighbors to share meals, a website for our community garden, a way to organize block parties..."
-            rows={3}
-            className={textareaClass}
-          />
         </section>
 
         {/* Local tech ecosystem */}
