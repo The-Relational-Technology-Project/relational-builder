@@ -456,7 +456,7 @@ function FAQ() {
 function RequestAccountForm() {
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
-  const [reason, setReason] = useState('');
+  const [neighborhood, setNeighborhood] = useState('');
   // An invite link's code arrives pre-filled but stays editable — a typo'd
   // or borrowed code is the person's to fix
   const [referralCode, setReferralCode] = useState(
@@ -480,7 +480,7 @@ function RequestAccountForm() {
       const result = await requestAccount({
         email,
         name,
-        reason,
+        neighborhood,
         referralCode,
         ...(doorwayStudio
           ? { studioSlug: doorwayStudio.slug, studioLabel: doorwayStudio.label }
@@ -572,12 +572,13 @@ function RequestAccountForm() {
         placeholder="Your name"
         className={inputClass}
       />
-      <textarea
-        value={reason}
-        onChange={e => setReason(e.target.value)}
-        placeholder="What are you hoping to build, and for which neighborhood or community?"
-        rows={3}
-        className={`${inputClass} resize-none`}
+      {/* Where, not what: what to build is the start screen's question,
+          asked fresh each time — the place carries into onboarding */}
+      <input
+        value={neighborhood}
+        onChange={e => setNeighborhood(e.target.value)}
+        placeholder="Your neighborhood or community"
+        className={inputClass}
       />
       <input
         value={referralCode}
