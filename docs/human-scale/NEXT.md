@@ -6,23 +6,27 @@ per day, stop at $18; 90 minutes; max two parallel subagents; no step retried
 more than twice; one experiment at most $5 and 30 minutes. Work around open
 questions, never wait on them.
 
+## Decisions from Josh (2026-10-28)
+
+1. **Runtime default is `local` when the flag is on.** Hosted stays an
+   explicit choice, never silent. Conditions that go with it: the kit helper
+   degrades honestly (a clear "this runs on a model you host, and none is
+   reachable" state, never a quiet failure), and publish asks once whether to
+   add the `community` fallback. An https-hosted app can reach a model on the
+   visitor's own device (localhost) but not a box in the room at a private
+   address; document that limit rather than work around it.
+2. **OpenRouter-hosted open-weight models count as community-hostable** for
+   the demo and the bench. A model on community-controlled hardware is still
+   the preferred story where it is practical.
+
 ## Questions for Josh
 
-1. **Runtime default when the flag is on.** The proposal makes `local`
-   (Ollama on the person's machine or a box in the room) the default for new
-   projects, with `community` as an explicit fallback. That means a published
-   app's AI features only work for visitors who run Ollama, unless the
-   builder picks a fallback. Is that the right first pass, or should the
-   default be `community` with `local` one click away? The brief says hosted
-   is "never the silent default," so the proposal follows the brief; the
-   question is whether that is too hard a line for the demo.
-2. **Hosted open-weight runtime.** OpenRouter can serve Qwen or Gemma as a
-   hosted open-weight runtime. Should that count as "community-hostable" for
-   the demo, or only a model on hardware the community controls?
-3. **Inference keys.** Only `OPENROUTER_API_KEY` is set in the cloud
-   environment. The Opus comparison in workstream 2 can go through OpenRouter
-   too, at the same list price. Fine, or do you want a direct
-   `ANTHROPIC_API_KEY` added as an environment secret?
+1. **Inference keys.** Only `OPENROUTER_API_KEY` is set in the cloud
+   environment, and the OpenRouter balance was about $0.90 on Oct 28; Josh
+   plans to top it up before the first paid bench run. The Opus comparison
+   can go through OpenRouter at the same list price. Does Josh want a direct
+   `ANTHROPIC_API_KEY` as an environment secret as well? Default if
+   unanswered: OpenRouter for everything.
 
 ## Tomorrow
 
