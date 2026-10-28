@@ -91,10 +91,15 @@ runtime:
   fallback: none | community          # explicit, never silent
 ```
 
-- `local` is the default for new projects when the flag is on. The app calls
+- `community` is the default for new projects when the flag is on, and on
+  this branch it runs an open-weight model through OpenRouter (Josh's call,
+  Oct 28: hosted open models count as community-hostable). Today's Community
+  AI on Claude Opus stays available as an explicit choice, never the silent
+  default.
+- `local` is one click away in the project's runtime setting. The app calls
   an OpenAI-compatible endpoint directly from the browser (same CORS story as
   `docs/LOCAL-MODEL.md`). First target: Ollama with a 1B to 8B Qwen or Gemma.
-- `community` is today's behavior (Community AI through `app-capabilities`).
+  When the endpoint is not reachable the helper says so plainly.
 - `byok` is today's vaulted-key behavior.
 - The kit gains one helper, `ai()` in `src/kit/files/lib/`, that reads the
   runtime config and exposes named functions (`summarize`, `match`,

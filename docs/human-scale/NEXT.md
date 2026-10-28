@@ -8,13 +8,17 @@ questions, never wait on them.
 
 ## Decisions from Josh (2026-10-28)
 
-1. **Runtime default is `local` when the flag is on.** Hosted stays an
-   explicit choice, never silent. Conditions that go with it: the kit helper
-   degrades honestly (a clear "this runs on a model you host, and none is
-   reachable" state, never a quiet failure), and publish asks once whether to
-   add the `community` fallback. An https-hosted app can reach a model on the
-   visitor's own device (localhost) but not a box in the room at a private
-   address; document that limit rather than work around it.
+1. **Runtime default is `community` when the flag is on, with `local` one
+   click away.** Revised from an earlier call the same day. To keep the
+   brief's rule that a hosted frontier model is never the silent default,
+   the community runtime on this branch points at an open-weight model
+   through OpenRouter (today's Community AI runs Claude Opus; that stays
+   available as an explicit choice). `local` is a visible switch in the
+   project's runtime setting, not buried. The kit helper still degrades
+   honestly when a local endpoint is chosen and not reachable. An
+   https-hosted app can reach a model on the visitor's own device
+   (localhost) but not a box in the room at a private address; document
+   that limit rather than work around it.
 2. **OpenRouter-hosted open-weight models count as community-hostable** for
    the demo and the bench. A model on community-controlled hardware is still
    the preferred story where it is practical.
