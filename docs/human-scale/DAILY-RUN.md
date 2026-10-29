@@ -25,11 +25,16 @@ The goal the loop serves: a Relational Builder a community could run end to
 end without us or any one vendor. README.md's "community-controlled stack"
 table scores each layer; every run moves one layer and says which.
 
-Pick the smallest item from NEXT that fits today: one experiment, one model
-tested, one workstream step, or one research question answered. Do it behind
-the flag, with tests where it is code. Run `npm run lint` and `npx tsc -b`
-before committing. Commit to `human-scale` and push with
-`git push -u origin human-scale`. Do not touch `main`. Do not open a PR unless
+Work through NEXT in order. Each item is cut to be a real chunk of a
+workstream, not a sliver. Finish an item, then run `npm run lint` and
+`npx tsc -b`, commit, and push before starting the next one, so partial
+progress is never lost. Keep going until about 75 minutes of the 90 are used
+or the day's inference budget is reached; aim to use most of the window
+every day. Stop earlier only when NEXT is empty or everything left needs a
+missing key or an answer from Josh. Do the work behind the flag
+(src/human-scale/flag.ts), with tests where it is code. Run `npm ci` first if
+node_modules is missing. Commit to human-scale and push with
+`git push -u origin human-scale`. Do not touch main. Do not open a PR unless
 NEXT says the workstream is ready for one.
 
 Hard limits, from the brief:
