@@ -23,6 +23,13 @@ questions, never wait on them.
    the demo and the bench. A model on community-controlled hardware is still
    the preferred story where it is practical.
 
+## Direction from Josh (2026-10-29)
+
+Daily runs must make meaningful progress toward a fully community-controlled
+RB stack. README.md now has the layer-by-layer map; each run names the layer
+it moved. OpenRouter balance topped up to about $25; pace paid work at $3 to
+$5 a day.
+
 ## Questions for Josh
 
 1. **Inference keys.** Only `OPENROUTER_API_KEY` is set in the cloud
@@ -58,7 +65,11 @@ questions, never wait on them.
 5. **Workstream 2, first paid run.** One open-weight model on three tasks,
    one trial each, with cost logged to SPEND.md before the call. Compare with
    the Opus 5.5 rows on the same tasks.
-6. **Research rotation.** Read one source per run and log what it changes
+6. **Self-host runbook (no paid calls, good for a low-budget day).** One
+   checklist that stands the Builder up from a clean machine with local-only
+   mode and a local model, actually run once, with what broke written down.
+   Moves the "Builder app" and "backend" layers.
+7. **Research rotation.** Read one source per run and log what it changes
    for us: start with Gebru "Frugal AI," then the Hugging Face SLM overview
    for which 1B to 8B models fit a 8 GB laptop.
 

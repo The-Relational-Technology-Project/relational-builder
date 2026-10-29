@@ -21,6 +21,10 @@ Then read, in this order, before deciding anything:
 4. `docs/human-scale/SPEND.md` (what has been spent)
 5. The newest entry under `bench/results/` if the queue touches the bench
 
+The goal the loop serves: a Relational Builder a community could run end to
+end without us or any one vendor. README.md's "community-controlled stack"
+table scores each layer; every run moves one layer and says which.
+
 Pick the smallest item from NEXT that fits today: one experiment, one model
 tested, one workstream step, or one research question answered. Do it behind
 the flag, with tests where it is code. Run `npm run lint` and `npx tsc -b`
@@ -43,7 +47,8 @@ Hard limits, from the brief:
 Before you stop, in this order:
 
 1. Add a LOG entry at the top: the date, a five-line non-technical summary for
-   Josh, then what was tried, what happened, what it cost, and an honest read
+   Josh, one line "Stack layer moved: <layer>, from <before> to <after>"
+   (or "none" with why), then what was tried, what happened, what it cost, and an honest read
    on what it means. On Fridays, add the weekly rollup (spend, what moved,
    decisions needed) above the day's entry.
 2. Rewrite NEXT: what tomorrow should do, what to drop, and questions for Josh
@@ -51,6 +56,12 @@ Before you stop, in this order:
    wait on them.
 3. Append today's spend to SPEND.md, including a $0 row when nothing was paid.
 4. Commit and push.
+
+Spending pace: the OpenRouter balance is small (about $25 as of Oct 29).
+Plan paid runs at $3 to $5 a day so the balance lasts the two bench weeks;
+the $20 daily cap is a ceiling, not a target. Open-weight models through
+OpenRouter cost cents per build; the Opus comparison is the expensive part,
+so run it once per task set, not per experiment.
 
 Inference keys come from environment secrets (`OPENROUTER_API_KEY` is set
 today; `ANTHROPIC_API_KEY` and `TOGETHER_API_KEY` are not). If a key you need

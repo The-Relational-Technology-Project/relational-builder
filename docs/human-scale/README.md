@@ -114,6 +114,29 @@ and names its method. The build report and the app footer read from this.
 
 Decisions this proposal leaves to Josh are in [NEXT.md](NEXT.md).
 
+## The community-controlled stack: where each layer stands
+
+The point of the daily loop is a Relational Builder a community could run
+end to end without us or any one vendor. Each layer below is scored on
+Oct 29, 2026, with what "community-controlled" means for it and the
+evidence the application can cite. Every LOG entry names the layer it
+moved. Layers with no path by Nov 20 are said so, not glossed.
+
+| Layer | Today | Community-controlled means | Gap, and what moves it |
+|---|---|---|---|
+| Builder model (writes the app) | Claude Opus 5.5 by default, through RTP's proxy. Local Ollama preset exists; RTP's own vLLM tier is not live | An open-weight model a community can host, chosen by default when it passes the task | Workstream 2 bench decides which open model passes which tasks; `resolveCommunityModelDefault` then prefers it. Evidence: a committed bench report |
+| Runtime model (the app calls it) | Claude Opus via `app-capabilities`, or a vaulted cloud key. No per-project setting | Open-weight by default; local one click away; hosted frontier only by explicit choice | Workstream 1: the `runtime` setting, the kit helper, the community runtime on an open model through OpenRouter. Evidence: one template running on it |
+| Inference hosting | OpenRouter and Anthropic. No community hardware | A box the community runs (Ollama, llama.cpp, vLLM) serving both builder and runtime | Workstream 1 local path plus `docs/LOCAL-MODEL.md`. Evidence: the demo built in a room off one box, or an honest note that it was not |
+| The Builder app itself | Vercel, by RTP | Anyone can `npm run build` and serve it from their own host or box | Mostly true already; needs a tested self-host path (`vite preview --host` from the local-model doc). Evidence: a self-host doc with a checklist that was actually run |
+| Backend (accounts, projects, app data) | Two Supabase projects RTP runs, plus edge functions | A community can stand up its own Supabase or Postgres and point the Builder at it; local-only mode works with no backend | Local-only mode exists (no `VITE_BUILDER_SUPABASE_URL`). A self-host runbook for the backend is the gap; export and delete (workstream 4) are the data-sovereignty half |
+| App hosting (published sites) | RTP community hosting, or Netlify and Vercel with the builder's token | Export is complete and open; any static host works; the app's data goes with it | Workstream 4. Evidence: a test that an exported zip contains app, data, content and config, and serves |
+| Commons and knowledge | Supabase-backed commons RTP runs, 500+ items; prompt seeds, principles, patterns exported to `public/knowledge/*.md` | The commons is forkable and the retrieval works against a local copy | Mostly open already (markdown export, the MCP server). Gap: retrieval against a local copy. Low priority before Nov 20 |
+| Footprint and provenance | Nothing recorded in production | Every call says model, where it ran, tokens, and a labeled energy estimate | Workstream 3 |
+
+Priority for the loop, in order: runtime model, builder model (via the
+bench), footprint, export and delete, then the self-host runbooks. The
+anchor stubs and the demo come after those have evidence.
+
 ## Workstreams and status
 
 | # | Workstream | Status |
