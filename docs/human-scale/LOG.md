@@ -28,7 +28,8 @@ Spend today: about $0.01 of paid inference (two open-model builds), counted as $
 no per-project setting" to "per-project setting with a local path that works
 end to end in the browser; community open-model path coded, awaiting deploy".
 Builder model: first open-weight bench numbers exist (not yet moved; the
-bench decides after run two).
+bench decides after run two). Footprint and provenance: from "nothing
+recorded" to "estimate method exists, tested, not yet recording".
 
 **What was tried.**
 
@@ -58,6 +59,14 @@ bench decides after run two).
    models (`qwen3-coder-30b`, `gemma-4-26b`, `gpt-oss-120b`) as OpenRouter
    entries at list price. Dry run estimated $0.06 for 3 models x 3 tasks;
    the live run hit its 25-minute cap after two builds.
+
+4. *Footprint and provenance, started* (item 4). `src/human-scale/provenance.ts`:
+   the row shape from README, a table of public active parameter counts for
+   the open models in play (frontier models get no number, on purpose), and
+   an energy ESTIMATE derived as 2 FLOPs x active params x tokens over an
+   assumed delivered efficiency, with the assumptions written into every
+   row's `method` (`rb-flops-v1`). Six tests. Not wired into the helper or
+   the build report yet; that is tomorrow's item 2.
 
 **What happened (bench, honest).** Report:
 `bench/results/2026-10-30T11-00-31a1e31/report.md`.
