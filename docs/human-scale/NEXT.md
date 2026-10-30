@@ -138,19 +138,6 @@ stack layer it moved; pace paid work at $3 to $5 a day.
    models as separate invocations with their own caps (one experiment each,
    30 minutes max), gemma first, and let a slow model's partial run.json
    stand rather than retrying it.
-6. **Workstream 3, footprint and provenance (wire it).** The row shape and
-   the labeled estimate exist (`src/human-scale/provenance.ts`,
-   `rb-flops-v1`, tested). Now record: a per-project log (localStorage via a
-   thin store, newest last, capped) fed from the Builder's own calls (the
-   provider layer reports tokens) and from the kit helper's `ran` plus the
-   server's `usage` (the helper can post its row to the Builder when it runs
-   inside the preview, and keep its own small log in the app otherwise);
-   show the rows in the build report and `describeRow` in a small app
-   footer behind the flag. The first real community-runtime row comes from
-   the smoke test above once Josh runs it. If a better public per-token
-   method turns up (CO2.js, AI Energy Score), add it as `rb-*-v2` beside
-   the first, never replace numbers already logged.
-
 ## After that, in order
 
 3. **Bench run three.** `qwen3-coder-30b` on all 12 tasks (own cap),
