@@ -29,7 +29,9 @@ no per-project setting" to "per-project setting with a local path that works
 end to end in the browser; community open-model path coded, awaiting deploy".
 Builder model: first open-weight bench numbers exist (not yet moved; the
 bench decides after run two). Footprint and provenance: from "nothing
-recorded" to "estimate method exists, tested, not yet recording".
+recorded" to "estimate method exists, tested, not yet recording". App
+hosting and data sovereignty: export's data half exists as tested files,
+not yet in the zip.
 
 **What was tried.**
 
@@ -67,6 +69,16 @@ recorded" to "estimate method exists, tested, not yet recording".
    assumed delivered efficiency, with the assumptions written into every
    row's `method` (`rb-flops-v1`). Six tests. Not wired into the helper or
    the build report yet; that is tomorrow's item 2.
+
+5. *Export and delete, started* (item 5). Finding first: the server already
+   has a paged full export (`admin_export_page`) and a real delete
+   (`admin_delete_app`, cascades), and the Cloud tab uses both. The gap is
+   the project export zip, which ships code without the app's data, and
+   `deleteProject`, which deletes the project row but not the app.
+   `src/human-scale/export-data.ts` turns the existing export object into
+   the zip's `/data/export/` files (one JSON, one CSV per collection, a
+   README that says what is there; members by name and join date, never
+   email). Six tests. Wiring into the zip and the delete path is tomorrow.
 
 **What happened (bench, honest).** Report:
 `bench/results/2026-10-30T11-00-31a1e31/report.md`.

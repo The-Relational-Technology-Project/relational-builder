@@ -92,9 +92,16 @@ stack; each run names the layer it moved. Pace paid work at $3 to $5 a day.
 
 ## After that, in order
 
-3. **Workstream 4, export and delete (one run).** Export includes `app-data`
-   rows and config in open formats; delete removes the project and its data;
-   both proven by tests (vitest is in now).
+3. **Workstream 4, export and delete (wire it, one run).** The data files
+   exist (`src/human-scale/export-data.ts`, tested). Behind the flag: the
+   export zip (`download-source.ts`, `PublishDialog.tsx`) calls
+   `exportBackend` for the project's app and adds `appDataExportFiles`
+   under `/data/export/`; `.reltech.yml` notes the export date;
+   `deleteProject` also calls `deleteApp` after a plain confirmation that
+   names what goes ("the app and 212 documents neighbors wrote"), and the
+   Cloud tab's own export is offered first. Prove it with a test that an
+   exported zip lists code, `/data/export/app-data.json`, the CSVs and the
+   manifest, and a test that delete calls both removals.
 4. **Self-host runbook (one run, no paid calls).** Builder from a clean
    machine in local-only mode with a local model; include Gebru's cost
    framing (one-time hardware versus recurring cloud) as the number a
