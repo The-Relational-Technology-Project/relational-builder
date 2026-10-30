@@ -18,6 +18,7 @@
  */
 
 import utilsSrc from './files/lib/utils.ts?raw';
+import aiSrc from './files/lib/ai.ts?raw';
 import slotSrc from './files/components/ui/slot.tsx?raw';
 import buttonSrc from './files/components/ui/button.tsx?raw';
 import cardSrc from './files/components/ui/card.tsx?raw';
@@ -39,6 +40,9 @@ import skeletonSrc from './files/components/ui/skeleton.tsx?raw';
 /** Kit sources by the path they occupy inside a generated project. */
 export const KIT_FILES: Record<string, string> = {
   '/src/lib/utils.ts': utilsSrc,
+  // Named AI jobs over the project's runtime setting (human-scale branch).
+  // Inert unless a project imports it; the prompt mentions it only behind the flag.
+  '/src/lib/ai.ts': aiSrc,
   '/src/components/ui/slot.tsx': slotSrc,
   '/src/components/ui/button.tsx': buttonSrc,
   '/src/components/ui/card.tsx': cardSrc,

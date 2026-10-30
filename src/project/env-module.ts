@@ -37,6 +37,10 @@ export function buildEnvTs(vars: PublicEnvVar[]): string {
     'export const env = {',
     entries,
     '} as const;',
+    // Same global the plain env.js sets, so code that cannot import this
+    // module (the kit's lib/ai helper, which has no env of its own in the
+    // builder repo) still finds the app's public env at call time
+    "if (typeof window !== 'undefined') (window as unknown as { env: unknown }).env = env;",
     '',
   ].join('\n');
 }

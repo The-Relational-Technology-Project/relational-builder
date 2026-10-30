@@ -101,10 +101,16 @@ runtime:
   `docs/LOCAL-MODEL.md`). First target: Ollama with a 1B to 8B Qwen or Gemma.
   When the endpoint is not reachable the helper says so plainly.
 - `byok` is today's vaulted-key behavior.
-- The kit gains one helper, `ai()` in `src/kit/files/lib/`, that reads the
-  runtime config and exposes named functions (`summarize`, `match`,
-  `resurface`) rather than a raw chat call. Generated apps import it; the
-  system prompt tells the model to.
+- The kit gains one helper, `src/kit/files/lib/ai.ts` (`@/lib/ai` in a built
+  app), that reads the runtime config and exposes named functions
+  (`summarize`, `match`, `resurface`, plus `ask`) rather than a raw chat
+  call. Generated apps import it; the system prompt tells the model to.
+- As built (Oct 30): the setting is stored as four public env vars on the
+  project (`AI_RUNTIME`, `AI_RUNTIME_ENDPOINT`, `AI_RUNTIME_MODEL`,
+  `AI_RUNTIME_FALLBACK`) rather than a new store field, because the env
+  store already persists per project and flows into preview, export and
+  deploy as `env`. `src/human-scale/runtime.ts` is the one module that knows
+  the keys; `.reltech.yml` gets the block above from it.
 
 **Provenance record.** Every builder call and every runtime call appends one
 row to a per-project log: `{at, side: builder|runtime, provider, model,
@@ -125,7 +131,7 @@ moved. Layers with no path by Nov 20 are said so, not glossed.
 | Layer | Today | Community-controlled means | Gap, and what moves it |
 |---|---|---|---|
 | Builder model (writes the app) | Claude Opus 5.5 by default, through RTP's proxy. Local Ollama preset exists; RTP's own vLLM tier is not live | An open-weight model a community can host, chosen by default when it passes the task | Workstream 2 bench decides which open model passes which tasks; `resolveCommunityModelDefault` then prefers it. Evidence: a committed bench report |
-| Runtime model (the app calls it) | Claude Opus via `app-capabilities`, or a vaulted cloud key. No per-project setting | Open-weight by default; local one click away; hosted frontier only by explicit choice | Workstream 1: the `runtime` setting, the kit helper, the community runtime on an open model through OpenRouter. Evidence: one template running on it |
+| Runtime model (the app calls it) | Per-project `runtime` setting (community, local, byok) behind the flag since Oct 30; `local` calls an OpenAI-compatible endpoint from the browser through the kit's `@/lib/ai`; `community` still reaches Claude Opus via `app-capabilities` until it is routed to an open model | Open-weight by default; local one click away; hosted frontier only by explicit choice | Workstream 1: the `runtime` setting, the kit helper, the community runtime on an open model through OpenRouter. Evidence: one template running on it |
 | Inference hosting | OpenRouter and Anthropic. No community hardware | A box the community runs (Ollama, llama.cpp, vLLM) serving both builder and runtime | Workstream 1 local path plus `docs/LOCAL-MODEL.md`. Evidence: the demo built in a room off one box, or an honest note that it was not |
 | The Builder app itself | Vercel, by RTP | Anyone can `npm run build` and serve it from their own host or box | Mostly true already; needs a tested self-host path (`vite preview --host` from the local-model doc). Evidence: a self-host doc with a checklist that was actually run |
 | Backend (accounts, projects, app data) | Two Supabase projects RTP runs, plus edge functions | A community can stand up its own Supabase or Postgres and point the Builder at it; local-only mode works with no backend | Local-only mode exists (no `VITE_BUILDER_SUPABASE_URL`). A self-host runbook for the backend is the gap; export and delete (workstream 4) are the data-sovereignty half |
@@ -141,7 +147,7 @@ anchor stubs and the demo come after those have evidence.
 
 | # | Workstream | Status |
 |---|---|---|
-| 1 | Builder/runtime split, open-weight runtime option | not started |
+| 1 | Builder/runtime split, open-weight runtime option | runtime setting, kit `ai` helper, settings card and prompt rule landed Oct 30 (behind the flag, tested); the community path still runs on today's Claude Opus until item 2 routes it to an open model |
 | 2 | Open-weight builder bench, Opus comparison, retrieval variant | not started |
 | 3 | Footprint and provenance | not started |
 | 4 | Export and delete, verified by tests | not started |

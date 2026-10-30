@@ -9,6 +9,7 @@
     "prebuild": "node scripts/export-builder-knowledge.mjs",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "test": "vitest run",
     "preview": "vite preview",
     "bench": "NODE_USE_ENV_PROXY=1 node bench/bootstrap.mjs"
   },
@@ -53,6 +54,7 @@
     "tailwindcss": "^4.2.2",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.58.0",
-    "vite": "^8.0.4"
+    "vite": "^8.0.4",
+    "vitest": "^5.0.5"
   }
 }

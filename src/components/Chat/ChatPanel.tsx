@@ -8,6 +8,9 @@ import { useProviderStore } from '@/store/provider-store';
 import { useProjectStore } from '@/store/project-store';
 import { useKnowledgeStore } from '@/store/knowledge-store';
 import { buildPromptContext, TURN_BREAK } from '@/knowledge/context-builder';
+import { isHumanScale } from '@/human-scale/flag';
+import { effectiveRuntime } from '@/human-scale/runtime';
+import { humanScaleAiGuidance } from '@/human-scale/prompt';
 import { registry } from '@/providers/registry';
 import type { StreamCallbacks, ThinkingEffort } from '@/providers/types';
 import { addPhotoAssetFromDataUrl, attachedPhotosNote, type AddedAsset } from '@/project/assets';
@@ -715,6 +718,10 @@ export function ChatPanel() {
     if (cloudAttached && !anyAiConnected && useCommunityStore.getState().active) {
       serviceGuidance.push(AI_PLAN_AVAILABLE_GUIDANCE);
     }
+    // Human-scale branch: AI in built apps goes through the kit helper over
+    // the project's runtime setting; bounded jobs, sources, where it ran.
+    // Last, so it overrides the askAI snippets above.
+    if (isHumanScale()) serviceGuidance.push(humanScaleAiGuidance(effectiveRuntime(envVars)));
     // Least-recently-touched first, not alphabetical: the snapshot is a
     // prompt-cache segment and caching matches on prefix, so whatever changed
     // this turn must sort last (see getFilesForPrompt). updatedAt rides along

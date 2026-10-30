@@ -36,6 +36,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, Check, Cloud, ExternalLink, Loader2, MessageCircle, Unplug } from 'lucide-react';
+import { isHumanScale } from '@/human-scale/flag';
+import { RuntimeSettings } from '@/human-scale/RuntimeSettings';
 
 /**
  * Guided BYOK service connections for the app being built (zero-setup data
@@ -54,6 +56,7 @@ export function IntegrationsPanel() {
 
   return (
     <div className="h-full overflow-y-auto p-3 space-y-2.5">
+      {isHumanScale() && <RuntimeSettings />}
       {INTEGRATIONS.map(def =>
         def.id === 'resend' ? (
           <ResendCard key={def.id} def={def} isConnected={connected.has(def.id)} />

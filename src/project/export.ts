@@ -3,6 +3,7 @@ import type { FileEntry } from './virtual-fs';
 import type { ProjectLineage } from '@/store/project-store';
 import { buildEnvJs, type PublicEnvVar } from './env-module';
 import { isBinaryFilePath } from './app-icon';
+import { effectiveRuntime, runtimeManifestLines, type ProjectRuntime } from '@/human-scale/runtime';
 
 const yamlEscape = (s: string) => s.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 
@@ -15,6 +16,7 @@ export function generateManifest(
   projectName: string,
   lineage?: ProjectLineage | null,
   buildPrompt?: { title: string; body: string } | null,
+  runtime?: ProjectRuntime | null,
 ): string {
   const lines = [
     '# .reltech.yml — see github.com/The-Relational-Technology-Project/watcher',
@@ -63,6 +65,12 @@ export function generateManifest(
       lines.push(`  note: "${yamlEscape(`Built within ${lineage.studioLabel}, with Relational Builder.`)}"`);
     }
     lines.push('');
+  }
+
+  // Where the app's AI runs travels with the code too, so whoever holds the
+  // repo can see it and change it (human-scale branch; absent when unset)
+  if (runtime) {
+    lines.push(...runtimeManifestLines(runtime));
   }
 
   // The prompt travels with the code: anyone holding this repo can grow a
@@ -125,7 +133,7 @@ export async function exportProjectZip(
   }
 
   // Add .reltech.yml manifest
-  zip.file('.reltech.yml', generateManifest(projectName, lineage, buildPrompt));
+  zip.file('.reltech.yml', generateManifest(projectName, lineage, buildPrompt, effectiveRuntime(publicEnvVars ?? [])));
 
   // Add a basic README
   zip.file(
