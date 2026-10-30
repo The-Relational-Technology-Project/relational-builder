@@ -22,7 +22,7 @@ Community AI on an open model is written and checked but not deployed:
 this session is not allowed to deploy or set secrets, so three commands
 need you (NEXT, top). The open-weight builder bench ran its first three
 tasks on three hostable models; results below, screenshots committed.
-Spend today: about $0.01 of paid inference (two open-model builds), counted as $0.65 worst case in SPEND.
+Spend today: about $0.02 of paid inference (four open-model builds), counted as $0.70 worst case in SPEND.
 
 **Stack layer moved:** Runtime model, from "Claude Opus via app-capabilities,
 no per-project setting" to "per-project setting with a local path that works
@@ -97,6 +97,7 @@ untested" to "a runbook that was run once, through step 6".
 | qwen3-coder-30b | hs-listening-wall | run cut off at the cap | | | | |
 | gemma-4-26b, gpt-oss-120b | all three (first slice) | never started (sequential run, cap hit) | | | | |
 | gemma-4-26b | hs-community-fridge | yes, after one auto-fix | no | 5/5 | 45s | $0.003 | (second slice, `bench/results/2026-10-30T11-26-714a4ad`) |
+| gpt-oss-120b | hs-community-fridge | yes, first try | yes | 5/5 | 109s | $0.004 | (third slice, `bench/results/2026-10-30T11-34-6adf156`) |
 
 Both qwen builds failed to bundle on the first try for the same reason:
 the model imported a file it never wrote (`./data/seedData`,
@@ -109,12 +110,18 @@ security flags, no truncation, time to first token under 2s. A second slice
 it bundled in 45 seconds after one auto-fix, 10 files, all five checks
 passed (kit components and seeded data included), for about $0.003. One
 build is one build, but it is the fastest and cleanest open-model result
-so far and it is a 26B MoE with 4B active, which a 16 GB box can host.
+so far and it is a 26B MoE with 4B active, which a 16 GB box can host. A
+third slice, gpt-oss-120b on the same task: bundled on the first try, 12
+files, all five checks, 109 seconds, about $0.004; the only build today that
+needed no fix pass, and the one open model of the three that does not fit a
+small box (it wants an 80 GB card). So on one task: all three open models
+produced a working app for under half a cent each; the two hostable ones
+needed the harness's one-pass auto-fix, the big one did not.
 No human review yet; Josh's blinded scores decide "passes".
 
-**What it cost.** Paid inference: about $0.007 estimated for the two
-finished builds plus whatever the cut-off third used, logged as $0.65 worst
-case across the two slices. Session: about 75 minutes of the 90.
+**What it cost.** Paid inference: about $0.014 estimated across the four
+finished builds plus whatever the cut-off fifth used, logged as $0.70 worst
+case across three slices. Session: about 60 minutes of the 90.
 
 **Honest read.** The runtime split is real code a person can click through,
 and the local path is the strongest piece: nothing leaves the room, and the
