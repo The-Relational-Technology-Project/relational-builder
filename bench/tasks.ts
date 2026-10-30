@@ -233,7 +233,14 @@ export const TASKS: TaskSpec[] = [
 /** Every edit task, for `--tasks edit` shorthand. */
 export const EDIT_TASK_IDS = EDIT_TASKS.map(e => e.id);
 
+/** The prompts open models are compared on (Josh, Oct 30, 2026): one per
+ *  shape, a coordination tool and a content-first civic tool, instead of the
+ *  whole hs-* pool. Run every candidate model on these two, once; the pool
+ *  stays for spot checks. `--tasks compare` resolves to them. */
+export const HS_COMPARE_TASK_IDS = ['hs-community-fridge', 'hs-listening-wall'];
+
 export function resolveTasks(csv: string | undefined): TaskSpec[] {
+  if (csv === 'compare') return TASKS.filter(t => HS_COMPARE_TASK_IDS.includes(t.id));
   if (csv === 'edit') return TASKS.filter(t => EDIT_TASK_IDS.includes(t.id));
   if (!csv) return [TASKS[0]];
   const wanted = csv.split(',').map(s => s.trim()).filter(Boolean);

@@ -122,6 +122,22 @@ export async function main(argv: string[]): Promise<number> {
     return 0;
   }
 
+  // Take (or retake) the committed screenshots for a finished run from its
+  // artifacts, e.g. a run that was cut off or ran with --skip-screenshots.
+  if (argv[0] === 'shots') {
+    if (!argv[1]) {
+      console.error('Usage: npm run bench -- shots <runDir>');
+      return 1;
+    }
+    const { readFile } = await import('node:fs/promises');
+    const path = await import('node:path');
+    const { captureScreenshots } = await import('./lib/screenshots');
+    const run = JSON.parse(await readFile(path.resolve(argv[1], 'run.json'), 'utf8'));
+    await captureScreenshots(path.resolve(argv[1]), run.trials);
+    console.log(`Screenshots written under ${path.resolve(argv[1], 'shots')}`);
+    return 0;
+  }
+
   const { values } = parseArgs({
     args: argv,
     options: {
@@ -143,7 +159,7 @@ export async function main(argv: string[]): Promise<number> {
     console.log(
       'npm run bench -- [--models a,b,c] [--tasks x,y] [--trials N] [--plan-first] ' +
         '[--studio slug] [--dry-run] [--skip-screenshots] [--out dir] [--list-models] [--list-tasks]\n' +
-        'npm run bench -- report <runDir> | review <runDir> | selftest\n' +
+        'npm run bench -- report <runDir> | review <runDir> | shots <runDir> | selftest\n' +
         'npm run bench -- plan [--help]        (plan-phase bench — see bench/plan-bench.ts)',
     );
     return 0;

@@ -60,7 +60,10 @@ Before you stop, in this order:
    under the "Questions for Josh" heading. Work around open questions; never
    wait on them.
 3. Append today's spend to SPEND.md, including a $0 row when nothing was paid.
-4. Commit and push.
+4. If any bench run happened, make sure its screenshots exist
+   (`npm run bench -- shots <runDir>` retakes them), then `npm run bench:board`
+   so BENCH-BOARD.md shows every model, build and screenshot over time.
+5. Commit and push.
 
 Spending pace: the OpenRouter balance is small (about $25 as of Oct 29).
 Plan paid runs at $3 to $5 a day so the balance lasts the two bench weeks;
