@@ -67,7 +67,8 @@ bench decides after run two).
 | qwen3-coder-30b | hs-meal-train | yes, after one auto-fix | no | 3/5 | 424s | $0.005 |
 | qwen3-coder-30b | hs-community-fridge | yes, after one auto-fix | no | 3/5 | 177s | $0.002 |
 | qwen3-coder-30b | hs-listening-wall | run cut off at the cap | | | | |
-| gemma-4-26b, gpt-oss-120b | all three | never started (sequential run, cap hit) | | | | |
+| gemma-4-26b, gpt-oss-120b | all three (first slice) | never started (sequential run, cap hit) | | | | |
+| gemma-4-26b | hs-community-fridge | yes, after one auto-fix | no | 5/5 | 45s | $0.003 | (second slice, `bench/results/2026-10-30T11-26-714a4ad`) |
 
 Both qwen builds failed to bundle on the first try for the same reason:
 the model imported a file it never wrote (`./data/seedData`,
@@ -76,8 +77,11 @@ Checks missed were the same twice: no kit components imported, and the
 seeded-data check failed although the prompt asked for seed data (whether
 the check or the build is wrong needs a look at the files, run two). Zero
 security flags, no truncation, time to first token under 2s. A second slice
-(gemma-4-26b on the fridge task, 10-minute cap) was started after the
-report; its result is appended below if it landed before the window closed.
+(gemma-4-26b on the fridge task, 10-minute cap) ran after the report:
+it bundled in 45 seconds after one auto-fix, 10 files, all five checks
+passed (kit components and seeded data included), for about $0.003. One
+build is one build, but it is the fastest and cleanest open-model result
+so far and it is a 26B MoE with 4B active, which a 16 GB box can host.
 No human review yet; Josh's blinded scores decide "passes".
 
 **What it cost.** Paid inference: about $0.007 estimated for the two
@@ -91,7 +95,8 @@ matters most for the application and it is sitting one deploy away, blocked
 by the session's own permissions rather than by the work. The bench says one
 true thing so far: a 30B-class open coder produces an app that bundles, at
 cents, but needs the auto-fix pass and takes three to seven minutes through
-OpenRouter against Opus's typical one to two. Pass rate on a sample of two is
+OpenRouter against Opus's typical one to two, while Gemma 4 26B did the
+fridge task cleanly in 45 seconds. Pass rate on a sample of three is
 not a number; run two needs all 18 tasks and the Opus comparison before any
 claim goes in SUMMARY.md. Three permission denials in one run is the day's
 real finding: the loop needs either a rule for the Management API calls

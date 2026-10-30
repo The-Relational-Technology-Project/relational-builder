@@ -71,6 +71,12 @@ stack; each run names the layer it moved. Pace paid work at $3 to $5 a day.
    shots and `run.json` in the existing format, with the honest pass rate
    table at the top of the LOG entry. If OpenRouter 402s on pre-authorized
    max_tokens, lower `BENCH_MAX_TOKENS`, do not retry more than twice.
+   Pace note from run one: the harness runs models one after another and
+   qwen3-coder-30b took 3 to 7 minutes a build through OpenRouter, so a 25
+   minute cap finished two of nine; gemma-4-26b took 45 seconds. Run the
+   models as separate invocations with their own caps (one experiment each,
+   30 minutes max), gemma first, and let a slow model's partial run.json
+   stand rather than retrying it.
 2. **Workstream 3, footprint and provenance (start).** A per-project
    provenance log (`{at, side, provider, model, params, host, tokensIn,
    tokensOut, energyWhEstimate, method}`) fed from the kit helper's `ran`
