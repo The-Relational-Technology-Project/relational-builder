@@ -18,7 +18,9 @@ describe('readRuntime', () => {
   });
 
   it('reads community and byok with no fallback', () => {
-    expect(readRuntime([{ key: 'AI_RUNTIME', value: 'community' }])).toEqual({ kind: 'community', fallback: 'none' });
+    expect(readRuntime([{ key: 'AI_RUNTIME', value: 'community' }])).toEqual({ kind: 'community', model: 'open', fallback: 'none' });
+    expect(readRuntime([{ key: 'AI_RUNTIME', value: 'community' }, { key: 'AI_RUNTIME_MODEL', value: 'claude' }]))
+      .toEqual({ kind: 'community', model: 'claude', fallback: 'none' });
     expect(readRuntime([{ key: 'AI_RUNTIME', value: 'byok' }, { key: 'AI_RUNTIME_FALLBACK', value: 'community' }]))
       .toEqual({ kind: 'byok', fallback: 'none' });
   });
@@ -51,10 +53,12 @@ describe('effectiveRuntime', () => {
 });
 
 describe('runtimeEnvVars and readRuntime round-trip', () => {
-  it('writes only the kind for community', () => {
+  it('writes kind and model for community, open by default', () => {
     expect(runtimeEnvVars({ kind: 'community', fallback: 'none' })).toEqual([
       { key: 'AI_RUNTIME', value: 'community', isSecret: false },
+      { key: 'AI_RUNTIME_MODEL', value: 'open', isSecret: false },
     ]);
+    expect(readRuntime(runtimeEnvVars({ kind: 'community', model: 'claude', fallback: 'none' }))?.model).toBe('claude');
   });
 
   it('round-trips a local runtime', () => {
@@ -64,8 +68,8 @@ describe('runtimeEnvVars and readRuntime round-trip', () => {
 });
 
 describe('runtimeManifestLines', () => {
-  it('writes a kind-only block for community', () => {
-    expect(runtimeManifestLines({ kind: 'community', fallback: 'none' })).toEqual(['runtime:', '  kind: community', '']);
+  it('writes kind and model for community', () => {
+    expect(runtimeManifestLines({ kind: 'community', fallback: 'none' })).toEqual(['runtime:', '  kind: community', '  model: open', '']);
   });
 
   it('writes endpoint, model and fallback for local', () => {

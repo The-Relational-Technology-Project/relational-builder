@@ -28,7 +28,7 @@ afterEach(() => {
 describe('aiRuntime', () => {
   it('defaults to community when nothing is set', () => {
     configureAI({});
-    expect(aiRuntime()).toEqual({ kind: 'community', fallback: 'none' });
+    expect(aiRuntime()).toEqual({ kind: 'community', model: 'open', fallback: 'none' });
     expect(aiRuntimeLabel()).toMatch(/Community AI/);
   });
 
@@ -42,15 +42,15 @@ describe('aiRuntime', () => {
 describe('community path', () => {
   it('posts ai_chat to the capabilities endpoint and reports where it ran', async () => {
     configureAI(cloudEnv);
-    fetchMock.mockResolvedValueOnce(okJson({ text: 'Three neighbors offered rides.', service: 'community-ai' }));
+    fetchMock.mockResolvedValueOnce(okJson({ text: 'Three neighbors offered rides.', service: 'community_ai', model: 'google/gemma-3-12b-it', host: 'openrouter' }));
     const r = await summarize('long notes', { sources: ['note-1', 'note-2'] });
     expect(r.text).toBe('Three neighbors offered rides.');
-    expect(r.ran).toEqual({ kind: 'community', host: 'community', model: undefined });
+    expect(r.ran).toEqual({ kind: 'community', host: 'community', model: 'google/gemma-3-12b-it' });
     expect(r.sources).toEqual(['note-1', 'note-2']);
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(url).toBe('https://x.supabase.co/functions/v1/app-capabilities');
     const body = JSON.parse(String(init.body));
-    expect(body).toMatchObject({ action: 'ai_chat', app_id: 'app_1', app_key: 'key_1', max_tokens: 600 });
+    expect(body).toMatchObject({ action: 'ai_chat', app_id: 'app_1', app_key: 'key_1', max_tokens: 600, runtime_model: 'open' });
     expect(body.messages).toEqual([{ role: 'user', content: 'long notes' }]);
     expect(body.system).toMatch(/Summarize/);
   });
@@ -69,6 +69,18 @@ describe('community path', () => {
     configureAI({});
     await expect(ask([{ role: 'user', content: 'hi' }])).rejects.toBeInstanceOf(AIUnavailableError);
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('community on Claude by explicit choice', () => {
+  it('asks the server for claude and never for open', async () => {
+    configureAI({ ...cloudEnv, AI_RUNTIME: 'community', AI_RUNTIME_MODEL: 'claude' });
+    fetchMock.mockResolvedValueOnce(okJson({ text: 'ok', model: 'claude-opus-5-5', host: 'anthropic' }));
+    const r = await ask([{ role: 'user', content: 'hi' }]);
+    expect(r.ran.model).toBe('claude-opus-5-5');
+    const body = JSON.parse(String((fetchMock.mock.calls[0] as [string, RequestInit])[1].body));
+    expect(body.runtime_model).toBe('claude');
+    expect(aiRuntimeLabel()).toMatch(/Claude/);
   });
 });
 

@@ -27,6 +27,7 @@ export type AIRuntimeKind = 'community' | 'local' | 'byok';
 export interface AIRuntime {
   kind: AIRuntimeKind;
   endpoint?: string;
+  /** local: the model the endpoint serves. community: 'open' (default) or 'claude' */
   model?: string;
   fallback: 'none' | 'community';
 }
@@ -96,7 +97,7 @@ export function aiRuntime(): AIRuntime {
     };
   }
   if (kind === 'byok') return { kind, fallback: 'none' };
-  return { kind: 'community', fallback: 'none' };
+  return { kind: 'community', model: env.AI_RUNTIME_MODEL === 'claude' ? 'claude' : 'open', fallback: 'none' };
 }
 
 /** One line for a footer or a settings screen: where this app's AI runs. */
@@ -107,7 +108,9 @@ export function aiRuntimeLabel(): string {
     return `AI runs ${onDevice ? 'on this device' : 'on a computer in the room'} (${rt.model})`;
   }
   if (rt.kind === 'byok') return 'AI runs on the key this app\'s builder connected';
-  return 'AI runs on Community AI (an open model the community can host)';
+  return rt.model === 'claude'
+    ? 'AI runs on Community AI (Claude, by the builder\'s choice)'
+    : 'AI runs on Community AI (an open model the community can host)';
 }
 
 function capabilitiesUrl(env: EnvShape): string | null {
@@ -121,6 +124,7 @@ async function askCommunity(
   system: string | undefined,
   maxTokens: number,
   kind: 'community' | 'byok',
+  communityModel: 'open' | 'claude' = 'open',
 ): Promise<AIResult> {
   const env = readEnv();
   const url = capabilitiesUrl(env);
@@ -140,6 +144,9 @@ async function askCommunity(
       messages,
       system,
       max_tokens: maxTokens,
+      // Community AI: which model class. The server's default stays what it
+      // was; the open-weight route is reached only when asked for.
+      ...(kind === 'community' ? { runtime_model: communityModel } : {}),
     }),
   });
   const data = (await res.json().catch(() => ({}))) as { text?: string; error?: string; service?: string; model?: string };
@@ -214,7 +221,7 @@ export async function ask(
       result = { ...fallback, ran: { ...fallback.ran, fellBack: true } };
     }
   } else {
-    result = await askCommunity(messages, system, maxTokens, rt.kind);
+    result = await askCommunity(messages, system, maxTokens, rt.kind, rt.model === 'claude' ? 'claude' : 'open');
   }
   return opts.sources ? { ...result, sources: opts.sources } : result;
 }

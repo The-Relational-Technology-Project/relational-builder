@@ -21,12 +21,15 @@ import { isHumanScale } from './flag';
 export type RuntimeKind = 'community' | 'local' | 'byok';
 export type RuntimeFallback = 'none' | 'community';
 
+export type CommunityModel = 'open' | 'claude';
+
 export interface ProjectRuntime {
   /** Where the app's AI calls go */
   kind: RuntimeKind;
   /** local only: an OpenAI-compatible base URL (Ollama: http://localhost:11434/v1) */
   endpoint?: string;
-  /** local only: the model name the endpoint serves */
+  /** local: the model name the endpoint serves. community: `open` (an
+   *  open-weight model, the default) or `claude` (Claude Opus, by explicit choice) */
   model?: string;
   /** What happens when a local endpoint is unreachable. Explicit, never silent. */
   fallback: RuntimeFallback;
@@ -41,7 +44,11 @@ export const RUNTIME_ENV_KEYS = {
 
 export const RUNTIME_KINDS: RuntimeKind[] = ['community', 'local', 'byok'];
 
-export const COMMUNITY_DEFAULT: ProjectRuntime = { kind: 'community', fallback: 'none' };
+export const COMMUNITY_DEFAULT: ProjectRuntime = { kind: 'community', model: 'open', fallback: 'none' };
+
+/** What the community runtime's open model is today (set server-side as
+ *  COMMUNITY_OPEN_MODEL on app-capabilities; this is the label, not the switch) */
+export const COMMUNITY_OPEN_MODEL_LABEL = 'Gemma 3 12B through OpenRouter';
 
 /** First local target from the brief: Ollama serving a small Qwen */
 export const LOCAL_DEFAULTS = {
@@ -65,7 +72,10 @@ export function readRuntime(vars: KeyValue[]): ProjectRuntime | null {
   const kind = get(RUNTIME_ENV_KEYS.kind);
   if (!kind || !isKind(kind)) return null;
   const fallback = get(RUNTIME_ENV_KEYS.fallback) === 'community' ? 'community' : 'none';
-  if (kind !== 'local') return { kind, fallback: 'none' };
+  if (kind === 'byok') return { kind, fallback: 'none' };
+  if (kind === 'community') {
+    return { kind, model: get(RUNTIME_ENV_KEYS.model) === 'claude' ? 'claude' : 'open', fallback: 'none' };
+  }
   return {
     kind,
     endpoint: get(RUNTIME_ENV_KEYS.endpoint) ?? LOCAL_DEFAULTS.endpoint,
@@ -86,6 +96,9 @@ export function runtimeEnvVars(runtime: ProjectRuntime): Array<KeyValue & { isSe
   const out: Array<KeyValue & { isSecret: false }> = [
     { key: RUNTIME_ENV_KEYS.kind, value: runtime.kind, isSecret: false },
   ];
+  if (runtime.kind === 'community') {
+    out.push({ key: RUNTIME_ENV_KEYS.model, value: runtime.model === 'claude' ? 'claude' : 'open', isSecret: false });
+  }
   if (runtime.kind === 'local') {
     out.push(
       { key: RUNTIME_ENV_KEYS.endpoint, value: runtime.endpoint ?? LOCAL_DEFAULTS.endpoint, isSecret: false },
@@ -104,6 +117,9 @@ const yamlEscape = (s: string) => s.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 /** The `runtime:` block of .reltech.yml, so the setting travels with the code */
 export function runtimeManifestLines(runtime: ProjectRuntime): string[] {
   const lines = ['runtime:', `  kind: ${runtime.kind}`];
+  if (runtime.kind === 'community') {
+    lines.push(`  model: ${runtime.model === 'claude' ? 'claude' : 'open'}`);
+  }
   if (runtime.kind === 'local') {
     lines.push(
       `  endpoint: "${yamlEscape(runtime.endpoint ?? LOCAL_DEFAULTS.endpoint)}"`,
@@ -119,7 +135,9 @@ export function runtimeManifestLines(runtime: ProjectRuntime): string[] {
 export function describeRuntime(runtime: ProjectRuntime): string {
   switch (runtime.kind) {
     case 'community':
-      return 'Community AI: an open-weight model the community can host, through the Relational Tech Project. No key needed.';
+      return runtime.model === 'claude'
+        ? 'Community AI on Claude Opus, by your explicit choice: a hosted frontier model through the Relational Tech Project. No key needed.'
+        : `Community AI on an open-weight model the community can host (${COMMUNITY_OPEN_MODEL_LABEL} today), through the Relational Tech Project. No key needed.`;
     case 'local': {
       const where = /localhost|127\.0\.0\.1/.test(runtime.endpoint ?? '') ? 'on this device' : `at ${runtime.endpoint}`;
       const tail = runtime.fallback === 'community'

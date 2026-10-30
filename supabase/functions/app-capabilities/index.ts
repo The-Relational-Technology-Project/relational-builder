@@ -23,14 +23,19 @@
  *   send_email {app_id, app_key, to, subject, text?, html?, reply_to?, member_token?}
  *     — sends via the app's vaulted Resend key. Rate-limited, daily-capped,
  *       and optionally restricted to signed-in neighbors (config.members_only_send).
- *   ai_chat {app_id, app_key, messages, system?, max_tokens?, member_token?}
+ *   ai_chat {app_id, app_key, messages, system?, max_tokens?, member_token?, runtime_model?}
  *     — one completion. A builder-vaulted AI key (anthropic | openai | gemini)
  *       wins; otherwise, when the builder turned on Community AI, the call
  *       runs on RTP's shared Anthropic key (ANTHROPIC_COMMUNITY_KEY) with
  *       Claude Opus, metered against the OWNER's weekly community token
  *       budget exactly like their building turns (community_usage, model
  *       recorded as `app:<model>` so the steward view can tell them apart).
- *       Returns {text, service}. Same rate/daily-cap regime.
+ *       `runtime_model: "open"` (sent by the kit's lib/ai helper on the
+ *       human-scale branch) runs the same Community AI call on an
+ *       open-weight model through OpenRouter instead (OPENROUTER_API_KEY,
+ *       model COMMUNITY_OPEN_MODEL), metered the same way.
+ *       Returns {text, service} plus, on Community AI, {model, host, usage}.
+ *       Same rate/daily-cap regime.
  *   scrape {app_id, app_key, url, member_token?}
  *     — reads one public web page as markdown via the app's vaulted
  *       Firecrawl key. Returns {markdown, title, source_url}. Same
@@ -87,6 +92,12 @@ const COMMUNITY_APP_MODEL = Deno.env.get('COMMUNITY_APP_MODEL') ?? 'claude-opus-
 // and low effort keeps thinking tokens (billed as output) small.
 const COMMUNITY_AI_MAX_TOKENS = 4096;
 const COMMUNITY_AI_EFFORT = Deno.env.get('COMMUNITY_APP_EFFORT') ?? 'low';
+// The open-weight Community AI model (human-scale branch): an instruct model
+// small enough that a community could host it on one box (Gemma 3 12B fits a
+// 16 GB machine at 4-bit), served through OpenRouter for now. Only reached
+// when the app asks for it with runtime_model: "open"; the default path above
+// is unchanged. Override without a deploy via the COMMUNITY_OPEN_MODEL secret.
+const COMMUNITY_OPEN_MODEL = Deno.env.get('COMMUNITY_OPEN_MODEL') ?? 'google/gemma-3-12b-it';
 
 const rateBuckets = new Map<string, { count: number; windowStart: number }>();
 
@@ -544,12 +555,17 @@ async function aiChat(body: Record<string, unknown>): Promise<Response> {
     return json({ error: "AI isn't set up for this app — the builder can turn on Community AI (or connect their own key) in the Services tab" }, 503);
   }
   const viaCommunity = service === COMMUNITY_AI_SERVICE;
+  // The app asked for the open-weight model (kit lib/ai on the human-scale branch)
+  const wantOpen = viaCommunity && String(body.runtime_model ?? '') === 'open';
 
   // Community AI: the shared key must exist, and the OWNER must still be on
   // the plan with weekly budget left — checked before any spend, same gate
   // as their building turns.
   if (viaCommunity) {
-    if (!Deno.env.get('ANTHROPIC_COMMUNITY_KEY')) {
+    if (wantOpen && !Deno.env.get('OPENROUTER_API_KEY')) {
+      return json({ error: "Community AI's open model is not configured on this server" }, 503);
+    }
+    if (!wantOpen && !Deno.env.get('ANTHROPIC_COMMUNITY_KEY')) {
       return json({ error: 'Community AI is not configured on this server' }, 503);
     }
     if (!ownerEmail) return json({ error: "AI isn't available for this app right now" }, 503);
@@ -594,8 +610,11 @@ async function aiChat(body: Record<string, unknown>): Promise<Response> {
 
   try {
     let text: string;
+    let provenance: Record<string, unknown> = {};
     if (viaCommunity) {
-      const result = await callCommunityAnthropic(messages, system, maxTokens);
+      const result = wantOpen
+        ? await callCommunityOpenRouter(messages, system, maxTokens)
+        : await callCommunityAnthropic(messages, system, maxTokens);
       text = result.text;
       // Metered under the owner's email so the weekly gate, the budget
       // banner, and the steward's utilization view all see it. The model
@@ -603,6 +622,12 @@ async function aiChat(body: Record<string, unknown>): Promise<Response> {
       // the monitor's pricing matches on substring, so `app:claude-opus-5-5`
       // still prices at Opus rates.
       recordCommunityUsage(ownerEmail, result.usage, `app:${result.model}`);
+      // Where it ran, so the app can say so (footprint and provenance)
+      provenance = {
+        model: result.model,
+        host: wantOpen ? 'openrouter' : 'anthropic',
+        usage: { input: result.usage.input, output: result.usage.output },
+      };
     } else {
       const model = String(vault.config?.model ?? '') || AI_DEFAULT_MODEL[service];
       text = await callProvider(service as Service, vault.secret, model, messages, system, maxTokens);
@@ -612,7 +637,7 @@ async function aiChat(body: Record<string, unknown>): Promise<Response> {
       headers: svcHeaders(),
       body: JSON.stringify({ last_used_at: new Date().toISOString() }),
     }).catch(() => {});
-    return json({ text, service });
+    return json({ text, service, ...provenance });
   } catch (err) {
     return json({ error: err instanceof Error ? err.message : 'The AI provider returned an error' }, 502);
   }
@@ -738,6 +763,51 @@ function weekStartUtc(now = new Date()): string {
 }
 
 /** Fire-and-forget: add one in-app call to the owner's community_usage rows */
+/**
+ * Community AI on the open-weight model, through OpenRouter's OpenAI-compatible
+ * endpoint. Same shape as callCommunityAnthropic so the handler treats them
+ * alike. No thinking headroom: the open model answers directly.
+ */
+async function callCommunityOpenRouter(
+  messages: AiMessage[],
+  system: string | undefined,
+  maxTokens: number,
+): Promise<{ text: string; model: string; usage: TokenUsage }> {
+  const key = Deno.env.get('OPENROUTER_API_KEY') ?? '';
+  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${key}`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': Deno.env.get('APP_URL') ?? 'https://builder.relationaltechproject.org',
+      'X-Title': 'Relational Builder (community runtime)',
+    },
+    body: JSON.stringify({
+      model: COMMUNITY_OPEN_MODEL,
+      max_tokens: maxTokens,
+      messages: system ? [{ role: 'system', content: system }, ...messages] : messages,
+      stream: false,
+    }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    console.error('community open-model upstream error', res.status, JSON.stringify(data).slice(0, 500));
+    throw new Error(res.status === 429 ? 'The AI is busy right now — try again in a moment' : 'The AI is unavailable right now — try again shortly');
+  }
+  const text = String(data?.choices?.[0]?.message?.content ?? '');
+  const u = data?.usage ?? {};
+  return {
+    text,
+    model: String(data?.model ?? COMMUNITY_OPEN_MODEL),
+    usage: {
+      input: Number(u.prompt_tokens ?? 0),
+      output: Number(u.completion_tokens ?? 0),
+      cacheWrite: 0,
+      cacheRead: Number(u.prompt_tokens_details?.cached_tokens ?? 0),
+    },
+  };
+}
+
 function recordCommunityUsage(email: string, usage: TokenUsage, model: string): void {
   fetch(restUrl('/rpc/increment_community_usage'), {
     method: 'POST',

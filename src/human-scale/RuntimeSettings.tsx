@@ -39,6 +39,7 @@ export function RuntimeSettings() {
 
   const choose = (kind: RuntimeKind) => {
     if (kind === 'local') write({ kind, endpoint, model, fallback: runtime.fallback });
+    else if (kind === 'community') write({ kind, model: 'open', fallback: 'none' });
     else write({ kind, fallback: 'none' });
   };
 
@@ -85,6 +86,30 @@ export function RuntimeSettings() {
           );
         })}
       </div>
+
+      {runtime.kind === 'community' && (
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs pt-1" role="radiogroup" aria-label="Community model">
+          <span className="text-muted-foreground">Model:</span>
+          <label className="flex items-center gap-1.5 cursor-pointer">
+            <input
+              type="radio"
+              name="hs-community-model"
+              checked={runtime.model !== 'claude'}
+              onChange={() => write({ kind: 'community', model: 'open', fallback: 'none' })}
+            />
+            Open model (default)
+          </label>
+          <label className="flex items-center gap-1.5 cursor-pointer">
+            <input
+              type="radio"
+              name="hs-community-model"
+              checked={runtime.model === 'claude'}
+              onChange={() => write({ kind: 'community', model: 'claude', fallback: 'none' })}
+            />
+            Claude Opus (your explicit choice)
+          </label>
+        </div>
+      )}
 
       {runtime.kind === 'local' && (
         <div className="space-y-2 pt-1">
