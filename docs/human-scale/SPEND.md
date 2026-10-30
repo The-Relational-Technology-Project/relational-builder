@@ -10,3 +10,4 @@ his weekly usage this loop takes. OpenRouter balance: about $25 as of Oct 29; pa
 | Date | What | Provider / model | Est. cost (USD) | Day total | Session minutes |
 |---|---|---|---|---|---|
 | 2026-10-28 | First run: setup, no inference | none | 0.00 | 0.00 | ~25 |
+| 2026-10-30 | Bench run one: 3 open-weight models x 3 commons tasks, 1 trial (qwen3-coder-30b, gemma-4-26b, gpt-oss-120b), logged before the run; harness estimate $0.06, counted at worst case | OpenRouter | 0.60 (worst case; actual below) | 0.60 | ~ |

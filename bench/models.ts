@@ -172,6 +172,35 @@ export const BENCH_MODELS: BenchModel[] = [
     enabled: false,
   },
 
+  // --- OpenRouter: open-weight coding models a community could realistically
+  //     host (human-scale branch, workstream 2). Chosen Oct 30, 2026 for
+  //     hostability on one box, not leaderboard rank: a 30B MoE with 3B
+  //     active (fits 32 GB at 4-bit), a 26B MoE with 4B active, and the
+  //     120B open reference that needs an 80 GB card. Pricing = OpenRouter
+  //     list prices on Oct 30, 2026. Disabled so the default matrix is
+  //     unchanged; name via --models. ---
+  {
+    alias: 'qwen3-coder-30b',
+    providerId: 'openrouter',
+    modelId: 'qwen/qwen3-coder-30b-a3b-instruct',
+    pricing: { inputPerMTok: 0.07, outputPerMTok: 0.28, asOf: '2026-10' },
+    enabled: false,
+  },
+  {
+    alias: 'gemma-4-26b',
+    providerId: 'openrouter',
+    modelId: 'google/gemma-4-26b-a4b-it',
+    pricing: { inputPerMTok: 0.09, outputPerMTok: 0.3, asOf: '2026-10' },
+    enabled: false,
+  },
+  {
+    alias: 'gpt-oss-120b',
+    providerId: 'openrouter',
+    modelId: 'openai/gpt-oss-120b',
+    pricing: { inputPerMTok: 0.15, outputPerMTok: 0.6, asOf: '2026-10' },
+    enabled: false,
+  },
+
   // --- Moonshot direct (env: MOONSHOT_API_KEY) --- the OpenRouter kimi-k3
   //     mirror above runs on whichever host OpenRouter routes to; this one
   //     hits Moonshot's own API, so latency and quality are the model's own.

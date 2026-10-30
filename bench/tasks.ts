@@ -117,6 +117,103 @@ export const TASKS: TaskSpec[] = [
     expectedPreviewKind: 'framework',
     checks: CHECKS,
   },
+  // --- Human-scale branch, workstream 2 (Oct 30, 2026): representative
+  //     commons builds, one task per tool-shaped commons item (slugs in
+  //     scripts/geotag/places.json), each grounded in a real place the way
+  //     builders actually ask. With the four experiment tasks above that is
+  //     18 builds. Generic checks; exp-v1 so they never read as headline
+  //     numbers. ---
+  ...([
+    ['hs-community-fridge', 'community-fridge',
+      'Build a community fridge app for the fridge outside the laundromat on ' +
+      'Judah St in the Outer Sunset, San Francisco: anyone can post what they ' +
+      'just stocked or what is running low, volunteers claim cleaning and ' +
+      'restocking shifts, and there is a simple "fridge is full / fridge is ' +
+      'empty" status on the front. Foggy-coastal palette, big friendly type, ' +
+      'phone-first. Seed it with realistic recent updates and a week of shifts.'],
+    ['hs-meal-train', 'meal-train',
+      'Build a meal train for a family on our block in Lawrence, Massachusetts ' +
+      'whose dad just had surgery: a calendar of dinner slots neighbors can ' +
+      'claim, dietary notes and a drop-off spot the family set once, a place to ' +
+      'leave a short note with each meal, and a gentle reminder of who is up ' +
+      'next. Warm, simple, works on an old phone. Seed it with two weeks of ' +
+      'slots, some claimed and some open.'],
+    ['hs-library-of-things', 'library-of-things-toolkit',
+      'Build a library of things for the Montavilla neighborhood in Portland, ' +
+      'OR: neighbors list tools and gear they will lend (ladder, pressure ' +
+      'washer, folding tables, a sewing machine), others request to borrow for ' +
+      'a date range, and each item shows who stewards it and its condition. ' +
+      'Earthy Pacific Northwest look. Seed it with twenty realistic items and a ' +
+      'few open requests.'],
+    ['hs-asset-map', 'neighborhood-asset-map',
+      'Build a neighborhood asset map for Edmonton\'s Ritchie community: a map ' +
+      'and a list of the places and people that hold the neighborhood together ' +
+      '(the community league hall, a corner store that lets kids run tabs, a ' +
+      'retired nurse, the tool-lending shed), each with a short story of why it ' +
+      'matters and who added it. Anyone can add an asset; a steward can tidy. ' +
+      'Prairie-winter palette, works on phones. Seed with a dozen assets.'],
+    ['hs-mutual-aid-intake', 'build-mutual-aid-intake',
+      'Build a mutual aid intake and matching tool for Bed-Stuy, Brooklyn: ' +
+      'neighbors post a need (groceries, a ride, a phone call, help with a ' +
+      'form) or an offer, a small team of coordinators sees open needs, ' +
+      'matches each to an offer, and marks it done, and the person who asked ' +
+      'can see where their request stands without an account. Dignified, ' +
+      'never bureaucratic. Seed it with realistic needs and offers.'],
+    ['hs-neighborhood-calendar', 'neighborhood-today-calendar',
+      'Build a "what is happening today" calendar for Ithaca, NY\'s Fall Creek ' +
+      'neighborhood: a single scrolling day view first, then the week, with ' +
+      'events anyone can add (porch concerts, the farm stand, a library ' +
+      'story hour, a block cleanup), each tagged by who it is for. A ' +
+      'print-friendly weekly view for the laundromat bulletin board. Autumn ' +
+      'palette. Seed it with a full week of real-feeling events.'],
+    ['hs-help-desk', 'community-help-desk',
+      'Build a community help desk for the Hilltop neighborhood in Tacoma, WA: ' +
+      'neighbors ask a question (where do I report a streetlight, who can fix a ' +
+      'bike, is the clinic open Saturdays), volunteer answerers claim it and ' +
+      'reply, and good answers are kept as a browsable neighborhood FAQ with ' +
+      'the name of the neighbor who answered. Friendly and plain. Seed it with ' +
+      'a dozen answered questions and a few open ones.'],
+    ['hs-promise-tracker', 'promise-tracker',
+      'Build a promise tracker for the Logan Square neighborhood council in ' +
+      'Chicago: the public commitments the alderman and city departments made ' +
+      'at meetings (fix the crosswalk by June, fund the garden), each with a ' +
+      'date, a status neighbors update with evidence, and a timeline of what ' +
+      'happened. Firm but fair in tone, printable. Seed it with eight promises ' +
+      'in different states.'],
+    ['hs-babysitting-coop', 'babysitting-co-op',
+      'Build a babysitting co-op for a dozen families in Decatur, Georgia: ' +
+      'families earn and spend points by sitting for each other, post requests ' +
+      'for a date and time, see who is free, and keep a simple ledger everyone ' +
+      'can check. Trust and clarity over features. Seed it with real-feeling ' +
+      'families, a month of sits, and a couple of open requests.'],
+    ['hs-listening-wall', 'neighborhood-listening-wall',
+      'Build a neighborhood listening wall for Frome, England: three big ' +
+      'questions the town council is asking this season, where anyone can pin a ' +
+      'short answer (with a first name or anonymously), read others\', and ' +
+      'add a "me too". Organizers can group answers into themes and publish ' +
+      'what they heard. Calm, readable, no voting. Seed it with sixty short ' +
+      'responses across the three questions.'],
+    ['hs-front-porch-digest', 'build-front-porch-digest',
+      'Build a weekly front porch digest for Peoria, Illinois\'s West Bluff: ' +
+      'neighbors submit short items through the week (a lost cat, a garage ' +
+      'sale, thanks to whoever shoveled the corner), an editor arranges them ' +
+      'into Friday\'s issue, and the issue reads like a small newsletter on a ' +
+      'phone and prints to one page. Keep an archive of past issues. Seed it ' +
+      'with three past issues and this week\'s submissions.'],
+    ['hs-block-preparedness', 'map-your-neighborhood',
+      'Build a block emergency preparedness plan for our street in Central ' +
+      'Oregon: who has a generator, medical training, a chainsaw, a spare ' +
+      'room; who may need a check-in (lives alone, uses oxygen); a gathering ' +
+      'point; and a simple check-in board that works when the power is out and ' +
+      'phones are on their last bar. Calm, high contrast, offline-friendly. ' +
+      'Seed it with a realistic block of fourteen households.'],
+  ] as const).map(([id, , prompt]) => ({
+    id,
+    version: 'exp-v1',
+    prompt,
+    expectedPreviewKind: 'framework',
+    checks: CHECKS,
+  })),
   // --- Edit tasks (bench/edit-task.ts): the same frozen seed project, three
   //     kinds of change. These measure restraint, not ambition — see the
   //     editDiscipline columns in the report. ---
