@@ -28,8 +28,10 @@ export function RuntimeSettings() {
   const removeVar = useEnvStore(s => s.removeVar);
   const explicit = readRuntime(vars);
   const runtime = effectiveRuntime(vars) ?? COMMUNITY_DEFAULT;
-  const [endpoint, setEndpoint] = useState(runtime.endpoint ?? LOCAL_DEFAULTS.endpoint);
-  const [model, setModel] = useState(runtime.model ?? LOCAL_DEFAULTS.model);
+  // Local fields keep their own draft: the community runtime's `model` is a
+  // class (open | claude), never an Ollama model name, so it must not leak in
+  const [endpoint, setEndpoint] = useState(runtime.kind === 'local' ? runtime.endpoint ?? LOCAL_DEFAULTS.endpoint : LOCAL_DEFAULTS.endpoint);
+  const [model, setModel] = useState(runtime.kind === 'local' ? runtime.model ?? LOCAL_DEFAULTS.model : LOCAL_DEFAULTS.model);
 
   const write = (next: ProjectRuntime) => {
     const keep = new Set(runtimeEnvVars(next).map(v => v.key));
