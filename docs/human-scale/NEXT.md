@@ -44,12 +44,64 @@ back to Opus.
 2. **OpenRouter-hosted open-weight models count as community-hostable** for
    the demo and the bench.
 
-## Direction from Josh (2026-10-29)
+## Direction from Josh (2026-10-30, supersedes the order below where they differ)
 
-Daily runs make meaningful progress toward a fully community-controlled RB
-stack; each run names the layer it moved. Pace paid work at $3 to $5 a day.
+Focus the loop on **open models doing the app-building**, and on evaluating
+them on four axes: **speed**, **error rates**, **design quality** and **code
+quality**. The bench (workstream 2) is the main line of work until it can
+say, per model and per task, how each axis comes out against Opus. The
+runtime split and the other workstreams stay as built; they advance only
+when a run has time left or when Josh unblocks a step.
+
+What that means for each axis, with what exists and what to add:
+
+- **Speed.** Exists: time to first token, build time, total wall time per
+  trial. Add: tokens per second (output chars over build time), and the
+  time the auto-fix pass added, so a slow first draft and a slow repair
+  read as different problems.
+- **Error rates.** Exists: bundled, first-try bundle, fix-pass solved,
+  failed SEARCH/REPLACE edits, truncation and continuations, security
+  flags, task checks. Add: the *kind* of first-try failure (missing file,
+  syntax, bad import, hallucinated package), tallied per model, because
+  today's two qwen failures were the same kind (imported a file it never
+  wrote) and that is fixable in the prompt or with a cheap pre-bundle check.
+- **Design quality.** Exists: the blinded human review (design, RTP fit,
+  completeness, 1 to 5, plus a ranking) and screenshots. Add: screenshots
+  on every run (today's slices skipped them to save time; do not), at phone
+  and laptop widths, and a contact sheet per task in the report so Josh can
+  score a day's builds in five minutes. The bench's rule stands: no LLM
+  judge for "warm and neighborly"; the human score decides. A narrow
+  mechanical layer is fine: theme tokens present, kit components used, no
+  empty states missing, text contrast from the theme values.
+- **Code quality.** Nothing today. Add, mechanically and free: `tsc` over
+  the extracted project with the kit merged in (type errors per build);
+  `eslint` with the app's config (errors and warnings per 100 lines); file
+  count and the largest file's size (one 900-line App.tsx is a smell the
+  kit exists to prevent); kit usage versus hand-rolled UI; `any` count;
+  whether state lives in a store or in prop drilling. Report them as
+  columns with medians, and keep raw numbers in run.json.
+
+Models: the three hostable open models already in the matrix
+(`qwen3-coder-30b`, `gemma-4-26b`, `gpt-oss-120b`), plus two more open
+coders worth a look at list price (`qwen3-coder-next`, `glm-4.5-air`), and
+Opus 5.5 once per task set as the reference. Open models cost cents a
+build, so run every task on every open model; spend the budget on Opus
+sparingly. Keep each model as its own capped experiment.
+
+Earlier direction (Oct 29) still holds underneath: each run names the
+stack layer it moved; pace paid work at $3 to $5 a day.
 
 ## Questions for Josh
+
+0. **Who scores design, and how often?** The bench's rule is that your
+   blinded 1 to 5 review decides design quality, not an LLM. With open
+   models producing 12 to 36 builds a day, the loop will commit screenshots
+   and a contact sheet every run and keep the mechanical columns moving;
+   design scores land whenever you open `review/index.html` and export.
+   If you would rather have a daily number without you, say so and the
+   loop will add a narrow LLM check for factual design properties only
+   (empty states present, phone layout holds, theme applied), labeled as
+   not a quality score.
 
 1. **Direct `ANTHROPIC_API_KEY`?** Default if unanswered: OpenRouter for
    everything, including the Opus comparison (run two).
@@ -63,21 +115,30 @@ stack; each run names the layer it moved. Pace paid work at $3 to $5 a day.
 
 ## Tomorrow (one run, about 75 minutes)
 
-1. **Bench run two (about $3, logged first).** The remaining nine hs-*
-   tasks plus the four older experiment tasks on the same three open models
-   (18 builds at cents each), then the Opus 5.5 comparison once on the same
-   three tasks run one used (through OpenRouter, about $2.50), then the
-   commons-retrieval variant on the best open model. Commit `report.md`,
-   shots and `run.json` in the existing format, with the honest pass rate
-   table at the top of the LOG entry. If OpenRouter 402s on pre-authorized
-   max_tokens, lower `BENCH_MAX_TOKENS`, do not retry more than twice.
+1. **Bench: code-quality and speed columns (no paid calls, about 30
+   minutes).** In `bench/lib/pipeline.ts` and `report.ts`: run `tsc` and
+   `eslint` over each trial's extracted files with the kit merged in and
+   record error counts; file count, largest file lines, `any` count, kit
+   usage share; tokens per second; fix-pass time; a first-failure kind.
+   Prove on the two committed runs with `npm run bench -- report <dir>`
+   (the report regenerates from run.json; new columns show as "n/a" for
+   old trials, which is honest). Unit-test the classifiers with vitest.
+2. **Bench run two (about $1, logged first).** `gemma-4-26b` on all 12
+   hs-* tasks with screenshots at phone and laptop width (it took 45s a
+   build, so about 15 minutes), then `gpt-oss-120b` on the same 12 (about
+   25 minutes), each its own capped invocation. Commit run.json, report
+   and shots; put the four-axis table at the top of the LOG entry and a
+   contact sheet of screenshots in the report. Hold `qwen3-coder-30b` for
+   a run of its own (3 to 7 minutes a build) and the Opus reference
+   (about $2.50 for three tasks) for the day after, when the open numbers
+   exist to compare against.
    Pace note from run one: the harness runs models one after another and
    qwen3-coder-30b took 3 to 7 minutes a build through OpenRouter, so a 25
    minute cap finished two of nine; gemma-4-26b took 45 seconds. Run the
    models as separate invocations with their own caps (one experiment each,
    30 minutes max), gemma first, and let a slow model's partial run.json
    stand rather than retrying it.
-2. **Workstream 3, footprint and provenance (wire it).** The row shape and
+6. **Workstream 3, footprint and provenance (wire it).** The row shape and
    the labeled estimate exist (`src/human-scale/provenance.ts`,
    `rb-flops-v1`, tested). Now record: a per-project log (localStorage via a
    thin store, newest last, capped) fed from the Builder's own calls (the
@@ -92,7 +153,22 @@ stack; each run names the layer it moved. Pace paid work at $3 to $5 a day.
 
 ## After that, in order
 
-3. **Workstream 4, export and delete (wire it, one run).** The data files
+3. **Bench run three.** `qwen3-coder-30b` on all 12 tasks (own cap),
+   `qwen3-coder-next` and `glm-4.5-air` added to the matrix and run on the
+   same 12, then Opus 5.5 on three tasks as the reference. Then the
+   commons-retrieval variant on the best open model (does the commons close
+   the gap). After that the bench report answers Josh's four axes per model,
+   and `resolveCommunityModelDefault` can be argued about with numbers.
+4. **Prompt fixes the bench points at.** For each first-failure kind that
+   repeats across open models (today: importing a file never written),
+   one targeted change in the system prompt or a cheap pre-bundle check,
+   measured by re-running the failing tasks before and after. Changes that
+   help open models and do not hurt Opus go on the branch; others are
+   written up.
+
+Then, as time allows:
+
+5. **Workstream 4, export and delete (wire it, one run).** The data files
    exist (`src/human-scale/export-data.ts`, tested). Behind the flag: the
    export zip (`download-source.ts`, `PublishDialog.tsx`) calls
    `exportBackend` for the project's app and adds `appDataExportFiles`
@@ -102,20 +178,33 @@ stack; each run names the layer it moved. Pace paid work at $3 to $5 a day.
    Cloud tab's own export is offered first. Prove it with a test that an
    exported zip lists code, `/data/export/app-data.json`, the CSVs and the
    manifest, and a test that delete calls both removals.
-4. **Self-host runbook, backend half and the local-model steps.**
+7. **Self-host runbook, backend half and the local-model steps.**
    `SELF-HOST.md` covers the Builder app through step 6 (run Oct 30).
    Next: the backend runbook (a community's own Supabase or Postgres: the
    migrations and edge functions it needs, and which env vars point the
    Builder at it), and steps 7 and 8 run against a real local model, which
    needs a person with a box (Josh, or a Thread fellow); until then say so.
-5. **Kit helper in a real build.** Rebuild one existing template through the
+8. **Kit helper in a real build.** Rebuild one existing template through the
    normal flow with the flag on and confirm the model imports `@/lib/ai` and
    exposes named jobs; fix the prompt rule where it does not. Needs a builder
    model key in the session (OpenRouter works) and a signed-in Builder, so it
    may need Josh in the room.
-6. **Research rotation, when 15 minutes are left.** Next: the Hugging Face
-   SLM overview (which 1B to 8B models fit an 8 GB laptop), then Bendor et
-   al. "Small AI".
+9. **Research rotation, when 15 minutes are left.** Next: Hooker, "On the
+   Slow Death of Scaling" (what small coders can do), then the Hugging Face
+   SLM overview, then Bendor et al. "Small AI".
+
+6. **Workstream 3, footprint and provenance (wire it).** The row shape and
+   the labeled estimate exist (`src/human-scale/provenance.ts`,
+   `rb-flops-v1`, tested). Now record: a per-project log (localStorage via a
+   thin store, newest last, capped) fed from the Builder's own calls (the
+   provider layer reports tokens) and from the kit helper's `ran` plus the
+   server's `usage` (the helper can post its row to the Builder when it runs
+   inside the preview, and keep its own small log in the app otherwise);
+   show the rows in the build report and `describeRow` in a small app
+   footer behind the flag. The first real community-runtime row comes from
+   the smoke test above once Josh runs it. If a better public per-token
+   method turns up (CO2.js, AI Energy Score), add it as `rb-*-v2` beside
+   the first, never replace numbers already logged.
 
 ## Drop or defer
 

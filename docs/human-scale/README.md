@@ -139,9 +139,11 @@ moved. Layers with no path by Nov 20 are said so, not glossed.
 | Commons and knowledge | Supabase-backed commons RTP runs, 500+ items; prompt seeds, principles, patterns exported to `public/knowledge/*.md` | The commons is forkable and the retrieval works against a local copy | Mostly open already (markdown export, the MCP server). Gap: retrieval against a local copy. Low priority before Nov 20 |
 | Footprint and provenance | Nothing recorded in production | Every call says model, where it ran, tokens, and a labeled energy estimate | Workstream 3 |
 
-Priority for the loop, in order: runtime model, builder model (via the
-bench), footprint, export and delete, then the self-host runbooks. The
-anchor stubs and the demo come after those have evidence.
+Priority for the loop, in order (Josh, Oct 30): the builder model via the
+bench, evaluated on speed, error rates, design quality and code quality
+against Opus; then footprint, export and delete, the runtime path's deploy,
+and the self-host runbooks as time allows. The anchor stubs and the demo
+come after those have evidence.
 
 ## Workstreams and status
 
