@@ -81,11 +81,14 @@ function trialRows(runs, hand) {
     for (const t of run.trials) {
       const fix = t.fixRound && t.fixRound.attempted ? t.fixRound : null;
       const bundled = !!(t.bundle && t.bundle.ok);
-      const result = t.error
+      const rt = t.runtime || null;
+      const browser = !bundled || !rt ? '' : !rt.rendered ? ', BLANK in the browser' : rt.errors.length ? `, renders with ${rt.errors.length} error(s)` : ', renders clean';
+      const result = (t.error
         ? `failed: ${String(t.error).slice(0, 60)}`
         : bundled && !fix ? 'bundled, first try'
         : bundled && fix ? 'bundled after one auto-fix'
-        : 'did not bundle';
+        : 'did not bundle') + browser;
+      const firstError = rt && rt.errors.length ? rt.errors[0].replace(/^(pageerror|console): /, '').slice(0, 110) : '';
       const checks = Array.isArray(t.checks) ? `${t.checks.filter(c => c.pass).length}/${t.checks.length}` : '';
       const fromReview = review && review.scores && review.scores[t.alias] ? review.scores[t.alias] : {};
       const fromHand = hand.find(h => name.startsWith(h.run) && h.task === t.taskId && h.model === t.alias) || {};
@@ -100,6 +103,8 @@ function trialRows(runs, hand) {
         providerId: t.providerId,
         modelId: t.modelId,
         bundled,
+        rendersClean: !!(bundled && rt && rt.rendered && rt.errors.length === 0),
+        runtimeChecked: !!rt,
         firstTry: bundled && !fix,
         result,
         latencyMs: t.latencyMs,
@@ -111,7 +116,7 @@ function trialRows(runs, hand) {
         designQuality: score('designQuality'),
         rtpFit: score('rtpFit'),
         completeness: score('completeness'),
-        notes: fromHand.notes || fromReview.notes || '',
+        notes: [fromHand.notes || fromReview.notes || '', firstError ? `browser: ${firstError}` : ''].filter(Boolean).join(' · '),
         shot: `${REL_RESULTS}/${name}/shots/${shotName(t)}`,
         shotAbs: path.join(dir, 'shots', shotName(t)),
         report: `${REL_RESULTS}/${name}/report.md`,
@@ -159,6 +164,7 @@ async function main() {
   const modelRows = [...byModel.entries()]
     .map(([alias, rs]) => {
       const ok = rs.filter(r => r.bundled);
+      const checked = rs.filter(r => r.runtimeChecked);
       const scored = rs.filter(r => r.designQuality != null);
       return {
         alias,
@@ -167,6 +173,7 @@ async function main() {
         n: rs.length,
         bundled: pct(ok.length, rs.length),
         firstTry: pct(rs.filter(r => r.firstTry).length, rs.length),
+        renders: checked.length ? `${pct(checked.filter(r => r.rendersClean).length, checked.length)} of ${checked.length}` : 'n/a',
         build: secs(median(ok.map(r => r.latencyMs))),
         cost: usd(median(rs.map(r => r.estCostUsd))),
         design: scored.length ? `${median(scored.map(r => r.designQuality))} (${scored.length})` : '',
@@ -197,9 +204,11 @@ async function main() {
     '',
     '## Models tested',
     '',
-    '| Model | Provider id | Builds | Bundled | First try | Median build time | Median est. cost | Median design score (n) | Last run |',
-    '|---|---|---|---|---|---|---|---|---|',
-    ...modelRows.map(m => `| ${m.alias} | \`${m.modelId}\` | ${m.n} | ${m.bundled} | ${m.firstTry} | ${m.build} | ${m.cost} | ${m.design} | ${m.last} |`),
+    '| Model | Provider id | Builds | Bundled | First try | Renders clean | Median build time | Median est. cost | Median design score (n) | Last run |',
+    '|---|---|---|---|---|---|---|---|---|---|',
+    ...modelRows.map(m => `| ${m.alias} | \`${m.modelId}\` | ${m.n} | ${m.bundled} | ${m.firstTry} | ${m.renders} | ${m.build} | ${m.cost} | ${m.design} | ${m.last} |`),
+    '',
+    '"Bundled" is the compiler\'s view. "Renders clean" is the browser\'s: the built app opened with visible content and no uncaught errors (checked from Oct 30, 2026; n/a before). A build can pass the first and fail the second, which is why the screenshots matter.',
     '',
   );
 

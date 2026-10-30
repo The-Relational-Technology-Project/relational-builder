@@ -314,8 +314,9 @@ export async function executeRun(opts: ExecuteOptions): Promise<number> {
 
   if (opts.screenshots) {
     try {
-      const { captureScreenshots } = await import('./screenshots');
-      await captureScreenshots(runDir, trials);
+      const { captureScreenshots, applyRuntimeChecks } = await import('./screenshots');
+      const checks = await captureScreenshots(runDir, trials);
+      if (applyRuntimeChecks(trials, checks) > 0) await snapshot();
     } catch (err) {
       console.warn(`Screenshots skipped: ${err instanceof Error ? err.message : String(err)}`);
     }

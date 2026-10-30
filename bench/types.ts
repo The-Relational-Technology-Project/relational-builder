@@ -86,6 +86,18 @@ export interface TrialResult {
     estCostUsd: number | null;
   } | null;
   error: string | null;
+  /** What happened when the bundled preview was actually opened in a
+   *  browser (taken with the screenshot). A build can bundle and still
+   *  white-screen on a missing import or a bad Tailwind utility; this is
+   *  where that shows. Absent on runs taken before the check existed, or
+   *  when screenshots were skipped. */
+  runtime?: {
+    /** Visible text was rendered (not a blank page) */
+    rendered: boolean;
+    /** Uncaught page errors and console errors, first few, trimmed */
+    errors: string[];
+    bodyChars: number;
+  } | null;
 }
 
 export interface RunReport {

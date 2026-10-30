@@ -109,7 +109,15 @@
         "remainingErrors": [],
         "estCostUsd": 0.00192732
       },
-      "error": null
+      "error": null,
+      "runtime": {
+        "rendered": false,
+        "errors": [
+          "console: ReferenceError: Calendar is not defined at Board (file:///home/user/relational-builder/bench/results/2026-10-30T11-26-714a4ad/artifacts/hs-community-fridge/gemma-4-26b-t1/preview.html:367:30) at Hi (https://esm.sh/react-",
+          "pageerror: Calendar is not defined"
+        ],
+        "bodyChars": 0
+      }
     }
   ]
 }

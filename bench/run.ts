@@ -129,12 +129,18 @@ export async function main(argv: string[]): Promise<number> {
       console.error('Usage: npm run bench -- shots <runDir>');
       return 1;
     }
-    const { readFile } = await import('node:fs/promises');
+    const { readFile, writeFile } = await import('node:fs/promises');
     const path = await import('node:path');
-    const { captureScreenshots } = await import('./lib/screenshots');
-    const run = JSON.parse(await readFile(path.resolve(argv[1], 'run.json'), 'utf8'));
-    await captureScreenshots(path.resolve(argv[1]), run.trials);
-    console.log(`Screenshots written under ${path.resolve(argv[1], 'shots')}`);
+    const { captureScreenshots, applyRuntimeChecks } = await import('./lib/screenshots');
+    const runDir = path.resolve(argv[1]);
+    const run = JSON.parse(await readFile(path.join(runDir, 'run.json'), 'utf8'));
+    const checks = await captureScreenshots(runDir, run.trials);
+    if (applyRuntimeChecks(run.trials, checks) > 0) {
+      await writeFile(path.join(runDir, 'run.json'), JSON.stringify(run, null, 2), 'utf8');
+    }
+    const { generateReport } = await import('./lib/report');
+    await generateReport(runDir);
+    console.log(`Screenshots and runtime checks written under ${runDir}`);
     return 0;
   }
 

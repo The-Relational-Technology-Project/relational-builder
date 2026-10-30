@@ -128,13 +128,17 @@ stack layer it moved; pace paid work at $3 to $5 a day.
 ## Tomorrow (one run, about 75 minutes)
 
 1. **Bench: code-quality and speed columns (no paid calls, about 30
-   minutes).** In `bench/lib/pipeline.ts` and `report.ts`: run `tsc` and
-   `eslint` over each trial's extracted files with the kit merged in and
-   record error counts; file count, largest file lines, `any` count, kit
-   usage share; tokens per second; fix-pass time; a first-failure kind.
-   Prove on the two committed runs with `npm run bench -- report <dir>`
-   (the report regenerates from run.json; new columns show as "n/a" for
-   old trials, which is honest). Unit-test the classifiers with vitest.
+   minutes).** The browser check (Renders) landed Oct 30. Now in
+   `bench/lib/pipeline.ts` and `report.ts`: run `tsc` and `eslint` (the
+   app's own config) over each trial's extracted files with the kit merged
+   in and record error counts; an accidental lint over today's artifacts
+   already showed the shape of it (unused imports everywhere, setState in
+   an effect). Also: file count, largest file lines, `any` count, kit usage
+   share, tokens per second, fix-pass time, a first-failure kind, and the
+   Builder's `invalidLucideImports` check as a mechanical column (two of
+   today's three broken builds were a bad icon import). Prove on the
+   committed runs with `npm run bench -- report <dir>`; old trials show
+   "n/a". Unit-test the classifiers with vitest. Then `npm run bench:board`.
 2. **Bench run two (under $1, logged first).** Every open model in the
    matrix on `--tasks compare` (the two comparison prompts), one trial
    each, each model its own capped invocation, screenshots on: `gemma-4-26b`,
@@ -157,8 +161,10 @@ stack layer it moved; pace paid work at $3 to $5 a day.
    a pool task it has not seen. After that the board answers Josh's four
    axes per model, and `resolveCommunityModelDefault` can be argued about
    with numbers.
-4. **Prompt fixes the bench points at.** For each first-failure kind that
-   repeats across open models (today: importing a file never written),
+4. **Prompt fixes the bench points at.** For each failure kind that
+   repeats across open models (today: importing a file never written; an
+   icon used or invented without a real import; one unknown Tailwind
+   utility voiding the stylesheet),
    one targeted change in the system prompt or a cheap pre-bundle check,
    measured by re-running the failing tasks before and after. Changes that
    help open models and do not hurt Opus go on the branch; others are

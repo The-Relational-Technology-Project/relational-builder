@@ -85,6 +85,14 @@ export async function generateReport(runDirArg: string | undefined): Promise<num
       const fixFailed = ok.filter(t => t.fixRound && !t.fixRound.solved).length;
       const fixCell =
         fixed + fixFailed === 0 ? '—' : `${fixed}/${fixed + fixFailed} solved`;
+      // "Renders" = opened in a browser after bundling: visible page, no
+      // uncaught errors. Unknown for runs taken before the check existed.
+      const checked = ok.filter(t => t.runtime);
+      const clean = checked.filter(t => t.runtime!.rendered && t.runtime!.errors.length === 0).length;
+      const blank = checked.filter(t => !t.runtime!.rendered).length;
+      const rendersCell = checked.length === 0
+        ? 'n/a'
+        : `${clean}/${checked.length} clean${blank ? `, ${blank} blank` : ''}`;
       // Estimated $ including the fix pass when one ran
       const totalCost = median(
         ok.map(t => (t.estCostUsd ?? 0) + (t.fixRound?.estCostUsd ?? 0)),
@@ -93,6 +101,7 @@ export async function generateReport(runDirArg: string | undefined): Promise<num
         `| ${a.alias} ` +
         `| ${ok.length === 0 ? '✗ all errored' : `${bundleOk}/${ok.length} ✓`} ` +
         `| ${firstTryOk}/${ok.length} ` +
+        `| ${rendersCell} ` +
         `| ${fixCell} ` +
         `| ${median(ok.map(t => t.extraction.writes)) ?? '—'} ` +
         `| ${median(ok.map(t => t.extraction.failedEditBlocks)) ?? '—'} ` +
@@ -108,8 +117,8 @@ export async function generateReport(runDirArg: string | undefined): Promise<num
     });
     return `### Task: ${taskId} (${version})
 
-| Model | Bundle | First try | Fix | Files | Failed edits | Truncated | Checks | Sec flags | TTFT |${planCols} Build time | Total | ~$ | |
-|---|---|---|---|---|---|---|---|---|---|${planFirst ? '---|' : ''}---|---|---|---|
+| Model | Bundle | First try | Renders | Fix | Files | Failed edits | Truncated | Checks | Sec flags | TTFT |${planCols} Build time | Total | ~$ | |
+|---|---|---|---|---|---|---|---|---|---|---|${planFirst ? '---|' : ''}---|---|---|---|
 ${rows.join('\n')}`;
   });
 
@@ -142,6 +151,13 @@ ${aliases
     .filter(t => t.error)
     .map(t => `- **${t.alias}** · ${t.taskId} t${t.trial}: ${t.error}`);
 
+  const runtimeLines = run.trials
+    .filter(t => t.runtime && (!t.runtime.rendered || t.runtime.errors.length > 0))
+    .map(t =>
+      `- **${t.alias}** · ${t.taskId} t${t.trial}: ${t.runtime!.rendered ? 'renders with errors' : 'BLANK PAGE'}` +
+      (t.runtime!.errors.length ? `\n  - ${t.runtime!.errors.map(e => e.replace(/\|/g, '/')).join('\n  - ')}` : ''),
+    );
+
   const fixLines = run.trials
     .filter(t => t.fixRound)
     .map(t => {
@@ -164,7 +180,7 @@ ${aliases
 
 > Cost and token figures are **estimates** (chars ÷ 4 × list prices) — directional, not billing-grade.
 > Mechanical columns are medians across trials. Total = plan + build wall time.
-> **Bundle** = final compile success; **First try** = compiled without the auto-fix; **Fix** = of the builds that first failed, how many the single auto-fix pass solved. **~$** includes the fix pass when one ran.
+> **Bundle** = final compile success; **First try** = compiled without the auto-fix; **Renders** = opened in a browser after bundling, visible page and no uncaught errors (n/a before Oct 30, 2026); **Fix** = of the builds that first failed, how many the single auto-fix pass solved. **~$** includes the fix pass when one ran.
 
 ${taskSections.join('\n\n')}
 
@@ -173,7 +189,7 @@ ${humanTable}
 ## Which model for what
 
 _Maintainer's call, informed by the tables above — the report feeds the decision, it doesn't make it._
-${fixLines.length ? `\n## Fix passes (how solves went)\n\n${fixLines.join('\n')}\n` : ''}${errors.length ? `\n## Errors\n\n${errors.join('\n')}\n` : ''}
+${runtimeLines.length ? `\n## In the browser (bundled, but)\n\n${runtimeLines.join('\n')}\n` : ''}${fixLines.length ? `\n## Fix passes (how solves went)\n\n${fixLines.join('\n')}\n` : ''}${errors.length ? `\n## Errors\n\n${errors.join('\n')}\n` : ''}
 ${shotLines.length ? `\n## Previews\n\n${shotLines.join('\n\n')}\n` : ''}`;
 
   await writeFile(path.join(runDir, 'report.md'), md, 'utf8');

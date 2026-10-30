@@ -87,6 +87,23 @@ untested" to "a runbook that was run once, through step 6".
    Chromium, screenshot committed). Steps that need a local model server in
    a room are marked not run rather than assumed.
 
+**Later the same day (Josh's session), the bench learned to look.** Josh
+asked for one place to see every model, build and screenshot over time, and
+for one or two comparison prompts instead of twelve. `BENCH-BOARD.md`
+(`npm run bench:board`) is that page; `SCORES.md` is a table he can edit on
+GitHub; `--tasks compare` is the two prompts (`hs-community-fridge`,
+`hs-listening-wall`). Retaking today's screenshots exposed the day's real
+result: of the four builds the harness called "bundled", three are broken
+when opened in a browser. Gemma 4 26B: blank page (`Calendar is not
+defined`, an icon used but never imported). gpt-oss-120b: blank page
+(`lucide-react` has no export `CircleHalf`, an invented icon). qwen3-coder-30b
+on the fridge: renders, but unstyled, because one unknown Tailwind utility
+(`fog-green`) voids the whole stylesheet. Only qwen's meal train renders
+clean. The bench now records what the browser saw per build (`runtime` on
+each trial, a **Renders** column, an "In the browser" section in reports,
+"Renders clean" on the board), so this cannot hide again. The table below is
+as the harness scored it before that check; the board has the truth.
+
 **What happened (bench, honest).** Report:
 `bench/results/2026-10-30T11-00-31a1e31/report.md`.
 
@@ -123,7 +140,17 @@ No human review yet; Josh's blinded scores decide "passes".
 finished builds plus whatever the cut-off fifth used, logged as $0.70 worst
 case across three slices. Session: about 60 minutes of the 90.
 
-**Honest read.** The runtime split is real code a person can click through,
+**Honest read (revised after the browser check).** On one prompt, three
+hostable open models all compiled and all three shipped something a
+neighbor would see as broken or ugly: two white screens from a single bad
+icon import each, one unstyled page from a single bad Tailwind class. Each
+is a one-line error with a cheap mechanical catch (the Builder already has
+`invalidLucideImports` for the chat path; the bench and the auto-fix do not
+use it), so this says as much about our prompt and guardrails for small
+models as about the models. Opus's September builds rendered clean. The
+four-axis comparison Josh asked for starts from here.
+
+The runtime split is real code a person can click through,
 and the local path is the strongest piece: nothing leaves the room, and the
 failure message says so. The community open-model path is the one that
 matters most for the application and it is sitting one deploy away, blocked

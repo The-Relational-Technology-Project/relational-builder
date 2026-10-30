@@ -144,7 +144,12 @@
         "remainingErrors": [],
         "estCostUsd": 0.00281918
       },
-      "error": null
+      "error": null,
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 811
+      }
     },
     {
       "alias": "qwen3-coder-30b",
@@ -224,7 +229,16 @@
         "remainingErrors": [],
         "estCostUsd": 0.0033490100000000004
       },
-      "error": null
+      "error": null,
+      "runtime": {
+        "rendered": true,
+        "errors": [
+          "pageerror: Cannot apply unknown utility class `fog-green`",
+          "pageerror: Cannot apply unknown utility class `fog-green`",
+          "pageerror: Cannot apply unknown utility class `fog-green`"
+        ],
+        "bodyChars": 271
+      }
     }
   ]
 }

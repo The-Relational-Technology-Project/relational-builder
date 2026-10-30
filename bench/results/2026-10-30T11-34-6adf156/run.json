@@ -100,7 +100,14 @@
       ],
       "artifactDir": "artifacts/hs-community-fridge/gpt-oss-120b-t1",
       "fixRound": null,
-      "error": null
+      "error": null,
+      "runtime": {
+        "rendered": false,
+        "errors": [
+          "pageerror: The requested module 'lucide-react' does not provide an export named 'CircleHalf'"
+        ],
+        "bodyChars": 0
+      }
     }
   ]
 }

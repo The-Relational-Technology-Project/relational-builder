@@ -66,9 +66,14 @@ async function loadPlaywright(): Promise<any | null> {
 
 interface Target {
   label: string;
+  /** shotName(trial): the key runtime checks are returned under */
+  key: string;
   previewPath: string;
   outPath: string;
 }
+
+export type RuntimeCheck = NonNullable<TrialResult['runtime']>;
+export type RuntimeChecks = Record<string, RuntimeCheck>;
 
 /** Shot filename shared with report.ts — task-qualified since a run can mix tasks */
 export const shotName = (t: Pick<TrialResult, 'taskId' | 'alias' | 'trial'>): string =>
@@ -88,6 +93,7 @@ async function collectTargets(runDir: string, trials: TrialResult[]): Promise<Ta
     }
     targets.push({
       label: `${t.taskId} · ${t.alias} t${t.trial}`,
+      key: shotName(t),
       previewPath,
       outPath: path.join(shotsDir, shotName(t)),
     });
@@ -95,7 +101,8 @@ async function collectTargets(runDir: string, trials: TrialResult[]): Promise<Ta
   return targets;
 }
 
-async function captureWithPlaywright(pw: any, chromiumPath: string | null, targets: Target[]): Promise<void> {
+async function captureWithPlaywright(pw: any, chromiumPath: string | null, targets: Target[]): Promise<RuntimeChecks> {
+  const checks: RuntimeChecks = {};
   const browser = await pw.chromium.launch(
     chromiumPath ? { executablePath: chromiumPath } : {},
   );
@@ -130,11 +137,27 @@ async function captureWithPlaywright(pw: any, chromiumPath: string | null, targe
 
     for (const t of targets) {
       const page = await context.newPage();
+      // The screenshot is also the runtime check: a build that bundles can
+      // still throw on load (an icon never imported, an unknown Tailwind
+      // utility that voids the stylesheet). Record what the browser saw.
+      const errors: string[] = [];
+      const note = (kind: string, text: string) => {
+        if (errors.length < 6) errors.push(`${kind}: ${text.replace(/\s+/g, ' ').slice(0, 220)}`);
+      };
+      page.on('pageerror', (e: Error) => note('pageerror', e.message));
+      page.on('console', (m: { type(): string; text(): string }) => {
+        if (m.type() === 'error') note('console', m.text());
+      });
       try {
         await page.goto(`file://${t.previewPath}`, { waitUntil: 'networkidle', timeout: 60_000 });
         await page.waitForTimeout(1_500); // let Tailwind's JIT + React settle
         await page.screenshot({ path: t.outPath });
-        console.log(`  📸 ${t.label}`);
+        const bodyChars: number = await page
+          .evaluate(() => (document.body?.innerText ?? '').trim().length)
+          .catch(() => 0);
+        checks[t.key] = { rendered: bodyChars >= 20, errors, bodyChars };
+        const verdict = bodyChars < 20 ? 'blank page' : errors.length ? `renders, ${errors.length} error(s)` : 'renders clean';
+        console.log(`  📸 ${t.label} · ${verdict}`);
       } catch (err) {
         console.warn(
           `  screenshot failed for ${t.label}: ${err instanceof Error ? err.message : String(err)}`,
@@ -146,6 +169,7 @@ async function captureWithPlaywright(pw: any, chromiumPath: string | null, targe
   } finally {
     await browser.close();
   }
+  return checks;
 }
 
 async function captureWithCli(chromium: string, targets: Target[]): Promise<void> {
@@ -174,20 +198,35 @@ async function captureWithCli(chromium: string, targets: Target[]): Promise<void
   }
 }
 
-export async function captureScreenshots(runDir: string, trials: TrialResult[]): Promise<void> {
+/**
+ * Screenshot every trial that has a preview and return what the browser saw
+ * per trial (keyed by shotName), for the caller to store on the trials. The
+ * plain-Chromium fallback cannot observe errors and returns {}.
+ */
+export async function captureScreenshots(runDir: string, trials: TrialResult[]): Promise<RuntimeChecks> {
   const targets = await collectTargets(runDir, trials);
-  if (targets.length === 0) return;
+  if (targets.length === 0) return {};
 
   const chromiumPath = await findChromium();
   const pw = await loadPlaywright();
   if (pw) {
-    await captureWithPlaywright(pw, chromiumPath, targets);
-    return;
+    return captureWithPlaywright(pw, chromiumPath, targets);
   }
   if (chromiumPath) {
     console.warn('Playwright not found — falling back to plain Chromium (may miss CDN fetches behind intercepting proxies).');
     await captureWithCli(chromiumPath, targets);
-    return;
+    return {};
   }
   console.warn('Screenshots skipped: no Playwright and no Chromium found (set CHROME_PATH to enable).');
+  return {};
+}
+
+/** Attach runtime checks to their trials (by shot name). Returns how many matched. */
+export function applyRuntimeChecks(trials: TrialResult[], checks: RuntimeChecks): number {
+  let n = 0;
+  for (const t of trials) {
+    const c = checks[shotName(t)];
+    if (c) { t.runtime = c; n++; }
+  }
+  return n;
 }
