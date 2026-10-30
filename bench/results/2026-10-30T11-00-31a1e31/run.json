@@ -1,0 +1,230 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1,exp-v1,exp-v1",
+  "gitCommit": "31a1e31",
+  "createdAt": "2026-10-30T11:18:45.052Z",
+  "runId": "2026-10-30T11-00-31a1e31",
+  "config": {
+    "trials": 1,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": null
+  },
+  "models": [
+    {
+      "alias": "qwen3-coder-30b",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-30b-a3b-instruct",
+      "pricing": {
+        "inputPerMTok": 0.07,
+        "outputPerMTok": 0.28,
+        "asOf": "2026-10"
+      },
+      "enabled": false
+    },
+    {
+      "alias": "gemma-4-26b",
+      "providerId": "openrouter",
+      "modelId": "google/gemma-4-26b-a4b-it",
+      "pricing": {
+        "inputPerMTok": 0.09,
+        "outputPerMTok": 0.3,
+        "asOf": "2026-10"
+      },
+      "enabled": false
+    },
+    {
+      "alias": "gpt-oss-120b",
+      "providerId": "openrouter",
+      "modelId": "openai/gpt-oss-120b",
+      "pricing": {
+        "inputPerMTok": 0.15,
+        "outputPerMTok": 0.6,
+        "asOf": "2026-10"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "hs-meal-train",
+      "version": "exp-v1"
+    },
+    {
+      "id": "hs-community-fridge",
+      "version": "exp-v1"
+    },
+    {
+      "id": "hs-listening-wall",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "qwen3-coder-30b",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-30b-a3b-instruct",
+      "taskId": "hs-meal-train",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-10-30T11:00:12.585Z",
+      "plan": null,
+      "latencyMs": 423646,
+      "ttftMs": 1830,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 337333,
+          "chars": 28896
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 86312,
+          "chars": 3397
+        }
+      ],
+      "continuations": 1,
+      "truncatedFinal": false,
+      "outputChars": 32293,
+      "estTokens": {
+        "input": 34787,
+        "output": 8074,
+        "estimated": true
+      },
+      "estCostUsd": 0.00469581,
+      "extraction": {
+        "writes": 11,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": false
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-meal-train/qwen3-coder-30b-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/App.tsx:4: Could not find \"./data/seedData\" in the project (imported from /src/App.tsx)"
+        ],
+        "solved": true,
+        "latencyMs": 179931,
+        "remainingErrors": [],
+        "estCostUsd": 0.00281918
+      },
+      "error": null
+    },
+    {
+      "alias": "qwen3-coder-30b",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-30b-a3b-instruct",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-10-30T11:14:21.229Z",
+      "plan": null,
+      "latencyMs": 177267,
+      "ttftMs": 1507,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 177267,
+          "chars": 17579
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 17579,
+      "estTokens": {
+        "input": 13722,
+        "output": 4395,
+        "estimated": true
+      },
+      "estCostUsd": 0.0021911400000000003,
+      "extraction": {
+        "writes": 12,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": false
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/qwen3-coder-30b-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/App.tsx:7: Could not find \"./pages/CleaningShifts\" in the project (imported from /src/App.tsx)"
+        ],
+        "solved": true,
+        "latencyMs": 86350,
+        "remainingErrors": [],
+        "estCostUsd": 0.0033490100000000004
+      },
+      "error": null
+    }
+  ]
+}

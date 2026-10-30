@@ -7,99 +7,104 @@ per day, stop at $18; 90 minutes; max two parallel subagents; no step retried
 more than twice; one experiment at most $5 and 30 minutes. Work around open
 questions, never wait on them.
 
+## Needs Josh (blocking the community open-model path)
+
+The scheduled session's permission mode denied three actions on Oct 30:
+reading the production `cloud_apps` table, writing a Supabase secret, and
+deploying an edge function. The code is committed and checked (esbuild
+syntax pass, strict `tsc` against a Deno shim, zero errors, same as the
+committed version). To finish item 2, run these from a session that may, or
+add a permission rule for the loop's session:
+
+```bash
+# 1. the open model's key, as a function secret (OPENROUTER_API_KEY from your env)
+curl -X POST -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" -H "Content-Type: application/json" \
+  "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/secrets" \
+  -d "[{\"name\":\"OPENROUTER_API_KEY\",\"value\":\"$OPENROUTER_API_KEY\"}]"
+# 2. deploy app-capabilities (CLAUDE.md's standard deploy)
+curl -X POST -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+  -F 'metadata={"name":"app-capabilities","entrypoint_path":"index.ts","verify_jwt":false};type=application/json' \
+  -F 'file=@supabase/functions/app-capabilities/index.ts;type=application/typescript' \
+  "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/functions/deploy?slug=app-capabilities"
+# 3. smoke test: a credential-less POST returns the function's own JSON error, then one
+#    ai_chat with runtime_model:"open" from any app with Community AI on returns {text, model: "google/gemma-3-12b-it", host: "openrouter", usage}
+```
+
+Until then, apps on this branch that pick the community runtime get the
+server's clear "open model is not configured" error; nothing silently falls
+back to Opus.
+
 ## Decisions from Josh (2026-10-28)
 
 1. **Runtime default is `community` when the flag is on, with `local` one
-   click away.** Revised from an earlier call the same day. To keep the
-   brief's rule that a hosted frontier model is never the silent default,
-   the community runtime on this branch points at an open-weight model
-   through OpenRouter (today's Community AI runs Claude Opus; that stays
-   available as an explicit choice). `local` is a visible switch in the
-   project's runtime setting, not buried. The kit helper still degrades
-   honestly when a local endpoint is chosen and not reachable. An
-   https-hosted app can reach a model on the visitor's own device
-   (localhost) but not a box in the room at a private address; document
-   that limit rather than work around it.
+   click away.** Hosted frontier models are never the silent default; Claude
+   Opus stays available as an explicit choice. An https-hosted app can reach
+   a model on the visitor's own device (localhost) but not a box in the room
+   at a private address; documented in the settings card, not worked around.
 2. **OpenRouter-hosted open-weight models count as community-hostable** for
-   the demo and the bench. A model on community-controlled hardware is still
-   the preferred story where it is practical.
+   the demo and the bench.
 
 ## Direction from Josh (2026-10-29)
 
-Daily runs must make meaningful progress toward a fully community-controlled
-RB stack. README.md now has the layer-by-layer map; each run names the layer
-it moved. OpenRouter balance topped up to about $25; pace paid work at $3 to
-$5 a day.
+Daily runs make meaningful progress toward a fully community-controlled RB
+stack; each run names the layer it moved. Pace paid work at $3 to $5 a day.
 
 ## Questions for Josh
 
-1. **Inference keys.** Only `OPENROUTER_API_KEY` is set in the cloud
-   environment, and the OpenRouter balance was about $0.90 on Oct 28; Josh
-   plans to top it up before the first paid bench run. The Opus comparison
-   can go through OpenRouter at the same list price. Does Josh want a direct
-   `ANTHROPIC_API_KEY` as an environment secret as well? Default if
-   unanswered: OpenRouter for everything.
+1. **Direct `ANTHROPIC_API_KEY`?** Default if unanswered: OpenRouter for
+   everything, including the Opus comparison (run two).
+2. **Who judges the open-model builds?** The bench's deciding score is the
+   blinded human review (`review/index.html`). Run one's nine builds are
+   waiting for your 1 to 5 scores; the loop will keep reporting mechanical
+   results without them, but "passes" is your call.
+3. **Community open model.** Gemma 3 12B through OpenRouter is today's pick
+   (cheap, hostable on a 16 GB box, overridable with `COMMUNITY_OPEN_MODEL`).
+   Fine as the first default, or do you want the bench to pick it too?
 
-## Tomorrow (one run, about 75 minutes, no paid calls)
+## Tomorrow (one run, about 75 minutes)
 
-1. **Workstream 1, the runtime split end to end, behind the flag.**
-   - Add vitest to the repo (`npm test`), with one test to prove the
-     runner works.
-   - The `runtime` project setting (`src/store/project-store.ts`): shape per
-     README.md, default `community` when the flag is on, persisted, written
-     into `.reltech.yml` by `src/project/export.ts` (test the manifest
-     line). Migration leaves existing projects untouched.
-   - A Settings surface for it behind the flag: community (open-weight,
-     default), local (endpoint and model), byok, with the explicit fallback
-     choice and plain-language copy about what each means.
-   - The kit helper `src/kit/files/lib/ai.ts`: `summarize`, `match`,
-     `resurface` over the runtime config. `local` calls an OpenAI-compatible
-     endpoint from the browser and degrades honestly when unreachable.
-     `community` and `byok` call `app-capabilities` `ai_chat` as today;
-     routing the community path to an open-weight model is item 2.
-   - System prompt rule in `src/knowledge/context-builder.ts`, flag-gated:
-     apps with AI features import the helper and expose named functions,
-     not a prompt box.
-   - Update README.md's stack table rows for runtime model. LOG, NEXT,
-     SPEND as always.
+1. **Bench run two (about $3, logged first).** The remaining nine hs-*
+   tasks plus the four older experiment tasks on the same three open models
+   (18 builds at cents each), then the Opus 5.5 comparison once on the same
+   three tasks run one used (through OpenRouter, about $2.50), then the
+   commons-retrieval variant on the best open model. Commit `report.md`,
+   shots and `run.json` in the existing format, with the honest pass rate
+   table at the top of the LOG entry. If OpenRouter 402s on pre-authorized
+   max_tokens, lower `BENCH_MAX_TOKENS`, do not retry more than twice.
+2. **Workstream 3, footprint and provenance (start).** A per-project
+   provenance log (`{at, side, provider, model, params, host, tokensIn,
+   tokensOut, energyWhEstimate, method}`) fed from the kit helper's `ran`
+   plus the server's `usage`, and from the Builder's own calls; a labeled
+   energy estimate (name the method; CO2.js or an AI Energy Score style
+   per-token figure) in the build report and a small app footer behind the
+   flag. The first real row comes from the smoke test above once Josh runs
+   it.
 
 ## After that, in order
 
-2. **Community runtime on an open-weight model (one run, small paid cost).**
-   Extend `app-capabilities` `ai_chat` so a project whose runtime is
-   `community` with `model: open` routes to an open-weight model through
-   OpenRouter (a Qwen or Gemma, picked from the model list and priced in
-   SPEND.md before any call), with Claude Opus kept as the explicit choice.
-   Deploy through the Supabase Management API per CLAUDE.md, smoke-test
-   with one call, and rebuild one existing template through the normal
-   flow on it. Record model, host and tokens for that call as the first
-   provenance row (workstream 3 starts here).
-3. **Workstream 2, the open-weight builder bench (two runs, about $5 each).**
-   Run one: pick 10 to 20 representative commons builds as `exp-*` tasks in
-   `bench/tasks.ts`, add two or three hostable open-weight coding models to
-   `bench/models.ts` as OpenRouter entries with list pricing, dry-run for the
-   cost estimate, then run the open models on three tasks with cost logged
-   first. Run two: the remaining tasks, the Opus 5.5 comparison once, and
-   the commons-retrieval variant; commit the report in the existing format.
-4. **Workstream 3, footprint and provenance (one run).** The per-project
-   provenance log for builder and runtime calls, a labeled energy estimate
-   (CO2.js or an AI Energy Score style method, method named), shown in the
-   build report and as a small footer in built apps behind the flag.
-5. **Workstream 4, export and delete (one run).** Export includes the
-   app's `app-data` rows and config in open formats; delete removes the
-   project and its data; both proven by tests.
-6. **Self-host runbook (one run, no paid calls).** Stand the Builder up
-   from a clean machine with local-only mode and a local model, run the
-   checklist once, write down what broke. Moves the Builder-app and backend
-   layers.
-7. **Research rotation, when a run has 15 minutes left.** One source per
-   run and what it changes for us: Gebru "Frugal AI" first, then the
-   Hugging Face SLM overview for which 1B to 8B models fit an 8 GB laptop.
+3. **Workstream 4, export and delete (one run).** Export includes `app-data`
+   rows and config in open formats; delete removes the project and its data;
+   both proven by tests (vitest is in now).
+4. **Self-host runbook (one run, no paid calls).** Builder from a clean
+   machine in local-only mode with a local model; include Gebru's cost
+   framing (one-time hardware versus recurring cloud) as the number a
+   community decides on. Moves the Builder-app and backend layers.
+5. **Kit helper in a real build.** Rebuild one existing template through the
+   normal flow with the flag on and confirm the model imports `@/lib/ai` and
+   exposes named jobs; fix the prompt rule where it does not. Needs a builder
+   model key in the session (OpenRouter works) and a signed-in Builder, so it
+   may need Josh in the room.
+6. **Research rotation, when 15 minutes are left.** Next: the Hugging Face
+   SLM overview (which 1B to 8B models fit an 8 GB laptop), then Bendor et
+   al. "Small AI".
 
 ## Drop or defer
 
-- Nothing dropped yet.
-- Workstream 5 (human-scale defaults) folds into item 1's prompt rule and
-  item 4's footer; the template metadata fields come after the bench.
-- Workstream 6 (anchor stubs) and 7 (demo) wait until 1 through 3 have
-  results.
+- The project-store `runtime` field from the original plan: not needed. The
+  setting lives as four public env vars (see README "as built"); revisit
+  only if a cloud project loses it across devices (the env stash is
+  device-local, so a project opened on another machine shows the default
+  until the setting is chosen again there; flag this in the runbook).
+- Workstream 5 folds into item 1's prompt rule and the footer; template
+  metadata fields after the bench.
+- Workstreams 6 and 7 wait until 1 through 3 have results.
