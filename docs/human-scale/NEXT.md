@@ -102,10 +102,12 @@ stack; each run names the layer it moved. Pace paid work at $3 to $5 a day.
    Cloud tab's own export is offered first. Prove it with a test that an
    exported zip lists code, `/data/export/app-data.json`, the CSVs and the
    manifest, and a test that delete calls both removals.
-4. **Self-host runbook (one run, no paid calls).** Builder from a clean
-   machine in local-only mode with a local model; include Gebru's cost
-   framing (one-time hardware versus recurring cloud) as the number a
-   community decides on. Moves the Builder-app and backend layers.
+4. **Self-host runbook, backend half and the local-model steps.**
+   `SELF-HOST.md` covers the Builder app through step 6 (run Oct 30).
+   Next: the backend runbook (a community's own Supabase or Postgres: the
+   migrations and edge functions it needs, and which env vars point the
+   Builder at it), and steps 7 and 8 run against a real local model, which
+   needs a person with a box (Josh, or a Thread fellow); until then say so.
 5. **Kit helper in a real build.** Rebuild one existing template through the
    normal flow with the flag on and confirm the model imports `@/lib/ai` and
    exposes named jobs; fix the prompt rule where it does not. Needs a builder

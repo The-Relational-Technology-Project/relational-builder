@@ -31,7 +31,8 @@ Builder model: first open-weight bench numbers exist (not yet moved; the
 bench decides after run two). Footprint and provenance: from "nothing
 recorded" to "estimate method exists, tested, not yet recording". App
 hosting and data sovereignty: export's data half exists as tested files,
-not yet in the zip.
+not yet in the zip. The Builder app itself: from "mostly true already,
+untested" to "a runbook that was run once, through step 6".
 
 **What was tried.**
 
@@ -79,6 +80,12 @@ not yet in the zip.
    the zip's `/data/export/` files (one JSON, one CSV per collection, a
    README that says what is there; members by name and join date, never
    email). Six tests. Wiring into the zip and the delete path is tomorrow.
+
+6. *Self-host runbook, started* (item 6). `SELF-HOST.md`: the Builder-app
+   checklist with what was observed when it was run today (install, tests,
+   build, `vite preview`, landing renders with no env and no errors in
+   Chromium, screenshot committed). Steps that need a local model server in
+   a room are marked not run rather than assumed.
 
 **What happened (bench, honest).** Report:
 `bench/results/2026-10-30T11-00-31a1e31/report.md`.
