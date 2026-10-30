@@ -14,3 +14,4 @@ his weekly usage this loop takes. OpenRouter balance: about $25 as of Oct 29; pa
 | 2026-10-30 | Bench run one, second slice: gemma-4-26b on hs-community-fridge, 1 trial, logged before the run; harness estimate under $0.01, counted at worst case | OpenRouter | 0.05 (worst case; actual below) | 0.65 | ~ |
 | 2026-10-30 | Actual: bench run one (two qwen3-coder-30b builds finished; harness estimate $0.007; the cut-off third counted at $0.005) | OpenRouter / qwen/qwen3-coder-30b-a3b-instruct | 0.01 actual (0.65 reserved above) | 0.65 | ~75 |
 | 2026-10-30 | Actual: bench run one, second slice (gemma-4-26b, fridge task; harness estimate $0.003) | OpenRouter / google/gemma-4-26b-a4b-it | 0.00 actual (0.05 reserved above) | 0.65 | ~75 |
+| 2026-10-30 | Bench run one, third slice: gpt-oss-120b on hs-community-fridge, 1 trial, logged before the run; harness estimate about $0.01, counted at worst case | OpenRouter | 0.05 (worst case; actual below) | 0.70 | ~ |
