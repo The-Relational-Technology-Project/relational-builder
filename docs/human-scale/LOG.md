@@ -53,9 +53,11 @@ tokens per second) and names the kind of each first-try failure. Run two put
 every open model on the two comparison prompts: ten builds, seven compiled,
 two worked in a browser, and every failure was an import mistake. So the
 afternoon built a static import check that feeds the auto-fix and reran
-everything with it on: clean renders went from 2 of 10 to 6 of 9. The board
-has every build and screenshot. Spend today: about $0.14 of paid inference,
-counted as $2.00 worst case in SPEND. No deploys, no secrets; nothing needs you today beyond the
+everything with it on: clean renders went from 2 of 10 to 6 of 9. Opus 5.5 ran the same two
+prompts as the reference: clean on both, at about fifty times the cost of
+gemma's clean builds and twice the time. The board has every build and
+screenshot. Spend today: about $0.59 of paid inference, counted as $4.50
+worst case in SPEND. No deploys, no secrets; nothing needs you today beyond the
 three items already waiting in NEXT.
 
 **Stack layer moved:** Builder model, from "first open-weight numbers on one
@@ -160,10 +162,22 @@ OpenRouter vary run to run (gpt-oss made a different mistake each time), so
 one before/after pair per cell is a signal, not a measurement; the direction
 is consistent across models.
 
-**What it cost.** Paid inference: about $0.14 estimated (eight builds in run
-two, one a rerun after the run-folder collision below, then nine guarded
-builds), logged as $2.00 worst case across two reservations. Session: about
-75 minutes of the 90.
+**The reference: Opus 5.5 on the same two prompts** (through OpenRouter,
+plain request, no effort setting; run `2026-10-31T11-30-30-bbf9e57-t053`).
+Both first try, both render clean, zero lint findings, kit used in 4 of 7
+and 6 of 9 files, 148s and 178s with 80 to 86 seconds before the first
+token, $0.17 and $0.28 a build. Against that, the hostable open models on
+the same prompts: gemma-4-26b with the guard is clean on both at 74s and
+81s for under half a cent, with 13 to 16 lint findings per build (unused
+imports) and a plainer design; glm-4.5-air clean on both with the guard;
+gpt-oss-120b one of two; the qwen coders none. Cost ratio on a working
+build: about 50 to 1. Time: the open models are faster to a page than Opus,
+which spends more than a minute thinking before it writes.
+
+**What it cost.** Paid inference: about $0.59 estimated (eight builds in run
+two, one a rerun after the run-folder collision below, nine guarded builds,
+and the two Opus reference builds at $0.45), logged as $4.50 worst case
+across three reservations. Session: about 80 minutes of the 90.
 
 **Honest read.** Two things are now true with evidence. First, hostable open models can
 build these apps: both comparison prompts have at least one open-model

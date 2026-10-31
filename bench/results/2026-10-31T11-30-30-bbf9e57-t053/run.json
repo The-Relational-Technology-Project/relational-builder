@@ -1,0 +1,235 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1,exp-v1",
+  "gitCommit": "bbf9e57",
+  "createdAt": "2026-10-31T11:36:12.481Z",
+  "runId": "2026-10-31T11-30-30-bbf9e57-t053",
+  "config": {
+    "trials": 1,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": null,
+    "importGuard": false
+  },
+  "models": [
+    {
+      "alias": "opus-5-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-opus-5.5",
+      "pricing": {
+        "inputPerMTok": 4,
+        "outputPerMTok": 20,
+        "asOf": "2026-10"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "hs-community-fridge",
+      "version": "exp-v1"
+    },
+    {
+      "id": "hs-listening-wall",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "opus-5-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-opus-5.5",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-10-31T11:30:30.466Z",
+      "plan": null,
+      "latencyMs": 148044,
+      "ttftMs": 85943,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 148043,
+          "chars": 22388
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 22388,
+      "estTokens": {
+        "input": 13722,
+        "output": 5597,
+        "estimated": true
+      },
+      "estCostUsd": 0.166828,
+      "extraction": {
+        "writes": 9,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/opus-5-5-t1",
+      "fixRound": null,
+      "error": null,
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 2275
+      },
+      "quality": {
+        "files": 9,
+        "codeFiles": 7,
+        "codeLines": 526,
+        "largestFile": "/src/components/UpdatesFeed.tsx",
+        "largestFileLines": 143,
+        "anyCount": 0,
+        "kitImportingFiles": 4,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 0,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0,
+        "tokensPerSecond": 37.8,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    },
+    {
+      "alias": "opus-5-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-opus-5.5",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-10-31T11:32:58.815Z",
+      "plan": null,
+      "latencyMs": 177691,
+      "ttftMs": 80309,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 117264,
+          "chars": 14078
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 60426,
+          "chars": 17709
+        }
+      ],
+      "continuations": 1,
+      "truncatedFinal": false,
+      "outputChars": 31787,
+      "estTokens": {
+        "input": 31056,
+        "output": 7947,
+        "estimated": true
+      },
+      "estCostUsd": 0.28316399999999997,
+      "extraction": {
+        "writes": 11,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/opus-5-5-t1",
+      "fixRound": null,
+      "error": null,
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 1229
+      },
+      "quality": {
+        "files": 11,
+        "codeFiles": 9,
+        "codeLines": 782,
+        "largestFile": "/src/pages/WhatWeHeard.tsx",
+        "largestFileLines": 151,
+        "anyCount": 0,
+        "kitImportingFiles": 6,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 0,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0,
+        "tokensPerSecond": 44.7,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    }
+  ]
+}

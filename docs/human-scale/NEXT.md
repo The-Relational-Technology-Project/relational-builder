@@ -150,10 +150,9 @@ stack layer it moved; pace paid work at $3 to $5 a day.
    fallback (qwen3-coder-next's wall came back as one HTML file): make the
    preview-kind mismatch a visible failure on the board, not a quiet
    "renders clean". Measure both on the models that showed them.
-2. **Opus 5.5 reference (about $1.50, logged first).** Once on `--tasks
-   compare` through OpenRouter (`opus-5-5` alias; add it if the matrix only
-   has `opus-5`), screenshots on. The board then shows the four axes for
-   five open models against the reference on the same two prompts. Give
+2. **Reference is in.** Opus 5.5 ran both comparison prompts on Oct 31
+   (clean, first try, $0.45 for the pair); the board shows it beside the
+   open models. Do not rerun it unless a prompt changes. Give
    `qwen3-coder-30b` its own 25-minute cap or drop it from the comparison
    set: it needs 5 minutes a build and a 4-minute fix pass, and has not
    produced a working app on either comparison prompt.
