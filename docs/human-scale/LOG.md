@@ -50,15 +50,19 @@ models, not at giving up on them.
 **For Josh:** The bench now measures code quality and speed from the files
 each model writes (lint density, largest file, kit use, bad icon imports,
 tokens per second) and names the kind of each first-try failure. Run two put
-every open model on the two comparison prompts; the board has every build,
-screenshot and number in one place. Ten builds across five open models on the two prompts: seven compiled, two work cleanly in a browser, and every failure is an import mistake, not logic. Spend today:
-about $0.06 of paid inference (eight open-model builds), counted as $1.00 worst case in SPEND. No deploys, no secrets; nothing needs you today beyond the
+every open model on the two comparison prompts: ten builds, seven compiled,
+two worked in a browser, and every failure was an import mistake. So the
+afternoon built a static import check that feeds the auto-fix and reran
+everything with it on: clean renders went from 2 of 10 to 6 of 9. The board
+has every build and screenshot. Spend today: about $0.14 of paid inference,
+counted as $2.00 worst case in SPEND. No deploys, no secrets; nothing needs you today beyond the
 three items already waiting in NEXT.
 
 **Stack layer moved:** Builder model, from "first open-weight numbers on one
 prompt, scored by the compiler only" to "five open models on two prompts,
-scored by the compiler, the browser and a lint pass, with screenshots on the
-board". No other layer moved; the day was the bench, as directed.
+scored by the compiler, the browser and a lint pass, with a guardrail that
+turns most import mistakes into renders, all on the board". No other layer
+moved; the day was the bench, as directed.
 
 **What was tried.**
 
@@ -74,6 +78,16 @@ board". No other layer moved; the day was the bench, as directed.
    New columns in report.md and on the board. `tsc` over generated files is
    not in yet (the kit and esm.sh types make it a real piece of work); lint
    carries the axis for now.
+3. *Import guardrail, built and measured* (item 4 from Oct 30, pulled
+   forward because every failure pointed at it). `bench/lib/import-check.ts`
+   (pure, tested): bad or missing lucide icon names, default imports from
+   names-only modules (project and kit files we can read, plus `zustand`
+   and `lucide-react`), capitalized JSX components with no import or
+   declaration, imports of files never written or names never exported,
+   each phrased as a bundler-style error. Recorded on every build as
+   `importIssues`; with `--import-guard` the findings go to the one fix
+   pass and fire it even when the bundle succeeded. Then every open model
+   reran both comparison prompts with the guard on; the table below.
 2. *Bench run two* (item 2). Two new open coders added at list price
    (`qwen3-coder-next`, `glm-4.5-air`). The three known models ran the
    listening wall; the two new ones ran both comparison prompts; each model
@@ -109,7 +123,47 @@ the fastest to a working page (77s), the qwen coders are the slowest
 (100s to 300s), none is in Opus's several-minute class. Cost: under two
 cents a build, every build.
 
-**What it cost.** Paid inference: about $0.06 estimated (eight builds, one of them a rerun after the run-folder collision below), logged as $1.00 worst case. Session: about 60 minutes of the 90.
+**Import guardrail, before and after (same day, same prompts, same models).**
+"Before" is run two above (harness as it was). "After" is the same model on
+the same prompt with `--import-guard`: the static import check's findings go
+to the one fix pass alongside the bundler's, and the pass fires on them even
+when the bundle succeeded. Runs are marked "(import guard)" on the board.
+
+| Model | Prompt | Before | After | What the guard caught |
+|---|---|---|---|---|
+| gemma-4-26b | community fridge | blank (`Calendar` undeclared) | **renders clean**, fix pass 14s | `<List>`, `<Calendar>` used, never imported |
+| gemma-4-26b | listening wall | renders clean | renders clean | nothing to catch |
+| gpt-oss-120b | community fridge | blank (`CircleHalf` icon) | blank (React error #31: an object rendered as a child) | no import mistake this time; a logic bug the check does not cover |
+| gpt-oss-120b | listening wall | blank (`zustand` default import) | **renders clean** | nothing triggered; the model simply imported correctly this run |
+| qwen3-coder-30b | community fridge | unstyled (bad Tailwind class) | no bundle (imported three pages it never wrote; a 260s fix pass failed) | nothing the check adds; the bundler already saw it, the model could not repair it |
+| qwen3-coder-30b | listening wall | no bundle (missing `./data/questions`) | not run (the model's 900s cap was spent on the fridge) | |
+| qwen3-coder-next | community fridge | no bundle (missing file) | no bundle (JSX syntax errors, then default imports from the kit's `empty-state`) | three default imports from names-only kit files; the fix pass did not clear them |
+| qwen3-coder-next | listening wall | renders clean | renders, but as a single HTML file (not the app stack) | nothing to catch; a different failure, the model abandoned the stack |
+| glm-4.5-air | community fridge | no bundle (default import from the kit's `app-bar`) | **renders clean**, fix pass 36s | three default imports from kit files, a `SelectContent` that the kit's native select does not have |
+| glm-4.5-air | listening wall | blank (`Button` undeclared) | **renders clean**, fix pass 23s | `AvatarFallback`, `SelectContent`, `SelectItem` imported from kit files that do not export them |
+
+Net: of the eight builds that were broken in the browser before, five were
+rerun with the guard; three of those five now render clean (gemma's fridge,
+glm's fridge, glm's wall) and a fourth (gpt-oss's wall) renders clean on its
+own. The guard did nothing for the two cases it was never meant for: a
+model that invents a whole page and never writes it (qwen3-coder-30b, both
+coders), and a React logic error (gpt-oss's fridge). On the two prompts,
+clean renders went from 2 of 10 to 6 of 9 guarded builds (gemma 2, glm 2,
+gpt-oss 1, plus qwen3-coder-next's wall as a single file).
+
+Two false positives in the first version of the check (TypeScript type
+arguments like `forwardRef<HTMLDivElement>` read as tags; a component passed
+in as a prop, `{ icon: Icon }`, read as undeclared) made glm's two fix passes
+record as "failed" although the builds render clean; fixed the same hour,
+with tests, and the stored runs re-measured. Open models run through
+OpenRouter vary run to run (gpt-oss made a different mistake each time), so
+one before/after pair per cell is a signal, not a measurement; the direction
+is consistent across models.
+
+**What it cost.** Paid inference: about $0.14 estimated (eight builds in run
+two, one a rerun after the run-folder collision below, then nine guarded
+builds), logged as $2.00 worst case across two reservations. Session: about
+75 minutes of the 90.
 
 **Honest read.** Two things are now true with evidence. First, hostable open models can
 build these apps: both comparison prompts have at least one open-model
@@ -117,10 +171,15 @@ build that compiles, renders clean, uses the kit and costs under two cents.
 Second, they fail in one narrow way, imports, and our fix pass does not
 catch most of it because the bundler never sees a bad icon name, a wrong
 default import or a component used without its import; the browser does.
-That is a guardrail problem before it is a model problem, and it is cheap:
-a static check for exactly those four import mistakes, fed to the same fix
-pass, would have turned several of today's blanks into renders. Item 4 in
-NEXT is that check, measured before and after on the same prompts. What the
+That was a guardrail problem before it was a model problem, and the
+afternoon showed it: the static check for those four import mistakes, fed
+to the same fix pass, turned three of five broken builds into clean renders
+the same day, at a cost of a 14 to 36 second fix pass. What it does not fix
+is a model that names pages it never writes (the qwen coders, repeatedly)
+or a logic bug (gpt-oss once); those are the next failure kinds to study.
+gemma-4-26b is now the model to beat among the hostable ones: both prompts
+clean, under 90 seconds, under half a cent, on hardware a community can
+own; glm-4.5-air matches it on results but not on hostability. What the
 day did not settle: design. Gemma's wall is handsome and sparse with
 repeated seed answers and icon names leaking as text; qwen3-coder-next's is
 a competent generic SaaS page. Those are Josh's calls, and the screenshots

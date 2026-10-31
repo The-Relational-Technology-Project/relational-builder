@@ -132,27 +132,31 @@ stack layer it moved; pace paid work at $3 to $5 a day.
 
 ## Tomorrow (one run, about 75 minutes)
 
-1. **Import guardrail, measured (item 4 from Oct 30, now the main line).**
-   Every open-model failure on the two comparison prompts (8 of 10 builds)
-   was an import mistake the bundler never sees: a bad or missing
-   `lucide-react` icon (the Builder already has `invalidLucideImports`), a
-   default import from a module that only exports names (`zustand`, the
-   kit's components), a capitalized JSX component used with no import or
-   declaration, a file imported but never written (the bundler does see
-   this one; the fix pass then broke something else). Build one static
-   check, `bench/lib/import-check.ts` (pure, tested), that finds those
-   four kinds in a set of files and phrases each as a bundler-style error;
-   feed its findings into the existing single fix pass alongside the
-   bundler's (harness first; production's chat flow second, behind the
-   flag, since the Builder already warns people about icons). Then measure:
-   rerun the failing builds' models on `--tasks compare` with the check on
-   (about $0.10, logged first) and put before/after rows on the board. A
-   guardrail that moves blanks to renders is worth more to the application
-   than another model.
+1. **Import guardrail into the product, behind the flag.** The check exists
+   and works in the harness (`bench/lib/import-check.ts`, `--import-guard`;
+   LOG Oct 31: 3 of 5 broken builds became clean renders). Now the same
+   check where a person builds: after `applyMessageFiles` in the chat flow,
+   run it over the project with the kit merged and, when the flag is on,
+   arm the existing auto-fix with its findings alongside the bundler's
+   (today the Builder only warns about icons). Move the pure function to
+   `src/project/import-check.ts` so the bench imports the production one.
+   Tests ride along. Then run the guarded bench once more on both prompts
+   (about $0.10) so the "after" has two samples per cell.
+1b. **The two failure kinds the guard cannot fix.** (a) A model names a
+   page or data file it never writes and the fix pass cannot produce it
+   (both qwen coders, three times): try a prompt rule that every import
+   must point at a file in the same reply, and a fix prompt that asks for
+   the missing file by name rather than "fix the error". (b) A single-file
+   fallback (qwen3-coder-next's wall came back as one HTML file): make the
+   preview-kind mismatch a visible failure on the board, not a quiet
+   "renders clean". Measure both on the models that showed them.
 2. **Opus 5.5 reference (about $1.50, logged first).** Once on `--tasks
    compare` through OpenRouter (`opus-5-5` alias; add it if the matrix only
    has `opus-5`), screenshots on. The board then shows the four axes for
-   five open models against the reference on the same two prompts.
+   five open models against the reference on the same two prompts. Give
+   `qwen3-coder-30b` its own 25-minute cap or drop it from the comparison
+   set: it needs 5 minutes a build and a 4-minute fix pass, and has not
+   produced a working app on either comparison prompt.
 3. **`tsc` over generated files.** Type errors per build as a code-quality
    column: a temp project with the kit merged and a minimal `@/` paths
    tsconfig, skipLibCheck, esm.sh packages stubbed as `any` modules; count

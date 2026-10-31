@@ -1,0 +1,170 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1,exp-v1",
+  "gitCommit": "1b5c347",
+  "createdAt": "2026-10-31T11:23:02.458Z",
+  "runId": "2026-10-31T11-13-31-1b5c347-d1h8",
+  "config": {
+    "trials": 1,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": null,
+    "importGuard": true
+  },
+  "models": [
+    {
+      "alias": "qwen3-coder-30b",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-30b-a3b-instruct",
+      "pricing": {
+        "inputPerMTok": 0.07,
+        "outputPerMTok": 0.28,
+        "asOf": "2026-10"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "hs-community-fridge",
+      "version": "exp-v1"
+    },
+    {
+      "id": "hs-listening-wall",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "qwen3-coder-30b",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-30b-a3b-instruct",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-10-31T11:13:31.441Z",
+      "plan": null,
+      "latencyMs": 310743,
+      "ttftMs": 3123,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 259876,
+          "chars": 26977
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 50864,
+          "chars": 6495
+        }
+      ],
+      "continuations": 1,
+      "truncatedFinal": false,
+      "outputChars": 33472,
+      "estTokens": {
+        "input": 34388,
+        "output": 8368,
+        "estimated": true
+      },
+      "estCostUsd": 0.0047502,
+      "extraction": {
+        "writes": 38,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": false,
+        "errors": [
+          "vfs:/src/App.tsx:5: Could not find \"./pages/FridgeStatus\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx:6: Could not find \"./pages/StockUpdates\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx:7: Could not find \"./pages/Shifts\" in the project (imported from /src/App.tsx)"
+        ]
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/qwen3-coder-30b-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/App.tsx:5: Could not find \"@/pages/FridgeStatus\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx:6: Could not find \"@/pages/StockUpdates\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx:7: Could not find \"@/pages/Shifts\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx: Could not find \"@/pages/FridgeStatus\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx: Could not find \"@/pages/StockUpdates\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx: Could not find \"@/pages/Shifts\" in the project (imported from /src/App.tsx)",
+          "vfs:/\"src/components/ui/button.tsx: <HTMLButtonElement> is used but never imported or declared in this file",
+          "vfs:/\"src/components/ui/input.tsx: <HTMLInputElement> is used but never imported or declared in this file",
+          "vfs:/\"src/components/ui/textarea.tsx: <HTMLTextAreaElement> is used but never imported or declared in this file"
+        ],
+        "solved": false,
+        "latencyMs": 260143,
+        "remainingErrors": [
+          "vfs:/src/App.tsx:5: Could not find \"./pages/FridgeStatus\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx:6: Could not find \"./pages/StockUpdates\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx:7: Could not find \"./pages/Shifts\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx: Could not find \"./pages/FridgeStatus\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx: Could not find \"./pages/StockUpdates\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx: Could not find \"./pages/Shifts\" in the project (imported from /src/App.tsx)",
+          "vfs:/\"src/components/ui/button.tsx: <HTMLButtonElement> is used but never imported or declared in this file",
+          "vfs:/\"src/components/ui/input.tsx: <HTMLInputElement> is used but never imported or declared in this file",
+          "vfs:/\"src/components/ui/textarea.tsx: <HTMLTextAreaElement> is used but never imported or declared in this file"
+        ],
+        "estCostUsd": 0.0034467300000000003
+      },
+      "error": null,
+      "importIssues": [
+        "vfs:/src/App.tsx: Could not find \"./pages/FridgeStatus\" in the project (imported from /src/App.tsx)",
+        "vfs:/src/App.tsx: Could not find \"./pages/StockUpdates\" in the project (imported from /src/App.tsx)",
+        "vfs:/src/App.tsx: Could not find \"./pages/Shifts\" in the project (imported from /src/App.tsx)"
+      ],
+      "quality": {
+        "files": 20,
+        "codeFiles": 18,
+        "codeLines": 871,
+        "largestFile": "/\"src/pages/StockUpdates.tsx",
+        "largestFileLines": 110,
+        "anyCount": 0,
+        "kitImportingFiles": 6,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 2,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.2,
+        "tokensPerSecond": 26.9,
+        "fixLatencyMs": 260143,
+        "failKind": "missing-file"
+      }
+    }
+  ]
+}
