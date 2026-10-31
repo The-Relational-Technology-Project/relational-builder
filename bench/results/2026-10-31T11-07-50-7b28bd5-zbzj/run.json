@@ -130,10 +130,7 @@
         "estCostUsd": 0.00485538
       },
       "error": null,
-      "importIssues": [
-        "vfs:/src/components/ui/bottom-nav.tsx: <Icon> is used but never imported or declared in this file",
-        "vfs:/src/components/ui/select.tsx: <HTMLSelectElement> is used but never imported or declared in this file"
-      ],
+      "importIssues": [],
       "runtime": {
         "rendered": true,
         "errors": [],
@@ -265,13 +262,7 @@
         "estCostUsd": 0.00489298
       },
       "error": null,
-      "importIssues": [
-        "vfs:/src/components/ui/avatar.tsx: <HTMLDivElement> is used but never imported or declared in this file",
-        "vfs:/src/components/ui/select.tsx: <HTMLSelectElement> is used but never imported or declared in this file",
-        "vfs:/src/components/ui/select.tsx: <HTMLButtonElement> is used but never imported or declared in this file",
-        "vfs:/src/components/ui/select.tsx: <HTMLDivElement> is used but never imported or declared in this file",
-        "vfs:/src/components/ui/badge.tsx: <HTMLDivElement> is used but never imported or declared in this file"
-      ],
+      "importIssues": [],
       "runtime": {
         "rendered": true,
         "errors": [],

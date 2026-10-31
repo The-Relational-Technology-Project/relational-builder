@@ -156,17 +156,9 @@
       },
       "error": null,
       "importIssues": [
-        "vfs:/src/pages/StatusDashboard.tsx: <StatusDashboardProps> is used but never imported or declared in this file",
-        "vfs:/src/pages/StockUpdates.tsx: <StockUpdatesProps> is used but never imported or declared in this file",
-        "vfs:/src/pages/VolunteerShifts.tsx: <VolunteerShiftsProps> is used but never imported or declared in this file",
-        "vfs:/src/components/BottomNav.tsx: <BottomNavProps> is used but never imported or declared in this file",
-        "vfs:/src/components/StatusBadge.tsx: <StatusBadgeProps> is used but never imported or declared in this file",
-        "vfs:/src/components/StockList.tsx: No matching export in \"vfs:/src/components/ui/empty-state.tsx\" for import \"default\" (it exports names only)",
-        "vfs:/src/components/StockList.tsx: No matching export in \"vfs:/src/components/ui/badge.tsx\" for import \"default\" (it exports names only)",
-        "vfs:/src/components/StockList.tsx: <StockListProps> is used but never imported or declared in this file",
-        "vfs:/src/components/StockForm.tsx: <StockFormProps> is used but never imported or declared in this file",
         "vfs:/src/components/ShiftCalendar.tsx: No matching export in \"vfs:/src/components/ui/empty-state.tsx\" for import \"default\" (it exports names only)",
-        "vfs:/src/components/ShiftCalendar.tsx: <ShiftCalendarProps> is used but never imported or declared in this file"
+        "vfs:/src/components/StockList.tsx: No matching export in \"vfs:/src/components/ui/empty-state.tsx\" for import \"default\" (it exports names only)",
+        "vfs:/src/components/StockList.tsx: No matching export in \"vfs:/src/components/ui/badge.tsx\" for import \"default\" (it exports names only)"
       ],
       "quality": {
         "files": 19,
