@@ -2,6 +2,7 @@ import { applyEdits, extractOperations } from '@/project/code-extractor';
 import { detectPreviewKind } from '@/preview/detect';
 import { bundleProject, findFrameworkEntry } from '@/preview/bundler/bundle';
 import { KIT_FILES } from '@/kit';
+import { checkImports } from './import-check';
 import { buildEnvJs, buildEnvTs } from '@/project/env-module';
 import { runSecurityScan } from '@/project/security-scan';
 import type { FileEntry } from '@/project/virtual-fs';
@@ -28,6 +29,8 @@ export type MechanicalResult = Pick<
 > & {
   /** Final project VFS (path → content), for artifacts + preview build */
   files: Record<string, string>;
+  /** Static import mistakes the bundler cannot see (bench/lib/import-check.ts) */
+  importIssues: string[];
 };
 
 const normalize = (p: string): string => (p.startsWith('/') ? p : '/' + p);
@@ -99,6 +102,7 @@ export async function scoreOutput(task: TaskSpec, segmentTexts: string[]): Promi
   }
 
   const transcript = segmentTexts.join('\n');
+  const importIssues = previewKind === 'framework' ? checkImports(files, { kitFiles: KIT_FILES }) : [];
 
   let editDiscipline: MechanicalResult['editDiscipline'] = null;
   if (seed) {
@@ -119,6 +123,7 @@ export async function scoreOutput(task: TaskSpec, segmentTexts: string[]): Promi
 
   return {
     files,
+    importIssues,
     editDiscipline,
     extraction: { writes, editBlocks, failedEditBlocks },
     previewKind,

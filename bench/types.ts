@@ -86,6 +86,11 @@ export interface TrialResult {
     estCostUsd: number | null;
   } | null;
   error: string | null;
+  /** Static import mistakes found in the final files (bench/lib/import-check.ts):
+   *  bad icon names, default imports from names-only modules, components
+   *  used without an import, missing files. Recorded on every build from
+   *  Oct 31, 2026; with --import-guard they also trigger the fix pass. */
+  importIssues?: string[];
   /** What happened when the bundled preview was actually opened in a
    *  browser (taken with the screenshot). A build can bundle and still
    *  white-screen on a missing import or a bad Tailwind utility; this is
@@ -126,7 +131,7 @@ export interface RunReport {
   gitCommit: string;
   createdAt: string;
   runId: string;
-  config: { trials: number; timeoutMs: number; planFirst: boolean; studio?: string | null; effort?: string | null };
+  config: { trials: number; timeoutMs: number; planFirst: boolean; studio?: string | null; effort?: string | null; importGuard?: boolean };
   models: BenchModel[];
   tasks: Array<{ id: string; version: string }>;
   trials: TrialResult[];

@@ -26,6 +26,11 @@ export interface ExecuteOptions {
   planFirst: boolean;
   outDir: string;
   screenshots: boolean;
+  /** Feed the static import check's findings into the fix pass, alongside
+   *  the bundler's errors, and fire the pass on them even when the bundle
+   *  succeeded (a blank page is a failure too). Off = the harness as it
+   *  was, for before/after comparison. Recorded in run.json config. */
+  importGuard?: boolean;
   /** Studio slug when the run is studio-framed (--studio) — recorded in run.json */
   studio?: string | null;
   /** Injectable session (selftest) — bypasses providers entirely */
@@ -211,8 +216,9 @@ async function runTrial(
     // One automatic fix pass when the first build won't bundle — the same
     // single shot production arms. Re-score over build + fix segments (writes
     // and edits accumulate exactly as the app re-extracts each message).
-    if (mech.bundle && !mech.bundle.ok && buildSession.segmentTexts.length > 0) {
-      const triggerErrors = mech.bundle.errors;
+    const guardIssues = opts.importGuard ? mech.importIssues : [];
+    if (mech.bundle && (!mech.bundle.ok || guardIssues.length > 0) && buildSession.segmentTexts.length > 0) {
+      const triggerErrors = [...mech.bundle.errors, ...guardIssues];
       const fixMessages: ChatMessage[] = [
         ...buildMessages,
         { role: 'assistant', content: buildSession.segmentTexts.join('\n') },
@@ -226,9 +232,12 @@ async function runTrial(
         result.fixRound = {
           attempted: true,
           triggerErrors,
-          solved: !!fixedMech.bundle?.ok,
+          solved: !!fixedMech.bundle?.ok && (!opts.importGuard || fixedMech.importIssues.length === 0),
           latencyMs: fixSession.latencyMs,
-          remainingErrors: fixedMech.bundle?.ok ? [] : (fixedMech.bundle?.errors ?? []),
+          remainingErrors: [
+            ...(fixedMech.bundle?.ok ? [] : (fixedMech.bundle?.errors ?? [])),
+            ...(opts.importGuard ? fixedMech.importIssues : []),
+          ],
           estCostUsd: estimateCostUsd(
             model,
             charsToTokens(fixSession.sentChars),
@@ -255,6 +264,7 @@ async function runTrial(
     result.previewKind = mech.previewKind;
     result.previewKindMatch = mech.previewKindMatch;
     result.bundle = mech.bundle;
+    result.importIssues = mech.importIssues;
     result.securityFindings = mech.securityFindings;
     result.checks = mech.checks;
     result.artifactDir = await writeTrialArtifacts(
@@ -362,7 +372,7 @@ async function writeRunJson(
     gitCommit: sha,
     createdAt: new Date().toISOString(),
     runId,
-    config: { trials: opts.trials, timeoutMs: TRIAL_TIMEOUT_MS, planFirst: opts.planFirst, studio: opts.studio ?? null, effort: process.env.BENCH_EFFORT?.trim() || null },
+    config: { trials: opts.trials, timeoutMs: TRIAL_TIMEOUT_MS, planFirst: opts.planFirst, studio: opts.studio ?? null, effort: process.env.BENCH_EFFORT?.trim() || null, importGuard: !!opts.importGuard },
     models: opts.models,
     tasks: opts.tasks.map(t => ({ id: t.id, version: t.version })),
     trials,
