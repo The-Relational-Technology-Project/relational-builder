@@ -1,0 +1,129 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1",
+  "gitCommit": "92bfe16",
+  "createdAt": "2026-10-31T10:51:01.113Z",
+  "runId": "2026-10-31T10-49-37-92bfe16-uwgu",
+  "config": {
+    "trials": 1,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": null
+  },
+  "models": [
+    {
+      "alias": "gemma-4-26b",
+      "providerId": "openrouter",
+      "modelId": "google/gemma-4-26b-a4b-it",
+      "pricing": {
+        "inputPerMTok": 0.09,
+        "outputPerMTok": 0.3,
+        "asOf": "2026-10"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "hs-listening-wall",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "gemma-4-26b",
+      "providerId": "openrouter",
+      "modelId": "google/gemma-4-26b-a4b-it",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-10-31T10:49:37.186Z",
+      "plan": null,
+      "latencyMs": 76560,
+      "ttftMs": 1208,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 76559,
+          "chars": 20385
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 20385,
+      "estTokens": {
+        "input": 13713,
+        "output": 5097,
+        "estimated": true
+      },
+      "estCostUsd": 0.00276327,
+      "extraction": {
+        "writes": 8,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/gemma-4-26b-t1",
+      "fixRound": null,
+      "error": null,
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 4224
+      },
+      "quality": {
+        "files": 8,
+        "codeFiles": 6,
+        "codeLines": 391,
+        "largestFile": "/src/pages/AddResponsePage.tsx",
+        "largestFileLines": 102,
+        "anyCount": 0,
+        "kitImportingFiles": 4,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 8,
+        "lintWarnings": 0,
+        "lintPer100Lines": 2,
+        "tokensPerSecond": 66.6,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    }
+  ]
+}
