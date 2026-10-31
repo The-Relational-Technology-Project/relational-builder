@@ -2,7 +2,7 @@
   "harnessVersion": "1.2.0",
   "taskVersion": "exp-v1,exp-v1",
   "gitCommit": "61b1f48",
-  "createdAt": "2026-10-31T10:46:40.854Z",
+  "createdAt": "2026-10-31T10:51:46.614Z",
   "runId": "2026-10-31T10-43-61b1f48",
   "config": {
     "trials": 1,
@@ -120,7 +120,119 @@
         ],
         "estCostUsd": 0.0041716
       },
-      "error": null
+      "error": null,
+      "quality": {
+        "files": 16,
+        "codeFiles": 14,
+        "codeLines": 846,
+        "largestFile": "/src/pages/Stock.tsx",
+        "largestFileLines": 127,
+        "anyCount": 0,
+        "kitImportingFiles": 2,
+        "handRolledUiFiles": 1,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 16,
+        "lintWarnings": 0,
+        "lintPer100Lines": 1.9,
+        "tokensPerSecond": 61.6,
+        "fixLatencyMs": 29649,
+        "failKind": "missing-file"
+      }
+    },
+    {
+      "alias": "qwen3-coder-next",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-next",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-10-31T10:46:40.858Z",
+      "plan": null,
+      "latencyMs": 300237,
+      "ttftMs": 813,
+      "segments": [
+        {
+          "finishReason": "error",
+          "latencyMs": 300236,
+          "chars": 83551
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 83551,
+      "estTokens": {
+        "input": 13713,
+        "output": 20888,
+        "estimated": true
+      },
+      "estCostUsd": 0.01835596,
+      "extraction": {
+        "writes": 27,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": false
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/qwen3-coder-next-t1",
+      "fixRound": null,
+      "error": null,
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 1581
+      },
+      "quality": {
+        "files": 27,
+        "codeFiles": 23,
+        "codeLines": 1695,
+        "largestFile": "/src/pages/Admin.tsx",
+        "largestFileLines": 234,
+        "anyCount": 1,
+        "kitImportingFiles": 0,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 1,
+        "lintErrors": 3,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.2,
+        "tokensPerSecond": 69.6,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
     }
   ]
 }

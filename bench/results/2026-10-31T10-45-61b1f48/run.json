@@ -112,6 +112,24 @@
           "pageerror: The requested module 'zustand' does not provide an export named 'default'"
         ],
         "bodyChars": 0
+      },
+      "quality": {
+        "files": 10,
+        "codeFiles": 8,
+        "codeLines": 332,
+        "largestFile": "/src/components/AddAnswerForm.tsx",
+        "largestFileLines": 64,
+        "anyCount": 0,
+        "kitImportingFiles": 5,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 3,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.9,
+        "tokensPerSecond": 34.3,
+        "fixLatencyMs": null,
+        "failKind": null
       }
     }
   ]

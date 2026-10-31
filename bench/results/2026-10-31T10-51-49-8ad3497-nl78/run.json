@@ -1,0 +1,257 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1,exp-v1",
+  "gitCommit": "8ad3497",
+  "createdAt": "2026-10-31T10:55:37.492Z",
+  "runId": "2026-10-31T10-51-49-8ad3497-nl78",
+  "config": {
+    "trials": 1,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": null
+  },
+  "models": [
+    {
+      "alias": "glm-4.5-air",
+      "providerId": "openrouter",
+      "modelId": "z-ai/glm-4.5-air",
+      "pricing": {
+        "inputPerMTok": 0.13,
+        "outputPerMTok": 0.85,
+        "asOf": "2026-10"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "hs-community-fridge",
+      "version": "exp-v1"
+    },
+    {
+      "id": "hs-listening-wall",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "glm-4.5-air",
+      "providerId": "openrouter",
+      "modelId": "z-ai/glm-4.5-air",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-10-31T10:51:49.121Z",
+      "plan": null,
+      "latencyMs": 75013,
+      "ttftMs": 10742,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 75011,
+          "chars": 25796
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 25796,
+      "estTokens": {
+        "input": 13722,
+        "output": 6449,
+        "estimated": true
+      },
+      "estCostUsd": 0.007265509999999999,
+      "extraction": {
+        "writes": 22,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": false,
+        "errors": [
+          "vfs:/src/components/PostForm.tsx:3: No matching export in \"vfs:/src/components/ui/button.tsx\" for import \"Button\"",
+          "vfs:/src/components/ShiftForm.tsx:3: No matching export in \"vfs:/src/components/ui/button.tsx\" for import \"Button\""
+        ]
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/glm-4.5-air-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/App.tsx:3: No matching export in \"vfs:/src/components/ui/app-bar.tsx\" for import \"default\"",
+          "vfs:/src/App.tsx:4: No matching export in \"vfs:/src/components/ui/bottom-nav.tsx\" for import \"default\"",
+          "vfs:/src/components/PostForm.tsx:7: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectContent\"",
+          "vfs:/src/components/PostForm.tsx:7: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectItem\"",
+          "vfs:/src/components/PostForm.tsx:7: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectTrigger\"",
+          "vfs:/src/components/PostForm.tsx:7: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectValue\"",
+          "vfs:/src/components/PostList.tsx:2: No matching export in \"vfs:/src/components/ui/avatar.tsx\" for import \"AvatarFallback\"",
+          "vfs:/src/components/RecentPosts.tsx:2: No matching export in \"vfs:/src/components/ui/avatar.tsx\" for import \"AvatarFallback\"",
+          "vfs:/src/components/ShiftForm.tsx:7: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectContent\"",
+          "vfs:/src/components/ShiftForm.tsx:7: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectItem\"",
+          "vfs:/src/components/ShiftForm.tsx:7: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectTrigger\"",
+          "vfs:/src/components/ShiftForm.tsx:7: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectValue\"",
+          "vfs:/src/components/ShiftList.tsx:2: No matching export in \"vfs:/src/components/ui/avatar.tsx\" for import \"AvatarFallback\"",
+          "vfs:/src/components/UpcomingShifts.tsx:2: No matching export in \"vfs:/src/components/ui/avatar.tsx\" for import \"AvatarFallback\"",
+          "vfs:/src/pages/PostsPage.tsx:3: No matching export in \"vfs:/src/components/ui/button.tsx\" for import \"default\"",
+          "vfs:/src/pages/ShiftsPage.tsx:3: No matching export in \"vfs:/src/components/ui/button.tsx\" for import \"default\""
+        ],
+        "solved": false,
+        "latencyMs": 29092,
+        "remainingErrors": [
+          "vfs:/src/components/PostForm.tsx:3: No matching export in \"vfs:/src/components/ui/button.tsx\" for import \"Button\"",
+          "vfs:/src/components/ShiftForm.tsx:3: No matching export in \"vfs:/src/components/ui/button.tsx\" for import \"Button\""
+        ],
+        "estCostUsd": 0.00424625
+      },
+      "error": null,
+      "quality": {
+        "files": 22,
+        "codeFiles": 19,
+        "codeLines": 909,
+        "largestFile": "/src/components/ShiftForm.tsx",
+        "largestFileLines": 111,
+        "anyCount": 10,
+        "kitImportingFiles": 11,
+        "handRolledUiFiles": 5,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 24,
+        "lintWarnings": 0,
+        "lintPer100Lines": 2.6,
+        "tokensPerSecond": 86,
+        "fixLatencyMs": 29092,
+        "failKind": "bad-import"
+      }
+    },
+    {
+      "alias": "glm-4.5-air",
+      "providerId": "openrouter",
+      "modelId": "z-ai/glm-4.5-air",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-10-31T10:53:33.495Z",
+      "plan": null,
+      "latencyMs": 116353,
+      "ttftMs": 6605,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 116353,
+          "chars": 33177
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 33177,
+      "estTokens": {
+        "input": 13713,
+        "output": 8295,
+        "estimated": true
+      },
+      "estCostUsd": 0.00883344,
+      "extraction": {
+        "writes": 15,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/glm-4.5-air-t1",
+      "fixRound": null,
+      "error": null,
+      "runtime": {
+        "rendered": false,
+        "errors": [
+          "console: ReferenceError: Button is not defined at QuestionSection (file:///home/user/relational-builder/bench/results/2026-10-31T10-51-49-8ad3497-nl78/artifacts/hs-listening-wall/glm-4.5-air-t1/preview.html:560:11) at Hi (https:/",
+          "console: ReferenceError: Button is not defined at QuestionSection (file:///home/user/relational-builder/bench/results/2026-10-31T10-51-49-8ad3497-nl78/artifacts/hs-listening-wall/glm-4.5-air-t1/preview.html:560:11) at Hi (https:/",
+          "console: ReferenceError: Button is not defined at QuestionSection (file:///home/user/relational-builder/bench/results/2026-10-31T10-51-49-8ad3497-nl78/artifacts/hs-listening-wall/glm-4.5-air-t1/preview.html:560:11) at Hi (https:/",
+          "pageerror: Button is not defined"
+        ],
+        "bodyChars": 0
+      },
+      "quality": {
+        "files": 15,
+        "codeFiles": 13,
+        "codeLines": 697,
+        "largestFile": "/src/pages/ThemeGrouping.tsx",
+        "largestFileLines": 134,
+        "anyCount": 0,
+        "kitImportingFiles": 7,
+        "handRolledUiFiles": 1,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 7,
+        "lintWarnings": 0,
+        "lintPer100Lines": 1,
+        "tokensPerSecond": 71.3,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    }
+  ]
+}
