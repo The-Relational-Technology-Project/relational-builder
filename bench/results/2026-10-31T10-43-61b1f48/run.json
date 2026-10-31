@@ -1,0 +1,126 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1,exp-v1",
+  "gitCommit": "61b1f48",
+  "createdAt": "2026-10-31T10:46:40.854Z",
+  "runId": "2026-10-31T10-43-61b1f48",
+  "config": {
+    "trials": 1,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": null
+  },
+  "models": [
+    {
+      "alias": "qwen3-coder-next",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-next",
+      "pricing": {
+        "inputPerMTok": 0.12,
+        "outputPerMTok": 0.8,
+        "asOf": "2026-10"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "hs-community-fridge",
+      "version": "exp-v1"
+    },
+    {
+      "id": "hs-listening-wall",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "qwen3-coder-next",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-next",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-10-31T10:43:47.388Z",
+      "plan": null,
+      "latencyMs": 143564,
+      "ttftMs": 1744,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 143563,
+          "chars": 35382
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 35382,
+      "estTokens": {
+        "input": 13722,
+        "output": 8846,
+        "estimated": true
+      },
+      "estCostUsd": 0.00872344,
+      "extraction": {
+        "writes": 21,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": false,
+        "errors": [
+          "vfs:/src/pages/Home.tsx:6: No matching export in \"vfs:/src/data/seedData.ts\" for import \"default\"",
+          "vfs:/src/pages/Shifts.tsx:5: No matching export in \"vfs:/src/data/seedData.ts\" for import \"default\""
+        ]
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/qwen3-coder-next-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/pages/Home.tsx:5: Could not find \"../components/ShiftList\" in the project (imported from /src/pages/Home.tsx)",
+          "vfs:/src/pages/Shifts.tsx:4: Could not find \"../components/ShiftList\" in the project (imported from /src/pages/Shifts.tsx)"
+        ],
+        "solved": false,
+        "latencyMs": 29649,
+        "remainingErrors": [
+          "vfs:/src/pages/Home.tsx:6: No matching export in \"vfs:/src/data/seedData.ts\" for import \"default\"",
+          "vfs:/src/pages/Shifts.tsx:5: No matching export in \"vfs:/src/data/seedData.ts\" for import \"default\""
+        ],
+        "estCostUsd": 0.0041716
+      },
+      "error": null
+    }
+  ]
+}
