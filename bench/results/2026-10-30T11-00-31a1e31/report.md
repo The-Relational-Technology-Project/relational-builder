@@ -7,24 +7,24 @@
 
 > Cost and token figures are **estimates** (chars ÷ 4 × list prices) — directional, not billing-grade.
 > Mechanical columns are medians across trials. Total = plan + build wall time.
-> **Bundle** = final compile success; **First try** = compiled without the auto-fix; **Renders** = opened in a browser after bundling, visible page and no uncaught errors (n/a before Oct 30, 2026); **Fix** = of the builds that first failed, how many the single auto-fix pass solved. **~$** includes the fix pass when one ran.
+> **Bundle** = final compile success; **First try** = compiled without the auto-fix; **Renders** = opened in a browser after bundling, visible page and no uncaught errors (n/a before Oct 30, 2026); **Fail kind** = what the first-try bundle error was (missing-file, bad-import, unknown-package, syntax); **Lint/100** = eslint findings per 100 lines with the app's own config; **Largest file**, **any**, **Kit files** (files importing the RB kit over code files) and **tok/s** come from the files the model wrote (n/a before Oct 31, 2026); **Fix time** = the auto-fix pass's own wall time; **Fix** = of the builds that first failed, how many the single auto-fix pass solved. **~$** includes the fix pass when one ran.
 
 ### Task: hs-meal-train (exp-v1)
 
-| Model | Bundle | First try | Renders | Fix | Files | Failed edits | Truncated | Checks | Sec flags | TTFT | Build time | Total | ~$ | |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| qwen3-coder-30b | 1/1 ✓ | 0/1 | 1/1 clean | 1/1 solved | 11 | 0 | no | 3/5 | 0 | 2s | 424s | 424s | 0.01 |
+| Model | Bundle | First try | Renders | Fix | Fail kind | Files | Failed edits | Truncated | Checks | Sec flags | Lint/100 | Largest file | any | Kit files | tok/s | TTFT | Build time | Fix time | Total | ~$ | |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| qwen3-coder-30b | 1/1 ✓ | 0/1 | 1/1 clean | 1/1 solved | missing-file | 11 | 0 | no | 3/5 | 0 | 0.6 | 498 lines | 0 | 0/8 | 19.1 | 2s | 424s | 180s | 424s | 0.01 |
 
 ### Task: hs-community-fridge (exp-v1)
 
-| Model | Bundle | First try | Renders | Fix | Files | Failed edits | Truncated | Checks | Sec flags | TTFT | Build time | Total | ~$ | |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| qwen3-coder-30b | 1/1 ✓ | 0/1 | 0/1 clean | 1/1 solved | 12 | 0 | no | 3/5 | 0 | 2s | 177s | 177s | 0.01 |
+| Model | Bundle | First try | Renders | Fix | Fail kind | Files | Failed edits | Truncated | Checks | Sec flags | Lint/100 | Largest file | any | Kit files | tok/s | TTFT | Build time | Fix time | Total | ~$ | |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| qwen3-coder-30b | 1/1 ✓ | 0/1 | 0/1 clean | 1/1 solved | missing-file | 12 | 0 | no | 3/5 | 0 | 0.7 | 160 lines | 0 | 0/7 | 24.8 | 2s | 177s | 86s | 177s | 0.01 |
 
 ### Task: hs-listening-wall (?)
 
-| Model | Bundle | First try | Renders | Fix | Files | Failed edits | Truncated | Checks | Sec flags | TTFT | Build time | Total | ~$ | |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Model | Bundle | First try | Renders | Fix | Fail kind | Files | Failed edits | Truncated | Checks | Sec flags | Lint/100 | Largest file | any | Kit files | tok/s | TTFT | Build time | Fix time | Total | ~$ | |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 
 
 ## Human review

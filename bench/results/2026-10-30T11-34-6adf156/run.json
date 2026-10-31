@@ -107,6 +107,26 @@
           "pageerror: The requested module 'lucide-react' does not provide an export named 'CircleHalf'"
         ],
         "bodyChars": 0
+      },
+      "quality": {
+        "files": 12,
+        "codeFiles": 10,
+        "codeLines": 413,
+        "largestFile": "/src/store.ts",
+        "largestFileLines": 95,
+        "anyCount": 0,
+        "kitImportingFiles": 8,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [
+          "CircleHalf"
+        ],
+        "tailwindV3Habits": 0,
+        "lintErrors": 7,
+        "lintWarnings": 0,
+        "lintPer100Lines": 1.7,
+        "tokensPerSecond": 35.3,
+        "fixLatencyMs": null,
+        "failKind": null
       }
     }
   ]

@@ -98,6 +98,26 @@ export interface TrialResult {
     errors: string[];
     bodyChars: number;
   } | null;
+  /** Code quality and speed, measured from the files the model wrote
+   *  (bench/lib/measure.ts). Absent on runs measured before Oct 31, 2026. */
+  quality?: {
+    files: number;
+    codeFiles: number;
+    codeLines: number;
+    largestFile: string | null;
+    largestFileLines: number;
+    anyCount: number;
+    kitImportingFiles: number;
+    handRolledUiFiles: number;
+    invalidLucide: string[];
+    tailwindV3Habits: number;
+    lintErrors: number | null;
+    lintWarnings: number | null;
+    lintPer100Lines: number | null;
+    tokensPerSecond: number | null;
+    fixLatencyMs: number | null;
+    failKind: 'missing-file' | 'bad-import' | 'unknown-package' | 'syntax' | 'other' | null;
+  } | null;
 }
 
 export interface RunReport {

@@ -322,6 +322,14 @@ export async function executeRun(opts: ExecuteOptions): Promise<number> {
     }
   }
 
+  // Code quality from the files each model wrote; free, so always on
+  try {
+    const { measureRun } = await import('./measure');
+    if ((await measureRun(runDir, trials)) > 0) await snapshot();
+  } catch (err) {
+    console.warn(`Quality measures skipped: ${err instanceof Error ? err.message : String(err)}`);
+  }
+
   const { writeReviewPage } = await import('./review-page');
   await writeReviewPage(runDir, runId, trials);
 

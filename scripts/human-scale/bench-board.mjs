@@ -34,7 +34,8 @@ const median = xs => {
   const a = xs.filter(x => typeof x === 'number' && Number.isFinite(x)).sort((x, y) => x - y);
   if (!a.length) return null;
   const m = Math.floor(a.length / 2);
-  return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2;
+  const v = a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2;
+  return Math.round(v * 10) / 10;
 };
 const secs = ms => (ms == null ? '' : `${Math.round(ms / 1000)}s`);
 const usd = x => (x == null ? '' : x < 0.005 ? '<$0.01' : `$${x.toFixed(2)}`);
@@ -89,6 +90,10 @@ function trialRows(runs, hand) {
         : bundled && fix ? 'bundled after one auto-fix'
         : 'did not bundle') + browser;
       const firstError = rt && rt.errors.length ? rt.errors[0].replace(/^(pageerror|console): /, '').slice(0, 110) : '';
+      const q = t.quality || null;
+      const code = q
+        ? `${q.codeFiles} files, largest ${q.largestFileLines}, lint ${q.lintPer100Lines ?? 'n/a'}/100, any ${q.anyCount}, kit ${q.kitImportingFiles}/${q.codeFiles}${q.invalidLucide && q.invalidLucide.length ? `, bad icons ${q.invalidLucide.join(' ')}` : ''}`
+        : '';
       const checks = Array.isArray(t.checks) ? `${t.checks.filter(c => c.pass).length}/${t.checks.length}` : '';
       const fromReview = review && review.scores && review.scores[t.alias] ? review.scores[t.alias] : {};
       const fromHand = hand.find(h => name.startsWith(h.run) && h.task === t.taskId && h.model === t.alias) || {};
@@ -104,6 +109,10 @@ function trialRows(runs, hand) {
         modelId: t.modelId,
         bundled,
         rendersClean: !!(bundled && rt && rt.rendered && rt.errors.length === 0),
+        code,
+        lintPer100: q ? q.lintPer100Lines : null,
+        tokensPerSecond: q ? q.tokensPerSecond : null,
+        failKind: q ? q.failKind : null,
         runtimeChecked: !!rt,
         firstTry: bundled && !fix,
         result,
@@ -174,6 +183,8 @@ async function main() {
         bundled: pct(ok.length, rs.length),
         firstTry: pct(rs.filter(r => r.firstTry).length, rs.length),
         renders: checked.length ? `${pct(checked.filter(r => r.rendersClean).length, checked.length)} of ${checked.length}` : 'n/a',
+        lint: (() => { const m = median(rs.map(r => r.lintPer100)); return m == null ? 'n/a' : String(m); })(),
+        tps: (() => { const m = median(rs.map(r => r.tokensPerSecond)); return m == null ? 'n/a' : String(m); })(),
         build: secs(median(ok.map(r => r.latencyMs))),
         cost: usd(median(rs.map(r => r.estCostUsd))),
         design: scored.length ? `${median(scored.map(r => r.designQuality))} (${scored.length})` : '',
@@ -204,9 +215,9 @@ async function main() {
     '',
     '## Models tested',
     '',
-    '| Model | Provider id | Builds | Bundled | First try | Renders clean | Median build time | Median est. cost | Median design score (n) | Last run |',
-    '|---|---|---|---|---|---|---|---|---|---|',
-    ...modelRows.map(m => `| ${m.alias} | \`${m.modelId}\` | ${m.n} | ${m.bundled} | ${m.firstTry} | ${m.renders} | ${m.build} | ${m.cost} | ${m.design} | ${m.last} |`),
+    '| Model | Provider id | Builds | Bundled | First try | Renders clean | Median build time | tok/s | Lint/100 lines | Median est. cost | Median design score (n) | Last run |',
+    '|---|---|---|---|---|---|---|---|---|---|---|---|',
+    ...modelRows.map(m => `| ${m.alias} | \`${m.modelId}\` | ${m.n} | ${m.bundled} | ${m.firstTry} | ${m.renders} | ${m.build} | ${m.tps} | ${m.lint} | ${m.cost} | ${m.design} | ${m.last} |`),
     '',
     '"Bundled" is the compiler\'s view. "Renders clean" is the browser\'s: the built app opened with visible content and no uncaught errors (checked from Oct 30, 2026; n/a before). A build can pass the first and fail the second, which is why the screenshots matter.',
     '',
@@ -228,10 +239,10 @@ async function main() {
       );
     }
     lines.push(
-      '| Date | Model | Result | Checks | Build time | Est. cost | Scores | Notes | Shot | Report |',
-      '|---|---|---|---|---|---|---|---|---|---|',
+      '| Date | Model | Result | Checks | Build time | Est. cost | Code | Scores | Notes | Shot | Report |',
+      '|---|---|---|---|---|---|---|---|---|---|---|',
       ...rs.map(r =>
-        `| ${r.date} | ${r.alias} | ${r.result}${r.truncated ? ', truncated' : ''}${r.security ? `, ${r.security} security flag(s)` : ''} | ${r.checks} | ${secs(r.latencyMs)} | ${usd(r.estCostUsd)} | ${scoreCell(r)} | ${r.notes.replace(/\|/g, '/')} | ${r.hasShot ? `[png](${r.shot})` : ''} | [report](${r.report}) |`,
+        `| ${r.date} | ${r.alias} | ${r.result}${r.truncated ? ', truncated' : ''}${r.security ? `, ${r.security} security flag(s)` : ''} | ${r.checks} | ${secs(r.latencyMs)} | ${usd(r.estCostUsd)} | ${r.code} | ${scoreCell(r)} | ${r.notes.replace(/\|/g, '/')} | ${r.hasShot ? `[png](${r.shot})` : ''} | [report](${r.report}) |`,
       ),
       '',
     );

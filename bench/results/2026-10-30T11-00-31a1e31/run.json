@@ -149,6 +149,24 @@
         "rendered": true,
         "errors": [],
         "bodyChars": 811
+      },
+      "quality": {
+        "files": 10,
+        "codeFiles": 8,
+        "codeLines": 929,
+        "largestFile": "/src/App.tsx",
+        "largestFileLines": 498,
+        "anyCount": 0,
+        "kitImportingFiles": 0,
+        "handRolledUiFiles": 4,
+        "invalidLucide": [],
+        "tailwindV3Habits": 1,
+        "lintErrors": 6,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.6,
+        "tokensPerSecond": 19.1,
+        "fixLatencyMs": 179931,
+        "failKind": "missing-file"
       }
     },
     {
@@ -238,6 +256,24 @@
           "pageerror: Cannot apply unknown utility class `fog-green`"
         ],
         "bodyChars": 271
+      },
+      "quality": {
+        "files": 9,
+        "codeFiles": 7,
+        "codeLines": 570,
+        "largestFile": "/src/store.tsx",
+        "largestFileLines": 160,
+        "anyCount": 0,
+        "kitImportingFiles": 0,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 4,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.7,
+        "tokensPerSecond": 24.8,
+        "fixLatencyMs": 86350,
+        "failKind": "missing-file"
       }
     }
   ]

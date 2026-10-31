@@ -117,6 +117,24 @@
           "pageerror: Calendar is not defined"
         ],
         "bodyChars": 0
+      },
+      "quality": {
+        "files": 9,
+        "codeFiles": 7,
+        "codeLines": 391,
+        "largestFile": "/src/pages/Stock.tsx",
+        "largestFileLines": 92,
+        "anyCount": 0,
+        "kitImportingFiles": 5,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 18,
+        "lintWarnings": 0,
+        "lintPer100Lines": 4.6,
+        "tokensPerSecond": 108.8,
+        "fixLatencyMs": 7446,
+        "failKind": "syntax"
       }
     }
   ]

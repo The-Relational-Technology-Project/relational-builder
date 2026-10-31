@@ -93,6 +93,11 @@ export async function generateReport(runDirArg: string | undefined): Promise<num
       const rendersCell = checked.length === 0
         ? 'n/a'
         : `${clean}/${checked.length} clean${blank ? `, ${blank} blank` : ''}`;
+      // Code quality (measure.ts), medians over measured trials
+      const q = ok.filter(t => t.quality);
+      const kinds = ok.map(t => t.quality?.failKind).filter((k): k is NonNullable<typeof k> => !!k);
+      const failKinds = kinds.length ? [...new Set(kinds)].join(', ') : (q.length ? '—' : 'n/a');
+      const fixTime = median(ok.map(t => t.fixRound?.latencyMs ?? NaN));
       // Estimated $ including the fix pass when one ran
       const totalCost = median(
         ok.map(t => (t.estCostUsd ?? 0) + (t.fixRound?.estCostUsd ?? 0)),
@@ -103,13 +108,21 @@ export async function generateReport(runDirArg: string | undefined): Promise<num
         `| ${firstTryOk}/${ok.length} ` +
         `| ${rendersCell} ` +
         `| ${fixCell} ` +
+        `| ${failKinds} ` +
         `| ${median(ok.map(t => t.extraction.writes)) ?? '—'} ` +
         `| ${median(ok.map(t => t.extraction.failedEditBlocks)) ?? '—'} ` +
         `| ${ok.some(t => t.truncatedFinal) ? 'yes' : 'no'} ` +
         `| ${checksPass ?? '—'}/${checksTotal} ` +
         `| ${median(ok.map(t => t.securityFindings)) ?? '—'} ` +
+        `| ${q.length ? median(q.map(t => t.quality!.lintPer100Lines ?? NaN)) ?? 'n/a' : 'n/a'} ` +
+        `| ${q.length ? `${median(q.map(t => t.quality!.largestFileLines))} lines` : 'n/a'} ` +
+        `| ${q.length ? median(q.map(t => t.quality!.anyCount)) : 'n/a'} ` +
+        `| ${q.length ? `${median(q.map(t => t.quality!.kitImportingFiles))}/${median(q.map(t => t.quality!.codeFiles))}` : 'n/a'} ` +
+        `| ${q.length ? median(q.map(t => t.quality!.tokensPerSecond ?? NaN)) ?? 'n/a' : 'n/a'} ` +
+        
         `| ${fmtSecs(median(ok.map(t => t.ttftMs ?? NaN)))} ` +
         `|${planCell} ${fmtSecs(buildLatency)} ` +
+        `| ${fmtSecs(fixTime)} ` +
         `| ${fmtSecs(median(ok.map(t => t.latencyMs)))} ` +
         `| ${totalCost?.toFixed(2) ?? '—'} ` +
         `|${errored > 0 ? ` ${errored} errored` : ''}`
@@ -117,8 +130,8 @@ export async function generateReport(runDirArg: string | undefined): Promise<num
     });
     return `### Task: ${taskId} (${version})
 
-| Model | Bundle | First try | Renders | Fix | Files | Failed edits | Truncated | Checks | Sec flags | TTFT |${planCols} Build time | Total | ~$ | |
-|---|---|---|---|---|---|---|---|---|---|---|${planFirst ? '---|' : ''}---|---|---|---|
+| Model | Bundle | First try | Renders | Fix | Fail kind | Files | Failed edits | Truncated | Checks | Sec flags | Lint/100 | Largest file | any | Kit files | tok/s | TTFT |${planCols} Build time | Fix time | Total | ~$ | |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|${planFirst ? '---|' : ''}---|---|---|---|---|
 ${rows.join('\n')}`;
   });
 
@@ -180,7 +193,7 @@ ${aliases
 
 > Cost and token figures are **estimates** (chars ÷ 4 × list prices) — directional, not billing-grade.
 > Mechanical columns are medians across trials. Total = plan + build wall time.
-> **Bundle** = final compile success; **First try** = compiled without the auto-fix; **Renders** = opened in a browser after bundling, visible page and no uncaught errors (n/a before Oct 30, 2026); **Fix** = of the builds that first failed, how many the single auto-fix pass solved. **~$** includes the fix pass when one ran.
+> **Bundle** = final compile success; **First try** = compiled without the auto-fix; **Renders** = opened in a browser after bundling, visible page and no uncaught errors (n/a before Oct 30, 2026); **Fail kind** = what the first-try bundle error was (missing-file, bad-import, unknown-package, syntax); **Lint/100** = eslint findings per 100 lines with the app's own config; **Largest file**, **any**, **Kit files** (files importing the RB kit over code files) and **tok/s** come from the files the model wrote (n/a before Oct 31, 2026); **Fix time** = the auto-fix pass's own wall time; **Fix** = of the builds that first failed, how many the single auto-fix pass solved. **~$** includes the fix pass when one ran.
 
 ${taskSections.join('\n\n')}
 

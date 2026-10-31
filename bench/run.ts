@@ -144,6 +144,26 @@ export async function main(argv: string[]): Promise<number> {
     return 0;
   }
 
+  // Compute (or recompute) code-quality measures for a finished run from its
+  // artifacts and store them in run.json; regenerates the report.
+  if (argv[0] === 'measure') {
+    if (!argv[1]) {
+      console.error('Usage: npm run bench -- measure <runDir>');
+      return 1;
+    }
+    const { readFile, writeFile } = await import('node:fs/promises');
+    const path = await import('node:path');
+    const { measureRun } = await import('./lib/measure');
+    const runDir = path.resolve(argv[1]);
+    const run = JSON.parse(await readFile(path.join(runDir, 'run.json'), 'utf8'));
+    const n = await measureRun(runDir, run.trials);
+    if (n > 0) await writeFile(path.join(runDir, 'run.json'), JSON.stringify(run, null, 2), 'utf8');
+    const { generateReport } = await import('./lib/report');
+    await generateReport(runDir);
+    console.log(`Measured ${n} trial(s) in ${runDir}`);
+    return 0;
+  }
+
   const { values } = parseArgs({
     args: argv,
     options: {
@@ -165,7 +185,7 @@ export async function main(argv: string[]): Promise<number> {
     console.log(
       'npm run bench -- [--models a,b,c] [--tasks x,y] [--trials N] [--plan-first] ' +
         '[--studio slug] [--dry-run] [--skip-screenshots] [--out dir] [--list-models] [--list-tasks]\n' +
-        'npm run bench -- report <runDir> | review <runDir> | shots <runDir> | selftest\n' +
+        'npm run bench -- report <runDir> | review <runDir> | shots <runDir> | measure <runDir> | selftest\n' +
         'npm run bench -- plan [--help]        (plan-phase bench — see bench/plan-bench.ts)',
     );
     return 0;
