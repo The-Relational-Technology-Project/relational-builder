@@ -127,6 +127,15 @@ export const BENCH_MODELS: BenchModel[] = [
     enabled: false,
   },
   {
+    // The reference for the human-scale bench (production's build model),
+    // through OpenRouter so one key covers the comparison. List price Oct 31.
+    alias: 'opus-5-5',
+    providerId: 'openrouter',
+    modelId: 'anthropic/claude-opus-5.5',
+    pricing: { inputPerMTok: 4, outputPerMTok: 20, asOf: '2026-10' },
+    enabled: false,
+  },
+  {
     alias: 'opus-5',
     providerId: 'openrouter',
     modelId: 'anthropic/claude-opus-5',
