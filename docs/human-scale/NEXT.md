@@ -105,7 +105,12 @@ stack layer it moved; pace paid work at $3 to $5 a day.
 
 ## Questions for Josh
 
-0. **Who scores design, and how often?** The bench's rule is that your
+0. **Design scores for the two comparison prompts.** The board now has 10
+   open-model builds on them with screenshots; two render clean (gemma
+   and qwen3-coder-next on the listening wall). Five minutes in
+   `SCORES.md` would give the bench its first design numbers. Earlier
+   version of this question:
+   **Who scores design, and how often?** The bench's rule is that your
    blinded 1 to 5 review decides design quality, not an LLM. With open
    models producing 12 to 36 builds a day, the loop will commit screenshots
    and a contact sheet every run and keep the mechanical columns moving;
@@ -127,50 +132,38 @@ stack layer it moved; pace paid work at $3 to $5 a day.
 
 ## Tomorrow (one run, about 75 minutes)
 
-1. **Bench: code-quality and speed columns (no paid calls, about 30
-   minutes).** The browser check (Renders) landed Oct 30. Now in
-   `bench/lib/pipeline.ts` and `report.ts`: run `tsc` and `eslint` (the
-   app's own config) over each trial's extracted files with the kit merged
-   in and record error counts; an accidental lint over today's artifacts
-   already showed the shape of it (unused imports everywhere, setState in
-   an effect). Also: file count, largest file lines, `any` count, kit usage
-   share, tokens per second, fix-pass time, a first-failure kind, and the
-   Builder's `invalidLucideImports` check as a mechanical column (two of
-   today's three broken builds were a bad icon import). Prove on the
-   committed runs with `npm run bench -- report <dir>`; old trials show
-   "n/a". Unit-test the classifiers with vitest. Then `npm run bench:board`.
-2. **Bench run two (under $1, logged first).** Every open model in the
-   matrix on `--tasks compare` (the two comparison prompts), one trial
-   each, each model its own capped invocation, screenshots on: `gemma-4-26b`,
-   `gpt-oss-120b`, `qwen3-coder-30b`, plus `qwen3-coder-next` and
-   `glm-4.5-air` added at list price. Then `npm run bench:board`. The
-   `hs-community-fridge` builds from Oct 30 already count; do not rerun
-   them. Opus 5.5 once on the same two prompts (about $1.50) the day after,
-   when the open numbers exist to compare against.
-   Pace note from run one: the harness runs models one after another and
-   qwen3-coder-30b took 3 to 7 minutes a build through OpenRouter, so a 25
-   minute cap finished two of nine; gemma-4-26b took 45 seconds. Run the
-   models as separate invocations with their own caps (one experiment each,
-   30 minutes max), gemma first, and let a slow model's partial run.json
-   stand rather than retrying it.
+1. **Import guardrail, measured (item 4 from Oct 30, now the main line).**
+   Every open-model failure on the two comparison prompts (8 of 10 builds)
+   was an import mistake the bundler never sees: a bad or missing
+   `lucide-react` icon (the Builder already has `invalidLucideImports`), a
+   default import from a module that only exports names (`zustand`, the
+   kit's components), a capitalized JSX component used with no import or
+   declaration, a file imported but never written (the bundler does see
+   this one; the fix pass then broke something else). Build one static
+   check, `bench/lib/import-check.ts` (pure, tested), that finds those
+   four kinds in a set of files and phrases each as a bundler-style error;
+   feed its findings into the existing single fix pass alongside the
+   bundler's (harness first; production's chat flow second, behind the
+   flag, since the Builder already warns people about icons). Then measure:
+   rerun the failing builds' models on `--tasks compare` with the check on
+   (about $0.10, logged first) and put before/after rows on the board. A
+   guardrail that moves blanks to renders is worth more to the application
+   than another model.
+2. **Opus 5.5 reference (about $1.50, logged first).** Once on `--tasks
+   compare` through OpenRouter (`opus-5-5` alias; add it if the matrix only
+   has `opus-5`), screenshots on. The board then shows the four axes for
+   five open models against the reference on the same two prompts.
+3. **`tsc` over generated files.** Type errors per build as a code-quality
+   column: a temp project with the kit merged and a minimal `@/` paths
+   tsconfig, skipLibCheck, esm.sh packages stubbed as `any` modules; count
+   errors, store on `quality`, show the median. If it costs more than an
+   hour, record the attempt and move on.
+4. **Spot checks from the pool.** One pool task per open model it has not
+   seen (gemma and qwen3-coder-next first), to see whether the comparison
+   prompts are representative. Then the commons-retrieval variant on the
+   best open model.
+
 ## After that, in order
-
-3. **Bench run three.** Opus 5.5 on the two comparison prompts as the
-   reference, then the commons-retrieval variant on the best open model
-   (does the commons close the gap), then one spot check per open model on
-   a pool task it has not seen. After that the board answers Josh's four
-   axes per model, and `resolveCommunityModelDefault` can be argued about
-   with numbers.
-4. **Prompt fixes the bench points at.** For each failure kind that
-   repeats across open models (today: importing a file never written; an
-   icon used or invented without a real import; one unknown Tailwind
-   utility voiding the stylesheet),
-   one targeted change in the system prompt or a cheap pre-bundle check,
-   measured by re-running the failing tasks before and after. Changes that
-   help open models and do not hurt Opus go on the branch; others are
-   written up.
-
-Then, as time allows:
 
 5. **Workstream 4, export and delete (wire it, one run).** The data files
    exist (`src/human-scale/export-data.ts`, tested). Behind the flag: the
@@ -178,37 +171,22 @@ Then, as time allows:
    `exportBackend` for the project's app and adds `appDataExportFiles`
    under `/data/export/`; `.reltech.yml` notes the export date;
    `deleteProject` also calls `deleteApp` after a plain confirmation that
-   names what goes ("the app and 212 documents neighbors wrote"), and the
-   Cloud tab's own export is offered first. Prove it with a test that an
-   exported zip lists code, `/data/export/app-data.json`, the CSVs and the
-   manifest, and a test that delete calls both removals.
+   names what goes, and the Cloud tab's own export is offered first. Prove
+   it with tests.
 6. **Workstream 3, footprint and provenance (wire it).** The row shape and
-   the labeled estimate exist (`src/human-scale/provenance.ts`,
-   `rb-flops-v1`, tested). Now record: a per-project log (localStorage via a
-   thin store, newest last, capped) fed from the Builder's own calls (the
-   provider layer reports tokens) and from the kit helper's `ran` plus the
-   server's `usage` (the helper can post its row to the Builder when it runs
-   inside the preview, and keep its own small log in the app otherwise);
-   show the rows in the build report and `describeRow` in a small app
-   footer behind the flag. The first real community-runtime row comes from
-   the smoke test above once Josh runs it. If a better public per-token
-   method turns up (CO2.js, AI Energy Score), add it as `rb-*-v2` beside
-   the first, never replace numbers already logged.
-
-7. **Self-host runbook, backend half and the local-model steps.**
-   `SELF-HOST.md` covers the Builder app through step 6 (run Oct 30).
-   Next: the backend runbook (a community's own Supabase or Postgres: the
-   migrations and edge functions it needs, and which env vars point the
-   Builder at it), and steps 7 and 8 run against a real local model, which
-   needs a person with a box (Josh, or a Thread fellow); until then say so.
-8. **Kit helper in a real build.** Rebuild one existing template through the
-   normal flow with the flag on and confirm the model imports `@/lib/ai` and
-   exposes named jobs; fix the prompt rule where it does not. Needs a builder
-   model key in the session (OpenRouter works) and a signed-in Builder, so it
-   may need Josh in the room.
-9. **Research rotation, when 15 minutes are left.** Next: Hooker, "On the
-   Slow Death of Scaling" (what small coders can do), then the Hugging Face
-   SLM overview, then Bendor et al. "Small AI".
+   the labeled estimate exist (`src/human-scale/provenance.ts`, tested).
+   Record per project from the Builder's own calls and the kit helper's
+   `ran` plus the server's `usage`; show in the build report and a small
+   app footer behind the flag.
+7. **Self-host runbook, backend half and the local-model steps.** Needs a
+   person with a box for steps 7 and 8; the backend runbook does not.
+8. **Kit helper in a real build.** Needs a builder key and a signed-in
+   Builder; may need Josh in the room.
+9. **Research rotation, when 15 minutes are left.** Next: the Hugging Face
+   SLM overview (which 1B to 8B models fit an 8 GB laptop), then Bendor et
+   al. "Small AI". Hooker is done (LOG, Oct 31): her evidence is
+   newer-small beats older-large, and "cost of adaptability" is the number
+   to track for the builder model.
 
 ## Drop or defer
 

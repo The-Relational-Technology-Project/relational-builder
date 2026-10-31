@@ -1,0 +1,142 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1",
+  "gitCommit": "fffea84",
+  "createdAt": "2026-10-31T10:59:00.978Z",
+  "runId": "2026-10-31T10-47-fffea84",
+  "config": {
+    "trials": 1,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": null
+  },
+  "models": [
+    {
+      "alias": "qwen3-coder-30b",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-30b-a3b-instruct",
+      "pricing": {
+        "inputPerMTok": 0.07,
+        "outputPerMTok": 0.28,
+        "asOf": "2026-10"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "hs-listening-wall",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "qwen3-coder-30b",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-30b-a3b-instruct",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-10-31T10:47:08.697Z",
+      "plan": null,
+      "latencyMs": 99659,
+      "ttftMs": 1635,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 34834,
+          "chars": 23468
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 64823,
+          "chars": 6661
+        }
+      ],
+      "continuations": 1,
+      "truncatedFinal": false,
+      "outputChars": 30129,
+      "estTokens": {
+        "input": 33423,
+        "output": 7533,
+        "estimated": true
+      },
+      "estCostUsd": 0.004448850000000001,
+      "extraction": {
+        "writes": 20,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": false,
+        "errors": [
+          "vfs:/src/App.tsx:8: Could not find \"./data/questions\" in the project (imported from /src/App.tsx)"
+        ]
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/qwen3-coder-30b-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/App.tsx:8: Could not find \"./data/questions\" in the project (imported from /src/App.tsx)"
+        ],
+        "solved": false,
+        "latencyMs": 188459,
+        "remainingErrors": [
+          "vfs:/src/App.tsx:8: Could not find \"./data/questions\" in the project (imported from /src/App.tsx)"
+        ],
+        "estCostUsd": 0.0025331600000000004
+      },
+      "error": null,
+      "quality": {
+        "files": 15,
+        "codeFiles": 13,
+        "codeLines": 603,
+        "largestFile": "/src/pages/QuestionDetail.tsx",
+        "largestFileLines": 155,
+        "anyCount": 0,
+        "kitImportingFiles": 9,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 8,
+        "lintWarnings": 0,
+        "lintPer100Lines": 1.3,
+        "tokensPerSecond": 75.6,
+        "fixLatencyMs": 188459,
+        "failKind": "missing-file"
+      }
+    }
+  ]
+}

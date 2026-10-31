@@ -12,6 +12,148 @@ experiment at most $5 and 30 minutes.
 
 ---
 
+## Week of Oct 27 (rollup, due Friday Oct 30, written Saturday)
+
+**Spend.** $0.02 of paid inference actually used across the week (eight
+open-model builds through OpenRouter); $0.70 reserved as worst case in
+SPEND. OpenRouter balance about $25 untouched in practice. Claude Code
+time: about 25 minutes (Oct 28), about 60 (Oct 30).
+
+**What moved.**
+- Runtime model: a per-project runtime setting (community, local, your own
+  key), a kit helper with named AI jobs, a prompt rule, a settings card,
+  all behind the flag and clicked through in a browser. The community
+  open-model server route is coded and checked, not deployed.
+- Builder model: 12 commons-grounded tasks, 5 open models in the matrix, a
+  board that shows every build and screenshot over time, a browser check
+  that catches builds that compile but white-screen, and code-quality
+  measures (lint density, largest file, kit usage, bad icon imports) on
+  every build. Two comparison prompts chosen.
+- Footprint, export, self-host: each started with a tested module or a
+  checklist that was run; none wired into the product yet.
+
+**Decisions needed (all in NEXT).** Run the three Management API commands
+to deploy the community open-model route, or grant the loop a rule for
+them. Say who scores design and how often, or accept screenshots plus a
+hand-edited SCORES.md as the way. Confirm Gemma 3 12B as the community
+open model, or let the bench pick.
+
+**Honest read.** The loop is producing evidence faster than decisions, which
+is the right way round for a Nov 20 application. The weak spot is the gap
+between "bundles" and "works": three of four open-model builds on the
+fridge prompt were broken in a browser, each by one line. That is the
+bench's first real finding and it points at prompt guardrails for small
+models, not at giving up on them.
+
+## 2026-10-31
+
+**For Josh:** The bench now measures code quality and speed from the files
+each model writes (lint density, largest file, kit use, bad icon imports,
+tokens per second) and names the kind of each first-try failure. Run two put
+every open model on the two comparison prompts; the board has every build,
+screenshot and number in one place. Ten builds across five open models on the two prompts: seven compiled, two work cleanly in a browser, and every failure is an import mistake, not logic. Spend today:
+about $0.06 of paid inference (eight open-model builds), counted as $1.00 worst case in SPEND. No deploys, no secrets; nothing needs you today beyond the
+three items already waiting in NEXT.
+
+**Stack layer moved:** Builder model, from "first open-weight numbers on one
+prompt, scored by the compiler only" to "five open models on two prompts,
+scored by the compiler, the browser and a lint pass, with screenshots on the
+board". No other layer moved; the day was the bench, as directed.
+
+**What was tried.**
+
+1. *Code-quality and speed columns* (NEXT item 1). `bench/lib/quality.ts`
+   (pure, unit-tested): file count, largest file, `any` count, files
+   importing the kit, hand-rolled `components/ui` files, invalid lucide
+   icon names (the Builder's own checker), Tailwind v3 habits, a
+   first-failure classifier (missing-file, bad-import, unknown-package,
+   syntax), tokens per second, lint density. `bench/lib/measure.ts` runs
+   eslint with the app's own config over each build's files and stores it
+   all as `quality` on the trial, at the end of every run and on demand
+   (`npm run bench -- measure <runDir>`), so yesterday's runs got it too.
+   New columns in report.md and on the board. `tsc` over generated files is
+   not in yet (the kit and esm.sh types make it a real piece of work); lint
+   carries the axis for now.
+2. *Bench run two* (item 2). Two new open coders added at list price
+   (`qwen3-coder-next`, `glm-4.5-air`). The three known models ran the
+   listening wall; the two new ones ran both comparison prompts; each model
+   its own capped invocation, two chains in parallel, screenshots on,
+   nothing rerun from yesterday.
+
+**What happened (run two, both comparison prompts; the board has the same
+rows with screenshots).** "Browser" is what the screenshot pass saw after
+the bundle.
+
+| Model | Prompt | Bundled | Browser | Lint/100 | tok/s | Build | Est. cost | First error |
+|---|---|---|---|---|---|---|---|---|
+| gemma-4-26b | listening wall | first try | renders clean | 2.0 | 67 | 77s | $0.003 | |
+| gpt-oss-120b | listening wall | first try | blank | 0.9 | 34 | 111s | $0.007 | `zustand` has no default export |
+| qwen3-coder-30b | listening wall | no, fix failed | | 1.3 | 76 | 100s | $0.004 | imported `./data/questions`, never wrote it; the fix did not land |
+| qwen3-coder-next | listening wall | first try | renders clean | 0.2 | 70 | 300s | $0.018 | |
+| qwen3-coder-next | community fridge | no, fix failed | | 1.9 | 62 | 144s | $0.009 | imported `../components/ShiftList`, never wrote it; after the fix, a default import from a file with none |
+| glm-4.5-air | listening wall | first try | blank | 1.0 | 71 | 116s | $0.009 | `Button is not defined` (used, never imported) |
+| glm-4.5-air | community fridge | no, fix failed | | 2.6 | 86 | 75s | $0.007 | default import from the kit's `app-bar` (it exports names); after the fix, `Button` imported from the wrong file |
+
+With yesterday's fridge builds, that is 10 builds across 5 open models on
+the two comparison prompts: 7 bundled, but only 2 render clean in a
+browser (gemma-4-26b and qwen3-coder-next, both on the listening wall); 4
+are blank pages; 1 renders unstyled with errors; 3 did not bundle even
+after the fix pass. Every one of the eight failures is an import: a file
+imported but never written (three times), an icon that does not exist or
+was never imported (two), a default import from a module that exports names
+(two: `zustand`, the kit's `app-bar`), a component used without its import
+(one). Not one is logic or layout. Lint density runs 0.2 to 2.6 findings per
+100 lines, almost all unused imports; `any` is rare except glm's fridge
+(10). Speed: 34 to 86 output tokens a second through OpenRouter; gemma is
+the fastest to a working page (77s), the qwen coders are the slowest
+(100s to 300s), none is in Opus's several-minute class. Cost: under two
+cents a build, every build.
+
+**What it cost.** Paid inference: about $0.06 estimated (eight builds, one of them a rerun after the run-folder collision below), logged as $1.00 worst case. Session: about 60 minutes of the 90.
+
+**Honest read.** Two things are now true with evidence. First, hostable open models can
+build these apps: both comparison prompts have at least one open-model
+build that compiles, renders clean, uses the kit and costs under two cents.
+Second, they fail in one narrow way, imports, and our fix pass does not
+catch most of it because the bundler never sees a bad icon name, a wrong
+default import or a component used without its import; the browser does.
+That is a guardrail problem before it is a model problem, and it is cheap:
+a static check for exactly those four import mistakes, fed to the same fix
+pass, would have turned several of today's blanks into renders. Item 4 in
+NEXT is that check, measured before and after on the same prompts. What the
+day did not settle: design. Gemma's wall is handsome and sparse with
+repeated seed answers and icon names leaking as text; qwen3-coder-next's is
+a competent generic SaaS page. Those are Josh's calls, and the screenshots
+are on the board. One harness bug found and fixed: two runs started in the
+same minute on the same commit shared a folder and one overwrote the
+other's record (gemma's first wall run); run ids now carry seconds and a
+random tail, and gemma was rerun. `tsc` over generated files is still not
+measured; lint carries the code-quality axis for now.
+
+**Research rotation: Hooker, "On the Slow Death of Scaling" (2025/26).**
+Read through two secondary pages (Jason McEwen's summary, Andreas Kirsch's
+critical riff); the essay itself is on SSRN (abstract 5877662) and was not
+fetched, so quotes come via those pages. Her claim: "the next wave of
+intelligence will be defined by cost of adaptability, not model size", and
+scaling laws predict pre-training loss, not downstream capability ("our
+scaling laws don't actually equip us to know what is coming"). Evidence she
+gives: Falcon 180B "is now easily outperformed by open-weights models less
+than one-tenth its size, such as Llama-3 8B or Gemma 27B"; Aya Expanse 8B
+beats BLOOM 176B with 4.5 percent of the parameters; her leaderboard figure
+uses a 13B-or-smaller cutoff. The levers she names instead of size: data
+quality, synthetic data, inference-time compute. Kirsch's counter, which is
+fair: "At any given moment in time, with the same algorithmic improvements
+applied, scale still appears to help." What it changes for us: (1) the
+bench's finding fits her frame exactly: today's small open coders produce
+working apps, and what fails is adaptation to our conventions (our kit, our
+icon set, Tailwind v4), which is cheap to fix with guardrails and examples,
+not with a bigger model; (2) "cost of adaptability" is the number to track
+for the builder model: how many prompt rules, fix passes and seconds it
+takes a small model to produce an app that renders clean, against Opus;
+(3) the application should cite the 8B-beats-176B evidence as the reason a
+community box is a serious plan, not a compromise, and should say plainly
+that newer-small beats older-large, not small beats large.
+
 ## 2026-10-30
 
 **For Josh:** The runtime split is in: a project can now say where its

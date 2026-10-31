@@ -150,7 +150,7 @@ come after those have evidence.
 | # | Workstream | Status |
 |---|---|---|
 | 1 | Builder/runtime split, open-weight runtime option | runtime setting, kit `ai` helper, settings card and prompt rule landed Oct 30 (behind the flag, tested); the community path still runs on today's Claude Opus until item 2 routes it to an open model |
-| 2 | Open-weight builder bench, Opus comparison, retrieval variant | 12 commons tasks and 3 hostable open models added Oct 30; run one partial (3 builds, all bundled, two needed the auto-fix); Opus comparison and human review pending |
+| 2 | Open-weight builder bench, Opus comparison, retrieval variant | Oct 31: 5 open models on the 2 comparison prompts (10 builds); browser check, lint and speed measures, failure kinds, the board. 7 of 10 compile, 2 render clean; every failure is an import mistake. Opus reference and human scores pending |
 | 3 | Footprint and provenance | row shape and labeled energy estimate (`src/human-scale/provenance.ts`, `rb-flops-v1`) landed Oct 30 with tests; not yet recording |
 | 4 | Export and delete, verified by tests | server side already complete (paged export, cascading delete); Builder-side data files for the zip landed Oct 30 with tests; not yet in the zip or the delete path |
 | 5 | Human-scale defaults in kickoff and scaffolding | not started |
