@@ -13,7 +13,7 @@ import { builderClient } from '@/cloud/builder-client';
  */
 
 /** Keep in sync with PREVIEW_DAYS in supabase/functions/publish-site. */
-export const PREVIEW_DAYS = 30;
+export const PREVIEW_DAYS = 120;
 
 export interface ShareResult {
   /** Clean preview URL — just the running app */

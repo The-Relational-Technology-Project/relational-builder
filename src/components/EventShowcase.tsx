@@ -196,6 +196,9 @@ export function EventShelf({
                       Try it
                     </a>
                   )}
+                  {entry.lapsed && (
+                    <span className="text-xs text-muted-foreground/70">Links expired</span>
+                  )}
                 </div>
               </div>
             </div>

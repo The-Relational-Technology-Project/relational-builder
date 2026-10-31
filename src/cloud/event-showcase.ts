@@ -34,14 +34,18 @@ export interface ShowcaseEntry {
    *  typing it in on the Event Admin page */
   submitted_via: 'builder' | 'mcp' | 'email' | 'host';
   created_at: string;
+  /** Set client-side once the deck and demo links have expired and been
+   *  dropped (see fetchEventShow): the card stays, without its links */
+  lapsed?: boolean;
 }
 
 /** True when a card came from a builder working in their own tools —
  *  there is no deck to present, and the wall says so instead of pretending */
-export function isOutsideBuild(entry: Pick<ShowcaseEntry, 'submitted_via' | 'deck_url'>): boolean {
+export function isOutsideBuild(entry: Pick<ShowcaseEntry, 'submitted_via' | 'deck_url' | 'lapsed'>): boolean {
   // submitted_via is absent until the open-door migration runs; a missing
   // value means the Builder's own door
-  return (entry.submitted_via ?? 'builder') !== 'builder' || !entry.deck_url;
+  // (a lapsed Builder deck is still the Builder's own build)
+  return (entry.submitted_via ?? 'builder') !== 'builder' || (!entry.deck_url && !entry.lapsed);
 }
 
 /** The gallery's scope value for one event's shelf — a token no studio

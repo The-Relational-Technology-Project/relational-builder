@@ -97,10 +97,24 @@ export async function fetchEventShow(code: string): Promise<EventShow> {
     builderClient.rpc('event_showcase_for', { p_code: code }),
   ]);
   const name = !nameRes.error && nameRes.data ? String(nameRes.data) : null;
-  // Decks are 30-day preview links; past that a card would point at nothing
-  const since = Date.now() - PREVIEW_DAYS * 86400_000;
-  const entries = (rowsRes.error ? [] : ((rowsRes.data as ShowcaseEntry[]) ?? [])).filter(
-    e => new Date(e.created_at).getTime() >= since,
-  );
+  const entries = (rowsRes.error ? [] : ((rowsRes.data as ShowcaseEntry[]) ?? [])).map(lapseLinks);
   return { code, name, entries };
+}
+
+/** A Builder preview link (/s/p-…): the kind that expires after PREVIEW_DAYS */
+const PREVIEW_LINK = /\/s\/p-[0-9a-f]+\/?/;
+
+/**
+ * Decks and demos are preview links that expire after PREVIEW_DAYS. The build
+ * stays on the wall past that (picture, name, line, builder: a record of what
+ * the room made); only the links that would point at nothing come off.
+ * A link outside the preview host (a builder's own site) is kept.
+ */
+function lapseLinks(entry: ShowcaseEntry): ShowcaseEntry {
+  const since = Date.now() - PREVIEW_DAYS * 86400_000;
+  if (new Date(entry.created_at).getTime() >= since) return entry;
+  const deck_url = entry.deck_url && PREVIEW_LINK.test(entry.deck_url) ? null : entry.deck_url;
+  const demo_url = entry.demo_url && PREVIEW_LINK.test(entry.demo_url) ? null : entry.demo_url;
+  if (deck_url === entry.deck_url && demo_url === entry.demo_url) return entry;
+  return { ...entry, deck_url, demo_url, lapsed: true };
 }

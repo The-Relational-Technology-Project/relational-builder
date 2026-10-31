@@ -14,7 +14,7 @@ import { composeStoryRecord } from '@/project/draft-story';
  * Last: QR code + link so the room can open it on their phones.
  *
  * The deck is one self-contained HTML page published through the same
- * unlisted preview pipeline as Share Preview (30-day link, no site-cap
+ * unlisted preview pipeline as Share Preview (PREVIEW_DAYS link, no site-cap
  * cost). The screenshot rides on the story-photos host so the page itself
  * stays tiny — and so the demo wall in the Gallery can reuse the image.
  */
