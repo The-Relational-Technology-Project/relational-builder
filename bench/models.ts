@@ -200,6 +200,22 @@ export const BENCH_MODELS: BenchModel[] = [
     pricing: { inputPerMTok: 0.15, outputPerMTok: 0.6, asOf: '2026-10' },
     enabled: false,
   },
+  // Two more open coders at list price (Josh, Oct 30). Both bigger than a
+  // single community box today; they bound what "open" can do.
+  {
+    alias: 'qwen3-coder-next',
+    providerId: 'openrouter',
+    modelId: 'qwen/qwen3-coder-next',
+    pricing: { inputPerMTok: 0.12, outputPerMTok: 0.8, asOf: '2026-10' },
+    enabled: false,
+  },
+  {
+    alias: 'glm-4.5-air',
+    providerId: 'openrouter',
+    modelId: 'z-ai/glm-4.5-air',
+    pricing: { inputPerMTok: 0.13, outputPerMTok: 0.85, asOf: '2026-10' },
+    enabled: false,
+  },
 
   // --- Moonshot direct (env: MOONSHOT_API_KEY) --- the OpenRouter kimi-k3
   //     mirror above runs on whichever host OpenRouter routes to; this one
