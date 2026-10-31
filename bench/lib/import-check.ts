@@ -93,10 +93,21 @@ function hasNamedExport(source: string, name: string): boolean {
   return false;
 }
 
+/** A component name counts as declared when it appears anywhere in the file
+ *  other than as a JSX tag: an import, a declaration, a destructured prop
+ *  (`{ icon: Icon }`), a parameter. Only a name that exists solely inside
+ *  `<Name ...>` tags is undeclared. Lenient on purpose: a false "undeclared"
+ *  sends the fix pass chasing nothing. */
 function declaredIn(source: string, name: string): boolean {
-  return new RegExp(`\\b(?:function\\*?|const|let|var|class)\\s+${name}\\b`).test(source)
-    || new RegExp(`\\b${name}\\s*[:=]`).test(source) // destructured or object-assigned
-    || new RegExp(`import[^;]*\\b${name}\\b[^;]*from`).test(source);
+  const re = new RegExp(`(^|[^\\w$<\\/])${name}\\b`, 'g');
+  for (const m of source.matchAll(re)) {
+    // Skip the tag forms: `<Name` and `</Name`
+    const i = m.index! + m[1].length;
+    const before = source.slice(Math.max(0, i - 2), i);
+    if (before.endsWith('<') || before.endsWith('</')) continue;
+    return true;
+  }
+  return false;
 }
 
 /** Bundler-style messages for the import mistakes in `files`. Empty when clean. */
@@ -132,8 +143,10 @@ export function checkImports(files: Record<string, string>, opts: ImportCheckOpt
     }
     if (JSX_RE.test(path)) {
       const seen = new Set<string>();
-      for (const m of source.matchAll(/<([A-Z][A-Za-z0-9_]*)(?=[\s/>])/g)) {
-        const name = m[1];
+      // `<Name` preceded by an identifier character, `)` or `]` is a type
+      // argument (forwardRef<HTMLDivElement>, useState<Item[]>), not a tag.
+      for (const m of source.matchAll(/(^|[^\w$)\]])<([A-Z][A-Za-z0-9_]*)(?=[\s/>])/g)) {
+        const name = m[2];
         if (seen.has(name)) continue;
         seen.add(name);
         if (!declaredIn(source, name)) {

@@ -10,6 +10,8 @@ import { readdir, readFile, access } from 'node:fs/promises';
 import path from 'node:path';
 import type { TrialResult } from '../types';
 import { fileStats, classifyFailure, tokensPerSecond, lintPer100 } from './quality';
+import { checkImports } from './import-check';
+import { KIT_FILES } from '@/kit';
 
 export type Quality = NonNullable<TrialResult['quality']>;
 
@@ -68,6 +70,9 @@ export async function measureRun(runDir: string, trials: TrialResult[]): Promise
     const files = await readTree(filesDir);
     if (Object.keys(files).length === 0) continue;
     const stats = fileStats(files);
+    // Recompute with the current check, so a fixed false positive clears
+    // from older runs too (the fix pass's own record stays as it was)
+    t.importIssues = checkImports(files, { kitFiles: KIT_FILES });
     const lint = await lintDir(filesDir);
     const firstFailure = t.fixRound?.triggerErrors?.[0] ?? (t.bundle && !t.bundle.ok ? t.bundle.errors[0] : null);
     t.quality = {

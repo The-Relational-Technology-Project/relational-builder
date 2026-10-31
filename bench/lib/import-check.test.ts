@@ -69,4 +69,16 @@ describe('checkImports', () => {
     };
     expect(checkImports(files)).toEqual([]);
   });
+
+  it('does not mistake type arguments or prop-passed components for undeclared tags (glm, Oct 31)', () => {
+    const files = {
+      '/src/components/ui/bottom-nav.tsx': [
+        "import * as React from 'react';",
+        'export const Nav = React.forwardRef<HTMLDivElement, { items: Array<Item> }>((props, ref) => <div ref={ref} />);',
+        'type Item = { icon: React.ComponentType; label: string };',
+        'export function NavItem({ icon: Icon, label }: Item) { const [open, setOpen] = React.useState<Item[]>([]); return <button><Icon /> {label} {open.length}</button>; }',
+      ].join('\n'),
+    };
+    expect(checkImports(files)).toEqual([]);
+  });
 });
