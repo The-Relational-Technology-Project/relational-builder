@@ -66,8 +66,13 @@ function gitCommit(): string {
 }
 
 function newRunId(sha: string): string {
-  const stamp = new Date().toISOString().slice(0, 16).replace(/:/g, '-');
-  return `${stamp}-${sha}`;
+  // Minute + commit used to be the whole id; two invocations started in the
+  // same minute on the same commit then shared a folder and overwrote each
+  // other's run.json (Oct 31, 2026). Seconds and a short random tail keep
+  // parallel runs apart while the prefix stays sortable by time.
+  const stamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+  const tail = Math.random().toString(36).slice(2, 6);
+  return `${stamp}-${sha}-${tail}`;
 }
 
 async function runTrial(
