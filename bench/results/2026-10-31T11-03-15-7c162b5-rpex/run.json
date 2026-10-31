@@ -1,0 +1,240 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1,exp-v1",
+  "gitCommit": "7c162b5",
+  "createdAt": "2026-10-31T11:06:15.797Z",
+  "runId": "2026-10-31T11-03-15-7c162b5-rpex",
+  "config": {
+    "trials": 1,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": null,
+    "importGuard": true
+  },
+  "models": [
+    {
+      "alias": "gemma-4-26b",
+      "providerId": "openrouter",
+      "modelId": "google/gemma-4-26b-a4b-it",
+      "pricing": {
+        "inputPerMTok": 0.09,
+        "outputPerMTok": 0.3,
+        "asOf": "2026-10"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "hs-community-fridge",
+      "version": "exp-v1"
+    },
+    {
+      "id": "hs-listening-wall",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "gemma-4-26b",
+      "providerId": "openrouter",
+      "modelId": "google/gemma-4-26b-a4b-it",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-10-31T11:03:15.033Z",
+      "plan": null,
+      "latencyMs": 74432,
+      "ttftMs": 1051,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 74431,
+          "chars": 13705
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 13705,
+      "estTokens": {
+        "input": 13722,
+        "output": 3427,
+        "estimated": true
+      },
+      "estCostUsd": 0.0022630799999999998,
+      "extraction": {
+        "writes": 10,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/gemma-4-26b-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/pages/Home.tsx: <List> is used but never imported or declared in this file",
+          "vfs:/src/pages/Home.tsx: <Calendar> is used but never imported or declared in this file"
+        ],
+        "solved": true,
+        "latencyMs": 14244,
+        "remainingErrors": [],
+        "estCostUsd": 0.00177396
+      },
+      "error": null,
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 179
+      },
+      "quality": {
+        "files": 9,
+        "codeFiles": 7,
+        "codeLines": 248,
+        "largestFile": "/src/pages/Home.tsx",
+        "largestFileLines": 66,
+        "anyCount": 0,
+        "kitImportingFiles": 5,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 13,
+        "lintWarnings": 0,
+        "lintPer100Lines": 5.2,
+        "tokensPerSecond": 46,
+        "fixLatencyMs": 14244,
+        "failKind": "other"
+      }
+    },
+    {
+      "alias": "gemma-4-26b",
+      "providerId": "openrouter",
+      "modelId": "google/gemma-4-26b-a4b-it",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-10-31T11:04:43.962Z",
+      "plan": null,
+      "latencyMs": 80884,
+      "ttftMs": 669,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 80883,
+          "chars": 20286
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 20286,
+      "estTokens": {
+        "input": 13713,
+        "output": 5072,
+        "estimated": true
+      },
+      "estCostUsd": 0.00275577,
+      "extraction": {
+        "writes": 10,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/gemma-4-26b-t1",
+      "fixRound": null,
+      "error": null,
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 2466
+      },
+      "quality": {
+        "files": 10,
+        "codeFiles": 8,
+        "codeLines": 444,
+        "largestFile": "/src/pages/WallPage.tsx",
+        "largestFileLines": 93,
+        "anyCount": 1,
+        "kitImportingFiles": 6,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 16,
+        "lintWarnings": 0,
+        "lintPer100Lines": 3.6,
+        "tokensPerSecond": 62.7,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    }
+  ]
+}

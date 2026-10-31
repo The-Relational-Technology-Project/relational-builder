@@ -1,0 +1,283 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1,exp-v1",
+  "gitCommit": "7c162b5",
+  "createdAt": "2026-10-31T11:07:47.152Z",
+  "runId": "2026-10-31T11-03-14-7c162b5-rejv",
+  "config": {
+    "trials": 1,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": null,
+    "importGuard": true
+  },
+  "models": [
+    {
+      "alias": "qwen3-coder-next",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-next",
+      "pricing": {
+        "inputPerMTok": 0.12,
+        "outputPerMTok": 0.8,
+        "asOf": "2026-10"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "hs-community-fridge",
+      "version": "exp-v1"
+    },
+    {
+      "id": "hs-listening-wall",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "qwen3-coder-next",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-next",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-10-31T11:03:14.484Z",
+      "plan": null,
+      "latencyMs": 119317,
+      "ttftMs": 1893,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 119316,
+          "chars": 32481
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 32481,
+      "estTokens": {
+        "input": 13722,
+        "output": 8121,
+        "estimated": true
+      },
+      "estCostUsd": 0.00814344,
+      "extraction": {
+        "writes": 27,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": false,
+        "errors": [
+          "vfs:/src/components/ShiftCalendar.tsx:4: No matching export in \"vfs:/src/components/ui/empty-state.tsx\" for import \"default\"",
+          "vfs:/src/components/StockList.tsx:4: No matching export in \"vfs:/src/components/ui/empty-state.tsx\" for import \"default\"",
+          "vfs:/src/components/StockList.tsx:5: No matching export in \"vfs:/src/components/ui/badge.tsx\" for import \"default\""
+        ]
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/qwen3-coder-next-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/pages/StatusDashboard.tsx:27: Unexpected closing \"p\" tag does not match opening \"strong\" tag",
+          "vfs:/src/pages/StatusDashboard.tsx:36: Unexpected closing \"div\" tag does not match opening \"p\" tag",
+          "vfs:/src/pages/StatusDashboard.tsx:48: The character \"}\" is not valid inside a JSX element",
+          "vfs:/src/pages/StatusDashboard.tsx:50: Unexpected end of file before a closing \"div\" tag",
+          "vfs:/src/pages/StatusDashboard.tsx: No matching export in \"lucide-react\" for import \"Fridge\" (not a lucide icon name; pick a real one)",
+          "vfs:/src/pages/StatusDashboard.tsx: No matching export in \"vfs:/src/components/ui/button.tsx\" for import \"default\" (it exports names only)",
+          "vfs:/src/pages/StatusDashboard.tsx: <StatusDashboardProps> is used but never imported or declared in this file",
+          "vfs:/src/pages/StockUpdates.tsx: No matching export in \"vfs:/src/components/ui/button.tsx\" for import \"default\" (it exports names only)",
+          "vfs:/src/pages/StockUpdates.tsx: <StockUpdatesProps> is used but never imported or declared in this file",
+          "vfs:/src/pages/VolunteerShifts.tsx: No matching export in \"vfs:/src/components/ui/button.tsx\" for import \"default\" (it exports names only)",
+          "vfs:/src/pages/VolunteerShifts.tsx: <VolunteerShiftsProps> is used but never imported or declared in this file",
+          "vfs:/src/components/BottomNav.tsx: <BottomNavProps> is used but never imported or declared in this file",
+          "vfs:/src/components/StatusBadge.tsx: No matching export in \"lucide-react\" for import \"Fridge\" (not a lucide icon name; pick a real one)",
+          "vfs:/src/components/StatusBadge.tsx: <StatusBadgeProps> is used but never imported or declared in this file",
+          "vfs:/src/components/StockList.tsx: No matching export in \"vfs:/src/components/ui/empty-state.tsx\" for import \"default\" (it exports names only)",
+          "vfs:/src/components/StockList.tsx: No matching export in \"vfs:/src/components/ui/badge.tsx\" for import \"default\" (it exports names only)",
+          "vfs:/src/components/StockList.tsx: <StockListProps> is used but never imported or declared in this file",
+          "vfs:/src/components/StockForm.tsx: No matching export in \"vfs:/src/components/ui/button.tsx\" for import \"default\" (it exports names only)",
+          "vfs:/src/components/StockForm.tsx: <StockFormProps> is used but never imported or declared in this file",
+          "vfs:/src/components/ShiftCalendar.tsx: No matching export in \"vfs:/src/components/ui/button.tsx\" for import \"default\" (it exports names only)",
+          "vfs:/src/components/ShiftCalendar.tsx: No matching export in \"vfs:/src/components/ui/empty-state.tsx\" for import \"default\" (it exports names only)",
+          "vfs:/src/components/ShiftCalendar.tsx: <ShiftCalendarProps> is used but never imported or declared in this file"
+        ],
+        "solved": false,
+        "latencyMs": 50794,
+        "remainingErrors": [
+          "vfs:/src/components/ShiftCalendar.tsx:4: No matching export in \"vfs:/src/components/ui/empty-state.tsx\" for import \"default\"",
+          "vfs:/src/components/StockList.tsx:4: No matching export in \"vfs:/src/components/ui/empty-state.tsx\" for import \"default\"",
+          "vfs:/src/components/StockList.tsx:5: No matching export in \"vfs:/src/components/ui/badge.tsx\" for import \"default\"",
+          "vfs:/src/pages/StatusDashboard.tsx: <StatusDashboardProps> is used but never imported or declared in this file",
+          "vfs:/src/pages/StockUpdates.tsx: <StockUpdatesProps> is used but never imported or declared in this file",
+          "vfs:/src/pages/VolunteerShifts.tsx: <VolunteerShiftsProps> is used but never imported or declared in this file",
+          "vfs:/src/components/BottomNav.tsx: <BottomNavProps> is used but never imported or declared in this file",
+          "vfs:/src/components/StatusBadge.tsx: <StatusBadgeProps> is used but never imported or declared in this file",
+          "vfs:/src/components/StockList.tsx: No matching export in \"vfs:/src/components/ui/empty-state.tsx\" for import \"default\" (it exports names only)",
+          "vfs:/src/components/StockList.tsx: No matching export in \"vfs:/src/components/ui/badge.tsx\" for import \"default\" (it exports names only)",
+          "vfs:/src/components/StockList.tsx: <StockListProps> is used but never imported or declared in this file",
+          "vfs:/src/components/StockForm.tsx: <StockFormProps> is used but never imported or declared in this file",
+          "vfs:/src/components/ShiftCalendar.tsx: No matching export in \"vfs:/src/components/ui/empty-state.tsx\" for import \"default\" (it exports names only)",
+          "vfs:/src/components/ShiftCalendar.tsx: <ShiftCalendarProps> is used but never imported or declared in this file"
+        ],
+        "estCostUsd": 0.0059678
+      },
+      "error": null,
+      "importIssues": [
+        "vfs:/src/pages/StatusDashboard.tsx: <StatusDashboardProps> is used but never imported or declared in this file",
+        "vfs:/src/pages/StockUpdates.tsx: <StockUpdatesProps> is used but never imported or declared in this file",
+        "vfs:/src/pages/VolunteerShifts.tsx: <VolunteerShiftsProps> is used but never imported or declared in this file",
+        "vfs:/src/components/BottomNav.tsx: <BottomNavProps> is used but never imported or declared in this file",
+        "vfs:/src/components/StatusBadge.tsx: <StatusBadgeProps> is used but never imported or declared in this file",
+        "vfs:/src/components/StockList.tsx: No matching export in \"vfs:/src/components/ui/empty-state.tsx\" for import \"default\" (it exports names only)",
+        "vfs:/src/components/StockList.tsx: No matching export in \"vfs:/src/components/ui/badge.tsx\" for import \"default\" (it exports names only)",
+        "vfs:/src/components/StockList.tsx: <StockListProps> is used but never imported or declared in this file",
+        "vfs:/src/components/StockForm.tsx: <StockFormProps> is used but never imported or declared in this file",
+        "vfs:/src/components/ShiftCalendar.tsx: No matching export in \"vfs:/src/components/ui/empty-state.tsx\" for import \"default\" (it exports names only)",
+        "vfs:/src/components/ShiftCalendar.tsx: <ShiftCalendarProps> is used but never imported or declared in this file"
+      ],
+      "quality": {
+        "files": 19,
+        "codeFiles": 13,
+        "codeLines": 669,
+        "largestFile": "/src/components/ShiftCalendar.tsx",
+        "largestFileLines": 117,
+        "anyCount": 0,
+        "kitImportingFiles": 6,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 14,
+        "lintWarnings": 0,
+        "lintPer100Lines": 2.1,
+        "tokensPerSecond": 68.1,
+        "fixLatencyMs": 50794,
+        "failKind": "other"
+      }
+    },
+    {
+      "alias": "qwen3-coder-next",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-next",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-10-31T11:06:04.862Z",
+      "plan": null,
+      "latencyMs": 96090,
+      "ttftMs": 814,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 96089,
+          "chars": 31392
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 31392,
+      "estTokens": {
+        "input": 13713,
+        "output": 7848,
+        "estimated": true
+      },
+      "estCostUsd": 0.00792396,
+      "extraction": {
+        "writes": 1,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "sandpack",
+      "previewKindMatch": false,
+      "bundle": null,
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": false
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": false
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/qwen3-coder-next-t1",
+      "fixRound": null,
+      "error": null,
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 6786
+      },
+      "quality": {
+        "files": 1,
+        "codeFiles": 0,
+        "codeLines": 0,
+        "largestFile": null,
+        "largestFileLines": 0,
+        "anyCount": 0,
+        "kitImportingFiles": 0,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 0,
+        "lintWarnings": 0,
+        "lintPer100Lines": null,
+        "tokensPerSecond": 81.7,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    }
+  ]
+}
