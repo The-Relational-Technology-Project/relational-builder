@@ -1,0 +1,118 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1",
+  "gitCommit": "61b1f48",
+  "createdAt": "2026-10-31T10:47:06.015Z",
+  "runId": "2026-10-31T10-45-61b1f48",
+  "config": {
+    "trials": 1,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": null
+  },
+  "models": [
+    {
+      "alias": "gpt-oss-120b",
+      "providerId": "openrouter",
+      "modelId": "openai/gpt-oss-120b",
+      "pricing": {
+        "inputPerMTok": 0.15,
+        "outputPerMTok": 0.6,
+        "asOf": "2026-10"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "hs-listening-wall",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "gpt-oss-120b",
+      "providerId": "openrouter",
+      "modelId": "openai/gpt-oss-120b",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-10-31T10:45:09.665Z",
+      "plan": null,
+      "latencyMs": 111470,
+      "ttftMs": 16240,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 89988,
+          "chars": 15073
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 21480,
+          "chars": 214
+        }
+      ],
+      "continuations": 1,
+      "truncatedFinal": false,
+      "outputChars": 15287,
+      "estTokens": {
+        "input": 31328,
+        "output": 3822,
+        "estimated": true
+      },
+      "estCostUsd": 0.006992399999999999,
+      "extraction": {
+        "writes": 10,
+        "editBlocks": 1,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/gpt-oss-120b-t1",
+      "fixRound": null,
+      "error": null,
+      "runtime": {
+        "rendered": false,
+        "errors": [
+          "pageerror: The requested module 'zustand' does not provide an export named 'default'"
+        ],
+        "bodyChars": 0
+      }
+    }
+  ]
+}
