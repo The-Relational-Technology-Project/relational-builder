@@ -186,8 +186,9 @@ stack layer it moved; pace paid work at $3 to $5 a day.
 8. **Kit helper in a real build.** Needs a builder key and a signed-in
    Builder; may need Josh in the room.
 9. **Research rotation, when 15 minutes are left.** Next: the Hugging Face
-   SLM overview (which 1B to 8B models fit an 8 GB laptop), then Bendor et
-   al. "Small AI". Hooker is done (LOG, Oct 31): her evidence is
+   small-model overview itself (fetch from huggingface.co/blog; Oct 31
+   found only third-party laptop guides, noted in LOG), then Bendor et al.
+   "Small AI". Hooker is done (LOG, Oct 31): her evidence is
    newer-small beats older-large, and "cost of adaptability" is the number
    to track for the builder model.
 

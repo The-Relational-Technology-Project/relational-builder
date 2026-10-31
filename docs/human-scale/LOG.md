@@ -203,6 +203,19 @@ other's record (gemma's first wall run); run ids now carry seconds and a
 random tail, and gemma was rerun. `tsc` over generated files is still not
 measured; lint carries the code-quality axis for now.
 
+**Research rotation, second slot (10 minutes left): the Hugging Face small
+model overview.** Not located this run: a web search turned up third-party
+laptop guides, not the Hugging Face post NEXT meant. What those guides
+agree on, unverified against model cards: on an 8 GB laptop the usable
+range is 4B to 9B parameters at 4-bit quantization (Qwen3.5 4B and 9B,
+Gemma 3 4B, Llama 3.2 3B, Phi-4 Mini, Ministral 8B are the names that
+recur), 16 GB is comfortable, and OS plus apps must be counted. For the
+runbook that means the local runtime default (`qwen2.5:7b`) is in range
+but old; a 2026 4B to 9B model should replace it once one is tried on a
+real box. Tomorrow's rotation should fetch the Hugging Face post itself
+(search huggingface.co/blog for "small language models") rather than the
+guides.
+
 **Research rotation: Hooker, "On the Slow Death of Scaling" (2025/26).**
 Read through two secondary pages (Jason McEwen's summary, Andreas Kirsch's
 critical riff); the essay itself is on SSRN (abstract 5877662) and was not
