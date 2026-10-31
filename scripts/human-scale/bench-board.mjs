@@ -98,7 +98,9 @@ function trialRows(runs, hand) {
       const fromReview = review && review.scores && review.scores[t.alias] ? review.scores[t.alias] : {};
       const fromHand = hand.find(h => name.startsWith(h.run) && h.task === t.taskId && h.model === t.alias) || {};
       const score = k => fromHand[k] ?? fromReview[k];
+      const guarded = !!(run.config && run.config.importGuard);
       rows.push({
+        guarded,
         runName: name,
         runDir: dir,
         date: day(t.startedAt || run.createdAt),
@@ -212,6 +214,7 @@ async function main() {
     '',
     `**Comparison prompts:** ${COMPARE_TASKS.map(t => `\`${t}\``).join(' and ')}. Models are compared on these two;`,
     'other tasks appear below as they were run. Scores: D design, R RTP fit, C completeness, each 1 to 5.',
+    '"(import guard)" marks runs where the static import check fed the fix pass (from Oct 31, 2026); compare them with the unguarded row for the same model and prompt.',
     '',
     '## Models tested',
     '',
@@ -231,10 +234,10 @@ async function main() {
     if (withShots.length) {
       lines.push(
         '<p>',
-        ...withShots.map(r => `<a href="${r.shot}"><img src="${r.shot}" width="230" alt="${r.alias} ${r.date}" title="${r.alias} · ${r.date} · ${r.result}"></a>`),
+        ...withShots.map(r => `<a href="${r.shot}"><img src="${r.shot}" width="230" alt="${r.alias} ${r.date}" title="${r.alias} · ${r.date}${r.guarded ? ' · import guard' : ''} · ${r.result}"></a>`),
         '</p>',
         '',
-        withShots.map(r => `${r.alias} (${r.date})`).join(' · '),
+        withShots.map(r => `${r.alias}${r.guarded ? ' +guard' : ''} (${r.date})`).join(' · '),
         '',
       );
     }
@@ -242,7 +245,7 @@ async function main() {
       '| Date | Model | Result | Checks | Build time | Est. cost | Code | Scores | Notes | Shot | Report |',
       '|---|---|---|---|---|---|---|---|---|---|---|',
       ...rs.map(r =>
-        `| ${r.date} | ${r.alias} | ${r.result}${r.truncated ? ', truncated' : ''}${r.security ? `, ${r.security} security flag(s)` : ''} | ${r.checks} | ${secs(r.latencyMs)} | ${usd(r.estCostUsd)} | ${r.code} | ${scoreCell(r)} | ${r.notes.replace(/\|/g, '/')} | ${r.hasShot ? `[png](${r.shot})` : ''} | [report](${r.report}) |`,
+        `| ${r.date} | ${r.alias}${r.guarded ? ' (import guard)' : ''} | ${r.result}${r.truncated ? ', truncated' : ''}${r.security ? `, ${r.security} security flag(s)` : ''} | ${r.checks} | ${secs(r.latencyMs)} | ${usd(r.estCostUsd)} | ${r.code} | ${scoreCell(r)} | ${r.notes.replace(/\|/g, '/')} | ${r.hasShot ? `[png](${r.shot})` : ''} | [report](${r.report}) |`,
       ),
       '',
     );

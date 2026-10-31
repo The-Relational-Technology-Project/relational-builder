@@ -188,7 +188,7 @@ ${aliases
 
 - **Tasks:** ${taskIds.join(', ')} (harness ${run.harnessVersion}, commit \`${run.gitCommit}\`)
 - **Date:** ${run.createdAt}
-- **Trials per model per task:** ${run.config.trials}${planFirst ? ' · **plan-first flow** (plan-mode reply precedes each build, same model)' : ''}${studio ? `\n- **Studio frame:** \`${studio}\` — built with the studio's frame + private library in context, as an approved member sees it` : ''}
+- **Trials per model per task:** ${run.config.trials}${run.config.importGuard ? '\n- **Import guard:** on (static import check feeds the fix pass)' : ''}${planFirst ? ' · **plan-first flow** (plan-mode reply precedes each build, same model)' : ''}${studio ? `\n- **Studio frame:** \`${studio}\` — built with the studio's frame + private library in context, as an approved member sees it` : ''}
 - **Human review:** ${human ? `scored by ${human.reviewer}` : '_pending_'}
 
 > Cost and token figures are **estimates** (chars ÷ 4 × list prices) — directional, not billing-grade.
