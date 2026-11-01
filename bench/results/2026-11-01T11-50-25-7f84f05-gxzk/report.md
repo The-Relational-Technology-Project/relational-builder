@@ -14,7 +14,7 @@
 
 | Model | Bundle | First try | Renders | Fix | Fail kind | Files | Failed edits | Truncated | Checks | Sec flags | Lint/100 | tsc errors | Largest file | any | Kit files | tok/s | TTFT | Build time | Fix time | Total | ~$ | |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| glm-4.5-air | 1/1 ✓ | 0/1 | 1/1 clean | 1/1 solved | bad-import | 15 | 0 | no | 5/5 | 0 | 0.5 | 11 | 176 lines | 0 | 3/13 | 92.1 | 7s | 66s | 23s | 66s | 0.01 |
+| glm-4.5-air | 1/1 ✓ | 0/1 | 1/1 clean | 1/1 solved | bad-import | 15 | 0 | no | 5/5 | 0 | 0.5 | 3 | 176 lines | 0 | 3/13 | 92.1 | 7s | 66s | 23s | 66s | 0.01 |
 
 ### Task: hs-listening-wall (exp-v1)
 

@@ -252,7 +252,7 @@
         "lintErrors": 5,
         "lintWarnings": 0,
         "lintPer100Lines": 1.5,
-        "tscErrors": 4,
+        "tscErrors": 0,
         "tokensPerSecond": 59.2,
         "fixLatencyMs": 47082,
         "failKind": "bad-import"

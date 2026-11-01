@@ -128,7 +128,7 @@
         "lintErrors": 34,
         "lintWarnings": 0,
         "lintPer100Lines": 2.2,
-        "tscErrors": 27,
+        "tscErrors": 3,
         "tokensPerSecond": 85.8,
         "fixLatencyMs": null,
         "failKind": null

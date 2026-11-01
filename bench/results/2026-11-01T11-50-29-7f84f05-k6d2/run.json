@@ -240,7 +240,7 @@
         "lintErrors": 5,
         "lintWarnings": 0,
         "lintPer100Lines": 1.3,
-        "tscErrors": 5,
+        "tscErrors": 2,
         "tokensPerSecond": 87.5,
         "fixLatencyMs": null,
         "failKind": null

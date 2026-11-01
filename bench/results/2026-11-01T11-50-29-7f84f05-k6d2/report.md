@@ -20,7 +20,7 @@
 
 | Model | Bundle | First try | Renders | Fix | Fail kind | Files | Failed edits | Truncated | Checks | Sec flags | Lint/100 | tsc errors | Largest file | any | Kit files | tok/s | TTFT | Build time | Fix time | Total | ~$ | |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| gpt-oss-120b | 1/1 ✓ | 1/1 | 0/1 clean, 1 blank | — | — | 10 | 0 | no | 4/5 | 0 | 1.3 | 5 | 148 lines | 0 | 5/8 | 87.5 | 7s | 49s | — | 49s | 0.00 |
+| gpt-oss-120b | 1/1 ✓ | 1/1 | 0/1 clean, 1 blank | — | — | 10 | 0 | no | 4/5 | 0 | 1.3 | 2 | 148 lines | 0 | 5/8 | 87.5 | 7s | 49s | — | 49s | 0.00 |
 
 ## Human review
 

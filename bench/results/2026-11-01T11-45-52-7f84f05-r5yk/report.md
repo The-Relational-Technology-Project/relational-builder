@@ -14,7 +14,7 @@
 
 | Model | Bundle | First try | Renders | Fix | Fail kind | Files | Failed edits | Truncated | Checks | Sec flags | Lint/100 | tsc errors | Largest file | any | Kit files | tok/s | TTFT | Build time | Fix time | Total | ~$ | |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| qwen3-coder-next | 1/1 ✓ | 1/1 | 0/1 clean | — | — | 26 | 0 | no | 5/5 | 0 | 2.2 | 27 | 199 lines | 2 | 6/23 | 85.8 | 2s | 166s | — | 166s | 0.01 |
+| qwen3-coder-next | 1/1 ✓ | 1/1 | 0/1 clean | — | — | 26 | 0 | no | 5/5 | 0 | 2.2 | 3 | 199 lines | 2 | 6/23 | 85.8 | 2s | 166s | — | 166s | 0.01 |
 
 ### Task: hs-listening-wall (exp-v1)
 

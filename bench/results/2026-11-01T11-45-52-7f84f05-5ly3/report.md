@@ -20,7 +20,7 @@
 
 | Model | Bundle | First try | Renders | Fix | Fail kind | Files | Failed edits | Truncated | Checks | Sec flags | Lint/100 | tsc errors | Largest file | any | Kit files | tok/s | TTFT | Build time | Fix time | Total | ~$ | |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| gemma-4-26b | 1/1 ✓ | 0/1 | 1/1 clean | 1/1 solved | bad-import | 7 | 0 | no | 4/5 | 0 | 1.5 | 4 | 222 lines | 1 | 1/4 | 59.2 | 1s | 78s | 47s | 78s | 0.00 |
+| gemma-4-26b | 1/1 ✓ | 0/1 | 1/1 clean | 1/1 solved | bad-import | 7 | 0 | no | 4/5 | 0 | 1.5 | 0 | 222 lines | 1 | 1/4 | 59.2 | 1s | 78s | 47s | 78s | 0.00 |
 
 ## Human review
 
