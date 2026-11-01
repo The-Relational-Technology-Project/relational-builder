@@ -115,6 +115,8 @@ function trialRows(runs, hand) {
         modelId: t.modelId,
         bundled,
         rendersClean: !!(bundled && rt && rt.rendered && rt.errors.length === 0 && t.previewKindMatch !== false),
+        outcome: outcomeOf(t),
+        fixLatencyMs: t.fixRound && t.fixRound.attempted ? t.fixRound.latencyMs : null,
         code,
         lintPer100: q ? q.lintPer100Lines : null,
         tokensPerSecond: q ? q.tokensPerSecond : null,
@@ -139,6 +141,31 @@ function trialRows(runs, hand) {
     }
   }
   return rows;
+}
+
+/** One word for how a build ended, for the rates table. The order matters:
+ *  the first thing that went wrong is what the build died of. */
+function outcomeOf(t) {
+  if (t.error) return 'harness-error';
+  if (t.previewKindMatch === false) return 'wrong-shape';
+  const bundled = !!(t.bundle && t.bundle.ok);
+  const fr = t.fixRound && t.fixRound.attempted ? t.fixRound : null;
+  const text = [...((fr && fr.triggerErrors) || []), ...((fr && fr.remainingErrors) || []), ...((t.bundle && t.bundle.errors) || [])].join('\n');
+  const importKind = s =>
+    /Could not find "/.test(s) ? 'missing-file'
+    : /is used but never imported|React is not defined|is not defined/.test(s) ? 'undeclared'
+    : /No matching export|does not provide an export/.test(s) ? 'bad-import'
+    : /Expected .* but found|Unexpected|not valid inside|Unterminated/.test(s) ? 'syntax'
+    : null;
+  if (!bundled) return importKind(text) || 'no-bundle';
+  const rt = t.runtime || null;
+  if (!rt) return 'bundled-unchecked';
+  if (!rt.rendered) {
+    const k = importKind((rt.errors || []).join('\n'));
+    return k ? `blank-${k}` : 'blank-runtime';
+  }
+  if (rt.errors && rt.errors.length) return 'renders-with-errors';
+  return 'clean';
 }
 
 function scoreCell(r) {
@@ -229,6 +256,28 @@ async function main() {
     '"Bundled" is the compiler\'s view. "Renders clean" is the browser\'s: the built app opened with visible content and no uncaught errors (checked from Oct 30, 2026; n/a before). A build can pass the first and fail the second, which is why the screenshots matter.',
     '',
   );
+
+  // Rates over guarded runs on the comparison prompts: the table that answers
+  // "how often does this model produce a working app, and how does it fail"
+  const guardedRows = builds.filter(r => r.guarded && COMPARE_TASKS.includes(r.taskId));
+  if (guardedRows.length) {
+    const byM = new Map();
+    for (const r of guardedRows) { if (!byM.has(r.alias)) byM.set(r.alias, []); byM.get(r.alias).push(r); }
+    const kinds = [...new Set(guardedRows.map(r => r.outcome))].filter(k => k !== 'clean').sort();
+    lines.push(
+      '## Guarded runs on the comparison prompts: rates per model',
+      '',
+      'Only runs with the import guard on (Oct 31 onward), both comparison prompts, all trials. "Clean" means bundled, opened in a browser with visible content and no errors, in the shape the prompt asked for. Each other column is the share of builds that ended that way; a build counts once, under the first thing that went wrong. Fix time is the median wall time of the automatic fix pass when one ran.',
+      '',
+      `| Model | Builds | Clean | ${kinds.join(' | ')} | Median build | Median fix | Median est. cost |`,
+      `|---|---|---|${kinds.map(() => '---|').join('')}---|---|---|`,
+      ...[...byM.entries()].sort((a, b) => b[1].filter(r => r.outcome === 'clean').length / b[1].length - a[1].filter(r => r.outcome === 'clean').length / a[1].length).map(([alias, rs]) => {
+        const share = k => pct(rs.filter(r => r.outcome === k).length, rs.length) || '0%';
+        return `| ${alias} | ${rs.length} | **${share('clean')}** | ${kinds.map(share).join(' | ')} | ${secs(median(rs.map(r => r.latencyMs)))} | ${secs(median(rs.map(r => r.fixLatencyMs)))} | ${usd(median(rs.map(r => r.estCostUsd)))} |`;
+      }),
+      '',
+    );
+  }
 
   for (const taskId of taskOrder) {
     const rs = byTask.get(taskId).sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : a.alias.localeCompare(b.alias)));
