@@ -1,0 +1,247 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1,exp-v1",
+  "gitCommit": "b81e689",
+  "createdAt": "2026-11-01T12:03:54.095Z",
+  "runId": "2026-11-01T12-00-20-b81e689-dox3",
+  "config": {
+    "trials": 1,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": null,
+    "importGuard": true
+  },
+  "models": [
+    {
+      "alias": "gpt-oss-120b",
+      "providerId": "openrouter",
+      "modelId": "openai/gpt-oss-120b",
+      "pricing": {
+        "inputPerMTok": 0.15,
+        "outputPerMTok": 0.6,
+        "asOf": "2026-10"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "hs-community-fridge",
+      "version": "exp-v1"
+    },
+    {
+      "id": "hs-listening-wall",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "gpt-oss-120b",
+      "providerId": "openrouter",
+      "modelId": "openai/gpt-oss-120b",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-01T12:00:20.096Z",
+      "plan": null,
+      "latencyMs": 122663,
+      "ttftMs": 19117,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 122661,
+          "chars": 20331
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 20331,
+      "estTokens": {
+        "input": 14046,
+        "output": 5083,
+        "estimated": true
+      },
+      "estCostUsd": 0.005156699999999999,
+      "extraction": {
+        "writes": 17,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/gpt-oss-120b-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/App.tsx:4: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"Select\"",
+          "vfs:/src/components/PostForm.tsx:4: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"Select\"",
+          "vfs:/src/App.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"Select\"",
+          "vfs:/src/components/PostForm.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"Select\""
+        ],
+        "solved": true,
+        "latencyMs": 20464,
+        "remainingErrors": [],
+        "estCostUsd": 0.0032442
+      },
+      "error": null,
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 459
+      },
+      "quality": {
+        "files": 16,
+        "codeFiles": 14,
+        "codeLines": 575,
+        "largestFile": "/src/store.ts",
+        "largestFileLines": 92,
+        "anyCount": 1,
+        "kitImportingFiles": 4,
+        "handRolledUiFiles": 7,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 7,
+        "lintWarnings": 0,
+        "lintPer100Lines": 1.2,
+        "tscErrors": 0,
+        "tokensPerSecond": 41.4,
+        "fixLatencyMs": 20464,
+        "failKind": "bad-import"
+      }
+    },
+    {
+      "alias": "gpt-oss-120b",
+      "providerId": "openrouter",
+      "modelId": "openai/gpt-oss-120b",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-01T12:02:43.521Z",
+      "plan": null,
+      "latencyMs": 54801,
+      "ttftMs": 7481,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 54801,
+          "chars": 16320
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 16320,
+      "estTokens": {
+        "input": 14036,
+        "output": 4080,
+        "estimated": true
+      },
+      "estCostUsd": 0.0045534,
+      "extraction": {
+        "writes": 7,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": false
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/gpt-oss-120b-t1",
+      "fixRound": null,
+      "error": null,
+      "importIssues": [],
+      "runtime": {
+        "rendered": false,
+        "errors": [
+          "console: Error at B (https://esm.sh/@remix-run/router@1.23.0/es2022/router.mjs:2:2356) at re (https://esm.sh/react-router@6.30.0/X-ZXJlYWN0/es2022/react-router.mjs:2:12854) at Hi (https://esm.sh/react-dom@18.3.1/X-ZXJlYWN0/es2022",
+          "pageerror: Error"
+        ],
+        "bodyChars": 0
+      },
+      "quality": {
+        "files": 7,
+        "codeFiles": 5,
+        "codeLines": 263,
+        "largestFile": "/src/pages/ListeningWall.tsx",
+        "largestFileLines": 107,
+        "anyCount": 0,
+        "kitImportingFiles": 2,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 1,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.4,
+        "tscErrors": 0,
+        "tokensPerSecond": 74.5,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    }
+  ]
+}

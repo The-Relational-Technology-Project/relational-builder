@@ -2,7 +2,7 @@
   "harnessVersion": "1.2.0",
   "taskVersion": "exp-v1,exp-v1",
   "gitCommit": "218157a",
-  "createdAt": "2026-11-01T11:58:26.519Z",
+  "createdAt": "2026-11-01T12:00:17.922Z",
   "runId": "2026-11-01T11-57-13-218157a-j9cr",
   "config": {
     "trials": 1,
@@ -135,7 +135,125 @@
         "vfs:/src/pages/PostPage.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectItem\"",
         "vfs:/src/pages/PostPage.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectTrigger\"",
         "vfs:/src/pages/PostPage.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectValue\""
-      ]
+      ],
+      "quality": {
+        "files": 10,
+        "codeFiles": 8,
+        "codeLines": 342,
+        "largestFile": "/src/pages/HomePage.tsx",
+        "largestFileLines": 77,
+        "anyCount": 3,
+        "kitImportingFiles": 5,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 10,
+        "lintWarnings": 0,
+        "lintPer100Lines": 2.9,
+        "tscErrors": 20,
+        "tokensPerSecond": 91.6,
+        "fixLatencyMs": 31684,
+        "failKind": "missing-file"
+      }
+    },
+    {
+      "alias": "gemma-4-26b",
+      "providerId": "openrouter",
+      "modelId": "google/gemma-4-26b-a4b-it",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-01T11:58:26.520Z",
+      "plan": null,
+      "latencyMs": 102951,
+      "ttftMs": 642,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 102951,
+          "chars": 23905
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 23905,
+      "estTokens": {
+        "input": 14036,
+        "output": 5977,
+        "estimated": true
+      },
+      "estCostUsd": 0.0030563399999999994,
+      "extraction": {
+        "writes": 6,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/gemma-4-26b-t1",
+      "fixRound": null,
+      "error": null,
+      "importIssues": [],
+      "runtime": {
+        "rendered": false,
+        "errors": [
+          "console: ReferenceError: React is not defined at WallPage (file:///home/user/relational-builder/bench/results/2026-11-01T11-57-13-218157a-j9cr/artifacts/hs-listening-wall/gemma-4-26b-t1/preview.html:630:35) at Hi (https://esm.sh/",
+          "pageerror: React is not defined"
+        ],
+        "bodyChars": 0
+      },
+      "quality": {
+        "files": 6,
+        "codeFiles": 4,
+        "codeLines": 398,
+        "largestFile": "/src/App.tsx",
+        "largestFileLines": 246,
+        "anyCount": 0,
+        "kitImportingFiles": 1,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 5,
+        "lintWarnings": 0,
+        "lintPer100Lines": 1.3,
+        "tscErrors": 10,
+        "tokensPerSecond": 58,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
     }
   ]
 }
