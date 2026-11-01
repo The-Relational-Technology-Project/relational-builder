@@ -79,6 +79,17 @@ describe('checkImports', () => {
     expect(checkImports(files)).toEqual([]);
   });
 
+  it('flags React.* used without importing React (gemma, Nov 1)', () => {
+    const bad = { '/src/Wall.tsx': "export function Wall() { const [n, setN] = React.useState(0); return <button onClick={() => setN(n + 1)}>{n}</button>; }" };
+    expect(checkImports(bad).some(i => i.includes('React is not defined'))).toBe(true);
+    const ok1 = { '/src/Wall.tsx': "import React from 'react';\nexport function Wall() { const [n] = React.useState(0); return <b>{n}</b>; }" };
+    const ok2 = { '/src/Wall.tsx': "import * as React from 'react';\nexport function Wall() { const [n] = React.useState(0); return <b>{n}</b>; }" };
+    const ok3 = { '/src/Wall.tsx': "import React, { useState } from 'react';\nexport function Wall() { const [n] = useState(0); return <b>{React.version}{n}</b>; }" };
+    expect(checkImports(ok1)).toEqual([]);
+    expect(checkImports(ok2)).toEqual([]);
+    expect(checkImports(ok3)).toEqual([]);
+  });
+
   it('does not mistake type arguments or prop-passed components for undeclared tags (glm, Oct 31)', () => {
     const files = {
       '/src/components/ui/bottom-nav.tsx': [

@@ -12,6 +12,9 @@
  *     the file
  *  4. a relative or `@/` import that resolves to no project or kit file,
  *     or names an export the target does not have
+ *  5. `React.` used (React.useState, React.FC) with no `import React` or
+ *     `import * as React` in the file; the automatic JSX runtime makes the
+ *     JSX itself work, so this only shows at runtime (gemma, Nov 1, 2026)
  *
  * Pure: files in, messages out. No bundling, no network. Lives in the
  * product (src/project) so the preview's guardrail and the bench measure
@@ -155,6 +158,11 @@ export function checkImports(files: Record<string, string>, opts: ImportCheckOpt
       for (const n of st.named) {
         if (!hasNamedExport(target, n)) issues.push(`vfs:${path}: No matching export in "vfs:${resolved}" for import "${n}"`);
       }
+    }
+    if (CODE_RE.test(path) && /\bReact\./.test(source)) {
+      const importsReact = /import\s+(?:React\b|\*\s+as\s+React\b|React\s*,)/.test(source)
+        || /import\s+type\s+React\b/.test(source);
+      if (!importsReact) issues.push(`vfs:${path}: ReferenceError: React is not defined (uses React.* with no \`import React from 'react'\` or \`import * as React from 'react'\`)`);
     }
     if (JSX_RE.test(path)) {
       const seen = new Set<string>();
