@@ -19,6 +19,8 @@ import {
 import { formatReferenceDocsForPrompt } from './references-prompt';
 import type { ReferenceDoc } from '@/store/references-store';
 import { splitProjectSnapshot, formatChangedFilesForPrompt } from './snapshot-split';
+import { isHumanScale } from '@/human-scale/flag';
+import { HUMAN_SCALE_BUILD_RULES } from '@/human-scale/prompt';
 
 /**
  * Builds the system prompt by combining the base instructions,
@@ -750,6 +752,9 @@ export function buildPromptContext(
                 : PLAN_INSTRUCTIONS
       : BASE_INSTRUCTIONS;
   const sections = [base, '', formatPrinciplesForPrompt()];
+  // Human-scale branch: import discipline for small open models (see
+  // src/human-scale/prompt.ts); build mode only, off unless the flag is on
+  if (base === BASE_INSTRUCTIONS && isHumanScale()) sections.push('', HUMAN_SCALE_BUILD_RULES);
   if (options.builderProfilePage && base !== PROFILE_PLAN_INSTRUCTIONS) {
     sections.push('', PROFILE_PROJECT_GUIDANCE);
   }

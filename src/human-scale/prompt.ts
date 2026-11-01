@@ -7,6 +7,24 @@
 
 import { describeRuntime, type ProjectRuntime } from './runtime';
 
+/**
+ * Build rules added to the system prompt when the flag is on. Written for
+ * small open models from what the bench saw them do (Oct 30 and 31, 2026):
+ * every failure on the comparison prompts was an import, and the two the
+ * static guard cannot repair are a file named but never written and an app
+ * collapsed into one HTML file. Opus does not need these; they cost it
+ * nothing. Measured by the bench with VITE_HUMAN_SCALE=1.
+ */
+export const HUMAN_SCALE_BUILD_RULES = [
+  '## Imports, exactly (this build is checked by a static import pass before it is shown)',
+  '',
+  '- Every file you import must be in this same reply. Before you finish, read back every `import` line you wrote and confirm the file exists in the reply or in the kit. A page you planned but did not write is a blank screen.',
+  '- The kit components export NAMES, never a default: `import { Button } from \'@/components/ui/button\'`, `import { AppBar, AppBarTitle } from \'@/components/ui/app-bar\'`, `import { EmptyState } from \'@/components/ui/empty-state\'`. `select` is a styled native `<select>`: there is no `SelectContent` or `SelectItem`; use `<option>`. `avatar` has no `AvatarFallback`; use `<Avatar name=... />`.',
+  '- `zustand` and `lucide-react` export names only: `import { create } from \'zustand\'`, `import { Calendar, Users } from \'lucide-react\'`. Only import icons that exist in lucide-react; when unsure, use a common one (Calendar, Users, Plus, Check, MapPin, Heart, Home, List).',
+  '- Every component you use in JSX must be imported or declared in that file. A `<Calendar />` with no import is a crash, not a warning.',
+  '- An app-class request is always the multi-file app stack (`/src/main.tsx`, `/src/App.tsx`, `/src/index.css`, pages and components). Never answer an app request with a single HTML file.',
+].join('\n');
+
 export function humanScaleAiGuidance(runtime: ProjectRuntime | null): string {
   const rt = runtime ?? { kind: 'community' as const, fallback: 'none' as const };
   return [
