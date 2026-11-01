@@ -131,25 +131,24 @@ stack layer it moved; pace paid work at $3 to $5 a day.
 
 ## Tomorrow (one run, about 75 minutes)
 
-1. **Trials, not samples.** Today's three passes on the same two prompts
-   showed run-to-run variance bigger than the effect of any one change:
-   the same model with the same guard failed a prompt it had passed an
-   hour earlier, for a different reason each time. Open models cost cents,
-   so stop reading single cells. Run `--trials 3` for the four open models
-   that have produced a working app (gemma-4-26b, glm-4.5-air,
-   gpt-oss-120b, qwen3-coder-next) on `--tasks compare` with the guard and
-   the rules on (`VITE_HUMAN_SCALE=1 --import-guard`), each model its own
-   capped invocation (about $0.30 total, logged first). Then the board's
-   model table reads as rates over 6 builds per model instead of
-   coin flips. Drop `qwen3-coder-30b` from the comparison set (five runs,
-   no working app on either prompt, 5 minutes a build); keep it in the
-   matrix for the record.
-2. **Report rates per model, with the failure kinds tallied.** Add to
-   `report.ts` and the board: per model, over all its guarded-and-ruled
-   trials, the share that render clean, the share by failure kind
-   (missing-file, bad-import, undeclared component, syntax, wrong shape,
-   runtime logic), and the median fix-pass time. That is the four-axis
-   answer Josh asked for in one table.
+1. **Done Nov 1, same day: three trials per cell** (24 builds, $0.24).
+   The board's "rates per model" table now reads over 12 builds per model
+   on the comparison prompts: gemma-4-26b, gpt-oss-120b and glm-4.5-air
+   58% clean each, qwen3-coder-next 33%, qwen3-coder-30b dropped from the
+   set. Keep adding trials only when something changes (a rule, the fix
+   pass, a model version); otherwise the numbers stand.
+2. **Make the fix pass finish the job.** gemma and glm lose most of their
+   failed builds to things the guard already names (an undeclared
+   component, a kit name that does not exist) and the one fix pass often
+   does not clear them. Two cheap changes, measured with three trials each
+   on the two prompts (about $0.30): (a) the fix prompt lists the kit's
+   real export names next to a "No matching export in a kit file" error,
+   so the model replaces `SelectContent` with `<option>` instead of
+   guessing again; (b) when a trigger is "component used but never
+   imported" and the name is a lucide icon or a kit component, the prompt
+   says exactly which import line to add. gpt-oss's failures are logic
+   (render loops, router misuse); leave those to the human-scale rules for
+   now and note the rate.
 3. **The kit-rewrite failure.** qwen3-coder-next rewrote kit files
    (`components/ui/avatar.tsx` importing a `@/lib/cn` that does not exist),
    so the kit's own files broke. Add a rule to `HUMAN_SCALE_BUILD_RULES`:

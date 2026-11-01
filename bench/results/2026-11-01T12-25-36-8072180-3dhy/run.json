@@ -1,0 +1,754 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1,exp-v1",
+  "gitCommit": "8072180",
+  "createdAt": "2026-11-01T12:44:01.779Z",
+  "runId": "2026-11-01T12-25-36-8072180-3dhy",
+  "config": {
+    "trials": 3,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": null,
+    "importGuard": true
+  },
+  "models": [
+    {
+      "alias": "qwen3-coder-next",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-next",
+      "pricing": {
+        "inputPerMTok": 0.12,
+        "outputPerMTok": 0.8,
+        "asOf": "2026-10"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "hs-community-fridge",
+      "version": "exp-v1"
+    },
+    {
+      "id": "hs-listening-wall",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "qwen3-coder-next",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-next",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-01T12:25:36.870Z",
+      "plan": null,
+      "latencyMs": 304153,
+      "ttftMs": 1083,
+      "segments": [
+        {
+          "finishReason": "error",
+          "latencyMs": 300477,
+          "chars": 98798
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 3671,
+          "chars": 785
+        }
+      ],
+      "continuations": 1,
+      "truncatedFinal": false,
+      "outputChars": 99583,
+      "estTokens": {
+        "input": 53345,
+        "output": 24896,
+        "estimated": true
+      },
+      "estCostUsd": 0.0263182,
+      "extraction": {
+        "writes": 64,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/qwen3-coder-next-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/App.tsx:7: No matching export in \"vfs:/src/components/ui/app-bar.tsx\" for import \"BottomNav\"",
+          "vfs:/src/App.tsx:7: No matching export in \"vfs:/src/components/ui/app-bar.tsx\" for import \"BottomNavItem\"",
+          "vfs:/src/App.tsx: No matching export in \"vfs:/src/components/ui/app-bar.tsx\" for import \"BottomNav\"",
+          "vfs:/src/App.tsx: No matching export in \"vfs:/src/components/ui/app-bar.tsx\" for import \"BottomNavItem\"",
+          "vfs:/src/pages/Home.tsx: <MapPin> is used but never imported or declared in this file",
+          "vfs:/src/pages/Stock.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "solved": true,
+        "latencyMs": 41474,
+        "remainingErrors": [],
+        "estCostUsd": 0.007286040000000001
+      },
+      "error": null,
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 32
+      },
+      "quality": {
+        "files": 22,
+        "codeFiles": 20,
+        "codeLines": 1204,
+        "largestFile": "/src/pages/Home.tsx",
+        "largestFileLines": 160,
+        "anyCount": 0,
+        "kitImportingFiles": 8,
+        "handRolledUiFiles": 10,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 13,
+        "lintWarnings": 0,
+        "lintPer100Lines": 1.1,
+        "tscErrors": 3,
+        "tokensPerSecond": 81.9,
+        "fixLatencyMs": 41474,
+        "failKind": "bad-import"
+      }
+    },
+    {
+      "alias": "qwen3-coder-next",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-next",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 2,
+      "startedAt": "2026-11-01T12:31:22.854Z",
+      "plan": null,
+      "latencyMs": 154844,
+      "ttftMs": 659,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 152600,
+          "chars": 46905
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 2242,
+          "chars": 237
+        }
+      ],
+      "continuations": 1,
+      "truncatedFinal": false,
+      "outputChars": 47142,
+      "estTokens": {
+        "input": 40008,
+        "output": 11786,
+        "estimated": true
+      },
+      "estCostUsd": 0.014229760000000001,
+      "extraction": {
+        "writes": 19,
+        "editBlocks": 2,
+        "failedEditBlocks": 1
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": false,
+        "errors": [
+          "vfs:/src/main.tsx:4: No matching export in \"vfs:/src/App.tsx\" for import \"default\""
+        ]
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/qwen3-coder-next-t2",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/main.tsx:4: No matching export in \"vfs:/src/App.tsx\" for import \"default\"",
+          "vfs:/src/main.tsx: No matching export in \"vfs:/src/App.tsx\" for import \"default\" (it exports names only)",
+          "vfs:/src/pages/PostUpdate.tsx: <CheckCircle2> is used but never imported or declared in this file"
+        ],
+        "solved": false,
+        "latencyMs": 14104,
+        "remainingErrors": [
+          "vfs:/src/main.tsx:4: No matching export in \"vfs:/src/App.tsx\" for import \"default\"",
+          "vfs:/src/main.tsx: No matching export in \"vfs:/src/App.tsx\" for import \"default\" (it exports names only)"
+        ],
+        "estCostUsd": 0.00390188
+      },
+      "error": null,
+      "importIssues": [
+        "vfs:/src/main.tsx: No matching export in \"vfs:/src/App.tsx\" for import \"default\" (it exports names only)"
+      ],
+      "quality": {
+        "files": 18,
+        "codeFiles": 16,
+        "codeLines": 1192,
+        "largestFile": "/src/pages/PostUpdate.tsx",
+        "largestFileLines": 240,
+        "anyCount": 0,
+        "kitImportingFiles": 5,
+        "handRolledUiFiles": 8,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 20,
+        "lintWarnings": 0,
+        "lintPer100Lines": 1.7,
+        "tscErrors": 18,
+        "tokensPerSecond": 76.1,
+        "fixLatencyMs": 14104,
+        "failKind": "bad-import"
+      }
+    },
+    {
+      "alias": "qwen3-coder-next",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-next",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 3,
+      "startedAt": "2026-11-01T12:34:11.942Z",
+      "plan": null,
+      "latencyMs": 143404,
+      "ttftMs": 576,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 143403,
+          "chars": 43297
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 43297,
+      "estTokens": {
+        "input": 14046,
+        "output": 10825,
+        "estimated": true
+      },
+      "estCostUsd": 0.010345519999999999,
+      "extraction": {
+        "writes": 41,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/qwen3-coder-next-t3",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/components/ui/button.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/components/ui/card.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/components/ui/input.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/components/ui/label.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/components/ui/textarea.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/components/ui/badge.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/components/ui/empty-state.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/components/ui/skeleton.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/components/ui/app-bar.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/components/ui/bottom-nav.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "solved": false,
+        "latencyMs": 7854,
+        "remainingErrors": [
+          "vfs:/src/pages/Home.tsx: No matching export in \"vfs:/src/components/ui/card.tsx\" for import \"Card\"",
+          "vfs:/src/pages/Home.tsx: No matching export in \"vfs:/src/components/ui/card.tsx\" for import \"CardHeader\"",
+          "vfs:/src/pages/Home.tsx: No matching export in \"vfs:/src/components/ui/card.tsx\" for import \"CardTitle\"",
+          "vfs:/src/pages/Home.tsx: No matching export in \"vfs:/src/components/ui/card.tsx\" for import \"CardContent\"",
+          "vfs:/src/pages/Home.tsx: No matching export in \"vfs:/src/components/ui/button.tsx\" for import \"Button\"",
+          "vfs:/src/pages/Home.tsx: No matching export in \"vfs:/src/components/ui/badge.tsx\" for import \"Badge\"",
+          "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/card.tsx\" for import \"Card\"",
+          "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/card.tsx\" for import \"CardHeader\"",
+          "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/card.tsx\" for import \"CardTitle\"",
+          "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/card.tsx\" for import \"CardContent\"",
+          "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/badge.tsx\" for import \"Badge\"",
+          "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/button.tsx\" for import \"Button\"",
+          "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/dialog.tsx\" for import \"Dialog\"",
+          "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/dialog.tsx\" for import \"DialogContent\"",
+          "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/dialog.tsx\" for import \"DialogHeader\"",
+          "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/dialog.tsx\" for import \"DialogTitle\"",
+          "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/dialog.tsx\" for import \"DialogDescription\"",
+          "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/dialog.tsx\" for import \"DialogFooter\"",
+          "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/dialog.tsx\" for import \"DialogClose\"",
+          "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/input.tsx\" for import \"Input\"",
+          "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/label.tsx\" for import \"Label\"",
+          "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/textarea.tsx\" for import \"Textarea\"",
+          "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"Select\"",
+          "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectTrigger\"",
+          "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectValue\"",
+          "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectContent\"",
+          "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectItem\"",
+          "vfs:/src/pages/Shifts.tsx: No matching export in \"vfs:/src/components/ui/card.tsx\" for import \"Card\"",
+          "vfs:/src/pages/Shifts.tsx: No matching export in \"vfs:/src/components/ui/card.tsx\" for import \"CardHeader\"",
+          "vfs:/src/pages/Shifts.tsx: No matching export in \"vfs:/src/components/ui/card.tsx\" for import \"CardTitle\"",
+          "vfs:/src/pages/Shifts.tsx: No matching export in \"vfs:/src/components/ui/card.tsx\" for import \"CardContent\"",
+          "vfs:/src/pages/Shifts.tsx: No matching export in \"vfs:/src/components/ui/button.tsx\" for import \"Button\"",
+          "vfs:/src/pages/Shifts.tsx: No matching export in \"vfs:/src/components/ui/badge.tsx\" for import \"Badge\""
+        ],
+        "estCostUsd": 0.0034651200000000004
+      },
+      "error": null,
+      "importIssues": [
+        "vfs:/src/pages/Home.tsx: No matching export in \"vfs:/src/components/ui/card.tsx\" for import \"Card\"",
+        "vfs:/src/pages/Home.tsx: No matching export in \"vfs:/src/components/ui/card.tsx\" for import \"CardHeader\"",
+        "vfs:/src/pages/Home.tsx: No matching export in \"vfs:/src/components/ui/card.tsx\" for import \"CardTitle\"",
+        "vfs:/src/pages/Home.tsx: No matching export in \"vfs:/src/components/ui/card.tsx\" for import \"CardContent\"",
+        "vfs:/src/pages/Home.tsx: No matching export in \"vfs:/src/components/ui/button.tsx\" for import \"Button\"",
+        "vfs:/src/pages/Home.tsx: No matching export in \"vfs:/src/components/ui/badge.tsx\" for import \"Badge\"",
+        "vfs:/src/pages/Shifts.tsx: No matching export in \"vfs:/src/components/ui/card.tsx\" for import \"Card\"",
+        "vfs:/src/pages/Shifts.tsx: No matching export in \"vfs:/src/components/ui/card.tsx\" for import \"CardHeader\"",
+        "vfs:/src/pages/Shifts.tsx: No matching export in \"vfs:/src/components/ui/card.tsx\" for import \"CardTitle\"",
+        "vfs:/src/pages/Shifts.tsx: No matching export in \"vfs:/src/components/ui/card.tsx\" for import \"CardContent\"",
+        "vfs:/src/pages/Shifts.tsx: No matching export in \"vfs:/src/components/ui/button.tsx\" for import \"Button\"",
+        "vfs:/src/pages/Shifts.tsx: No matching export in \"vfs:/src/components/ui/badge.tsx\" for import \"Badge\"",
+        "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/card.tsx\" for import \"Card\"",
+        "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/card.tsx\" for import \"CardHeader\"",
+        "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/card.tsx\" for import \"CardTitle\"",
+        "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/card.tsx\" for import \"CardContent\"",
+        "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/badge.tsx\" for import \"Badge\"",
+        "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/button.tsx\" for import \"Button\"",
+        "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/dialog.tsx\" for import \"Dialog\"",
+        "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/dialog.tsx\" for import \"DialogContent\"",
+        "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/dialog.tsx\" for import \"DialogHeader\"",
+        "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/dialog.tsx\" for import \"DialogTitle\"",
+        "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/dialog.tsx\" for import \"DialogDescription\"",
+        "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/dialog.tsx\" for import \"DialogFooter\"",
+        "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/dialog.tsx\" for import \"DialogClose\"",
+        "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/input.tsx\" for import \"Input\"",
+        "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/label.tsx\" for import \"Label\"",
+        "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/textarea.tsx\" for import \"Textarea\"",
+        "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"Select\"",
+        "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectTrigger\"",
+        "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectValue\"",
+        "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectContent\"",
+        "vfs:/src/pages/Updates.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectItem\""
+      ],
+      "runtime": {
+        "rendered": false,
+        "errors": [
+          "console: Error at B (https://esm.sh/@remix-run/router@1.23.0/es2022/router.mjs:2:2356) at re (https://esm.sh/react-router@6.30.0/X-ZXJlYWN0/es2022/react-router.mjs:2:12854) at Hi (https://esm.sh/react-dom@18.3.1/X-ZXJlYWN0/es2022",
+          "pageerror: Error"
+        ],
+        "bodyChars": 0
+      },
+      "quality": {
+        "files": 27,
+        "codeFiles": 25,
+        "codeLines": 679,
+        "largestFile": "/src/pages/Updates.tsx",
+        "largestFileLines": 204,
+        "anyCount": 1,
+        "kitImportingFiles": 3,
+        "handRolledUiFiles": 13,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 42,
+        "lintWarnings": 0,
+        "lintPer100Lines": 6.2,
+        "tscErrors": 57,
+        "tokensPerSecond": 75.5,
+        "fixLatencyMs": 7854,
+        "failKind": "other"
+      }
+    },
+    {
+      "alias": "qwen3-coder-next",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-next",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-01T12:36:43.411Z",
+      "plan": null,
+      "latencyMs": 127279,
+      "ttftMs": 595,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 127279,
+          "chars": 37319
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 37319,
+      "estTokens": {
+        "input": 14036,
+        "output": 9330,
+        "estimated": true
+      },
+      "estCostUsd": 0.00914832,
+      "extraction": {
+        "writes": 1,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "sandpack",
+      "previewKindMatch": false,
+      "bundle": null,
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": false
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": false
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/qwen3-coder-next-t1",
+      "fixRound": null,
+      "error": null,
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 5945
+      },
+      "quality": {
+        "files": 1,
+        "codeFiles": 0,
+        "codeLines": 0,
+        "largestFile": null,
+        "largestFileLines": 0,
+        "anyCount": 0,
+        "kitImportingFiles": 0,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 0,
+        "lintWarnings": 0,
+        "lintPer100Lines": null,
+        "tscErrors": 0,
+        "tokensPerSecond": 73.3,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    },
+    {
+      "alias": "qwen3-coder-next",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-next",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 2,
+      "startedAt": "2026-11-01T12:38:50.698Z",
+      "plan": null,
+      "latencyMs": 118628,
+      "ttftMs": 647,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 118627,
+          "chars": 33563
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 33563,
+      "estTokens": {
+        "input": 14036,
+        "output": 8391,
+        "estimated": true
+      },
+      "estCostUsd": 0.00839712,
+      "extraction": {
+        "writes": 7,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/qwen3-coder-next-t2",
+      "fixRound": null,
+      "error": null,
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 1671
+      },
+      "quality": {
+        "files": 7,
+        "codeFiles": 5,
+        "codeLines": 399,
+        "largestFile": "/src/App.tsx",
+        "largestFileLines": 236,
+        "anyCount": 0,
+        "kitImportingFiles": 1,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 5,
+        "lintWarnings": 0,
+        "lintPer100Lines": 1.3,
+        "tscErrors": 1,
+        "tokensPerSecond": 70.7,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    },
+    {
+      "alias": "qwen3-coder-next",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-next",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 3,
+      "startedAt": "2026-11-01T12:40:49.446Z",
+      "plan": null,
+      "latencyMs": 139908,
+      "ttftMs": 694,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 139906,
+          "chars": 42015
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 42015,
+      "estTokens": {
+        "input": 14036,
+        "output": 10504,
+        "estimated": true
+      },
+      "estCostUsd": 0.010087519999999999,
+      "extraction": {
+        "writes": 22,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/qwen3-coder-next-t3",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/App.tsx:5: Could not find \"./pages/Organizer\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx: Could not find \"./pages/Organizer\" in the project (imported from /src/App.tsx)",
+          "vfs:/\"src/pages/Organizer.tsx: Could not find \"../data/seeds\" in the project (imported from /\"src/pages/Organizer.tsx)"
+        ],
+        "solved": false,
+        "latencyMs": 14755,
+        "remainingErrors": [
+          "vfs:/\"src/pages/Organizer.tsx: Could not find \"../data/seeds\" in the project (imported from /\"src/pages/Organizer.tsx)"
+        ],
+        "estCostUsd": 0.00407924
+      },
+      "error": null,
+      "importIssues": [
+        "vfs:/\"src/pages/Organizer.tsx: Could not find \"../data/seeds\" in the project (imported from /\"src/pages/Organizer.tsx)"
+      ],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 1034
+      },
+      "quality": {
+        "files": 22,
+        "codeFiles": 20,
+        "codeLines": 1143,
+        "largestFile": "/src/components/ui/dialog.tsx",
+        "largestFileLines": 145,
+        "anyCount": 0,
+        "kitImportingFiles": 4,
+        "handRolledUiFiles": 13,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 34,
+        "lintWarnings": 0,
+        "lintPer100Lines": 3,
+        "tscErrors": 5,
+        "tokensPerSecond": 75.1,
+        "fixLatencyMs": 14755,
+        "failKind": "missing-file"
+      }
+    }
+  ]
+}

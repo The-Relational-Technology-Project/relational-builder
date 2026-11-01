@@ -23,7 +23,7 @@ had (a missing file is genuinely missing, write it; a bad icon is one word
 to replace), and the build prompt gained a short set of import rules for
 small models, measurable with the flag. Then every open model reran both
 comparison prompts twice more: once with the guard, once with guard plus
-rules. The honest result: one trial per cell is noise; yesterday's 6 of 9 clean became 2 of 10 and 3 of 10 today, with a couple of real wins inside. Spend today: about $0.14 of paid inference (twenty open-model builds), counted as $2.00 worst case in SPEND. Nothing new needs you.
+rules. The honest result: one trial per cell is noise (yesterday's 6 of 9 clean became 2 of 10 and 3 of 10 today), so the run went straight to three trials per cell: gemma, gpt-oss and glm each produce a clean app 58% of the time on these prompts, at about a minute and under a cent; the qwen coder 33%. Spend today: about $0.14 of paid inference (twenty open-model builds), counted as $2.00 worst case in SPEND. Nothing new needs you.
 
 **Stack layer moved:** Builder model, from "a guardrail that works in the
 harness" to "the same guardrail in the preview a person uses, plus prompt
@@ -107,7 +107,34 @@ else is within the noise of one trial per cell: the same model fails a
 prompt it passed an hour earlier, for a different reason each time. Per
 build the open models stay at under two cents and 30 to 170 seconds.
 
-**What it cost.** Paid inference: about $0.14 estimated (twenty builds across the two passes, one provider cut-off retried by the harness), logged as $2.00 worst case across two reservations. Session: about 35 minutes of the 90, most of it waiting on runs.
+**Later the same run: three trials per cell.** Tomorrow's item 1 fit in
+today's window, so it ran: the four open models that have produced a
+working app, both comparison prompts, three trials each, guard and rules
+on, about $0.30. With 12 builds per model the picture stops wobbling:
+
+| Model (12 builds each, guarded, rules on) | Clean | How the rest died | Median build | Median fix |
+|---|---|---|---|---|
+| gemma-4-26b | 58% | undeclared component 17%, missing file 8%, blank (React undefined) 8%, renders with an error 8% | 71s | 18s |
+| gpt-oss-120b | 58% | blank from a logic or routing error 25%, bad import 8%, renders with an error 8% | 74s | 13s |
+| glm-4.5-air | 58% | undeclared component 17%, wrong shape 8%, blank (bad import) 8%, blank (undeclared) 8% | 102s | 23s |
+| qwen3-coder-next | 33% | wrong shape (single file) 25%, undeclared component 17%, missing file 8%, blank from a logic error 8%, renders with an error 8% | 134s | 15s |
+| qwen3-coder-30b (3 builds, dropped) | 0% | missing file 100% | 137s | 99s |
+
+The rates table on the board is the living version of this (it counts
+every guarded build on the comparison prompts, Oct 31 onward). Read:
+three hostable-or-nearly open models now produce a clean, kit-based app on
+these prompts a little better than half the time (qwen3-coder-next a third,
+mostly because it keeps answering the wall with one HTML file), at 71 to 102 seconds and
+under a cent; Opus did it two of two at 148 to 178 seconds and about 22
+cents, and the sample is far too small to call Opus's rate. What separates
+the three is how they fail: gemma and glm fail on imports the guard can
+name (and a prompt-side fix is plausible), gpt-oss fails on logic the guard
+cannot see. qwen3-coder-30b is out of the comparison set.
+
+**What it cost.** Paid inference: about $0.38 estimated (twenty builds
+across passes A and B, then twenty-four three-trial builds), logged as
+$3.50 worst case across three reservations. Session: about 65 minutes of
+the 90, most of it waiting on runs.
 
 **Honest read.** Yesterday's "3 of 5 fixed" was one sample, and today says so: with the
 same guard, the same models produced different failures on the same
