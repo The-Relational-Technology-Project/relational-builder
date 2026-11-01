@@ -1,5 +1,6 @@
 import type { BundleSuccess } from './bundle';
 import { TAILWIND_BROWSER_URL } from './versions';
+import { applyRegionToHtml, type RegionMode } from '@/regions/regions';
 
 /**
  * Assemble the final HTML document around a bundle — used verbatim as the
@@ -24,6 +25,10 @@ export interface ShellOptions {
   /** Extra <head>/<body> snippets — preview-only scripts, env module, etc. */
   headExtra?: string[];
   bodyExtra?: string[];
+  /** Regional mode rewrites on the finished document (EU: Google Fonts →
+   *  Bunny Fonts). Preview and publish pass the same value, so the preview
+   *  stays an honest rehearsal of what ships. */
+  regionMode?: RegionMode;
 }
 
 const DEFAULT_SHELL = [
@@ -83,7 +88,9 @@ export function buildShellHtml(options: ShellOptions): string {
     ? html.replace(/<\/body>/i, () => `${bodyBits}\n</body>`)
     : html + bodyBits;
 
-  return html;
+  // Last, over the whole document: the project's own <head> (font links)
+  // and any @import in collected CSS both get the regional rewrite
+  return applyRegionToHtml(html, options.regionMode ?? 'global');
 }
 
 /**

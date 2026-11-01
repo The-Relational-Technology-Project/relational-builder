@@ -23,6 +23,7 @@ interface SendOptions {
 import { CLAUDE_MODELS } from '@/providers/claude';
 import { shortModelName } from '@/providers/model-label';
 import { useEnvStore } from '@/store/env-store';
+import { useRegionStore } from '@/store/region-store';
 import {
   getConnectedIntegrations,
   communityCloudConnected,
@@ -795,6 +796,7 @@ export function ChatPanel() {
       webTools,
       civicData,
       civicDataQueryable: mcpServers.length > 0,
+      regionMode: useRegionStore.getState().mode,
     });
     setSystemPrompt(updatedPrompt);
 

@@ -17,6 +17,7 @@ import {
   SCREENSHOT_SOURCE,
 } from '@/preview/screenshot';
 import { useBuildLogStore } from '@/report/build-log';
+import { useRegionStore } from '@/store/region-store';
 import { PointAtIt } from './PointAtIt';
 import { FixBanner } from './FixBanner';
 import type { PreviewHandle } from './PreviewToolbar';
@@ -64,6 +65,9 @@ export function FrameworkPreview({
   // revealing the finished build — keep it honest through the whole pass
   const setHealth = usePreviewHealthStore(s => s.setHealth);
   useEffect(() => () => setHealth('idle'), [setHealth]);
+  // Regional mode rides into the shell so the preview shows the fonts a
+  // publish would ship (EU: Bunny Fonts, not Google)
+  const regionMode = useRegionStore(s => s.mode);
 
   useEffect(() => {
     const id = ++runId.current;
@@ -126,6 +130,7 @@ export function FrameworkPreview({
         buildShellHtml({
           bundle: result,
           indexHtml: vfs['/index.html'],
+          regionMode,
           bodyExtra: [
             ...assetScripts,
             ASSET_APPLIER,
@@ -141,7 +146,7 @@ export function FrameworkPreview({
 
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- version is the VFS change signal
-  }, [version, publicEnvVars, isGenerating, setHealth]);
+  }, [version, publicEnvVars, isGenerating, setHealth, regionMode]);
 
   // Runtime errors surface through the shell's relay script; the empty-render
   // sentry reports the blank-but-no-error case the relay can't see

@@ -93,6 +93,15 @@ Chat/Builder Panel  |  Preview Sandbox (iframe)  |  RTP Knowledge Base Panel
     machine or a box in the room (`createLocalProvider`, keyless, URL set in
     Settings); see `docs/LOCAL-MODEL.md`
   - Tier 3: RTP-subsidized cloud access (for workshops/pilots)
+- **Regional mode:** a profile setting (`profiles.region_mode`, mirrored in
+  `src/store/region-store.ts`) that decides where the apps a person builds
+  live. `src/regions/regions.ts` owns it: EU mode ranks EU-run services first
+  in the Services tab and Publish (every catalog entry and deploy target
+  carries a `ServiceHome`), rewrites Google Fonts → Bunny Fonts in every
+  preview and publish, adds the EU hosts (`deploy-bunny.ts`, `deploy-codeberg.ts`),
+  and injects a prompt block. It covers the apps, not the Builder; the gaps
+  and their ranking are in `docs/REGIONAL-MODE.md`. Keep the doc and the
+  prompt block in step when either changes.
 
 ## Key Directories
 

@@ -19,6 +19,7 @@ import {
 import { formatReferenceDocsForPrompt } from './references-prompt';
 import type { ReferenceDoc } from '@/store/references-store';
 import { splitProjectSnapshot, formatChangedFilesForPrompt } from './snapshot-split';
+import { formatRegionForPrompt, type RegionMode } from '@/regions/regions';
 
 /**
  * Builds the system prompt by combining the base instructions,
@@ -613,6 +614,9 @@ export interface ContextOptions {
    *  connector is attached — Claude provider only). Off means the prompt
    *  says so plainly instead of letting the model try and fail. */
   civicDataQueryable?: boolean;
+  /** The builder's regional mode (src/regions) — EU mode adds a block that
+   *  overrides fonts, hosting, and shared-data defaults by name */
+  regionMode?: RegionMode;
 }
 
 /**
@@ -818,6 +822,11 @@ export function buildPromptContext(
       options.builderProfile.design_system.trim(),
     );
   }
+
+  // Regional mode, both modes: plan mode picks services and hosts, build
+  // mode writes the font links and data code. Stable for a session.
+  const regionBlock = formatRegionForPrompt(options.regionMode ?? 'global');
+  if (regionBlock) sections.push('', regionBlock);
 
   // Everything above is stable across sends in a session — cacheable.
   sections.push(CACHE_BREAK);

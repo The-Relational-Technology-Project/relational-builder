@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { builderClient, cloudEnabled } from '@/cloud/builder-client';
 import { checkSignInGate, gateMessage } from '@/cloud/signin-gate';
+import { useRegionStore } from '@/store/region-store';
 
 /**
  * Where a magic link should land the builder. In production this is pinned to
@@ -81,7 +82,12 @@ export interface BuilderProfile {
   referral_code: string | null;
   /** The event code this builder joined through — their participant tag */
   event_code: string | null;
+  /** Where their tools and data should live — 'global' | 'eu' (see src/regions) */
+  region_mode: string | null;
 }
+
+const PROFILE_COLUMNS =
+  'display_name, full_name, neighborhood, neighborhood_description, dreams, tech_familiarity, ai_coding_experience, email_opt_in, terms_accepted_at, profile_completed, design_system, local_tech_ecosystem, open_to_connecting, connect_note, cal_link, allow_requests, referral_code, event_code';
 
 interface AuthState {
   user: AuthUser | null;
@@ -244,29 +250,46 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       set({ profile: null, profileLoaded: true });
       return;
     }
-    const { data, error } = await builderClient
-      .from('profiles')
-      .select('display_name, full_name, neighborhood, neighborhood_description, dreams, tech_familiarity, ai_coding_experience, email_opt_in, terms_accepted_at, profile_completed, design_system, local_tech_ecosystem, open_to_connecting, connect_note, cal_link, allow_requests, referral_code, event_code')
-      .eq('id', user.id)
-      .maybeSingle();
+    const select = (withRegion: boolean) =>
+      builderClient!
+        .from('profiles')
+        .select(PROFILE_COLUMNS + (withRegion ? ', region_mode' : ''))
+        .eq('id', user.id)
+        .maybeSingle();
+    let { data, error } = await select(true);
+    // Until migration 20261101090000 (region_mode) is applied, the column
+    // is missing — fall back to the older column list rather than leaving
+    // every profile unloaded
+    if (error && /region_mode/.test(error.message)) ({ data, error } = await select(false));
     // The account changed while we were fetching — this row isn't theirs
     if (get().user?.id !== user.id) return;
     // A failed fetch is not "no profile row": treating it as one used to
     // open the first-run wizard over finished accounts. Keep what we knew;
     // the next auth event or manual refresh tries again.
     if (error) return;
-    set({ profile: (data as BuilderProfile | null) ?? null, profileLoaded: true });
+    const profile = (data as BuilderProfile | null) ?? null;
+    set({ profile, profileLoaded: true });
+    // The profile row is the source of truth for the regional mode
+    if (profile) useRegionStore.getState().adopt(profile.region_mode);
   },
 
   saveProfile: async (fields) => {
     const user = get().user;
     if (!builderClient || !user) return { error: 'Sign in first' };
-    const { error } = await builderClient
+    let { error } = await builderClient
       .from('profiles')
       .update(fields)
       .eq('id', user.id);
+    // Same pre-migration tolerance as refreshProfile: save everything else,
+    // and the regional mode still holds locally (region-store)
+    if (error && /region_mode/.test(error.message) && 'region_mode' in fields) {
+      const { region_mode: _skip, ...rest } = fields;
+      void _skip;
+      ({ error } = await builderClient.from('profiles').update(rest).eq('id', user.id));
+    }
     if (!error) {
       set({ profile: { ...(get().profile ?? ({} as BuilderProfile)), ...fields } as BuilderProfile });
+      if ('region_mode' in fields) useRegionStore.getState().adopt(fields.region_mode);
     }
     return { error: error?.message ?? null };
   },

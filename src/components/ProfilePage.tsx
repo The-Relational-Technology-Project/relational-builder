@@ -5,6 +5,8 @@ import { BuilderPageCard } from '@/components/BuilderPageCard';
 import { useStudioStore, approvedMemberships } from '@/store/studio-store';
 import { DEFAULT_STUDIO_SLUG, type StudioContext } from '@/knowledge/studio-context';
 import { useUIStore } from '@/store/ui-store';
+import { useRegionStore } from '@/store/region-store';
+import { REGION_MODES, isRegionMode, type RegionMode } from '@/regions/regions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,6 +21,7 @@ import {
   HeartHandshake,
   Landmark,
   Network,
+  Globe,
 } from 'lucide-react';
 
 const textareaClass =
@@ -44,6 +47,9 @@ export function ProfilePage() {
   const [techFamiliarity, setTechFamiliarity] = useState('');
   const [aiCodingExperience, setAiCodingExperience] = useState('');
   const [emailOptIn, setEmailOptIn] = useState(false);
+  // Starts from the local mirror so the choice shows even before the
+  // profile row arrives; the row wins once it loads (hydration below)
+  const [regionMode, setRegionMode] = useState<RegionMode>(() => useRegionStore.getState().mode);
   const [hydrated, setHydrated] = useState(false);
 
   const [saving, setSaving] = useState(false);
@@ -62,6 +68,7 @@ export function ProfilePage() {
     setTechFamiliarity(profile.tech_familiarity ?? '');
     setAiCodingExperience(profile.ai_coding_experience ?? '');
     setEmailOptIn(profile.email_opt_in === true);
+    if (isRegionMode(profile.region_mode)) setRegionMode(profile.region_mode);
     setHydrated(true);
   }, [profile, hydrated]);
 
@@ -90,6 +97,7 @@ export function ProfilePage() {
       tech_familiarity: techFamiliarity || null,
       ai_coding_experience: aiCodingExperience || null,
       email_opt_in: emailOptIn,
+      region_mode: regionMode,
       profile_completed: true,
     };
     const r = await saveProfile(fields);
@@ -225,6 +233,63 @@ export function ProfilePage() {
               ))}
             </div>
           </div>
+        </section>
+
+        {/* Regional mode — where the tools you build should live */}
+        <section className="space-y-3">
+          <h2 className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground uppercase tracking-wide">
+            <Globe className="size-3.5" />
+            Where your tools live
+          </h2>
+          <div className="space-y-2">
+            {REGION_MODES.map(m => (
+              <label key={m.id} className="flex items-start gap-2 text-sm cursor-pointer">
+                <input
+                  type="radio"
+                  name="region-mode"
+                  checked={regionMode === m.id}
+                  onChange={() => {
+                    setRegionMode(m.id);
+                    // Takes effect in this browser right away (preview, Services,
+                    // Publish); Save writes it to the profile so it follows you
+                    useRegionStore.getState().setMode(m.id);
+                  }}
+                  className="mt-0.5 accent-primary"
+                />
+                <span>
+                  {m.label}
+                  <span className="block text-xs text-muted-foreground">{m.blurb}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+          {regionMode === 'eu' && (
+            <div className="rounded-md border bg-muted/40 p-3 text-xs text-muted-foreground leading-relaxed space-y-1.5">
+              <p className="font-medium text-foreground">What EU mode covers, and what it doesn't</p>
+              <p>
+                <span className="text-foreground">Covered:</span> the apps you build. EU-run
+                services come first in the Services tab and the Builder reaches for them;
+                Publish offers Bunny (Germany) and Codeberg Pages (Berlin) as EU hosts;
+                every preview and publish loads fonts from Bunny Fonts (EU) instead of
+                Google Fonts; the Builder says plainly when something runs outside the EU.
+              </p>
+              <p>
+                <span className="text-foreground">Not covered:</span> the Builder itself,
+                your account, Community Cloud and community hosting all run on RTP's
+                infrastructure in the US. Published apps still load code libraries
+                from esm.sh and jsdelivr (content delivery networks). The full list, and
+                what we would need to close each gap, is in{' '}
+                <a
+                  href="https://github.com/The-Relational-Technology-Project/relational-builder/blob/main/docs/REGIONAL-MODE.md"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:text-foreground"
+                >
+                  docs/REGIONAL-MODE.md
+                </a>.
+              </p>
+            </div>
+          )}
         </section>
 
         {/* Email + privacy */}

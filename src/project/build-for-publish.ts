@@ -6,6 +6,8 @@ import { isPhotoAssetPath } from './assets';
 import { detectPreviewKind } from '@/preview/detect';
 import { KIT_FILES, withKitFiles } from '@/kit';
 import { PINNED_VERSIONS, REACT_VERSION, splitSpecifier } from '@/preview/bundler/versions';
+import { regionalizeFiles } from '@/regions/regions';
+import { currentRegionMode } from '@/store/region-store';
 
 /**
  * Publish-time builds for framework projects, so everything that previews
@@ -103,10 +105,14 @@ export async function buildStaticSite(
       return `<script src="./${rel}"></script>`;
     });
 
+  // The builder's regional mode travels with the build: EU mode swaps
+  // Google Fonts for Bunny Fonts in the shell and in any pass-through CSS
+  const regionMode = currentRegionMode();
   const html = buildShellHtml({
     bundle: result,
     indexHtml: vfs['/index.html'],
     bodyExtra: assetTags.length > 0 ? [...assetTags, ASSET_APPLIER] : [ASSET_APPLIER],
+    regionMode,
   });
 
   const out: FileEntry[] = [entryOf('/index.html', html, 'html')];
@@ -114,7 +120,7 @@ export async function buildStaticSite(
     const path = f.path.startsWith('/') ? f.path : '/' + f.path;
     if (!SOURCE_PATH.test(path) && !SERVERLESS_PATH.test(path)) out.push({ ...f, path });
   }
-  return out;
+  return regionalizeFiles(out, regionMode);
 }
 
 /** Bare npm specifiers the project + used kit files import. */

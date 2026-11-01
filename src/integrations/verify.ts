@@ -62,6 +62,63 @@ async function verifySupabase(values: Record<string, string>): Promise<VerifyRes
   return { status: 'unknown', message: `Unexpected reply from the project (HTTP ${res.status}) — you can connect anyway.` };
 }
 
+async function verifyPocketBase(values: Record<string, string>): Promise<VerifyResult> {
+  const rawUrl = (values.POCKETBASE_URL ?? '').trim().replace(/\/+$/, '');
+  let host: string;
+  try {
+    const parsed = new URL(rawUrl);
+    if (parsed.protocol !== 'https:') {
+      return { status: 'invalid', message: 'The server URL should start with https:// — browsers won’t call a plain http server from a published site.' };
+    }
+    host = parsed.host;
+  } catch {
+    return { status: 'invalid', message: 'That doesn’t look like a URL — paste the address your PocketBase server answers on.' };
+  }
+  // /api/health is unauthenticated and CORS-open by default on every PocketBase
+  const res = await tryFetch(`${rawUrl}/api/health`);
+  if (!res) return UNREACHABLE('that PocketBase server');
+  if (res.ok) {
+    const body = (await res.json().catch(() => null)) as { message?: string } | null;
+    return { status: 'ok', detail: body?.message ? `${host}: ${body.message}` : `${host} responded` };
+  }
+  if (res.status === 404) {
+    return { status: 'invalid', message: 'Something answered at that URL, but not a PocketBase server (no /api/health). Check the address — PocketBase usually runs at the root of its domain.' };
+  }
+  return { status: 'unknown', message: `Unexpected reply from the server (HTTP ${res.status}) — you can connect anyway.` };
+}
+
+async function verifyBrevo(values: Record<string, string>): Promise<VerifyResult> {
+  const key = (values.BREVO_API_KEY ?? '').trim();
+  if (!key.startsWith('xkeysib-')) {
+    return { status: 'unknown', message: 'Brevo API keys start with xkeysib- — double-check you copied an API key (not an SMTP key), then connect anyway if you’re sure.' };
+  }
+  const res = await tryFetch('https://api.brevo.com/v3/account', { headers: { 'api-key': key } });
+  if (!res) return UNREACHABLE('Brevo');
+  if (res.ok) {
+    const body = (await res.json().catch(() => null)) as { email?: string; companyName?: string } | null;
+    const who = body?.companyName || body?.email;
+    return { status: 'ok', detail: who ? `Brevo account: ${who}` : 'Brevo accepted the key' };
+  }
+  if (res.status === 401 || res.status === 403) {
+    return { status: 'invalid', message: 'Brevo rejected that key — copy a fresh API key from SMTP & API → API keys.' };
+  }
+  return { status: 'unknown', message: `Unexpected reply from Brevo (HTTP ${res.status}) — you can connect anyway.` };
+}
+
+async function verifyMistral(values: Record<string, string>): Promise<VerifyResult> {
+  const key = (values.MISTRAL_API_KEY ?? '').trim();
+  if (key.length < 20) {
+    return { status: 'invalid', message: 'That key looks too short — copy the full API key from console.mistral.ai.' };
+  }
+  const res = await tryFetch('https://api.mistral.ai/v1/models', { headers: { Authorization: `Bearer ${key}` } });
+  if (!res) return UNREACHABLE('Mistral');
+  if (res.ok) return { status: 'ok', detail: 'Mistral accepted the key' };
+  if (res.status === 401 || res.status === 403) {
+    return { status: 'invalid', message: 'Mistral rejected that key — create a fresh one at console.mistral.ai → API keys.' };
+  }
+  return { status: 'unknown', message: `Unexpected reply from Mistral (HTTP ${res.status}) — you can connect anyway.` };
+}
+
 async function verifyNeon(values: Record<string, string>): Promise<VerifyResult> {
   const conn = (values.DATABASE_URL ?? '').trim();
   let host: string;
@@ -168,7 +225,10 @@ async function verifyOpenAI(values: Record<string, string>): Promise<VerifyResul
 
 const CHECKS: Record<string, (values: Record<string, string>) => VerifyResult | Promise<VerifyResult>> = {
   supabase: verifySupabase,
+  pocketbase: verifyPocketBase,
   neon: verifyNeon,
+  brevo: verifyBrevo,
+  mistral: verifyMistral,
   resend: verifyResend,
   firecrawl: verifyFirecrawl,
   claude: verifyClaude,

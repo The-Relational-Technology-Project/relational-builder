@@ -46,6 +46,8 @@ import {
 import { artifactName } from '@/project/display-name';
 import { fetchMyEvent, pinToShowcase } from '@/cloud/event-showcase';
 import { qrSvgMarkup } from '@/lib/qr-svg';
+import { regionalizeFiles } from '@/regions/regions';
+import { currentRegionMode } from '@/store/region-store';
 import QRCode from 'react-qr-code';
 import {
   Presentation,
@@ -308,7 +310,7 @@ function ShareLiveContent({
         ? withAppIcons(
             needsBuild(files)
               ? await buildStaticSite(files, publicVars.map(v => ({ key: v.key, value: v.value })))
-              : files,
+              : regionalizeFiles(files, currentRegionMode()),
             deckTitle,
           )
         : [];

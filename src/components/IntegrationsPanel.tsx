@@ -14,6 +14,8 @@ import {
   type GuidedServiceDef,
 } from '@/integrations/catalog';
 import { verifyIntegration, type VerifyResult } from '@/integrations/verify';
+import { useRegionStore } from '@/store/region-store';
+import { orderByRegion, regionBadge, regionFit, type ServiceHome } from '@/regions/regions';
 import {
   createAppForProject,
   setAppSecret,
@@ -51,10 +53,26 @@ import { AlertTriangle, Check, Cloud, ExternalLink, Loader2, MessageCircle, Unpl
 export function IntegrationsPanel() {
   const vars = useEnvStore(s => s.vars);
   const connected = new Set(getConnectedIntegrations(vars).map(d => d.id));
+  // Regional mode ranks the catalog: what keeps data in the EU comes first,
+  // and every card says where it stands (src/regions)
+  const mode = useRegionStore(s => s.mode);
+  const integrations = orderByRegion(INTEGRATIONS, mode);
+  const guided = orderByRegion(GUIDED_SERVICES, mode);
 
   return (
     <div className="h-full overflow-y-auto p-3 space-y-2.5">
-      {INTEGRATIONS.map(def =>
+      {mode === 'eu' && (
+        <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-1">
+          <p className="text-xs font-medium">EU mode is on</p>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Services run in the EU come first; each card says where it stands.
+            Community Cloud (the Cloud tab) runs on RTP's servers in the US, so
+            for shared data connect PocketBase on your own server, Supabase in
+            an EU region, or Baserow instead.
+          </p>
+        </div>
+      )}
+      {integrations.map(def =>
         def.id === 'resend' ? (
           <ResendCard key={def.id} def={def} isConnected={connected.has(def.id)} />
         ) : def.id === 'supabase' ? (
@@ -77,13 +95,41 @@ export function IntegrationsPanel() {
         No Connect button for these — set them up together with the Builder
         instead. It knows the steps, the keys, and the wiring.
       </p>
-      {GUIDED_SERVICES.map(def => (
+      {guided.map(def => (
         <GuidedServiceCard key={def.id} def={def} />
       ))}
     </div>
   );
 }
 
+/**
+ * Where a service stands under the active regional mode — a badge plus the
+ * one-line note from the catalog. Renders nothing in the default mode, so
+ * the panel looks exactly as before for everyone who hasn't opted in.
+ */
+export function RegionStanding({ home, className }: { home: ServiceHome; className?: string }) {
+  const mode = useRegionStore(s => s.mode);
+  const badge = regionBadge(home, mode);
+  if (!badge) return null;
+  const fit = regionFit(home, mode);
+  return (
+    <div className={className}>
+      <Badge
+        variant="outline"
+        className={
+          fit === 'fits'
+            ? 'text-[10px] h-4 px-1.5 border-green-600/40 text-green-700'
+            : fit === 'partial'
+              ? 'text-[10px] h-4 px-1.5 border-amber-600/40 text-amber-700'
+              : 'text-[10px] h-4 px-1.5 border-border text-muted-foreground'
+        }
+      >
+        {badge}
+      </Badge>
+      {home.note && <p className="text-[11px] text-muted-foreground leading-snug mt-1">{home.note}</p>}
+    </div>
+  );
+}
 /** Transient per-card verification state (session-only, env vars stay the source of truth) */
 type CheckState =
   | { phase: 'idle' }
@@ -245,6 +291,7 @@ function CloudVaultCard({ def, isConnected }: { def: IntegrationDef; isConnected
             )}
           </div>
           <p className="text-xs text-muted-foreground">{def.tagline}</p>
+          <RegionStanding home={def.home} className="mt-1" />
         </div>
         {connected ? (
           <div className="flex items-center gap-1 shrink-0">
@@ -469,6 +516,7 @@ function SupabaseCard({ def, isConnected }: { def: IntegrationDef; isConnected: 
             ) : null}
           </div>
           <p className="text-xs text-muted-foreground">{def.tagline}</p>
+          <RegionStanding home={def.home} className="mt-1" />
         </div>
         {managed ? (
           <Button
@@ -696,6 +744,7 @@ function ResendCard({ def, isConnected }: { def: IntegrationDef; isConnected: bo
             )}
           </div>
           <p className="text-xs text-muted-foreground">{def.tagline}</p>
+          <RegionStanding home={def.home} className="mt-1" />
         </div>
         {viaCloud ? (
           <div className="flex items-center gap-1 shrink-0">
@@ -939,6 +988,7 @@ function IntegrationCard({ def, isConnected, footer }: { def: IntegrationDef; is
             )}
           </div>
           <p className="text-xs text-muted-foreground">{def.tagline}</p>
+          <RegionStanding home={def.home} className="mt-1" />
         </div>
         {isConnected ? (
           <div className="flex items-center gap-1 shrink-0">
@@ -1072,6 +1122,7 @@ function GuidedServiceCard({ def }: { def: GuidedServiceDef }) {
             {def.name} <ExternalLink className="size-2.5 text-muted-foreground" />
           </a>
           <p className="text-xs text-muted-foreground">{def.tagline}</p>
+          <RegionStanding home={def.home} className="mt-1" />
         </div>
         <Button
           variant="outline"

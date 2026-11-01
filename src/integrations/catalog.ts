@@ -1,4 +1,5 @@
 import type { EnvVar } from '@/store/env-store';
+import type { ServiceHome } from '@/regions/regions';
 
 /**
  * Integration catalog for the apps people build (not the builder itself).
@@ -36,6 +37,12 @@ export interface IntegrationDef {
    * sets COMMUNITY_AI_PLAN instead of a vaulted key).
    */
   altConnectedKeys?: string[];
+  /**
+   * Who runs the service and where its data can live — what regional modes
+   * rank by (src/regions). Every entry carries one, so the Services tab can
+   * be honest about each service in EU mode.
+   */
+  home: ServiceHome;
 }
 
 /**
@@ -67,6 +74,34 @@ export const INTEGRATIONS: IntegrationDef[] = [
       '  5. Never put the service_role key in app code, and add a comment block at the top of supabase-schema.sql summarizing in plain language who can read and write each table, so the builder can sanity-check it.',
     ].join('\n'),
     setupHint: 'The URL and anon key are safe for the browser when your tables use row-level security. The AI will generate a supabase-schema.sql for you to run in the Supabase SQL editor.',
+    home: {
+      company: 'US',
+      euData: 'optional',
+      note: 'Pick an EU region (Frankfurt, Paris, Stockholm) when you create the project and the data stays in the EU; the company is American. A self-hosted Supabase connects the same way and is entirely yours.',
+    },
+  },
+  {
+    id: 'pocketbase',
+    name: 'PocketBase',
+    tagline: 'Open-source backend in one file — database, auth, files — on a server you run',
+    keysUrl: 'https://pocketbase.io/docs/',
+    keysLabel: 'pocketbase.io → Docs (install on any small server)',
+    fields: [
+      { envKey: 'POCKETBASE_URL', label: 'Server URL', placeholder: 'https://data.ourneighborhood.eu', isSecret: false },
+    ],
+    aiGuidance: [
+      '- **PocketBase is connected** at `env.POCKETBASE_URL` — the builder runs it on their own server. Use the official JS SDK: `import PocketBase from "pocketbase"` (React apps) or `import PocketBase from "https://esm.sh/pocketbase"` (vanilla), then `const pb = new PocketBase(env.POCKETBASE_URL)`.',
+      '  Data lives in collections: `pb.collection("offers").getList(1, 50, { sort: "-created" })`, `.create(data)`, `.update(id, data)`, `.delete(id)`. Realtime: `pb.collection("offers").subscribe("*", cb)`. Files: upload with `FormData` and read with `pb.files.getURL(record, record.photo)`.',
+      '  Sign-in is built in: `pb.collection("users").authWithPassword(email, password)` or `.requestOTP(email)` + `.authWithOTP(otpId, code)` for a code-by-email flow; `pb.authStore.isValid` and `pb.authStore.record` say who is signed in. Prefer the OTP flow for neighbours — no passwords to forget.',
+      '  **Collections and API rules are the security model — this is where generated apps leak data, so follow it strictly.** Write every collection the app needs as `pocketbase-schema.json` (the shape the Admin UI\'s Import collections accepts: `[{ "name", "type": "base", "fields": [...], "listRule", "viewRule", "createRule", "updateRule", "deleteRule" }]`) and tell the builder to import it in the Admin UI (Settings → Import collections). Rules: `""` (empty string) means anyone; `null` means admins only; scope updates and deletes to the owner with `@request.auth.id != "" && owner = @request.auth.id`, and set `createRule` to `@request.auth.id != ""` unless the app is deliberately open. Never leave updateRule or deleteRule open to anyone. Add a comment block at the top of the file saying in plain words who can read and write each collection.',
+      '  Say clearly that the builder needs to import the schema once before the app works, and that the server URL must serve https.',
+    ].join('\n'),
+    setupHint: 'Runs anywhere you can run one binary: a small Hetzner, Scaleway or OVH server, a box in the community centre. The URL is public; the collections\' API rules are what keep data safe. The AI generates a pocketbase-schema.json you import once in the Admin UI.',
+    home: {
+      company: 'self',
+      euData: 'yes',
+      note: 'Open source, you run it. Put it on an EU host (Hetzner, Scaleway, OVH) and it depends on no outside company at all.',
+    },
   },
   {
     id: 'neon',
@@ -83,6 +118,11 @@ export const INTEGRATIONS: IntegrationDef[] = [
       '  Include the SQL schema as a `neon-schema.sql` file and tell the user to run it in the Neon SQL editor.',
     ].join('\n'),
     setupHint: 'Stored as a secret — never included in previews or shared links, only sent to Vercel at deploy time for serverless functions.',
+    home: {
+      company: 'US',
+      euData: 'optional',
+      note: 'Frankfurt region available; the company is American. Needs serverless functions, which no EU publish target runs yet.',
+    },
   },
   {
     id: 'resend',
@@ -100,6 +140,28 @@ export const INTEGRATIONS: IntegrationDef[] = [
     ].join('\n'),
     setupHint: 'With Community Cloud on, your key is vaulted server-side and email works everywhere — the preview, your community-hosted site, any deploy. Without it, the key is stored as a secret and works once deployed to Vercel.',
     altConnectedKeys: ['COMMUNITY_EMAIL'],
+    home: {
+      company: 'US',
+      euData: 'optional',
+      note: 'An EU sending region can be chosen per domain; the company is American. Through Community Cloud the key is vaulted in the US.',
+    },
+  },
+  {
+    id: 'brevo',
+    name: 'Brevo',
+    tagline: 'Transactional email from France (invites, notifications, digests)',
+    keysUrl: 'https://app.brevo.com/settings/keys/api',
+    keysLabel: 'app.brevo.com → SMTP & API → API keys',
+    fields: [
+      { envKey: 'BREVO_API_KEY', label: 'API key', placeholder: 'xkeysib-...', isSecret: true },
+    ],
+    aiGuidance: [
+      '- **Brevo (email) is connected.** The API key lives in the secret env var `BREVO_API_KEY` — never call Brevo from the browser.',
+      '  Send from server-side code only: POST `https://api.brevo.com/v3/smtp/email` with headers `api-key: <key>`, `content-type: application/json`, `accept: application/json`, and body `{ sender: { name, email }, to: [{ email, name }], subject, htmlContent, textContent, replyTo? }`. Up to 300 emails a day on the free plan.',
+      '  Where that code runs depends on the deploy: Publish → Vercel compiles `api/send-email.ts`; on an EU host (Bunny, Codeberg Pages) there are no serverless functions, so the sender has to be a PocketBase hook (`pb_hooks/*.pb.js` with `$http.send`), a Supabase Edge Function in the builder\'s EU project, or a small server they run — say which one fits their stack and write it for that. The from address must be a sender verified in Brevo; say so.',
+    ].join('\n'),
+    setupHint: 'Stored as a secret — never in previews or shared links. Sending needs server-side code; on EU hosts that is a PocketBase hook or a Supabase Edge Function in your EU project, which the Builder writes for you.',
+    home: { company: 'FR', euData: 'yes', note: 'French company, EU data centres.' },
   },
   {
     id: 'firecrawl',
@@ -117,6 +179,7 @@ export const INTEGRATIONS: IntegrationDef[] = [
     ].join('\n'),
     setupHint: 'With Community Cloud on, your key is vaulted server-side and scraping works everywhere — the preview, your community-hosted site, any deploy. Without it, the key is stored as a secret and works once deployed to Vercel.',
     altConnectedKeys: ['COMMUNITY_SCRAPE'],
+    home: { company: 'US', euData: 'no', note: 'No EU option; pages it reads are public anyway, but the key and logs sit in the US.' },
   },
   {
     id: 'claude',
@@ -136,6 +199,24 @@ export const INTEGRATIONS: IntegrationDef[] = [
     ].join('\n'),
     setupHint: 'With Community Cloud on, your key is vaulted server-side and AI features work everywhere — the preview included. Without it, the key is a secret that works once deployed to Vercel.',
     altConnectedKeys: ['COMMUNITY_AI_ANTHROPIC', COMMUNITY_AI_PLAN_KEY],
+    home: { company: 'US', euData: 'no', note: 'Prompts and the text your neighbours type are processed in the US.' },
+  },
+  {
+    id: 'mistral',
+    name: 'Mistral',
+    tagline: 'AI features inside your app, from France — summaries, drafting, Q&A',
+    keysUrl: 'https://console.mistral.ai/api-keys',
+    keysLabel: 'console.mistral.ai → API keys',
+    fields: [
+      { envKey: 'MISTRAL_API_KEY', label: 'API key', placeholder: '...', isSecret: true },
+    ],
+    aiGuidance: [
+      '- **Mistral is connected** for AI features inside the app. The key lives in the secret env var `MISTRAL_API_KEY` — it must NEVER appear in browser code.',
+      '  Server-side only: POST `https://api.mistral.ai/v1/chat/completions` with `Authorization: Bearer <key>` and an OpenAI-shaped body `{ model, messages, max_tokens }`. Model choice: `mistral-small-latest` for everyday features (fast, cheap); `mistral-large-latest` when the feature needs real reasoning or longer writing. Pass user content in `messages`, instructions as the system message, keep max_tokens modest (500–2000), and show a friendly loading state.',
+      '  Where that code runs: Publish → Vercel compiles `api/ai.ts`; on an EU host there are no serverless functions, so put the call in a PocketBase hook, a Supabase Edge Function in the builder\'s EU project, or a small server they run — say which, and say that AI features will not work in the builder preview.',
+    ].join('\n'),
+    setupHint: 'Stored as a secret — never in previews or shared links. AI calls need server-side code; on EU hosts that is a PocketBase hook or a Supabase Edge Function, which the Builder writes for you.',
+    home: { company: 'FR', euData: 'yes', note: 'French company; the API runs in the EU.' },
   },
   {
     id: 'gemini',
@@ -154,6 +235,7 @@ export const INTEGRATIONS: IntegrationDef[] = [
     ].join('\n'),
     setupHint: 'With Community Cloud on, your key is vaulted server-side and AI features work everywhere — the preview included. Without it, the key is a secret that works once deployed to Vercel.',
     altConnectedKeys: ['COMMUNITY_AI_GEMINI'],
+    home: { company: 'US', euData: 'no', note: 'Prompts and the text your neighbours type are processed in the US.' },
   },
   {
     id: 'openai',
@@ -171,6 +253,7 @@ export const INTEGRATIONS: IntegrationDef[] = [
     ].join('\n'),
     setupHint: 'With Community Cloud on, your key is vaulted server-side and AI features work everywhere — the preview included. Without it, the key is a secret that works once deployed to Vercel.',
     altConnectedKeys: ['COMMUNITY_AI_OPENAI'],
+    home: { company: 'US', euData: 'no', note: 'Prompts and the text your neighbours type are processed in the US.' },
   },
 ];
 
@@ -203,6 +286,8 @@ export interface GuidedServiceDef {
   chatPrompt: string;
   /** Injected into the base system prompt so the AI can actually walk through setup */
   aiSetup: string;
+  /** Who runs it and where data can live — see IntegrationDef.home */
+  home: ServiceHome;
 }
 
 export const GUIDED_SERVICES: GuidedServiceDef[] = [
@@ -213,6 +298,16 @@ export const GUIDED_SERVICES: GuidedServiceDef[] = [
     url: 'https://www.twilio.com',
     chatPrompt: 'I’d like my app to send text messages with Twilio. Can you walk me through setting up an account and wiring it into this project?',
     aiSetup: '- **Twilio** (SMS/WhatsApp): walk them through signing up at twilio.com, getting a phone number, and finding the Account SID + Auth Token on the console home. Env vars: `TWILIO_ACCOUNT_SID` (secret), `TWILIO_AUTH_TOKEN` (secret), `TWILIO_FROM_NUMBER` (public). Send only from a serverless function: POST form-encoded `To`/`From`/`Body` to `https://api.twilio.com/2010-04-01/Accounts/{sid}/Messages.json` with HTTP Basic auth (SID as user, token as password). Trial accounts can only text verified numbers — always mention that.',
+    home: { company: 'US', euData: 'no', note: 'Messages and numbers are handled in the US. 46elks (Sweden) is the EU option.' },
+  },
+  {
+    id: '46elks',
+    name: '46elks',
+    tagline: 'Text-message alerts and reminders, from Sweden',
+    url: 'https://46elks.com',
+    chatPrompt: 'I’d like my app to send text messages with 46elks. Can you walk me through setting up an account and wiring it into this project?',
+    aiSetup: '- **46elks** (SMS, Sweden): walk them through signing up at 46elks.com and finding the API username + password on the dashboard. Env vars: `ELKS_API_USER` (secret), `ELKS_API_PASSWORD` (secret). Send only from server-side code: POST form-encoded `from` (an alphanumeric sender name like "Nabolag", or a number they rent), `to` (E.164, e.g. +4670...), `message` to `https://api.46elks.com/a1/sms` with HTTP Basic auth. Pay-as-you-go; new accounts get a small test credit — mention that.',
+    home: { company: 'SE', euData: 'yes', note: 'Swedish company, EU servers.' },
   },
   {
     id: 'stripe',
@@ -221,6 +316,16 @@ export const GUIDED_SERVICES: GuidedServiceDef[] = [
     url: 'https://stripe.com',
     chatPrompt: 'I want to take payments or donations in this app with Stripe. What’s the simplest way to set that up?',
     aiSetup: '- **Stripe** (payments/donations): for donations and simple payments, prefer a **Payment Link** created in the Stripe dashboard — it’s just a URL to put on a button, needs no keys, no code, no webhooks. Only for real in-app checkout: `STRIPE_SECRET_KEY` (secret) creating Checkout Sessions in a serverless function, `STRIPE_PUBLISHABLE_KEY` (public). Never collect card details directly.',
+    home: { company: 'US', euData: 'optional', note: 'EU merchants contract with Stripe Payments Europe (Ireland); the parent company is American. Mollie (Netherlands) is the EU option.' },
+  },
+  {
+    id: 'mollie',
+    name: 'Mollie',
+    tagline: 'Payments and donations, from the Netherlands (iDEAL, Bancontact, SEPA, cards)',
+    url: 'https://www.mollie.com',
+    chatPrompt: 'I want to take payments or donations in this app with Mollie. What’s the simplest way to set that up?',
+    aiSetup: '- **Mollie** (payments/donations, Netherlands): for donations and simple payments, prefer a **Payment Link** created in the Mollie dashboard (Payment links → Create) — a URL to put on a button, no keys, no code. Only for real in-app checkout: `MOLLIE_API_KEY` (secret, `live_...` or `test_...`) creating payments server-side with POST `https://api.mollie.com/v2/payments` (`Authorization: Bearer`, body `{ amount: { currency: "EUR", value: "10.00" }, description, redirectUrl, webhookUrl? }`) and sending the person to `_links.checkout.href`. Local methods (iDEAL, Bancontact, SEPA) come included. Never collect card details directly.',
+    home: { company: 'NL', euData: 'yes', note: 'Dutch company, EU servers, EU payment methods built in.' },
   },
   {
     id: 'google-maps',
@@ -229,6 +334,7 @@ export const GUIDED_SERVICES: GuidedServiceDef[] = [
     url: 'https://developers.google.com/maps',
     chatPrompt: 'I’d like a map in my app. Can you walk me through the options and set one up?',
     aiSetup: '- **Maps**: for "show a place or a few pins," prefer Leaflet + OpenStreetMap — no account, no key (`https://esm.sh/leaflet` or the Leaflet CDN + its CSS). Offer Google Maps when they specifically want it: env var `GOOGLE_MAPS_API_KEY` (public — it’s a browser key; tell them to restrict it to their site’s domain in the Google Cloud console), loaded via the Maps JavaScript API script tag.',
+    home: { company: 'US', euData: 'no', note: 'Leaflet + OpenStreetMap needs no account and no US company; it is the default anyway.' },
   },
   {
     id: 'airtable',
@@ -237,6 +343,16 @@ export const GUIDED_SERVICES: GuidedServiceDef[] = [
     url: 'https://airtable.com',
     chatPrompt: 'My group keeps data in Airtable. Can you connect my app to read from (or write to) our base?',
     aiSetup: '- **Airtable**: env vars `AIRTABLE_TOKEN` (secret — a personal access token starting `pat`, created at airtable.com/create/tokens with data.records scopes) and `AIRTABLE_BASE_ID` (public, starts `app`). Call `https://api.airtable.com/v0/{baseId}/{tableName}` with `Authorization: Bearer` from a serverless function only — the token grants write access to the whole base.',
+    home: { company: 'US', euData: 'no', note: 'Data lives in the US. Baserow (Netherlands) is the EU option, and can be self-hosted.' },
+  },
+  {
+    id: 'baserow',
+    name: 'Baserow',
+    tagline: 'Spreadsheet-style database from the Netherlands — hosted or on your own server',
+    url: 'https://baserow.io',
+    chatPrompt: 'My group keeps data in Baserow. Can you connect my app to read from (or write to) our table?',
+    aiSetup: '- **Baserow** (Netherlands, open source): env vars `BASEROW_URL` (public — `https://api.baserow.io` for the hosted service, or their own server), `BASEROW_TOKEN` (secret — a database token from Settings → Database tokens, scoped to read or read+write per table), `BASEROW_TABLE_ID` (public, a number from the table URL). Call `{BASEROW_URL}/api/database/rows/table/{tableId}/?user_field_names=true` with `Authorization: Token <token>` from server-side code only — the token grants whatever it was scoped to. For a public read-only board, a read-only token in a public env var is an acceptable trade-off; say so and let the builder decide.',
+    home: { company: 'NL', euData: 'yes', note: 'Dutch company, EU servers; open source, so it can also run on your own box.' },
   },
 ];
 

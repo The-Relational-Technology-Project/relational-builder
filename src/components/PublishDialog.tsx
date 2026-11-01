@@ -22,6 +22,10 @@ import { useLocalProjects } from '@/project/local-projects';
 import { getPromptForProject } from '@/cloud/prompts';
 import { deployToNetlify } from '@/project/deploy-netlify';
 import { deployToVercel } from '@/project/deploy-vercel';
+import { deployToBunny } from '@/project/deploy-bunny';
+import { deployToCodeberg } from '@/project/deploy-codeberg';
+import { useRegionStore } from '@/store/region-store';
+import { orderByRegion, regionBadge, regionalizeFiles, type ServiceHome } from '@/regions/regions';
 import { Download, ExternalLink, Globe, Check, Loader2, Lock } from 'lucide-react';
 import { LiveSiteLink } from './LiveSiteLink';
 import { cn } from '@/lib/utils';
@@ -31,7 +35,23 @@ import { suggestProjectName } from '@/project/suggest-name';
 import { runSecurityScan, type SecurityFinding } from '@/project/security-scan';
 import { ShieldAlert } from 'lucide-react';
 
-type DeployTarget = 'community' | 'download' | 'netlify' | 'vercel';
+type DeployTarget = 'community' | 'download' | 'netlify' | 'vercel' | 'bunny' | 'codeberg';
+
+/**
+ * Every target with where it runs — regional modes rank the row by this
+ * (src/regions). Download has no home: the files leave with the person.
+ * Order matters twice: it's the row in the default mode (EU hosts filtered
+ * out), and the tie-break inside each band once a regional mode ranks it —
+ * so the EU hosts sit ahead of Download, and Download ahead of the US hosts.
+ */
+const TARGETS: { id: DeployTarget; label: string; icon: string; home?: ServiceHome }[] = [
+  { id: 'community', label: 'Community', icon: '🌱', home: { company: 'US', euData: 'no', note: 'RTP\'s hosting runs on Supabase in the US.' } },
+  { id: 'bunny', label: 'Bunny', icon: '🇪🇺', home: { company: 'SI', euData: 'yes', note: 'Files stored in Falkenstein, Germany; served from Bunny\'s European edge. About €1 a month.' } },
+  { id: 'codeberg', label: 'Codeberg', icon: '🇪🇺', home: { company: 'DE', euData: 'yes', note: 'A Berlin non-profit, free. Your site is a public git repository.' } },
+  { id: 'download', label: 'Download', icon: '📦' },
+  { id: 'netlify', label: 'Netlify', icon: '▲', home: { company: 'US', euData: 'no' } },
+  { id: 'vercel', label: 'Vercel', icon: '◆', home: { company: 'US', euData: 'no' } },
+];
 
 interface DnsInstruction {
   type: string;
@@ -68,7 +88,11 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
   const [projectName, setProjectName] = useState(
     () => savedPublishName ?? (savedProjectName || null) ?? suggestProjectName() ?? 'my-community-app',
   );
-  const [activeTarget, setActiveTarget] = useState<DeployTarget>('community');
+  // EU mode: the EU hosts lead the row and are the default pick
+  const regionMode = useRegionStore(s => s.mode);
+  const [activeTarget, setActiveTarget] = useState<DeployTarget>(() =>
+    useRegionStore.getState().mode === 'eu' ? 'bunny' : 'community',
+  );
   // Community hosting only: non-empty sets/changes the site's passphrase;
   // empty means "no change" (removal lives in the Your Sites dashboard)
   const [passphrase, setPassphrase] = useState('');
@@ -94,6 +118,14 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
   const setNetlifyToken = useDeployStore(s => s.setNetlifyToken);
   const setVercelToken = useDeployStore(s => s.setVercelToken);
   const setCustomDomain = useDeployStore(s => s.setCustomDomain);
+  const bunnyAccountKey = useDeployStore(s => s.bunnyAccountKey);
+  const setBunnyAccountKey = useDeployStore(s => s.setBunnyAccountKey);
+  const bunnySite = useDeployStore(s => s.bunnySites[publishNameKey]);
+  const setBunnySite = useDeployStore(s => s.setBunnySite);
+  const codebergToken = useDeployStore(s => s.codebergToken);
+  const setCodebergToken = useDeployStore(s => s.setCodebergToken);
+  const codebergSite = useDeployStore(s => s.codebergSites[publishNameKey]);
+  const setCodebergSite = useDeployStore(s => s.setCodebergSite);
 
   const envVars = useEnvStore(s => s.vars);
   const envRecord = Object.fromEntries(envVars.map(v => [v.key, v.value]));
@@ -142,7 +174,12 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
       // the RUNNING site (same output the preview shows); Download gets the
       // SOURCE plus a working Vite scaffold for npm install && npm run dev.
       const isFramework = needsBuild(files);
-      const builtFiles = isFramework ? await buildStaticSite(files, publicEnvVars) : files;
+      // Regional mode rewrites (EU: Google Fonts → Bunny Fonts) apply to
+      // whatever ships — buildStaticSite does it for framework output, the
+      // simple-tool path gets it here
+      const builtFiles = isFramework
+        ? await buildStaticSite(files, publicEnvVars)
+        : regionalizeFiles(files, regionMode);
       // Every hosted site ships home-screen icons (manifest + apple-touch-icon)
       // unless the project brings its own. Serverless sources stay out of the
       // static file set on every target — Vercel gets its `api/*` functions
@@ -197,6 +234,24 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
           projectName, vercelToken, envRecord, domain,
         );
         setResult({ url: res.url, adminUrl: res.deploymentUrl, dnsInstructions: res.dnsInstructions });
+      } else if (activeTarget === 'bunny') {
+        if (!bunnyAccountKey) {
+          setError('Please enter your Bunny account API key');
+          return;
+        }
+        const domain = customDomain.trim() || undefined;
+        const res = await deployToBunny(siteFiles, projectName, bunnyAccountKey, bunnySite, domain);
+        setBunnySite(publishNameKey, res.site);
+        setResult({ url: res.siteUrl, adminUrl: res.adminUrl, dnsInstructions: res.dnsInstructions });
+      } else if (activeTarget === 'codeberg') {
+        if (!codebergToken) {
+          setError('Please enter your Codeberg access token');
+          return;
+        }
+        const domain = customDomain.trim() || undefined;
+        const res = await deployToCodeberg(siteFiles, projectName, codebergToken, codebergSite, domain);
+        setCodebergSite(publishNameKey, res.site);
+        setResult({ url: res.siteUrl, adminUrl: res.adminUrl, dnsInstructions: res.dnsInstructions });
       }
 
       // Published under this name — remember it for the next publish
@@ -208,14 +263,18 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
     }
   };
 
-  const targets: { id: DeployTarget; label: string; icon: string }[] = isProfilePage
-    ? [{ id: 'community', label: 'Community', icon: '🌱' }]
-    : [
-        { id: 'community', label: 'Community', icon: '🌱' },
-        { id: 'download', label: 'Download', icon: '📦' },
-        { id: 'netlify', label: 'Netlify', icon: '▲' },
-        { id: 'vercel', label: 'Vercel', icon: '◆' },
-      ];
+  // Default mode shows the four the dialog always had; the EU hosts appear
+  // once EU mode is on, ranked first (orderByRegion keeps catalog order
+  // inside each band, so Bunny then Codeberg, then Download, then the US
+  // targets). Profile pages publish one way only.
+  const targets = isProfilePage
+    ? TARGETS.filter(t => t.id === 'community')
+    : orderByRegion(
+        regionMode === 'eu' ? TARGETS : TARGETS.filter(t => t.id !== 'bunny' && t.id !== 'codeberg'),
+        regionMode,
+      );
+  const activeHome = TARGETS.find(t => t.id === activeTarget)?.home;
+  const activeBadge = regionBadge(activeHome, regionMode);
   const handleOk = HANDLE_RE.test(handle.trim().toLowerCase());
 
   return (
@@ -264,13 +323,13 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
           {/* Deploy target selector */}
           {!isProfilePage && <div className="space-y-1.5">
             <label className="text-xs font-medium">Deploy to</label>
-            <div className="flex gap-1.5">
+            <div className="flex flex-wrap gap-1.5">
               {targets.map(t => (
                 <button
                   key={t.id}
                   onClick={() => { setActiveTarget(t.id); resetState(); }}
                   className={cn(
-                    "flex-1 text-xs py-1.5 px-2 rounded-md border transition-colors text-center",
+                    "flex-1 text-xs py-1.5 px-2 rounded-md border transition-colors text-center min-w-[5.5rem]",
                     activeTarget === t.id
                       ? "border-foreground bg-foreground text-background font-medium"
                       : "border-border text-muted-foreground hover:border-foreground/50"
@@ -281,6 +340,12 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
                 </button>
               ))}
             </div>
+            {/* Where the chosen host runs, in EU mode — honest either way */}
+            {activeBadge && activeHome && (
+              <p className={cn('text-xs', activeHome.euData === 'yes' ? 'text-green-700' : 'text-amber-700')}>
+                {activeBadge}{activeHome.note ? ` — ${activeHome.note}` : ''}
+              </p>
+            )}
           </div>}
 
           {/* Already live: the link first, so Share and Publish both answer
@@ -384,8 +449,74 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
             </div>
           )}
 
-          {/* Custom domain (for Netlify/Vercel) */}
-          {(activeTarget === 'netlify' || activeTarget === 'vercel') && (
+          {/* Bunny: account key creates the zones; the per-site upload key is remembered */}
+          {activeTarget === 'bunny' && (
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium">Bunny account API key</label>
+              <Input
+                type="password"
+                value={bunnyAccountKey}
+                onChange={e => setBunnyAccountKey(e.target.value)}
+                placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                className="h-8 text-sm font-mono"
+              />
+              <p className="text-xs text-muted-foreground">
+                From{' '}
+                <a
+                  href="https://dash.bunny.net/account/settings"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:text-foreground"
+                >
+                  dash.bunny.net → Account → API
+                </a>
+                . The first publish creates a storage zone in Germany and a CDN
+                zone serving Europe only; later publishes update the same site.
+              </p>
+              {bunnySite && (
+                <p className="text-xs text-muted-foreground">
+                  Live at <span className="font-mono">{bunnySite.hostname}</span> — publishing again replaces it.
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Codeberg: a token with write:repository + write:user */}
+          {activeTarget === 'codeberg' && (
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium">Codeberg access token</label>
+              <Input
+                type="password"
+                value={codebergToken}
+                onChange={e => setCodebergToken(e.target.value)}
+                placeholder="..."
+                className="h-8 text-sm font-mono"
+              />
+              <p className="text-xs text-muted-foreground">
+                From{' '}
+                <a
+                  href="https://codeberg.org/user/settings/applications"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:text-foreground"
+                >
+                  codeberg.org → Settings → Applications
+                </a>
+                {' '}with <span className="font-mono">write:repository</span> and{' '}
+                <span className="font-mono">write:user</span>. The site becomes a
+                public repository with a <span className="font-mono">pages</span> branch,
+                served by Codeberg Pages within a few minutes.
+              </p>
+              {codebergSite && (
+                <p className="text-xs text-muted-foreground">
+                  Repository <span className="font-mono">{codebergSite.owner}/{codebergSite.repo}</span> — publishing again commits to it.
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Custom domain (for the token-based hosts) */}
+          {(activeTarget === 'netlify' || activeTarget === 'vercel' || activeTarget === 'bunny' || activeTarget === 'codeberg') && (
             <div className="space-y-1.5">
               <label className="text-xs font-medium">
                 Custom domain{' '}
@@ -458,7 +589,11 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
             ) : (
               <>
                 <Globe className="size-4" />
-                Deploy to {activeTarget === 'netlify' ? 'Netlify' : 'Vercel'}
+                {activeTarget === 'bunny' && bunnySite
+                  ? 'Update the site on Bunny'
+                  : activeTarget === 'codeberg' && codebergSite
+                    ? 'Update the site on Codeberg'
+                    : `Deploy to ${TARGETS.find(t => t.id === activeTarget)?.label ?? activeTarget}`}
               </>
             )}
           </Button>
@@ -508,7 +643,7 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
                 <div className="mt-2 pt-2 border-t space-y-1.5">
                   <p className="text-xs font-medium">DNS setup for your custom domain:</p>
                   <p className="text-xs text-muted-foreground">
-                    Add this record with your domain registrar:
+                    Add {result.dnsInstructions.length === 1 ? 'this record' : 'these records'} with your domain registrar:
                   </p>
                   <div className="bg-background rounded border overflow-hidden">
                     <table className="w-full text-xs">

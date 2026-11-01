@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useProviderStore } from '@/store/provider-store';
 import { useCommunityStore } from '@/store/community-store';
+import { useRegionStore } from '@/store/region-store';
 import { registry } from '@/providers/registry';
 import { LOCAL_MODEL_DEFAULT_URL } from '@/providers/openai-compatible';
 import {
@@ -48,6 +49,7 @@ export function ProviderSettings({ open: controlledOpen, onOpenChange, hideTrigg
   const localEntry = entries.find(e => e.provider.id === 'local');
   const byokEntries = entries.filter(e => e.tier !== 1 && e.provider.id !== 'local');
   const communityActive = useCommunityStore(s => s.active);
+  const regionMode = useRegionStore(s => s.mode);
   const weeklyBudget = useCommunityStore(s => s.weeklyBudget);
   const usedThisWeek = useCommunityStore(s => s.usedThisWeek);
   const refreshUsage = useCommunityStore(s => s.refreshUsage);
@@ -100,6 +102,20 @@ export function ProviderSettings({ open: controlledOpen, onOpenChange, hideTrigg
 
         <div className="space-y-4 mt-2">
           <h3 className="text-sm font-semibold">Model Providers</h3>
+
+          {/* EU mode covers the apps a person builds; the model that helps
+              write them is a separate choice, made here — say which options
+              keep the conversation in the EU rather than silently switching */}
+          {regionMode === 'eu' && (
+            <div className="rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-xs text-muted-foreground leading-relaxed">
+              <span className="font-medium text-foreground">EU mode is on.</span> This
+              choice is about the model that helps you build, not the app itself. Community
+              Access and the Claude, OpenAI and Gemini keys send your conversation to US
+              companies; <span className="text-foreground">Mistral</span> (France) under
+              Bring Your Own Key and a model on your own computer keep it in the EU or
+              in the room. Nothing switches on its own.
+            </div>
+          )}
 
           {/* Community Access — its own category, not a mode of the Claude BYOK
               row. Active when signed in as an approved member; routes through
