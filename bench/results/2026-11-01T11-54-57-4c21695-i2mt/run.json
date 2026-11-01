@@ -1,0 +1,151 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1,exp-v1",
+  "gitCommit": "4c21695",
+  "createdAt": "2026-11-01T11:57:01.044Z",
+  "runId": "2026-11-01T11-54-57-4c21695-i2mt",
+  "config": {
+    "trials": 1,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": null,
+    "importGuard": true
+  },
+  "models": [
+    {
+      "alias": "qwen3-coder-next",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-next",
+      "pricing": {
+        "inputPerMTok": 0.12,
+        "outputPerMTok": 0.8,
+        "asOf": "2026-10"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "hs-community-fridge",
+      "version": "exp-v1"
+    },
+    {
+      "id": "hs-listening-wall",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "qwen3-coder-next",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-next",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-01T11:54:57.503Z",
+      "plan": null,
+      "latencyMs": 121022,
+      "ttftMs": 985,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 121022,
+          "chars": 38925
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 38925,
+      "estTokens": {
+        "input": 14046,
+        "output": 9732,
+        "estimated": true
+      },
+      "estCostUsd": 0.00947112,
+      "extraction": {
+        "writes": 21,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": false,
+        "errors": [
+          "vfs:/src/App.tsx:7: No matching export in \"vfs:/src/components/ui/bottom-nav.tsx\" for import \"default\""
+        ]
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": false
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/qwen3-coder-next-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/components/ui/avatar.tsx:2: Could not find \"@/lib/cn\" in the project (imported from /src/components/ui/avatar.tsx)",
+          "vfs:/src/components/ui/bottom-nav.tsx:3: Could not find \"@/lib/cn\" in the project (imported from /src/components/ui/bottom-nav.tsx)",
+          "vfs:/src/components/ui/button.tsx:2: Could not find \"@/lib/cn\" in the project (imported from /src/components/ui/button.tsx)",
+          "vfs:/src/components/ui/card.tsx:2: Could not find \"@/lib/cn\" in the project (imported from /src/components/ui/card.tsx)",
+          "vfs:/src/App.tsx: No matching export in \"vfs:/src/components/ui/bottom-nav.tsx\" for import \"default\" (it exports names only)",
+          "vfs:/src/App.tsx: <BottomNavItem> is used but never imported or declared in this file",
+          "vfs:/src/components/ui/button.tsx: Could not find \"@/lib/cn\" in the project (imported from /src/components/ui/button.tsx)",
+          "vfs:/src/components/ui/card.tsx: Could not find \"@/lib/cn\" in the project (imported from /src/components/ui/card.tsx)",
+          "vfs:/src/components/ui/bottom-nav.tsx: Could not find \"@/lib/cn\" in the project (imported from /src/components/ui/bottom-nav.tsx)",
+          "vfs:/src/components/ui/input.tsx: Could not find \"@/lib/cn\" in the project (imported from /src/components/ui/input.tsx)",
+          "vfs:/src/components/ui/textarea.tsx: Could not find \"@/lib/cn\" in the project (imported from /src/components/ui/textarea.tsx)",
+          "vfs:/src/components/ui/badge.tsx: Could not find \"@/lib/cn\" in the project (imported from /src/components/ui/badge.tsx)",
+          "vfs:/src/components/ui/avatar.tsx: Could not find \"@/lib/cn\" in the project (imported from /src/components/ui/avatar.tsx)",
+          "vfs:/src/pages/Home.tsx: <Avatar> is used but never imported or declared in this file",
+          "vfs:/src/pages/Updates.tsx: <Avatar> is used but never imported or declared in this file",
+          "vfs:/src/pages/Shifts.tsx: <Avatar> is used but never imported or declared in this file"
+        ],
+        "solved": false,
+        "latencyMs": 2358,
+        "remainingErrors": [
+          "vfs:/src/App.tsx:7: No matching export in \"vfs:/src/components/ui/bottom-nav.tsx\" for import \"default\"",
+          "vfs:/src/App.tsx: No matching export in \"vfs:/src/components/ui/bottom-nav.tsx\" for import \"default\" (it exports names only)",
+          "vfs:/src/App.tsx: <BottomNavItem> is used but never imported or declared in this file",
+          "vfs:/src/pages/Home.tsx: <Avatar> is used but never imported or declared in this file",
+          "vfs:/src/pages/Updates.tsx: <Avatar> is used but never imported or declared in this file",
+          "vfs:/src/pages/Shifts.tsx: <Avatar> is used but never imported or declared in this file"
+        ],
+        "estCostUsd": 0.0030407999999999998
+      },
+      "error": null,
+      "importIssues": [
+        "vfs:/src/App.tsx: No matching export in \"vfs:/src/components/ui/bottom-nav.tsx\" for import \"default\" (it exports names only)",
+        "vfs:/src/App.tsx: <BottomNavItem> is used but never imported or declared in this file",
+        "vfs:/src/pages/Home.tsx: <Avatar> is used but never imported or declared in this file",
+        "vfs:/src/pages/Updates.tsx: <Avatar> is used but never imported or declared in this file",
+        "vfs:/src/pages/Shifts.tsx: <Avatar> is used but never imported or declared in this file"
+      ]
+    }
+  ]
+}
