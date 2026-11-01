@@ -2,7 +2,7 @@
   "harnessVersion": "1.2.0",
   "taskVersion": "exp-v1,exp-v1",
   "gitCommit": "4c21695",
-  "createdAt": "2026-11-01T11:57:01.044Z",
+  "createdAt": "2026-11-01T12:04:40.686Z",
   "runId": "2026-11-01T11-54-57-4c21695-i2mt",
   "config": {
     "trials": 1,
@@ -143,9 +143,134 @@
         "vfs:/src/App.tsx: No matching export in \"vfs:/src/components/ui/bottom-nav.tsx\" for import \"default\" (it exports names only)",
         "vfs:/src/App.tsx: <BottomNavItem> is used but never imported or declared in this file",
         "vfs:/src/pages/Home.tsx: <Avatar> is used but never imported or declared in this file",
-        "vfs:/src/pages/Updates.tsx: <Avatar> is used but never imported or declared in this file",
-        "vfs:/src/pages/Shifts.tsx: <Avatar> is used but never imported or declared in this file"
-      ]
+        "vfs:/src/pages/Shifts.tsx: <Avatar> is used but never imported or declared in this file",
+        "vfs:/src/pages/Updates.tsx: <Avatar> is used but never imported or declared in this file"
+      ],
+      "quality": {
+        "files": 20,
+        "codeFiles": 18,
+        "codeLines": 883,
+        "largestFile": "/src/pages/Home.tsx",
+        "largestFileLines": 162,
+        "anyCount": 0,
+        "kitImportingFiles": 6,
+        "handRolledUiFiles": 9,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 6,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.7,
+        "tscErrors": 14,
+        "tokensPerSecond": 80.4,
+        "fixLatencyMs": 2358,
+        "failKind": "missing-file"
+      }
+    },
+    {
+      "alias": "qwen3-coder-next",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-next",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-01T11:57:01.047Z",
+      "plan": null,
+      "latencyMs": 149779,
+      "ttftMs": 991,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 149779,
+          "chars": 45656
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 45656,
+      "estTokens": {
+        "input": 14036,
+        "output": 11414,
+        "estimated": true
+      },
+      "estCostUsd": 0.01081552,
+      "extraction": {
+        "writes": 21,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/qwen3-coder-next-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/pages/AdminPanel.tsx:1: Expected string but found \"{\"",
+          "vfs:/src/App.tsx: No matching export in \"vfs:/src/data/appData.ts\" for import \"APP_DATA\""
+        ],
+        "solved": true,
+        "latencyMs": 71486,
+        "remainingErrors": [],
+        "estCostUsd": 0.00706676
+      },
+      "error": null,
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 824
+      },
+      "quality": {
+        "files": 18,
+        "codeFiles": 16,
+        "codeLines": 914,
+        "largestFile": "/src/pages/QuestionDetail.tsx",
+        "largestFileLines": 175,
+        "anyCount": 0,
+        "kitImportingFiles": 3,
+        "handRolledUiFiles": 9,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 8,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.9,
+        "tscErrors": 5,
+        "tokensPerSecond": 76.2,
+        "fixLatencyMs": 71486,
+        "failKind": "syntax"
+      }
     }
   ]
 }
