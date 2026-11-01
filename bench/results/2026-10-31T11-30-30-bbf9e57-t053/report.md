@@ -13,13 +13,13 @@
 
 | Model | Bundle | First try | Renders | Fix | Fail kind | Files | Failed edits | Truncated | Checks | Sec flags | Lint/100 | tsc errors | Largest file | any | Kit files | tok/s | TTFT | Build time | Fix time | Total | ~$ | |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| opus-5-5 | 1/1 ✓ | 1/1 | 1/1 clean | — | — | 9 | 0 | no | 5/5 | 0 | 0 | 1 | 143 lines | 0 | 4/7 | 37.8 | 86s | 148s | — | 148s | 0.17 |
+| opus-5-5 | 1/1 ✓ | 1/1 | 1/1 clean | — | — | 9 | 0 | no | 5/5 | 0 | 0 | 4 | 143 lines | 0 | 4/7 | 37.8 | 86s | 148s | — | 148s | 0.17 |
 
 ### Task: hs-listening-wall (exp-v1)
 
 | Model | Bundle | First try | Renders | Fix | Fail kind | Files | Failed edits | Truncated | Checks | Sec flags | Lint/100 | tsc errors | Largest file | any | Kit files | tok/s | TTFT | Build time | Fix time | Total | ~$ | |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| opus-5-5 | 1/1 ✓ | 1/1 | 1/1 clean | — | — | 11 | 0 | no | 4/5 | 0 | 0 | 1 | 151 lines | 0 | 6/9 | 44.7 | 80s | 178s | — | 178s | 0.28 |
+| opus-5-5 | 1/1 ✓ | 1/1 | 1/1 clean | — | — | 11 | 0 | no | 4/5 | 0 | 0 | 6 | 151 lines | 0 | 6/9 | 44.7 | 80s | 178s | — | 178s | 0.28 |
 
 ## Human review
 

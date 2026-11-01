@@ -105,6 +105,7 @@ async function typecheckDir(filesDir: string, files: Record<string, string>): Pr
       JSON.stringify(
         {
           compilerOptions: {
+            ignoreDeprecations: '6.0',
             target: 'es2022', lib: ['ES2022', 'DOM', 'DOM.Iterable'], module: 'esnext', moduleResolution: 'bundler',
             jsx: 'react-jsx', strict: false, skipLibCheck: true, noEmit: true, allowJs: true, esModuleInterop: true,
             baseUrl: '.', paths: { '@/*': ['./src/*'] }, types: [],
@@ -131,6 +132,7 @@ async function typecheckDir(filesDir: string, files: Record<string, string>): Pr
       const m = /^(.+?)\(\d+,\d+\): error TS\d+/.exec(line);
       if (!m) continue;
       const file = m[1].split(path.sep).join('/');
+      if (!file.startsWith('src/')) continue; // config or harness noise, not the model's code
       if (kitPaths.has(file) && !(('/' + file) in files)) continue;
       count++;
     }

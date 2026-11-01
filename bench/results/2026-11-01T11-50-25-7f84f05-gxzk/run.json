@@ -1,0 +1,255 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1,exp-v1",
+  "gitCommit": "7f84f05",
+  "createdAt": "2026-11-01T11:54:07.593Z",
+  "runId": "2026-11-01T11-50-25-7f84f05-gxzk",
+  "config": {
+    "trials": 1,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": null,
+    "importGuard": true
+  },
+  "models": [
+    {
+      "alias": "glm-4.5-air",
+      "providerId": "openrouter",
+      "modelId": "z-ai/glm-4.5-air",
+      "pricing": {
+        "inputPerMTok": 0.13,
+        "outputPerMTok": 0.85,
+        "asOf": "2026-10"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "hs-community-fridge",
+      "version": "exp-v1"
+    },
+    {
+      "id": "hs-listening-wall",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "glm-4.5-air",
+      "providerId": "openrouter",
+      "modelId": "z-ai/glm-4.5-air",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-01T11:50:25.932Z",
+      "plan": null,
+      "latencyMs": 66019,
+      "ttftMs": 7054,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 66019,
+          "chars": 24332
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 24332,
+      "estTokens": {
+        "input": 13722,
+        "output": 6083,
+        "estimated": true
+      },
+      "estCostUsd": 0.006954409999999999,
+      "extraction": {
+        "writes": 15,
+        "editBlocks": 3,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/glm-4.5-air-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/pages/HomePage.tsx:7: No matching export in \"vfs:/src/components/ui/avatar.tsx\" for import \"AvatarFallback\"",
+          "vfs:/src/pages/PostPage.tsx:7: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectContent\"",
+          "vfs:/src/pages/PostPage.tsx:7: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectItem\"",
+          "vfs:/src/pages/PostPage.tsx:7: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectTrigger\"",
+          "vfs:/src/pages/PostPage.tsx:7: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectValue\"",
+          "vfs:/src/pages/HomePage.tsx: No matching export in \"vfs:/src/components/ui/avatar.tsx\" for import \"AvatarFallback\"",
+          "vfs:/src/pages/HomePage.tsx: <AppBarTitle> is used but never imported or declared in this file",
+          "vfs:/src/pages/HomePage.tsx: <BottomNavItem> is used but never imported or declared in this file",
+          "vfs:/src/pages/PostPage.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectContent\"",
+          "vfs:/src/pages/PostPage.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectItem\"",
+          "vfs:/src/pages/PostPage.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectTrigger\"",
+          "vfs:/src/pages/PostPage.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectValue\"",
+          "vfs:/src/pages/PostPage.tsx: <AppBarTitle> is used but never imported or declared in this file",
+          "vfs:/src/pages/ShiftPage.tsx: <AppBarTitle> is used but never imported or declared in this file",
+          "vfs:/src/pages/ShiftPage.tsx: <Badge> is used but never imported or declared in this file"
+        ],
+        "solved": true,
+        "latencyMs": 22942,
+        "remainingErrors": [],
+        "estCostUsd": 0.00430189
+      },
+      "error": null,
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 370
+      },
+      "quality": {
+        "files": 15,
+        "codeFiles": 13,
+        "codeLines": 847,
+        "largestFile": "/src/pages/HomePage.tsx",
+        "largestFileLines": 176,
+        "anyCount": 0,
+        "kitImportingFiles": 3,
+        "handRolledUiFiles": 5,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 4,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.5,
+        "tscErrors": 11,
+        "tokensPerSecond": 92.1,
+        "fixLatencyMs": 22942,
+        "failKind": "bad-import"
+      }
+    },
+    {
+      "alias": "glm-4.5-air",
+      "providerId": "openrouter",
+      "modelId": "z-ai/glm-4.5-air",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-01T11:51:55.160Z",
+      "plan": null,
+      "latencyMs": 123979,
+      "ttftMs": 45739,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 123979,
+          "chars": 22735
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 22735,
+      "estTokens": {
+        "input": 13713,
+        "output": 5684,
+        "estimated": true
+      },
+      "estCostUsd": 0.0066140899999999996,
+      "extraction": {
+        "writes": 3,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "sandpack",
+      "previewKindMatch": false,
+      "bundle": null,
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": false
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": false
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/glm-4.5-air-t1",
+      "fixRound": null,
+      "error": null,
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [
+          "console: Failed to load resource: net::ERR_FILE_NOT_FOUND",
+          "console: Failed to load resource: net::ERR_FILE_NOT_FOUND"
+        ],
+        "bodyChars": 509
+      },
+      "quality": {
+        "files": 3,
+        "codeFiles": 1,
+        "codeLines": 201,
+        "largestFile": "/app.js",
+        "largestFileLines": 201,
+        "anyCount": 0,
+        "kitImportingFiles": 0,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 0,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0,
+        "tscErrors": 0,
+        "tokensPerSecond": 45.8,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    }
+  ]
+}

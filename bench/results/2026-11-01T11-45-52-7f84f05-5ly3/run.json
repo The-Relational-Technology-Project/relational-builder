@@ -1,0 +1,262 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1,exp-v1",
+  "gitCommit": "7f84f05",
+  "createdAt": "2026-11-01T11:50:27.975Z",
+  "runId": "2026-11-01T11-45-52-7f84f05-5ly3",
+  "config": {
+    "trials": 1,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": null,
+    "importGuard": true
+  },
+  "models": [
+    {
+      "alias": "gemma-4-26b",
+      "providerId": "openrouter",
+      "modelId": "google/gemma-4-26b-a4b-it",
+      "pricing": {
+        "inputPerMTok": 0.09,
+        "outputPerMTok": 0.3,
+        "asOf": "2026-10"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "hs-community-fridge",
+      "version": "exp-v1"
+    },
+    {
+      "id": "hs-listening-wall",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "gemma-4-26b",
+      "providerId": "openrouter",
+      "modelId": "google/gemma-4-26b-a4b-it",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-01T11:45:52.398Z",
+      "plan": null,
+      "latencyMs": 48227,
+      "ttftMs": 3247,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 48227,
+          "chars": 12020
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 12020,
+      "estTokens": {
+        "input": 13722,
+        "output": 3005,
+        "estimated": true
+      },
+      "estCostUsd": 0.0021364799999999996,
+      "extraction": {
+        "writes": 12,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": false,
+        "errors": [
+          "vfs:/src/main.tsx:1: Expected \";\" but found \"react\""
+        ]
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/gemma-4-26b-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/main.tsx:1: Expected \";\" but found \"react\"",
+          "vfs:/src/App.tsx: The requested module 'lucide-react' does not provide an export named 'icon { Home'",
+          "vfs:/src/pages/Home.tsx: The requested module 'lucide-react' does not provide an export named 'icon { CheckCircle2'",
+          "vfs:/src/pages/Updates.tsx: The requested module 'lucide-react' does not provide an export named 'icon { ArrowUpRight'",
+          "vfs:/src/pages/Shifts.tsx: The requested module 'lucide-react' does not provide an export named 'icon { Calendar'",
+          "vfs:/src/pages/Shifts.tsx: <Badge> is used but never imported or declared in this file"
+        ],
+        "solved": false,
+        "latencyMs": 95508,
+        "remainingErrors": [
+          "vfs:/src/main.tsx:1: Expected \";\" but found \"react\"",
+          "vfs:/src/pages/Home.tsx: The requested module 'lucide-react' does not provide an export named 'icon { CheckCircle2'",
+          "vfs:/src/pages/Updates.tsx: The requested module 'lucide-react' does not provide an export named 'icon { ArrowUpRight'",
+          "vfs:/src/pages/Shifts.tsx: The requested module 'lucide-react' does not provide an export named 'icon { Calendar'"
+        ],
+        "estCostUsd": 0.00223428
+      },
+      "error": null,
+      "importIssues": [
+        "vfs:/src/pages/Home.tsx: The requested module 'lucide-react' does not provide an export named 'icon { CheckCircle2'",
+        "vfs:/src/pages/Shifts.tsx: The requested module 'lucide-react' does not provide an export named 'icon { Calendar'",
+        "vfs:/src/pages/Updates.tsx: The requested module 'lucide-react' does not provide an export named 'icon { ArrowUpRight'"
+      ],
+      "quality": {
+        "files": 7,
+        "codeFiles": 5,
+        "codeLines": 256,
+        "largestFile": "/src/pages/Shifts.tsx",
+        "largestFileLines": 79,
+        "anyCount": 0,
+        "kitImportingFiles": 4,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 5,
+        "lintWarnings": 0,
+        "lintPer100Lines": 2,
+        "tscErrors": 22,
+        "tokensPerSecond": 62.3,
+        "fixLatencyMs": 95508,
+        "failKind": "syntax"
+      }
+    },
+    {
+      "alias": "gemma-4-26b",
+      "providerId": "openrouter",
+      "modelId": "google/gemma-4-26b-a4b-it",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-01T11:48:16.180Z",
+      "plan": null,
+      "latencyMs": 77897,
+      "ttftMs": 697,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 77897,
+          "chars": 18436
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 18436,
+      "estTokens": {
+        "input": 13713,
+        "output": 4609,
+        "estimated": true
+      },
+      "estCostUsd": 0.00261687,
+      "extraction": {
+        "writes": 7,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/gemma-4-26b-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/main.tsx:4: No matching export in \"vfs:/src/App.tsx\" for import \"default\"",
+          "vfs:/src/main.tsx: No matching export in \"vfs:/src/App.tsx\" for import \"default\" (it exports names only)"
+        ],
+        "solved": true,
+        "latencyMs": 47082,
+        "remainingErrors": [],
+        "estCostUsd": 0.00230703
+      },
+      "error": null,
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 556
+      },
+      "quality": {
+        "files": 6,
+        "codeFiles": 4,
+        "codeLines": 340,
+        "largestFile": "/src/App.tsx",
+        "largestFileLines": 222,
+        "anyCount": 1,
+        "kitImportingFiles": 1,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 5,
+        "lintWarnings": 0,
+        "lintPer100Lines": 1.5,
+        "tscErrors": 4,
+        "tokensPerSecond": 59.2,
+        "fixLatencyMs": 47082,
+        "failKind": "bad-import"
+      }
+    }
+  ]
+}
