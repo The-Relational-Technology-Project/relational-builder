@@ -2,7 +2,7 @@ import { applyEdits, extractOperations } from '@/project/code-extractor';
 import { detectPreviewKind } from '@/preview/detect';
 import { bundleProject, findFrameworkEntry } from '@/preview/bundler/bundle';
 import { KIT_FILES } from '@/kit';
-import { checkImports } from './import-check';
+import { checkImports } from '@/project/import-check';
 import { buildEnvJs, buildEnvTs } from '@/project/env-module';
 import { runSecurityScan } from '@/project/security-scan';
 import type { FileEntry } from '@/project/virtual-fs';

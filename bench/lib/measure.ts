@@ -10,7 +10,7 @@ import { readdir, readFile, access } from 'node:fs/promises';
 import path from 'node:path';
 import type { TrialResult } from '../types';
 import { fileStats, classifyFailure, tokensPerSecond, lintPer100 } from './quality';
-import { checkImports } from './import-check';
+import { checkImports } from '@/project/import-check';
 import { KIT_FILES } from '@/kit';
 
 export type Quality = NonNullable<TrialResult['quality']>;

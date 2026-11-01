@@ -8,6 +8,7 @@ import { charsToTokens, estimateCostUsd, HARNESS_VERSION } from './cost';
 import { providerFor } from './providers';
 import { runSession, type SessionResult } from './session';
 import { scoreOutput } from './pipeline';
+import { suggestLucideIcons } from '@/preview/lucide-icons';
 import { writeTrialArtifacts } from './artifacts';
 
 export interface ExecuteOptions {
@@ -49,17 +50,46 @@ const TRIAL_TIMEOUT_MS = 10 * 60 * 1000;
  * runs the single automatic pass production arms per build — so "how solves
  * go" is measured, not guessed.
  */
-function bundleFixPrompt(errors: string[]): string {
+function bundleFixPrompt(errors: string[], appliedPaths: string[] = []): string {
   const errorText = errors.join('\n').slice(0, 2000);
-  return [
+  const parts = [
     'The live preview is showing this error:',
     '',
     '```',
     errorText,
     '```',
+  ];
+  // The two clauses production's FixBanner adds (ported Nov 1, 2026, after
+  // the open models' fix passes kept re-outputting on faith): a missing file
+  // is genuinely absent, write it; a bad icon name is one word to replace.
+  const missing = errorText.match(/Could not find "([^"]+)" in the project/);
+  if (missing) {
+    parts.push(
+      '',
+      `"${missing[1]}" is genuinely absent from the project files — it was never generated (this happens when a reply gets cut off). Do not suggest refreshing or speculate that it should exist: write the missing file now, complete, matching how the rest of the project imports and uses it.`,
+    );
+  }
+  const badIcon = errorText.match(/does not provide an export named '(\w+)'/);
+  if (badIcon && /lucide-react/.test(errorText)) {
+    const suggestions = suggestLucideIcons(badIcon[1]);
+    parts.push(
+      '',
+      `\`${badIcon[1]}\` does not exist in lucide-react — it must be replaced with a real icon${
+        suggestions.length ? ` (closest real names: ${suggestions.join(', ')})` : ''
+      }. Change only the import and its uses.`,
+    );
+  }
+  if (appliedPaths.length > 0) {
+    parts.push(
+      '',
+      `These files are already complete in the project — do NOT re-output any of them unless the fix genuinely requires changing that file: ${appliedPaths.join(', ')}.`,
+    );
+  }
+  parts.push(
     '',
     'Please fix it. Re-output the complete corrected file(s) with filename annotations, changing as little else as possible.',
-  ].join('\n');
+  );
+  return parts.join('\n');
 }
 
 function gitCommit(): string {
@@ -222,7 +252,7 @@ async function runTrial(
       const fixMessages: ChatMessage[] = [
         ...buildMessages,
         { role: 'assistant', content: buildSession.segmentTexts.join('\n') },
-        { role: 'user', content: bundleFixPrompt(triggerErrors) },
+        { role: 'user', content: bundleFixPrompt(triggerErrors, Object.keys(mech.files)) },
       ];
       try {
         const fixSession = await withRetries(fixMessages);

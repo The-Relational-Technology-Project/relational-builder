@@ -9,6 +9,8 @@ import { bundleProject, findFrameworkEntry } from '@/preview/bundler/bundle';
 import { ASSET_APPLIER, buildShellHtml, EMPTY_RENDER_SENTRY, ERROR_RELAY, NAV_BRIDGE } from '@/preview/bundler/shell';
 import { isPhotoAssetPath } from '@/project/assets';
 import { KIT_FILES } from '@/kit';
+import { isHumanScale } from '@/human-scale/flag';
+import { checkImports, formatImportIssues } from '@/project/import-check';
 import { INSPECT_SOURCE } from '@/preview/inspect-source';
 import {
   captureFromIframe,
@@ -49,6 +51,12 @@ export function FrameworkPreview({
   const [html, setHtml] = useState<string | null>(null);
   const [buildError, setBuildError] = useState<string | null>(null);
   const [runtimeError, setRuntimeError] = useState<string | null>(null);
+  // Human-scale branch: import mistakes the bundler cannot see (a bad icon
+  // name, a default import from a names-only module, a component used
+  // without its import). Found statically after a successful bundle and
+  // handed to the same fix banner, so the one automatic pass fires on them
+  // before a person sees a blank page. Off unless the flag is on.
+  const [staticError, setStaticError] = useState<string | null>(null);
   // The quiet failure: app loads clean but paints nothing (see
   // EMPTY_RENDER_SENTRY). A notice, not an error — nothing crashed.
   const [emptyRender, setEmptyRender] = useState(false);
@@ -109,9 +117,17 @@ export function FrameworkPreview({
       if (!result.ok) {
         setHealth('error');
         setBuildError(result.errors.join('\n'));
+        setStaticError(null);
         return;
       }
       setHealth('ok');
+      if (isHumanScale()) {
+        const projectFiles: Record<string, string> = {};
+        for (const f of files) projectFiles[f.path.startsWith('/') ? f.path : '/' + f.path] = f.content;
+        setStaticError(formatImportIssues(checkImports(projectFiles, { kitFiles: KIT_FILES })));
+      } else {
+        setStaticError(null);
+      }
 
       // Photo assets can't load by relative URL from a blob: document —
       // inline their modules so `<img data-asset>` works in framework apps.
@@ -253,7 +269,7 @@ export function FrameworkPreview({
           you expected to see here.
         </div>
       )}
-      <FixBanner error={buildError ?? runtimeError} />
+      <FixBanner error={buildError ?? staticError ?? runtimeError} />
     </div>
   );
 }

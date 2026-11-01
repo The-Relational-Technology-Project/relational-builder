@@ -84,11 +84,15 @@ function trialRows(runs, hand) {
       const bundled = !!(t.bundle && t.bundle.ok);
       const rt = t.runtime || null;
       const browser = !bundled || !rt ? '' : !rt.rendered ? ', BLANK in the browser' : rt.errors.length ? `, renders with ${rt.errors.length} error(s)` : ', renders clean';
+      // A build that came back in the wrong shape (a single HTML file when
+      // the prompt asked for an app) is a failure even if it renders
+      const wrongShape = t.previewKindMatch === false;
       const result = (t.error
         ? `failed: ${String(t.error).slice(0, 60)}`
+        : wrongShape ? `wrong shape (${t.previewKind || 'not the app stack'})`
         : bundled && !fix ? 'bundled, first try'
         : bundled && fix ? 'bundled after one auto-fix'
-        : 'did not bundle') + browser;
+        : 'did not bundle') + (wrongShape ? '' : browser);
       const firstError = rt && rt.errors.length ? rt.errors[0].replace(/^(pageerror|console): /, '').slice(0, 110) : '';
       const q = t.quality || null;
       const code = q
@@ -110,7 +114,7 @@ function trialRows(runs, hand) {
         providerId: t.providerId,
         modelId: t.modelId,
         bundled,
-        rendersClean: !!(bundled && rt && rt.rendered && rt.errors.length === 0),
+        rendersClean: !!(bundled && rt && rt.rendered && rt.errors.length === 0 && t.previewKindMatch !== false),
         code,
         lintPer100: q ? q.lintPer100Lines : null,
         tokensPerSecond: q ? q.tokensPerSecond : null,

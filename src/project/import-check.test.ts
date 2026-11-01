@@ -1,10 +1,19 @@
 import { describe, it, expect } from 'vitest';
-import { checkImports } from './import-check';
+import { checkImports, formatImportIssues } from './import-check';
 
 const kit = {
   '/src/components/ui/button.tsx': 'export function Button() { return null; }\nexport const buttonVariants = 1;',
   '/src/components/ui/app-bar.tsx': 'export function AppBar() { return null; }\nexport function AppBarTitle() { return null; }',
 };
+
+describe('formatImportIssues', () => {
+  it('is null when clean and one banner text otherwise', () => {
+    expect(formatImportIssues([])).toBeNull();
+    const text = formatImportIssues(['vfs:/src/A.tsx: <Calendar> is used but never imported or declared in this file']);
+    expect(text).toMatch(/compiled, but these imports will fail/);
+    expect(text).toMatch(/<Calendar>/);
+  });
+});
 
 describe('checkImports', () => {
   it('is empty for a clean file', () => {
@@ -25,7 +34,7 @@ describe('checkImports', () => {
     const files = { '/src/A.tsx': "import { CircleHalf, Calendar } from 'lucide-react';\nexport const A = () => <CircleHalf />;" };
     const issues = checkImports(files);
     expect(issues).toHaveLength(1);
-    expect(issues[0]).toMatch(/"lucide-react" for import "CircleHalf"/);
+    expect(issues[0]).toMatch(/'lucide-react' does not provide an export named 'CircleHalf'/);
   });
 
   it('flags a default import from a names-only module (zustand, the kit)', () => {

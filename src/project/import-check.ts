@@ -13,7 +13,9 @@
  *  4. a relative or `@/` import that resolves to no project or kit file,
  *     or names an export the target does not have
  *
- * Pure: files in, messages out. No bundling, no network.
+ * Pure: files in, messages out. No bundling, no network. Lives in the
+ * product (src/project) so the preview's guardrail and the bench measure
+ * the same thing; the bench imports it from here.
  */
 
 import { isLucideIconName } from '@/preview/lucide-icons';
@@ -110,6 +112,17 @@ function declaredIn(source: string, name: string): boolean {
   return false;
 }
 
+/** The banner text for the preview: the issues as one error the fix pass
+ *  can act on, or null when there are none. */
+export function formatImportIssues(issues: string[]): string | null {
+  if (issues.length === 0) return null;
+  return [
+    'The build compiled, but these imports will fail in the browser (a blank page or a missing component):',
+    ...issues.slice(0, 8),
+    ...(issues.length > 8 ? [`(${issues.length - 8} more)`] : []),
+  ].join('\n');
+}
+
 /** Bundler-style messages for the import mistakes in `files`. Empty when clean. */
 export function checkImports(files: Record<string, string>, opts: ImportCheckOptions = {}): string[] {
   const all: Record<string, string> = { ...(opts.kitFiles ?? {}), ...files };
@@ -120,7 +133,9 @@ export function checkImports(files: Record<string, string>, opts: ImportCheckOpt
     for (const st of stmts) {
       if (st.spec === 'lucide-react') {
         for (const n of st.named) {
-          if (!isLucideIconName(n)) issues.push(`vfs:${path}: No matching export in "lucide-react" for import "${n}" (not a lucide icon name; pick a real one)`);
+          // Same wording the browser uses at module link time, so the
+          // production fix prompt's bad-icon clause (FixBanner) recognizes it
+          if (!isLucideIconName(n)) issues.push(`vfs:${path}: The requested module 'lucide-react' does not provide an export named '${n}'`);
         }
       }
       if (st.defaultName && NAMED_ONLY_PACKAGES.has(st.spec)) {
