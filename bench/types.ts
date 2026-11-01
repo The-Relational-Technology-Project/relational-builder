@@ -119,6 +119,10 @@ export interface TrialResult {
     lintErrors: number | null;
     lintWarnings: number | null;
     lintPer100Lines: number | null;
+    /** Type errors from tsc over the model's files with the kit merged, a
+     *  minimal @/ tsconfig, skipLibCheck, and any package not installed
+     *  here treated as untyped. Null when tsc could not run. */
+    tscErrors: number | null;
     tokensPerSecond: number | null;
     fixLatencyMs: number | null;
     failKind: 'missing-file' | 'bad-import' | 'unknown-package' | 'syntax' | 'other' | null;

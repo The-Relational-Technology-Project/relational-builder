@@ -115,6 +115,7 @@ export async function generateReport(runDirArg: string | undefined): Promise<num
         `| ${checksPass ?? '—'}/${checksTotal} ` +
         `| ${median(ok.map(t => t.securityFindings)) ?? '—'} ` +
         `| ${q.length ? median(q.map(t => t.quality!.lintPer100Lines ?? NaN)) ?? 'n/a' : 'n/a'} ` +
+        `| ${q.length ? median(q.map(t => t.quality!.tscErrors ?? NaN)) ?? 'n/a' : 'n/a'} ` +
         `| ${q.length ? `${median(q.map(t => t.quality!.largestFileLines))} lines` : 'n/a'} ` +
         `| ${q.length ? median(q.map(t => t.quality!.anyCount)) : 'n/a'} ` +
         `| ${q.length ? `${median(q.map(t => t.quality!.kitImportingFiles))}/${median(q.map(t => t.quality!.codeFiles))}` : 'n/a'} ` +
@@ -130,8 +131,8 @@ export async function generateReport(runDirArg: string | undefined): Promise<num
     });
     return `### Task: ${taskId} (${version})
 
-| Model | Bundle | First try | Renders | Fix | Fail kind | Files | Failed edits | Truncated | Checks | Sec flags | Lint/100 | Largest file | any | Kit files | tok/s | TTFT |${planCols} Build time | Fix time | Total | ~$ | |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|${planFirst ? '---|' : ''}---|---|---|---|---|
+| Model | Bundle | First try | Renders | Fix | Fail kind | Files | Failed edits | Truncated | Checks | Sec flags | Lint/100 | tsc errors | Largest file | any | Kit files | tok/s | TTFT |${planCols} Build time | Fix time | Total | ~$ | |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|${planFirst ? '---|' : ''}---|---|---|---|---|
 ${rows.join('\n')}`;
   });
 
@@ -193,7 +194,7 @@ ${aliases
 
 > Cost and token figures are **estimates** (chars ÷ 4 × list prices) — directional, not billing-grade.
 > Mechanical columns are medians across trials. Total = plan + build wall time.
-> **Bundle** = final compile success; **First try** = compiled without the auto-fix; **Renders** = opened in a browser after bundling, visible page and no uncaught errors (n/a before Oct 30, 2026); **Fail kind** = what the first-try bundle error was (missing-file, bad-import, unknown-package, syntax); **Lint/100** = eslint findings per 100 lines with the app's own config; **Largest file**, **any**, **Kit files** (files importing the RB kit over code files) and **tok/s** come from the files the model wrote (n/a before Oct 31, 2026); **Fix time** = the auto-fix pass's own wall time; **Fix** = of the builds that first failed, how many the single auto-fix pass solved. **~$** includes the fix pass when one ran.
+> **Bundle** = final compile success; **First try** = compiled without the auto-fix; **Renders** = opened in a browser after bundling, visible page and no uncaught errors (n/a before Oct 30, 2026); **Fail kind** = what the first-try bundle error was (missing-file, bad-import, unknown-package, syntax); **Lint/100** = eslint findings per 100 lines with the app's own config; **tsc errors** = type errors in the model's files with the kit merged and uninstalled packages untyped (n/a before Nov 1, 2026); **Largest file**, **any**, **Kit files** (files importing the RB kit over code files) and **tok/s** come from the files the model wrote (n/a before Oct 31, 2026); **Fix time** = the auto-fix pass's own wall time; **Fix** = of the builds that first failed, how many the single auto-fix pass solved. **~$** includes the fix pass when one ran.
 
 ${taskSections.join('\n\n')}
 

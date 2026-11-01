@@ -6,8 +6,12 @@
  * artifacts. Also usable after the fact: `npm run bench -- measure <runDir>`.
  */
 
-import { readdir, readFile, access } from 'node:fs/promises';
+import { readdir, readFile, access, mkdir, writeFile, rm } from 'node:fs/promises';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import path from 'node:path';
+
+const execFileP = promisify(execFile);
 import type { TrialResult } from '../types';
 import { fileStats, classifyFailure, tokensPerSecond, lintPer100 } from './quality';
 import { checkImports } from '@/project/import-check';
@@ -56,6 +60,88 @@ async function lintDir(dir: string): Promise<{ errors: number; warnings: number 
   }
 }
 
+/**
+ * Type errors in the files the model wrote. A temp project is laid out
+ * beside the artifacts (inside the repo, so react, zustand and lucide-react
+ * resolve to their real types), the kit merged underneath, a minimal
+ * tsconfig with the `@/` alias, and every package not installed here
+ * declared untyped so the count is about the model's code, not our
+ * node_modules. Errors inside kit files are not counted.
+ */
+async function typecheckDir(filesDir: string, files: Record<string, string>): Promise<number | null> {
+  const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..', '..');
+  const tmp = path.join(path.dirname(filesDir), '.tsc');
+  try {
+    await rm(tmp, { recursive: true, force: true });
+    await mkdir(tmp, { recursive: true });
+    for (const [p, content] of Object.entries({ ...KIT_FILES, ...files })) {
+      if (!/\.(tsx?|jsx?)$/.test(p)) continue;
+      const out = path.join(tmp, p.replace(/^\//, ''));
+      await mkdir(path.dirname(out), { recursive: true });
+      await writeFile(out, content, 'utf8');
+    }
+    await writeFile(path.join(tmp, 'src', 'env.ts'), 'export const env: Record<string, string> = {};\n', 'utf8');
+    await writeFile(
+      path.join(tmp, 'untyped.d.ts'),
+      [
+        '// Packages a generated app may import that are not installed in this repo',
+        "declare module 'react-router-dom';",
+        "declare module 'date-fns';",
+        "declare module 'date-fns/*';",
+        "declare module 'clsx';",
+        "declare module 'tailwind-merge';",
+        "declare module 'class-variance-authority';",
+        "declare module 'react-qr-code';",
+        "declare module 'leaflet';",
+        "declare module 'react-leaflet';",
+        "declare module '*.css';",
+        "declare module '*.json';",
+        '',
+      ].join('\n'),
+      'utf8',
+    );
+    await writeFile(
+      path.join(tmp, 'tsconfig.json'),
+      JSON.stringify(
+        {
+          compilerOptions: {
+            target: 'es2022', lib: ['ES2022', 'DOM', 'DOM.Iterable'], module: 'esnext', moduleResolution: 'bundler',
+            jsx: 'react-jsx', strict: false, skipLibCheck: true, noEmit: true, allowJs: true, esModuleInterop: true,
+            baseUrl: '.', paths: { '@/*': ['./src/*'] }, types: [],
+          },
+          include: ['src', 'untyped.d.ts'],
+        },
+        null,
+        2,
+      ),
+      'utf8',
+    );
+    const tsc = path.join(root, 'node_modules', 'typescript', 'bin', 'tsc');
+    let stdout = '';
+    try {
+      ({ stdout } = await execFileP(process.execPath, [tsc, '--noEmit', '-p', tmp, '--pretty', 'false'], { cwd: tmp, timeout: 120_000, maxBuffer: 8 * 1024 * 1024 }));
+    } catch (err) {
+      const e = err as { stdout?: string; killed?: boolean };
+      if (e.killed || typeof e.stdout !== 'string') return null;
+      stdout = e.stdout;
+    }
+    const kitPaths = new Set(Object.keys(KIT_FILES).map(p => p.replace(/^\//, '')));
+    let count = 0;
+    for (const line of stdout.split('\n')) {
+      const m = /^(.+?)\(\d+,\d+\): error TS\d+/.exec(line);
+      if (!m) continue;
+      const file = m[1].split(path.sep).join('/');
+      if (kitPaths.has(file) && !(('/' + file) in files)) continue;
+      count++;
+    }
+    return count;
+  } catch {
+    return null;
+  } finally {
+    await rm(tmp, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
 /** Compute `quality` for every trial with artifacts; returns how many were measured. */
 export async function measureRun(runDir: string, trials: TrialResult[]): Promise<number> {
   let n = 0;
@@ -74,12 +160,14 @@ export async function measureRun(runDir: string, trials: TrialResult[]): Promise
     // from older runs too (the fix pass's own record stays as it was)
     t.importIssues = checkImports(files, { kitFiles: KIT_FILES });
     const lint = await lintDir(filesDir);
+    const tscErrors = await typecheckDir(filesDir, files);
     const firstFailure = t.fixRound?.triggerErrors?.[0] ?? (t.bundle && !t.bundle.ok ? t.bundle.errors[0] : null);
     t.quality = {
       ...stats,
       lintErrors: lint?.errors ?? null,
       lintWarnings: lint?.warnings ?? null,
       lintPer100Lines: lint ? lintPer100(lint, stats.codeLines) : null,
+      tscErrors,
       tokensPerSecond: tokensPerSecond(t.outputChars ?? 0, t.latencyMs - (t.plan?.latencyMs ?? 0)),
       fixLatencyMs: t.fixRound?.latencyMs ?? null,
       failKind: classifyFailure(firstFailure),
@@ -87,7 +175,7 @@ export async function measureRun(runDir: string, trials: TrialResult[]): Promise
     n++;
     console.log(
       `  📐 ${t.taskId} · ${t.alias} t${t.trial}: ${stats.codeFiles} code files, largest ${stats.largestFileLines} lines, ` +
-        `lint ${lint ? `${lint.errors}e/${lint.warnings}w` : 'n/a'}, any ${stats.anyCount}, kit ${stats.kitImportingFiles}/${stats.codeFiles}` +
+        `lint ${lint ? `${lint.errors}e/${lint.warnings}w` : 'n/a'}, tsc ${tscErrors ?? 'n/a'}, any ${stats.anyCount}, kit ${stats.kitImportingFiles}/${stats.codeFiles}` +
         (stats.invalidLucide.length ? `, bad icons: ${stats.invalidLucide.join(', ')}` : ''),
     );
   }

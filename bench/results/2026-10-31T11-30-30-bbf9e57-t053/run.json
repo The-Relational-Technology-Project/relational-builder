@@ -126,6 +126,7 @@
         "lintErrors": 0,
         "lintWarnings": 0,
         "lintPer100Lines": 0,
+        "tscErrors": 1,
         "tokensPerSecond": 37.8,
         "fixLatencyMs": null,
         "failKind": null
@@ -226,6 +227,7 @@
         "lintErrors": 0,
         "lintWarnings": 0,
         "lintPer100Lines": 0,
+        "tscErrors": 1,
         "tokensPerSecond": 44.7,
         "fixLatencyMs": null,
         "failKind": null
