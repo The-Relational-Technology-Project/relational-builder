@@ -12,6 +12,120 @@ experiment at most $5 and 30 minutes.
 
 ---
 
+## 2026-11-01
+
+**For Josh:** The import guardrail is now in the product, behind the flag:
+when a build compiles but uses a component it never imported (or a bad
+icon, or a wrong default import), the preview's fix banner fires on it
+before anyone sees a blank page; checked in a real browser, screenshot
+committed. The bench's fix prompt gained the two clauses production already
+had (a missing file is genuinely missing, write it; a bad icon is one word
+to replace), and the build prompt gained a short set of import rules for
+small models, measurable with the flag. Then every open model reran both
+comparison prompts twice more: once with the guard, once with guard plus
+rules. The honest result: one trial per cell is noise; yesterday's 6 of 9 clean became 2 of 10 and 3 of 10 today, with a couple of real wins inside. Spend today: about $0.14 of paid inference (twenty open-model builds), counted as $2.00 worst case in SPEND. Nothing new needs you.
+
+**Stack layer moved:** Builder model, from "a guardrail that works in the
+harness" to "the same guardrail in the preview a person uses, plus prompt
+rules written from what the bench saw, both measured". No other layer.
+
+**What was tried.**
+
+1. *Guardrail into the product* (NEXT item 1). `bench/lib/import-check.ts`
+   moved to `src/project/import-check.ts` (tests along; the bench imports
+   the production one). `FrameworkPreview` runs it after a successful
+   bundle when the flag is on and hands the findings to the same
+   `FixBanner` the bundler and runtime errors use, so the one automatic
+   pass fires on them. Driven in Chromium through the dev server: an app
+   using `<Calendar />` with no import shows the banner with the finding;
+   the same app with the import shows nothing
+   (`shots/import-guard-banner-2026-11-01.png`). The lucide message now
+   uses the browser's own wording so production's bad-icon clause matches.
+2. *The two failures the guard cannot fix* (item 1b). (a) The bench's
+   `bundleFixPrompt` now carries production's missing-file and bad-icon
+   clauses and the already-complete file list, so a fix pass is asked for
+   the missing file by name instead of "fix the error". (b) A build that
+   comes back in the wrong shape (one HTML file for an app prompt) is now a
+   failure on the board, not a quiet "renders clean".
+3. *Import rules in the build prompt* (new, from the same evidence).
+   `HUMAN_SCALE_BUILD_RULES` in `src/human-scale/prompt.ts`, added to the
+   build-mode system prompt only when the flag is on: every imported file
+   must be in the same reply; kit, `zustand` and `lucide-react` export names
+   only (with the kit's actual names, since glm invented `SelectContent` and
+   `AvatarFallback`); every JSX component imported or declared; an app
+   request is never a single HTML file. Tested through `buildSystemPrompt`
+   with the flag stubbed on and off. The bench picks the flag up from
+   `VITE_HUMAN_SCALE=1` (about 320 more prompt tokens).
+4. *Two more measures on every build.* `tsc` type errors over the model's
+   files with the kit merged, installed packages typed, uninstalled ones
+   declared untyped, config noise excluded (first version blamed Opus for
+   four errors that were the harness's own; fixed before any number was
+   written down). And a fifth import kind in the check: `React.*` used
+   without importing React, from gemma's blank wall today.
+5. *Measured, three ways on the same two prompts.* Pass A: guard on, fix
+   prompt with the new clauses (the "second sample" NEXT asked for). Pass
+   B: guard on plus the prompt rules. Tables below; the board carries every
+   row with screenshots, guarded runs marked.
+
+**Pass A, guard on, fix prompt with the new clauses (second sample).**
+Compare with the first guarded pass on Oct 31; same models, same prompts.
+
+| Model | Prompt | Oct 31, guard | Nov 1, guard (pass A) | What happened this time |
+|---|---|---|---|---|
+| gemma-4-26b | fridge | renders clean (fix 14s) | no bundle | a syntax error in `main.tsx` and a malformed lucide import; the fix pass (96s) did not clear them |
+| gemma-4-26b | wall | renders clean | renders clean (fix 47s) | `App.tsx` exported a name, `main.tsx` imported a default; the guard caught it, the fix solved it |
+| gpt-oss-120b | fridge | blank (React #31) | no bundle | a default import from `zustand`; the fix pass answered with a diff-like block (`<<`) that broke the file |
+| gpt-oss-120b | wall | renders clean | blank (React #185, a render loop) | no import mistake; a logic bug again |
+| qwen3-coder-30b | fridge | no bundle | no bundle | two pages imported, never written; the fix pass (17s) did not write them |
+| qwen3-coder-30b | wall | not run (cap) | no bundle | same kind |
+| qwen3-coder-next | fridge | no bundle | renders, 1 console error (a missing asset) | first try, 26 files |
+| qwen3-coder-next | wall | single HTML file | single HTML file | the same wrong shape twice |
+| glm-4.5-air | fridge | renders clean (fix 36s) | renders clean (fix 23s) | `AvatarFallback`, `SelectContent` again; the guard caught, the fix solved |
+| glm-4.5-air | wall | renders clean (fix 23s) | single HTML file | wrong shape this time |
+
+**Pass B, guard on plus the prompt rules (`VITE_HUMAN_SCALE=1`).** Same
+models, same prompts, about 320 more prompt tokens.
+
+| Model | Prompt | Pass A (guard) | Pass B (guard + rules) | What happened this time |
+|---|---|---|---|---|
+| gemma-4-26b | fridge | no bundle | no bundle | imported a `@/store` it never wrote and a lowercase `label` from the kit's input; the fix pass left a syntax error and a `SelectContent` |
+| gemma-4-26b | wall | renders clean | blank (`React is not defined`) | used `React.` without importing React; a kind the check does not cover yet |
+| gpt-oss-120b | fridge | no bundle | **renders clean** (fix 20s) | wrote its own kit `select.tsx` without a `Select` export; the guard caught it, the fix solved it |
+| gpt-oss-120b | wall | blank (React #185) | blank (a react-router error at load) | a logic or routing bug, not an import |
+| qwen3-coder-next | fridge | renders, 1 error | no bundle | rewrote the kit's `avatar.tsx` and `bottom-nav.tsx` to import a `@/lib/cn` that does not exist; the fix pass (2s, the provider cut it off) did nothing |
+| qwen3-coder-next | wall | single HTML file | **renders clean, as the app stack** (21 files, first try) | the rule "never answer an app request with a single HTML file" landed |
+| glm-4.5-air | fridge | renders clean | renders clean (fix 27s, two kit names still wrong) | `SelectContent`, `SelectItem` again; the page renders anyway |
+| glm-4.5-air | wall | single HTML file | no bundle | `SelectContent`, `SelectItem` a third time; this time the fix did not land |
+
+**The three passes side by side (10 builds each, five open models, two
+prompts).** Oct 31 guard: 6 of 9 rendered clean. Nov 1 pass A, guard
+plus the new fix-prompt clauses: 2 of 10. Nov 1 pass B, guard plus prompt
+rules: 3 of 10. Same code, same prompts, same models, an hour apart. Two
+things are real in that: the rules fixed qwen3-coder-next's single-file
+collapse on the wall, and gpt-oss made its first clean fridge. Everything
+else is within the noise of one trial per cell: the same model fails a
+prompt it passed an hour earlier, for a different reason each time. Per
+build the open models stay at under two cents and 30 to 170 seconds.
+
+**What it cost.** Paid inference: about $0.14 estimated (twenty builds across the two passes, one provider cut-off retried by the harness), logged as $2.00 worst case across two reservations. Session: about 35 minutes of the 90, most of it waiting on runs.
+
+**Honest read.** Yesterday's "3 of 5 fixed" was one sample, and today says so: with the
+same guard, the same models produced different failures on the same
+prompts, and the aggregate moved from 6 of 9 to 2 of 10 and 3 of 10. The
+guard still does exactly what it claims (every finding it raised today was
+a real import mistake, and the fix pass solved several), but a model that
+makes a fresh mistake each run cannot be judged on one run. The bench is
+now cheap enough to stop doing that: tomorrow runs three trials per cell
+and reports rates. What held across all samples: gemma-4-26b and
+glm-4.5-air are the two hostable-or-nearly models that produce clean apps
+regularly; qwen3-coder-30b never has; gpt-oss-120b's failures are logic,
+not imports; the rules cured one failure kind outright (the single-file
+collapse). The product side is solid: the guardrail now runs where a
+person builds, and a real browser showed it firing. Code quality: Opus
+writes zero lint findings and zero type errors; the open models write 1 to
+3 lint findings per 100 lines and 0 to 27 type errors a build, mostly
+loose props and unused imports, none of which stops a page from working.
+
 ## Week of Oct 27 (rollup, due Friday Oct 30, written Saturday)
 
 **Spend.** $0.02 of paid inference actually used across the week (eight

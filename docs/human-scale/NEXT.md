@@ -105,10 +105,9 @@ stack layer it moved; pace paid work at $3 to $5 a day.
 
 ## Questions for Josh
 
-0. **Design scores for the two comparison prompts.** The board now has 10
-   open-model builds on them with screenshots; two render clean (gemma
-   and qwen3-coder-next on the listening wall). Five minutes in
-   `SCORES.md` would give the bench its first design numbers. Earlier
+0. **Design scores for the two comparison prompts.** The board now has
+   more than 30 open-model builds on them with screenshots, plus Opus. Five
+   minutes in `SCORES.md` would give the bench its first design numbers. Earlier
    version of this question:
    **Who scores design, and how often?** The bench's rule is that your
    blinded 1 to 5 review decides design quality, not an LLM. With open
@@ -132,65 +131,57 @@ stack layer it moved; pace paid work at $3 to $5 a day.
 
 ## Tomorrow (one run, about 75 minutes)
 
-1. **Import guardrail into the product, behind the flag.** The check exists
-   and works in the harness (`bench/lib/import-check.ts`, `--import-guard`;
-   LOG Oct 31: 3 of 5 broken builds became clean renders). Now the same
-   check where a person builds: after `applyMessageFiles` in the chat flow,
-   run it over the project with the kit merged and, when the flag is on,
-   arm the existing auto-fix with its findings alongside the bundler's
-   (today the Builder only warns about icons). Move the pure function to
-   `src/project/import-check.ts` so the bench imports the production one.
-   Tests ride along. Then run the guarded bench once more on both prompts
-   (about $0.10) so the "after" has two samples per cell.
-1b. **The two failure kinds the guard cannot fix.** (a) A model names a
-   page or data file it never writes and the fix pass cannot produce it
-   (both qwen coders, three times): try a prompt rule that every import
-   must point at a file in the same reply, and a fix prompt that asks for
-   the missing file by name rather than "fix the error". (b) A single-file
-   fallback (qwen3-coder-next's wall came back as one HTML file): make the
-   preview-kind mismatch a visible failure on the board, not a quiet
-   "renders clean". Measure both on the models that showed them.
-2. **Reference is in.** Opus 5.5 ran both comparison prompts on Oct 31
-   (clean, first try, $0.45 for the pair); the board shows it beside the
-   open models. Do not rerun it unless a prompt changes. Give
-   `qwen3-coder-30b` its own 25-minute cap or drop it from the comparison
-   set: it needs 5 minutes a build and a 4-minute fix pass, and has not
-   produced a working app on either comparison prompt.
-3. **`tsc` over generated files.** Type errors per build as a code-quality
-   column: a temp project with the kit merged and a minimal `@/` paths
-   tsconfig, skipLibCheck, esm.sh packages stubbed as `any` modules; count
-   errors, store on `quality`, show the median. If it costs more than an
-   hour, record the attempt and move on.
-4. **Spot checks from the pool.** One pool task per open model it has not
-   seen (gemma and qwen3-coder-next first), to see whether the comparison
-   prompts are representative. Then the commons-retrieval variant on the
-   best open model.
+1. **Trials, not samples.** Today's three passes on the same two prompts
+   showed run-to-run variance bigger than the effect of any one change:
+   the same model with the same guard failed a prompt it had passed an
+   hour earlier, for a different reason each time. Open models cost cents,
+   so stop reading single cells. Run `--trials 3` for the four open models
+   that have produced a working app (gemma-4-26b, glm-4.5-air,
+   gpt-oss-120b, qwen3-coder-next) on `--tasks compare` with the guard and
+   the rules on (`VITE_HUMAN_SCALE=1 --import-guard`), each model its own
+   capped invocation (about $0.30 total, logged first). Then the board's
+   model table reads as rates over 6 builds per model instead of
+   coin flips. Drop `qwen3-coder-30b` from the comparison set (five runs,
+   no working app on either prompt, 5 minutes a build); keep it in the
+   matrix for the record.
+2. **Report rates per model, with the failure kinds tallied.** Add to
+   `report.ts` and the board: per model, over all its guarded-and-ruled
+   trials, the share that render clean, the share by failure kind
+   (missing-file, bad-import, undeclared component, syntax, wrong shape,
+   runtime logic), and the median fix-pass time. That is the four-axis
+   answer Josh asked for in one table.
+3. **The kit-rewrite failure.** qwen3-coder-next rewrote kit files
+   (`components/ui/avatar.tsx` importing a `@/lib/cn` that does not exist),
+   so the kit's own files broke. Add a rule to `HUMAN_SCALE_BUILD_RULES`:
+   never write files under `src/components/ui/` or `src/lib/` unless the
+   person asked to customize a component; and make the import check flag a
+   project file that shadows a kit file and imports something the kit does
+   not have.
+4. **Design scores.** The board has 30-plus open-model builds with
+   screenshots. Five minutes in `SCORES.md` turns the design column from
+   blank to a number; until then, "renders clean" is the only design-side
+   measure and it is a low bar.
 
 ## After that, in order
 
 5. **Workstream 4, export and delete (wire it, one run).** The data files
    exist (`src/human-scale/export-data.ts`, tested). Behind the flag: the
-   export zip (`download-source.ts`, `PublishDialog.tsx`) calls
-   `exportBackend` for the project's app and adds `appDataExportFiles`
-   under `/data/export/`; `.reltech.yml` notes the export date;
-   `deleteProject` also calls `deleteApp` after a plain confirmation that
-   names what goes, and the Cloud tab's own export is offered first. Prove
-   it with tests.
-6. **Workstream 3, footprint and provenance (wire it).** The row shape and
-   the labeled estimate exist (`src/human-scale/provenance.ts`, tested).
-   Record per project from the Builder's own calls and the kit helper's
-   `ran` plus the server's `usage`; show in the build report and a small
-   app footer behind the flag.
+   export zip calls `exportBackend` for the project's app and adds
+   `appDataExportFiles` under `/data/export/`; `.reltech.yml` notes the
+   export date; `deleteProject` also calls `deleteApp` after a plain
+   confirmation that names what goes. Prove it with tests.
+6. **Workstream 3, footprint and provenance (wire it).** Record per
+   project from the Builder's own calls and the kit helper's `ran` plus
+   the server's `usage`; show in the build report and a small app footer
+   behind the flag (`src/human-scale/provenance.ts` has the row and the
+   labeled estimate).
 7. **Self-host runbook, backend half and the local-model steps.** Needs a
    person with a box for steps 7 and 8; the backend runbook does not.
 8. **Kit helper in a real build.** Needs a builder key and a signed-in
    Builder; may need Josh in the room.
 9. **Research rotation, when 15 minutes are left.** Next: the Hugging Face
-   small-model overview itself (fetch from huggingface.co/blog; Oct 31
-   found only third-party laptop guides, noted in LOG), then Bendor et al.
-   "Small AI". Hooker is done (LOG, Oct 31): her evidence is
-   newer-small beats older-large, and "cost of adaptability" is the number
-   to track for the builder model.
+   small-model overview itself (fetch from huggingface.co/blog), then
+   Bendor et al. "Small AI".
 
 ## Drop or defer
 

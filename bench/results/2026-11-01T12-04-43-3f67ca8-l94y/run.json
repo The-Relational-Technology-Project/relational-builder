@@ -1,0 +1,294 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1,exp-v1",
+  "gitCommit": "3f67ca8",
+  "createdAt": "2026-11-01T12:09:28.562Z",
+  "runId": "2026-11-01T12-04-43-3f67ca8-l94y",
+  "config": {
+    "trials": 1,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": null,
+    "importGuard": true
+  },
+  "models": [
+    {
+      "alias": "glm-4.5-air",
+      "providerId": "openrouter",
+      "modelId": "z-ai/glm-4.5-air",
+      "pricing": {
+        "inputPerMTok": 0.13,
+        "outputPerMTok": 0.85,
+        "asOf": "2026-10"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "hs-community-fridge",
+      "version": "exp-v1"
+    },
+    {
+      "id": "hs-listening-wall",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "glm-4.5-air",
+      "providerId": "openrouter",
+      "modelId": "z-ai/glm-4.5-air",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-01T12:04:43.080Z",
+      "plan": null,
+      "latencyMs": 87439,
+      "ttftMs": 10204,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 87438,
+          "chars": 25551
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 25551,
+      "estTokens": {
+        "input": 14046,
+        "output": 6388,
+        "estimated": true
+      },
+      "estCostUsd": 0.00725578,
+      "extraction": {
+        "writes": 16,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/glm-4.5-air-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/pages/PostItemPage.tsx:7: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectContent\"",
+          "vfs:/src/pages/PostItemPage.tsx:7: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectItem\"",
+          "vfs:/src/pages/PostItemPage.tsx:7: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectTrigger\"",
+          "vfs:/src/pages/PostItemPage.tsx:7: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectValue\"",
+          "vfs:/src/App.tsx: No matching export in \"vfs:/src/components/ui/app-bar.tsx\" for import \"default\" (it exports names only)",
+          "vfs:/src/App.tsx: No matching export in \"vfs:/src/components/ui/bottom-nav.tsx\" for import \"default\" (it exports names only)",
+          "vfs:/src/pages/HomePage.tsx: Could not find \"@/components/ui/separator\" in the project (imported from /src/pages/HomePage.tsx)",
+          "vfs:/src/pages/HomePage.tsx: Could not find \"@/components/ui/separator\" in the project (imported from /src/pages/HomePage.tsx)",
+          "vfs:/src/pages/PostItemPage.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectContent\"",
+          "vfs:/src/pages/PostItemPage.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectItem\"",
+          "vfs:/src/pages/PostItemPage.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectTrigger\"",
+          "vfs:/src/pages/PostItemPage.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectValue\""
+        ],
+        "solved": false,
+        "latencyMs": 26751,
+        "remainingErrors": [
+          "vfs:/src/App.tsx: No matching export in \"vfs:/src/components/ui/app-bar.tsx\" for import \"default\" (it exports names only)",
+          "vfs:/src/App.tsx: No matching export in \"vfs:/src/components/ui/bottom-nav.tsx\" for import \"default\" (it exports names only)"
+        ],
+        "estCostUsd": 0.00424293
+      },
+      "error": null,
+      "importIssues": [
+        "vfs:/src/App.tsx: No matching export in \"vfs:/src/components/ui/app-bar.tsx\" for import \"default\" (it exports names only)",
+        "vfs:/src/App.tsx: No matching export in \"vfs:/src/components/ui/bottom-nav.tsx\" for import \"default\" (it exports names only)"
+      ],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 250
+      },
+      "quality": {
+        "files": 16,
+        "codeFiles": 14,
+        "codeLines": 899,
+        "largestFile": "/src/pages/ShiftsPage.tsx",
+        "largestFileLines": 134,
+        "anyCount": 0,
+        "kitImportingFiles": 6,
+        "handRolledUiFiles": 4,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 12,
+        "lintWarnings": 0,
+        "lintPer100Lines": 1.3,
+        "tscErrors": 19,
+        "tokensPerSecond": 73.1,
+        "fixLatencyMs": 26751,
+        "failKind": "bad-import"
+      }
+    },
+    {
+      "alias": "glm-4.5-air",
+      "providerId": "openrouter",
+      "modelId": "z-ai/glm-4.5-air",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-01T12:06:37.582Z",
+      "plan": null,
+      "latencyMs": 140953,
+      "ttftMs": 10028,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 140952,
+          "chars": 37001
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 37001,
+      "estTokens": {
+        "input": 14036,
+        "output": 9251,
+        "estimated": true
+      },
+      "estCostUsd": 0.00968803,
+      "extraction": {
+        "writes": 17,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": false,
+        "errors": [
+          "vfs:/src/components/AnswerForm.tsx:1: Unexpected \"<<\"",
+          "vfs:/src/data/seed.ts:1: Unexpected \"<<\"",
+          "vfs:/src/pages/AdminPage.tsx:1: Unexpected \"<<\""
+        ]
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/glm-4.5-air-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/pages/AdminPage.tsx:8: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectContent\"",
+          "vfs:/src/pages/AdminPage.tsx:8: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectItem\"",
+          "vfs:/src/pages/AdminPage.tsx:8: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectTrigger\"",
+          "vfs:/src/pages/AdminPage.tsx:8: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectValue\"",
+          "vfs:/src/data/seed.ts: No matching export in \"vfs:/src/store.ts\" for import \"Answer\"",
+          "vfs:/src/components/AnswerForm.tsx: <Card> is used but never imported or declared in this file",
+          "vfs:/src/components/AnswerForm.tsx: <CardHeader> is used but never imported or declared in this file",
+          "vfs:/src/components/AnswerForm.tsx: <CardTitle> is used but never imported or declared in this file",
+          "vfs:/src/components/AnswerForm.tsx: <CardContent> is used but never imported or declared in this file",
+          "vfs:/src/pages/AdminPage.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectContent\"",
+          "vfs:/src/pages/AdminPage.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectItem\"",
+          "vfs:/src/pages/AdminPage.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectTrigger\"",
+          "vfs:/src/pages/AdminPage.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectValue\"",
+          "vfs:/src/pages/AdminPage.tsx: The requested module 'lucide-react' does not provide an export named 'hash'"
+        ],
+        "solved": false,
+        "latencyMs": 14329,
+        "remainingErrors": [
+          "vfs:/src/components/AnswerForm.tsx:1: Unexpected \"<<\"",
+          "vfs:/src/data/seed.ts:1: Unexpected \"<<\"",
+          "vfs:/src/pages/AdminPage.tsx:1: Unexpected \"<<\"",
+          "vfs:/src/App.tsx: No matching export in \"vfs:/src/pages/AdminPage.tsx\" for import \"default\" (it exports names only)",
+          "vfs:/src/data/seed.ts: No matching export in \"vfs:/src/store.ts\" for import \"Answer\"",
+          "vfs:/src/pages/QuestionPage.tsx: No matching export in \"vfs:/src/components/AnswerForm.tsx\" for import \"AnswerForm\"",
+          "vfs:/src/pages/AdminPage.tsx: <CardTitle> is used but never imported or declared in this file",
+          "vfs:/src/pages/AdminPage.tsx: <Hash> is used but never imported or declared in this file"
+        ],
+        "estCostUsd": 0.0035935700000000004
+      },
+      "error": null,
+      "importIssues": [
+        "vfs:/src/App.tsx: No matching export in \"vfs:/src/pages/AdminPage.tsx\" for import \"default\" (it exports names only)",
+        "vfs:/src/data/seed.ts: No matching export in \"vfs:/src/store.ts\" for import \"Answer\"",
+        "vfs:/src/pages/AdminPage.tsx: <CardTitle> is used but never imported or declared in this file",
+        "vfs:/src/pages/AdminPage.tsx: <Hash> is used but never imported or declared in this file",
+        "vfs:/src/pages/QuestionPage.tsx: No matching export in \"vfs:/src/components/AnswerForm.tsx\" for import \"AnswerForm\""
+      ],
+      "quality": {
+        "files": 12,
+        "codeFiles": 10,
+        "codeLines": 487,
+        "largestFile": "/src/store.ts",
+        "largestFileLines": 147,
+        "anyCount": 1,
+        "kitImportingFiles": 6,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 13,
+        "lintWarnings": 0,
+        "lintPer100Lines": 2.7,
+        "tscErrors": 9,
+        "tokensPerSecond": 65.6,
+        "fixLatencyMs": 14329,
+        "failKind": "bad-import"
+      }
+    }
+  ]
+}
