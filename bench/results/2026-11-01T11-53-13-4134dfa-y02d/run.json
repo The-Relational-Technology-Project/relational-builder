@@ -1,0 +1,286 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1,exp-v1",
+  "gitCommit": "4134dfa",
+  "createdAt": "2026-11-01T11:57:46.753Z",
+  "runId": "2026-11-01T11-53-13-4134dfa-y02d",
+  "config": {
+    "trials": 1,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": null,
+    "importGuard": true
+  },
+  "models": [
+    {
+      "alias": "qwen3-coder-30b",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-30b-a3b-instruct",
+      "pricing": {
+        "inputPerMTok": 0.07,
+        "outputPerMTok": 0.28,
+        "asOf": "2026-10"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "hs-community-fridge",
+      "version": "exp-v1"
+    },
+    {
+      "id": "hs-listening-wall",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "qwen3-coder-30b",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-30b-a3b-instruct",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-01T11:53:13.074Z",
+      "plan": null,
+      "latencyMs": 15642,
+      "ttftMs": 2103,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 15642,
+          "chars": 16944
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 16944,
+      "estTokens": {
+        "input": 13722,
+        "output": 4236,
+        "estimated": true
+      },
+      "estCostUsd": 0.00214662,
+      "extraction": {
+        "writes": 10,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": false,
+        "errors": [
+          "vfs:/src/App.tsx:5: Could not find \"./pages/Home\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx:6: Could not find \"./pages/Updates\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx:7: Could not find \"./pages/Shifts\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx:8: Could not find \"./pages/AddUpdate\" in the project (imported from /src/App.tsx)"
+        ]
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/qwen3-coder-30b-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/App.tsx:5: Could not find \"./pages/Home\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx:6: Could not find \"./pages/Updates\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx:7: Could not find \"./pages/Shifts\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx:8: Could not find \"./pages/AddUpdate\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx: Could not find \"./pages/Home\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx: Could not find \"./pages/Updates\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx: Could not find \"./pages/Shifts\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx: Could not find \"./pages/AddUpdate\" in the project (imported from /src/App.tsx)",
+          "vfs:/\"src/pages/Home.tsx: Could not find \"@/data/seedData\" in the project (imported from /\"src/pages/Home.tsx)",
+          "vfs:/\"src/pages/Updates.tsx: Could not find \"@/data/seedData\" in the project (imported from /\"src/pages/Updates.tsx)",
+          "vfs:/\"src/pages/Shifts.tsx: Could not find \"@/data/seedData\" in the project (imported from /\"src/pages/Shifts.tsx)"
+        ],
+        "solved": false,
+        "latencyMs": 17149,
+        "remainingErrors": [
+          "vfs:/src/App.tsx:5: Could not find \"./pages/Home\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx:6: Could not find \"./pages/Updates\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx:7: Could not find \"./pages/Shifts\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx:8: Could not find \"./pages/AddUpdate\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx: Could not find \"./pages/Home\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx: Could not find \"./pages/Updates\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx: Could not find \"./pages/Shifts\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx: Could not find \"./pages/AddUpdate\" in the project (imported from /src/App.tsx)",
+          "vfs:/\"src/pages/Home.tsx: Could not find \"@/data/seedData\" in the project (imported from /\"src/pages/Home.tsx)",
+          "vfs:/\"src/pages/Updates.tsx: Could not find \"@/data/seedData\" in the project (imported from /\"src/pages/Updates.tsx)",
+          "vfs:/\"src/pages/Shifts.tsx: Could not find \"@/data/seedData\" in the project (imported from /\"src/pages/Shifts.tsx)"
+        ],
+        "estCostUsd": 0.0014581000000000002
+      },
+      "error": null,
+      "importIssues": [
+        "vfs:/\"src/pages/Home.tsx: Could not find \"@/data/seedData\" in the project (imported from /\"src/pages/Home.tsx)",
+        "vfs:/\"src/pages/Shifts.tsx: Could not find \"@/data/seedData\" in the project (imported from /\"src/pages/Shifts.tsx)",
+        "vfs:/\"src/pages/Updates.tsx: Could not find \"@/data/seedData\" in the project (imported from /\"src/pages/Updates.tsx)",
+        "vfs:/src/App.tsx: Could not find \"./pages/Home\" in the project (imported from /src/App.tsx)",
+        "vfs:/src/App.tsx: Could not find \"./pages/Updates\" in the project (imported from /src/App.tsx)",
+        "vfs:/src/App.tsx: Could not find \"./pages/Shifts\" in the project (imported from /src/App.tsx)",
+        "vfs:/src/App.tsx: Could not find \"./pages/AddUpdate\" in the project (imported from /src/App.tsx)"
+      ],
+      "quality": {
+        "files": 9,
+        "codeFiles": 7,
+        "codeLines": 482,
+        "largestFile": "/\"src/pages/AddUpdate.tsx",
+        "largestFileLines": 131,
+        "anyCount": 0,
+        "kitImportingFiles": 5,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 1,
+        "lintErrors": 1,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.2,
+        "tscErrors": 9,
+        "tokensPerSecond": 270.8,
+        "fixLatencyMs": 17149,
+        "failKind": "missing-file"
+      }
+    },
+    {
+      "alias": "qwen3-coder-30b",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-30b-a3b-instruct",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-01T11:53:46.003Z",
+      "plan": null,
+      "latencyMs": 137277,
+      "ttftMs": 1849,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 137277,
+          "chars": 23531
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 23531,
+      "estTokens": {
+        "input": 13713,
+        "output": 5883,
+        "estimated": true
+      },
+      "estCostUsd": 0.00260715,
+      "extraction": {
+        "writes": 6,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": false,
+        "errors": [
+          "vfs:/src/main.tsx:2: Could not find \"./App\" in the project (imported from /src/main.tsx)"
+        ]
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/qwen3-coder-30b-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/main.tsx:2: Could not find \"./App\" in the project (imported from /src/main.tsx)",
+          "vfs:/src/main.tsx: Could not find \"./App\" in the project (imported from /src/main.tsx)",
+          "vfs:/\"src/App.tsx: Could not find \"@/components/ui/separator\" in the project (imported from /\"src/App.tsx)"
+        ],
+        "solved": false,
+        "latencyMs": 98710,
+        "remainingErrors": [
+          "vfs:/src/main.tsx:2: Could not find \"./App\" in the project (imported from /src/main.tsx)",
+          "vfs:/src/main.tsx: Could not find \"./App\" in the project (imported from /src/main.tsx)",
+          "vfs:/\"src/App.tsx: Could not find \"@/components/ui/separator\" in the project (imported from /\"src/App.tsx)"
+        ],
+        "estCostUsd": 0.0026845000000000003
+      },
+      "error": null,
+      "importIssues": [
+        "vfs:/\"src/App.tsx: Could not find \"@/components/ui/separator\" in the project (imported from /\"src/App.tsx)",
+        "vfs:/src/main.tsx: Could not find \"./App\" in the project (imported from /src/main.tsx)"
+      ],
+      "quality": {
+        "files": 5,
+        "codeFiles": 3,
+        "codeLines": 367,
+        "largestFile": "/\"src/App.tsx",
+        "largestFileLines": 345,
+        "anyCount": 0,
+        "kitImportingFiles": 1,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 5,
+        "lintWarnings": 0,
+        "lintPer100Lines": 1.4,
+        "tscErrors": 1,
+        "tokensPerSecond": 42.9,
+        "fixLatencyMs": 98710,
+        "failKind": "missing-file"
+      }
+    }
+  ]
+}
