@@ -21,6 +21,9 @@ import { listMyPrompts, type BuildPrompt } from '@/cloud/prompts';
 import { useChatStore } from '@/store/chat-store';
 import { useProjectStore } from '@/store/project-store';
 import { useEnvStore } from '@/store/env-store';
+import { isHumanScale } from '@/human-scale/flag';
+import { appIdForProject, deleteAppForProject, describeDelete } from '@/human-scale/data-export';
+import { getCollections } from '@/cloud/community-cloud';
 
 /**
  * The Projects page — a full-width space (not a cramped dialog): the current
@@ -279,11 +282,30 @@ function MergedProjects({ onOpened }: { onOpened: () => void }) {
   }
 
   async function remove(entry: (typeof entries)[number]) {
-    if (!window.confirm(`Delete "${entry.name}"? This can't be undone.`)) return;
+    // Human-scale branch: a cloud project's Community Cloud app goes with
+    // it, and the confirmation says so (the data is the part that matters)
+    const appId = entry.kind === 'local' ? null : appIdForProject(entry.id);
+    let appInfo: { name: string; documents: number } | null = null;
+    if (appId && isHumanScale()) {
+      try {
+        const { collections } = await getCollections(appId);
+        appInfo = { name: entry.name, documents: collections.reduce((n, c) => n + (c.doc_count ?? 0), 0) };
+      } catch {
+        appInfo = { name: entry.name, documents: 0 };
+      }
+    }
+    if (!window.confirm(describeDelete(entry.name, appInfo))) return;
     if (entry.kind === 'local') {
       deleteLocalProject(entry.id);
     } else {
       setBusy(entry.key);
+      try {
+        await deleteAppForProject(entry.id);
+      } catch (err) {
+        setBusy(null);
+        setError(err instanceof Error ? err.message : 'Could not delete the app\'s data; the project was left in place.');
+        return;
+      }
       await deleteProject(entry.id);
       setBusy(null);
     }

@@ -6,6 +6,7 @@ import { needsBuild, materializeSource } from './build-for-publish';
 import { exportProjectZip, downloadBlob } from './export';
 import { getPromptForProject } from '@/cloud/prompts';
 import { suggestProjectName } from './suggest-name';
+import { appDataFilesForExport } from '@/human-scale/data-export';
 
 /**
  * One-click "download my codebase" — the same source zip the Publish
@@ -33,6 +34,9 @@ export async function downloadSourceZip(): Promise<void> {
     : null;
 
   const sourceFiles = needsBuild(files) ? materializeSource(files) : files;
-  const blob = await exportProjectZip(sourceFiles, name, project.lineage, publicEnvVars, buildPrompt);
+  // Human-scale branch: the app's Community Cloud data rides along under
+  // /data/export (empty unless the flag is on and the project has an app)
+  const dataFiles = await appDataFilesForExport();
+  const blob = await exportProjectZip([...sourceFiles, ...dataFiles], name, project.lineage, publicEnvVars, buildPrompt);
   downloadBlob(blob, `${name.replace(/[^a-zA-Z0-9-_]/g, '-')}.zip`);
 }

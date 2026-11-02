@@ -103,8 +103,10 @@ function trialRows(runs, hand) {
       const fromHand = hand.find(h => name.startsWith(h.run) && h.task === t.taskId && h.model === t.alias) || {};
       const score = k => fromHand[k] ?? fromReview[k];
       const guarded = !!(run.config && run.config.importGuard);
+      const variant = !run.config ? '' : [run.config.importGuard ? 'guard' : '', run.config.humanScaleRules ? 'rules' : '', run.config.fixHints ? 'hints' : ''].filter(Boolean).join('+');
       rows.push({
         guarded,
+        variant,
         runName: name,
         runDir: dir,
         date: day(t.startedAt || run.createdAt),
@@ -298,7 +300,7 @@ async function main() {
       '| Date | Model | Result | Checks | Build time | Est. cost | Code | Scores | Notes | Shot | Report |',
       '|---|---|---|---|---|---|---|---|---|---|---|',
       ...rs.map(r =>
-        `| ${r.date} | ${r.alias}${r.guarded ? ' (import guard)' : ''} | ${r.result}${r.truncated ? ', truncated' : ''}${r.security ? `, ${r.security} security flag(s)` : ''} | ${r.checks} | ${secs(r.latencyMs)} | ${usd(r.estCostUsd)} | ${r.code} | ${scoreCell(r)} | ${r.notes.replace(/\|/g, '/')} | ${r.hasShot ? `[png](${r.shot})` : ''} | [report](${r.report}) |`,
+        `| ${r.date} | ${r.alias}${r.variant ? ` (${r.variant})` : ''} | ${r.result}${r.truncated ? ', truncated' : ''}${r.security ? `, ${r.security} security flag(s)` : ''} | ${r.checks} | ${secs(r.latencyMs)} | ${usd(r.estCostUsd)} | ${r.code} | ${scoreCell(r)} | ${r.notes.replace(/\|/g, '/')} | ${r.hasShot ? `[png](${r.shot})` : ''} | [report](${r.report}) |`,
       ),
       '',
     );

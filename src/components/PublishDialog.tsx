@@ -12,6 +12,7 @@ import { useDeployStore } from '@/store/deploy-store';
 import { useEnvStore } from '@/store/env-store';
 import { exportProjectZip, downloadBlob } from '@/project/export';
 import { buildEnvJs } from '@/project/env-module';
+import { appDataFilesForExport } from '@/human-scale/data-export';
 import { needsBuild, buildStaticSite, materializeSource, vercelServerlessFiles, SERVERLESS_PATH } from '@/project/build-for-publish';
 import { withAppIcons } from '@/project/app-icon';
 import { publishToCommunityHosting } from '@/project/deploy-community';
@@ -166,7 +167,9 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
         });
       } else if (activeTarget === 'download') {
         const sourceFiles = isFramework ? materializeSource(files) : files;
-        const blob = await exportProjectZip(sourceFiles, projectName, lineage, publicEnvVars, buildPrompt);
+        // Human-scale branch: the app's Community Cloud data rides along
+        const dataFiles = await appDataFilesForExport();
+        const blob = await exportProjectZip([...sourceFiles, ...dataFiles], projectName, lineage, publicEnvVars, buildPrompt);
         const safeName = projectName.replace(/[^a-zA-Z0-9-_]/g, '-');
         downloadBlob(blob, `${safeName}.zip`);
         setResult({ url: '' }); // signals success for download

@@ -1,0 +1,122 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1,exp-v1",
+  "gitCommit": "e2b0012",
+  "createdAt": "2026-11-02T11:45:52.409Z",
+  "runId": "2026-11-02T11-44-24-e2b0012-92zi",
+  "config": {
+    "trials": 3,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": null,
+    "importGuard": true
+  },
+  "models": [
+    {
+      "alias": "glm-4.5-air",
+      "providerId": "openrouter",
+      "modelId": "z-ai/glm-4.5-air",
+      "pricing": {
+        "inputPerMTok": 0.13,
+        "outputPerMTok": 0.85,
+        "asOf": "2026-10"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "hs-community-fridge",
+      "version": "exp-v1"
+    },
+    {
+      "id": "hs-listening-wall",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "glm-4.5-air",
+      "providerId": "openrouter",
+      "modelId": "z-ai/glm-4.5-air",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-02T11:44:24.644Z",
+      "plan": null,
+      "latencyMs": 68594,
+      "ttftMs": 13426,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 68594,
+          "chars": 23024
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 23024,
+      "estTokens": {
+        "input": 14124,
+        "output": 5756,
+        "estimated": true
+      },
+      "estCostUsd": 0.00672872,
+      "extraction": {
+        "writes": 14,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/glm-4.5-air-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/pages/PostUpdate.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/pages/ClaimShift.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "solved": true,
+        "latencyMs": 18893,
+        "remainingErrors": [],
+        "estCostUsd": 0.00427961
+      },
+      "error": null,
+      "importIssues": []
+    }
+  ]
+}
