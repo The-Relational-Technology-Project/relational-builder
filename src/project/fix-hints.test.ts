@@ -35,6 +35,13 @@ describe('fixHints', () => {
     expect(h[2]).toMatch(/neither imported nor defined/);
   });
 
+  it('names the doubled-quote import mistake (gemma, Nov 2)', () => {
+    const h = fixHints('vfs:/src/main.tsx:1: Expected ";" but found "react"', KIT_FILES);
+    expect(h).toHaveLength(1);
+    expect(h[0]).toMatch(/doubled quote/);
+    expect(h[0]).toContain("import X from 'react'");
+  });
+
   it('covers React.* and names-only packages, and is empty otherwise', () => {
     expect(fixHints('vfs:/src/A.tsx: ReferenceError: React is not defined (uses React.*)', KIT_FILES)[0]).toMatch(/import React from 'react'/);
     expect(fixHints('No matching export in "zustand" for import "default"', KIT_FILES)[0]).toMatch(/import \{ create \} from 'zustand'/);

@@ -88,6 +88,14 @@ export function fixHints(errorText: string, kitFiles: Record<string, string>): s
     hints.push("That file uses `React.` (React.useState, React.FC) without importing React. Add `import React from 'react';` at the top of that file, or switch to named imports (`import { useState } from 'react'`) and drop the `React.` prefix.");
   }
 
+  // A syntax error on an import line: gemma writes `from ''react'` (a
+  // doubled quote) often enough that the plain bundler message never led
+  // it to the one-character fix (Nov 2, 2026)
+  const malformed = errorText.match(/vfs:(\/[^\s:]+):(\d+): Expected ";" but found "([\w-]+)"/);
+  if (malformed) {
+    hints.push(`\`${malformed[1]}\` line ${malformed[2]} has a malformed import: the module name \`${malformed[3]}\` is outside its quotes (this usually looks like \`from ''react'\`, a doubled quote). Rewrite that import line as \`import X from '${malformed[3]}'\` with single straight quotes, and check the other import lines in that file for the same doubled quote.`);
+  }
+
   // A default import from a names-only package
   for (const m of errorText.matchAll(/No matching export in "(zustand|lucide-react)" for import "default"/g)) {
     const pkg = m[1];
