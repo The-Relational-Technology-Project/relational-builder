@@ -131,54 +131,45 @@ stack layer it moved; pace paid work at $3 to $5 a day.
 
 ## Tomorrow (one run, about 75 minutes)
 
-1. **Done Nov 1, same day: three trials per cell** (24 builds, $0.24).
-   The board's "rates per model" table now reads over 12 builds per model
-   on the comparison prompts: gemma-4-26b, gpt-oss-120b and glm-4.5-air
-   58% clean each, qwen3-coder-next 33%, qwen3-coder-30b dropped from the
-   set. Keep adding trials only when something changes (a rule, the fix
-   pass, a model version); otherwise the numbers stand.
-2. **Make the fix pass finish the job.** gemma and glm lose most of their
-   failed builds to things the guard already names (an undeclared
-   component, a kit name that does not exist) and the one fix pass often
-   does not clear them. Two cheap changes, measured with three trials each
-   on the two prompts (about $0.30): (a) the fix prompt lists the kit's
-   real export names next to a "No matching export in a kit file" error,
-   so the model replaces `SelectContent` with `<option>` instead of
-   guessing again; (b) when a trigger is "component used but never
-   imported" and the name is a lucide icon or a kit component, the prompt
-   says exactly which import line to add. gpt-oss's failures are logic
-   (render loops, router misuse); leave those to the human-scale rules for
-   now and note the rate.
-3. **The kit-rewrite failure.** qwen3-coder-next rewrote kit files
-   (`components/ui/avatar.tsx` importing a `@/lib/cn` that does not exist),
-   so the kit's own files broke. Add a rule to `HUMAN_SCALE_BUILD_RULES`:
-   never write files under `src/components/ui/` or `src/lib/` unless the
-   person asked to customize a component; and make the import check flag a
-   project file that shadows a kit file and imports something the kit does
-   not have.
-4. **Design scores.** The board has 30-plus open-model builds with
-   screenshots. Five minutes in `SCORES.md` turns the design column from
-   blank to a number; until then, "renders clean" is the only design-side
-   measure and it is a low bar.
+1. **gemma: rules or variance?** Nov 2: glm 58% to 83% clean with the
+   fix-pass hints; gemma 58% to 0 of 6, failing on a doubled-quote import
+   (`from ''react'`) in its first draft, before any hint applies. An A/B
+   (guard and hints on, prompt rules off, three trials) was launched at
+   the end of the run; read its result in LOG or on the board (variant
+   "guard+hints"). If gemma recovers without the rules, the rules cost
+   gemma more than they give: trim `HUMAN_SCALE_BUILD_RULES` to the two
+   lines that measurably helped (names not defaults; never a single HTML
+   file) and rerun gemma once. If gemma stays broken, the doubled-quote
+   hint added after the run is the next thing to measure. Then run
+   gpt-oss and qwen3-coder-next with hints (about $0.20) so the rates
+   table is like for like.
+2. **Runtime provenance and the footer.** The Builder side records rows
+   now; the kit helper's `ran` plus the server's `usage` should feed rows
+   too. Have `@/lib/ai` keep a small in-app log (last 50 calls, localStorage)
+   and expose `aiFootprint()`; a flag-gated footer line in the generated
+   app's scaffold (via the prompt rule) shows `aiRuntimeLabel()` and the
+   footprint. The first real community-runtime row still waits on Josh's
+   deploy of the open-model route.
+3. **End-to-end check of export and delete against a live app.** Needs a
+   signed-in Builder with a Community Cloud app; if a session has that,
+   export a project and confirm `/data/export/app-data.json` and the CSVs
+   are in the zip, then delete a scratch project and confirm the app is
+   gone from the Cloud tab. Otherwise leave the module tests as the proof
+   and say so.
+4. **Design scores.** 60-plus open-model builds with screenshots on the
+   board, plus Opus. Five minutes in `SCORES.md` turns the design column
+   from blank to a number.
 
 ## After that, in order
 
-5. **Workstream 4, export and delete (wire it, one run).** The data files
-   exist (`src/human-scale/export-data.ts`, tested). Behind the flag: the
-   export zip calls `exportBackend` for the project's app and adds
-   `appDataExportFiles` under `/data/export/`; `.reltech.yml` notes the
-   export date; `deleteProject` also calls `deleteApp` after a plain
-   confirmation that names what goes. Prove it with tests.
-6. **Workstream 3, footprint and provenance (wire it).** Record per
-   project from the Builder's own calls and the kit helper's `ran` plus
-   the server's `usage`; show in the build report and a small app footer
-   behind the flag (`src/human-scale/provenance.ts` has the row and the
-   labeled estimate).
-7. **Self-host runbook, backend half and the local-model steps.** Needs a
+5. **Self-host runbook, backend half and the local-model steps.** Needs a
    person with a box for steps 7 and 8; the backend runbook does not.
-8. **Kit helper in a real build.** Needs a builder key and a signed-in
+6. **Kit helper in a real build.** Needs a builder key and a signed-in
    Builder; may need Josh in the room.
-9. **Research rotation, when 15 minutes are left.** Next: the Hugging Face
+7. **`tsc` column follow-up.** The type-error measure exists; a short audit
+   of what the open models' errors actually are (loose props? wrong event
+   types?) would tell whether any belong in the rules.
+8. **Research rotation, when 15 minutes are left.** Next: the Hugging Face
    small-model overview itself (fetch from huggingface.co/blog), then
    Bendor et al. "Small AI".
 

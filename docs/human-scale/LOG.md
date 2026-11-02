@@ -12,6 +12,102 @@ experiment at most $5 and 30 minutes.
 
 ---
 
+## 2026-11-02
+
+**For Josh:** Four things landed behind the flag today. The automatic fix
+pass now tells a small model exactly what the kit exports and exactly which
+import line to add, instead of letting it guess again; measured below. The
+build prompt tells models not to rewrite the kit. Exporting a project now
+packs the app's Community Cloud data into the zip as JSON and CSV, and
+deleting a project deletes its app after a confirmation that counts the
+documents. And every Builder reply now leaves a provenance row, so the
+build report can say what the project's building cost in calls, tokens and
+estimated energy. The measurement split: glm went from 58% to 83% clean with the hints; gemma went from 58% to 0 of 6, failing before any hint could apply, on a doubled-quote import it writes itself. Spend today: about $0.10 of paid inference (twelve builds), counted as $1.00 worst case in SPEND, plus a small A/B still running when this was written. Nothing new
+needs you.
+
+**Stack layer moved:** Builder model (the fix pass that makes small models
+usable got specific, measured); app hosting and data sovereignty (export
+carries the data, delete is real, behind the flag, module-tested);
+footprint and provenance (from "estimate method exists" to "recording per
+reply and shown in the build report"). Runtime rows still wait on the
+community route's deploy.
+
+**What was tried.**
+
+1. *Fix-pass hints* (NEXT item 2). `src/project/fix-hints.ts` (pure,
+   tested against the real kit): for "No matching export in a kit file" the
+   prompt now lists that file's actual exports and, for `select` and
+   `avatar`, says what the kit's version is (a styled native select with
+   `<option>`; an Avatar that draws its own initials); for "component used
+   but never imported" it gives the exact import line when the name is a
+   lucide icon or a kit component; it also covers `React is not defined`
+   and default imports from `zustand` or `lucide-react`. Wired into the
+   bench's fix pass with `--import-guard` and into the preview's FixBanner
+   behind the flag. Runs now record which variant they used (guard, rules,
+   hints) and the board labels rows with it.
+2. *The kit-rewrite rule* (item 3). One more line in
+   `HUMAN_SCALE_BUILD_RULES`: never write files under `src/components/ui/`
+   or `src/lib/` unless asked to customize; the check already flags the
+   broken imports such rewrites cause.
+3. *Export and delete, wired* (item 5). `src/human-scale/data-export.ts`:
+   the project's app id from its env vars (live or stashed), the data files
+   added to the zip in both download paths (never failing the export when
+   the pull fails), and `deleteAppForProject` before the project row goes,
+   with a confirmation that names the app and its document count. Six
+   tests with the cloud calls mocked. Not yet driven end to end against a
+   live app (needs a signed-in Builder with Community Cloud); that is the
+   honest state.
+4. *Provenance, recording* (item 6). `src/human-scale/provenance-store.ts`:
+   a persisted, capped store of rows; `recordBuilderCall` runs at the end
+   of every reply when the flag is on, with tokens estimated from text
+   length (the provider layer reports no usage) and the method saying so;
+   `FootprintLine` in the build report card sums the project's calls,
+   tokens and estimated Wh, or says plainly that a model's size is not
+   public. Three tests.
+5. *Measured the hints* with three trials per prompt on the two models that
+   lose most builds to kit-name and import mistakes (gemma-4-26b,
+   glm-4.5-air), guard, rules and hints on. Compare with yesterday's
+   three-trial pass (guard and rules, no hints):
+
+| Model, 6 builds each | Nov 1, guard + rules | Nov 2, guard + rules + hints | What happened |
+|---|---|---|---|
+| glm-4.5-air | 58% clean (over 12) | **5 of 6 clean (83%)** | three fix passes fired on `React is not defined`, `@/env` (a false positive, fixed the same hour) and `SelectContent`; two solved, one left a missing `./store` yet the page still rendered; the one blank was a router context error |
+| gemma-4-26b | 58% clean (over 12) | **0 of 6 bundled** | four of six first drafts had `from ''react'` (a doubled quote) on line 1 of `main.tsx` or a page; one rewrote eight kit files and skipped `main.tsx`; the fix passes (30 to 72s) never got past the syntax error. The hints had no clause for it; one was added after the run |
+
+The doubled quote appeared in 1 of gemma's 12 builds yesterday and in 4
+of 6 today. The only change to what gemma sees on its first draft is one
+new rule line (do not rewrite the kit); the hints only reach the fix pass.
+Whether that line nudged gemma or today was a bad draw is not knowable
+from this sample, so an A/B went out at the end of the run: gemma, three
+trials, guard and hints on, rules off. Its result is appended below if it
+landed in the window; otherwise tomorrow's item 1.
+
+6. *What the type-error column counts* (a look, not a fix). On a gemma
+   fridge build that scored 40 type errors, the errors were one broken
+   JSX file cascading (unexpected tokens, unclosed tags); on a glm wall
+   build with 2, they were real: a `Button asChild` the kit's props do not
+   declare, and a type argument on an untyped call. So today the column
+   mixes "one file is syntactically broken" with "the types are loose".
+   Tomorrow's queue has the fix: count type errors only on builds that
+   bundle, and report syntax breakage under its own name.
+
+**What it cost.** Paid inference: about $0.10 estimated for the twelve hint builds, logged as $1.00 worst case; the A/B reserved $0.50 more. Session: about 60 minutes of the 90.
+
+**Honest read.** Two models, two directions, one afternoon. The hints did what they were
+written to do for glm: the kit-name mistakes that cost it builds now get
+fixed in one pass and its clean rate on the comparison prompts moved from
+58% to 83%, the first guardrail result today that is not noise (six builds
+is still six builds; the board's rates table over all 18 glm builds says
+67%). gemma's collapse is the other lesson: the fix pass can only repair
+what it has a sentence for, and gemma's new habit, a doubled quote in an
+import line, had none. It does now, and the A/B will say whether the extra
+rule line provoked the habit or the day did. The product work is the
+quieter half: export carries the data, delete removes the app, every reply
+leaves a footprint row. Those are module-tested and flag-gated, not yet
+clicked through against a live Community Cloud app, and the log says so.
+Type-error counts are not yet a clean signal (syntax cascades inflate
+them); tomorrow separates the two.
+
 ## 2026-11-01
 
 **For Josh:** The import guardrail is now in the product, behind the flag:
