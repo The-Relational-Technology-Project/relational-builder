@@ -2,7 +2,7 @@
   "harnessVersion": "1.2.0",
   "taskVersion": "exp-v1,exp-v1",
   "gitCommit": "e2b0012",
-  "createdAt": "2026-11-02T11:48:49.146Z",
+  "createdAt": "2026-11-02T11:50:45.863Z",
   "runId": "2026-11-02T11-44-24-e2b0012-92zi",
   "config": {
     "trials": 3,
@@ -286,6 +286,78 @@
         "vfs:/src/data/seed.ts: Could not find \"./store\" in the project (imported from /src/data/seed.ts)",
         "vfs:/src/pages/PostUpdate.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
       ]
+    },
+    {
+      "alias": "glm-4.5-air",
+      "providerId": "openrouter",
+      "modelId": "z-ai/glm-4.5-air",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-02T11:48:49.148Z",
+      "plan": null,
+      "latencyMs": 116594,
+      "ttftMs": 7140,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 116594,
+          "chars": 37471
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 37471,
+      "estTokens": {
+        "input": 14114,
+        "output": 9368,
+        "estimated": true
+      },
+      "estCostUsd": 0.00979762,
+      "extraction": {
+        "writes": 12,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/glm-4.5-air-t1",
+      "fixRound": null,
+      "error": null,
+      "importIssues": []
     }
   ]
 }
