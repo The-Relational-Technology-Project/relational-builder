@@ -2,7 +2,7 @@
   "harnessVersion": "1.2.0",
   "taskVersion": "exp-v1,exp-v1",
   "gitCommit": "e2b0012",
-  "createdAt": "2026-11-02T11:50:42.729Z",
+  "createdAt": "2026-11-02T12:00:20.089Z",
   "runId": "2026-11-02T11-44-25-e2b0012-5yei",
   "config": {
     "trials": 3,
@@ -213,6 +213,282 @@
       "error": null,
       "importIssues": [
         "vfs:/src/pages/PostUpdate.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+      ]
+    },
+    {
+      "alias": "gemma-4-26b",
+      "providerId": "openrouter",
+      "modelId": "google/gemma-4-26b-a4b-it",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 3,
+      "startedAt": "2026-11-02T11:50:42.731Z",
+      "plan": null,
+      "latencyMs": 103908,
+      "ttftMs": 1484,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 103908,
+          "chars": 17755
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 17755,
+      "estTokens": {
+        "input": 14124,
+        "output": 4439,
+        "estimated": true
+      },
+      "estCostUsd": 0.0026028600000000002,
+      "extraction": {
+        "writes": 12,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": false,
+        "errors": [
+          "vfs:/src/main.tsx:1: Expected \";\" but found \"react\""
+        ]
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/gemma-4-26b-t3",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/main.tsx:1: Expected \";\" but found \"react\"",
+          "vfs:/src/App.tsx: No matching export in \"vfs:/src/components/ui/app-bar.tsx\" for import \"BottomNav\"",
+          "vfs:/src/App.tsx: No matching export in \"vfs:/src/components/ui/app-bar.tsx\" for import \"BottomNavItem\"",
+          "vfs:/src/components/ui/bottom-nav.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "solved": false,
+        "latencyMs": 71783,
+        "remainingErrors": [
+          "vfs:/src/main.tsx:1: Expected \";\" but found \"react\"",
+          "vfs:/src/App.tsx: No matching export in \"vfs:/src/components/ui/app-bar.tsx\" for import \"BottomNav\"",
+          "vfs:/src/App.tsx: No matching export in \"vfs:/src/components/ui/app-bar.tsx\" for import \"BottomNavItem\""
+        ],
+        "estCostUsd": 0.0024249899999999997
+      },
+      "error": null,
+      "importIssues": [
+        "vfs:/src/App.tsx: No matching export in \"vfs:/src/components/ui/app-bar.tsx\" for import \"BottomNav\"",
+        "vfs:/src/App.tsx: No matching export in \"vfs:/src/components/ui/app-bar.tsx\" for import \"BottomNavItem\""
+      ]
+    },
+    {
+      "alias": "gemma-4-26b",
+      "providerId": "openrouter",
+      "modelId": "google/gemma-4-26b-a4b-it",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-02T11:53:38.445Z",
+      "plan": null,
+      "latencyMs": 108905,
+      "ttftMs": 4939,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 108905,
+          "chars": 15677
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 15677,
+      "estTokens": {
+        "input": 14114,
+        "output": 3920,
+        "estimated": true
+      },
+      "estCostUsd": 0.0024462599999999996,
+      "extraction": {
+        "writes": 9,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": false,
+        "errors": [
+          "vfs:/src/main.tsx:1: Expected \";\" but found \"react\""
+        ]
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/gemma-4-26b-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/main.tsx:1: Expected \";\" but found \"react\"",
+          "vfs:/src/pages/HomeView.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "solved": false,
+        "latencyMs": 65267,
+        "remainingErrors": [
+          "vfs:/src/main.tsx:1: Expected \";\" but found \"react\""
+        ],
+        "estCostUsd": 0.0021934800000000003
+      },
+      "error": null,
+      "importIssues": []
+    },
+    {
+      "alias": "gemma-4-26b",
+      "providerId": "openrouter",
+      "modelId": "google/gemma-4-26b-a4b-it",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 2,
+      "startedAt": "2026-11-02T11:56:32.639Z",
+      "plan": null,
+      "latencyMs": 200889,
+      "ttftMs": 3377,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 200888,
+          "chars": 18874
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 18874,
+      "estTokens": {
+        "input": 14114,
+        "output": 4719,
+        "estimated": true
+      },
+      "estCostUsd": 0.00268596,
+      "extraction": {
+        "writes": 12,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": false,
+        "errors": [
+          "vfs:/src/main.tsx:1: Expected \";\" but found \"react\""
+        ]
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/gemma-4-26b-t2",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/main.tsx:1: Expected \";\" but found \"react\"",
+          "vfs:/src/App.tsx: Could not find \"@/components/layout\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/pages/RespondView.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectContent\"",
+          "vfs:/src/pages/RespondView.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectItem\"",
+          "vfs:/src/pages/RespondView.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectTrigger\"",
+          "vfs:/src/pages/RespondView.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectValue\"",
+          "vfs:/src/pages/RespondView.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/components/layout/layout.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "solved": false,
+        "latencyMs": 26529,
+        "remainingErrors": [
+          "vfs:/src/main.tsx:1: Expected \";\" but found \"react\"",
+          "vfs:/src/App.tsx: Could not find \"@/components/layout\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/pages/RespondView.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "estCostUsd": 0.0020970900000000002
+      },
+      "error": null,
+      "importIssues": [
+        "vfs:/src/App.tsx: Could not find \"@/components/layout\" in the project (imported from /src/App.tsx)",
+        "vfs:/src/pages/RespondView.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
       ]
     }
   ]
