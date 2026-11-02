@@ -1,0 +1,600 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1,exp-v1",
+  "gitCommit": "902809c",
+  "createdAt": "2026-11-02T12:25:00.616Z",
+  "runId": "2026-11-02T12-05-06-902809c-n3q4",
+  "config": {
+    "trials": 3,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": null,
+    "importGuard": true,
+    "fixHints": true,
+    "humanScaleRules": false
+  },
+  "models": [
+    {
+      "alias": "gemma-4-26b",
+      "providerId": "openrouter",
+      "modelId": "google/gemma-4-26b-a4b-it",
+      "pricing": {
+        "inputPerMTok": 0.09,
+        "outputPerMTok": 0.3,
+        "asOf": "2026-10"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "hs-community-fridge",
+      "version": "exp-v1"
+    },
+    {
+      "id": "hs-listening-wall",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "gemma-4-26b",
+      "providerId": "openrouter",
+      "modelId": "google/gemma-4-26b-a4b-it",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-02T12:05:06.334Z",
+      "plan": null,
+      "latencyMs": 139842,
+      "ttftMs": 2827,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 139841,
+          "chars": 13279
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 13279,
+      "estTokens": {
+        "input": 13722,
+        "output": 3320,
+        "estimated": true
+      },
+      "estCostUsd": 0.0022309799999999996,
+      "extraction": {
+        "writes": 8,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": false,
+        "errors": [
+          "No entry module found (no index.html module script or /src/main.tsx)"
+        ]
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/gemma-4-26b-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "No entry module found (no index.html module script or /src/main.tsx)",
+          "vfs:/src/data/store.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "solved": false,
+        "latencyMs": 19257,
+        "remainingErrors": [
+          "No entry module found (no index.html module script or /src/main.tsx)"
+        ],
+        "estCostUsd": 0.0016873199999999997
+      },
+      "error": null,
+      "importIssues": [],
+      "quality": {
+        "files": 7,
+        "codeFiles": 6,
+        "codeLines": 282,
+        "largestFile": "/src/pages/Home.tsx",
+        "largestFileLines": 71,
+        "anyCount": 0,
+        "kitImportingFiles": 5,
+        "handRolledUiFiles": 1,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 5,
+        "lintWarnings": 0,
+        "lintPer100Lines": 1.8,
+        "tscErrors": 17,
+        "tokensPerSecond": 23.7,
+        "fixLatencyMs": 19257,
+        "failKind": "other"
+      }
+    },
+    {
+      "alias": "gemma-4-26b",
+      "providerId": "openrouter",
+      "modelId": "google/gemma-4-26b-a4b-it",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 2,
+      "startedAt": "2026-11-02T12:07:45.464Z",
+      "plan": null,
+      "latencyMs": 100895,
+      "ttftMs": 1877,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 100895,
+          "chars": 10945
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 10945,
+      "estTokens": {
+        "input": 13722,
+        "output": 2737,
+        "estimated": true
+      },
+      "estCostUsd": 0.00205608,
+      "extraction": {
+        "writes": 7,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": false,
+        "errors": [
+          "vfs:/src/main.tsx:1: Expected \";\" but found \"react\""
+        ]
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/gemma-4-26b-t2",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/main.tsx:1: Expected \";\" but found \"react\""
+        ],
+        "solved": false,
+        "latencyMs": 10944,
+        "remainingErrors": [
+          "vfs:/src/main.tsx:1: Expected \";\" but found \"react\""
+        ],
+        "estCostUsd": 0.00154107
+      },
+      "error": null,
+      "importIssues": [],
+      "quality": {
+        "files": 6,
+        "codeFiles": 5,
+        "codeLines": 211,
+        "largestFile": "/src/pages/Updates.tsx",
+        "largestFileLines": 65,
+        "anyCount": 0,
+        "kitImportingFiles": 4,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 9,
+        "lintWarnings": 0,
+        "lintPer100Lines": 4.3,
+        "tscErrors": 34,
+        "tokensPerSecond": 27.1,
+        "fixLatencyMs": 10944,
+        "failKind": "syntax"
+      }
+    },
+    {
+      "alias": "gemma-4-26b",
+      "providerId": "openrouter",
+      "modelId": "google/gemma-4-26b-a4b-it",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 3,
+      "startedAt": "2026-11-02T12:09:37.337Z",
+      "plan": null,
+      "latencyMs": 227758,
+      "ttftMs": 2471,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 227757,
+          "chars": 30304
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 30304,
+      "estTokens": {
+        "input": 13722,
+        "output": 7576,
+        "estimated": true
+      },
+      "estCostUsd": 0.0035077800000000003,
+      "extraction": {
+        "writes": 23,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": false,
+        "errors": [
+          "No entry module found (no index.html module script or /src/main.tsx)"
+        ]
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/gemma-4-26b-t3",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "No entry module found (no index.html module script or /src/main.tsx)",
+          "vfs:/src/pages/Home.tsx: <PlusCircle> is used but never imported or declared in this file",
+          "vfs:/src/pages/Home.tsx: <Calendar> is used but never imported or declared in this file",
+          "vfs:/src/pages/PostUpdate.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "solved": false,
+        "latencyMs": 70884,
+        "remainingErrors": [
+          "No entry module found (no index.html module script or /src/main.tsx)"
+        ],
+        "estCostUsd": 0.00234345
+      },
+      "error": null,
+      "importIssues": [],
+      "quality": {
+        "files": 21,
+        "codeFiles": 19,
+        "codeLines": 664,
+        "largestFile": "/src/pages/Home.tsx",
+        "largestFileLines": 70,
+        "anyCount": 0,
+        "kitImportingFiles": 5,
+        "handRolledUiFiles": 13,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 17,
+        "lintWarnings": 0,
+        "lintPer100Lines": 2.6,
+        "tscErrors": 28,
+        "tokensPerSecond": 33.3,
+        "fixLatencyMs": 70884,
+        "failKind": "other"
+      }
+    },
+    {
+      "alias": "gemma-4-26b",
+      "providerId": "openrouter",
+      "modelId": "google/gemma-4-26b-a4b-it",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-02T12:14:36.013Z",
+      "plan": null,
+      "latencyMs": 152627,
+      "ttftMs": 3314,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 152627,
+          "chars": 24128
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 24128,
+      "estTokens": {
+        "input": 13713,
+        "output": 6032,
+        "estimated": true
+      },
+      "estCostUsd": 0.00304377,
+      "extraction": {
+        "writes": 12,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": false,
+        "errors": [
+          "vfs:/src/main.tsx:1: Expected \";\" but found \"react\""
+        ]
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/gemma-4-26b-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/main.tsx:1: Expected \";\" but found \"react\"",
+          "vfs:/src/App.tsx: Could not find \"@/store\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/pages/WallView.tsx: Could not find \"@/store\" in the project (imported from /src/pages/WallView.tsx)",
+          "vfs:/src/pages/RespondView.tsx: Could not find \"@/store\" in the project (imported from /src/pages/RespondView.tsx)",
+          "vfs:/src/pages/RespondView.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectContent\"",
+          "vfs:/src/pages/RespondView.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectItem\"",
+          "vfs:/src/pages/RespondView.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectTrigger\"",
+          "vfs:/src/pages/RespondView.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectValue\"",
+          "vfs:/src/pages/RespondView.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/pages/StewardView.tsx: Could not find \"@/store\" in the project (imported from /src/pages/StewardView.tsx)",
+          "vfs:/src/components/ui/bottom-nav.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "solved": false,
+        "latencyMs": 56928,
+        "remainingErrors": [
+          "vfs:/src/main.tsx:1: Expected \";\" but found \"react\"",
+          "vfs:/src/App.tsx: Could not find \"@/store\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/pages/WallView.tsx: Could not find \"@/store\" in the project (imported from /src/pages/WallView.tsx)",
+          "vfs:/src/pages/RespondView.tsx: Could not find \"@/store\" in the project (imported from /src/pages/RespondView.tsx)",
+          "vfs:/src/pages/RespondView.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/pages/StewardView.tsx: Could not find \"@/store\" in the project (imported from /src/pages/StewardView.tsx)",
+          "vfs:/src/components/ui/bottom-nav.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "estCostUsd": 0.00258822
+      },
+      "error": null,
+      "importIssues": [
+        "vfs:/src/App.tsx: Could not find \"@/store\" in the project (imported from /src/App.tsx)",
+        "vfs:/src/components/ui/bottom-nav.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+        "vfs:/src/pages/RespondView.tsx: Could not find \"@/store\" in the project (imported from /src/pages/RespondView.tsx)",
+        "vfs:/src/pages/RespondView.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+        "vfs:/src/pages/StewardView.tsx: Could not find \"@/store\" in the project (imported from /src/pages/StewardView.tsx)",
+        "vfs:/src/pages/WallView.tsx: Could not find \"@/store\" in the project (imported from /src/pages/WallView.tsx)"
+      ],
+      "quality": {
+        "files": 9,
+        "codeFiles": 8,
+        "codeLines": 495,
+        "largestFile": "/src/pages/StewardView.tsx",
+        "largestFileLines": 116,
+        "anyCount": 0,
+        "kitImportingFiles": 5,
+        "handRolledUiFiles": 2,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 14,
+        "lintWarnings": 0,
+        "lintPer100Lines": 2.8,
+        "tscErrors": 45,
+        "tokensPerSecond": 39.5,
+        "fixLatencyMs": 56928,
+        "failKind": "syntax"
+      }
+    },
+    {
+      "alias": "gemma-4-26b",
+      "providerId": "openrouter",
+      "modelId": "google/gemma-4-26b-a4b-it",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 2,
+      "startedAt": "2026-11-02T12:18:05.599Z",
+      "plan": null,
+      "latencyMs": 378769,
+      "ttftMs": 2372,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 242511,
+          "chars": 22741
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 121035,
+          "chars": 12652
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 15221,
+          "chars": 335
+        }
+      ],
+      "continuations": 2,
+      "truncatedFinal": false,
+      "outputChars": 35728,
+      "estTokens": {
+        "input": 56151,
+        "output": 8932,
+        "estimated": true
+      },
+      "estCostUsd": 0.007733190000000001,
+      "extraction": {
+        "writes": 20,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": false,
+        "errors": [
+          "vfs:/src/main.tsx:1: Expected \";\" but found \"react\""
+        ]
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/gemma-4-26b-t2",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/main.tsx:1: Expected \";\" but found \"react\"",
+          "vfs:/src/pages/StewardDashboard.tsx: <Plus> is used but never imported or declared in this file"
+        ],
+        "solved": false,
+        "latencyMs": 36206,
+        "remainingErrors": [
+          "vfs:/src/main.tsx:1: Expected \";\" but found \"react\""
+        ],
+        "estCostUsd": 0.0024534
+      },
+      "error": null,
+      "importIssues": [],
+      "quality": {
+        "files": 18,
+        "codeFiles": 16,
+        "codeLines": 763,
+        "largestFile": "/src/pages/QuestionWall.tsx",
+        "largestFileLines": 178,
+        "anyCount": 0,
+        "kitImportingFiles": 3,
+        "handRolledUiFiles": 10,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 15,
+        "lintWarnings": 0,
+        "lintPer100Lines": 2,
+        "tscErrors": 16,
+        "tokensPerSecond": 23.6,
+        "fixLatencyMs": 36206,
+        "failKind": "syntax"
+      }
+    }
+  ]
+}

@@ -22,7 +22,7 @@ packs the app's Community Cloud data into the zip as JSON and CSV, and
 deleting a project deletes its app after a confirmation that counts the
 documents. And every Builder reply now leaves a provenance row, so the
 build report can say what the project's building cost in calls, tokens and
-estimated energy. The measurement split: glm went from 58% to 83% clean with the hints; gemma went from 58% to 0 of 6, failing before any hint could apply, on a doubled-quote import it writes itself. Spend today: about $0.10 of paid inference (twelve builds), counted as $1.00 worst case in SPEND, plus a small A/B still running when this was written. Nothing new
+estimated energy. The measurement split: glm went from 58% to 83% clean with the hints; gemma went from 58% to 0 of 6, failing before any hint could apply, on a doubled-quote import it writes itself. Spend today: about $0.10 of paid inference (twelve builds), counted as $1.00 worst case in SPEND, plus a five-build A/B that cleared the prompt rules of blame. Nothing new
 needs you.
 
 **Stack layer moved:** Builder model (the fix pass that makes small models
@@ -91,7 +91,20 @@ landed in the window; otherwise tomorrow's item 1.
    Tomorrow's queue has the fix: count type errors only on builds that
    bundle, and report syntax breakage under its own name.
 
-**What it cost.** Paid inference: about $0.10 estimated for the twelve hint builds, logged as $1.00 worst case; the A/B reserved $0.50 more. Session: about 60 minutes of the 90.
+**The A/B landed.** gemma, guard and hints on, prompt rules off, five
+builds before the cap: 0 of 5 bundled. Three had the doubled-quote import
+on line 1 of `main.tsx`; two wrote no `main.tsx` at all. So the rules are
+not what broke gemma today; whatever OpenRouter served as gemma-4-26b this
+afternoon writes `from ''react'` most of the time, and yesterday's gemma
+did not. That is the variance the brief warned about, now with a face: a
+model behind an API is not the same model day to day. The rules stay. The
+doubled-quote hint added today is the right next measurement, and the
+rates table on the board (18 gemma builds: 39% clean) is the number to
+quote until then, not yesterday's 58%.
+
+**What it cost.** Paid inference: about $0.13 estimated (twelve hint
+builds, five A/B builds), logged as $1.50 worst case across two
+reservations. Session: about 75 minutes of the 90.
 
 **Honest read.** Two models, two directions, one afternoon. The hints did what they were
 written to do for glm: the kit-name mistakes that cost it builds now get

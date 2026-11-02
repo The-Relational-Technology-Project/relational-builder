@@ -131,18 +131,17 @@ stack layer it moved; pace paid work at $3 to $5 a day.
 
 ## Tomorrow (one run, about 75 minutes)
 
-1. **gemma: rules or variance?** Nov 2: glm 58% to 83% clean with the
-   fix-pass hints; gemma 58% to 0 of 6, failing on a doubled-quote import
-   (`from ''react'`) in its first draft, before any hint applies. An A/B
-   (guard and hints on, prompt rules off, three trials) was launched at
-   the end of the run; read its result in LOG or on the board (variant
-   "guard+hints"). If gemma recovers without the rules, the rules cost
-   gemma more than they give: trim `HUMAN_SCALE_BUILD_RULES` to the two
-   lines that measurably helped (names not defaults; never a single HTML
-   file) and rerun gemma once. If gemma stays broken, the doubled-quote
-   hint added after the run is the next thing to measure. Then run
-   gpt-oss and qwen3-coder-next with hints (about $0.20) so the rates
-   table is like for like.
+1. **gemma's doubled quote, and the day-to-day model.** Nov 2: glm went
+   58% to 83% clean with the fix-pass hints; gemma went 58% to 0 of 11
+   across the hint run and the A/B (rules off), failing in its first draft
+   on `from ''react'` or a missing `main.tsx`. The rules are cleared. Two
+   things to do, both cheap: (a) measure the doubled-quote hint that was
+   added after the run (gemma, three trials, guard, rules and hints on,
+   about $0.05); (b) record, on every bench run, the provider's reported
+   model and any `provider`/`system_fingerprint` fields OpenRouter returns,
+   so a model that changes under the same name is visible on the board
+   (today it is a hypothesis). Then run gpt-oss and qwen3-coder-next with
+   hints (about $0.20) so the rates table is like for like.
 2. **Runtime provenance and the footer.** The Builder side records rows
    now; the kit helper's `ran` plus the server's `usage` should feed rows
    too. Have `@/lib/ai` keep a small in-app log (last 50 calls, localStorage)
