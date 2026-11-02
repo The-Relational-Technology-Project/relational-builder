@@ -12,6 +12,9 @@ import {
 } from '@/report/build-report';
 import { capturePreviewScreenshot, usePreviewSnapshotStore } from '@/preview/screenshot';
 import { Button } from '@/components/ui/button';
+import { isHumanScale } from '@/human-scale/flag';
+import { FootprintLine } from '@/human-scale/FootprintLine';
+import { useCloudStore } from '@/store/cloud-store';
 
 /**
  * The opt-in ask, shown once per project when its initial build lands.
@@ -254,6 +257,7 @@ export function BuildReportCard() {
         <HeartHandshake className="size-4 text-primary shrink-0 mt-0.5" />
         <div className="space-y-1.5 flex-1 min-w-0">
           <p className="text-sm font-medium">Thanks for trying Relational Builder!</p>
+          {isHumanScale() && <FootprintLine projectId={useCloudStore.getState().currentProjectId ?? null} />}
           <p className="text-xs text-muted-foreground leading-relaxed">
             Would it be okay to share this build's log with the RTP stewards? Josh and Deb
             would see the chat log, any errors, a summary of what was created, and — if

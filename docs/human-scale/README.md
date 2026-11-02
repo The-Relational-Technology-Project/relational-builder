@@ -151,8 +151,8 @@ come after those have evidence.
 |---|---|---|
 | 1 | Builder/runtime split, open-weight runtime option | runtime setting, kit `ai` helper, settings card and prompt rule landed Oct 30 (behind the flag, tested); the community open-model route is coded, awaiting Josh's deploy; import guardrail in the preview (Nov 1) |
 | 2 | Open-weight builder bench, Opus comparison, retrieval variant | Oct 31: 5 open models on the 2 comparison prompts; browser check, lint and speed measures, failure kinds, the board. Unguarded: 2 of 10 render clean, every failure an import mistake. With the guard and the prompt rules on, three trials per cell (Nov 1): gemma-4-26b, gpt-oss-120b and glm-4.5-air each 58% clean over 12 builds, qwen3-coder-next 33%, at about a minute and under a cent a build. Guardrail now in the product behind the flag. Opus 5.5 reference: clean on both, about 50x the cost of gemma's clean builds. Human scores pending |
-| 3 | Footprint and provenance | row shape and labeled energy estimate (`src/human-scale/provenance.ts`, `rb-flops-v1`) landed Oct 30 with tests; not yet recording |
-| 4 | Export and delete, verified by tests | server side already complete (paged export, cascading delete); Builder-side data files for the zip landed Oct 30 with tests; not yet in the zip or the delete path |
+| 3 | Footprint and provenance | row shape and labeled energy estimate (`rb-flops-v1`) Oct 30; from Nov 2 the Builder records a row per reply behind the flag (tokens estimated from text length) and the build report shows the project's footprint; runtime rows wait on the community route's deploy |
+| 4 | Export and delete, verified by tests | behind the flag since Nov 2: the export zip carries the app's Community Cloud data under `/data/export/` (JSON, CSV per collection, README) and deleting a project deletes its app after a confirmation that counts the documents; tested at the module level, not yet end to end against a live app |
 | 5 | Human-scale defaults in kickoff and scaffolding | not started |
 | 6 | Anchor adapter stubs and governance template | not started |
 | 7 | Demo build and walkthrough | not started |

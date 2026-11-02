@@ -1,0 +1,127 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1,exp-v1",
+  "gitCommit": "e2b0012",
+  "createdAt": "2026-11-02T11:48:24.514Z",
+  "runId": "2026-11-02T11-44-25-e2b0012-5yei",
+  "config": {
+    "trials": 3,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": null,
+    "importGuard": true
+  },
+  "models": [
+    {
+      "alias": "gemma-4-26b",
+      "providerId": "openrouter",
+      "modelId": "google/gemma-4-26b-a4b-it",
+      "pricing": {
+        "inputPerMTok": 0.09,
+        "outputPerMTok": 0.3,
+        "asOf": "2026-10"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "hs-community-fridge",
+      "version": "exp-v1"
+    },
+    {
+      "id": "hs-listening-wall",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "gemma-4-26b",
+      "providerId": "openrouter",
+      "modelId": "google/gemma-4-26b-a4b-it",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-02T11:44:25.087Z",
+      "plan": null,
+      "latencyMs": 209374,
+      "ttftMs": 3462,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 209373,
+          "chars": 27519
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 27519,
+      "estTokens": {
+        "input": 14124,
+        "output": 6880,
+        "estimated": true
+      },
+      "estCostUsd": 0.0033351599999999998,
+      "extraction": {
+        "writes": 18,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": false,
+        "errors": [
+          "No entry module found (no index.html module script or /src/main.tsx)"
+        ]
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/gemma-4-26b-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "No entry module found (no index.html module script or /src/main.tsx)",
+          "vfs:/src/pages/ShiftsPage.tsx: <Badge> is used but never imported or declared in this file",
+          "vfs:/src/components/PostUpdateModal.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectItem\""
+        ],
+        "solved": false,
+        "latencyMs": 30025,
+        "remainingErrors": [
+          "No entry module found (no index.html module script or /src/main.tsx)"
+        ],
+        "estCostUsd": 0.00232662
+      },
+      "error": null,
+      "importIssues": []
+    }
+  ]
+}

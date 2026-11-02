@@ -11,6 +11,7 @@ import { buildPromptContext, TURN_BREAK } from '@/knowledge/context-builder';
 import { isHumanScale } from '@/human-scale/flag';
 import { effectiveRuntime } from '@/human-scale/runtime';
 import { humanScaleAiGuidance } from '@/human-scale/prompt';
+import { recordBuilderCall } from '@/human-scale/provenance-store';
 import { registry } from '@/providers/registry';
 import type { StreamCallbacks, ThinkingEffort } from '@/providers/types';
 import { addPhotoAssetFromDataUrl, attachedPhotosNote, type AddedAsset } from '@/project/assets';
@@ -866,6 +867,19 @@ export function ChatPanel() {
         'gen_end',
         `${genKind} · ${Math.round((Date.now() - genStartAt) / 1000)}s · ${outcome}`,
       );
+      // Human-scale branch: one provenance row per reply (tokens estimated
+      // from text length; the build report shows the project's footprint)
+      if (isHumanScale()) {
+        const reply = useChatStore.getState().messages.find(m => m.id === msgId)?.content ?? '';
+        const history = useChatStore.getState().messages.reduce((n, m) => n + (m.content?.length ?? 0), 0);
+        recordBuilderCall({
+          providerId: useProviderStore.getState().activeProviderId,
+          model: modelForSend,
+          promptChars: updatedPrompt.length + Math.max(0, history - reply.length),
+          replyChars: reply.length,
+          projectId: useCloudStore.getState().currentProjectId ?? null,
+        });
+      }
     };
     recordBuildEvent(
       'gen_start',
