@@ -5,6 +5,9 @@ import { useHistoryStore } from '@/store/history-store';
 import { useProjectStore } from '@/store/project-store';
 import { recordBuildEvent } from '@/report/build-log';
 import { suggestLucideIcons } from '@/preview/lucide-icons';
+import { isHumanScale } from '@/human-scale/flag';
+import { fixHints } from '@/project/fix-hints';
+import { KIT_FILES } from '@/kit';
 
 /**
  * Production React ships error CODES, not messages. The live preview now uses
@@ -75,6 +78,12 @@ function fixPrompt(errorText: string, attempt: number): string {
         suggestions.length ? ` (closest real names: ${suggestions.join(', ')})` : ''
       }. Change only the import and its uses.`,
     );
+  }
+  // Human-scale branch: exact kit export names and import lines for the
+  // import mistakes the static guard raises (src/project/fix-hints.ts)
+  if (isHumanScale()) {
+    const hints = fixHints(errorText, KIT_FILES);
+    if (hints.length) parts.push('', ...hints);
   }
   if (attempt >= 2) {
     parts.push(

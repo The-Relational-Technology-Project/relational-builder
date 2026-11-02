@@ -9,6 +9,8 @@ import { providerFor } from './providers';
 import { runSession, type SessionResult } from './session';
 import { scoreOutput } from './pipeline';
 import { suggestLucideIcons } from '@/preview/lucide-icons';
+import { fixHints } from '@/project/fix-hints';
+import { KIT_FILES } from '@/kit';
 import { writeTrialArtifacts } from './artifacts';
 
 export interface ExecuteOptions {
@@ -50,7 +52,7 @@ const TRIAL_TIMEOUT_MS = 10 * 60 * 1000;
  * runs the single automatic pass production arms per build — so "how solves
  * go" is measured, not guessed.
  */
-function bundleFixPrompt(errors: string[], appliedPaths: string[] = []): string {
+function bundleFixPrompt(errors: string[], appliedPaths: string[] = [], withHints = false): string {
   const errorText = errors.join('\n').slice(0, 2000);
   const parts = [
     'The live preview is showing this error:',
@@ -78,6 +80,12 @@ function bundleFixPrompt(errors: string[], appliedPaths: string[] = []): string 
         suggestions.length ? ` (closest real names: ${suggestions.join(', ')})` : ''
       }. Change only the import and its uses.`,
     );
+  }
+  // Human-scale guard: say exactly what the kit exports and which import
+  // line to add (src/project/fix-hints.ts), so the pass stops guessing
+  if (withHints) {
+    const hints = fixHints(errorText, KIT_FILES);
+    if (hints.length) parts.push('', ...hints);
   }
   if (appliedPaths.length > 0) {
     parts.push(
@@ -252,7 +260,7 @@ async function runTrial(
       const fixMessages: ChatMessage[] = [
         ...buildMessages,
         { role: 'assistant', content: buildSession.segmentTexts.join('\n') },
-        { role: 'user', content: bundleFixPrompt(triggerErrors, Object.keys(mech.files)) },
+        { role: 'user', content: bundleFixPrompt(triggerErrors, Object.keys(mech.files), !!opts.importGuard) },
       ];
       try {
         const fixSession = await withRetries(fixMessages);
