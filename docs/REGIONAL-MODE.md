@@ -65,7 +65,11 @@ community what it means.
    in the EU, run by a European partner organisation rather than RTP, with
    the Builder choosing by region; (b) a one-click "PocketBase for your
    community" installer on a European host. (a) is the bigger lift and the
-   better answer. ⚑ Needs a partner.
+   better answer. ⚑ Needs a partner. First step on (b) is done:
+   `docs/POCKETBASE-ON-HETZNER.md` is a twenty-minute runbook (Hetzner
+   server, cloud-init, Caddy for https, backups, hooks); the installer
+   would automate it through Hetzner's Cloud API with the person's token,
+   the way Publish creates Bunny zones.
 3. **No EU serverless target.** Secret keys (email, AI, SMS) need server-side
    code. Publish → Vercel compiles `api/*` functions; Bunny and Codeberg
    Pages are static. The Builder now writes that code as a PocketBase hook or
@@ -138,7 +142,10 @@ database, auth, file storage, and realtime, with access rules per
 collection. Run it on a small Hetzner, Scaleway or OVH server behind https,
 paste the URL into Services → PocketBase, and the Builder generates a
 `pocketbase-schema.json` you import once in the Admin UI. Sign-in uses
-PocketBase's email-code flow, so neighbours never set a password.
+PocketBase's email-code flow, so neighbours never set a password. The
+step-by-step is `docs/POCKETBASE-ON-HETZNER.md`. Hetzner itself is
+infrastructure, not a service the app calls, which is why it appears in
+guidance and runbooks rather than as a Connect card or Publish target.
 
 **Supabase in an EU region** works with the existing Supabase connection:
 choose Frankfurt, Paris or Stockholm when creating the project. The data

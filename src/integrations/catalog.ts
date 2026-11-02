@@ -84,8 +84,8 @@ export const INTEGRATIONS: IntegrationDef[] = [
     id: 'pocketbase',
     name: 'PocketBase',
     tagline: 'Open-source backend in one file — database, auth, files — on a server you run',
-    keysUrl: 'https://pocketbase.io/docs/',
-    keysLabel: 'pocketbase.io → Docs (install on any small server)',
+    keysUrl: 'https://github.com/The-Relational-Technology-Project/relational-builder/blob/main/docs/POCKETBASE-ON-HETZNER.md',
+    keysLabel: 'Twenty-minute setup on a Hetzner server (our runbook)',
     fields: [
       { envKey: 'POCKETBASE_URL', label: 'Server URL', placeholder: 'https://data.ourneighborhood.eu', isSecret: false },
     ],

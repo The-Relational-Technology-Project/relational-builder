@@ -100,7 +100,8 @@ Chat/Builder Panel  |  Preview Sandbox (iframe)  |  RTP Knowledge Base Panel
   carries a `ServiceHome`), rewrites Google Fonts → Bunny Fonts in every
   preview and publish, adds the EU hosts (`deploy-bunny.ts`, `deploy-codeberg.ts`),
   and injects a prompt block. It covers the apps, not the Builder; the gaps
-  and their ranking are in `docs/REGIONAL-MODE.md`. Keep the doc and the
+  and their ranking are in `docs/REGIONAL-MODE.md`; the self-hosted EU
+  backend runbook is `docs/POCKETBASE-ON-HETZNER.md`. Keep the doc and the
   prompt block in step when either changes.
 
 ## Key Directories
