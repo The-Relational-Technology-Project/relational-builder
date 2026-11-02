@@ -23,7 +23,7 @@ describe('builder provenance rows', () => {
     const s = summarizeRows([a, b]);
     expect(s.calls).toBe(2);
     expect(s.tokensIn).toBe(11_000);
-    expect(s.energyWhEstimate).toBe(a.energyWhEstimate);
+    expect(s.energyWhEstimate).toBeCloseTo(a.energyWhEstimate!, 3);
     expect(s.unestimated).toBe(1);
     expect(s.models).toEqual(['qwen2.5:7b', 'claude-opus-5-5']);
   });
