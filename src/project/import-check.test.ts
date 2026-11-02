@@ -79,6 +79,11 @@ describe('checkImports', () => {
     expect(checkImports(files)).toEqual([]);
   });
 
+  it('treats the generated env module as present (glm, Nov 2: a false positive)', () => {
+    const files = { '/src/main.tsx': "import { env } from '@/env';\nimport { createRoot } from 'react-dom/client';\nconsole.log(env, createRoot);" };
+    expect(checkImports(files)).toEqual([]);
+  });
+
   it('flags React.* used without importing React (gemma, Nov 1)', () => {
     const bad = { '/src/Wall.tsx': "export function Wall() { const [n, setN] = React.useState(0); return <button onClick={() => setN(n + 1)}>{n}</button>; }" };
     expect(checkImports(bad).some(i => i.includes('React is not defined'))).toBe(true);

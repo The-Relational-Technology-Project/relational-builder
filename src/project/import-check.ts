@@ -128,7 +128,10 @@ export function formatImportIssues(issues: string[]): string | null {
 
 /** Bundler-style messages for the import mistakes in `files`. Empty when clean. */
 export function checkImports(files: Record<string, string>, opts: ImportCheckOptions = {}): string[] {
-  const all: Record<string, string> = { ...(opts.kitFiles ?? {}), ...files };
+  // The env module is generated at bundle time (preview, publish, bench), so
+  // `@/env` / `./env` always resolves even though no project file holds it
+  const generated: Record<string, string> = { '/src/env.ts': 'export const env = {} as const;', '/env.js': 'export const env = {};' };
+  const all: Record<string, string> = { ...generated, ...(opts.kitFiles ?? {}), ...files };
   const issues: string[] = [];
   for (const [path, source] of Object.entries(files)) {
     if (!CODE_RE.test(path)) continue;
