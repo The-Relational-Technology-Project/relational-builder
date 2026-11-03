@@ -128,49 +128,63 @@ stack layer it moved; pace paid work at $3 to $5 a day.
 3. **Community open model.** Gemma 3 12B through OpenRouter is today's pick
    (cheap, hostable on a 16 GB box, overridable with `COMMUNITY_OPEN_MODEL`).
    Fine as the first default, or do you want the bench to pick it too?
+4. **A third comparison prompt that asks for AI?** The two prompts never
+   exercise `@/lib/ai`, so the kit helper has no bench evidence. One more
+   prompt, one trial per model, would. Yes or no is enough.
+5. **Which hosts to trust.** Nov 3 showed one OpenRouter host serving a
+   broken gemma while others served a working one. The bench can exclude
+   hosts; the community route cannot yet (item 4 above). Default if
+   unanswered: exclude hosts the board shows at 0% clean over six or more
+   builds, name them in the LOG, revisit weekly.
 
 ## Tomorrow (one run, about 75 minutes)
 
-1. **gemma's doubled quote, and the day-to-day model.** Nov 2: glm went
-   58% to 83% clean with the fix-pass hints; gemma went 58% to 0 of 11
-   across the hint run and the A/B (rules off), failing in its first draft
-   on `from ''react'` or a missing `main.tsx`. The rules are cleared. Two
-   things to do, both cheap: (a) measure the doubled-quote hint that was
-   added after the run (gemma, three trials, guard, rules and hints on,
-   about $0.05); (b) record, on every bench run, the provider's reported
-   model and any `provider`/`system_fingerprint` fields OpenRouter returns,
-   so a model that changes under the same name is visible on the board
-   (today it is a hypothesis). Then run gpt-oss and qwen3-coder-next with
-   hints (about $0.20) so the rates table is like for like.
-2. **Runtime provenance and the footer.** The Builder side records rows
-   now; the kit helper's `ran` plus the server's `usage` should feed rows
-   too. Have `@/lib/ai` keep a small in-app log (last 50 calls, localStorage)
-   and expose `aiFootprint()`; a flag-gated footer line in the generated
-   app's scaffold (via the prompt rule) shows `aiRuntimeLabel()` and the
-   footprint. The first real community-runtime row still waits on Josh's
-   deploy of the open-model route.
-3. **End-to-end check of export and delete against a live app.** Needs a
-   signed-in Builder with a Community Cloud app; if a session has that,
-   export a project and confirm `/data/export/app-data.json` and the CSVs
-   are in the zip, then delete a scratch project and confirm the app is
-   gone from the Cloud tab. Otherwise leave the module tests as the proof
-   and say so.
-4. **Design scores.** 60-plus open-model builds with screenshots on the
-   board, plus Opus. Five minutes in `SCORES.md` turns the design column
-   from blank to a number.
+1. **gpt-oss and glm through the router guard.** Nov 3: four of six
+   gpt-oss builds hid `BrowserRouter` behind an alias and opened blank or
+   on "Page not found"; the static check and the fix hint now catch it.
+   Rerun gpt-oss-120b (three trials, compare, guard, rules and hints,
+   about $0.05) and glm-4.5-air the same way (about $0.05) so all four
+   open models have a like-for-like row with the Nov 3 checks. Log spend
+   first. Then `npm run bench:board` and read the by-host table before
+   quoting any model's average.
+2. **gemma's remaining two failure shapes.** With Darkbloom excluded gemma
+   bundled 6 of 6 and rendered 4 of 6; the two blanks were a CommonJS
+   `require("lucide-react")` in an ESM file and React error #31 (an object
+   rendered as a child). Add `require(` in a `src/` file to the static
+   check with a one-line hint (import it instead), and look at the #31
+   build's transcript to see whether a rule line would have prevented it
+   (it may be a date object in JSX). Keep each to the check-plus-test shape
+   of `import-check.ts`.
+3. **qwen3-coder-next, finished.** The Nov 3 run hit the 20-minute cap
+   (one 290-second, 42-file build, then a 429 and a one-file reply). If
+   the run below shows fewer than six trials, run the missing ones (about
+   $0.05) with `BENCH_MAX_TOKENS=24000` as before; if it 429s again, note
+   the host and move on. qwen is the slowest open model on the board by a
+   wide margin and that is itself a result.
+4. **Host exclusion for the community route.** `app-capabilities`'s
+   `callCommunityOpenRouter` sends no routing preferences, so a built app
+   on the community runtime gets whatever host OpenRouter picks. Add an
+   optional `COMMUNITY_OPEN_IGNORE_HOSTS` secret (comma-separated) passed
+   as `provider.ignore`, with the served host returned in the response as
+   it already is for the bench. Code only; the deploy is still Josh's.
+5. **End-to-end check of export and delete against a live app.** Unchanged
+   from Nov 2: needs a signed-in Builder with a Community Cloud app;
+   otherwise the module tests stay the proof and the log says so.
+6. **Design scores.** Josh, `SCORES.md`, five minutes; the board has 80-plus
+   open-model builds with screenshots.
 
 ## After that, in order
 
-5. **Self-host runbook, backend half and the local-model steps.** Needs a
-   person with a box for steps 7 and 8; the backend runbook does not.
-6. **Kit helper in a real build.** Needs a builder key and a signed-in
-   Builder; may need Josh in the room.
-7. **`tsc` column follow-up.** The type-error measure exists; a short audit
-   of what the open models' errors actually are (loose props? wrong event
-   types?) would tell whether any belong in the rules.
-8. **Research rotation, when 15 minutes are left.** Next: the Hugging Face
-   small-model overview itself (fetch from huggingface.co/blog), then
-   Bendor et al. "Small AI".
+7. **Self-host runbook, backend half, run for real.** Written Nov 3
+   (`SELF-HOST-BACKEND.md`), unrun. Needs a machine with Docker or a spare
+   Supabase project; the loop's container has neither.
+8. **Kit helper in a real build.** Neither comparison prompt asks for an
+   AI feature, so no bench build has imported `@/lib/ai` yet. Proposed: a
+   third, optional prompt (`hs-listening-wall-themes`: the wall plus an
+   organizer button that groups answers into themes with sources) run one
+   trial per model as a spot check. Needs Josh's yes on a third prompt.
+9. **Research rotation, when 15 minutes are left.** Bendor et al. "Small
+   AI" (the Hugging Face blog had no survey post; checked Nov 3).
 
 ## Drop or defer
 

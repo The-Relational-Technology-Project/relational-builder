@@ -1,0 +1,209 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1,exp-v1",
+  "gitCommit": "73f1312",
+  "createdAt": "2026-11-03T12:13:03.418Z",
+  "runId": "2026-11-03T12-04-50-73f1312-9u3d",
+  "config": {
+    "trials": 3,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": null,
+    "importGuard": true,
+    "fixHints": true,
+    "humanScaleRules": true,
+    "openrouterIgnore": null,
+    "openrouterOnly": null
+  },
+  "models": [
+    {
+      "alias": "qwen3-coder-next",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-next",
+      "pricing": {
+        "inputPerMTok": 0.12,
+        "outputPerMTok": 0.8,
+        "asOf": "2026-10"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "hs-community-fridge",
+      "version": "exp-v1"
+    },
+    {
+      "id": "hs-listening-wall",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "qwen3-coder-next",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-next",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-03T12:04:50.015Z",
+      "plan": null,
+      "latencyMs": 290323,
+      "ttftMs": 1766,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 290322,
+          "chars": 64775
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 64775,
+      "estTokens": {
+        "input": 14124,
+        "output": 16194,
+        "estimated": true
+      },
+      "estCostUsd": 0.01465008,
+      "extraction": {
+        "writes": 42,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/qwen3-coder-next-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/components/ui/button.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/components/ui/card.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/components/ui/badge.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/components/ui/empty-state.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/components/ui/skeleton.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/components/ui/select.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/components/AddUpdateForm.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/components/AddShiftForm.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "solved": true,
+        "latencyMs": 57312,
+        "remainingErrors": [],
+        "estCostUsd": 0.00734128
+      },
+      "error": null,
+      "served": {
+        "model": "qwen/qwen3-coder-next",
+        "provider": "Parasail"
+      },
+      "importIssues": []
+    },
+    {
+      "alias": "qwen3-coder-next",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-next",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 2,
+      "startedAt": "2026-11-03T12:10:38.052Z",
+      "plan": null,
+      "latencyMs": 115158,
+      "ttftMs": 978,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 115157,
+          "chars": 25265
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 25265,
+      "estTokens": {
+        "input": 14124,
+        "output": 6317,
+        "estimated": true
+      },
+      "estCostUsd": 0.00674848,
+      "extraction": {
+        "writes": 1,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "sandpack",
+      "previewKindMatch": false,
+      "bundle": null,
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": false
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": false
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/qwen3-coder-next-t2",
+      "fixRound": null,
+      "error": null,
+      "served": {
+        "model": "qwen/qwen3-coder-next",
+        "provider": "Parasail"
+      },
+      "importIssues": []
+    }
+  ]
+}
