@@ -98,6 +98,13 @@ const COMMUNITY_AI_EFFORT = Deno.env.get('COMMUNITY_APP_EFFORT') ?? 'low';
 // when the app asks for it with runtime_model: "open"; the default path above
 // is unchanged. Override without a deploy via the COMMUNITY_OPEN_MODEL secret.
 const COMMUNITY_OPEN_MODEL = Deno.env.get('COMMUNITY_OPEN_MODEL') ?? 'google/gemma-3-12b-it';
+// OpenRouter serves one model name from several upstream hosts, and a host can
+// serve it badly (the bench saw one host write broken imports every time while
+// the others worked, Nov 3, 2026). A comma-separated list of hosts to keep out.
+const COMMUNITY_OPEN_IGNORE_HOSTS = (Deno.env.get('COMMUNITY_OPEN_IGNORE_HOSTS') ?? '')
+  .split(',')
+  .map((h) => h.trim())
+  .filter(Boolean);
 
 const rateBuckets = new Map<string, { count: number; windowStart: number }>();
 
@@ -626,6 +633,7 @@ async function aiChat(body: Record<string, unknown>): Promise<Response> {
       provenance = {
         model: result.model,
         host: wantOpen ? 'openrouter' : 'anthropic',
+        ...('servedBy' in result && result.servedBy ? { servedBy: result.servedBy } : {}),
         usage: { input: result.usage.input, output: result.usage.output },
       };
     } else {
@@ -772,7 +780,7 @@ async function callCommunityOpenRouter(
   messages: AiMessage[],
   system: string | undefined,
   maxTokens: number,
-): Promise<{ text: string; model: string; usage: TokenUsage }> {
+): Promise<{ text: string; model: string; usage: TokenUsage; servedBy?: string }> {
   const key = Deno.env.get('OPENROUTER_API_KEY') ?? '';
   const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
@@ -787,6 +795,7 @@ async function callCommunityOpenRouter(
       max_tokens: maxTokens,
       messages: system ? [{ role: 'system', content: system }, ...messages] : messages,
       stream: false,
+      ...(COMMUNITY_OPEN_IGNORE_HOSTS.length ? { provider: { ignore: COMMUNITY_OPEN_IGNORE_HOSTS } } : {}),
     }),
   });
   const data = await res.json().catch(() => ({}));
@@ -799,6 +808,8 @@ async function callCommunityOpenRouter(
   return {
     text,
     model: String(data?.model ?? COMMUNITY_OPEN_MODEL),
+    // The host that actually served it, when the router says
+    ...(data?.provider ? { servedBy: String(data.provider) } : {}),
     usage: {
       input: Number(u.prompt_tokens ?? 0),
       output: Number(u.completion_tokens ?? 0),

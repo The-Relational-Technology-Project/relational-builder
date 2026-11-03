@@ -30,6 +30,10 @@ curl -X POST -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
 #    ai_chat with runtime_model:"open" from any app with Community AI on returns {text, model: "google/gemma-3-12b-it", host: "openrouter", usage}
 ```
 
+Optional, with the same deploy: `COMMUNITY_OPEN_IGNORE_HOSTS` (for
+example `Darkbloom`, the host the bench saw serve gemma broken on Nov 3),
+set the same way as the key in step 1.
+
 Until then, apps on this branch that pick the community runtime get the
 server's clear "open model is not configured" error; nothing silently falls
 back to Opus.
@@ -163,12 +167,13 @@ stack layer it moved; pace paid work at $3 to $5 a day.
    $0.05) with `BENCH_MAX_TOKENS=24000` as before; if it 429s again, note
    the host and move on. qwen is the slowest open model on the board by a
    wide margin and that is itself a result.
-4. **Host exclusion for the community route.** `app-capabilities`'s
-   `callCommunityOpenRouter` sends no routing preferences, so a built app
-   on the community runtime gets whatever host OpenRouter picks. Add an
-   optional `COMMUNITY_OPEN_IGNORE_HOSTS` secret (comma-separated) passed
-   as `provider.ignore`, with the served host returned in the response as
-   it already is for the bench. Code only; the deploy is still Josh's.
+4. **Host exclusion for the community route: code done, deploy is Josh's.**
+   `app-capabilities` now reads an optional `COMMUNITY_OPEN_IGNORE_HOSTS`
+   secret (comma-separated OpenRouter hosts) and passes it as
+   `provider.ignore`; the response's provenance carries `servedBy` when the
+   router names the host. Checked with esbuild and strict `tsc` against a
+   Deno shim (zero errors, same as before the change). Not deployed; it
+   rides the standing deploy in "Needs Josh".
 5. **End-to-end check of export and delete against a live app.** Unchanged
    from Nov 2: needs a signed-in Builder with a Community Cloud app;
    otherwise the module tests stay the proof and the log says so.

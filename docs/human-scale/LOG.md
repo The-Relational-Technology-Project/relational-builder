@@ -137,13 +137,17 @@ decoded to a lucide component passed bare to the kit's `BottomNavItem`
 a static check scoped to the kit components that take an element, and a
 hint, all tested; no other build in three days had the pattern. Cost of the addition: about
 $0.09 estimated (gpt-oss $0.04, glm $0.05), logged as $1.00 worst case.
-Session total: about 80 minutes.
+The community route gained the same host exclusion
+(`COMMUNITY_OPEN_IGNORE_HOSTS`, optional) and returns the serving host in
+its provenance; esbuild and strict tsc against a Deno shim pass, zero
+errors before and after; not deployed (standing "Needs Josh").
+Session total: about 85 minutes.
 
 **What it cost.** Paid inference: about $0.24 estimated over 35 open-model
 builds (gemma 6 at $0.03, gpt-oss 6 at $0.03, gemma with the host
 excluded 6 at $0.03, qwen 5 at $0.07, gpt-oss again 6 at $0.04, glm 6 at
 $0.05), logged as $3.00 worst case across four reservations before the
-runs. Session: about 80 minutes of the 90, with two bench runs in flight
+runs. Session: about 85 minutes of the 90, with two bench runs in flight
 at a time and never more than one subagent.
 
 **Honest read.** The board's averages were hiding two

@@ -50,8 +50,10 @@ by the platform on every function. The rest are secrets a community sets
 itself. On the human-scale branch the AI capability can run on an open
 model through `OPENROUTER_API_KEY` and `COMMUNITY_OPEN_MODEL` (default
 `google/gemma-3-12b-it`), so the only hosted-frontier secret,
-`ANTHROPIC_COMMUNITY_KEY`, becomes optional for built apps. That change is
-in the repo and not yet deployed; see "Needs Josh" in [NEXT.md](NEXT.md).
+`ANTHROPIC_COMMUNITY_KEY`, becomes optional for built apps, and
+`COMMUNITY_OPEN_IGNORE_HOSTS` keeps named OpenRouter hosts out of the
+rotation. That change is in the repo and not yet deployed; see "Needs
+Josh" in [NEXT.md](NEXT.md).
 
 ## The checklist (unrun)
 
