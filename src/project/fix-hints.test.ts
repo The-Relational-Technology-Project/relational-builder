@@ -47,4 +47,10 @@ describe('fixHints', () => {
     expect(fixHints('No matching export in "zustand" for import "default"', KIT_FILES)[0]).toMatch(/import \{ create \} from 'zustand'/);
     expect(fixHints('vfs:/src/App.tsx:4: Could not find "./pages/Home" in the project', KIT_FILES)).toEqual([]);
   });
+
+  it('tells the model to use HashRouter when BrowserRouter was flagged (gpt-oss, Nov 3)', () => {
+    const h = fixHints(`vfs:/src/main.tsx: BrowserRouter from 'react-router-dom' opens on "Page not found" in the preview and on static hosts; use HashRouter`, KIT_FILES);
+    expect(h.join(' ')).toContain('HashRouter');
+    expect(h.join(' ')).toContain('do not alias');
+  });
 });

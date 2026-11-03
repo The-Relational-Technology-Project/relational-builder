@@ -2,7 +2,7 @@
   "harnessVersion": "1.2.0",
   "taskVersion": "exp-v1,exp-v1",
   "gitCommit": "63c6227",
-  "createdAt": "2026-11-03T11:52:56.441Z",
+  "createdAt": "2026-11-03T11:57:00.743Z",
   "runId": "2026-11-03T11-46-35-63c6227-vzrz",
   "config": {
     "trials": 3,
@@ -112,7 +112,35 @@
         "model": "openai/gpt-oss-120b",
         "provider": "Mancer 2"
       },
-      "importIssues": []
+      "importIssues": [],
+      "runtime": {
+        "rendered": false,
+        "errors": [
+          "console: ReferenceError: currentUser is not defined at App (file:///home/user/relational-builder/bench/results/2026-11-03T11-46-35-63c6227-vzrz/artifacts/hs-community-fridge/gpt-oss-120b-t1/preview.html:604:47) at Hi (https://esm",
+          "pageerror: currentUser is not defined"
+        ],
+        "bodyChars": 0
+      },
+      "quality": {
+        "files": 7,
+        "codeFiles": 5,
+        "codeLines": 363,
+        "largestFile": "/src/pages/Board.tsx",
+        "largestFileLines": 157,
+        "anyCount": 1,
+        "kitImportingFiles": 3,
+        "handRolledUiFiles": 1,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 7,
+        "lintWarnings": 0,
+        "lintPer100Lines": 1.9,
+        "tscErrors": 4,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 40.8,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
     },
     {
       "alias": "gpt-oss-120b",
@@ -197,7 +225,32 @@
         "model": "openai/gpt-oss-120b",
         "provider": "Venice"
       },
-      "importIssues": []
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 21
+      },
+      "quality": {
+        "files": 8,
+        "codeFiles": 6,
+        "codeLines": 437,
+        "largestFile": "/src/store.ts",
+        "largestFileLines": 127,
+        "anyCount": 0,
+        "kitImportingFiles": 4,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 9,
+        "lintWarnings": 0,
+        "lintPer100Lines": 2.1,
+        "tscErrors": 2,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 40,
+        "fixLatencyMs": 1868,
+        "failKind": "other"
+      }
     },
     {
       "alias": "gpt-oss-120b",
@@ -273,7 +326,34 @@
         "model": "openai/gpt-oss-120b",
         "provider": "PrimeIntellect"
       },
-      "importIssues": []
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [
+          "console: Failed to load resource: net::ERR_FILE_NOT_FOUND"
+        ],
+        "bodyChars": 287
+      },
+      "quality": {
+        "files": 10,
+        "codeFiles": 8,
+        "codeLines": 322,
+        "largestFile": "/src/pages/Board.tsx",
+        "largestFileLines": 98,
+        "anyCount": 1,
+        "kitImportingFiles": 3,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 9,
+        "lintWarnings": 0,
+        "lintPer100Lines": 2.8,
+        "tscErrors": 7,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 61.5,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
     },
     {
       "alias": "gpt-oss-120b",
@@ -349,7 +429,250 @@
         "model": "openai/gpt-oss-120b",
         "provider": "DeepInfra"
       },
-      "importIssues": []
+      "importIssues": [],
+      "runtime": {
+        "rendered": false,
+        "errors": [
+          "console: SecurityError: Failed to execute 'replaceState' on 'History': A history state object with URL 'file:///' cannot be created in a document with origin 'null' and URL 'file:///home/user/relational-builder/bench/results/2026",
+          "pageerror: Failed to execute 'replaceState' on 'History': A history state object with URL 'file:///' cannot be created in a document with origin 'null' and URL 'file:///home/user/relational-builder/bench/results/2026-11-03T11-46-35"
+        ],
+        "bodyChars": 0
+      },
+      "quality": {
+        "files": 7,
+        "codeFiles": 5,
+        "codeLines": 338,
+        "largestFile": "/src/pages/ListeningWall.tsx",
+        "largestFileLines": 147,
+        "anyCount": 1,
+        "kitImportingFiles": 2,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 3,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.9,
+        "tscErrors": 1,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 25.4,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    },
+    {
+      "alias": "gpt-oss-120b",
+      "providerId": "openrouter",
+      "modelId": "openai/gpt-oss-120b",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 2,
+      "startedAt": "2026-11-03T11:52:56.443Z",
+      "plan": null,
+      "latencyMs": 73097,
+      "ttftMs": 10113,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 73097,
+          "chars": 13147
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 13147,
+      "estTokens": {
+        "input": 14114,
+        "output": 3287,
+        "estimated": true
+      },
+      "estCostUsd": 0.0040893,
+      "extraction": {
+        "writes": 10,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": false
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/gpt-oss-120b-t2",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/pages/QuestionPage.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/components/EmptyState.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "solved": true,
+        "latencyMs": 26631,
+        "remainingErrors": [],
+        "estCostUsd": 0.00333645
+      },
+      "error": null,
+      "served": {
+        "model": "openai/gpt-oss-120b",
+        "provider": "Venice"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 107
+      },
+      "quality": {
+        "files": 8,
+        "codeFiles": 6,
+        "codeLines": 341,
+        "largestFile": "/src/pages/QuestionPage.tsx",
+        "largestFileLines": 124,
+        "anyCount": 0,
+        "kitImportingFiles": 4,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 9,
+        "lintWarnings": 0,
+        "lintPer100Lines": 2.6,
+        "tscErrors": 1,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 45,
+        "fixLatencyMs": 26631,
+        "failKind": "other"
+      }
+    },
+    {
+      "alias": "gpt-oss-120b",
+      "providerId": "openrouter",
+      "modelId": "openai/gpt-oss-120b",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 3,
+      "startedAt": "2026-11-03T11:54:36.426Z",
+      "plan": null,
+      "latencyMs": 110445,
+      "ttftMs": 12291,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 110444,
+          "chars": 13166
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 13166,
+      "estTokens": {
+        "input": 14114,
+        "output": 3292,
+        "estimated": true
+      },
+      "estCostUsd": 0.0040923,
+      "extraction": {
+        "writes": 7,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": false
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/gpt-oss-120b-t3",
+      "fixRound": null,
+      "error": null,
+      "served": {
+        "model": "openai/gpt-oss-120b",
+        "provider": "DeepInfra"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": false,
+        "errors": [
+          "console: SecurityError: Failed to execute 'replaceState' on 'History': A history state object with URL 'file:///' cannot be created in a document with origin 'null' and URL 'file:///home/user/relational-builder/bench/results/2026",
+          "pageerror: Failed to execute 'replaceState' on 'History': A history state object with URL 'file:///' cannot be created in a document with origin 'null' and URL 'file:///home/user/relational-builder/bench/results/2026-11-03T11-46-35"
+        ],
+        "bodyChars": 0
+      },
+      "quality": {
+        "files": 7,
+        "codeFiles": 5,
+        "codeLines": 338,
+        "largestFile": "/src/pages/ListeningWall.tsx",
+        "largestFileLines": 147,
+        "anyCount": 1,
+        "kitImportingFiles": 2,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 3,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.9,
+        "tscErrors": 1,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 29.8,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
     }
   ]
 }

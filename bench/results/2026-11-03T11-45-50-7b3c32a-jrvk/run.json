@@ -2,7 +2,7 @@
   "harnessVersion": "1.2.0",
   "taskVersion": "exp-v1,exp-v1",
   "gitCommit": "7b3c32a",
-  "createdAt": "2026-11-03T11:52:31.453Z",
+  "createdAt": "2026-11-03T11:54:50.143Z",
   "runId": "2026-11-03T11-45-50-7b3c32a-jrvk",
   "config": {
     "trials": 3,
@@ -124,7 +124,32 @@
         "model": "google/gemma-4-26b-a4b-it",
         "provider": "DekaLLM"
       },
-      "importIssues": []
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 311
+      },
+      "quality": {
+        "files": 9,
+        "codeFiles": 7,
+        "codeLines": 307,
+        "largestFile": "/src/pages/HomePage.tsx",
+        "largestFileLines": 67,
+        "anyCount": 0,
+        "kitImportingFiles": 5,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 9,
+        "lintWarnings": 0,
+        "lintPer100Lines": 2.9,
+        "tscErrors": 3,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 34.7,
+        "fixLatencyMs": 10944,
+        "failKind": "syntax"
+      }
     },
     {
       "alias": "gemma-4-26b",
@@ -213,7 +238,27 @@
         "model": "google/gemma-4-26b-a4b-it",
         "provider": "Darkbloom"
       },
-      "importIssues": []
+      "importIssues": [],
+      "quality": {
+        "files": 8,
+        "codeFiles": 6,
+        "codeLines": 265,
+        "largestFile": "/src/pages/Dashboard.tsx",
+        "largestFileLines": 62,
+        "anyCount": 0,
+        "kitImportingFiles": 4,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 8,
+        "lintWarnings": 0,
+        "lintPer100Lines": 3,
+        "tscErrors": null,
+        "tscSyntaxErrors": 106,
+        "tokensPerSecond": 58.4,
+        "fixLatencyMs": 16203,
+        "failKind": "other"
+      }
     },
     {
       "alias": "gemma-4-26b",
@@ -307,9 +352,29 @@
         "provider": "Darkbloom"
       },
       "importIssues": [
-        "vfs:/src/main.tsx: No matching export in \"vfs:/src/App.tsx\" for import \"default\" (it exports names only)",
-        "vfs:/src/App.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
-      ]
+        "vfs:/src/App.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+        "vfs:/src/main.tsx: No matching export in \"vfs:/src/App.tsx\" for import \"default\" (it exports names only)"
+      ],
+      "quality": {
+        "files": 4,
+        "codeFiles": 2,
+        "codeLines": 329,
+        "largestFile": "/src/App.tsx",
+        "largestFileLines": 319,
+        "anyCount": 0,
+        "kitImportingFiles": 1,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 1,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.3,
+        "tscErrors": null,
+        "tscSyntaxErrors": 15,
+        "tokensPerSecond": 61.1,
+        "fixLatencyMs": 9871,
+        "failKind": "syntax"
+      }
     },
     {
       "alias": "gemma-4-26b",
@@ -398,7 +463,32 @@
       },
       "importIssues": [
         "vfs:/src/pages/QuestionDetail.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
-      ]
+      ],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 1172
+      },
+      "quality": {
+        "files": 8,
+        "codeFiles": 6,
+        "codeLines": 308,
+        "largestFile": "/src/pages/QuestionDetail.tsx",
+        "largestFileLines": 95,
+        "anyCount": 0,
+        "kitImportingFiles": 4,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 8,
+        "lintWarnings": 0,
+        "lintPer100Lines": 2.6,
+        "tscErrors": 4,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 114,
+        "fixLatencyMs": 18588,
+        "failKind": "other"
+      }
     },
     {
       "alias": "gemma-4-26b",
@@ -488,7 +578,137 @@
         "model": "google/gemma-4-26b-a4b-it",
         "provider": "Darkbloom"
       },
-      "importIssues": []
+      "importIssues": [],
+      "quality": {
+        "files": 8,
+        "codeFiles": 6,
+        "codeLines": 301,
+        "largestFile": "/src/pages/Submit.tsx",
+        "largestFileLines": 90,
+        "anyCount": 0,
+        "kitImportingFiles": 4,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 6,
+        "lintWarnings": 0,
+        "lintPer100Lines": 2,
+        "tscErrors": null,
+        "tscSyntaxErrors": 30,
+        "tokensPerSecond": 66.8,
+        "fixLatencyMs": 12910,
+        "failKind": "syntax"
+      }
+    },
+    {
+      "alias": "gemma-4-26b",
+      "providerId": "openrouter",
+      "modelId": "google/gemma-4-26b-a4b-it",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 3,
+      "startedAt": "2026-11-03T11:52:31.455Z",
+      "plan": null,
+      "latencyMs": 99716,
+      "ttftMs": 1522,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 99716,
+          "chars": 35827
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 35827,
+      "estTokens": {
+        "input": 14114,
+        "output": 8957,
+        "estimated": true
+      },
+      "estCostUsd": 0.00395736,
+      "extraction": {
+        "writes": 25,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": false,
+        "errors": [
+          "vfs:/src/main.tsx:1: Expected \";\" but found \"react\""
+        ]
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/gemma-4-26b-t3",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/main.tsx:1: Expected \";\" but found \"react\"",
+          "vfs:/src/App.tsx: No matching export in \"vfs:/src/components/ui/dialog.tsx\" for import \"DialogFooter\""
+        ],
+        "solved": false,
+        "latencyMs": 13548,
+        "remainingErrors": [
+          "vfs:/src/main.tsx:1: Expected \";\" but found \"react\""
+        ],
+        "estCostUsd": 0.00231099
+      },
+      "error": null,
+      "served": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "provider": "Darkbloom"
+      },
+      "importIssues": [],
+      "quality": {
+        "files": 22,
+        "codeFiles": 20,
+        "codeLines": 856,
+        "largestFile": "/src/App.tsx",
+        "largestFileLines": 288,
+        "anyCount": 1,
+        "kitImportingFiles": 1,
+        "handRolledUiFiles": 15,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 9,
+        "lintWarnings": 0,
+        "lintPer100Lines": 1.1,
+        "tscErrors": null,
+        "tscSyntaxErrors": 39,
+        "tokensPerSecond": 89.8,
+        "fixLatencyMs": 13548,
+        "failKind": "syntax"
+      }
     }
   ]
 }

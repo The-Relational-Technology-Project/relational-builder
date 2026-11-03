@@ -106,4 +106,13 @@ describe('checkImports', () => {
     };
     expect(checkImports(files)).toEqual([]);
   });
+
+  it('flags BrowserRouter, including aliased as HashRouter (gpt-oss, Nov 3)', () => {
+    const aliased = { '/src/main.tsx': "import { BrowserRouter as HashRouter } from 'react-router-dom';\nexport const x = <HashRouter />;" };
+    expect(checkImports(aliased).some(i => i.includes('BrowserRouter'))).toBe(true);
+    const plain = { '/src/main.tsx': "import { BrowserRouter, Routes } from 'react-router-dom';\nexport const x = <BrowserRouter><Routes /></BrowserRouter>;" };
+    expect(checkImports(plain).some(i => i.includes('BrowserRouter'))).toBe(true);
+    const ok = { '/src/main.tsx': "import { HashRouter, Routes } from 'react-router-dom';\nexport const x = <HashRouter><Routes /></HashRouter>;" };
+    expect(checkImports(ok)).toEqual([]);
+  });
 });

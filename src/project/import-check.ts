@@ -137,6 +137,14 @@ export function checkImports(files: Record<string, string>, opts: ImportCheckOpt
     if (!CODE_RE.test(path)) continue;
     const stmts = parseImports(source);
     for (const st of stmts) {
+      // BrowserRouter reads the page's real path, which is a blob or file
+      // URL in the preview and an arbitrary path on a static host, so the
+      // app opens on "Page not found". The rule says HashRouter; a model
+      // that writes `BrowserRouter as HashRouter` has followed its letter
+      // only (gpt-oss, Nov 3)
+      if (st.spec === 'react-router-dom' && st.named.includes('BrowserRouter')) {
+        issues.push(`vfs:${path}: BrowserRouter from 'react-router-dom' opens on "Page not found" in the preview and on static hosts; use HashRouter`);
+      }
       if (st.spec === 'lucide-react') {
         for (const n of st.named) {
           // Same wording the browser uses at module link time, so the

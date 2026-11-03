@@ -146,15 +146,24 @@ async function captureWithPlaywright(pw: any, chromiumPath: string | null, targe
       };
       page.on('pageerror', (e: Error) => note('pageerror', e.message));
       page.on('console', (m: { type(): string; text(): string }) => {
-        if (m.type() === 'error') note('console', m.text());
+        // A resource 404 (a stylesheet link or favicon the shell never
+        // serves under file://) is not the app failing; the bundle already
+        // carries the CSS. Only the app's own errors count.
+        if (m.type() === 'error' && !/^Failed to load resource/.test(m.text())) note('console', m.text());
       });
       try {
         await page.goto(`file://${t.previewPath}`, { waitUntil: 'networkidle', timeout: 60_000 });
         await page.waitForTimeout(1_500); // let Tailwind's JIT + React settle
         await page.screenshot({ path: t.outPath });
-        const bodyChars: number = await page
-          .evaluate(() => (document.body?.innerText ?? '').trim().length)
-          .catch(() => 0);
+        const bodyText: string = await page
+          .evaluate(() => (document.body?.innerText ?? '').trim())
+          .catch(() => '');
+        const bodyChars = bodyText.length;
+        // A page that opens on its own 404 is a routing failure the console
+        // never reports (BrowserRouter under a file or blob path)
+        if (bodyChars < 400 && /\b(page not found|not found|404)\b/i.test(bodyText)) {
+          note('route', 'the page opened on "Page not found" (a BrowserRouter under a file or blob path; HashRouter is the rule)');
+        }
         checks[t.key] = { rendered: bodyChars >= 20, errors, bodyChars };
         const verdict = bodyChars < 20 ? 'blank page' : errors.length ? `renders, ${errors.length} error(s)` : 'renders clean';
         console.log(`  📸 ${t.label} · ${verdict}`);
