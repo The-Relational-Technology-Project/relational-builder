@@ -117,6 +117,14 @@ row to a per-project log: `{at, side: builder|runtime, provider, model,
 params (if known), host: local|hosted|community, tokensIn, tokensOut,
 energyWhEstimate, method}`. `energyWhEstimate` is always labeled an estimate
 and names its method. The build report and the app footer read from this.
+- As built: the builder side is `src/human-scale/provenance-store.ts` (per
+  project, in the Builder's localStorage, read by the build report's
+  footprint line). The runtime side lives in the app itself: `@/lib/ai`
+  keeps the last 50 calls in the app's own browser (`rb.ai.log`: job, host,
+  model, sizes and timing, never the prompt) and exposes `aiLog()`,
+  `aiFootprint()` and `aiFootprintLabel()` for the footer (Nov 3). No
+  energy figure is claimed in the app; the Builder's estimate stays where
+  its method is labeled.
 
 Decisions this proposal leaves to Josh are in [NEXT.md](NEXT.md).
 

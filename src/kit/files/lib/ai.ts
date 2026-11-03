@@ -19,7 +19,10 @@
  *
  * Every result says where it ran (`ran`), so the app can show it. Text the
  * model wrote carries the `sources` it was given back out, so the app can
- * link each summary to the notes it came from.
+ * link each summary to the notes it came from. The helper also keeps a
+ * small log of the last calls in this browser (`aiLog`, `aiFootprint`,
+ * `aiFootprintLabel`) so a footer can say how much AI the app has used
+ * and where it went, without any server keeping score.
  */
 
 export type AIRuntimeKind = 'community' | 'local' | 'byok';
@@ -64,6 +67,106 @@ export class AIUnavailableError extends Error {
 }
 
 type EnvShape = Record<string, string | undefined>;
+
+/** One call as this browser remembers it: no prompt text, only where it
+ *  went and how big it was. */
+export interface AILogEntry {
+  at: string;
+  job: 'summarize' | 'match' | 'resurface' | 'ask';
+  host: AIRan['host'];
+  model?: string;
+  fellBack: boolean;
+  /** Characters sent and received: the size of the call, not its content */
+  inChars: number;
+  outChars: number;
+  elapsedMs: number;
+}
+
+export interface AIFootprint {
+  calls: number;
+  /** Calls by where they ran: on this device or the room, on Community AI,
+   *  or on a hosted model behind the builder's key */
+  local: number;
+  community: number;
+  hosted: number;
+  fellBack: number;
+  inChars: number;
+  outChars: number;
+  /** Oldest and newest call in the log, when there are any */
+  since?: string;
+  last?: string;
+}
+
+const LOG_KEY = 'rb.ai.log';
+const LOG_LIMIT = 50;
+let memoryLog: AILogEntry[] = [];
+let currentJob: AILogEntry['job'] = 'ask';
+
+function readLog(): AILogEntry[] {
+  try {
+    const raw = globalThis.localStorage?.getItem(LOG_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed as AILogEntry[];
+    }
+  } catch {
+    // private mode, blocked storage: fall through to memory
+  }
+  return memoryLog;
+}
+
+function writeLog(entries: AILogEntry[]): void {
+  memoryLog = entries;
+  try {
+    globalThis.localStorage?.setItem(LOG_KEY, JSON.stringify(entries));
+  } catch {
+    // keep the in-memory copy only
+  }
+}
+
+function recordCall(entry: AILogEntry): void {
+  writeLog([...readLog(), entry].slice(-LOG_LIMIT));
+}
+
+/** The last calls this browser made through the helper, oldest first. */
+export function aiLog(): AILogEntry[] {
+  return readLog().slice();
+}
+
+/** Forget the log in this browser. */
+export function clearAILog(): void {
+  writeLog([]);
+}
+
+/** Totals over the log: how many calls, where they ran, how big. */
+export function aiFootprint(): AIFootprint {
+  const log = readLog();
+  const fp: AIFootprint = { calls: log.length, local: 0, community: 0, hosted: 0, fellBack: 0, inChars: 0, outChars: 0 };
+  for (const e of log) {
+    fp[e.host] += 1;
+    if (e.fellBack) fp.fellBack += 1;
+    fp.inChars += e.inChars;
+    fp.outChars += e.outChars;
+  }
+  if (log.length) {
+    fp.since = log[0].at;
+    fp.last = log[log.length - 1].at;
+  }
+  return fp;
+}
+
+/** One footer line: how much AI this app has used in this browser and
+ *  where it went. Counts only; no energy figure is claimed here. */
+export function aiFootprintLabel(): string {
+  const fp = aiFootprint();
+  if (fp.calls === 0) return 'No AI calls from this browser yet';
+  const parts: string[] = [];
+  if (fp.local) parts.push(`${fp.local} on this device or in the room`);
+  if (fp.community) parts.push(`${fp.community} on Community AI`);
+  if (fp.hosted) parts.push(`${fp.hosted} on the builder's hosted key`);
+  const fell = fp.fellBack ? ` (${fp.fellBack} fell back to the community)` : '';
+  return `${fp.calls} AI call${fp.calls === 1 ? '' : 's'} from this browser: ${parts.join(', ')}${fell}`;
+}
 
 const LOCAL_DEFAULT_ENDPOINT = 'http://localhost:11434/v1';
 const LOCAL_DEFAULT_MODEL = 'qwen2.5:7b';
@@ -210,6 +313,10 @@ export async function ask(
 ): Promise<AIResult> {
   const maxTokens = opts.maxTokens ?? 1024;
   const rt = aiRuntime();
+  const job = currentJob;
+  currentJob = 'ask';
+  const started = Date.now();
+  const inChars = messages.reduce((n, m) => n + m.content.length, 0) + (system?.length ?? 0);
   let result: AIResult;
   if (rt.kind === 'local') {
     try {
@@ -223,7 +330,23 @@ export async function ask(
   } else {
     result = await askCommunity(messages, system, maxTokens, rt.kind, rt.model === 'claude' ? 'claude' : 'open');
   }
+  recordCall({
+    at: new Date().toISOString(),
+    job,
+    host: result.ran.host,
+    model: result.ran.model,
+    fellBack: !!result.ran.fellBack,
+    inChars,
+    outChars: result.text.length,
+    elapsedMs: Date.now() - started,
+  });
   return opts.sources ? { ...result, sources: opts.sources } : result;
+}
+
+/** Named jobs set this before calling `ask` so the log says which job ran. */
+function asJob<T>(job: AILogEntry['job'], run: () => Promise<T>): Promise<T> {
+  currentJob = job;
+  return run();
 }
 
 /** Summarize notes, a transcript, a thread. `sources` names where the text
@@ -238,7 +361,7 @@ export function summarize(
     'Do not add facts that are not in the text. If something is unclear, say so rather than guess.',
     opts.focus ? `Focus on: ${opts.focus}` : '',
   ].filter(Boolean).join(' ');
-  return ask([{ role: 'user', content: text }], system, { maxTokens: opts.maxTokens ?? 600, sources: opts.sources });
+  return asJob('summarize', () => ask([{ role: 'user', content: text }], system, { maxTokens: opts.maxTokens ?? 600, sources: opts.sources }));
 }
 
 export interface MatchItem {
@@ -272,7 +395,7 @@ export async function match(
     'OFFERS:',
     ...offers.map(o => `- [${o.id}] ${o.text}`),
   ].join('\n');
-  const result = await ask([{ role: 'user', content }], system, { maxTokens: opts.maxTokens ?? 800 });
+  const result = await asJob('match', () => ask([{ role: 'user', content }], system, { maxTokens: opts.maxTokens ?? 800 }));
   const pairs: MatchPair[] = [];
   const needIds = new Set(needs.map(n => n.id));
   const offerIds = new Set(offers.map(o => o.id));
@@ -311,7 +434,7 @@ export async function resurface(
     'ITEMS:',
     ...items.map(i => `- [${i.id}]${i.when ? ` (${i.when})` : ''} ${i.text}`),
   ].join('\n');
-  const result = await ask([{ role: 'user', content }], system, { maxTokens: opts.maxTokens ?? 500 });
+  const result = await asJob('resurface', () => ask([{ role: 'user', content }], system, { maxTokens: opts.maxTokens ?? 500 }));
   const known = new Set(items.map(i => i.id));
   const picks: string[] = [];
   for (const line of result.text.split('\n')) {

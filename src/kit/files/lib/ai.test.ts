@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { ask, summarize, match, resurface, aiRuntime, aiRuntimeLabel, configureAI, AIUnavailableError } from './ai';
+import { ask, summarize, match, resurface, aiRuntime, aiRuntimeLabel, aiLog, aiFootprint, aiFootprintLabel, clearAILog, configureAI, AIUnavailableError } from './ai';
 
 type FetchMock = ReturnType<typeof vi.fn>;
 
@@ -23,6 +23,7 @@ beforeEach(() => {
 afterEach(() => {
   vi.unstubAllGlobals();
   configureAI({});
+  clearAILog();
 });
 
 describe('aiRuntime', () => {
@@ -135,5 +136,57 @@ describe('named jobs parse defensively', () => {
     const r = await resurface([{ id: 'a', text: 'gate idea' }, { id: 'b', text: 'gate decision', when: 'Oct 3' }], 'the garden gate', { limit: 2 });
     expect(r.picks).toEqual(['b', 'a']);
     expect(r.sources).toEqual(['b', 'a']);
+  });
+});
+
+describe('the in-app log and footprint', () => {
+  it('starts empty and says so', () => {
+    expect(aiFootprint().calls).toBe(0);
+    expect(aiFootprintLabel()).toBe('No AI calls from this browser yet');
+  });
+
+  it('records each call by job and host, sizes only, never the prompt', async () => {
+    configureAI(cloudEnv);
+    fetchMock.mockImplementation(async () => okJson({ text: 'a short summary', model: 'google/gemma-3-12b-it' }));
+    await summarize('the secret notes');
+    await ask([{ role: 'user', content: 'hi' }]);
+    const log = aiLog();
+    expect(log.map(e => e.job)).toEqual(['summarize', 'ask']);
+    expect(log[0].host).toBe('community');
+    expect(log[0].model).toBe('google/gemma-3-12b-it');
+    expect(log[0].outChars).toBe('a short summary'.length);
+    expect(log[0].inChars).toBeGreaterThan('the secret notes'.length);
+    expect(JSON.stringify(log)).not.toContain('secret');
+    const fp = aiFootprint();
+    expect(fp.calls).toBe(2);
+    expect(fp.community).toBe(2);
+    expect(fp.local).toBe(0);
+    expect(aiFootprintLabel()).toBe('2 AI calls from this browser: 2 on Community AI');
+  });
+
+  it('counts a local answer and a fallback separately', async () => {
+    configureAI({ AI_RUNTIME: 'local', AI_RUNTIME_FALLBACK: 'community', ...cloudEnv });
+    fetchMock.mockResolvedValueOnce(okJson({ choices: [{ message: { content: 'local answer' } }], model: 'qwen2.5:7b' }));
+    await ask([{ role: 'user', content: 'one' }]);
+    fetchMock.mockRejectedValueOnce(new Error('ECONNREFUSED'));
+    fetchMock.mockResolvedValueOnce(okJson({ text: 'community answer' }));
+    await ask([{ role: 'user', content: 'two' }]);
+    const fp = aiFootprint();
+    expect(fp).toMatchObject({ calls: 2, local: 1, community: 1, fellBack: 1 });
+    expect(aiFootprintLabel()).toBe('2 AI calls from this browser: 1 on this device or in the room, 1 on Community AI (1 fell back to the community)');
+  });
+
+  it('keeps only the last fifty calls', async () => {
+    configureAI(cloudEnv);
+    fetchMock.mockImplementation(async () => okJson({ text: 'x' }));
+    for (let i = 0; i < 55; i++) await ask([{ role: 'user', content: String(i) }]);
+    expect(aiLog()).toHaveLength(50);
+    expect(aiLog()[0].inChars).toBe('5'.length);
+  });
+
+  it('does not log a call that failed', async () => {
+    configureAI({});
+    await expect(ask([{ role: 'user', content: 'hi' }])).rejects.toBeInstanceOf(AIUnavailableError);
+    expect(aiFootprint().calls).toBe(0);
   });
 });
