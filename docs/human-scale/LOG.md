@@ -141,14 +141,17 @@ The community route gained the same host exclusion
 (`COMMUNITY_OPEN_IGNORE_HOSTS`, optional) and returns the serving host in
 its provenance; esbuild and strict tsc against a Deno shim pass, zero
 errors before and after; not deployed (standing "Needs Josh").
-Session total: about 85 minutes.
+Session total: about 60 minutes of the 90; the run stopped there because
+what was left in NEXT is either Josh's (deploy, scores, a third prompt)
+or a measurement that needs two more checks written first (item 1), not
+a fit for the last quarter hour.
 
 **What it cost.** Paid inference: about $0.24 estimated over 35 open-model
 builds (gemma 6 at $0.03, gpt-oss 6 at $0.03, gemma with the host
 excluded 6 at $0.03, qwen 5 at $0.07, gpt-oss again 6 at $0.04, glm 6 at
 $0.05), logged as $3.00 worst case across four reservations before the
-runs. Session: about 85 minutes of the 90, with two bench runs in flight
-at a time and never more than one subagent.
+runs. Session: about 60 minutes of the 90 (11:41 to 12:41 UTC), with two
+bench runs in flight at a time and never more than one subagent.
 
 **Honest read.** The board's averages were hiding two
 different stories. gemma's 37% clean over 35 builds is a blend of a host
