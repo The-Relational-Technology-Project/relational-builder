@@ -97,7 +97,7 @@ function trialRows(runs, hand) {
       const firstError = rt && rt.errors.length ? rt.errors[0].replace(/^(pageerror|console): /, '').slice(0, 110) : '';
       const q = t.quality || null;
       const code = q
-        ? `${q.codeFiles} files, largest ${q.largestFileLines}, lint ${q.lintPer100Lines ?? 'n/a'}/100, tsc ${q.tscErrors ?? 'n/a'}, any ${q.anyCount}, kit ${q.kitImportingFiles}/${q.codeFiles}${q.invalidLucide && q.invalidLucide.length ? `, bad icons ${q.invalidLucide.join(' ')}` : ''}`
+        ? `${q.codeFiles} files, largest ${q.largestFileLines}, lint ${q.lintPer100Lines ?? 'n/a'}/100, tsc ${q.tscErrors ?? 'n/a'}${q.tscSyntaxErrors ? ` (+${q.tscSyntaxErrors} syntax)` : ''}, any ${q.anyCount}, kit ${q.kitImportingFiles}/${q.codeFiles}${q.invalidLucide && q.invalidLucide.length ? `, bad icons ${q.invalidLucide.join(' ')}` : ''}`
         : '';
       const checks = Array.isArray(t.checks) ? `${t.checks.filter(c => c.pass).length}/${t.checks.length}` : '';
       const fromReview = review && review.scores && review.scores[t.alias] ? review.scores[t.alias] : {};

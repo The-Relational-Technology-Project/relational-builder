@@ -66,9 +66,11 @@ async function lintDir(dir: string): Promise<{ errors: number; warnings: number 
  * resolve to their real types), the kit merged underneath, a minimal
  * tsconfig with the `@/` alias, and every package not installed here
  * declared untyped so the count is about the model's code, not our
- * node_modules. Errors inside kit files are not counted.
+ * node_modules. Errors inside kit files are not counted. Syntax errors
+ * (TS1xxx, a bad token that cascades through the file) are counted apart
+ * from type errors, so one broken line does not read as twenty.
  */
-async function typecheckDir(filesDir: string, files: Record<string, string>): Promise<number | null> {
+async function typecheckDir(filesDir: string, files: Record<string, string>): Promise<{ types: number; syntax: number } | null> {
   const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..', '..');
   const tmp = path.join(path.dirname(filesDir), '.tsc');
   try {
@@ -126,16 +128,18 @@ async function typecheckDir(filesDir: string, files: Record<string, string>): Pr
       stdout = e.stdout;
     }
     const kitPaths = new Set(Object.keys(KIT_FILES).map(p => p.replace(/^\//, '')));
-    let count = 0;
+    let types = 0;
+    let syntax = 0;
     for (const line of stdout.split('\n')) {
-      const m = /^(.+?)\(\d+,\d+\): error TS\d+/.exec(line);
+      const m = /^(.+?)\(\d+,\d+\): error TS(\d+)/.exec(line);
       if (!m) continue;
       const file = m[1].split(path.sep).join('/');
       if (!file.startsWith('src/')) continue; // config or harness noise, not the model's code
       if (kitPaths.has(file) && !(('/' + file) in files)) continue;
-      count++;
+      if (Number(m[2]) < 2000) syntax++;
+      else types++;
     }
-    return count;
+    return { types, syntax };
   } catch {
     return null;
   } finally {
@@ -161,7 +165,11 @@ export async function measureRun(runDir: string, trials: TrialResult[]): Promise
     // from older runs too (the fix pass's own record stays as it was)
     t.importIssues = checkImports(files, { kitFiles: KIT_FILES });
     const lint = await lintDir(filesDir);
-    const tscErrors = await typecheckDir(filesDir, files);
+    const tsc = await typecheckDir(filesDir, files);
+    // Type errors are only meaningful on a build that compiled; on one that
+    // did not, the bundle error is the finding and the type count is noise
+    const tscErrors = tsc && t.bundle?.ok ? tsc.types : null;
+    const tscSyntaxErrors = tsc ? tsc.syntax : null;
     const firstFailure = t.fixRound?.triggerErrors?.[0] ?? (t.bundle && !t.bundle.ok ? t.bundle.errors[0] : null);
     t.quality = {
       ...stats,
@@ -169,6 +177,7 @@ export async function measureRun(runDir: string, trials: TrialResult[]): Promise
       lintWarnings: lint?.warnings ?? null,
       lintPer100Lines: lint ? lintPer100(lint, stats.codeLines) : null,
       tscErrors,
+      tscSyntaxErrors,
       tokensPerSecond: tokensPerSecond(t.outputChars ?? 0, t.latencyMs - (t.plan?.latencyMs ?? 0)),
       fixLatencyMs: t.fixRound?.latencyMs ?? null,
       failKind: classifyFailure(firstFailure),
@@ -176,7 +185,7 @@ export async function measureRun(runDir: string, trials: TrialResult[]): Promise
     n++;
     console.log(
       `  📐 ${t.taskId} · ${t.alias} t${t.trial}: ${stats.codeFiles} code files, largest ${stats.largestFileLines} lines, ` +
-        `lint ${lint ? `${lint.errors}e/${lint.warnings}w` : 'n/a'}, tsc ${tscErrors ?? 'n/a'}, any ${stats.anyCount}, kit ${stats.kitImportingFiles}/${stats.codeFiles}` +
+        `lint ${lint ? `${lint.errors}e/${lint.warnings}w` : 'n/a'}, tsc ${tscErrors ?? 'n/a'}${tscSyntaxErrors ? ` (+${tscSyntaxErrors} syntax)` : ''}, any ${stats.anyCount}, kit ${stats.kitImportingFiles}/${stats.codeFiles}` +
         (stats.invalidLucide.length ? `, bad icons: ${stats.invalidLucide.join(', ')}` : ''),
     );
   }

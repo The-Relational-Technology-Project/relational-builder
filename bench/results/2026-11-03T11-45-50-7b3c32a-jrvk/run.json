@@ -2,7 +2,7 @@
   "harnessVersion": "1.2.0",
   "taskVersion": "exp-v1,exp-v1",
   "gitCommit": "7b3c32a",
-  "createdAt": "2026-11-03T11:48:00.043Z",
+  "createdAt": "2026-11-03T11:49:13.459Z",
   "runId": "2026-11-03T11-45-50-7b3c32a-jrvk",
   "config": {
     "trials": 3,
@@ -123,6 +123,95 @@
       "served": {
         "model": "google/gemma-4-26b-a4b-it",
         "provider": "DekaLLM"
+      },
+      "importIssues": []
+    },
+    {
+      "alias": "gemma-4-26b",
+      "providerId": "openrouter",
+      "modelId": "google/gemma-4-26b-a4b-it",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 2,
+      "startedAt": "2026-11-03T11:48:00.045Z",
+      "plan": null,
+      "latencyMs": 57188,
+      "ttftMs": 2160,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 57188,
+          "chars": 13370
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 13370,
+      "estTokens": {
+        "input": 14124,
+        "output": 3343,
+        "estimated": true
+      },
+      "estCostUsd": 0.0022740599999999996,
+      "extraction": {
+        "writes": 9,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": false,
+        "errors": [
+          "vfs:/src/main.tsx:1: Expected \";\" but found \"react\""
+        ]
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/gemma-4-26b-t2",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "No entry module found (no index.html module script or /src/main.tsx)"
+        ],
+        "solved": false,
+        "latencyMs": 16203,
+        "remainingErrors": [
+          "vfs:/src/main.tsx:1: Expected \";\" but found \"react\""
+        ],
+        "estCostUsd": 0.0016628699999999999
+      },
+      "error": null,
+      "served": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "provider": "Darkbloom"
       },
       "importIssues": []
     }

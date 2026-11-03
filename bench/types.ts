@@ -125,8 +125,12 @@ export interface TrialResult {
     lintPer100Lines: number | null;
     /** Type errors from tsc over the model's files with the kit merged, a
      *  minimal @/ tsconfig, skipLibCheck, and any package not installed
-     *  here treated as untyped. Null when tsc could not run. */
+     *  here treated as untyped. Counted only on builds that bundled (from
+     *  Nov 3, 2026); null when tsc could not run or the build did not compile. */
     tscErrors: number | null;
+    /** Syntax errors (TS1xxx) counted apart, since one bad token cascades
+     *  through a file (absent before Nov 3, 2026) */
+    tscSyntaxErrors?: number | null;
     tokensPerSecond: number | null;
     fixLatencyMs: number | null;
     failKind: 'missing-file' | 'bad-import' | 'unknown-package' | 'syntax' | 'other' | null;
