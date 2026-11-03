@@ -136,6 +136,7 @@ function trialRows(runs, hand) {
         designQuality: score('designQuality'),
         rtpFit: score('rtpFit'),
         completeness: score('completeness'),
+        servedHost: t.served && t.served.provider ? t.served.provider : null,
         notes: [fromHand.notes || fromReview.notes || '', firstError ? `browser: ${firstError}` : '', served ? `served: ${served}` : ''].filter(Boolean).join(' · '),
         shot: `${REL_RESULTS}/${name}/shots/${shotName(t)}`,
         shotAbs: path.join(dir, 'shots', shotName(t)),
@@ -280,6 +281,29 @@ async function main() {
       }),
       '',
     );
+    // The same builds split by the upstream host the router reported. One
+    // model name on OpenRouter is served by several hosts, and a host can
+    // serve it badly (Nov 3: every gemma build from one host failed on a
+    // doubled quote; every build from the others compiled)
+    const hosted = guardedRows.filter(r => r.servedHost);
+    if (hosted.length) {
+      const byMH = new Map();
+      for (const r of hosted) { const k = `${r.alias}|${r.servedHost}`; if (!byMH.has(k)) byMH.set(k, []); byMH.get(k).push(r); }
+      lines.push(
+        '### The same builds, by the host that served them',
+        '',
+        'Recorded from the provider\'s stream metadata since Nov 3, 2026 (earlier builds have no host). A model name is not a model: compare rows for one model before trusting its average.',
+        '',
+        '| Model | Served by | Builds | Clean | Bundled | First failure kinds |',
+        '|---|---|---|---|---|---|',
+        ...[...byMH.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([k, rs]) => {
+          const [alias, host] = k.split('|');
+          const fails = [...new Set(rs.filter(r => r.outcome !== 'clean').map(r => r.outcome))].join(', ');
+          return `| ${alias} | ${host} | ${rs.length} | **${pct(rs.filter(r => r.outcome === 'clean').length, rs.length) || '0%'}** | ${pct(rs.filter(r => r.bundled).length, rs.length) || '0%'} | ${fails} |`;
+        }),
+        '',
+      );
+    }
   }
 
   for (const taskId of taskOrder) {

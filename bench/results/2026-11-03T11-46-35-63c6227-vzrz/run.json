@@ -227,7 +227,7 @@
       },
       "importIssues": [],
       "runtime": {
-        "rendered": true,
+        "rendered": false,
         "errors": [],
         "bodyChars": 21
       },
@@ -329,9 +329,7 @@
       "importIssues": [],
       "runtime": {
         "rendered": true,
-        "errors": [
-          "console: Failed to load resource: net::ERR_FILE_NOT_FOUND"
-        ],
+        "errors": [],
         "bodyChars": 287
       },
       "quality": {
@@ -546,7 +544,9 @@
       "importIssues": [],
       "runtime": {
         "rendered": true,
-        "errors": [],
+        "errors": [
+          "route: the page opened on \"Page not found\" (a BrowserRouter under a file or blob path; HashRouter is the rule)"
+        ],
         "bodyChars": 107
       },
       "quality": {

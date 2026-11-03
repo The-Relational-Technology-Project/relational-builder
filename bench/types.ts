@@ -101,7 +101,8 @@ export interface TrialResult {
    *  where that shows. Absent on runs taken before the check existed, or
    *  when screenshots were skipped. */
   runtime?: {
-    /** Visible text was rendered (not a blank page) */
+    /** Visible text was rendered: at least 60 characters (20 before Nov 3,
+     *  2026), since a bare header over an empty route is not an app */
     rendered: boolean;
     /** Uncaught page errors and console errors, first few, trimmed */
     errors: string[];

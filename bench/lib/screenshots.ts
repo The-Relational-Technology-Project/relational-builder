@@ -164,8 +164,13 @@ async function captureWithPlaywright(pw: any, chromiumPath: string | null, targe
         if (bodyChars < 400 && /\b(page not found|not found|404)\b/i.test(bodyText)) {
           note('route', 'the page opened on "Page not found" (a BrowserRouter under a file or blob path; HashRouter is the rule)');
         }
-        checks[t.key] = { rendered: bodyChars >= 20, errors, bodyChars };
-        const verdict = bodyChars < 20 ? 'blank page' : errors.length ? `renders, ${errors.length} error(s)` : 'renders clean';
+        // Every comparison prompt asks for seeded content, so a real page
+        // carries hundreds of visible characters; a header with nothing
+        // under it (gpt-oss, Nov 3: 21 chars, a title and a name picker)
+        // is a shell, not a rendered app
+        const rendered = bodyChars >= 60;
+        checks[t.key] = { rendered, errors, bodyChars };
+        const verdict = bodyChars < 20 ? 'blank page' : !rendered ? `shell only (${bodyChars} chars of text)` : errors.length ? `renders, ${errors.length} error(s)` : 'renders clean';
         console.log(`  📸 ${t.label} · ${verdict}`);
       } catch (err) {
         console.warn(

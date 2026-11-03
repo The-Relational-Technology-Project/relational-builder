@@ -14,13 +14,13 @@
 
 | Model | Bundle | First try | Renders | Fix | Fail kind | Files | Failed edits | Truncated | Checks | Sec flags | Lint/100 | tsc errors | Largest file | any | Kit files | tok/s | TTFT | Build time | Fix time | Total | ~$ | |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| gpt-oss-120b | 3/3 ✓ | 2/3 | 1/3 clean, 1 blank | 1/1 solved | other | 8 | 0 | no | 4/5 | 0 | 2.1 | 4 | 127 lines | 1 | 3/6 | 40.8 | 17s | 89s | 2s | 89s | 0.00 |
+| gpt-oss-120b | 3/3 ✓ | 2/3 | 1/3 clean, 2 blank | 1/1 solved | other | 8 | 0 | no | 4/5 | 0 | 2.1 | 4 | 127 lines | 1 | 3/6 | 40.8 | 17s | 89s | 2s | 89s | 0.00 |
 
 ### Task: hs-listening-wall (exp-v1)
 
 | Model | Bundle | First try | Renders | Fix | Fail kind | Files | Failed edits | Truncated | Checks | Sec flags | Lint/100 | tsc errors | Largest file | any | Kit files | tok/s | TTFT | Build time | Fix time | Total | ~$ | |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| gpt-oss-120b | 3/3 ✓ | 2/3 | 1/3 clean, 2 blank | 1/1 solved | other | 7 | 0 | no | 4/5 | 0 | 0.9 | 1 | 147 lines | 1 | 2/5 | 29.8 | 12s | 110s | 27s | 110s | 0.00 |
+| gpt-oss-120b | 3/3 ✓ | 2/3 | 0/3 clean, 2 blank | 1/1 solved | other | 7 | 0 | no | 4/5 | 0 | 0.9 | 1 | 147 lines | 1 | 2/5 | 29.8 | 12s | 110s | 27s | 110s | 0.00 |
 
 ## Human review
 
@@ -39,11 +39,12 @@ _Maintainer's call, informed by the tables above — the report feeds the decisi
 - **gpt-oss-120b** · hs-community-fridge t1: BLANK PAGE
   - console: ReferenceError: currentUser is not defined at App (file:///home/user/relational-builder/bench/results/2026-11-03T11-46-35-63c6227-vzrz/artifacts/hs-community-fridge/gpt-oss-120b-t1/preview.html:604:47) at Hi (https://esm
   - pageerror: currentUser is not defined
-- **gpt-oss-120b** · hs-community-fridge t3: renders with errors
-  - console: Failed to load resource: net::ERR_FILE_NOT_FOUND
+- **gpt-oss-120b** · hs-community-fridge t2: BLANK PAGE
 - **gpt-oss-120b** · hs-listening-wall t1: BLANK PAGE
   - console: SecurityError: Failed to execute 'replaceState' on 'History': A history state object with URL 'file:///' cannot be created in a document with origin 'null' and URL 'file:///home/user/relational-builder/bench/results/2026
   - pageerror: Failed to execute 'replaceState' on 'History': A history state object with URL 'file:///' cannot be created in a document with origin 'null' and URL 'file:///home/user/relational-builder/bench/results/2026-11-03T11-46-35
+- **gpt-oss-120b** · hs-listening-wall t2: renders with errors
+  - route: the page opened on "Page not found" (a BrowserRouter under a file or blob path; HashRouter is the rule)
 - **gpt-oss-120b** · hs-listening-wall t3: BLANK PAGE
   - console: SecurityError: Failed to execute 'replaceState' on 'History': A history state object with URL 'file:///' cannot be created in a document with origin 'null' and URL 'file:///home/user/relational-builder/bench/results/2026
   - pageerror: Failed to execute 'replaceState' on 'History': A history state object with URL 'file:///' cannot be created in a document with origin 'null' and URL 'file:///home/user/relational-builder/bench/results/2026-11-03T11-46-35

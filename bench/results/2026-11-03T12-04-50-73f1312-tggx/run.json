@@ -2,7 +2,7 @@
   "harnessVersion": "1.2.0",
   "taskVersion": "exp-v1,exp-v1",
   "gitCommit": "73f1312",
-  "createdAt": "2026-11-03T12:05:59.882Z",
+  "createdAt": "2026-11-03T12:09:09.030Z",
   "runId": "2026-11-03T12-04-50-73f1312-tggx",
   "config": {
     "trials": 3,
@@ -113,6 +113,181 @@
       "served": {
         "model": "google/gemma-4-26b-a4b-it",
         "provider": "CoreWeave"
+      },
+      "importIssues": []
+    },
+    {
+      "alias": "gemma-4-26b",
+      "providerId": "openrouter",
+      "modelId": "google/gemma-4-26b-a4b-it",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 2,
+      "startedAt": "2026-11-03T12:05:59.882Z",
+      "plan": null,
+      "latencyMs": 87787,
+      "ttftMs": 1334,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 87787,
+          "chars": 19430
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 19430,
+      "estTokens": {
+        "input": 14124,
+        "output": 4858,
+        "estimated": true
+      },
+      "estCostUsd": 0.0027285599999999997,
+      "extraction": {
+        "writes": 9,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/gemma-4-26b-t2",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/pages/Inventory.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"select\"",
+          "vfs:/src/pages/Inventory.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/pages/Inventory.tsx: <Button> is used but never imported or declared in this file",
+          "vfs:/src/pages/Inventory.tsx: <CheckCircle2> is used but never imported or declared in this file"
+        ],
+        "solved": true,
+        "latencyMs": 18232,
+        "remainingErrors": [],
+        "estCostUsd": 0.0021281399999999997
+      },
+      "error": null,
+      "served": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "provider": "PrimeIntellect"
+      },
+      "importIssues": []
+    },
+    {
+      "alias": "gemma-4-26b",
+      "providerId": "openrouter",
+      "modelId": "google/gemma-4-26b-a4b-it",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 3,
+      "startedAt": "2026-11-03T12:07:46.150Z",
+      "plan": null,
+      "latencyMs": 61389,
+      "ttftMs": 872,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 61388,
+          "chars": 18771
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 18771,
+      "estTokens": {
+        "input": 14124,
+        "output": 4693,
+        "estimated": true
+      },
+      "estCostUsd": 0.0026790599999999996,
+      "extraction": {
+        "writes": 11,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/gemma-4-26b-t3",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/components/Layout.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/pages/PostUpdate.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"select\"",
+          "vfs:/src/pages/PostUpdate.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "solved": true,
+        "latencyMs": 21294,
+        "remainingErrors": [],
+        "estCostUsd": 0.00215409
+      },
+      "error": null,
+      "served": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "provider": "PrimeIntellect"
       },
       "importIssues": []
     }
