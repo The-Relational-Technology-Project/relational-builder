@@ -9,6 +9,9 @@ export class OpenAICompatibleProvider implements LLMProvider {
   readonly name: string;
   private baseUrl: string;
   private apiKey: string;
+  /** Extra fields merged into every chat request body (a router's routing
+   *  preferences, for example). Set by the caller that knows the provider. */
+  private extraBody: Record<string, unknown> = {};
   private defaultModels: ModelInfo[];
   // Path segment between baseUrl and /chat/completions. Most providers use
   // '/v1'; Google's OpenAI-compatibility layer already includes the version
@@ -49,6 +52,10 @@ export class OpenAICompatibleProvider implements LLMProvider {
 
   isConfigured(): boolean {
     return !!this.baseUrl && (!this.requiresKey || !!this.apiKey);
+  }
+
+  setExtraBody(fields: Record<string, unknown>): void {
+    this.extraBody = { ...fields };
   }
 
   setApiKey(key: string) {
@@ -121,6 +128,7 @@ export class OpenAICompatibleProvider implements LLMProvider {
         messages: cleaned,
         stream: true,
         ...(this.maxTokens ? { max_tokens: this.maxTokens } : {}),
+        ...this.extraBody,
       }),
       signal,
     });

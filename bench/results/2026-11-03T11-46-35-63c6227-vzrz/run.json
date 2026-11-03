@@ -2,7 +2,7 @@
   "harnessVersion": "1.2.0",
   "taskVersion": "exp-v1,exp-v1",
   "gitCommit": "63c6227",
-  "createdAt": "2026-11-03T11:50:46.576Z",
+  "createdAt": "2026-11-03T11:52:56.441Z",
   "runId": "2026-11-03T11-46-35-63c6227-vzrz",
   "config": {
     "trials": 3,
@@ -272,6 +272,82 @@
       "served": {
         "model": "openai/gpt-oss-120b",
         "provider": "PrimeIntellect"
+      },
+      "importIssues": []
+    },
+    {
+      "alias": "gpt-oss-120b",
+      "providerId": "openrouter",
+      "modelId": "openai/gpt-oss-120b",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-03T11:50:46.579Z",
+      "plan": null,
+      "latencyMs": 129727,
+      "ttftMs": 18227,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 129727,
+          "chars": 13166
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 13166,
+      "estTokens": {
+        "input": 14114,
+        "output": 3292,
+        "estimated": true
+      },
+      "estCostUsd": 0.0040923,
+      "extraction": {
+        "writes": 7,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": false
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/gpt-oss-120b-t1",
+      "fixRound": null,
+      "error": null,
+      "served": {
+        "model": "openai/gpt-oss-120b",
+        "provider": "DeepInfra"
       },
       "importIssues": []
     }

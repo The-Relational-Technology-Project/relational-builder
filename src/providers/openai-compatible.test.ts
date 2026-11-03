@@ -53,3 +53,16 @@ describe('OpenAICompatibleProvider stream metadata', () => {
     expect(metas).toEqual([]);
   });
 });
+
+describe('OpenAICompatibleProvider extra body', () => {
+  it('merges caller-set fields into the chat request', async () => {
+    const fetchMock = vi.fn(async () => sse([{ choices: [{ delta: { content: 'x' } }] }]));
+    vi.stubGlobal('fetch', fetchMock);
+    const p = provider();
+    p.setExtraBody({ provider: { ignore: ['HostA'] } });
+    await p.chat([{ role: 'user', content: 'hi' }], 'm', { onToken: () => {}, onComplete: () => {}, onError: e => { throw e; } });
+    const body = JSON.parse((fetchMock.mock.calls[0] as unknown as [string, { body: string }])[1].body);
+    expect(body.provider).toEqual({ ignore: ['HostA'] });
+    expect(body.model).toBe('m');
+  });
+});

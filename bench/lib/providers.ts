@@ -58,6 +58,21 @@ export function providerFor(model: BenchModel): LLMProvider {
       // the request; builds on the frozen tasks run well under 30k output.
       const cap = parseInt(process.env.BENCH_MAX_TOKENS ?? '', 10);
       if (Number.isFinite(cap) && cap > 0) p.setMaxTokens(cap);
+      // OpenRouter routes one model name across several upstream hosts, and
+      // a host can serve it badly (Nov 3: gemma's doubled quotes came from
+      // one host, not the others). BENCH_OPENROUTER_IGNORE=HostA,HostB
+      // keeps those hosts out; BENCH_OPENROUTER_ONLY=HostA pins one. The
+      // served host is recorded on every trial either way.
+      const ignore = (process.env.BENCH_OPENROUTER_IGNORE ?? '').split(',').map(s => s.trim()).filter(Boolean);
+      const only = (process.env.BENCH_OPENROUTER_ONLY ?? '').split(',').map(s => s.trim()).filter(Boolean);
+      if (ignore.length || only.length) {
+        p.setExtraBody({
+          provider: {
+            ...(ignore.length ? { ignore } : {}),
+            ...(only.length ? { order: only, allow_fallbacks: false } : {}),
+          },
+        });
+      }
       return p;
     }
   }

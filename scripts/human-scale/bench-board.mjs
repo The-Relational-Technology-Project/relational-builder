@@ -104,7 +104,7 @@ function trialRows(runs, hand) {
       const fromHand = hand.find(h => name.startsWith(h.run) && h.task === t.taskId && h.model === t.alias) || {};
       const score = k => fromHand[k] ?? fromReview[k];
       const guarded = !!(run.config && run.config.importGuard);
-      const variant = !run.config ? '' : [run.config.importGuard ? 'guard' : '', run.config.humanScaleRules ? 'rules' : '', run.config.fixHints ? 'hints' : ''].filter(Boolean).join('+');
+      const variant = !run.config ? '' : [run.config.importGuard ? 'guard' : '', run.config.humanScaleRules ? 'rules' : '', run.config.fixHints ? 'hints' : '', run.config.openrouterIgnore ? `not ${run.config.openrouterIgnore}` : '', run.config.openrouterOnly ? `only ${run.config.openrouterOnly}` : ''].filter(Boolean).join('+');
       rows.push({
         guarded,
         variant,

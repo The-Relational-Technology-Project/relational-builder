@@ -143,7 +143,7 @@ export interface RunReport {
   gitCommit: string;
   createdAt: string;
   runId: string;
-  config: { trials: number; timeoutMs: number; planFirst: boolean; studio?: string | null; effort?: string | null; importGuard?: boolean; fixHints?: boolean; humanScaleRules?: boolean };
+  config: { trials: number; timeoutMs: number; planFirst: boolean; studio?: string | null; effort?: string | null; importGuard?: boolean; fixHints?: boolean; humanScaleRules?: boolean; openrouterIgnore?: string | null; openrouterOnly?: string | null };
   models: BenchModel[];
   tasks: Array<{ id: string; version: string }>;
   trials: TrialResult[];
