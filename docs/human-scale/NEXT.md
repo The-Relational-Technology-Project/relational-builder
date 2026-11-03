@@ -139,22 +139,26 @@ stack layer it moved; pace paid work at $3 to $5 a day.
 
 ## Tomorrow (one run, about 75 minutes)
 
-1. **gpt-oss and glm through the router guard.** Nov 3: four of six
-   gpt-oss builds hid `BrowserRouter` behind an alias and opened blank or
-   on "Page not found"; the static check and the fix hint now catch it.
-   Rerun gpt-oss-120b (three trials, compare, guard, rules and hints,
-   about $0.05) and glm-4.5-air the same way (about $0.05) so all four
-   open models have a like-for-like row with the Nov 3 checks. Log spend
-   first. Then `npm run bench:board` and read the by-host table before
-   quoting any model's average.
-2. **gemma's remaining two failure shapes.** With Darkbloom excluded gemma
-   bundled 6 of 6 and rendered 4 of 6; the two blanks were a CommonJS
-   `require("lucide-react")` in an ESM file and React error #31 (an object
-   rendered as a child). Add `require(` in a `src/` file to the static
-   check with a one-line hint (import it instead), and look at the #31
-   build's transcript to see whether a rule line would have prevented it
-   (it may be a date object in JSX). Keep each to the check-plus-test shape
-   of `import-check.ts`.
+1. **gpt-oss's two remaining blanks, then a quiet day for the bench.**
+   Nov 3 (late): with the router guard live, gpt-oss went 1 of 6 to 4 of
+   6 clean and glm sat at 5 of 6; the four open models now have
+   like-for-like rows with the same checks. gpt-oss's two blanks: a
+   `BrowserRouter` the fix pass swapped but the page still threw inside
+   the router (look at the fixed files; two routers nested is the guess,
+   and the check could flag a `Router` rendered inside another), and an
+   invented Tailwind utility (`font-inter`), which the browser check sees
+   but the static check does not (a short list of utilities that must be
+   declared in `@theme` would catch it). No bench spend needed for either;
+   when both are in, one gpt-oss run (about $0.05, log first) measures
+   them. Read the by-host table before quoting any average.
+2. **gemma's React #31.** With Darkbloom excluded gemma bundled 6 of 6 and
+   rendered 4 of 6. One blank was a CommonJS `require("lucide-react")`,
+   now caught by the static check with a hint (Nov 3, late). The other
+   was React error #31 (an object rendered as a child) on a build that
+   passes the kit's `Avatar` a `name` string and renders plain strings
+   everywhere the first look reached; the decoded error args are in the
+   run's `runtime.errors`. Decode them, find the line, and decide whether
+   a rule line or a check would have caught it. Fifteen minutes, no spend.
 3. **qwen3-coder-next, finished.** The Nov 3 run hit the 20-minute cap
    (one 290-second, 42-file build, then a 429 and a one-file reply). If
    the run below shows fewer than six trials, run the missing ones (about

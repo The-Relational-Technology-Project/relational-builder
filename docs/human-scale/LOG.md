@@ -24,7 +24,8 @@ model the board said failed at runtime a quarter of the time, was writing
 `BrowserRouter` under an alias to satisfy the HashRouter rule by its letter;
 the guard now catches that before bundling and the browser check no
 longer counts a header over an empty page as a rendered app. Spend today:
-about $0.15 estimated across 23 open-model builds, logged as $2.00 worst case in three reservations. The backend half of the self-host runbook is written from the
+about $0.24 estimated across 35 open-model builds, logged as $3.00 worst
+case in four reservations. The backend half of the self-host runbook is written from the
 repo and marked not yet run (no Docker here). Nothing new needs you beyond
 the standing three commands.
 
@@ -118,11 +119,28 @@ hosts blended, then by host):
 Not done: item 3 (end-to-end export and delete against a live app) still
 needs a signed-in Builder; item 4 (design scores) is Josh's.
 
-**What it cost.** Paid inference: about $0.15 estimated (gemma 6
-builds $0.03, gpt-oss 6 builds $0.03, gemma with the host excluded 6
-builds $0.03, qwen 5 builds $0.07), logged as $2.00 worst case across
-three reservations before the runs. Session: about 75 minutes of the 90,
-with two bench runs in flight at a time and never more than one subagent.
+**Late addition (12:27 to 12:40 UTC): gpt-oss and glm through the router
+guard.** Twelve more builds, logged first. gpt-oss-120b: 6 of 6 bundled,
+4 of 6 rendered clean (1 of 6 this morning). The guard fired once on an
+aliased `BrowserRouter` and the fix pass swapped it, but that page still
+threw inside the router at load (two routers nested, most likely); the
+other blank was a Tailwind utility the model invented (`font-inter`).
+Three fix passes for `React is not defined` all solved. Hosts:
+PrimeIntellect 4, CoreWeave 1, DeepInfra 1. glm-4.5-air: 5 of 6 bundled
+and 5 of 6 clean, all served by Novita; the one failure was a kit `select`
+export the fix pass could not repair. Board rates after this: glm 71%
+over 24, gpt-oss 50% over 24, gemma 37% over 35 (by host: Darkbloom 0 of
+4, the rest 6 of 8 clean), qwen 35% over 17. A CommonJS `require` check
+with a hint also went in after gemma's blank. Cost of the addition: about
+$0.09 estimated (gpt-oss $0.04, glm $0.05), logged as $1.00 worst case.
+Session total: about 80 minutes.
+
+**What it cost.** Paid inference: about $0.24 estimated over 35 open-model
+builds (gemma 6 at $0.03, gpt-oss 6 at $0.03, gemma with the host
+excluded 6 at $0.03, qwen 5 at $0.07, gpt-oss again 6 at $0.04, glm 6 at
+$0.05), logged as $3.00 worst case across four reservations before the
+runs. Session: about 80 minutes of the 90, with two bench runs in flight
+at a time and never more than one subagent.
 
 **Honest read.** The board's averages were hiding two
 different stories. gemma's 37% clean over 35 builds is a blend of a host
