@@ -136,6 +136,7 @@ export class OpenAICompatibleProvider implements LLMProvider {
     const decoder = new TextDecoder();
     let fullText = '';
     let buffer = '';
+    let metaSent = false;
 
     try {
       while (true) {
@@ -154,6 +155,14 @@ export class OpenAICompatibleProvider implements LLMProvider {
 
           try {
             const parsed = JSON.parse(data);
+            if (!metaSent && (parsed.model || parsed.provider || parsed.system_fingerprint)) {
+              metaSent = true;
+              callbacks.onMeta?.({
+                ...(parsed.model ? { model: String(parsed.model) } : {}),
+                ...(parsed.provider ? { provider: String(parsed.provider) } : {}),
+                ...(parsed.system_fingerprint ? { systemFingerprint: String(parsed.system_fingerprint) } : {}),
+              });
+            }
             const choice = parsed.choices?.[0];
             const token = choice?.delta?.content;
             if (token) {

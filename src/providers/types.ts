@@ -20,8 +20,20 @@ export function contentToText(content: string | ContentPart[]): string {
     .join('\n');
 }
 
+/** What the provider says actually served a request — the model id it
+ *  reports back and, through a router such as OpenRouter, the upstream host
+ *  and any system fingerprint. A model can change under the same name; this
+ *  is how a run shows that it did. */
+export interface StreamMeta {
+  model?: string;
+  provider?: string;
+  systemFingerprint?: string;
+}
+
 export interface StreamCallbacks {
   onToken: (token: string) => void;
+  /** Fired once, from the first chunk that names the serving model */
+  onMeta?: (meta: StreamMeta) => void;
   /** Summarized model reasoning streamed while it thinks — a progress
    *  signal for the UI, never part of the reply content */
   onReasoning?: (text: string) => void;

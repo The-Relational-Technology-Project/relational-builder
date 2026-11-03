@@ -165,6 +165,20 @@ ${aliases
     .filter(t => t.error)
     .map(t => `- **${t.alias}** · ${t.taskId} t${t.trial}: ${t.error}`);
 
+  // Who actually served each model, as the provider reported it — one line
+  // per distinct answer so a model that changed under its name is visible
+  const servedLines = (() => {
+    const seen = new Map<string, Set<string>>();
+    for (const t of run.trials) {
+      const m = t.served;
+      if (!m) continue;
+      const desc = [m.model, m.provider ? `via ${m.provider}` : '', m.systemFingerprint ? `fingerprint ${m.systemFingerprint}` : ''].filter(Boolean).join(', ');
+      if (!desc) continue;
+      if (!seen.has(t.alias)) seen.set(t.alias, new Set());
+      seen.get(t.alias)!.add(desc);
+    }
+    return [...seen].map(([alias, descs]) => `- **${alias}**: ${[...descs].join(' / ')}`);
+  })();
   const runtimeLines = run.trials
     .filter(t => t.runtime && (!t.runtime.rendered || t.runtime.errors.length > 0))
     .map(t =>
@@ -203,7 +217,7 @@ ${humanTable}
 ## Which model for what
 
 _Maintainer's call, informed by the tables above — the report feeds the decision, it doesn't make it._
-${runtimeLines.length ? `\n## In the browser (bundled, but)\n\n${runtimeLines.join('\n')}\n` : ''}${fixLines.length ? `\n## Fix passes (how solves went)\n\n${fixLines.join('\n')}\n` : ''}${errors.length ? `\n## Errors\n\n${errors.join('\n')}\n` : ''}
+${servedLines.length ? `\n## Served as (provider-reported)\n\n${servedLines.join('\n')}\n` : ''}${runtimeLines.length ? `\n## In the browser (bundled, but)\n\n${runtimeLines.join('\n')}\n` : ''}${fixLines.length ? `\n## Fix passes (how solves went)\n\n${fixLines.join('\n')}\n` : ''}${errors.length ? `\n## Errors\n\n${errors.join('\n')}\n` : ''}
 ${shotLines.length ? `\n## Previews\n\n${shotLines.join('\n\n')}\n` : ''}`;
 
   await writeFile(path.join(runDir, 'report.md'), md, 'utf8');

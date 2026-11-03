@@ -130,6 +130,7 @@ const mockSession = async (): Promise<SessionResult> => ({
   ttftMs: 321,
   latencyMs: 1234,
   sentChars: 4321,
+  served: null,
 });
 
 export async function runSelftest(): Promise<number> {

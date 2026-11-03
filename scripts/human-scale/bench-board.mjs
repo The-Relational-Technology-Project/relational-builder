@@ -93,6 +93,7 @@ function trialRows(runs, hand) {
         : bundled && !fix ? 'bundled, first try'
         : bundled && fix ? 'bundled after one auto-fix'
         : 'did not bundle') + (wrongShape ? '' : browser);
+      const served = t.served ? [t.served.model, t.served.provider ? `via ${t.served.provider}` : ''].filter(Boolean).join(' ') : '';
       const firstError = rt && rt.errors.length ? rt.errors[0].replace(/^(pageerror|console): /, '').slice(0, 110) : '';
       const q = t.quality || null;
       const code = q
@@ -135,7 +136,7 @@ function trialRows(runs, hand) {
         designQuality: score('designQuality'),
         rtpFit: score('rtpFit'),
         completeness: score('completeness'),
-        notes: [fromHand.notes || fromReview.notes || '', firstError ? `browser: ${firstError}` : ''].filter(Boolean).join(' · '),
+        notes: [fromHand.notes || fromReview.notes || '', firstError ? `browser: ${firstError}` : '', served ? `served: ${served}` : ''].filter(Boolean).join(' · '),
         shot: `${REL_RESULTS}/${name}/shots/${shotName(t)}`,
         shotAbs: path.join(dir, 'shots', shotName(t)),
         report: `${REL_RESULTS}/${name}/report.md`,

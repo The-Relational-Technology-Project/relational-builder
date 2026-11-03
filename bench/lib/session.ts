@@ -1,5 +1,5 @@
 import { extractOperations } from '@/project/code-extractor';
-import type { ChatMessage, LLMProvider, ThinkingEffort } from '@/providers/types';
+import type { ChatMessage, LLMProvider, StreamMeta, ThinkingEffort } from '@/providers/types';
 import { contentToText } from '@/providers/types';
 
 /**
@@ -56,6 +56,9 @@ export interface SessionResult {
   /** Total request chars actually sent across all rounds (system + history
    *  resent per continuation) — the input side of the cost estimate */
   sentChars: number;
+  /** What the provider reported serving the first segment (null when the
+   *  provider names nothing) */
+  served: StreamMeta | null;
 }
 
 /** Thinking effort override for the bench (BENCH_EFFORT=low|medium|high|xhigh).
@@ -83,6 +86,7 @@ export async function runSession(
   const segmentTexts: string[] = [];
   const segments: SessionSegment[] = [];
   let ttftMs: number | null = null;
+  let served: StreamMeta | null = null;
   let truncatedFinal = false;
   let sentChars = 0;
   const sessionStart = Date.now();
@@ -117,6 +121,9 @@ export async function runSession(
               onToken: t => {
                 if (ttftMs === null) ttftMs = Date.now() - sessionStart;
                 segText += t;
+              },
+              onMeta: m => {
+                if (!served) served = m;
               },
               onFinishReason: r => {
                 finishReason = r;
@@ -175,5 +182,6 @@ export async function runSession(
     ttftMs,
     latencyMs: Date.now() - sessionStart,
     sentChars,
+    served,
   };
 }

@@ -242,6 +242,7 @@ async function runTrial(
     segments: buildSession.segments,
     continuations: buildSession.continuations,
     truncatedFinal: buildSession.truncatedFinal,
+    served: buildSession.served,
     outputChars,
     estTokens: { input: inTokens, output: outTokens, estimated: true },
     estCostUsd: estimateCostUsd(model, inTokens, outTokens),

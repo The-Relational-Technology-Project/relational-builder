@@ -40,6 +40,10 @@ export interface TrialResult {
   continuations: number;
   /** Still inside a code fence after the continuation cap — reply incomplete */
   truncatedFinal: boolean;
+  /** What the provider reported serving the build: the model id it named
+   *  and, through a router, the upstream host and fingerprint. A model that
+   *  changes under the same name shows up here (absent before Nov 3, 2026) */
+  served?: { model?: string; provider?: string; systemFingerprint?: string } | null;
   outputChars: number;
   /** chars/4 heuristic — no exact usage without provider changes */
   estTokens: { input: number; output: number; estimated: true };
