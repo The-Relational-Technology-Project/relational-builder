@@ -96,6 +96,11 @@ export function fixHints(errorText: string, kitFiles: Record<string, string>): s
     hints.push(`\`${malformed[1]}\` line ${malformed[2]} has a malformed import: the module name \`${malformed[3]}\` is outside its quotes (this usually looks like \`from ''react'\`, a doubled quote). Rewrite that import line as \`import X from '${malformed[3]}'\` with single straight quotes, and check the other import lines in that file for the same doubled quote.`);
   }
 
+  // CommonJS require in an ES module
+  for (const m of errorText.matchAll(/Dynamic require of "([^"]+)" is not supported/g)) {
+    hints.push(`\`require('${m[1]}')\` does not work here (ES modules only). Replace it with an import at the top of that file: \`import { ... } from '${m[1]}';\` and delete the require line.`);
+  }
+
   // BrowserRouter, plain or aliased
   if (/BrowserRouter from 'react-router-dom'/.test(errorText)) {
     hints.push("Replace `BrowserRouter` with `HashRouter` in that import (import `{ HashRouter }` and render `<HashRouter>`); do not alias BrowserRouter as HashRouter. Hash routes are the only ones that work in the preview and on every static host.");

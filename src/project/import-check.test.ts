@@ -115,4 +115,11 @@ describe('checkImports', () => {
     const ok = { '/src/main.tsx': "import { HashRouter, Routes } from 'react-router-dom';\nexport const x = <HashRouter><Routes /></HashRouter>;" };
     expect(checkImports(ok)).toEqual([]);
   });
+
+  it('flags a CommonJS require in an ES module (gemma, Nov 3)', () => {
+    const bad = { '/src/App.tsx': "const { Heart } = require('lucide-react');\nexport function App() { return <Heart />; }" };
+    expect(checkImports(bad).some(i => i.includes('Dynamic require of "lucide-react"'))).toBe(true);
+    const ok = { '/src/App.tsx': "import { Heart } from 'lucide-react';\n// requires nothing: the word required is fine\nexport function App() { return <Heart />; }" };
+    expect(checkImports(ok)).toEqual([]);
+  });
 });

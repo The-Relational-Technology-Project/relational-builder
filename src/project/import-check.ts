@@ -135,6 +135,11 @@ export function checkImports(files: Record<string, string>, opts: ImportCheckOpt
   const issues: string[] = [];
   for (const [path, source] of Object.entries(files)) {
     if (!CODE_RE.test(path)) continue;
+    // A CommonJS require in an ES module: the bundle carries no require,
+    // so the page throws "Dynamic require of ... is not supported" on load
+    // (gemma, Nov 3). Named: `const X = require('y')`, `require('y').z`
+    const req = source.match(/(?:^|[^\w.])require\(\s*['"]([^'"]+)['"]\s*\)/m);
+    if (req) issues.push(`vfs:${path}: Dynamic require of "${req[1]}" is not supported (this is an ES module; use import)`);
     const stmts = parseImports(source);
     for (const st of stmts) {
       // BrowserRouter reads the page's real path, which is a blob or file

@@ -53,4 +53,9 @@ describe('fixHints', () => {
     expect(h.join(' ')).toContain('HashRouter');
     expect(h.join(' ')).toContain('do not alias');
   });
+
+  it('turns a CommonJS require into an import hint (gemma, Nov 3)', () => {
+    const h = fixHints('vfs:/src/App.tsx: Dynamic require of "lucide-react" is not supported (this is an ES module; use import)', KIT_FILES);
+    expect(h.join(' ')).toContain("import { ... } from 'lucide-react'");
+  });
 });
