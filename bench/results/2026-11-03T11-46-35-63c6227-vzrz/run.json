@@ -2,7 +2,7 @@
   "harnessVersion": "1.2.0",
   "taskVersion": "exp-v1,exp-v1",
   "gitCommit": "63c6227",
-  "createdAt": "2026-11-03T11:48:04.876Z",
+  "createdAt": "2026-11-03T11:50:46.576Z",
   "runId": "2026-11-03T11-46-35-63c6227-vzrz",
   "config": {
     "trials": 3,
@@ -111,6 +111,167 @@
       "served": {
         "model": "openai/gpt-oss-120b",
         "provider": "Mancer 2"
+      },
+      "importIssues": []
+    },
+    {
+      "alias": "gpt-oss-120b",
+      "providerId": "openrouter",
+      "modelId": "openai/gpt-oss-120b",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 2,
+      "startedAt": "2026-11-03T11:48:04.878Z",
+      "plan": null,
+      "latencyMs": 104406,
+      "ttftMs": 16543,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 104406,
+          "chars": 16725
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 16725,
+      "estTokens": {
+        "input": 14124,
+        "output": 4182,
+        "estimated": true
+      },
+      "estCostUsd": 0.0046278,
+      "extraction": {
+        "writes": 8,
+        "editBlocks": 1,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": false
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/gpt-oss-120b-t2",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/pages/UpdateForm.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "solved": true,
+        "latencyMs": 1868,
+        "remainingErrors": [],
+        "estCostUsd": 0.0028015500000000003
+      },
+      "error": null,
+      "served": {
+        "model": "openai/gpt-oss-120b",
+        "provider": "Venice"
+      },
+      "importIssues": []
+    },
+    {
+      "alias": "gpt-oss-120b",
+      "providerId": "openrouter",
+      "modelId": "openai/gpt-oss-120b",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 3,
+      "startedAt": "2026-11-03T11:49:51.342Z",
+      "plan": null,
+      "latencyMs": 55126,
+      "ttftMs": 2285,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 55126,
+          "chars": 13554
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 13554,
+      "estTokens": {
+        "input": 14124,
+        "output": 3389,
+        "estimated": true
+      },
+      "estCostUsd": 0.0041519999999999994,
+      "extraction": {
+        "writes": 10,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/gpt-oss-120b-t3",
+      "fixRound": null,
+      "error": null,
+      "served": {
+        "model": "openai/gpt-oss-120b",
+        "provider": "PrimeIntellect"
       },
       "importIssues": []
     }
