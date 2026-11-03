@@ -151,14 +151,12 @@ stack layer it moved; pace paid work at $3 to $5 a day.
    declared in `@theme` would catch it). No bench spend needed for either;
    when both are in, one gpt-oss run (about $0.05, log first) measures
    them. Read the by-host table before quoting any average.
-2. **gemma's React #31.** With Darkbloom excluded gemma bundled 6 of 6 and
-   rendered 4 of 6. One blank was a CommonJS `require("lucide-react")`,
-   now caught by the static check with a hint (Nov 3, late). The other
-   was React error #31 (an object rendered as a child) on a build that
-   passes the kit's `Avatar` a `name` string and renders plain strings
-   everywhere the first look reached; the decoded error args are in the
-   run's `runtime.errors`. Decode them, find the line, and decide whether
-   a rule line or a check would have caught it. Fifteen minutes, no spend.
+2. **gemma's React #31: done, unmeasured.** Decoded Nov 3 (late): a lucide
+   component passed bare to the kit's `BottomNavItem` icon prop. Rule
+   line, static check (kit components only) and hint are in. One gemma run
+   with Darkbloom excluded (about $0.05, log first) would show whether
+   gemma now clears 5 or 6 of 6; fold it into item 1's run if time is
+   short.
 3. **qwen3-coder-next, finished.** The Nov 3 run hit the 20-minute cap
    (one 290-second, 42-file build, then a 429 and a one-file reply). If
    the run below shows fewer than six trials, run the missing ones (about

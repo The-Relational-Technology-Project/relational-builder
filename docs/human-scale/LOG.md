@@ -131,7 +131,11 @@ and 5 of 6 clean, all served by Novita; the one failure was a kit `select`
 export the fix pass could not repair. Board rates after this: glm 71%
 over 24, gpt-oss 50% over 24, gemma 37% over 35 (by host: Darkbloom 0 of
 4, the rest 6 of 8 clean), qwen 35% over 17. A CommonJS `require` check
-with a hint also went in after gemma's blank. Cost of the addition: about
+with a hint also went in after gemma's blank, and the React #31 blank
+decoded to a lucide component passed bare to the kit's `BottomNavItem`
+(`icon={Users}` where the kit takes `icon={<Users />}`): one rule line,
+a static check scoped to the kit components that take an element, and a
+hint, all tested; no other build in three days had the pattern. Cost of the addition: about
 $0.09 estimated (gpt-oss $0.04, glm $0.05), logged as $1.00 worst case.
 Session total: about 80 minutes.
 

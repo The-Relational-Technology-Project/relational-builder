@@ -140,6 +140,11 @@ export function checkImports(files: Record<string, string>, opts: ImportCheckOpt
     // (gemma, Nov 3). Named: `const X = require('y')`, `require('y').z`
     const req = source.match(/(?:^|[^\w.])require\(\s*['"]([^'"]+)['"]\s*\)/m);
     if (req) issues.push(`vfs:${path}: Dynamic require of "${req[1]}" is not supported (this is an ES module; use import)`);
+    // A kit `icon` prop takes an element; the bare component renders an
+    // object as a child and React throws #31 on load (gemma, Nov 3)
+    for (const m of source.matchAll(/<(?:AppBar|AppBarTitle|BottomNav|BottomNavItem|EmptyState)\b[^>]*?\bicon=\{\s*([A-Z][A-Za-z0-9]*)\s*\}/g)) {
+      issues.push(`vfs:${path}: icon={${m[1]}} passes a component where the kit expects an element; write icon={<${m[1]} />}`);
+    }
     const stmts = parseImports(source);
     for (const st of stmts) {
       // BrowserRouter reads the page's real path, which is a blob or file

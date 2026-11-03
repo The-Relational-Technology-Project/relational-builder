@@ -122,4 +122,14 @@ describe('checkImports', () => {
     const ok = { '/src/App.tsx': "import { Heart } from 'lucide-react';\n// requires nothing: the word required is fine\nexport function App() { return <Heart />; }" };
     expect(checkImports(ok)).toEqual([]);
   });
+
+  it('flags a bare component passed to a kit icon prop (gemma, Nov 3: React #31)', () => {
+    const bad = { '/src/App.tsx': "import { Users } from 'lucide-react';\nimport { BottomNavItem } from '@/components/ui/bottom-nav';\nexport const x = <BottomNavItem icon={Users} label='Shifts' to='/shifts' />;" };
+    expect(checkImports(bad, { kitFiles: { '/src/components/ui/bottom-nav.tsx': 'export function BottomNavItem() {}' } }).some(i => i.includes('icon={<Users />}'))).toBe(true);
+    const ok = { '/src/App.tsx': "import { Users } from 'lucide-react';\nimport { BottomNavItem } from '@/components/ui/bottom-nav';\nexport const x = <BottomNavItem icon={<Users />} label='Shifts' to='/shifts' />;" };
+    expect(checkImports(ok, { kitFiles: { '/src/components/ui/bottom-nav.tsx': 'export function BottomNavItem() {}' } })).toEqual([]);
+    // The app's own components may take a component; only the kit's contract is checked
+    const own = { '/src/App.tsx': "import { Users } from 'lucide-react';\nfunction NavItem({ icon: Icon }: { icon: typeof Users }) { return <Icon />; }\nexport const x = <NavItem icon={Users} />;" };
+    expect(checkImports(own)).toEqual([]);
+  });
 });

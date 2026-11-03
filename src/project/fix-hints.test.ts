@@ -58,4 +58,9 @@ describe('fixHints', () => {
     const h = fixHints('vfs:/src/App.tsx: Dynamic require of "lucide-react" is not supported (this is an ES module; use import)', KIT_FILES);
     expect(h.join(' ')).toContain("import { ... } from 'lucide-react'");
   });
+
+  it('rewrites a bare icon component into an element (gemma, Nov 3)', () => {
+    const h = fixHints('vfs:/src/App.tsx: icon={Users} passes a component where the kit expects an element; write icon={<Users />}', KIT_FILES);
+    expect(h.join(' ')).toContain('icon={<Users />}');
+  });
 });
