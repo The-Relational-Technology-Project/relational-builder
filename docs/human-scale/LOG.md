@@ -12,6 +12,135 @@ experiment at most $5 and 30 minutes.
 
 ---
 
+## 2026-11-03
+
+**For Josh:** The thing that broke gemma was not gemma. Every bench build
+now records which upstream host OpenRouter actually used, and the morning
+run showed it plainly: one host (Darkbloom) served every build that wrote
+the doubled-quote import, and every build from the other hosts compiled.
+The board now has a table of rates by host, and the bench can exclude a
+host; a rerun of gemma with that host excluded is below. gpt-oss, the
+model the board said failed at runtime a quarter of the time, was writing
+`BrowserRouter` under an alias to satisfy the HashRouter rule by its letter;
+the guard now catches that before bundling and the browser check no
+longer counts a header over an empty page as a rendered app. Spend today:
+about $0.15 estimated across 23 open-model builds, logged as $2.00 worst case in three reservations. The backend half of the self-host runbook is written from the
+repo and marked not yet run (no Docker here). Nothing new needs you beyond
+the standing three commands.
+
+**Stack layer moved:** Builder model (the bench can now tell a model from
+the host serving it, and the guard catches a routing mistake that blanked
+a quarter of one model's builds); Backend (a runbook that names the nine
+core functions and their secrets, unrun); Footprint and provenance on the
+runtime side (the kit helper keeps the app's own call log and footer line,
+module-tested).
+
+**What was tried.**
+
+1. *Served model and host on every build* (item 1b). The provider layer
+   gained an `onMeta` callback that fires once from the first stream chunk
+   naming `model`, `provider` and `system_fingerprint`; the bench records
+   it as `served` on each trial, the report lists what served each model,
+   the board puts it in the notes column and in a new "by the host that
+   served them" rates table. Tested with a mocked stream.
+2. *The doubled-quote hint, measured* (item 1a). gemma, three trials per
+   prompt, guard, rules and hints on: 2 of 6 bundled, both rendering clean.
+   The four failures were all served by Darkbloom and all began with
+   `from ''react'` on line 1 of `main.tsx` or a page (106, 15, 30 and 39
+   syntax errors in the new syntax column); the two successes were served
+   by DekaLLM and Parasail. The hint never got a chance: the fix pass
+   can repair one bad line, not a file where every import is malformed.
+   The hint stays (it is correct); the host is the finding.
+3. *Host exclusion* (new). `BENCH_OPENROUTER_IGNORE=HostA,HostB` and
+   `BENCH_OPENROUTER_ONLY=HostA` pass OpenRouter's routing preferences in
+   the request body (the provider gained `setExtraBody`, tested); the run
+   config records them and the board labels the variant. Then gemma
+   again with Darkbloom excluded: 6 of 6 bundled (five after a one-pass
+   fix, all solved), 4 of 6 rendering clean; the two blanks are new
+   shapes, a CommonJS `require("lucide-react")` in an ESM file and React
+   error #31 (an object rendered as a child), both on hosts that
+   otherwise served working builds (PrimeIntellect 3 of 4 clean, CoreWeave
+   0 of 1). So with one host excluded gemma went from 0 of 11 across two
+   days to 4 of 6 clean, at 61 to 121 seconds and under a cent a build.
+4. *gpt-oss with hints* (item 1, second half): 6 of 6 bundled (two after a
+   one-pass fix for `React is not defined`, 2s and 27s), but only 1 of 6
+   rendered a real page. Four of the six imported `BrowserRouter as
+   HashRouter` or `as Router`: under the preview's file or blob path that
+   is a blank page (a `replaceState` security error) or "Page not found".
+   The static check now flags any `BrowserRouter` import from
+   react-router-dom, aliased or not, with a hint that says not to alias
+   it; the browser check records a page that opens on its own 404 as a
+   routing failure, ignores resource 404s (a stylesheet link the shell
+   never serves), and counts a page as rendered only above 60 characters
+   of visible text (one build passed at 21: a title and a name picker
+   over nothing). Those three changes re-scored the morning run; the
+   next gpt-oss run will say what the guard is worth.
+5. *qwen3-coder-next with hints*: the run hit the 20-minute cap after five of six
+   builds (one took 290 seconds and wrote 42 files; one hit a 429 and came
+   back as a single file). Of the five: 4 bundled, 2 rendered clean; the
+   blanks were a `useState` used without importing it and a named import
+   from an avatar package that does not export it. All five were served by
+   Parasail. Median build 168 seconds, the slowest open model on the board
+   by a wide margin.
+The board after today (guarded runs on the comparison prompts, all
+hosts blended, then by host):
+
+| Model | Builds | Clean | Median build | Note |
+|---|---|---|---|---|
+| glm-4.5-air | 18 | 67% | 99s | not rerun today; tomorrow with the router guard |
+| gpt-oss-120b | 18 | 44% | 84s | 33% blank at runtime, mostly the aliased BrowserRouter |
+| gemma-4-26b | 35 | 37% | 81s | Darkbloom 0 of 4 bundled; the other hosts 8 of 8 bundled, 6 of 8 clean |
+| qwen3-coder-next | 17 | 35% | 143s | 24% wrong shape (single-file replies); slowest |
+
+6. *Runtime provenance in the app* (item 2). `@/lib/ai` keeps the last 50
+   calls in the app's own browser (`rb.ai.log`: job, host, model, sizes,
+   timing; never the prompt) and exposes `aiLog()`, `aiFootprint()` and
+   `aiFootprintLabel()`; the prompt rule for the footer now names the
+   footprint line beside `aiRuntimeLabel()`. Five tests, including that a
+   failed call is not logged and the prompt text never is. No energy
+   figure is claimed in the app.
+7. *Type errors, split* (item 7). Syntax errors (TS1xxx) are counted apart
+   as `tscSyntaxErrors`, and the type count is taken only on builds that
+   bundled. Today's gemma failures show why: 106 "type errors" on one
+   build were one malformed import cascading.
+8. *Backend runbook* (item 5). `SELF-HOST-BACKEND.md`: what the backend
+   is (77 migrations, 46 tables, 25 functions), the nine functions the
+   Builder actually calls and the secrets each reads, the order to stand
+   them up, and what stays outside a community's control (Resend for
+   mail, Auth SMTP). Marked unrun at the top; this container has no
+   Docker.
+9. *Research rotation* (item 8). The Hugging Face blog has no post that
+   surveys small open models; the closest is Liquid AI's LFM3 release
+   note (Oct 27, 2026: a 1.7B text model in about 1 GB at 4-bit, agentic
+   use, nothing on app-building). Bendor et al. stays next. Not worth a
+   second fetch.
+
+Not done: item 3 (end-to-end export and delete against a live app) still
+needs a signed-in Builder; item 4 (design scores) is Josh's.
+
+**What it cost.** Paid inference: about $0.15 estimated (gemma 6
+builds $0.03, gpt-oss 6 builds $0.03, gemma with the host excluded 6
+builds $0.03, qwen 5 builds $0.07), logged as $2.00 worst case across
+three reservations before the runs. Session: about 75 minutes of the 90,
+with two bench runs in flight at a time and never more than one subagent.
+
+**Honest read.** The board's averages were hiding two
+different stories. gemma's 37% clean over 35 builds is a blend of a host
+that cannot serve it (0 of 4 bundled, every build a doubled quote) and
+hosts that can (6 of 6 bundled, 4 clean, today). gpt-oss's 44% is mostly
+one habit, `BrowserRouter` behind an alias, which the guard now catches
+and tomorrow's run will measure. Neither number should be quoted on its
+own again; the by-host table is the one to read, and it only has today's
+builds in it, so it is thin. Two of the day's three checks were tightened
+after looking at screenshots rather than numbers (a 21-character "render",
+a "Page not found" the console never reported), which is the brief's
+point about screenshots. The provenance work on the runtime side is real
+but unexercised by any bench build, because neither comparison prompt asks
+for AI; that is a question for Josh, not a gap to paper over. The backend
+runbook is honest about being unrun. qwen's 290-second, 42-file build is a
+reminder that "it compiled" and "a person would wait for it" are different
+tests.
+
 ## 2026-11-02
 
 **For Josh:** Four things landed behind the flag today. The automatic fix

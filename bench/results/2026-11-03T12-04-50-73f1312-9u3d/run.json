@@ -2,7 +2,7 @@
   "harnessVersion": "1.2.0",
   "taskVersion": "exp-v1,exp-v1",
   "gitCommit": "73f1312",
-  "createdAt": "2026-11-03T12:13:03.418Z",
+  "createdAt": "2026-11-03T12:23:16.298Z",
   "runId": "2026-11-03T12-04-50-73f1312-9u3d",
   "config": {
     "trials": 3,
@@ -130,7 +130,32 @@
         "model": "qwen/qwen3-coder-next",
         "provider": "Parasail"
       },
-      "importIssues": []
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 1236
+      },
+      "quality": {
+        "files": 34,
+        "codeFiles": 29,
+        "codeLines": 1592,
+        "largestFile": "/src/components/AddUpdateForm.tsx",
+        "largestFileLines": 208,
+        "anyCount": 0,
+        "kitImportingFiles": 6,
+        "handRolledUiFiles": 15,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 12,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.8,
+        "tscErrors": 8,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 55.8,
+        "fixLatencyMs": 57312,
+        "failKind": "other"
+      }
     },
     {
       "alias": "qwen3-coder-next",
@@ -203,7 +228,360 @@
         "model": "qwen/qwen3-coder-next",
         "provider": "Parasail"
       },
-      "importIssues": []
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 941
+      },
+      "quality": {
+        "files": 1,
+        "codeFiles": 0,
+        "codeLines": 0,
+        "largestFile": null,
+        "largestFileLines": 0,
+        "anyCount": 0,
+        "kitImportingFiles": 0,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 0,
+        "lintWarnings": 0,
+        "lintPer100Lines": null,
+        "tscErrors": null,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 54.8,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    },
+    {
+      "alias": "qwen3-coder-next",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-next",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 3,
+      "startedAt": "2026-11-03T12:13:03.421Z",
+      "plan": null,
+      "latencyMs": 216445,
+      "ttftMs": 626,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 216444,
+          "chars": 46146
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 46146,
+      "estTokens": {
+        "input": 14124,
+        "output": 11537,
+        "estimated": true
+      },
+      "estCostUsd": 0.01092448,
+      "extraction": {
+        "writes": 17,
+        "editBlocks": 2,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/qwen3-coder-next-t3",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/pages/Home.tsx: The requested module 'lucide-react' does not provide an export named 'Fridge'"
+        ],
+        "solved": true,
+        "latencyMs": 6710,
+        "remainingErrors": [],
+        "estCostUsd": 0.0034040399999999997
+      },
+      "error": null,
+      "served": {
+        "model": "qwen/qwen3-coder-next",
+        "provider": "Parasail"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": false,
+        "errors": [
+          "pageerror: The requested module '@dicebear/avataaars' does not provide an export named 'createAvatar'"
+        ],
+        "bodyChars": 0
+      },
+      "quality": {
+        "files": 17,
+        "codeFiles": 15,
+        "codeLines": 1163,
+        "largestFile": "/src/pages/Home.tsx",
+        "largestFileLines": 229,
+        "anyCount": 0,
+        "kitImportingFiles": 5,
+        "handRolledUiFiles": 8,
+        "invalidLucide": [],
+        "tailwindV3Habits": 1,
+        "lintErrors": 15,
+        "lintWarnings": 0,
+        "lintPer100Lines": 1.3,
+        "tscErrors": 8,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 53.3,
+        "fixLatencyMs": 6710,
+        "failKind": "bad-import"
+      }
+    },
+    {
+      "alias": "qwen3-coder-next",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-next",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-03T12:16:46.771Z",
+      "plan": null,
+      "latencyMs": 167759,
+      "ttftMs": 675,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 167758,
+          "chars": 29576
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 29576,
+      "estTokens": {
+        "input": 14114,
+        "output": 7394,
+        "estimated": true
+      },
+      "estCostUsd": 0.00760888,
+      "extraction": {
+        "writes": 10,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/qwen3-coder-next-t1",
+      "fixRound": null,
+      "error": null,
+      "served": {
+        "model": "qwen/qwen3-coder-next",
+        "provider": "Parasail"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": false,
+        "errors": [
+          "console: Access to CSS stylesheet at 'file:///src/index.css' from origin 'null' has been blocked by CORS policy: Cross origin requests are only supported for protocol schemes: chrome, chrome-extension, chrome-untrusted, data, htt",
+          "console: ReferenceError: useState is not defined at Home (file:///home/user/relational-builder/bench/results/2026-11-03T12-04-50-73f1312-9u3d/artifacts/hs-listening-wall/qwen3-coder-next-t1/preview.html:681:37) at Hi (https://esm",
+          "pageerror: useState is not defined"
+        ],
+        "bodyChars": 0
+      },
+      "quality": {
+        "files": 10,
+        "codeFiles": 8,
+        "codeLines": 528,
+        "largestFile": "/src/components/AddAnswerModal.tsx",
+        "largestFileLines": 145,
+        "anyCount": 0,
+        "kitImportingFiles": 2,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 4,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.8,
+        "tscErrors": 7,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 44.1,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    },
+    {
+      "alias": "qwen3-coder-next",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-next",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 2,
+      "startedAt": "2026-11-03T12:19:34.679Z",
+      "plan": null,
+      "latencyMs": 218295,
+      "ttftMs": 851,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 218294,
+          "chars": 53423
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 53423,
+      "estTokens": {
+        "input": 14114,
+        "output": 13356,
+        "estimated": true
+      },
+      "estCostUsd": 0.01237848,
+      "extraction": {
+        "writes": 27,
+        "editBlocks": 1,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/qwen3-coder-next-t2",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/pages/Home.tsx: Could not find \"@/components/components/AnswerForm\" in the project (imported from /src/pages/Home.tsx)",
+          "vfs:/src/components/ui/skeleton.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "solved": true,
+        "latencyMs": 3152,
+        "remainingErrors": [],
+        "estCostUsd": 0.0035314799999999996
+      },
+      "error": null,
+      "served": {
+        "model": "qwen/qwen3-coder-next",
+        "provider": "Parasail"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 5971
+      },
+      "quality": {
+        "files": 26,
+        "codeFiles": 24,
+        "codeLines": 1213,
+        "largestFile": "/src/components/ui/select.tsx",
+        "largestFileLines": 119,
+        "anyCount": 2,
+        "kitImportingFiles": 4,
+        "handRolledUiFiles": 15,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 11,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.9,
+        "tscErrors": 9,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 61.2,
+        "fixLatencyMs": 3152,
+        "failKind": "missing-file"
+      }
     }
   ]
 }
