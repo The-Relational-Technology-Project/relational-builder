@@ -12,6 +12,124 @@ experiment at most $5 and 30 minutes.
 
 ---
 
+## 2026-11-04
+
+**For Josh:** Yesterday's two gpt-oss blanks became two more checks (a
+router rendered in two files, a font utility the theme never declared),
+and with them gpt-oss went 5 of 6 clean today; the sixth was the kit's
+Avatar crashing on a missing name, which is now the kit's fault to absorb,
+and it does. gemma on the good hosts bundled 4 of 6, all four clean; the
+two misses were second-order mistakes the single fix pass could not reach,
+so the bench gained a `--fix-passes 2` option (what a person gets by
+pressing the banner again) and measured it: 6 of 6 bundled and 5 of 6 clean, with the second pass used once and solving. Every November
+build was re-scanned with the new checks and none fires on a build that
+was clean, so they are not costing good builds a fix pass. The optional
+third prompt that asks for one AI job is written and waits on your yes.
+Spend today: about $0.12 estimated over 19 open-model builds, logged as $1.70 worst case in three reservations. Nothing new needs you beyond the standing three
+commands, the scores, and the yes.
+
+**Stack layer moved:** Builder model, from "four named habits caught" to
+"seven, with a scan proving none hits a clean build, and a second fix pass
+measured"; the README's stack row now carries the numbers.
+
+**What was tried.**
+
+1. *Two checks from gpt-oss's blanks* (item 1). The static check now
+   flags a router rendered in more than one file (the fix pass that
+   swaps a BrowserRouter for a HashRouter had been leaving a `<Router>`
+   in `main.tsx` around an `<HashRouter>` in `App.tsx`) and a
+   `font-<name>` under `@apply` that neither Tailwind nor the app's
+   `@theme` declares (Tailwind v4 drops the whole stylesheet on one of
+   those). Hints for both. A scan of every November artifact with all
+   the checks added since Nov 3 (router, font, require, icon element)
+   found seven matches, all on builds that were not clean, and
+   re-explained two Nov 1 failures the board had filed as runtime blanks.
+2. *gpt-oss measured with them* (item 1): 6 of 6 bundled, 5 of 6 clean
+   (1 of 6 on Nov 3 morning, 4 of 6 after the router guard). The router
+   check fired once and the fix pass solved it. The one blank was
+   `<Avatar name={users[id]?.name} />` with nobody found: the kit's
+   Avatar called `.split` on undefined. The kit now draws a neutral mark
+   for a missing name (render-tested); a built app should not go blank
+   because a lookup came up empty.
+3. *gemma measured with the icon and require checks, bad host excluded*
+   (item 2): 4 of 6 bundled, all four clean, every fix pass that ran on
+   them solved (a missing Badge import, a doubled `from` keyword plus
+   React, a kit select name, React again). The two failures were both
+   listening-wall builds where the first fix pass fixed what it was
+   shown and the rebuild surfaced a new error: an import path with a
+   space in it (`@/store/use store`) and a stray `<` at line 374. Six
+   hosts served the six builds; the one 0% rows in the by-host table are
+   single builds now, not a pattern yet.
+4. *A second fix pass* (new). `--fix-passes n` runs the automatic fix up
+   to n times while errors remain, records the aggregate (passes, total
+   time, total cost) and labels the run on the board. Production's fix
+   banner can be pressed again, so two passes is a fair reading of what
+   a patient person gets. Measured on gemma, same flags, Darkbloom
+   excluded: 6 of 6 bundled, 5 of 6 clean.
+   Two builds needed one pass (8 and 4 seconds); one needed the second
+   pass (a kit select name, then React, 130 seconds in all) and came out
+   clean; three needed none. The one miss was not a fix matter: the
+   Home page rendered a header and a nav and nothing between, with no
+   error (36 characters of text), which the shell check caught and the
+   static checks cannot. Against the morning run (same flags, one pass:
+   4 of 6 bundled, 4 clean) the second pass is worth one build in six at
+   a cost of two minutes on that build; the day's two gemma runs together
+   say gemma off Darkbloom is 9 of 12 clean. Tomorrow decides the
+   default from this (NEXT, item 1).
+5. *qwen's sixth build* (item 3): bundle failed on an unterminated string
+   at line 531 of a 658-line seed-data file, after the fix pass fixed the
+   three React imports it was shown. 177 seconds. qwen's rate on the
+   board is now 33% over 18 builds with a 147-second median; the
+   pattern (huge seed files, single-file replies, slow) is consistent
+   enough to stop spending on it until something changes.
+6. *The third prompt, written* (item 8). `hs-listening-wall-themes` is in
+   the task list: the wall plus an organizer button that groups answers
+   into named themes with sources, with two extra checks (the AI job goes
+   through `@/lib/ai`, `aiRuntimeLabel()` is shown). Not in `--tasks
+   compare`; runs by id when Josh says yes.
+7. *README stack table* brought to Nov 4 for the builder-model and
+   provenance rows.
+8. *Research rotation* (item 9). Bendor, Murray-Rust and Rehak, "Small
+   AI: A degrowth imaginary for designing with/for artificial
+   intelligence", DRS 2026, DOI 10.21606/drs.2026.1193. The full text
+   returned 403 from the DRS library; the abstract is what we have:
+   smallness starts with model size (less compute for training and
+   inference, a smaller footprint) and is extended to political,
+   epistemic and cultural smallness, after Schumacher; Small AI is a
+   conceptual lever against "bigger is better" and a form of "unmaking".
+   Nothing in the abstract on hosting, community use or cases. The frame
+   fits this branch's four axes well enough to cite in the application;
+   the PDF needs a person with library access.
+
+Not done: items 5 (end-to-end export and delete, needs a signed-in
+Builder), 6 (scores) and 7 (backend runbook on a Docker machine) are
+Josh's.
+
+**What it cost.** Paid inference: about $0.12 estimated over 19
+open-model builds (gpt-oss 6 at $0.04, gemma 6 at $0.03, qwen 1 at
+$0.02, gemma two-pass 6 at $0.03), logged as $1.70 worst case across
+three reservations before the runs. Session: about 35 minutes of the 90
+(11:41 to 12:16 UTC), two bench runs in flight at a time, one subagent at
+a time for the research fetches.
+
+**Honest read.** The guard is now seven checks and every
+one of them was written from a screenshot or a decoded error, not from
+guessing what small models might do; the scan says they fire only where
+the page was already broken. That is the right way to build this layer,
+and it has a ceiling: the misses left today are second-order (a space in
+an import path, a stray token three hundred lines down, a page that
+renders nothing) and each new check buys less than the last. The second
+fix pass is a cheaper lever than another check and it is what a person
+would do anyway; tomorrow should make it the default if the numbers hold.
+The honest state of the four models on these two prompts, off the one bad
+host: glm and gemma produce a working app three times in four, gpt-oss
+five times in six today, qwen one time in three and slowly. What none of
+this says is whether the apps are any good to look at or to use, and no
+amount of bench work substitutes for the scores. The run stopped at 35
+minutes because the next useful bench minute is a design score and the
+next useful runtime minute is a deploy, both Josh's; the window was not
+spent for the sake of spending it.
+
 ## 2026-11-03
 
 **For Josh:** The thing that broke gemma was not gemma. Every bench build

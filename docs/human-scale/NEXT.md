@@ -133,8 +133,10 @@ stack layer it moved; pace paid work at $3 to $5 a day.
    (cheap, hostable on a 16 GB box, overridable with `COMMUNITY_OPEN_MODEL`).
    Fine as the first default, or do you want the bench to pick it too?
 4. **A third comparison prompt that asks for AI?** The two prompts never
-   exercise `@/lib/ai`, so the kit helper has no bench evidence. One more
-   prompt, one trial per model, would. Yes or no is enough.
+   exercise `@/lib/ai`, so the kit helper has no bench evidence. The
+   prompt is written (`hs-listening-wall-themes`, Nov 4) with checks that
+   the AI job goes through the helper and the runtime label is shown; one
+   trial per open model costs about $0.05. Yes or no is enough.
 5. **Which hosts to trust.** Nov 3 showed one OpenRouter host serving a
    broken gemma while others served a working one. The bench can exclude
    hosts; the community route cannot yet (item 4 above). Default if
@@ -143,55 +145,49 @@ stack layer it moved; pace paid work at $3 to $5 a day.
 
 ## Tomorrow (one run, about 75 minutes)
 
-1. **gpt-oss's two remaining blanks, then a quiet day for the bench.**
-   Nov 3 (late): with the router guard live, gpt-oss went 1 of 6 to 4 of
-   6 clean and glm sat at 5 of 6; the four open models now have
-   like-for-like rows with the same checks. gpt-oss's two blanks: a
-   `BrowserRouter` the fix pass swapped but the page still threw inside
-   the router (look at the fixed files; two routers nested is the guess,
-   and the check could flag a `Router` rendered inside another), and an
-   invented Tailwind utility (`font-inter`), which the browser check sees
-   but the static check does not (a short list of utilities that must be
-   declared in `@theme` would catch it). No bench spend needed for either;
-   when both are in, one gpt-oss run (about $0.05, log first) measures
-   them. Read the by-host table before quoting any average.
-2. **gemma's React #31: done, unmeasured.** Decoded Nov 3 (late): a lucide
-   component passed bare to the kit's `BottomNavItem` icon prop. Rule
-   line, static check (kit components only) and hint are in. One gemma run
-   with Darkbloom excluded (about $0.05, log first) would show whether
-   gemma now clears 5 or 6 of 6; fold it into item 1's run if time is
-   short.
-3. **qwen3-coder-next, finished.** The Nov 3 run hit the 20-minute cap
-   (one 290-second, 42-file build, then a 429 and a one-file reply). If
-   the run below shows fewer than six trials, run the missing ones (about
-   $0.05) with `BENCH_MAX_TOKENS=24000` as before; if it 429s again, note
-   the host and move on. qwen is the slowest open model on the board by a
-   wide margin and that is itself a result.
-4. **Host exclusion for the community route: code done, deploy is Josh's.**
-   `app-capabilities` now reads an optional `COMMUNITY_OPEN_IGNORE_HOSTS`
-   secret (comma-separated OpenRouter hosts) and passes it as
-   `provider.ignore`; the response's provenance carries `servedBy` when the
-   router names the host. Checked with esbuild and strict `tsc` against a
-   Deno shim (zero errors, same as before the change). Not deployed; it
-   rides the standing deploy in "Needs Josh".
-5. **End-to-end check of export and delete against a live app.** Unchanged
-   from Nov 2: needs a signed-in Builder with a Community Cloud app;
-   otherwise the module tests stay the proof and the log says so.
-6. **Design scores.** Josh, `SCORES.md`, five minutes; the board has 80-plus
+1. **Decide the fix-pass default from the Nov 4 two-pass run.** If two
+   passes moved gemma's clean rate (LOG, item 4) without adding more than
+   about 30 seconds a build, make two the bench default (`--fix-passes 2`
+   in DAILY-RUN's standard invocation) and carry the same "try once more"
+   into the preview's fix banner behind the flag: after a first automatic
+   fix that still fails, offer the second pass with the new errors, not a
+   blank banner. If it did not move the rate, leave the default at one
+   and say so. No spend for the decision; one glm run with the chosen
+   default (about $0.05, log first) keeps the rows like for like.
+2. **The by-host table has single-build rows.** Six different hosts served
+   gemma's six builds on Nov 4; 0% rows with one build are noise. Add a
+   minimum (three builds) before a host row shows a rate, and list the
+   under-three hosts in one line underneath. Then read the table and, if
+   any host stands at 0 of 3 or worse, name it in the LOG and exclude it
+   in the standard invocation the way Darkbloom is.
+3. **Nothing else on the bench until Josh scores.** The four open models
+   have like-for-like rows with the same seven checks; more builds without
+   design scores add rows, not knowledge. Spend the window on the
+   runtime side instead:
+4. **Runtime provenance from a real call.** The kit helper logs calls in
+   the browser; the Builder's provenance store records builder calls. The
+   gap is one real community-runtime call, which needs the deploy. If it
+   is still not deployed, write the small e2e script that a person with
+   the key can run in five minutes (`scripts/human-scale/smoke-runtime.mjs`:
+   one `ai_chat` with `runtime_model: "open"`, print `model`, `host`,
+   `servedBy`, `usage`) and put it under "Needs Josh".
+5. **End-to-end check of export and delete against a live app.** Unchanged:
+   needs a signed-in Builder with a Community Cloud app; otherwise the
+   module tests stay the proof.
+6. **Design scores.** Josh, `SCORES.md`; the board has more than 100
    open-model builds with screenshots.
 
 ## After that, in order
 
-7. **Self-host runbook, backend half, run for real.** Written Nov 3
-   (`SELF-HOST-BACKEND.md`), unrun. Needs a machine with Docker or a spare
-   Supabase project; the loop's container has neither.
-8. **Kit helper in a real build.** Neither comparison prompt asks for an
-   AI feature, so no bench build has imported `@/lib/ai` yet. Proposed: a
-   third, optional prompt (`hs-listening-wall-themes`: the wall plus an
-   organizer button that groups answers into themes with sources) run one
-   trial per model as a spot check. Needs Josh's yes on a third prompt.
-9. **Research rotation, when 15 minutes are left.** Bendor et al. "Small
-   AI" (the Hugging Face blog had no survey post; checked Nov 3).
+7. **Self-host runbook, backend half, run for real.** Needs Docker or a
+   spare Supabase project.
+8. **The third prompt.** `hs-listening-wall-themes` is in the task list
+   with its two AI checks. One trial per open model (about $0.05) the day
+   Josh says yes.
+9. **Research rotation.** Bendor et al. is cited from the abstract (LOG,
+   Nov 4); the PDF needs library access. Next: the "Intelligence per
+   Watt" paper (Stanford and Together AI, arXiv 2511.07885) for the
+   footprint column's method.
 
 ## Drop or defer
 
