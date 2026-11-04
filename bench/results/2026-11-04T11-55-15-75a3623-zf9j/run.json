@@ -1,0 +1,152 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1",
+  "gitCommit": "75a3623",
+  "createdAt": "2026-11-04T11:59:30.285Z",
+  "runId": "2026-11-04T11-55-15-75a3623-zf9j",
+  "config": {
+    "trials": 1,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": null,
+    "importGuard": true,
+    "fixHints": true,
+    "humanScaleRules": true,
+    "openrouterIgnore": null,
+    "openrouterOnly": null
+  },
+  "models": [
+    {
+      "alias": "qwen3-coder-next",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-next",
+      "pricing": {
+        "inputPerMTok": 0.12,
+        "outputPerMTok": 0.8,
+        "asOf": "2026-10"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "hs-listening-wall",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "qwen3-coder-next",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-next",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-04T11:55:15.141Z",
+      "plan": null,
+      "latencyMs": 177000,
+      "ttftMs": 1112,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 176999,
+          "chars": 50996
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 50996,
+      "estTokens": {
+        "input": 14170,
+        "output": 12749,
+        "estimated": true
+      },
+      "estCostUsd": 0.0118996,
+      "extraction": {
+        "writes": 15,
+        "editBlocks": 5,
+        "failedEditBlocks": 1
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": false,
+        "errors": [
+          "vfs:/src/data/questions.ts:531: Unterminated string literal"
+        ]
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/qwen3-coder-next-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/data/questions.ts:531: Unterminated string literal",
+          "vfs:/src/pages/AnswerList.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/components/ui/app-bar.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/components/ui/bottom-nav.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "solved": false,
+        "latencyMs": 75623,
+        "remainingErrors": [
+          "vfs:/src/data/questions.ts:531: Unterminated string literal"
+        ],
+        "estCostUsd": 0.007113400000000001
+      },
+      "error": null,
+      "served": {
+        "model": "qwen/qwen3-coder-next",
+        "provider": "Parasail"
+      },
+      "importIssues": [],
+      "quality": {
+        "files": 15,
+        "codeFiles": 9,
+        "codeLines": 1392,
+        "largestFile": "/src/data/questions.ts",
+        "largestFileLines": 658,
+        "anyCount": 0,
+        "kitImportingFiles": 3,
+        "handRolledUiFiles": 3,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 21,
+        "lintWarnings": 0,
+        "lintPer100Lines": 1.5,
+        "tscErrors": null,
+        "tscSyntaxErrors": 4,
+        "tokensPerSecond": 72,
+        "fixLatencyMs": 75623,
+        "failKind": "syntax"
+      }
+    }
+  ]
+}
