@@ -175,6 +175,7 @@ export async function main(argv: string[]): Promise<number> {
       'dry-run': { type: 'boolean', default: false },
       'skip-screenshots': { type: 'boolean', default: false },
       'import-guard': { type: 'boolean', default: false },
+      'fix-passes': { type: 'string', default: '1' },
       'list-models': { type: 'boolean', default: false },
       'list-tasks': { type: 'boolean', default: false },
       out: { type: 'string', default: 'bench/results' },
@@ -185,7 +186,7 @@ export async function main(argv: string[]): Promise<number> {
   if (values.help) {
     console.log(
       'npm run bench -- [--models a,b,c] [--tasks x,y] [--trials N] [--plan-first] ' +
-        '[--studio slug] [--dry-run] [--skip-screenshots] [--import-guard] [--out dir] [--list-models] [--list-tasks]\n' +
+        '[--studio slug] [--dry-run] [--skip-screenshots] [--import-guard] [--fix-passes n] [--out dir] [--list-models] [--list-tasks]\n' +
         'npm run bench -- report <runDir> | review <runDir> | shots <runDir> | measure <runDir> | selftest\n' +
         'npm run bench -- plan [--help]        (plan-phase bench — see bench/plan-bench.ts)',
     );
@@ -287,6 +288,7 @@ export async function main(argv: string[]): Promise<number> {
     outDir: values.out ?? 'bench/results',
     screenshots: !values['skip-screenshots'],
     importGuard: !!values['import-guard'],
+    fixPasses: Math.max(1, parseInt(String(values['fix-passes'] ?? '1'), 10) || 1),
     studio: values.studio ?? null,
   });
 }

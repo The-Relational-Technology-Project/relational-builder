@@ -88,6 +88,8 @@ export interface TrialResult {
     /** Bundle errors still present after the fix (empty when solved) */
     remainingErrors: string[];
     estCostUsd: number | null;
+    /** How many passes actually ran (absent before Nov 4, 2026: one) */
+    passes?: number;
   } | null;
   error: string | null;
   /** Static import mistakes found in the final files (bench/lib/import-check.ts):
@@ -144,7 +146,7 @@ export interface RunReport {
   gitCommit: string;
   createdAt: string;
   runId: string;
-  config: { trials: number; timeoutMs: number; planFirst: boolean; studio?: string | null; effort?: string | null; importGuard?: boolean; fixHints?: boolean; humanScaleRules?: boolean; openrouterIgnore?: string | null; openrouterOnly?: string | null };
+  config: { trials: number; timeoutMs: number; planFirst: boolean; studio?: string | null; effort?: string | null; importGuard?: boolean; fixHints?: boolean; humanScaleRules?: boolean; fixPasses?: number; openrouterIgnore?: string | null; openrouterOnly?: string | null };
   models: BenchModel[];
   tasks: Array<{ id: string; version: string }>;
   trials: TrialResult[];

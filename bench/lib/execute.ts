@@ -34,6 +34,10 @@ export interface ExecuteOptions {
    *  succeeded (a blank page is a failure too). Off = the harness as it
    *  was, for before/after comparison. Recorded in run.json config. */
   importGuard?: boolean;
+  /** How many automatic fix passes to allow (default 1, production's single
+   *  shot). A second pass is what a person gets by pressing the fix banner
+   *  again; the bench records the aggregate under fixRound with `passes`. */
+  fixPasses?: number;
   /** Studio slug when the run is studio-framed (--studio) — recorded in run.json */
   studio?: string | null;
   /** Injectable session (selftest) — bypasses providers entirely */
@@ -252,48 +256,54 @@ async function runTrial(
     let mech = await scoreOutput(task, buildSession.segmentTexts);
     let allSegments = [...buildSession.segmentTexts];
 
-    // One automatic fix pass when the first build won't bundle — the same
-    // single shot production arms. Re-score over build + fix segments (writes
+    // Automatic fix passes when the first build won't bundle: one by default
+    // (the single shot production arms), more with --fix-passes (a person
+    // pressing the banner again). Re-score over build + fix segments (writes
     // and edits accumulate exactly as the app re-extracts each message).
     const guardIssues = opts.importGuard ? mech.importIssues : [];
     if (mech.bundle && (!mech.bundle.ok || guardIssues.length > 0) && buildSession.segmentTexts.length > 0) {
+      const maxPasses = Math.max(1, opts.fixPasses ?? 1);
       const triggerErrors = [...mech.bundle.errors, ...guardIssues];
-      const fixMessages: ChatMessage[] = [
-        ...buildMessages,
-        { role: 'assistant', content: buildSession.segmentTexts.join('\n') },
-        { role: 'user', content: bundleFixPrompt(triggerErrors, Object.keys(mech.files), !!opts.importGuard) },
-      ];
+      let pending = triggerErrors;
+      let passes = 0;
+      let latencyMs = 0;
+      let estCostUsd = 0;
+      let solved = false;
+      let remainingErrors: string[] = pending;
       try {
-        const fixSession = await withRetries(fixMessages);
-        allSegments = [...allSegments, ...fixSession.segmentTexts];
-        const fixedMech = await scoreOutput(task, allSegments);
-        const fixOutChars = fixSession.segmentTexts.reduce((n, t) => n + t.length, 0);
-        result.fixRound = {
-          attempted: true,
-          triggerErrors,
-          solved: !!fixedMech.bundle?.ok && (!opts.importGuard || fixedMech.importIssues.length === 0),
-          latencyMs: fixSession.latencyMs,
-          remainingErrors: [
+        while (passes < maxPasses && pending.length > 0) {
+          const fixMessages: ChatMessage[] = [
+            ...buildMessages,
+            { role: 'assistant', content: allSegments.join('\n') },
+            { role: 'user', content: bundleFixPrompt(pending, Object.keys(mech.files), !!opts.importGuard) },
+          ];
+          const fixSession = await withRetries(fixMessages);
+          passes++;
+          allSegments = [...allSegments, ...fixSession.segmentTexts];
+          const fixedMech = await scoreOutput(task, allSegments);
+          const fixOutChars = fixSession.segmentTexts.reduce((n, t) => n + t.length, 0);
+          latencyMs += fixSession.latencyMs;
+          estCostUsd += estimateCostUsd(model, charsToTokens(fixSession.sentChars), charsToTokens(fixOutChars)) ?? 0;
+          solved = !!fixedMech.bundle?.ok && (!opts.importGuard || fixedMech.importIssues.length === 0);
+          remainingErrors = [
             ...(fixedMech.bundle?.ok ? [] : (fixedMech.bundle?.errors ?? [])),
             ...(opts.importGuard ? fixedMech.importIssues : []),
-          ],
-          estCostUsd: estimateCostUsd(
-            model,
-            charsToTokens(fixSession.sentChars),
-            charsToTokens(fixOutChars),
-          ),
-        };
-        // The fixed build is the one worth keeping — artifacts + screenshot
-        // should show the state after the auto-fix, as a builder would see it.
-        mech = fixedMech;
+          ];
+          // The fixed build is the one worth keeping — artifacts + screenshot
+          // should show the state after the auto-fix, as a builder would see it.
+          mech = fixedMech;
+          pending = remainingErrors;
+        }
+        result.fixRound = { attempted: true, triggerErrors, solved, latencyMs, remainingErrors, estCostUsd, passes };
       } catch (err) {
         result.fixRound = {
           attempted: true,
           triggerErrors,
           solved: false,
-          latencyMs: 0,
+          latencyMs,
           remainingErrors: [`fix pass failed: ${err instanceof Error ? err.message : String(err)}`],
-          estCostUsd: null,
+          estCostUsd: passes ? estCostUsd : null,
+          passes,
         };
       }
     }
@@ -411,7 +421,7 @@ async function writeRunJson(
     gitCommit: sha,
     createdAt: new Date().toISOString(),
     runId,
-    config: { trials: opts.trials, timeoutMs: TRIAL_TIMEOUT_MS, planFirst: opts.planFirst, studio: opts.studio ?? null, effort: process.env.BENCH_EFFORT?.trim() || null, importGuard: !!opts.importGuard, fixHints: !!opts.importGuard, humanScaleRules: process.env.VITE_HUMAN_SCALE === '1', openrouterIgnore: process.env.BENCH_OPENROUTER_IGNORE?.trim() || null, openrouterOnly: process.env.BENCH_OPENROUTER_ONLY?.trim() || null },
+    config: { trials: opts.trials, timeoutMs: TRIAL_TIMEOUT_MS, planFirst: opts.planFirst, studio: opts.studio ?? null, effort: process.env.BENCH_EFFORT?.trim() || null, importGuard: !!opts.importGuard, fixHints: !!opts.importGuard, humanScaleRules: process.env.VITE_HUMAN_SCALE === '1', fixPasses: Math.max(1, opts.fixPasses ?? 1), openrouterIgnore: process.env.BENCH_OPENROUTER_IGNORE?.trim() || null, openrouterOnly: process.env.BENCH_OPENROUTER_ONLY?.trim() || null },
     models: opts.models,
     tasks: opts.tasks.map(t => ({ id: t.id, version: t.version })),
     trials,

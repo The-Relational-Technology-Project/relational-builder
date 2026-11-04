@@ -191,9 +191,11 @@ ${aliases
     .map(t => {
       const f = t.fixRound!;
       const trigger = (f.triggerErrors[0] ?? 'bundle failed').split('\n')[0].slice(0, 160);
+      const passes = f.passes ?? 1;
+      const passWord = passes === 1 ? 'one pass' : `${passes} passes`;
       const outcome = f.solved
-        ? `solved in one pass (${fmtSecs(f.latencyMs)}, ~$${f.estCostUsd?.toFixed(2) ?? '?'})`
-        : `not solved — still: ${(f.remainingErrors[0] ?? '').split('\n')[0].slice(0, 160)}`;
+        ? `solved in ${passWord} (${fmtSecs(f.latencyMs)}, ~$${f.estCostUsd?.toFixed(2) ?? '?'})`
+        : `not solved after ${passWord} — still: ${(f.remainingErrors[0] ?? '').split('\n')[0].slice(0, 160)}`;
       return `- **${t.alias}** · ${t.taskId} t${t.trial}: build failed to bundle → auto-fix ${outcome}\n  - triggered by: \`${trigger}\``;
     });
 
