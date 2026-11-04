@@ -214,6 +214,38 @@ export const TASKS: TaskSpec[] = [
     expectedPreviewKind: 'framework',
     checks: CHECKS,
   })),
+  // --- Optional third comparison prompt: the listening wall plus one bounded
+  //     AI job, so a build has a reason to import the kit's @/lib/ai. Not in
+  //     `--tasks compare` until Josh says so (NEXT, Nov 4); run it by id. ---
+  {
+    id: 'hs-listening-wall-themes',
+    version: 'exp-v1',
+    prompt:
+      'Build a neighborhood listening wall for Frome, England: three big ' +
+      'questions the town council is asking this season, where anyone can pin a ' +
+      'short answer (with a first name or anonymously), read others\', and ' +
+      'add a "me too". Organizers have one extra button, "Suggest themes", ' +
+      'that groups the answers to a question into a few named themes, each ' +
+      'listing the answers it came from, which the organizer can edit before ' +
+      'publishing what they heard. Calm, readable, no voting. Seed it with ' +
+      'sixty short responses across the three questions.',
+    expectedPreviewKind: 'framework',
+    checks: [
+      ...CHECKS,
+      {
+        id: 'kit-ai-helper',
+        description: 'the AI job goes through @/lib/ai (summarize, match, resurface or ask), not a hand-written fetch',
+        test: files =>
+          Object.entries(files).some(([p, c]) => /\.(t|j)sx?$/.test(p) && /from\s+['"]@\/lib\/ai['"]/.test(c)) &&
+          !Object.entries(files).some(([p, c]) => /\.(t|j)sx?$/.test(p) && !/\/components\/ui\//.test(p) && /openrouter|api\.openai|anthropic\.com|chat\/completions/.test(c)),
+      },
+      {
+        id: 'ai-says-where',
+        description: 'shows aiRuntimeLabel() somewhere (a footer or settings line)',
+        test: files => Object.entries(files).some(([p, c]) => /\.(t|j)sx?$/.test(p) && /aiRuntimeLabel\s*\(/.test(c)),
+      },
+    ],
+  },
   // --- Edit tasks (bench/edit-task.ts): the same frozen seed project, three
   //     kinds of change. These measure restraint, not ambition — see the
   //     editDiscipline columns in the report. ---
