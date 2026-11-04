@@ -47,7 +47,7 @@ Hard limits, from the brief:
 - Any single experiment: at most $5 and 30 minutes.
 - Only synthetic or consented data in tests and demos.
 - Energy numbers are estimates and are labeled as estimates.
-- No fake integrations; anchor adapters carry `NOT IMPLEMENTED` markers.
+- No fake integrations; adapters to kindred projects carry `NOT IMPLEMENTED` markers.
 
 Before you stop, in this order:
 
@@ -66,7 +66,7 @@ Before you stop, in this order:
 5. Commit and push.
 
 Spending pace: the OpenRouter balance is small (about $25 as of Oct 29).
-Plan paid runs at $3 to $5 a day so the balance lasts the two bench weeks;
+Plan paid runs at $3 to $5 a day so the balance lasts;
 the $20 daily cap is a ceiling, not a target. Open-weight models through
 OpenRouter cost cents per build; the Opus comparison is the expensive part,
 so run it once per task set, not per experiment.

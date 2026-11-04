@@ -98,7 +98,8 @@ measured"; the README's stack row now carries the numbers.
    epistemic and cultural smallness, after Schumacher; Small AI is a
    conceptual lever against "bigger is better" and a form of "unmaking".
    Nothing in the abstract on hosting, community use or cases. The frame
-   fits this branch's four axes well enough to cite in the application;
+   fits this branch's four axes well enough to cite when the exploration is
+   written up;
    the PDF needs a person with library access.
 
 Not done: items 5 (end-to-end export and delete, needs a signed-in
@@ -565,7 +566,7 @@ hand-edited SCORES.md as the way. Confirm Gemma 3 12B as the community
 open model, or let the bench pick.
 
 **Honest read.** The loop is producing evidence faster than decisions, which
-is the right way round for a Nov 20 application. The weak spot is the gap
+is the right way round for an exploration that reports in public. The weak spot is the gap
 between "bundles" and "works": three of four open-model builds on the
 fridge prompt were broken in a browser, each by one line. That is the
 bench's first real finding and it points at prompt guardrails for small
@@ -762,7 +763,7 @@ icon set, Tailwind v4), which is cheap to fix with guardrails and examples,
 not with a bigger model; (2) "cost of adaptability" is the number to track
 for the builder model: how many prompt rules, fix passes and seconds it
 takes a small model to produce an app that renders clean, against Opus;
-(3) the application should cite the 8B-beats-176B evidence as the reason a
+(3) the write-up should cite the 8B-beats-176B evidence as the reason a
 community box is a serious plan, not a compromise, and should say plainly
 that newer-small beats older-large, not small beats large.
 
@@ -907,7 +908,7 @@ four-axis comparison Josh asked for starts from here.
 The runtime split is real code a person can click through,
 and the local path is the strongest piece: nothing leaves the room, and the
 failure message says so. The community open-model path is the one that
-matters most for the application and it is sitting one deploy away, blocked
+matters most for community control and it is sitting one deploy away, blocked
 by the session's own permissions rather than by the work. The bench says one
 true thing so far: a 30B-class open coder produces an app that bundles, at
 cents, but needs the auto-fix pass and takes three to seven minutes through

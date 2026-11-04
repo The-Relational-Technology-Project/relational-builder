@@ -1,11 +1,12 @@
-# Human-scale branch
+# Community-controlled AI in Relational Builder
 
-An experiment in making Relational Builder itself human-scale AI: a builder
-for neighborhood tools that can run on open models communities host, and
-that makes apps which are small, local and owned by the people who use them.
-It backs an application to the Mozilla Foundation Human-Scale AI Incubator
-(due Nov 20, 2026). The full brief is [BRIEF.md](BRIEF.md); this file is the
-brief applied to this repo as it stands on Oct 28, 2026.
+An open exploration of community control of the AI in Relational Builder:
+smaller-scale models and open models wherever they can do the job, hosted
+where a community can see and run them, with the apps it builds small,
+local and owned by the people who use them. The full brief is
+[BRIEF.md](BRIEF.md); this file is the brief applied to this repo, first
+written on Oct 28, 2026 and kept current since. The work happens in the open
+on the `human-scale` branch and these docs are the record.
 
 Everything here lives on the `human-scale` branch behind a flag. `main` and
 the live Builder are untouched until a workstream earns a PR.
@@ -131,10 +132,10 @@ Decisions this proposal leaves to Josh are in [NEXT.md](NEXT.md).
 ## The community-controlled stack: where each layer stands
 
 The point of the daily loop is a Relational Builder a community could run
-end to end without us or any one vendor. Each layer below is scored on
-Oct 29, 2026, with what "community-controlled" means for it and the
-evidence the application can cite. Every LOG entry names the layer it
-moved. Layers with no path by Nov 20 are said so, not glossed.
+end to end without us or any one vendor. Each layer below was first scored
+on Oct 29, 2026, with what "community-controlled" means for it and the
+evidence a community could check. Every LOG entry names the layer it moved.
+Layers with no path yet are said so, not glossed.
 
 | Layer | Today | Community-controlled means | Gap, and what moves it |
 |---|---|---|---|
@@ -150,7 +151,7 @@ moved. Layers with no path by Nov 20 are said so, not glossed.
 Priority for the loop, in order (Josh, Oct 30): the builder model via the
 bench, evaluated on speed, error rates, design quality and code quality
 against Opus; then footprint, export and delete, the runtime path's deploy,
-and the self-host runbooks as time allows. The anchor stubs and the demo
+and the self-host runbooks as time allows. The kindred-project stubs and the demo
 come after those have evidence.
 
 ## Workstreams and status
@@ -162,5 +163,5 @@ come after those have evidence.
 | 3 | Footprint and provenance | row shape and labeled energy estimate (`rb-flops-v1`) Oct 30; from Nov 2 the Builder records a row per reply behind the flag (tokens estimated from text length) and the build report shows the project's footprint; runtime rows wait on the community route's deploy |
 | 4 | Export and delete, verified by tests | behind the flag since Nov 2: the export zip carries the app's Community Cloud data under `/data/export/` (JSON, CSV per collection, README) and deleting a project deletes its app after a confirmation that counts the documents; tested at the module level, not yet end to end against a live app |
 | 5 | Human-scale defaults in kickoff and scaffolding | not started |
-| 6 | Anchor adapter stubs and governance template | not started |
+| 6 | Adapters to kindred projects (stubs) and governance template | not started |
 | 7 | Demo build and walkthrough | not started |

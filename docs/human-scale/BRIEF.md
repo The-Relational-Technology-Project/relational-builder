@@ -1,29 +1,35 @@
-# Human-scale branch: technical brief for Claude Code
+# Community-controlled AI: the brief for this branch
 
-Context for setting up an experimental branch of Relational Builder that
-operationalizes Mozilla's Human-Scale AI principles. Source: Josh's brief of
-2026-10-22 (a Claude Doc); this is the committed copy. The brief is the
-authority; README.md in this folder is how it maps onto the repo.
+The brief for an experimental branch of Relational Builder that works toward
+community control of the AI in it: smaller-scale models and open models
+wherever they can do the job, hosted where the community can see and run
+them. Written by Josh on 2026-10-22 and revised on 2026-11-04 to say what
+the exploration is for. The brief is the authority; README.md in this
+folder is how it maps onto the repo.
 
 ## Goal
 
-Set up an experimental `human-scale` branch of Relational Builder (repo:
+Run an experimental `human-scale` branch of Relational Builder (repo:
 `the-relational-technology-project/relational-builder`) that starts making RB
-itself human-scale AI: a builder for neighborhood tools, built with neighbors,
-that runs on open models communities can host and makes apps that are small,
-local and owned by the people who use them.
+itself community-controlled AI: a builder for neighborhood tools, built with
+neighbors, that can run on open models communities host, and that makes apps
+which are small, local and owned by the people who use them.
 
-The branch backs an application to the Mozilla Foundation Human-Scale AI
-Incubator, due Nov 20, 2026. The application needs evidence, not promises, so
-every workstream below should produce something we can show or measure by
-then. Nothing here is a product commitment; it's an experiment we report on
-honestly.
+The exploration is its own point. A community that builds its tools with AI
+should be able to know which model did the work, run that model itself if it
+chooses, see what the work cost in money and energy, take its data out and
+delete it, and never be quietly moved onto a vendor's largest model. Each
+workstream below produces something that can be shown or measured, and the
+log reports it as it is. Nothing here is a product commitment; it is an
+experiment reported on honestly, in public.
 
 Background reading, in priority order: Gebru's "Frugal AI" (bounded tasks, not
-chatbots), Bendor et al. "Small AI: A Degrowth Imaginary" (five design
-directions), Green Web Foundation's "State of the Fossil-Free Internet 2026"
-(sufficiency, footprint), Hooker's "On the Slow Death of Scaling" (small
-models are capable), and the Hugging Face SLM overview (what runs where).
+chatbots), Bendor, Murray-Rust and Rehak's "Small AI: A degrowth imaginary for
+designing with/for artificial intelligence" (DRS 2026), Green Web
+Foundation's "State of the Fossil-Free Internet 2026" (sufficiency,
+footprint), Hooker's "On the Slow Death of Scaling" (small models are
+capable), and whatever current survey of small open models is honest about
+what runs where.
 
 ## Principles, each tied to a behavior
 
@@ -31,7 +37,7 @@ Every principle below maps to something RB does, not something it says.
 
 | Principle (source) | What RB does on this branch |
 |---|---|
-| Sized to the problem (Mozilla; Hooker) | The builder picks the smallest model that passes the build task, and says which one it used |
+| Sized to the problem (Hooker; Bendor et al.) | The builder picks the smallest model that passes the build task, and says which one it used |
 | Bounded jobs, not chatbots (Gebru) | Built apps expose named functions (summarize this, match these, resurface that) rather than an open prompt box by default |
 | Keep the record checkable (Gebru; AlphaFold talk) | Any AI-generated text in a built app links to the source notes or recording it came from |
 | Local and community-held (Bendor et al.; Manzini) | Built apps can run on an open-weight model on a community box or the user's device, with the hosted model as a fallback, not the default |
@@ -78,21 +84,23 @@ prompt, source links on generated text, contributor attribution on shared
 content, and a place and community field in template metadata. Keep the
 full-system demo path available but not default.
 
-**6. Anchor adapters (placeholders).** Thin, clearly labeled interfaces showing
-how RB would plug into the Mozilla anchor projects, with no fake integration:
+**6. Adapters to kindred projects (placeholders).** Thin, clearly labeled
+interfaces showing how RB could plug into projects working on the same
+problem from other sides, with no fake integration:
 
-- a `memory` adapter interface shaped like Family Intelligence's approach
-  (encrypted local store, people/events/places graph, export anytime), with a
-  stub implementation
-- a `compute` target abstraction with a placeholder for DAIR-style shared
+- a `memory` adapter interface for a personal or family store a person
+  controls (encrypted local store, people/events/places graph, export
+  anytime), with a stub implementation
+- a `compute` target abstraction with a placeholder for community-shared
   compute alongside local and hosted
-- a governance template drawing on Tiles' learner-controls-memory principle,
-  as a markdown template in the commons, not code
+- a governance template on the principle that the people whose memory an
+  app holds control that memory, as a markdown template in the commons, not
+  code
 
 **7. Demo build.** One app built through the normal RB flow that is clearly
-human-scale AI end to end: runs on the open-weight runtime, bounded functions,
-source links, footprint shown, exportable. Ideally built with a Thread fellow
-on a problem they name; if not possible by the deadline, a neighborhood
+community-controlled end to end: runs on the open-weight runtime, bounded
+functions, source links, footprint shown, exportable. Ideally built with a
+neighborhood builder on a problem they name; otherwise a neighborhood
 example from the Outer Sunset. Record a short walkthrough.
 
 ## How the work runs: a daily loop
@@ -122,8 +130,8 @@ to do; nothing is decided on vibes or from memory of a previous session.
 **Research and testing of open options is part of the loop.** Rotate between:
 testing an open-weight model as builder or runtime (OpenRouter for hosted,
 Ollama or llama.cpp for local), reading one relevant source (model releases,
-the Mozilla readings, anchor project updates) and summarizing what it changes
-for us, and trying one scaffolding or defaults change. Prefer cheap, decisive
+the background readings, kindred projects' updates) and summarizing what it
+changes for us, and trying one scaffolding or defaults change. Prefer cheap, decisive
 experiments over broad ones.
 
 **Budget rules, hard limits:**
@@ -149,17 +157,16 @@ can skim; the run works around them rather than waiting.
   Small PRs per workstream, each with a short write-up in `docs/human-scale/`.
 - **Honesty over optics.** Bench results go in as they are. If open-weight
   builders fail half the tasks, say so and say why. A weak but honest report
-  is worth more to this application than a flattering one.
+  is worth more to a community deciding what to run than a flattering one.
 - **Estimates are labeled.** Energy numbers are estimates until we have
   measurement. Never present them as measured.
-- **No fake integrations.** Anchor adapters are stubs with clear
-  `NOT IMPLEMENTED` markers and a comment linking to the anchor's public
-  description. Don't invent their APIs.
-- **Don't break what people use.** Studio-migrated builders, Thread fellows
-  and build-a-thon projects keep working exactly as before.
-- **Don't over-build.** The deadline is Nov 20. A working split, one honest
-  bench report, visible footprint, real export and one demo beat a complete
-  redesign.
+- **No fake integrations.** Adapters to kindred projects are stubs with
+  clear `NOT IMPLEMENTED` markers and a comment linking to the project's
+  public description. Don't invent their APIs.
+- **Don't break what people use.** Studio-migrated builders, fellows and
+  build-a-thon projects keep working exactly as before.
+- **Don't over-build.** A working split, one honest bench report, visible
+  footprint, real export and one demo beat a complete redesign.
 - **Data.** Use only synthetic or consented data in tests and demos. Nothing
   from real families or neighbors without explicit permission.
 - **Keep the process in view.** This is for neighbors building with neighbors.
@@ -168,21 +175,24 @@ can skim; the run works around them rather than waiting.
 
 ## Deliverables and order
 
-Targets for the daily loop, so the application has something to cite at each
-step even if later steps slip. Dates are soft; the budget rules are not.
+The order the daily loop works in, so each step stands on its own even if a
+later one slips. There are no dates; the budget rules are the only hard
+limits.
 
-- [ ] **Week of Oct 27:** branch, flag, `docs/human-scale/README.md` restating
-  these principles as they apply to RB; builder/runtime split with an
-  open-weight runtime option working on at least one existing template
-- [ ] **Week of Nov 3:** bench harness extended; first open-weight builder
-  bench report committed, with Opus comparison and the commons-retrieval
-  variant
-- [ ] **Week of Nov 10:** footprint and provenance in build reports and app
-  footer; export and delete verified by tests; human-scale defaults in kickoff
-  and scaffolding
-- [ ] **By Nov 17:** anchor adapter stubs and governance template; demo build
-  recorded; a one-page summary in `docs/human-scale/SUMMARY.md` written for a
-  non-technical reader, which feeds the application
+- [x] Branch, flag, `docs/human-scale/README.md` restating these principles
+  as they apply to RB; builder/runtime split with an open-weight runtime
+  option working on at least one existing template
+- [x] Bench harness extended; open-weight builder bench reports committed,
+  with Opus comparison, on one board with screenshots
+- [x] Footprint and provenance in build reports and the app footer; export
+  and delete verified by tests; community-controlled defaults in kickoff and
+  scaffolding
+- [ ] Adapters to kindred projects and the governance template; a demo build
+  recorded; a one-page summary in `docs/human-scale/SUMMARY.md` written for
+  a non-technical reader
+- [ ] The Builder itself building on open models by default when the flag is
+  on, with the community able to see which host served each call and to
+  exclude the ones that serve badly
 
 First run checklist: read the existing bench reports and roadmap docs, map
 where model selection lives today, propose the flag and config shape, open the
