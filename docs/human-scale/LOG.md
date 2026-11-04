@@ -108,8 +108,8 @@ Josh's.
 **What it cost.** Paid inference: about $0.12 estimated over 19
 open-model builds (gpt-oss 6 at $0.04, gemma 6 at $0.03, qwen 1 at
 $0.02, gemma two-pass 6 at $0.03), logged as $1.70 worst case across
-three reservations before the runs. Session: about 35 minutes of the 90
-(11:41 to 12:16 UTC), two bench runs in flight at a time, one subagent at
+three reservations before the runs. Session: about 30 minutes of the 90
+(11:41 to 12:12 UTC), two bench runs in flight at a time, one subagent at
 a time for the research fetches.
 
 **Honest read.** The guard is now seven checks and every
@@ -125,7 +125,7 @@ The honest state of the four models on these two prompts, off the one bad
 host: glm and gemma produce a working app three times in four, gpt-oss
 five times in six today, qwen one time in three and slowly. What none of
 this says is whether the apps are any good to look at or to use, and no
-amount of bench work substitutes for the scores. The run stopped at 35
+amount of bench work substitutes for the scores. The run stopped at 30
 minutes because the next useful bench minute is a design score and the
 next useful runtime minute is a deploy, both Josh's; the window was not
 spent for the sake of spending it.
