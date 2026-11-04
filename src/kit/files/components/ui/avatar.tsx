@@ -10,9 +10,11 @@ export function Avatar({
   name,
   className,
   ...props
-}: React.HTMLAttributes<HTMLDivElement> & { src?: string; name: string }) {
+}: React.HTMLAttributes<HTMLDivElement> & { src?: string; name?: string }) {
   const [failed, setFailed] = React.useState(false);
-  const initials = name
+  // A missing name (a lookup that found nobody yet) must not crash the page:
+  // show a neutral mark instead (gpt-oss, Nov 4: `name={users[id]?.name}`)
+  const initials = (name ?? '')
     .split(/\s+/)
     .map(w => w[0])
     .filter(Boolean)
@@ -29,9 +31,9 @@ export function Avatar({
       {...props}
     >
       {src && !failed ? (
-        <img src={src} alt={name} className="size-full object-cover" onError={() => setFailed(true)} />
+        <img src={src} alt={name ?? ''} className="size-full object-cover" onError={() => setFailed(true)} />
       ) : (
-        <span aria-hidden>{initials}</span>
+        <span aria-hidden>{initials || '·'}</span>
       )}
     </div>
   );

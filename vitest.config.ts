@@ -8,7 +8,7 @@ export default defineConfig({
     alias: { '@': path.resolve(__dirname, './src') },
   },
   test: {
-    include: ['src/**/*.test.ts', 'bench/**/*.test.ts'],
+    include: ['src/**/*.test.ts', 'src/**/*.test.tsx', 'bench/**/*.test.ts'],
     exclude: ['**/node_modules/**', 'bench/results/**'],
     environment: 'node',
   },
