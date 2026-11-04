@@ -21,9 +21,12 @@ Then read, in this order, before deciding anything:
 4. `docs/human-scale/SPEND.md` (what has been spent)
 5. The newest entry under `bench/results/` if the queue touches the bench
 
-The goal the loop serves: a Relational Builder a community could run end to
-end without us or any one vendor. README.md's "community-controlled stack"
-table scores each layer; every run moves one layer and says which.
+The goal the loop serves: community control of the AI in Relational Builder,
+with smaller-scale and open models wherever they can do the job, so a
+community could run the Builder end to end without us or any one vendor.
+README.md's "community-controlled stack" table scores each layer; every run
+moves one layer and says which. These docs are public: write them for a
+reader outside the project, and keep funding or deadline talk out of them.
 
 Work through NEXT in order. Each item is cut to be a real chunk of a
 workstream, not a sliver. Finish an item, then run `npm run lint` and

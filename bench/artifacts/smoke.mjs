@@ -1,0 +1,14 @@
+import { chromium } from '/opt/node-tools/node_modules/playwright/index.mjs';
+const browser = await chromium.launch();
+const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+const errors = [];
+page.on('pageerror', e => errors.push('pageerror: ' + e.message));
+page.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text().slice(0, 200)); });
+await page.goto('http://localhost:5199/?humanScale=1', { waitUntil: 'networkidle', timeout: 90000 });
+await page.waitForTimeout(3000);
+const text = (await page.evaluate(() => document.body.innerText)).trim();
+const flag = await page.evaluate(() => localStorage.getItem('rb.humanScale'));
+console.log('bodyChars', text.length, 'flag', flag);
+console.log('errors', errors.length ? errors.join('\n') : 'none');
+await page.screenshot({ path: process.argv[2] });
+await browser.close();
