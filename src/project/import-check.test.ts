@@ -132,4 +132,24 @@ describe('checkImports', () => {
     const own = { '/src/App.tsx': "import { Users } from 'lucide-react';\nfunction NavItem({ icon: Icon }: { icon: typeof Users }) { return <Icon />; }\nexport const x = <NavItem icon={Users} />;" };
     expect(checkImports(own)).toEqual([]);
   });
+
+  it('flags a router rendered in two files, even under an alias (gpt-oss, Nov 3)', () => {
+    const bad = {
+      '/src/main.tsx': "import { HashRouter as Router } from 'react-router-dom';\nimport App from './App';\nexport const x = <Router><App /></Router>;",
+      '/src/App.tsx': "import { HashRouter, Routes } from 'react-router-dom';\nexport default function App() { return <HashRouter><Routes /></HashRouter>; }",
+    };
+    expect(checkImports(bad).some(i => i.includes('a router is rendered in 2 files'))).toBe(true);
+    const ok = {
+      '/src/main.tsx': "import { HashRouter } from 'react-router-dom';\nimport App from './App';\nexport const x = <HashRouter><App /></HashRouter>;",
+      '/src/App.tsx': "import { Routes, Route } from 'react-router-dom';\nexport default function App() { return <Routes><Route /></Routes>; }",
+    };
+    expect(checkImports(ok)).toEqual([]);
+  });
+
+  it('flags an unknown font utility under @apply unless the theme declares it (gpt-oss, Nov 3)', () => {
+    const bad = { '/src/index.css': "@import 'tailwindcss';\nbody { @apply bg-background text-foreground font-inter; }" };
+    expect(checkImports(bad).some(i => i.includes('font-inter'))).toBe(true);
+    const declared = { '/src/index.css': "@theme { --font-inter: 'Inter', sans-serif; }\nbody { @apply font-inter font-semibold font-sans; }" };
+    expect(checkImports(declared)).toEqual([]);
+  });
 });

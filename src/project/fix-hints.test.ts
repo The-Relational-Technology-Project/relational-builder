@@ -63,4 +63,10 @@ describe('fixHints', () => {
     const h = fixHints('vfs:/src/App.tsx: icon={Users} passes a component where the kit expects an element; write icon={<Users />}', KIT_FILES);
     expect(h.join(' ')).toContain('icon={<Users />}');
   });
+
+  it('covers two routers and an unknown font utility (gpt-oss, Nov 3)', () => {
+    const h = fixHints('vfs:/src/App.tsx: a router is rendered in 2 files (/src/main.tsx, /src/App.tsx); render one HashRouter only, in one of them\nvfs:/src/index.css: Cannot apply unknown utility class `font-inter` (declare `--font-inter` under @theme or use font-sans)', KIT_FILES);
+    expect(h.join(' ')).toContain('Keep one router');
+    expect(h.join(' ')).toContain('--font-inter');
+  });
 });

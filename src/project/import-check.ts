@@ -133,6 +133,8 @@ export function checkImports(files: Record<string, string>, opts: ImportCheckOpt
   const generated: Record<string, string> = { '/src/env.ts': 'export const env = {} as const;', '/env.js': 'export const env = {};' };
   const all: Record<string, string> = { ...generated, ...(opts.kitFiles ?? {}), ...files };
   const issues: string[] = [];
+  issues.push(...checkRouters(files));
+  issues.push(...checkFontUtilities(files));
   for (const [path, source] of Object.entries(files)) {
     if (!CODE_RE.test(path)) continue;
     // A CommonJS require in an ES module: the bundle carries no require,
@@ -196,6 +198,71 @@ export function checkImports(files: Record<string, string>, opts: ImportCheckOpt
         if (!declaredIn(source, name)) {
           issues.push(`vfs:${path}: <${name}> is used but never imported or declared in this file`);
         }
+      }
+    }
+  }
+  return issues;
+}
+
+/** Local names a file gives the react-router-dom routers (`HashRouter as Router`) */
+function routerTagNames(source: string): string[] {
+  const names = new Set<string>();
+  for (const st of parseImports(source)) {
+    if (st.spec !== 'react-router-dom') continue;
+    const braces = source.match(new RegExp(`import\\s+\\{([^}]*)\\}\\s+from\\s+['"]react-router-dom['"]`));
+    for (const part of (braces?.[1] ?? '').split(',')) {
+      const [orig, alias] = part.trim().split(/\s+as\s+/).map(x => x.trim());
+      if (/^(Hash|Browser|Memory)?Router$/.test(orig)) names.add(alias || orig);
+    }
+  }
+  return [...names];
+}
+
+/**
+ * Two routers in one app: a `<Router>` in main.tsx wrapping an `<HashRouter>`
+ * in App.tsx throws inside react-router at load, and the fix pass that swaps
+ * a BrowserRouter for a HashRouter can leave exactly that (gpt-oss, Nov 3).
+ * One router, in one file, is the shape every template uses.
+ */
+function checkRouters(files: Record<string, string>): string[] {
+  const where: string[] = [];
+  for (const [path, source] of Object.entries(files)) {
+    if (!CODE_RE.test(path)) continue;
+    for (const name of routerTagNames(source)) {
+      if (new RegExp(`<${name}(\\s|>)`).test(source)) where.push(path);
+    }
+  }
+  if (where.length < 2) return [];
+  return [`vfs:${where[1]}: a router is rendered in ${where.length} files (${where.join(', ')}); render one HashRouter only, in one of them`];
+}
+
+/** Tailwind's own font-* utilities; anything else needs a `--font-<name>` token in `@theme` */
+const BUILTIN_FONT_UTILITIES = new Set([
+  'sans', 'serif', 'mono', 'thin', 'extralight', 'light', 'normal', 'medium', 'semibold', 'bold', 'extrabold', 'black',
+  'stretch-normal', 'stretch-condensed', 'stretch-expanded',
+]);
+
+/**
+ * A `font-<name>` utility that neither Tailwind nor the app's `@theme`
+ * defines: in a className it does nothing, but inside `@apply` Tailwind v4
+ * throws "Cannot apply unknown utility class" and the whole stylesheet is
+ * dropped, so the page opens unstyled or blank (gpt-oss, Nov 3: `font-inter`).
+ */
+function checkFontUtilities(files: Record<string, string>): string[] {
+  const declared = new Set<string>();
+  for (const [path, source] of Object.entries(files)) {
+    if (!/\.css$/.test(path)) continue;
+    for (const m of source.matchAll(/--font-([a-z][a-z0-9-]*)\s*:/g)) declared.add(m[1]);
+  }
+  const issues: string[] = [];
+  for (const [path, source] of Object.entries(files)) {
+    if (!/\.css$/.test(path)) continue;
+    for (const line of source.split('\n')) {
+      if (!/@apply\b/.test(line)) continue;
+      for (const m of line.matchAll(/\bfont-([a-z][a-z0-9-]*)/g)) {
+        const name = m[1];
+        if (BUILTIN_FONT_UTILITIES.has(name) || declared.has(name) || /^stretch-/.test(name)) continue;
+        issues.push(`vfs:${path}: Cannot apply unknown utility class \`font-${name}\` (declare \`--font-${name}\` under @theme or use font-sans)`);
       }
     }
   }

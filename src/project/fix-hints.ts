@@ -101,6 +101,17 @@ export function fixHints(errorText: string, kitFiles: Record<string, string>): s
     hints.push(`Change \`icon={${m[1]}}\` to \`icon={<${m[1]} />}\` in that file; kit icon props take an element. Change nothing else for this one.`);
   }
 
+  // Two routers
+  const twoRouters = errorText.match(/a router is rendered in \d+ files \(([^)]+)\)/);
+  if (twoRouters) {
+    hints.push(`Keep one router. Leave the \`<HashRouter>\` in \`/src/main.tsx\` (or add it there) and remove the router element and its import from the other file(s): ${twoRouters[1]}. Routes and Links work without their own router.`);
+  }
+
+  // An unknown font utility inside @apply
+  for (const m of errorText.matchAll(/Cannot apply unknown utility class `font-([a-z0-9-]+)`/g)) {
+    hints.push(`\`font-${m[1]}\` is not a Tailwind utility and the theme does not declare it. In \`/src/index.css\` either replace it with \`font-sans\` or add \`--font-${m[1]}: '${m[1]}', sans-serif;\` inside the \`@theme\` block. Change nothing else for this one.`);
+  }
+
   // CommonJS require in an ES module
   for (const m of errorText.matchAll(/Dynamic require of "([^"]+)" is not supported/g)) {
     hints.push(`\`require('${m[1]}')\` does not work here (ES modules only). Replace it with an import at the top of that file: \`import { ... } from '${m[1]}';\` and delete the require line.`);
