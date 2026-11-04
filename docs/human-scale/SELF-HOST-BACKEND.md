@@ -42,7 +42,7 @@ is a studio, event or RTP-website door and can wait.
 | `app-data` | the Community Cloud API: collections and documents for built apps | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `ALLOWED_ORIGINS` |
 | `app-capabilities` | managed capabilities for built apps: email, AI (`ai_chat`) | as above, plus `RESEND_API_KEY`, `ANTHROPIC_COMMUNITY_KEY`, `GEMINI_COMMUNITY_KEY`, `OPENROUTER_API_KEY`, `COMMUNITY_OPEN_MODEL`, `COMMUNITY_APP_MODEL`, `COMMUNITY_APP_EFFORT`, `COMMUNITY_IMAGE_MODEL` |
 | `publish-site` and `site` | Community Hosting: publish and serve built apps | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SITE_URL` |
-| `llm-proxy` | community access to hosted models for building | `ANTHROPIC_COMMUNITY_KEY`, `COMMUNITY_MODELS`, `MODEL_FALLBACKS`, `RTP_MODEL_URL`, rate-limit knobs |
+| `llm-proxy` | community access to hosted models for building; on this branch also open models through OpenRouter (`openrouter-community`) | `ANTHROPIC_COMMUNITY_KEY`, `COMMUNITY_MODELS`, `MODEL_FALLBACKS`, `RTP_MODEL_URL`, rate-limit knobs; for open models `OPENROUTER_COMMUNITY_KEY`, `COMMUNITY_OPEN_MODELS`, `COMMUNITY_OPEN_IGNORE_HOSTS` |
 | `supabase-admin` | the Builder operating a builder's own Supabase (graduate path) | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` |
 
 `SUPABASE_URL`, `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` are set

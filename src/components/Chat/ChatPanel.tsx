@@ -12,6 +12,8 @@ import { isHumanScale } from '@/human-scale/flag';
 import { effectiveRuntime } from '@/human-scale/runtime';
 import { humanScaleAiGuidance } from '@/human-scale/prompt';
 import { recordBuilderCall } from '@/human-scale/provenance-store';
+import { OPEN_BUILDER_MODELS } from '@/human-scale/builder-model';
+import type { StreamMeta } from '@/providers/types';
 import { registry } from '@/providers/registry';
 import type { StreamCallbacks, ThinkingEffort } from '@/providers/types';
 import { addPhotoAssetFromDataUrl, attachedPhotosNote, type AddedAsset } from '@/project/assets';
@@ -225,7 +227,15 @@ function fileRequestPrompt(found: string[], foundDocs: string[], unknown: string
 function communityModelNote(stage: CommunityModelStage, movedOff: string): string {
   // Named the way the model menu names them — "Opus 5", not "Claude Opus 5"
   const name = (id: string) =>
-    shortModelName(CLAUDE_MODELS.find(m => m.id === id)?.name ?? id);
+    shortModelName(
+      CLAUDE_MODELS.find(m => m.id === id)?.name ?? OPEN_BUILDER_MODELS.find(m => m.id === id)?.name ?? id,
+    );
+  // Behind the flag, builds and edits run on an open model the community
+  // could host itself; the note says so and where the evidence is
+  if (isHumanScale() && stage !== 'plan') {
+    const open = OPEN_BUILDER_MODELS[0];
+    return `This ${stage === 'first-build' ? 'build' : 'change'} runs on **${open.name}**, an open model a community can host itself, chosen from the bench board (${open.evidence}). It says which host served it in the build report. Rather use ${name(movedOff)}? Pick it in the model menu and it will stick for this project.`;
+  }
   if (stage === 'plan') {
     return `Planning runs on **${name(COMMUNITY_PLAN_MODEL)}** — the community default for shaping a project: exploring the idea, drawing on the commons, and drafting the plan. Builds themselves run on ${name(COMMUNITY_FIRST_BUILD_MODEL)}. Rather plan with ${name(movedOff)}? Pick it in the model menu and it will stick for this project.`;
   }
@@ -547,6 +557,9 @@ export function ChatPanel() {
       );
       if (autoDefault) {
         modelForSend = autoDefault.model;
+        if (useProviderStore.getState().activeProviderId !== autoDefault.providerId) {
+          useProviderStore.getState().setActiveProvider(autoDefault.providerId);
+        }
         useProviderStore.getState().setActiveModel(autoDefault.model);
         // Every automatic switch is announced, with copy that matches its
         // stage: first-build (the default taking over from an unpinned
@@ -872,12 +885,15 @@ export function ChatPanel() {
       if (isHumanScale()) {
         const reply = useChatStore.getState().messages.find(m => m.id === msgId)?.content ?? '';
         const history = useChatStore.getState().messages.reduce((n, m) => n + (m.content?.length ?? 0), 0);
+        const meta: StreamMeta | null = served;
         recordBuilderCall({
           providerId: useProviderStore.getState().activeProviderId,
           model: modelForSend,
           promptChars: updatedPrompt.length + Math.max(0, history - reply.length),
           replyChars: reply.length,
           projectId: useCloudStore.getState().currentProjectId ?? null,
+          servedBy: meta?.provider,
+          servedModel: meta?.model,
         });
       }
     };
@@ -888,8 +904,12 @@ export function ChatPanel() {
 
     let lastActivity = Date.now();
     let stalledAbort = false;
+    let served: StreamMeta | null = null;
 
     const callbacks: StreamCallbacks = {
+      onMeta: (meta) => {
+        served = meta;
+      },
       onToken: (token) => {
         lastActivity = Date.now();
         if (!sawToken) {
@@ -1112,6 +1132,9 @@ export function ChatPanel() {
                 );
                 if (autoDefault?.stage === 'edit') {
                   const movedOff = useProviderStore.getState().activeModelId;
+                  if (useProviderStore.getState().activeProviderId !== autoDefault.providerId) {
+                    useProviderStore.getState().setActiveProvider(autoDefault.providerId);
+                  }
                   useProviderStore.getState().setActiveModel(autoDefault.model);
                   useChatStore
                     .getState()

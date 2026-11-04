@@ -29,6 +29,11 @@ export interface ProvenanceRow {
   energyWhEstimate: number | null;
   /** How the estimate was made, in words, always present */
   method: string;
+  /** The upstream host that actually served the call, when a router says
+   *  (OpenRouter names it); a model name is not a model */
+  servedBy?: string;
+  /** The model id the provider reported back, when it differs from the ask */
+  servedModel?: string;
 }
 
 /**
@@ -125,9 +130,13 @@ export function provenanceRow(input: {
   tokensOut: number;
   params?: number | null;
   at?: string;
+  servedBy?: string;
+  servedModel?: string;
 }): ProvenanceRow {
   const e = estimateEnergyWh(input);
   return {
+    ...(input.servedBy ? { servedBy: input.servedBy } : {}),
+    ...(input.servedModel && input.servedModel !== input.model ? { servedModel: input.servedModel } : {}),
     at: input.at ?? new Date().toISOString(),
     side: input.side,
     provider: input.provider,
@@ -145,5 +154,6 @@ export function provenanceRow(input: {
 export function describeRow(row: ProvenanceRow): string {
   const where = row.host === 'local' ? 'on this device or in the room' : row.host === 'community' ? 'on Community AI' : 'on a hosted model';
   const energy = row.energyWhEstimate === null ? 'energy not estimated (model size not public)' : `about ${row.energyWhEstimate} Wh, an estimate`;
-  return `Ran ${where} (${row.model}), ${row.tokensIn + row.tokensOut} tokens, ${energy}.`;
+  const via = row.servedBy ? `, served by ${row.servedBy}` : '';
+  return `Ran ${where} (${row.model}${via}), ${row.tokensIn + row.tokensOut} tokens, ${energy}.`;
 }

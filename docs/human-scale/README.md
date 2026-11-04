@@ -113,6 +113,20 @@ runtime:
   deploy as `env`. `src/human-scale/runtime.ts` is the one module that knows
   the keys; `.reltech.yml` gets the block above from it.
 
+**The Builder on open models (as built, Nov 4).** With the flag on, a
+community member with no personal key builds and edits on an open model:
+`src/human-scale/builder-model.ts` lists the picks with the board evidence
+each rests on (GLM 4.5 Air first, then Gemma 4 26B and GPT-OSS 120B), the
+community default steps onto the first pick for builds and edits (planning
+stays on Claude until an open model earns that stage), the model menu shows
+the open models first with their coverage, and every call carries the
+hosts to skip (`OPENROUTER_IGNORE_HOSTS`). The client reaches OpenRouter
+through the proxy's new `openrouter-community` branch on the community's
+key, under the usual allowlist and weekly budget, metered from the stream's
+usage chunk; the serving host comes back with the stream and lands on the
+build's provenance row. Picking a model in the menu still pins it. Needs
+the proxy deploy and one secret (NEXT, "Needs Josh").
+
 **Provenance record.** Every builder call and every runtime call appends one
 row to a per-project log: `{at, side: builder|runtime, provider, model,
 params (if known), host: local|hosted|community, tokensIn, tokensOut,

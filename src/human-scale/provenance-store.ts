@@ -46,6 +46,9 @@ export function builderCallRow(input: {
   replyChars: number;
   projectId: string | null;
   at?: string;
+  /** What the provider reported serving it (a router's upstream host) */
+  servedBy?: string;
+  servedModel?: string;
 }): StoredRow {
   const row = provenanceRow({
     side: 'builder',
@@ -55,6 +58,8 @@ export function builderCallRow(input: {
     tokensIn: charsToTokens(input.promptChars),
     tokensOut: charsToTokens(input.replyChars),
     at: input.at,
+    servedBy: input.servedBy,
+    servedModel: input.servedModel,
   });
   return {
     ...row,

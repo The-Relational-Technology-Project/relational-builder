@@ -1,4 +1,19 @@
 import type { LLMProvider, ChatMessage, StreamCallbacks, ModelInfo } from './types';
+import { isHumanScale } from '@/human-scale/flag';
+import { OPEN_BUILDER_MODELS, openRouterRoutingBody } from '@/human-scale/builder-model';
+
+/**
+ * Community route: a signed-in builder with no personal key can reach an
+ * OpenAI-compatible provider through the LLM proxy, which holds the
+ * community's key and meters the call. The session token comes from the
+ * community store, which registers itself here at load (no import, so the
+ * provider layer stays free of store cycles). Null until registered.
+ */
+let communityTokenSource: (() => Promise<string | null>) | null = null;
+export function setCommunityTokenSource(fn: () => Promise<string | null>): void {
+  communityTokenSource = fn;
+}
+const PROXY_URL: string = import.meta.env.VITE_LLM_PROXY_URL ?? '';
 
 /**
  * OpenAI-compatible provider.
@@ -20,6 +35,9 @@ export class OpenAICompatibleProvider implements LLMProvider {
   // BYOK providers aren't configured until a key exists — prevents pointless
   // 401-spamming model fetches on load
   private requiresKey: boolean;
+  /** When set, a keyless call goes through the proxy under this
+   *  `x-llm-provider` value with the community session token */
+  private communityRoute: string | null = null;
   // Optional output cap. When unset, requests omit max_tokens and the
   // endpoint applies its own default — some (OpenRouter) pre-authorize that
   // default against remaining credit, so a cap also keeps low-balance
@@ -35,6 +53,8 @@ export class OpenAICompatibleProvider implements LLMProvider {
     apiPath?: string;
     requiresKey?: boolean;
     maxTokens?: number;
+    /** Proxy provider name for keyless community calls (see setCommunityTokenSource) */
+    communityRoute?: string;
   }) {
     this.id = config.id;
     this.name = config.name;
@@ -43,6 +63,7 @@ export class OpenAICompatibleProvider implements LLMProvider {
     this.defaultModels = config.defaultModels ?? [];
     this.apiPath = config.apiPath ?? '/v1';
     this.requiresKey = config.requiresKey ?? true;
+    this.communityRoute = config.communityRoute ?? null;
     this.maxTokens = config.maxTokens;
   }
 
@@ -51,7 +72,13 @@ export class OpenAICompatibleProvider implements LLMProvider {
   }
 
   isConfigured(): boolean {
+    if (this.communityRoute && PROXY_URL && !this.apiKey) return true;
     return !!this.baseUrl && (!this.requiresKey || !!this.apiKey);
+  }
+
+  /** True when the next call would go through the proxy on the community's key */
+  onCommunityRoute(): boolean {
+    return !!this.communityRoute && !!PROXY_URL && !this.apiKey;
   }
 
   setExtraBody(fields: Record<string, unknown>): void {
@@ -104,6 +131,16 @@ export class OpenAICompatibleProvider implements LLMProvider {
   ): Promise<void> {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (this.apiKey) headers['Authorization'] = `Bearer ${this.apiKey}`;
+    let url = `${this.baseUrl}${this.apiPath}/chat/completions`;
+    if (this.onCommunityRoute()) {
+      const token = communityTokenSource ? await communityTokenSource() : null;
+      if (!token) {
+        throw new Error(`Sign in (top right) to build on the community's open model, or add your own ${this.name} key in Settings.`);
+      }
+      headers['x-llm-provider'] = this.communityRoute!;
+      headers['x-community-token'] = token;
+      url = PROXY_URL;
+    }
 
     // The prompt carries Anthropic cache-boundary markers (context-builder's
     // CACHE_BREAK in the system prompt, TURN_BREAK at the end of the final
@@ -120,7 +157,7 @@ export class OpenAICompatibleProvider implements LLMProvider {
       };
     });
 
-    const res = await fetch(`${this.baseUrl}${this.apiPath}/chat/completions`, {
+    const res = await fetch(url, {
       method: 'POST',
       headers,
       body: JSON.stringify({
@@ -358,13 +395,24 @@ export function createOpenAIProvider(): OpenAICompatibleProvider {
 
 /** Pre-configured: OpenRouter (Tier 2 -- BYOK, access to many models) */
 export function createOpenRouterProvider(): OpenAICompatibleProvider {
-  return new OpenAICompatibleProvider({
+  const humanScale = isHumanScale();
+  const p = new OpenAICompatibleProvider({
     id: 'openrouter',
     name: 'OpenRouter',
     baseUrl: 'https://openrouter.ai/api',
     defaultModels: [
+      // Behind the flag the open models the bench vouches for come first,
+      // and the community route lets a signed-in builder use them with no key
+      ...(humanScale
+        ? OPEN_BUILDER_MODELS.map(m => ({ id: m.id, name: m.name, provider: 'openrouter' }))
+        : []),
       { id: 'anthropic/claude-sonnet-5', name: 'Claude Sonnet 5', provider: 'openrouter' },
       { id: 'google/gemini-3.5-flash', name: 'Gemini 3.5 Flash', provider: 'openrouter' },
     ],
+    ...(humanScale ? { communityRoute: 'openrouter-community' } : {}),
   });
+  // Hosts the board has shown serving a model broken stay out of every
+  // Builder call while the flag is on (docs/human-scale/BENCH-BOARD.md)
+  if (humanScale) p.setExtraBody(openRouterRoutingBody());
+  return p;
 }

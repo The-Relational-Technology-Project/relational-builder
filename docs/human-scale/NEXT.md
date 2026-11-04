@@ -34,6 +34,25 @@ Optional, with the same deploy: `COMMUNITY_OPEN_IGNORE_HOSTS` (for
 example `Darkbloom`, the host the bench saw serve gemma broken on Nov 3),
 set the same way as the key in step 1.
 
+**Added Nov 4 (the Builder building on open models).** Behind the flag,
+community members with no personal key now build and edit on an open
+model through OpenRouter (`src/human-scale/builder-model.ts` names the
+picks and their evidence; GLM 4.5 Air first). That path needs the proxy:
+
+```bash
+# 4. the community's OpenRouter key for the Builder side (a separate secret from the app runtime's)
+curl -X POST -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" -H "Content-Type: application/json" \
+  "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/secrets" \
+  -d "[{\"name\":\"OPENROUTER_COMMUNITY_KEY\",\"value\":\"$OPENROUTER_API_KEY\"},{\"name\":\"COMMUNITY_OPEN_IGNORE_HOSTS\",\"value\":\"Darkbloom\"}]"
+# 5. deploy llm-proxy (same shape as step 2, slug llm-proxy)
+# 6. smoke test: open the Builder with ?humanScale=1 signed in on community access with no key,
+#    start a build; the model note names GLM 4.5 Air and the build report's footprint line says which host served it.
+#    A credential-less POST with x-llm-provider: openrouter-community returns the function's own 401 JSON.
+```
+
+`COMMUNITY_OPEN_MODELS` (optional) narrows or extends the covered open
+models without a deploy; the default mirrors the client's list.
+
 Until then, apps on this branch that pick the community runtime get the
 server's clear "open model is not configured" error; nothing silently falls
 back to Opus.

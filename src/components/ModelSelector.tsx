@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useProviderStore } from '@/store/provider-store';
-import { useCommunityStore, COMMUNITY_MODELS } from '@/store/community-store';
+import { useCommunityStore, communityCovers } from '@/store/community-store';
+import { isHumanScale } from '@/human-scale/flag';
 import { registry } from '@/providers/registry';
 import { modelLabel } from '@/providers/model-label';
 import {
@@ -47,7 +48,9 @@ export function ModelSelector({ className }: { className?: string }) {
 
   // On community access without a personal key, only covered models will work
   const onCommunityKey =
-    communityActive && activeProviderId === 'claude' && !apiKeys['claude'];
+    communityActive &&
+    ((activeProviderId === 'claude' && !apiKeys['claude']) ||
+      (isHumanScale() && activeProviderId === 'openrouter' && !apiKeys['openrouter']));
 
   // The chip names the model, not its maker — "Opus 5", not "Claude Opus 5".
   // The full name is one hover (or one open menu) away, so nothing is hidden;
@@ -78,12 +81,13 @@ export function ModelSelector({ className }: { className?: string }) {
         {onCommunityKey && (
           <p className="px-2 py-1.5 text-xs leading-snug text-muted-foreground">
             Included with community access — every model draws on the same
-            weekly budget. Builds and edits pick a sensible default; choosing
-            here makes it stick for this project.
+            weekly budget. Builds and edits pick a sensible default
+            {activeProviderId === 'openrouter' ? ' (an open model a community can host itself)' : ''};
+            choosing here makes it stick for this project.
           </p>
         )}
         {models.map(model => {
-          const covered = !onCommunityKey || COMMUNITY_MODELS.includes(model.id);
+          const covered = !onCommunityKey || communityCovers(activeProviderId, model.id);
           const hint = MODEL_HINTS[model.id];
           // Nothing pinned means whatever is active is what you get by
           // default — say so, so "Opus 5" on the chip isn't a mystery

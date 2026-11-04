@@ -12,6 +12,71 @@ experiment at most $5 and 30 minutes.
 
 ---
 
+## 2026-11-04, afternoon (with Josh)
+
+**For Josh:** Two things you asked for. The docs now say what this is: an
+open exploration of community control of the AI in Relational Builder,
+smaller-scale and open models where they can do the job; the funding
+application and its dates are gone from BRIEF, README, DAILY-RUN and the
+log, and the kindred projects are named for what they are rather than as
+anchors. And the Builder itself now builds on open models behind the flag:
+a community member with no key gets GLM 4.5 Air for builds and edits (the
+bench's first pick, with the evidence quoted in the model note), the model
+menu shows the open models first, every OpenRouter call skips the hosts the
+board has shown serving a model broken, and each build's provenance row
+records which host actually served it. The server half (the proxy's
+`openrouter-community` branch) is written, checked and not deployed: one
+secret and one deploy, in NEXT under "Needs Josh". No paid inference.
+
+**Stack layer moved:** Builder model, from "an open model is one the bench
+tests" to "an open model is what the Builder uses by default behind the
+flag, with the host visible and the bad ones excluded".
+
+**What changed.**
+
+1. *Docs reframed.* BRIEF's goal and ground rules are about community
+   control; the deliverables list keeps the order and drops the dates;
+   workstream 6 is "adapters to kindred projects". README's head and stack
+   intro match. Four lines in older LOG entries that spoke of "the
+   application" now speak of the write-up or of community control; the
+   facts in them are unchanged.
+2. *`src/human-scale/builder-model.ts`.* The open builder picks, each with
+   a one-line evidence note a person can check against the board, the
+   default (first pick), and the hosts to skip. Tested.
+3. *Keyless community route for OpenAI-compatible providers.* A provider
+   constructed with `communityRoute` goes through the LLM proxy with the
+   community session token when it has no key (the token source is
+   registered by the community store at load, so the provider layer stays
+   free of store cycles). The OpenRouter provider gets it behind the flag,
+   plus the open models first in its list and the host exclusion in every
+   request body. Tested with a mocked proxy.
+4. *Community default carries a provider.* `communityDefaultModelFor`
+   returns the open model on OpenRouter for builds and edits when the flag
+   is on, Claude for planning; the chat switches provider and model
+   together and the model note names the open model and its evidence. The
+   picker's "covered" logic knows both lists.
+5. *Served host on the provenance row.* The chat captures the stream's
+   metadata and records `servedBy` and, when it differs, `servedModel`;
+   the footer line says "served by Novita".
+6. *The proxy.* `openrouter-community`: allowlisted open models
+   (`COMMUNITY_OPEN_MODELS`), the community gate on
+   `OPENROUTER_COMMUNITY_KEY`, `COMMUNITY_OPEN_IGNORE_HOSTS` as
+   `provider.ignore`, streaming passed through with a meter that reads the
+   final usage chunk (OpenRouter sends one with `stream_options`) and falls
+   back to characters/4. esbuild and strict tsc against the Deno shim:
+   zero errors before and after.
+
+**What it cost.** $0. About 50 minutes.
+
+**Honest read.** This is the first day the branch changes what the Builder
+does rather than what it measures, and it is all behind the flag and one
+deploy away from being real. The pick (GLM 4.5 Air) rests on 24 builds
+on two prompts and no design scores; it is the right default by the
+evidence there is, and the evidence is thin. The host exclusion is a list
+of one. Planning stays on Claude because no open model has been measured
+at that stage, not because one could not do it; that is the next honest
+measurement once the deploy lands.
+
 ## 2026-11-04
 
 **For Josh:** Yesterday's two gpt-oss blanks became two more checks (a

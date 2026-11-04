@@ -138,6 +138,9 @@ Deno.serve(async (req: Request) => {
       return await proxyGeminiImage(body, authHeader, CORS_HEADERS, communityToken);
     } else if (provider === 'rtp') {
       return await proxyRTP(body, CORS_HEADERS);
+    } else if (provider === 'openrouter-community') {
+      const communityToken = req.headers.get('x-community-token');
+      return await proxyOpenRouterCommunity(body, CORS_HEADERS, communityToken);
     } else {
       // Generic OpenAI-compatible pass-through (openai, gemini, openrouter, etc.)
       return await proxyOpenAI(body, authHeader, getChatCompletionsUrl(provider), CORS_HEADERS);
@@ -1271,6 +1274,163 @@ async function proxyOpenAI(
   // Stream the response back with CORS headers
   return new Response(upstream.body, {
     status: upstream.status,
+    headers: {
+      ...CORS_HEADERS,
+      'Content-Type': upstream.headers.get('Content-Type') ?? 'text/event-stream',
+      'Cache-Control': 'no-cache',
+    },
+  });
+}
+
+// ── Community access on open models (the human-scale branch) ─────────
+//
+// A signed-in community member with no personal key can build on an open
+// model through OpenRouter, on the OPENROUTER_COMMUNITY_KEY secret, under
+// the same allowlist and weekly budget as Claude. Only the models in
+// COMMUNITY_OPEN_MODELS are covered (the bench's picks; the client mirrors
+// the list in src/human-scale/builder-model.ts). COMMUNITY_OPEN_IGNORE_HOSTS
+// keeps named upstream hosts out of the rotation, since one model name is
+// served by several hosts and a host can serve it broken. The serving host
+// comes back in the stream as OpenRouter sends it, so the client can record
+// it. Usage is metered from the stream's final usage chunk when OpenRouter
+// sends one, else estimated from characters (chars/4) and said so in the log.
+
+const COMMUNITY_OPEN_MODELS = (
+  Deno.env.get('COMMUNITY_OPEN_MODELS') ??
+  'z-ai/glm-4.5-air,google/gemma-4-26b-a4b-it,openai/gpt-oss-120b'
+)
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+const COMMUNITY_OPEN_IGNORE_HOSTS = (Deno.env.get('COMMUNITY_OPEN_IGNORE_HOSTS') ?? '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+async function proxyOpenRouterCommunity(
+  body: Record<string, unknown>,
+  CORS_HEADERS: Record<string, string>,
+  communityToken: string | null,
+): Promise<Response> {
+  const jsonHeaders = { ...CORS_HEADERS, 'Content-Type': 'application/json' };
+  if (!communityToken) {
+    return new Response(JSON.stringify({ error: 'Sign in to build on the community open model, or add your own key in Settings.' }), {
+      status: 401,
+      headers: jsonHeaders,
+    });
+  }
+  const model = String(body.model ?? '');
+  if (!COMMUNITY_OPEN_MODELS.includes(model)) {
+    return new Response(
+      JSON.stringify({
+        error: `Community access covers these open models: ${COMMUNITY_OPEN_MODELS.join(', ')} — pick one of those, or add your own OpenRouter key in Settings to use ${model}.`,
+      }),
+      { status: 403, headers: jsonHeaders },
+    );
+  }
+  const gate = await checkCommunityAccess(communityToken, model, {
+    requiredKeyEnv: 'OPENROUTER_COMMUNITY_KEY',
+    skipModelCheck: true,
+  });
+  if ('error' in gate) {
+    return new Response(JSON.stringify({ error: gate.error }), { status: gate.status, headers: jsonHeaders });
+  }
+  const apiKey = Deno.env.get('OPENROUTER_COMMUNITY_KEY') ?? '';
+
+  // The request goes up as the client wrote it, minus anything that is not
+  // the chat itself, plus the host exclusion and a usage chunk at the end
+  const { project_id: _projectId, web_tools: _webTools, mcp_servers: _mcp, effort: _effort, provider: _provider, ...chat } = body as Record<string, unknown>;
+  const upstreamBody = {
+    ...chat,
+    ...(COMMUNITY_OPEN_IGNORE_HOSTS.length ? { provider: { ignore: COMMUNITY_OPEN_IGNORE_HOSTS } } : {}),
+    ...(body.stream ? { stream_options: { include_usage: true } } : {}),
+  };
+  const upstream = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': Deno.env.get('APP_URL') ?? 'https://builder.relationaltechproject.org',
+      'X-Title': 'Relational Builder (community, open model)',
+    },
+    body: JSON.stringify(upstreamBody),
+  });
+
+  if (!upstream.ok) {
+    const text = await upstream.text().catch(() => '');
+    console.error('community open-model upstream error', upstream.status, text.slice(0, 500));
+    return new Response(
+      JSON.stringify({
+        error:
+          upstream.status === 429
+            ? 'The open model is busy right now — try again in a moment'
+            : 'The open model is unavailable right now — try again shortly',
+      }),
+      { status: upstream.status === 429 ? 429 : 502, headers: jsonHeaders },
+    );
+  }
+
+  const email = gate.email;
+  const sentChars = JSON.stringify(chat.messages ?? '').length;
+
+  if (!body.stream) {
+    const data = await upstream.json();
+    const u = (data?.usage ?? {}) as { prompt_tokens?: number; completion_tokens?: number; prompt_tokens_details?: { cached_tokens?: number } };
+    const outChars = String(data?.choices?.[0]?.message?.content ?? '').length;
+    recordCommunityUsage(
+      email,
+      Number(u.prompt_tokens ?? Math.round(sentChars / 4)),
+      Number(u.completion_tokens ?? Math.round(outChars / 4)),
+      0,
+      Number(u.prompt_tokens_details?.cached_tokens ?? 0),
+      `open:${String(data?.model ?? model)}`,
+    );
+    return new Response(JSON.stringify(data), { status: 200, headers: jsonHeaders });
+  }
+
+  // Stream through, watching for the usage chunk; fall back to a character
+  // estimate when the stream ends without one
+  let outChars = 0;
+  let usage: { prompt_tokens?: number; completion_tokens?: number; prompt_tokens_details?: { cached_tokens?: number } } | null = null;
+  let servedModel = model;
+  let buffer = '';
+  const decoder = new TextDecoder();
+  const meter = new TransformStream<Uint8Array, Uint8Array>({
+    transform(chunk, controller) {
+      controller.enqueue(chunk);
+      buffer += decoder.decode(chunk, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() ?? '';
+      for (const line of lines) {
+        const t = line.trim();
+        if (!t.startsWith('data: ') || t === 'data: [DONE]') continue;
+        try {
+          const parsed = JSON.parse(t.slice(6));
+          if (parsed.model) servedModel = String(parsed.model);
+          const token = parsed.choices?.[0]?.delta?.content;
+          if (typeof token === 'string') outChars += token.length;
+          if (parsed.usage) usage = parsed.usage;
+        } catch {
+          // partial or non-JSON line: ignore
+        }
+      }
+    },
+    flush() {
+      const u = usage ?? {};
+      recordCommunityUsage(
+        email,
+        Number(u.prompt_tokens ?? Math.round(sentChars / 4)),
+        Number(u.completion_tokens ?? Math.round(outChars / 4)),
+        0,
+        Number(u.prompt_tokens_details?.cached_tokens ?? 0),
+        `open:${servedModel}`,
+      );
+    },
+  });
+
+  return new Response(upstream.body?.pipeThrough(meter) ?? null, {
+    status: 200,
     headers: {
       ...CORS_HEADERS,
       'Content-Type': upstream.headers.get('Content-Type') ?? 'text/event-stream',

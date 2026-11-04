@@ -28,3 +28,14 @@ describe('builder provenance rows', () => {
     expect(s.models).toEqual(['qwen2.5:7b', 'claude-opus-5-5']);
   });
 });
+
+describe('served host on a builder row', () => {
+  it('keeps the host and a differing served model, and says so in the footer line', async () => {
+    const { builderCallRow } = await import('./provenance-store');
+    const { describeRow } = await import('./provenance');
+    const row = builderCallRow({ providerId: 'openrouter', model: 'z-ai/glm-4.5-air', promptChars: 400, replyChars: 400, projectId: null, servedBy: 'Novita', servedModel: 'z-ai/glm-4.5-air' });
+    expect(row.servedBy).toBe('Novita');
+    expect(row.servedModel).toBeUndefined();
+    expect(describeRow(row)).toContain('served by Novita');
+  });
+});

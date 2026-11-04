@@ -66,3 +66,44 @@ describe('OpenAICompatibleProvider extra body', () => {
     expect(body.model).toBe('m');
   });
 });
+
+describe('the keyless community route', () => {
+  it('goes through the proxy with the community token when no key is set, and names the provider', async () => {
+    vi.resetModules();
+    vi.stubEnv('VITE_LLM_PROXY_URL', 'https://proxy.test/functions/v1/llm-proxy');
+    const mod = await import('./openai-compatible');
+    mod.setCommunityTokenSource(async () => 'session-token');
+    const fetchMock = vi.fn(async () => sse([{ model: 'z-ai/glm-4.5-air', provider: 'Novita', choices: [{ delta: { content: 'ok' } }] }]));
+    vi.stubGlobal('fetch', fetchMock);
+    const p = new mod.OpenAICompatibleProvider({ id: 'openrouter', name: 'OpenRouter', baseUrl: 'https://openrouter.ai/api', communityRoute: 'openrouter-community' });
+    expect(p.isConfigured()).toBe(true);
+    expect(p.onCommunityRoute()).toBe(true);
+    let full = '';
+    await p.chat([{ role: 'user', content: 'hi' }], 'z-ai/glm-4.5-air', { onToken: () => {}, onComplete: t => { full = t; }, onError: e => { throw e; } });
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, { headers: Record<string, string> }];
+    expect(url).toBe('https://proxy.test/functions/v1/llm-proxy');
+    expect(init.headers['x-llm-provider']).toBe('openrouter-community');
+    expect(init.headers['x-community-token']).toBe('session-token');
+    expect(init.headers.Authorization).toBeUndefined();
+    expect(full).toBe('ok');
+    vi.unstubAllEnvs();
+  });
+
+  it('uses the key directly when one is set, and asks for a sign-in when neither is there', async () => {
+    vi.resetModules();
+    vi.stubEnv('VITE_LLM_PROXY_URL', 'https://proxy.test/llm');
+    const mod = await import('./openai-compatible');
+    mod.setCommunityTokenSource(async () => null);
+    const fetchMock = vi.fn(async () => sse([{ choices: [{ delta: { content: 'x' } }] }]));
+    vi.stubGlobal('fetch', fetchMock);
+    const p = new mod.OpenAICompatibleProvider({ id: 'openrouter', name: 'OpenRouter', baseUrl: 'https://openrouter.ai/api', communityRoute: 'openrouter-community' });
+    await expect(p.chat([{ role: 'user', content: 'hi' }], 'm', { onToken: () => {}, onComplete: () => {}, onError: () => {} })).rejects.toThrow(/Sign in/);
+    p.setApiKey('sk-own');
+    expect(p.onCommunityRoute()).toBe(false);
+    await p.chat([{ role: 'user', content: 'hi' }], 'm', { onToken: () => {}, onComplete: () => {}, onError: e => { throw e; } });
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, { headers: Record<string, string> }];
+    expect(url).toBe('https://openrouter.ai/api/v1/chat/completions');
+    expect(init.headers.Authorization).toBe('Bearer sk-own');
+    vi.unstubAllEnvs();
+  });
+});

@@ -2,6 +2,9 @@ import { create } from 'zustand';
 import { builderClient } from '@/cloud/builder-client';
 import { useAuthStore } from '@/store/auth-store';
 import { useProviderStore } from '@/store/provider-store';
+import { setCommunityTokenSource } from '@/providers/openai-compatible';
+import { isHumanScale } from '@/human-scale/flag';
+import { OPEN_BUILDER_DEFAULT, isOpenBuilderModel } from '@/human-scale/builder-model';
 
 /**
  * Models covered by the RTP community key (mirror of the proxy's allowlist).
@@ -112,18 +115,18 @@ export const useCommunityStore = create<CommunityState>()((set) => ({
     if (
       providers.activeProviderId === 'claude' &&
       !providers.apiKeys['claude'] &&
-      !COMMUNITY_MODELS.includes(providers.activeModelId)
+      !communityCovers('claude', providers.activeModelId)
     ) {
       const [{ useProjectStore }, { useChatStore }] = await Promise.all([
         import('@/store/project-store'),
         import('@/store/chat-store'),
       ]);
-      providers.setActiveModel(
-        communityDefaultModelFor(
-          useChatStore.getState().mode,
-          useProjectStore.getState().getFileCount(),
-        ).model,
+      const d = communityDefaultModelFor(
+        useChatStore.getState().mode,
+        useProjectStore.getState().getFileCount(),
       );
+      if (d.providerId !== providers.activeProviderId) providers.setActiveProvider(d.providerId);
+      providers.setActiveModel(d.model);
     }
   },
 
@@ -156,6 +159,10 @@ export async function getCommunitySessionToken(): Promise<string | null> {
   const { data } = await builderClient.auth.getSession();
   return data.session?.access_token ?? null;
 }
+
+// Keyless OpenAI-compatible providers (the open models behind the flag) ask
+// here for the community session token when they route through the proxy
+setCommunityTokenSource(getCommunitySessionToken);
 
 /** Non-React accessor for provider code */
 export function communityAccessActive(): boolean {
@@ -238,30 +245,53 @@ export type CommunityModelStage = 'plan' | 'first-build' | 'edit';
 export function communityDefaultModelFor(
   chatMode: 'plan' | 'build' | 'message',
   projectFileCount: number,
-): { model: string; stage: CommunityModelStage } {
+): { model: string; providerId: 'claude' | 'openrouter'; stage: CommunityModelStage } {
   const stage: CommunityModelStage =
     chatMode === 'plan' ? 'plan' : projectFileCount === 0 ? 'first-build' : 'edit';
+  // Behind the human-scale flag, builds and edits run on the open model the
+  // bench vouches for (docs/human-scale/builder-model.ts), through the
+  // community route; planning stays on Claude until an open model has
+  // earned that stage too. Off the flag, nothing changes.
+  if (isHumanScale() && stage !== 'plan') {
+    return { model: OPEN_BUILDER_DEFAULT, providerId: 'openrouter', stage };
+  }
   const model =
     stage === 'plan'
       ? COMMUNITY_PLAN_MODEL
       : stage === 'first-build'
         ? COMMUNITY_FIRST_BUILD_MODEL
         : COMMUNITY_EDIT_MODEL;
-  return { model, stage };
+  return { model, providerId: 'claude', stage };
+}
+
+/** The community's automatic default applies while the person builds on the
+ *  community's keys (no personal key on the provider in use) and has not
+ *  pinned a model. Behind the flag that includes the keyless open-model
+ *  route on OpenRouter. */
+function onCommunityDefaults(): boolean {
+  const providers = useProviderStore.getState();
+  if (!useCommunityStore.getState().active || providers.modelPinned) return false;
+  if (providers.activeProviderId === 'claude') return !providers.apiKeys['claude'];
+  if (isHumanScale() && providers.activeProviderId === 'openrouter') return !providers.apiKeys['openrouter'];
+  return false;
 }
 
 export function resolveCommunityModelDefault(
   projectFileCount: number,
   chatMode: 'plan' | 'build' | 'message' = 'build',
-): { model: string; stage: CommunityModelStage } | null {
+): { model: string; providerId: 'claude' | 'openrouter'; stage: CommunityModelStage } | null {
+  if (!onCommunityDefaults()) return null;
   const providers = useProviderStore.getState();
-  const autoManaged =
-    useCommunityStore.getState().active &&
-    providers.activeProviderId === 'claude' &&
-    !providers.apiKeys['claude'] &&
-    !providers.modelPinned;
-  if (!autoManaged) return null;
+  const desired = communityDefaultModelFor(chatMode, projectFileCount);
+  return providers.activeModelId === desired.model && providers.activeProviderId === desired.providerId
+    ? null
+    : desired;
+}
 
-  const { model: desired, stage } = communityDefaultModelFor(chatMode, projectFileCount);
-  return providers.activeModelId === desired ? null : { model: desired, stage };
+/** Community-covered on the provider in use: Claude's covered list, or the
+ *  open builder models behind the flag */
+export function communityCovers(providerId: string, modelId: string): boolean {
+  if (providerId === 'claude') return COMMUNITY_MODELS.includes(modelId);
+  if (providerId === 'openrouter') return isHumanScale() && isOpenBuilderModel(modelId);
+  return false;
 }
