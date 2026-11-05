@@ -2,7 +2,7 @@
   "harnessVersion": "1.2.0",
   "taskVersion": "exp-v1,exp-v1",
   "gitCommit": "aaa92f3",
-  "createdAt": "2026-11-05T12:09:00.594Z",
+  "createdAt": "2026-11-05T12:23:19.556Z",
   "runId": "2026-11-05T12-02-51-aaa92f3-e4a3",
   "config": {
     "trials": 3,
@@ -128,7 +128,32 @@
         "provider": "StreamLake",
         "systemFingerprint": "fpv0_8f8e1388"
       },
-      "importIssues": []
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 801
+      },
+      "quality": {
+        "files": 13,
+        "codeFiles": 11,
+        "codeLines": 743,
+        "largestFile": "/src/pages/HomePage.tsx",
+        "largestFileLines": 155,
+        "anyCount": 1,
+        "kitImportingFiles": 7,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 3,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.4,
+        "tscErrors": 1,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 51.1,
+        "fixLatencyMs": 29504,
+        "failKind": "other"
+      }
     },
     {
       "alias": "kimi-k2.7-code",
@@ -205,7 +230,32 @@
         "provider": "StreamLake",
         "systemFingerprint": "fpv0_8f8e1388"
       },
-      "importIssues": []
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 815
+      },
+      "quality": {
+        "files": 8,
+        "codeFiles": 6,
+        "codeLines": 494,
+        "largestFile": "/src/pages/Home.tsx",
+        "largestFileLines": 250,
+        "anyCount": 0,
+        "kitImportingFiles": 3,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 2,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.4,
+        "tscErrors": 0,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 53.2,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
     },
     {
       "alias": "kimi-k2.7-code",
@@ -292,7 +342,260 @@
         "provider": "Moonshot AI",
         "systemFingerprint": "fpv0_2742776c"
       },
-      "importIssues": []
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 564
+      },
+      "quality": {
+        "files": 11,
+        "codeFiles": 9,
+        "codeLines": 547,
+        "largestFile": "/src/components/UpdateForm.tsx",
+        "largestFileLines": 92,
+        "anyCount": 0,
+        "kitImportingFiles": 6,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 0,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0,
+        "tscErrors": 0,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 74.2,
+        "fixLatencyMs": 31260,
+        "failKind": "other"
+      }
+    },
+    {
+      "alias": "kimi-k2.7-code",
+      "providerId": "openrouter",
+      "modelId": "moonshotai/kimi-k2.7-code",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-05T12:09:00.596Z",
+      "plan": null,
+      "latencyMs": 561253,
+      "ttftMs": 273880,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 392357,
+          "chars": 15280
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 168894,
+          "chars": 19920
+        }
+      ],
+      "continuations": 1,
+      "truncatedFinal": false,
+      "outputChars": 35200,
+      "estTokens": {
+        "input": 32274,
+        "output": 8800,
+        "estimated": true
+      },
+      "estCostUsd": 0.0501644,
+      "extraction": {
+        "writes": 14,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/kimi-k2.7-code-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/components/PostForm.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "solved": true,
+        "latencyMs": 42077,
+        "remainingErrors": [],
+        "estCostUsd": 0.016268699999999997,
+        "passes": 1
+      },
+      "error": null,
+      "served": {
+        "model": "moonshotai/kimi-k2.7-code",
+        "provider": "SiliconFlow"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 565
+      },
+      "quality": {
+        "files": 13,
+        "codeFiles": 11,
+        "codeLines": 874,
+        "largestFile": "/src/pages/OrganizerPage.tsx",
+        "largestFileLines": 234,
+        "anyCount": 0,
+        "kitImportingFiles": 6,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 1,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.1,
+        "tscErrors": 2,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 15.7,
+        "fixLatencyMs": 42077,
+        "failKind": "other"
+      }
+    },
+    {
+      "alias": "kimi-k2.7-code",
+      "providerId": "openrouter",
+      "modelId": "moonshotai/kimi-k2.7-code",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 2,
+      "startedAt": "2026-11-05T12:19:04.153Z",
+      "plan": null,
+      "latencyMs": 222971,
+      "ttftMs": 159400,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 222971,
+          "chars": 32242
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 32242,
+      "estTokens": {
+        "input": 14170,
+        "output": 8061,
+        "estimated": true
+      },
+      "estCostUsd": 0.0367155,
+      "extraction": {
+        "writes": 12,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/kimi-k2.7-code-t2",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/pages/Question.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/pages/Organize.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "solved": true,
+        "latencyMs": 32243,
+        "remainingErrors": [],
+        "estCostUsd": 0.0252942,
+        "passes": 1
+      },
+      "error": null,
+      "served": {
+        "model": "moonshotai/kimi-k2.7-code",
+        "provider": "Inceptron"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 646
+      },
+      "quality": {
+        "files": 10,
+        "codeFiles": 8,
+        "codeLines": 637,
+        "largestFile": "/src/pages/Organize.tsx",
+        "largestFileLines": 160,
+        "anyCount": 0,
+        "kitImportingFiles": 5,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 0,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0,
+        "tscErrors": 2,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 36.2,
+        "fixLatencyMs": 32243,
+        "failKind": "other"
+      }
     }
   ]
 }

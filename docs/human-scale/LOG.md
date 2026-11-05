@@ -12,6 +12,92 @@ experiment at most $5 and 30 minutes.
 
 ---
 
+## 2026-11-05
+
+**For Josh:** You asked whether to include Kimi and Mistral, so today ran
+four of their open models on the two comparison prompts. Mistral Small 3.2,
+a 24-billion-parameter model that fits a single community machine, made a
+working app 4 times in 5, the best rate of any box-sized model on the board
+so far, at a fifth of a cent a build; its screenshots are worth your eye
+next to Gemma's. Kimi's coding model went 5 for 5 but is far too large to
+host and took up to nine minutes a build; it shows what big open models can
+do, not what a community should run. The day also found that the guard had
+been flagging React wrongly on code that runs fine, which sent many builds
+through needless fix passes; that is fixed. Spend: about $0.54.
+
+**Stack layer moved:** Builder model, from "four open families measured" to
+"six, with the first box-sized model (Mistral Small 3.2) above GLM on
+working builds", and the preview now gets a second automatic fix pass
+behind the flag.
+
+**What was tried.**
+
+1. *Kimi and Mistral on the comparison prompts* (NEXT item 0), three trials
+   a prompt, guard, rules and hints on, Darkbloom excluded, one fix pass
+   (the runs started before the two-pass default landed, so they match the
+   board's other rows). The 20-minute caps on the two Mistral runs and the
+   25-minute cap on Kimi each cut the last build or two.
+
+| Model | Size | Builds | Clean | Median build | Est. cost a build | Hosts |
+|---|---|---|---|---|---|---|
+| Mistral Small 3.2 | 24B dense, about 14 GB at 4-bit | 5 | 4 (80%) | 110s | $0.003 | Parasail |
+| Ministral 14B | 14B dense | 5 | 2 (40%) | 123s | $0.008 | Mistral |
+| Devstral 2 | 123B dense (model card), an 80 GB card | 6 | 4 (67%) | 44s | $0.04 | Mistral |
+| Kimi K2.7 Code | far beyond one box | 5 | 5 (100%) | 142s, one at 561s | $0.05 | four hosts |
+
+   Mistral Small's one miss imported `@/components/ui/toaster`, a shadcn
+   habit the kit does not have, and the fix pass could not untangle it.
+   Ministral's misses were the familiar small-model set (a default import
+   of a names-only App, lucide icons never imported) in bulk. Devstral is
+   fast and its one blank was React error #130 (an undefined component).
+   Kimi solved every fix it needed and never failed, at three to ten times
+   the time of the others on the wall prompt.
+2. *The React false positive.* Devstral's pages rendered clean while the
+   static check kept flagging "React is not defined": the check fired on
+   any `React.` in a file, including type-only uses like
+   `e: React.FormEvent` that compile away. It now fires only on value uses
+   (hooks, `forwardRef`, `<React.StrictMode>`). Since Nov 1, 62 of 93 fix
+   passes had a React trigger and 22 had only that; some share of those
+   were this false positive. Tested both ways.
+3. *Kit and rules from the Mistral misses.* The kit gains a `separator`
+   (four builds across the board imported one that did not exist); the
+   rules and a fix hint say the kit has no toaster and to show a short
+   message inline instead.
+4. *A second automatic fix pass in the preview* (item 1). The Nov 4 run
+   said two passes turned one build in six from broken to clean. Behind the
+   flag the preview now runs a second automatic pass when the first fix
+   surfaces a different error, never for the same error twice, and never
+   after a person's own fix (`src/human-scale/fix-passes.ts`, tested). The
+   bench's standard invocation in DAILY-RUN uses two passes from today.
+5. *By-host table* (item 2): a host shows a rate only at three or more
+   builds; the rest are listed with raw counts. No host other than
+   Darkbloom stands at 0 of 3 or worse.
+6. *Smoke test for the two community routes* (item 4):
+   `scripts/human-scale/smoke-runtime.mjs`. Run against the live project
+   with no credentials: the app runtime answers with its own 401; the
+   Builder's proxy passes `openrouter-community` through to OpenAI, so the
+   open-model branch is not deployed yet.
+7. *Research* (item 9). "Intelligence per Watt" (Saad-Falcon et al.,
+   arXiv 2511.07885, revised Oct 2026): accuracy per watt measured on the
+   accelerator only (NVML, ROCm SMI, Apple powermetrics, 50 ms samples,
+   10 to 15% telemetry error), local models answering 88.7% of single-turn
+   queries, efficiency up 5.3x from 2023 to 2025. No per-query watt-hours
+   in the part read. Useful for the footprint method's honesty note: the
+   best published local measurements count the chip, not the machine.
+
+**What it cost.** About $0.54 estimated over 21 builds (Devstral and Kimi
+were 90% of it), logged as $2.00 worst case before the runs. Session about
+50 minutes.
+
+**Honest read.** Mistral Small 3.2 is the most interesting result of the
+week: a model a community can actually hold, ahead of GLM on working
+builds, at a third of a cent. Five builds is five builds, and design is
+Josh's call; Gemma still has the best designs by his read, and the default
+stays Gemma until he has looked. Kimi's perfect run is a ceiling, not a
+recommendation. The React false positive is a reminder that the guard can
+cost as well as save; every check should be scanned against clean builds,
+as the Nov 4 ones were, and this one predated that habit.
+
 ## 2026-11-04, afternoon (with Josh)
 
 **For Josh:** Two things you asked for. The docs now say what this is: an

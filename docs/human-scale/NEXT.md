@@ -180,64 +180,41 @@ stack layer it moved; pace paid work at $3 to $5 a day.
    hosts; the community route cannot yet (item 4 above). Default if
    unanswered: exclude hosts the board shows at 0% clean over six or more
    builds, name them in the LOG, revisit weekly.
+6. **Mistral Small 3.2's designs.** It made a working app 4 times in 5
+   on Nov 5, ahead of GLM on that count, and it fits one community
+   machine. Its screenshots are on the board under both comparison
+   prompts, dated Nov 5. Worth a look next to Gemma's before the default
+   changes again; default if unanswered: Gemma stays the default.
 
 ## Tomorrow (one run, about 75 minutes)
 
-
-0. **Kimi and Mistral on the comparison prompts (Josh asked, Nov 5).**
-   Three trials each on `--tasks compare`, guard, rules and hints on,
-   Darkbloom excluded, each model its own capped run, log spend first:
-   `mistral-small-3.2` (24B dense, Apache 2.0, about $0.02 for six
-   builds), `ministral-14b` (about $0.02), `devstral` (Mistral's coder,
-   about $0.10; confirm its size and license from the model card and
-   write them into `bench/models.ts`), and `kimi-k2.7-code` once as the
-   large-open reference (about $0.20; not a candidate default, it cannot
-   run on a community box). Shots, measure, board. If a Mistral model
-   lands near Gemma's clean rate, say so in the LOG so Josh can look at
-   its screenshots; design is his call.
-1. **Decide the fix-pass default from the Nov 4 two-pass run.** If two
-   passes moved gemma's clean rate (LOG, item 4) without adding more than
-   about 30 seconds a build, make two the bench default (`--fix-passes 2`
-   in DAILY-RUN's standard invocation) and carry the same "try once more"
-   into the preview's fix banner behind the flag: after a first automatic
-   fix that still fails, offer the second pass with the new errors, not a
-   blank banner. If it did not move the rate, leave the default at one
-   and say so. No spend for the decision; one glm run with the chosen
-   default (about $0.05, log first) keeps the rows like for like.
-2. **The by-host table has single-build rows.** Six different hosts served
-   gemma's six builds on Nov 4; 0% rows with one build are noise. Add a
-   minimum (three builds) before a host row shows a rate, and list the
-   under-three hosts in one line underneath. Then read the table and, if
-   any host stands at 0 of 3 or worse, name it in the LOG and exclude it
-   in the standard invocation the way Darkbloom is.
-3. **Nothing else on the bench until Josh scores.** The four open models
-   have like-for-like rows with the same seven checks; more builds without
-   design scores add rows, not knowledge. Spend the window on the
-   runtime side instead:
-4. **Runtime provenance from a real call.** The kit helper logs calls in
-   the browser; the Builder's provenance store records builder calls. The
-   gap is one real community-runtime call, which needs the deploy. If it
-   is still not deployed, write the small e2e script that a person with
-   the key can run in five minutes (`scripts/human-scale/smoke-runtime.mjs`:
-   one `ai_chat` with `runtime_model: "open"`, print `model`, `host`,
-   `servedBy`, `usage`) and put it under "Needs Josh".
-5. **End-to-end check of export and delete against a live app.** Unchanged:
-   needs a signed-in Builder with a Community Cloud app; otherwise the
-   module tests stay the proof.
-6. **Design scores.** Josh, `SCORES.md`; the board has more than 100
-   open-model builds with screenshots.
+1. **Mistral Small 3.2, enough builds to trust.** Nov 5: 4 of 5 clean on
+   five builds. Run it again with the standard invocation (two fix passes,
+   about $0.02 for six builds, log first) so it has 11 builds like for
+   like, and run Gemma the same way (about $0.03) so the two box-sized
+   leaders are compared under the same two-pass default and the fixed React
+   check. Shots and board. Then say plainly in the LOG which one leads on
+   working builds; the design call is Josh's (question 6).
+2. **Re-measure the board with the fixed React check.** `npm run bench --
+   measure <runDir>` recomputes import issues for every November run; do
+   it for all of them and re-run the board, so the "undeclared" and fix
+   columns stop counting the type-only false positive. No spend.
+3. **Scan every check against clean builds, as a test.** Turn the Nov 4
+   scan script into `bench/lib/check-scan.test.ts` over a small committed
+   fixture set (three clean builds' files, copied under
+   `bench/fixtures/clean/`): every static check must return nothing on
+   them. This would have caught the React false positive on day one.
+4. **End-to-end check of export and delete.** Unchanged: needs a signed-in
+   Builder with a Community Cloud app.
 
 ## After that, in order
 
-7. **Self-host runbook, backend half, run for real.** Needs Docker or a
+5. **Self-host runbook, backend half, run for real.** Needs Docker or a
    spare Supabase project.
-8. **The third prompt.** `hs-listening-wall-themes` is in the task list
-   with its two AI checks. One trial per open model (about $0.05) the day
-   Josh says yes.
-9. **Research rotation.** Bendor et al. is cited from the abstract (LOG,
-   Nov 4); the PDF needs library access. Next: the "Intelligence per
-   Watt" paper (Stanford and Together AI, arXiv 2511.07885) for the
-   footprint column's method.
+6. **The third prompt.** Waits on Josh's yes (question 4).
+7. **Research rotation.** Green Web Foundation's "State of the Fossil-Free
+   Internet 2026" for the footprint method; then whatever new small open
+   model lands on OpenRouter that week.
 
 ## Drop or defer
 
