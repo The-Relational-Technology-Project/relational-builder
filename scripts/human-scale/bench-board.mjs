@@ -294,15 +294,24 @@ async function main() {
         '',
         'Recorded from the provider\'s stream metadata since Nov 3, 2026 (earlier builds have no host). A model name is not a model: compare rows for one model before trusting its average.',
         '',
+        'A host shows a rate only once it has served three builds of that model; fewer is noise, so those hosts are listed underneath with their raw counts.',
+        '',
         '| Model | Served by | Builds | Clean | Bundled | First failure kinds |',
         '|---|---|---|---|---|---|',
-        ...[...byMH.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([k, rs]) => {
+        ...[...byMH.entries()].filter(([, rs]) => rs.length >= 3).sort((a, b) => a[0].localeCompare(b[0])).map(([k, rs]) => {
           const [alias, host] = k.split('|');
           const fails = [...new Set(rs.filter(r => r.outcome !== 'clean').map(r => r.outcome))].join(', ');
           return `| ${alias} | ${host} | ${rs.length} | **${pct(rs.filter(r => r.outcome === 'clean').length, rs.length) || '0%'}** | ${pct(rs.filter(r => r.bundled).length, rs.length) || '0%'} | ${fails} |`;
         }),
         '',
       );
+      const few = [...byMH.entries()].filter(([, rs]) => rs.length < 3).sort((a, b) => a[0].localeCompare(b[0]));
+      if (few.length) {
+        lines.push(
+          `Fewer than three builds: ${few.map(([k, rs]) => { const [alias, host] = k.split('|'); return `${alias} on ${host} (${rs.filter(r => r.outcome === 'clean').length} of ${rs.length} clean)`; }).join('; ')}.`,
+          '',
+        );
+      }
     }
   }
 
