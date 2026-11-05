@@ -5,7 +5,10 @@
  * not from a model's reputation: a model is listed here when it has
  * produced a working app on the two comparison prompts often enough, with
  * the guard and hints on, to be worth a neighbor's minute. The order is
- * the order of evidence as of the date on each line. Change this file and
+ * the order of evidence as of the date on each line: clean rate first,
+ * then human design review where the rates are close (Nov 5: Gemma and
+ * GLM are within a few points on clean builds, and Gemma's designs are
+ * clearly ahead). Change this file and
  * the model menu, the community default and the bench's "first choice"
  * all follow.
  */
@@ -23,15 +26,15 @@ export interface OpenBuilderModel {
 
 export const OPEN_BUILDER_MODELS: OpenBuilderModel[] = [
   {
-    id: 'z-ai/glm-4.5-air',
-    name: 'GLM 4.5 Air (open)',
-    evidence: 'Nov 4: 71% clean over 24 guarded builds on the comparison prompts, 86s median, under a cent a build',
-  },
-  {
     id: 'google/gemma-4-26b-a4b-it',
     name: 'Gemma 4 26B (open)',
     activeParams: 4e9,
-    evidence: 'Nov 4: 9 of 12 clean off the one host that serves it broken; 4B active parameters, runs on a 16 GB box',
+    evidence: 'Nov 5: best design of the open models by a clear margin (Josh, reviewing the board); 9 of 12 clean off the one host that serves it broken; 4B active parameters, runs on a 16 GB box',
+  },
+  {
+    id: 'z-ai/glm-4.5-air',
+    name: 'GLM 4.5 Air (open)',
+    evidence: 'Nov 4: 71% clean over 24 guarded builds on the comparison prompts, 86s median, under a cent a build',
   },
   {
     id: 'openai/gpt-oss-120b',

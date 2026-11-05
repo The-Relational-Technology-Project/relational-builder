@@ -12,5 +12,14 @@ results folder name (the date prefix is enough: `2026-10-30T11-26`).
   zero-setup, bounded jobs over chat boxes.
 - **Completeness**: does it do what the prompt asked, end to end?
 
+## Overall read
+
+Josh, Nov 5, 2026, from the screenshots on the board: Gemma 4 26B has the
+best designs of the open models, and by a clear margin; GLM 4.5 Air next,
+then GPT-OSS 120B, then the Qwen coder. Not yet per-build scores; the
+builder default follows this read where clean rates are close.
+
+## Per-build scores
+
 | run | task | model | design | rtp fit | completeness | notes |
 |---|---|---|---|---|---|---|

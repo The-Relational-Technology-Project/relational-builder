@@ -67,6 +67,15 @@ back to Opus.
 2. **OpenRouter-hosted open-weight models count as community-hostable** for
    the demo and the bench.
 
+## Design read from Josh (2026-11-05)
+
+Overall, from the board's screenshots: **Gemma 4 26B looks best, and
+clearly ahead**; GLM 4.5 Air next; GPT-OSS 120B; then the Qwen coder.
+The open builder default moved to Gemma the same day (its clean rate off
+the bad host, 9 of 12, is within a few points of GLM's 71%). Per-build
+scores in `SCORES.md` would still sharpen this; the overall read is
+recorded there too.
+
 ## Direction from Josh (2026-10-30, supersedes the order below where they differ)
 
 Focus the loop on **open models doing the app-building**, and on evaluating
@@ -164,6 +173,18 @@ stack layer it moved; pace paid work at $3 to $5 a day.
 
 ## Tomorrow (one run, about 75 minutes)
 
+
+0. **Kimi and Mistral on the comparison prompts (Josh asked, Nov 5).**
+   Three trials each on `--tasks compare`, guard, rules and hints on,
+   Darkbloom excluded, each model its own capped run, log spend first:
+   `mistral-small-3.2` (24B dense, Apache 2.0, about $0.02 for six
+   builds), `ministral-14b` (about $0.02), `devstral` (Mistral's coder,
+   about $0.10; confirm its size and license from the model card and
+   write them into `bench/models.ts`), and `kimi-k2.7-code` once as the
+   large-open reference (about $0.20; not a candidate default, it cannot
+   run on a community box). Shots, measure, board. If a Mistral model
+   lands near Gemma's clean rate, say so in the LOG so Josh can look at
+   its screenshots; design is his call.
 1. **Decide the fix-pass default from the Nov 4 two-pass run.** If two
    passes moved gemma's clean rate (LOG, item 4) without adding more than
    about 30 seconds a build, make two the bench default (`--fix-passes 2`

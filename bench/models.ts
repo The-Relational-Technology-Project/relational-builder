@@ -226,6 +226,43 @@ export const BENCH_MODELS: BenchModel[] = [
     enabled: false,
   },
 
+  // Mistral's open-weight models (Apache 2.0) at the sizes a community box
+  // can hold (Josh, Nov 5): a 24B dense instruct model (about 14 GB at
+  // 4-bit) and a 14B one. Devstral is Mistral's coding model; check its
+  // size and license on the model card before calling it hostable. Pricing
+  // = OpenRouter list prices on Nov 5, 2026.
+  {
+    alias: 'mistral-small-3.2',
+    providerId: 'openrouter',
+    modelId: 'mistralai/mistral-small-3.2-24b-instruct',
+    pricing: { inputPerMTok: 0.075, outputPerMTok: 0.2, asOf: '2026-11' },
+    enabled: false,
+  },
+  {
+    alias: 'ministral-14b',
+    providerId: 'openrouter',
+    modelId: 'mistralai/ministral-14b-2512',
+    pricing: { inputPerMTok: 0.2, outputPerMTok: 0.2, asOf: '2026-11' },
+    enabled: false,
+  },
+  {
+    alias: 'devstral',
+    providerId: 'openrouter',
+    modelId: 'mistralai/devstral-2512',
+    pricing: { inputPerMTok: 0.4, outputPerMTok: 2, asOf: '2026-11' },
+    enabled: false,
+  },
+  // Kimi's coding model, as an open-weight upper reference: far too large
+  // for a community box, so it bounds what open can do rather than being a
+  // candidate default (kimi-k3 in July: 17-minute builds, 3 of 5 bundled)
+  {
+    alias: 'kimi-k2.7-code',
+    providerId: 'openrouter',
+    modelId: 'moonshotai/kimi-k2.7-code',
+    pricing: { inputPerMTok: 0.6, outputPerMTok: 3.5, asOf: '2026-11' },
+    enabled: false,
+  },
+
   // --- Moonshot direct (env: MOONSHOT_API_KEY) --- the OpenRouter kimi-k3
   //     mirror above runs on whichever host OpenRouter routes to; this one
   //     hits Moonshot's own API, so latency and quality are the model's own.
