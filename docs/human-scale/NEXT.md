@@ -250,6 +250,19 @@ stack layer it moved; pace paid work at $3 to $5 a day.
    to the question is his eye on that page plus whether the clean rate
    held; say both in the LOG and do not declare a winner on proxies
    alone.
+
+   *Show Josh in the conversation (he asked, Nov 5).* The daily run fires
+   in the same chat Josh reads, so at the end of the run put the outputs
+   in front of him there, not only on the board: build one self-contained
+   HTML contact sheet (`docs/human-scale/shots/design-ab-<date>.html`,
+   images embedded so it opens anywhere; rows are models, columns are
+   `none`, `recipe`, `direction`, both prompts, each image captioned with
+   model, variant, clean or not, and build time) and send it with the
+   file-sending tool to render inline, plus the three or four most
+   telling screenshots as individual images. Then a short note in the
+   final message: what changed, whether working code held, and the one
+   question for him (which column looks closest to what neighborhood
+   tools should look like).
 1. **Mistral Small 3.2, enough builds to trust.** Nov 5: 4 of 5 clean on
    five builds. Run it again with the standard invocation (two fix passes,
    about $0.02 for six builds, log first) so it has 11 builds like for
