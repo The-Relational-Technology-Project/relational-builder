@@ -53,6 +53,16 @@ curl -X POST -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" -H "Content-Type:
 `COMMUNITY_OPEN_MODELS` (optional) narrows or extends the covered open
 models without a deploy; the default mirrors the client's list.
 
+**Smoke test after the deploys (Nov 5):** `node scripts/human-scale/smoke-runtime.mjs`
+with `LLM_PROXY_URL` and `APP_CAPABILITIES_URL` set checks both routes
+without credentials; add `COMMUNITY_TOKEN` (a signed-in member's session
+token) and `APP_ID`/`APP_KEY` (a scratch app with Community AI) for one
+real call each, printing the model, the serving host and the usage. Run
+against the live project on Nov 5 with no credentials: `app-capabilities`
+answers with its own 401 (which the old code does too, so that proves
+nothing about the open route), and `llm-proxy` passes `openrouter-community`
+through to OpenAI, which means the new branch is not deployed yet.
+
 Until then, apps on this branch that pick the community runtime get the
 server's clear "open model is not configured" error; nothing silently falls
 back to Opus.
