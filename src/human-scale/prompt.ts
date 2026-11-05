@@ -23,6 +23,7 @@ export const HUMAN_SCALE_BUILD_RULES = [
   '- `zustand` and `lucide-react` export names only: `import { create } from \'zustand\'`, `import { Calendar, Users } from \'lucide-react\'`. Only import icons that exist in lucide-react; when unsure, use a common one (Calendar, Users, Plus, Check, MapPin, Heart, Home, List).',
   '- Every component you use in JSX must be imported or declared in that file. A `<Calendar />` with no import is a crash, not a warning.',
   '- An app-class request is always the multi-file app stack (`/src/main.tsx`, `/src/App.tsx`, `/src/index.css`, pages and components). Never answer an app request with a single HTML file.',
+  '- The kit has `separator` (`<Separator />`, a thin divider) but no toast, toaster or sonner: show a short message inline next to what the person did ("Saved", "Posted") instead of importing `@/components/ui/toaster` or `use-toast`.',
   '- Kit props named `icon` take an element, not a component: `<BottomNavItem icon={<Users />} />`, `<EmptyState icon={<Heart />} />`. Passing the bare name (`icon={Users}`) renders an object as a child and blanks the page.',
   '- Never write files under `src/components/ui/` or `src/lib/` unless the person asked to customize a kit component. The kit already provides them; a rewritten `avatar.tsx` or `button.tsx` that imports a helper the kit does not have (`@/lib/cn`) breaks every page that uses it. Import the kit, do not re-create it.',
 ].join('\n');

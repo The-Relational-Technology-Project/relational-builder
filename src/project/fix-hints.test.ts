@@ -69,4 +69,9 @@ describe('fixHints', () => {
     expect(h.join(' ')).toContain('Keep one router');
     expect(h.join(' ')).toContain('--font-inter');
   });
+
+  it('says the kit has no toaster and to message inline (Mistral, Nov 5)', () => {
+    const h = fixHints('vfs:/src/App.tsx: Could not find "@/components/ui/toaster" in the project (imported from /src/App.tsx)', KIT_FILES);
+    expect(h.join(' ')).toContain('The kit has no `toaster`');
+  });
 });

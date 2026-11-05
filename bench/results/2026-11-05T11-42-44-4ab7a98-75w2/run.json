@@ -1,0 +1,638 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1,exp-v1",
+  "gitCommit": "4ab7a98",
+  "createdAt": "2026-11-05T11:57:54.004Z",
+  "runId": "2026-11-05T11-42-44-4ab7a98-75w2",
+  "config": {
+    "trials": 3,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": null,
+    "importGuard": true,
+    "fixHints": true,
+    "humanScaleRules": true,
+    "fixPasses": 1,
+    "openrouterIgnore": "Darkbloom",
+    "openrouterOnly": null
+  },
+  "models": [
+    {
+      "alias": "ministral-14b",
+      "providerId": "openrouter",
+      "modelId": "mistralai/ministral-14b-2512",
+      "pricing": {
+        "inputPerMTok": 0.2,
+        "outputPerMTok": 0.2,
+        "asOf": "2026-11"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "hs-community-fridge",
+      "version": "exp-v1"
+    },
+    {
+      "id": "hs-listening-wall",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "ministral-14b",
+      "providerId": "openrouter",
+      "modelId": "mistralai/ministral-14b-2512",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-05T11:42:44.972Z",
+      "plan": null,
+      "latencyMs": 183725,
+      "ttftMs": 2650,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 183724,
+          "chars": 38046
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 38046,
+      "estTokens": {
+        "input": 14179,
+        "output": 9512,
+        "estimated": true
+      },
+      "estCostUsd": 0.004738200000000001,
+      "extraction": {
+        "writes": 12,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/ministral-14b-t1",
+      "fixRound": null,
+      "error": null,
+      "served": {
+        "model": "mistralai/ministral-14b-2512",
+        "provider": "Mistral"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 568
+      },
+      "quality": {
+        "files": 12,
+        "codeFiles": 6,
+        "codeLines": 739,
+        "largestFile": "/src/data/store.ts",
+        "largestFileLines": 218,
+        "anyCount": 0,
+        "kitImportingFiles": 4,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 4,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.5,
+        "tscErrors": 7,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 51.8,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    },
+    {
+      "alias": "ministral-14b",
+      "providerId": "openrouter",
+      "modelId": "mistralai/ministral-14b-2512",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 2,
+      "startedAt": "2026-11-05T11:45:48.914Z",
+      "plan": null,
+      "latencyMs": 76175,
+      "ttftMs": 1164,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 76174,
+          "chars": 20885
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 20885,
+      "estTokens": {
+        "input": 14179,
+        "output": 5222,
+        "estimated": true
+      },
+      "estCostUsd": 0.0038802000000000003,
+      "extraction": {
+        "writes": 14,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": false,
+        "errors": [
+          "vfs:/src/main.tsx:3: No matching export in \"vfs:/src/App.tsx\" for import \"default\""
+        ]
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": false
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/ministral-14b-t2",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/main.tsx:3: No matching export in \"vfs:/src/App.tsx\" for import \"default\"",
+          "vfs:/src/main.tsx: No matching export in \"vfs:/src/App.tsx\" for import \"default\" (it exports names only)",
+          "vfs:/src/components/PostForm.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/components/ShiftForm.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "solved": false,
+        "latencyMs": 18842,
+        "remainingErrors": [
+          "vfs:/src/main.tsx:3: No matching export in \"vfs:/src/App.tsx\" for import \"default\"",
+          "vfs:/src/main.tsx: No matching export in \"vfs:/src/App.tsx\" for import \"default\" (it exports names only)",
+          "vfs:/src/components/PostForm.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/components/ShiftForm.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "estCostUsd": 0.0041938,
+        "passes": 1
+      },
+      "error": null,
+      "served": {
+        "model": "mistralai/ministral-14b-2512",
+        "provider": "Mistral"
+      },
+      "importIssues": [
+        "vfs:/src/components/PostForm.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+        "vfs:/src/components/ShiftForm.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+        "vfs:/src/main.tsx: No matching export in \"vfs:/src/App.tsx\" for import \"default\" (it exports names only)"
+      ],
+      "quality": {
+        "files": 12,
+        "codeFiles": 9,
+        "codeLines": 581,
+        "largestFile": "/src/store.ts",
+        "largestFileLines": 164,
+        "anyCount": 0,
+        "kitImportingFiles": 6,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 7,
+        "lintWarnings": 0,
+        "lintPer100Lines": 1.2,
+        "tscErrors": null,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 68.5,
+        "fixLatencyMs": 18842,
+        "failKind": "bad-import"
+      }
+    },
+    {
+      "alias": "ministral-14b",
+      "providerId": "openrouter",
+      "modelId": "mistralai/ministral-14b-2512",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 3,
+      "startedAt": "2026-11-05T11:47:24.101Z",
+      "plan": null,
+      "latencyMs": 90151,
+      "ttftMs": 1091,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 90151,
+          "chars": 22916
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 22916,
+      "estTokens": {
+        "input": 14179,
+        "output": 5729,
+        "estimated": true
+      },
+      "estCostUsd": 0.0039816,
+      "extraction": {
+        "writes": 12,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": false,
+        "errors": [
+          "vfs:/src/main.tsx:3: No matching export in \"vfs:/src/App.tsx\" for import \"default\""
+        ]
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/ministral-14b-t3",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/main.tsx:3: No matching export in \"vfs:/src/App.tsx\" for import \"default\"",
+          "vfs:/src/main.tsx: No matching export in \"vfs:/src/App.tsx\" for import \"default\" (it exports names only)",
+          "vfs:/src/App.tsx: <Home> is used but never imported or declared in this file",
+          "vfs:/src/App.tsx: <List> is used but never imported or declared in this file",
+          "vfs:/src/App.tsx: <Calendar> is used but never imported or declared in this file",
+          "vfs:/src/App.tsx: <Truck> is used but never imported or declared in this file",
+          "vfs:/src/pages/UpdatesPage.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/pages/UpdatesPage.tsx: <EmptyState> is used but never imported or declared in this file"
+        ],
+        "solved": false,
+        "latencyMs": 24404,
+        "remainingErrors": [
+          "vfs:/src/main.tsx:3: No matching export in \"vfs:/src/App.tsx\" for import \"default\"",
+          "vfs:/src/main.tsx: No matching export in \"vfs:/src/App.tsx\" for import \"default\" (it exports names only)"
+        ],
+        "estCostUsd": 0.0044038,
+        "passes": 1
+      },
+      "error": null,
+      "served": {
+        "model": "mistralai/ministral-14b-2512",
+        "provider": "Mistral"
+      },
+      "importIssues": [
+        "vfs:/src/main.tsx: No matching export in \"vfs:/src/App.tsx\" for import \"default\" (it exports names only)"
+      ],
+      "quality": {
+        "files": 10,
+        "codeFiles": 7,
+        "codeLines": 590,
+        "largestFile": "/src/store.ts",
+        "largestFileLines": 180,
+        "anyCount": 0,
+        "kitImportingFiles": 5,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 8,
+        "lintWarnings": 0,
+        "lintPer100Lines": 1.4,
+        "tscErrors": null,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 63.5,
+        "fixLatencyMs": 24404,
+        "failKind": "bad-import"
+      }
+    },
+    {
+      "alias": "ministral-14b",
+      "providerId": "openrouter",
+      "modelId": "mistralai/ministral-14b-2512",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-05T11:49:18.785Z",
+      "plan": null,
+      "latencyMs": 201713,
+      "ttftMs": 1026,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 201713,
+          "chars": 39458
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 39458,
+      "estTokens": {
+        "input": 14170,
+        "output": 9865,
+        "estimated": true
+      },
+      "estCostUsd": 0.0048070000000000005,
+      "extraction": {
+        "writes": 20,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": false,
+        "errors": [
+          "vfs:/src/pages/HomePage.tsx:12: The symbol \"setSelectedQuestion\" has already been declared"
+        ]
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/ministral-14b-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/pages/HomePage.tsx:12: The symbol \"setSelectedQuestion\" has already been declared",
+          "vfs:/src/main.tsx: No matching export in \"vfs:/src/App.tsx\" for import \"default\" (it exports names only)",
+          "vfs:/src/App.tsx: <House> is used but never imported or declared in this file",
+          "vfs:/src/App.tsx: <MessageSquare> is used but never imported or declared in this file",
+          "vfs:/src/App.tsx: <List> is used but never imported or declared in this file",
+          "vfs:/src/App.tsx: <Info> is used but never imported or declared in this file",
+          "vfs:/src/pages/QuestionsPage.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/pages/ThemesPage.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/components/ResponseCard.tsx: No matching export in \"vfs:/src/store.ts\" for import \"Response\"",
+          "vfs:/src/components/QuestionCard.tsx: No matching export in \"vfs:/src/store.ts\" for import \"Question\""
+        ],
+        "solved": false,
+        "latencyMs": 132110,
+        "remainingErrors": [
+          "vfs:/src/pages/HomePage.tsx:12: The symbol \"setSelectedQuestion\" has already been declared",
+          "vfs:/src/main.tsx: No matching export in \"vfs:/src/App.tsx\" for import \"default\" (it exports names only)",
+          "vfs:/src/pages/QuestionsPage.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/pages/ThemesPage.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "estCostUsd": 0.006218400000000001,
+        "passes": 1
+      },
+      "error": null,
+      "served": {
+        "model": "mistralai/ministral-14b-2512",
+        "provider": "Mistral"
+      },
+      "importIssues": [
+        "vfs:/src/main.tsx: No matching export in \"vfs:/src/App.tsx\" for import \"default\" (it exports names only)",
+        "vfs:/src/pages/QuestionsPage.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+        "vfs:/src/pages/ThemesPage.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+      ],
+      "quality": {
+        "files": 13,
+        "codeFiles": 10,
+        "codeLines": 850,
+        "largestFile": "/src/store.ts",
+        "largestFileLines": 198,
+        "anyCount": 0,
+        "kitImportingFiles": 7,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 6,
+        "lintWarnings": 1,
+        "lintPer100Lines": 0.8,
+        "tscErrors": null,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 48.9,
+        "fixLatencyMs": 132110,
+        "failKind": "other"
+      }
+    },
+    {
+      "alias": "ministral-14b",
+      "providerId": "openrouter",
+      "modelId": "mistralai/ministral-14b-2512",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 2,
+      "startedAt": "2026-11-05T11:54:52.766Z",
+      "plan": null,
+      "latencyMs": 122988,
+      "ttftMs": 1142,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 122988,
+          "chars": 23476
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 23476,
+      "estTokens": {
+        "input": 14170,
+        "output": 5869,
+        "estimated": true
+      },
+      "estCostUsd": 0.004007800000000001,
+      "extraction": {
+        "writes": 13,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/ministral-14b-t2",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/pages/Home.tsx:8: No matching export in \"vfs:/src/data/seed.ts\" for import \"questions\"",
+          "vfs:/src/App.tsx: <Home> is used but never imported or declared in this file",
+          "vfs:/src/App.tsx: <List> is used but never imported or declared in this file",
+          "vfs:/src/App.tsx: <Info> is used but never imported or declared in this file",
+          "vfs:/src/data/seed.ts: No matching export in \"vfs:/src/store.ts\" for import \"Response\"",
+          "vfs:/src/data/seed.ts: No matching export in \"vfs:/src/store.ts\" for import \"Theme\"",
+          "vfs:/src/pages/Home.tsx: No matching export in \"vfs:/src/data/seed.ts\" for import \"questions\"",
+          "vfs:/src/pages/Home.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "solved": false,
+        "latencyMs": 58066,
+        "remainingErrors": [
+          "vfs:/src/data/seed.ts: No matching export in \"vfs:/src/store.ts\" for import \"Response\"",
+          "vfs:/src/data/seed.ts: No matching export in \"vfs:/src/store.ts\" for import \"Theme\"",
+          "vfs:/src/pages/Home.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "estCostUsd": 0.0046214,
+        "passes": 1
+      },
+      "error": null,
+      "served": {
+        "model": "mistralai/ministral-14b-2512",
+        "provider": "Mistral"
+      },
+      "importIssues": [
+        "vfs:/src/data/seed.ts: No matching export in \"vfs:/src/store.ts\" for import \"Response\"",
+        "vfs:/src/data/seed.ts: No matching export in \"vfs:/src/store.ts\" for import \"Theme\"",
+        "vfs:/src/pages/Home.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+      ],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 1951
+      },
+      "quality": {
+        "files": 10,
+        "codeFiles": 8,
+        "codeLines": 589,
+        "largestFile": "/src/pages/Home.tsx",
+        "largestFileLines": 151,
+        "anyCount": 0,
+        "kitImportingFiles": 4,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 0,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0,
+        "tscErrors": 7,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 47.7,
+        "fixLatencyMs": 58066,
+        "failKind": "bad-import"
+      }
+    }
+  ]
+}

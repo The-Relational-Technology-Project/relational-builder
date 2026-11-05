@@ -1,0 +1,343 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1,exp-v1",
+  "gitCommit": "aaa92f3",
+  "createdAt": "2026-11-05T12:05:03.804Z",
+  "runId": "2026-11-05T12-02-51-aaa92f3-4zqw",
+  "config": {
+    "trials": 3,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": null,
+    "importGuard": true,
+    "fixHints": true,
+    "humanScaleRules": true,
+    "fixPasses": 1,
+    "openrouterIgnore": "Darkbloom",
+    "openrouterOnly": null
+  },
+  "models": [
+    {
+      "alias": "devstral",
+      "providerId": "openrouter",
+      "modelId": "mistralai/devstral-2512",
+      "pricing": {
+        "inputPerMTok": 0.4,
+        "outputPerMTok": 2,
+        "asOf": "2026-11"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "hs-community-fridge",
+      "version": "exp-v1"
+    },
+    {
+      "id": "hs-listening-wall",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "devstral",
+      "providerId": "openrouter",
+      "modelId": "mistralai/devstral-2512",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-05T12:02:51.482Z",
+      "plan": null,
+      "latencyMs": 39804,
+      "ttftMs": 3200,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 34451,
+          "chars": 26175
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 2813,
+          "chars": 39
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 1100,
+          "chars": 39
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 1438,
+          "chars": 221
+        }
+      ],
+      "continuations": 3,
+      "truncatedFinal": false,
+      "outputChars": 26474,
+      "estTokens": {
+        "input": 77192,
+        "output": 6619,
+        "estimated": true
+      },
+      "estCostUsd": 0.044114799999999996,
+      "extraction": {
+        "writes": 14,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": false,
+        "errors": [
+          "vfs:/src/pages/Home.tsx:35: Expected \">\" but found \"[\""
+        ]
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/devstral-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/pages/Home.tsx:34: Expected \">\" but found \"[\"",
+          "vfs:/src/pages/AddUpdate.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/pages/AddShift.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "solved": false,
+        "latencyMs": 11516,
+        "remainingErrors": [
+          "vfs:/src/pages/Home.tsx:35: Expected \">\" but found \"[\"",
+          "vfs:/src/pages/AddUpdate.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/pages/AddShift.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "estCostUsd": 0.014116400000000001,
+        "passes": 1
+      },
+      "error": null,
+      "served": {
+        "model": "mistralai/devstral-2512",
+        "provider": "Mistral"
+      },
+      "importIssues": [
+        "vfs:/src/pages/AddUpdate.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+        "vfs:/src/pages/AddShift.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+      ]
+    },
+    {
+      "alias": "devstral",
+      "providerId": "openrouter",
+      "modelId": "mistralai/devstral-2512",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 2,
+      "startedAt": "2026-11-05T12:03:43.018Z",
+      "plan": null,
+      "latencyMs": 29710,
+      "ttftMs": 4160,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 29709,
+          "chars": 20120
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 20120,
+      "estTokens": {
+        "input": 14179,
+        "output": 5030,
+        "estimated": true
+      },
+      "estCostUsd": 0.0157316,
+      "extraction": {
+        "writes": 10,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/devstral-t2",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/pages/AddUpdate.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "solved": false,
+        "latencyMs": 5814,
+        "remainingErrors": [
+          "vfs:/src/pages/AddUpdate.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "estCostUsd": 0.009827200000000001,
+        "passes": 1
+      },
+      "error": null,
+      "served": {
+        "model": "mistralai/devstral-2512",
+        "provider": "Mistral"
+      },
+      "importIssues": [
+        "vfs:/src/pages/AddUpdate.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+      ]
+    },
+    {
+      "alias": "devstral",
+      "providerId": "openrouter",
+      "modelId": "mistralai/devstral-2512",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 3,
+      "startedAt": "2026-11-05T12:04:18.828Z",
+      "plan": null,
+      "latencyMs": 35207,
+      "ttftMs": 900,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 35207,
+          "chars": 28018
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 28018,
+      "estTokens": {
+        "input": 14179,
+        "output": 7005,
+        "estimated": true
+      },
+      "estCostUsd": 0.0196816,
+      "extraction": {
+        "writes": 13,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/devstral-t3",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/pages/AddShift.tsx:99: Unexpected closing \"Card\" tag does not match opening \"CardContent\" tag",
+          "vfs:/src/pages/AddShift.tsx:100: Unexpected closing \"div\" tag does not match opening \"Card\" tag",
+          "vfs:/src/pages/AddUpdate.tsx:119: Unexpected closing \"Card\" tag does not match opening \"CardContent\" tag",
+          "vfs:/src/pages/AddUpdate.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/pages/AddShift.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "solved": false,
+        "latencyMs": 9545,
+        "remainingErrors": [
+          "vfs:/src/pages/AddUpdate.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/pages/AddShift.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "estCostUsd": 0.012392,
+        "passes": 1
+      },
+      "error": null,
+      "served": {
+        "model": "mistralai/devstral-2512",
+        "provider": "Mistral"
+      },
+      "importIssues": [
+        "vfs:/src/pages/AddUpdate.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+        "vfs:/src/pages/AddShift.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+      ]
+    }
+  ]
+}

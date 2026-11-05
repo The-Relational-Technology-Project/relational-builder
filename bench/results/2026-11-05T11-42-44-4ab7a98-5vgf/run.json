@@ -2,7 +2,7 @@
   "harnessVersion": "1.2.0",
   "taskVersion": "exp-v1,exp-v1",
   "gitCommit": "4ab7a98",
-  "createdAt": "2026-11-05T11:44:35.348Z",
+  "createdAt": "2026-11-05T11:53:45.408Z",
   "runId": "2026-11-05T11-42-44-4ab7a98-5vgf",
   "config": {
     "trials": 3,
@@ -115,7 +115,474 @@
         "model": "mistralai/mistral-small-3.2-24b-instruct",
         "provider": "Parasail"
       },
-      "importIssues": []
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 809
+      },
+      "quality": {
+        "files": 9,
+        "codeFiles": 7,
+        "codeLines": 546,
+        "largestFile": "/src/stores/useStore.ts",
+        "largestFileLines": 151,
+        "anyCount": 0,
+        "kitImportingFiles": 5,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 0,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0,
+        "tscErrors": 7,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 47.1,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    },
+    {
+      "alias": "mistral-small-3.2",
+      "providerId": "openrouter",
+      "modelId": "mistralai/mistral-small-3.2-24b-instruct",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 2,
+      "startedAt": "2026-11-05T11:44:35.350Z",
+      "plan": null,
+      "latencyMs": 105906,
+      "ttftMs": 1643,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 105905,
+          "chars": 20063
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 20063,
+      "estTokens": {
+        "input": 14179,
+        "output": 5016,
+        "estimated": true
+      },
+      "estCostUsd": 0.002066625,
+      "extraction": {
+        "writes": 14,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/mistral-small-3.2-t2",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/pages/FridgeStatus.tsx: The requested module 'lucide-react' does not provide an export named 'Update'",
+          "vfs:/src/pages/Updates.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "solved": true,
+        "latencyMs": 24604,
+        "remainingErrors": [],
+        "estCostUsd": 0.0017485,
+        "passes": 1
+      },
+      "error": null,
+      "served": {
+        "model": "mistralai/mistral-small-3.2-24b-instruct",
+        "provider": "Parasail"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 205
+      },
+      "quality": {
+        "files": 12,
+        "codeFiles": 10,
+        "codeLines": 546,
+        "largestFile": "/src/pages/Updates.tsx",
+        "largestFileLines": 99,
+        "anyCount": 0,
+        "kitImportingFiles": 5,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 2,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.4,
+        "tscErrors": 4,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 47.4,
+        "fixLatencyMs": 24604,
+        "failKind": "bad-import"
+      }
+    },
+    {
+      "alias": "mistral-small-3.2",
+      "providerId": "openrouter",
+      "modelId": "mistralai/mistral-small-3.2-24b-instruct",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 3,
+      "startedAt": "2026-11-05T11:46:46.069Z",
+      "plan": null,
+      "latencyMs": 105085,
+      "ttftMs": 5453,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 105085,
+          "chars": 18001
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 18001,
+      "estTokens": {
+        "input": 14179,
+        "output": 4501,
+        "estimated": true
+      },
+      "estCostUsd": 0.001963625,
+      "extraction": {
+        "writes": 7,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/mistral-small-3.2-t3",
+      "fixRound": null,
+      "error": null,
+      "served": {
+        "model": "mistralai/mistral-small-3.2-24b-instruct",
+        "provider": "Parasail"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 253
+      },
+      "quality": {
+        "files": 7,
+        "codeFiles": 5,
+        "codeLines": 436,
+        "largestFile": "/src/pages/ShiftsPage.tsx",
+        "largestFileLines": 163,
+        "anyCount": 0,
+        "kitImportingFiles": 4,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 3,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.7,
+        "tscErrors": 3,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 42.8,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    },
+    {
+      "alias": "mistral-small-3.2",
+      "providerId": "openrouter",
+      "modelId": "mistralai/mistral-small-3.2-24b-instruct",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-05T11:48:31.262Z",
+      "plan": null,
+      "latencyMs": 149661,
+      "ttftMs": 1356,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 149660,
+          "chars": 29956
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 29956,
+      "estTokens": {
+        "input": 14170,
+        "output": 7489,
+        "estimated": true
+      },
+      "estCostUsd": 0.00256055,
+      "extraction": {
+        "writes": 12,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": false,
+        "errors": [
+          "vfs:/src/App.tsx:6: No matching export in \"vfs:/src/components/ui/toaster.tsx\" for import \"Toaster\""
+        ]
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": false
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/mistral-small-3.2-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/App.tsx:6: Could not find \"@/components/ui/toaster\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx: Could not find \"@/components/ui/toaster\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/pages/Home.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "solved": false,
+        "latencyMs": 20427,
+        "remainingErrors": [
+          "vfs:/src/App.tsx:6: No matching export in \"vfs:/src/components/ui/toaster.tsx\" for import \"Toaster\"",
+          "vfs:/src/App.tsx: No matching export in \"vfs:/src/components/ui/toaster.tsx\" for import \"Toaster\"",
+          "vfs:/src/pages/Home.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "estCostUsd": 0.0018047999999999999,
+        "passes": 1
+      },
+      "error": null,
+      "served": {
+        "model": "mistralai/mistral-small-3.2-24b-instruct",
+        "provider": "Parasail"
+      },
+      "importIssues": [
+        "vfs:/src/App.tsx: No matching export in \"vfs:/src/components/ui/toaster.tsx\" for import \"Toaster\"",
+        "vfs:/src/pages/Home.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+      ],
+      "quality": {
+        "files": 12,
+        "codeFiles": 10,
+        "codeLines": 981,
+        "largestFile": "/src/data/responses.ts",
+        "largestFileLines": 491,
+        "anyCount": 0,
+        "kitImportingFiles": 4,
+        "handRolledUiFiles": 1,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 1,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.1,
+        "tscErrors": null,
+        "tscSyntaxErrors": 3,
+        "tokensPerSecond": 50,
+        "fixLatencyMs": 20427,
+        "failKind": "missing-file"
+      }
+    },
+    {
+      "alias": "mistral-small-3.2",
+      "providerId": "openrouter",
+      "modelId": "mistralai/mistral-small-3.2-24b-instruct",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 2,
+      "startedAt": "2026-11-05T11:51:21.426Z",
+      "plan": null,
+      "latencyMs": 140278,
+      "ttftMs": 1762,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 140278,
+          "chars": 29649
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 29649,
+      "estTokens": {
+        "input": 14170,
+        "output": 7413,
+        "estimated": true
+      },
+      "estCostUsd": 0.00254535,
+      "extraction": {
+        "writes": 15,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/mistral-small-3.2-t2",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/main.tsx:3: No matching export in \"vfs:/src/App.tsx\" for import \"default\"",
+          "vfs:/src/main.tsx: No matching export in \"vfs:/src/App.tsx\" for import \"default\" (it exports names only)"
+        ],
+        "solved": true,
+        "latencyMs": 3464,
+        "remainingErrors": [],
+        "estCostUsd": 0.0016625,
+        "passes": 1
+      },
+      "error": null,
+      "served": {
+        "model": "mistralai/mistral-small-3.2-24b-instruct",
+        "provider": "Parasail"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 3424
+      },
+      "quality": {
+        "files": 14,
+        "codeFiles": 12,
+        "codeLines": 1058,
+        "largestFile": "/src/data/seedData.ts",
+        "largestFileLines": 535,
+        "anyCount": 1,
+        "kitImportingFiles": 4,
+        "handRolledUiFiles": 3,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 3,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.3,
+        "tscErrors": 1,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 52.8,
+        "fixLatencyMs": 3464,
+        "failKind": "bad-import"
+      }
     }
   ]
 }

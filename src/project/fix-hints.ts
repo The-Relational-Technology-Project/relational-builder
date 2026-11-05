@@ -112,6 +112,13 @@ export function fixHints(errorText: string, kitFiles: Record<string, string>): s
     hints.push(`\`font-${m[1]}\` is not a Tailwind utility and the theme does not declare it. In \`/src/index.css\` either replace it with \`font-sans\` or add \`--font-${m[1]}: '${m[1]}', sans-serif;\` inside the \`@theme\` block. Change nothing else for this one.`);
   }
 
+  // A shadcn component the kit does not ship (Mistral, Nov 5: toaster)
+  for (const m of errorText.matchAll(/Could not find "@\/(?:components\/ui|hooks)\/(toaster|use-toast|toast|sonner)"/g)) {
+    if (seen.has(`toast:${m[1]}`)) continue;
+    seen.add(`toast:${m[1]}`);
+    hints.push(`The kit has no \`${m[1]}\`. Remove that import and the \`<Toaster />\` or \`toast()\` calls, and show a short message inline instead (a line of text next to the button, cleared after a few seconds). Do not write a toast system.`);
+  }
+
   // CommonJS require in an ES module
   for (const m of errorText.matchAll(/Dynamic require of "([^"]+)" is not supported/g)) {
     hints.push(`\`require('${m[1]}')\` does not work here (ES modules only). Replace it with an import at the top of that file: \`import { ... } from '${m[1]}';\` and delete the require line.`);
