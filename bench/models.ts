@@ -228,9 +228,12 @@ export const BENCH_MODELS: BenchModel[] = [
 
   // Mistral's open-weight models (Apache 2.0) at the sizes a community box
   // can hold (Josh, Nov 5): a 24B dense instruct model (about 14 GB at
-  // 4-bit) and a 14B one. Devstral is Mistral's coding model; check its
-  // size and license on the model card before calling it hostable. Pricing
-  // = OpenRouter list prices on Nov 5, 2026.
+  // 4-bit) and a 14B one. Devstral 2 is Mistral's coding model: 123B
+  // dense (Hugging Face mistralai/Devstral-2-123B-Instruct-2512, checked
+  // Nov 5), so about 70 GB at 4-bit, an 80 GB card, not a community box;
+  // it bounds what an open coder can do, like gpt-oss-120b. Its license is
+  // on the model card and is not restated here. Pricing = OpenRouter list
+  // prices on Nov 5, 2026.
   {
     alias: 'mistral-small-3.2',
     providerId: 'openrouter',
