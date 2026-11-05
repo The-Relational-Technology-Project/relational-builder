@@ -36,7 +36,7 @@ _Maintainer's call, informed by the tables above — the report feeds the decisi
 
 ## Fix passes (how solves went)
 
-- **glm-4.5-air** · hs-community-fridge t3: build failed to bundle → auto-fix not solved — still: vfs:/src/main.tsx:4: No matching export in "vfs:/src/App.tsx" for import "default"
+- **glm-4.5-air** · hs-community-fridge t3: build failed to bundle → auto-fix not solved after one pass — still: vfs:/src/main.tsx:4: No matching export in "vfs:/src/App.tsx" for import "default"
   - triggered by: `vfs:/src/components/PostForm.tsx:5: No matching export in "vfs:/src/components/ui/select.tsx" for import "SelectContent"`
 
 

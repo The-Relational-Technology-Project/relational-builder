@@ -160,7 +160,8 @@
         "lintErrors": 6,
         "lintWarnings": 0,
         "lintPer100Lines": 0.7,
-        "tscErrors": 14,
+        "tscErrors": null,
+        "tscSyntaxErrors": 0,
         "tokensPerSecond": 80.4,
         "fixLatencyMs": 2358,
         "failKind": "missing-file"
@@ -267,6 +268,7 @@
         "lintWarnings": 0,
         "lintPer100Lines": 0.9,
         "tscErrors": 5,
+        "tscSyntaxErrors": 0,
         "tokensPerSecond": 76.2,
         "fixLatencyMs": 71486,
         "failKind": "syntax"

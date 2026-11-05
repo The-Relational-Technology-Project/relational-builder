@@ -123,7 +123,11 @@
         "model": "openai/gpt-oss-120b",
         "provider": "PrimeIntellect"
       },
-      "importIssues": [],
+      "importIssues": [
+        "vfs:/src/index.css: Cannot apply unknown utility class `font-inter` (declare `--font-inter` under @theme or use font-sans)",
+        "vfs:/src/index.css: Cannot apply unknown utility class `font-playfair-display` (declare `--font-playfair-display` under @theme or use font-sans)",
+        "vfs:/src/index.css: Cannot apply unknown utility class `font-playfair-display` (declare `--font-playfair-display` under @theme or use font-sans)"
+      ],
       "runtime": {
         "rendered": true,
         "errors": [
@@ -348,7 +352,9 @@
         "model": "openai/gpt-oss-120b",
         "provider": "PrimeIntellect"
       },
-      "importIssues": [],
+      "importIssues": [
+        "vfs:/src/main.tsx: a router is rendered in 2 files (/src/App.tsx, /src/main.tsx); render one HashRouter only, in one of them"
+      ],
       "runtime": {
         "rendered": false,
         "errors": [

@@ -127,6 +127,7 @@
         "lintWarnings": 0,
         "lintPer100Lines": 3.3,
         "tscErrors": 3,
+        "tscSyntaxErrors": 0,
         "tokensPerSecond": 128.6,
         "fixLatencyMs": null,
         "failKind": null
@@ -223,6 +224,7 @@
         "lintWarnings": 0,
         "lintPer100Lines": 3.9,
         "tscErrors": 4,
+        "tscSyntaxErrors": 0,
         "tokensPerSecond": 94.7,
         "fixLatencyMs": null,
         "failKind": null
@@ -325,8 +327,7 @@
       "importIssues": [
         "vfs:/src/App.tsx: No matching export in \"vfs:/src/pages/FeedPage.tsx\" for import \"FeedPage\"",
         "vfs:/src/App.tsx: No matching export in \"vfs:/src/pages/ShiftsPage.tsx\" for import \"ShiftsPage\"",
-        "vfs:/src/App.tsx: No matching export in \"vfs:/src/pages/PostPage.tsx\" for import \"PostPage\"",
-        "vfs:/src/pages/PostPage.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        "vfs:/src/App.tsx: No matching export in \"vfs:/src/pages/PostPage.tsx\" for import \"PostPage\""
       ],
       "quality": {
         "files": 7,
@@ -342,7 +343,8 @@
         "lintErrors": 4,
         "lintWarnings": 0,
         "lintPer100Lines": 1.2,
-        "tscErrors": 40,
+        "tscErrors": null,
+        "tscSyntaxErrors": 30,
         "tokensPerSecond": 50.8,
         "fixLatencyMs": 7976,
         "failKind": "syntax"
@@ -450,6 +452,7 @@
         "lintWarnings": 0,
         "lintPer100Lines": 0.8,
         "tscErrors": 1,
+        "tscSyntaxErrors": 0,
         "tokensPerSecond": 56.4,
         "fixLatencyMs": 21394,
         "failKind": "other"
@@ -555,6 +558,7 @@
         "lintWarnings": 0,
         "lintPer100Lines": 0.8,
         "tscErrors": 3,
+        "tscSyntaxErrors": 0,
         "tokensPerSecond": 67.8,
         "fixLatencyMs": 15357,
         "failKind": "other"
@@ -660,6 +664,7 @@
         "lintWarnings": 0,
         "lintPer100Lines": 5.4,
         "tscErrors": 5,
+        "tscSyntaxErrors": 0,
         "tokensPerSecond": 63.8,
         "fixLatencyMs": 11925,
         "failKind": "other"

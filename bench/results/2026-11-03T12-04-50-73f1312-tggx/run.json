@@ -114,7 +114,11 @@
         "model": "google/gemma-4-26b-a4b-it",
         "provider": "CoreWeave"
       },
-      "importIssues": [],
+      "importIssues": [
+        "vfs:/src/App.tsx: icon={Refrigerator} passes a component where the kit expects an element; write icon={<Refrigerator />}",
+        "vfs:/src/App.tsx: icon={Users} passes a component where the kit expects an element; write icon={<Users />}",
+        "vfs:/src/App.tsx: icon={Info} passes a component where the kit expects an element; write icon={<Info />}"
+      ],
       "runtime": {
         "rendered": false,
         "errors": [
@@ -232,7 +236,9 @@
         "model": "google/gemma-4-26b-a4b-it",
         "provider": "PrimeIntellect"
       },
-      "importIssues": [],
+      "importIssues": [
+        "vfs:/src/components/ui/bottom-nav.tsx: Dynamic require of \"lucide-react\" is not supported (this is an ES module; use import)"
+      ],
       "runtime": {
         "rendered": false,
         "errors": [

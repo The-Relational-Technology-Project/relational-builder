@@ -146,6 +146,7 @@
         "lintWarnings": 0,
         "lintPer100Lines": 1.1,
         "tscErrors": 3,
+        "tscSyntaxErrors": 0,
         "tokensPerSecond": 81.9,
         "fixLatencyMs": 41474,
         "failKind": "bad-import"
@@ -259,7 +260,8 @@
         "lintErrors": 20,
         "lintWarnings": 0,
         "lintPer100Lines": 1.7,
-        "tscErrors": 18,
+        "tscErrors": null,
+        "tscSyntaxErrors": 1,
         "tokensPerSecond": 76.1,
         "fixLatencyMs": 14104,
         "failKind": "bad-import"
@@ -388,6 +390,7 @@
       },
       "error": null,
       "importIssues": [
+        "vfs:/src/main.tsx: a router is rendered in 2 files (/src/App.tsx, /src/main.tsx); render one HashRouter only, in one of them",
         "vfs:/src/pages/Home.tsx: No matching export in \"vfs:/src/components/ui/card.tsx\" for import \"Card\"",
         "vfs:/src/pages/Home.tsx: No matching export in \"vfs:/src/components/ui/card.tsx\" for import \"CardHeader\"",
         "vfs:/src/pages/Home.tsx: No matching export in \"vfs:/src/components/ui/card.tsx\" for import \"CardTitle\"",
@@ -445,6 +448,7 @@
         "lintWarnings": 0,
         "lintPer100Lines": 6.2,
         "tscErrors": 57,
+        "tscSyntaxErrors": 0,
         "tokensPerSecond": 75.5,
         "fixLatencyMs": 7854,
         "failKind": "other"
@@ -537,7 +541,8 @@
         "lintErrors": 0,
         "lintWarnings": 0,
         "lintPer100Lines": null,
-        "tscErrors": 0,
+        "tscErrors": null,
+        "tscSyntaxErrors": 0,
         "tokensPerSecond": 73.3,
         "fixLatencyMs": null,
         "failKind": null
@@ -634,6 +639,7 @@
         "lintWarnings": 0,
         "lintPer100Lines": 1.3,
         "tscErrors": 1,
+        "tscSyntaxErrors": 0,
         "tokensPerSecond": 70.7,
         "fixLatencyMs": null,
         "failKind": null
@@ -745,6 +751,7 @@
         "lintWarnings": 0,
         "lintPer100Lines": 3,
         "tscErrors": 5,
+        "tscSyntaxErrors": 0,
         "tokensPerSecond": 75.1,
         "fixLatencyMs": 14755,
         "failKind": "missing-file"

@@ -136,7 +136,8 @@
         "lintErrors": 15,
         "lintWarnings": 0,
         "lintPer100Lines": 2.2,
-        "tscErrors": 59,
+        "tscErrors": null,
+        "tscSyntaxErrors": 54,
         "tokensPerSecond": 32.9,
         "fixLatencyMs": 30025,
         "failKind": "other"
@@ -230,9 +231,7 @@
         "estCostUsd": 0.00211704
       },
       "error": null,
-      "importIssues": [
-        "vfs:/src/pages/PostUpdate.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
-      ],
+      "importIssues": [],
       "quality": {
         "files": 9,
         "codeFiles": 7,
@@ -247,7 +246,8 @@
         "lintErrors": 6,
         "lintWarnings": 0,
         "lintPer100Lines": 1.5,
-        "tscErrors": 29,
+        "tscErrors": null,
+        "tscSyntaxErrors": 22,
         "tokensPerSecond": 47.1,
         "fixLatencyMs": 36766,
         "failKind": "bad-import"
@@ -359,7 +359,8 @@
         "lintErrors": 8,
         "lintWarnings": 0,
         "lintPer100Lines": 2.1,
-        "tscErrors": 182,
+        "tscErrors": null,
+        "tscSyntaxErrors": 175,
         "tokensPerSecond": 42.7,
         "fixLatencyMs": 71783,
         "failKind": "syntax"
@@ -464,7 +465,8 @@
         "lintErrors": 4,
         "lintWarnings": 0,
         "lintPer100Lines": 1.3,
-        "tscErrors": 15,
+        "tscErrors": null,
+        "tscSyntaxErrors": 12,
         "tokensPerSecond": 36,
         "fixLatencyMs": 65267,
         "failKind": "syntax"
@@ -563,8 +565,7 @@
       },
       "error": null,
       "importIssues": [
-        "vfs:/src/App.tsx: Could not find \"@/components/layout\" in the project (imported from /src/App.tsx)",
-        "vfs:/src/pages/RespondView.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        "vfs:/src/App.tsx: Could not find \"@/components/layout\" in the project (imported from /src/App.tsx)"
       ],
       "quality": {
         "files": 10,
@@ -580,7 +581,8 @@
         "lintErrors": 5,
         "lintWarnings": 0,
         "lintPer100Lines": 1.2,
-        "tscErrors": 31,
+        "tscErrors": null,
+        "tscSyntaxErrors": 31,
         "tokensPerSecond": 23.5,
         "fixLatencyMs": 26529,
         "failKind": "syntax"
@@ -672,9 +674,7 @@
         "estCostUsd": 0.0019367399999999997
       },
       "error": null,
-      "importIssues": [
-        "vfs:/src/pages/WallPage.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
-      ],
+      "importIssues": [],
       "quality": {
         "files": 7,
         "codeFiles": 5,
@@ -689,7 +689,8 @@
         "lintErrors": 7,
         "lintWarnings": 0,
         "lintPer100Lines": 2.2,
-        "tscErrors": 25,
+        "tscErrors": null,
+        "tscSyntaxErrors": 25,
         "tokensPerSecond": 42.7,
         "fixLatencyMs": 91822,
         "failKind": "other"

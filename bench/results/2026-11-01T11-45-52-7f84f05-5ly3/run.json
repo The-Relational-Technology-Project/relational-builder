@@ -146,7 +146,8 @@
         "lintErrors": 5,
         "lintWarnings": 0,
         "lintPer100Lines": 2,
-        "tscErrors": 22,
+        "tscErrors": null,
+        "tscSyntaxErrors": 22,
         "tokensPerSecond": 62.3,
         "fixLatencyMs": 95508,
         "failKind": "syntax"
@@ -253,6 +254,7 @@
         "lintWarnings": 0,
         "lintPer100Lines": 1.5,
         "tscErrors": 0,
+        "tscSyntaxErrors": 0,
         "tokensPerSecond": 59.2,
         "fixLatencyMs": 47082,
         "failKind": "bad-import"

@@ -225,7 +225,9 @@
         "model": "openai/gpt-oss-120b",
         "provider": "Venice"
       },
-      "importIssues": [],
+      "importIssues": [
+        "vfs:/src/main.tsx: BrowserRouter from 'react-router-dom' opens on \"Page not found\" in the preview and on static hosts; use HashRouter"
+      ],
       "runtime": {
         "rendered": false,
         "errors": [],
@@ -427,7 +429,9 @@
         "model": "openai/gpt-oss-120b",
         "provider": "DeepInfra"
       },
-      "importIssues": [],
+      "importIssues": [
+        "vfs:/src/main.tsx: BrowserRouter from 'react-router-dom' opens on \"Page not found\" in the preview and on static hosts; use HashRouter"
+      ],
       "runtime": {
         "rendered": false,
         "errors": [
@@ -541,7 +545,9 @@
         "model": "openai/gpt-oss-120b",
         "provider": "Venice"
       },
-      "importIssues": [],
+      "importIssues": [
+        "vfs:/src/main.tsx: BrowserRouter from 'react-router-dom' opens on \"Page not found\" in the preview and on static hosts; use HashRouter"
+      ],
       "runtime": {
         "rendered": true,
         "errors": [
@@ -644,7 +650,9 @@
         "model": "openai/gpt-oss-120b",
         "provider": "DeepInfra"
       },
-      "importIssues": [],
+      "importIssues": [
+        "vfs:/src/main.tsx: BrowserRouter from 'react-router-dom' opens on \"Page not found\" in the preview and on static hosts; use HashRouter"
+      ],
       "runtime": {
         "rendered": false,
         "errors": [

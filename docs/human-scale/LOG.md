@@ -85,9 +85,13 @@ behind the flag.
    in the part read. Useful for the footprint method's honesty note: the
    best published local measurements count the chip, not the machine.
 
+8. *Re-measured every November run* with the fixed React check (NEXT
+   item 2, done early): reports and import columns updated; the clean
+   rates do not move, since "clean" was always judged in the browser.
+
 **What it cost.** About $0.54 estimated over 21 builds (Devstral and Kimi
 were 90% of it), logged as $2.00 worst case before the runs. Session about
-50 minutes.
+55 minutes.
 
 **Honest read.** Mistral Small 3.2 is the most interesting result of the
 week: a model a community can actually hold, ahead of GLM on working

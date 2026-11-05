@@ -352,7 +352,6 @@
         "provider": "Darkbloom"
       },
       "importIssues": [
-        "vfs:/src/App.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
         "vfs:/src/main.tsx: No matching export in \"vfs:/src/App.tsx\" for import \"default\" (it exports names only)"
       ],
       "quality": {
@@ -461,9 +460,7 @@
         "model": "google/gemma-4-26b-a4b-it",
         "provider": "Parasail"
       },
-      "importIssues": [
-        "vfs:/src/pages/QuestionDetail.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
-      ],
+      "importIssues": [],
       "runtime": {
         "rendered": true,
         "errors": [],

@@ -165,7 +165,8 @@
         "lintErrors": 1,
         "lintWarnings": 0,
         "lintPer100Lines": 0.2,
-        "tscErrors": 9,
+        "tscErrors": null,
+        "tscSyntaxErrors": 0,
         "tokensPerSecond": 270.8,
         "fixLatencyMs": 17149,
         "failKind": "missing-file"
@@ -259,7 +260,6 @@
       },
       "error": null,
       "importIssues": [
-        "vfs:/\"src/App.tsx: Could not find \"@/components/ui/separator\" in the project (imported from /\"src/App.tsx)",
         "vfs:/src/main.tsx: Could not find \"./App\" in the project (imported from /src/main.tsx)"
       ],
       "quality": {
@@ -276,7 +276,8 @@
         "lintErrors": 5,
         "lintWarnings": 0,
         "lintPer100Lines": 1.4,
-        "tscErrors": 1,
+        "tscErrors": null,
+        "tscSyntaxErrors": 0,
         "tokensPerSecond": 42.9,
         "fixLatencyMs": 98710,
         "failKind": "missing-file"

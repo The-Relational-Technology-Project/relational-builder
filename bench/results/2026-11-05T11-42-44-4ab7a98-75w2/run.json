@@ -237,8 +237,6 @@
         "provider": "Mistral"
       },
       "importIssues": [
-        "vfs:/src/components/PostForm.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
-        "vfs:/src/components/ShiftForm.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
         "vfs:/src/main.tsx: No matching export in \"vfs:/src/App.tsx\" for import \"default\" (it exports names only)"
       ],
       "quality": {
@@ -483,9 +481,7 @@
         "provider": "Mistral"
       },
       "importIssues": [
-        "vfs:/src/main.tsx: No matching export in \"vfs:/src/App.tsx\" for import \"default\" (it exports names only)",
-        "vfs:/src/pages/QuestionsPage.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
-        "vfs:/src/pages/ThemesPage.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        "vfs:/src/main.tsx: No matching export in \"vfs:/src/App.tsx\" for import \"default\" (it exports names only)"
       ],
       "quality": {
         "files": 13,
@@ -605,8 +601,7 @@
       },
       "importIssues": [
         "vfs:/src/data/seed.ts: No matching export in \"vfs:/src/store.ts\" for import \"Response\"",
-        "vfs:/src/data/seed.ts: No matching export in \"vfs:/src/store.ts\" for import \"Theme\"",
-        "vfs:/src/pages/Home.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        "vfs:/src/data/seed.ts: No matching export in \"vfs:/src/store.ts\" for import \"Theme\""
       ],
       "runtime": {
         "rendered": true,

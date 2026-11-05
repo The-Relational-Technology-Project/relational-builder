@@ -137,7 +137,8 @@
         "lintErrors": 5,
         "lintWarnings": 0,
         "lintPer100Lines": 1.8,
-        "tscErrors": 17,
+        "tscErrors": null,
+        "tscSyntaxErrors": 13,
         "tokensPerSecond": 23.7,
         "fixLatencyMs": 19257,
         "failKind": "other"
@@ -241,7 +242,8 @@
         "lintErrors": 9,
         "lintWarnings": 0,
         "lintPer100Lines": 4.3,
-        "tscErrors": 34,
+        "tscErrors": null,
+        "tscSyntaxErrors": 34,
         "tokensPerSecond": 27.1,
         "fixLatencyMs": 10944,
         "failKind": "syntax"
@@ -348,7 +350,8 @@
         "lintErrors": 17,
         "lintWarnings": 0,
         "lintPer100Lines": 2.6,
-        "tscErrors": 28,
+        "tscErrors": null,
+        "tscSyntaxErrors": 25,
         "tokensPerSecond": 33.3,
         "fixLatencyMs": 70884,
         "failKind": "other"
@@ -455,9 +458,7 @@
       "error": null,
       "importIssues": [
         "vfs:/src/App.tsx: Could not find \"@/store\" in the project (imported from /src/App.tsx)",
-        "vfs:/src/components/ui/bottom-nav.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
         "vfs:/src/pages/RespondView.tsx: Could not find \"@/store\" in the project (imported from /src/pages/RespondView.tsx)",
-        "vfs:/src/pages/RespondView.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
         "vfs:/src/pages/StewardView.tsx: Could not find \"@/store\" in the project (imported from /src/pages/StewardView.tsx)",
         "vfs:/src/pages/WallView.tsx: Could not find \"@/store\" in the project (imported from /src/pages/WallView.tsx)"
       ],
@@ -475,7 +476,8 @@
         "lintErrors": 14,
         "lintWarnings": 0,
         "lintPer100Lines": 2.8,
-        "tscErrors": 45,
+        "tscErrors": null,
+        "tscSyntaxErrors": 44,
         "tokensPerSecond": 39.5,
         "fixLatencyMs": 56928,
         "failKind": "syntax"
@@ -590,7 +592,8 @@
         "lintErrors": 15,
         "lintWarnings": 0,
         "lintPer100Lines": 2,
-        "tscErrors": 16,
+        "tscErrors": null,
+        "tscSyntaxErrors": 15,
         "tokensPerSecond": 23.6,
         "fixLatencyMs": 36206,
         "failKind": "syntax"

@@ -153,6 +153,7 @@
         "lintWarnings": 0,
         "lintPer100Lines": 1.3,
         "tscErrors": 19,
+        "tscSyntaxErrors": 0,
         "tokensPerSecond": 73.1,
         "fixLatencyMs": 26751,
         "failKind": "bad-import"
@@ -268,6 +269,7 @@
         "vfs:/src/data/seed.ts: No matching export in \"vfs:/src/store.ts\" for import \"Answer\"",
         "vfs:/src/pages/AdminPage.tsx: <CardTitle> is used but never imported or declared in this file",
         "vfs:/src/pages/AdminPage.tsx: <Hash> is used but never imported or declared in this file",
+        "vfs:/src/pages/QuestionPage.tsx: Dynamic require of \"@/data/seed\" is not supported (this is an ES module; use import)",
         "vfs:/src/pages/QuestionPage.tsx: No matching export in \"vfs:/src/components/AnswerForm.tsx\" for import \"AnswerForm\""
       ],
       "quality": {
@@ -284,7 +286,8 @@
         "lintErrors": 13,
         "lintWarnings": 0,
         "lintPer100Lines": 2.7,
-        "tscErrors": 9,
+        "tscErrors": null,
+        "tscSyntaxErrors": 9,
         "tokensPerSecond": 65.6,
         "fixLatencyMs": 14329,
         "failKind": "bad-import"

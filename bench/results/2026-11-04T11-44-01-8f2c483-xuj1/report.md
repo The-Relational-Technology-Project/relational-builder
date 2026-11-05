@@ -44,9 +44,9 @@ _Maintainer's call, informed by the tables above — the report feeds the decisi
   - triggered by: `vfs:/src/pages/Board.tsx: No matching export in "vfs:/src/components/ui/select.tsx" for import "SelectValue"`
 - **gemma-4-26b** · hs-listening-wall t1: build failed to bundle → auto-fix solved in one pass (45s, ~$0.00)
   - triggered by: `vfs:/src/App.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)`
-- **gemma-4-26b** · hs-listening-wall t2: build failed to bundle → auto-fix not solved — still: vfs:/src/pages/ThemesPage.tsx:2: Could not find "@/store/use store" in the project (imported from /src/pages/ThemesPage.tsx)
+- **gemma-4-26b** · hs-listening-wall t2: build failed to bundle → auto-fix not solved after one pass — still: vfs:/src/pages/ThemesPage.tsx:2: Could not find "@/store/use store" in the project (imported from /src/pages/ThemesPage.tsx)
   - triggered by: `vfs:/src/pages/WallPage.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)`
-- **gemma-4-26b** · hs-listening-wall t3: build failed to bundle → auto-fix not solved — still: vfs:/src/App.tsx:374: Expected identifier but found "<"
+- **gemma-4-26b** · hs-listening-wall t3: build failed to bundle → auto-fix not solved after one pass — still: vfs:/src/App.tsx:374: Expected identifier but found "<"
   - triggered by: `vfs:/src/App.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)`
 
 

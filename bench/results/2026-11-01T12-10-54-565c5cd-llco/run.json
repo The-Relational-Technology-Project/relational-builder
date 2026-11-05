@@ -131,10 +131,7 @@
         "estCostUsd": 0.00806946
       },
       "error": null,
-      "importIssues": [
-        "vfs:/src/pages/Home.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
-        "vfs:/src/pages/PostItem.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
-      ],
+      "importIssues": [],
       "runtime": {
         "rendered": true,
         "errors": [],
@@ -155,6 +152,7 @@
         "lintWarnings": 0,
         "lintPer100Lines": 1.1,
         "tscErrors": 9,
+        "tscSyntaxErrors": 0,
         "tokensPerSecond": 43.1,
         "fixLatencyMs": 62251,
         "failKind": "bad-import"
@@ -264,7 +262,8 @@
         "lintErrors": 5,
         "lintWarnings": 0,
         "lintPer100Lines": 0.7,
-        "tscErrors": 2,
+        "tscErrors": null,
+        "tscSyntaxErrors": 0,
         "tokensPerSecond": 76,
         "fixLatencyMs": 21717,
         "failKind": "bad-import"
@@ -389,6 +388,7 @@
         "lintWarnings": 0,
         "lintPer100Lines": 1.6,
         "tscErrors": 6,
+        "tscSyntaxErrors": 0,
         "tokensPerSecond": 88.1,
         "fixLatencyMs": 39507,
         "failKind": "bad-import"
@@ -496,6 +496,7 @@
         "lintWarnings": 0,
         "lintPer100Lines": 0.9,
         "tscErrors": 1,
+        "tscSyntaxErrors": 0,
         "tokensPerSecond": 78.9,
         "fixLatencyMs": 15869,
         "failKind": "bad-import"
@@ -601,6 +602,7 @@
         "lintWarnings": 0,
         "lintPer100Lines": 0.2,
         "tscErrors": 2,
+        "tscSyntaxErrors": 0,
         "tokensPerSecond": 94,
         "fixLatencyMs": 16556,
         "failKind": "other"
@@ -709,6 +711,7 @@
         "lintWarnings": 0,
         "lintPer100Lines": 1.1,
         "tscErrors": 4,
+        "tscSyntaxErrors": 0,
         "tokensPerSecond": 87.3,
         "fixLatencyMs": 12653,
         "failKind": "other"

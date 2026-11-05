@@ -30,6 +30,6 @@ _Maintainer's call, informed by the tables above — the report feeds the decisi
 
 ## Fix passes (how solves went)
 
-- **qwen3-coder-next** · hs-listening-wall t1: build failed to bundle → auto-fix not solved — still: vfs:/src/data/questions.ts:531: Unterminated string literal
+- **qwen3-coder-next** · hs-listening-wall t1: build failed to bundle → auto-fix not solved after one pass — still: vfs:/src/data/questions.ts:531: Unterminated string literal
   - triggered by: `vfs:/src/data/questions.ts:531: Unterminated string literal`
 

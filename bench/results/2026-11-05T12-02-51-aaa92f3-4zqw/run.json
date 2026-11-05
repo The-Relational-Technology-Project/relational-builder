@@ -148,10 +148,7 @@
         "model": "mistralai/devstral-2512",
         "provider": "Mistral"
       },
-      "importIssues": [
-        "vfs:/src/pages/AddShift.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
-        "vfs:/src/pages/AddUpdate.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
-      ],
+      "importIssues": [],
       "quality": {
         "files": 11,
         "codeFiles": 9,
@@ -259,9 +256,7 @@
         "model": "mistralai/devstral-2512",
         "provider": "Mistral"
       },
-      "importIssues": [
-        "vfs:/src/pages/AddUpdate.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
-      ],
+      "importIssues": [],
       "runtime": {
         "rendered": false,
         "errors": [
@@ -382,10 +377,7 @@
         "model": "mistralai/devstral-2512",
         "provider": "Mistral"
       },
-      "importIssues": [
-        "vfs:/src/pages/AddShift.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
-        "vfs:/src/pages/AddUpdate.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
-      ],
+      "importIssues": [],
       "runtime": {
         "rendered": true,
         "errors": [],
@@ -614,9 +606,7 @@
         "model": "mistralai/devstral-2512",
         "provider": "Mistral"
       },
-      "importIssues": [
-        "vfs:/src/pages/WallPage.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
-      ],
+      "importIssues": [],
       "runtime": {
         "rendered": true,
         "errors": [],

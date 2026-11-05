@@ -139,6 +139,7 @@
         "lintWarnings": 0,
         "lintPer100Lines": 1.2,
         "tscErrors": 0,
+        "tscSyntaxErrors": 0,
         "tokensPerSecond": 41.4,
         "fixLatencyMs": 20464,
         "failKind": "bad-import"
@@ -214,7 +215,10 @@
       "artifactDir": "artifacts/hs-listening-wall/gpt-oss-120b-t1",
       "fixRound": null,
       "error": null,
-      "importIssues": [],
+      "importIssues": [
+        "vfs:/src/main.tsx: a router is rendered in 2 files (/src/App.tsx, /src/main.tsx); render one HashRouter only, in one of them",
+        "vfs:/src/main.tsx: BrowserRouter from 'react-router-dom' opens on \"Page not found\" in the preview and on static hosts; use HashRouter"
+      ],
       "runtime": {
         "rendered": false,
         "errors": [
@@ -238,6 +242,7 @@
         "lintWarnings": 0,
         "lintPer100Lines": 0.4,
         "tscErrors": 0,
+        "tscSyntaxErrors": 0,
         "tokensPerSecond": 74.5,
         "fixLatencyMs": null,
         "failKind": null

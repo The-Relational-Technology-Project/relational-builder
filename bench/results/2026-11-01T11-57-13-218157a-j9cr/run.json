@@ -150,7 +150,8 @@
         "lintErrors": 10,
         "lintWarnings": 0,
         "lintPer100Lines": 2.9,
-        "tscErrors": 20,
+        "tscErrors": null,
+        "tscSyntaxErrors": 20,
         "tokensPerSecond": 91.6,
         "fixLatencyMs": 31684,
         "failKind": "missing-file"
@@ -226,7 +227,9 @@
       "artifactDir": "artifacts/hs-listening-wall/gemma-4-26b-t1",
       "fixRound": null,
       "error": null,
-      "importIssues": [],
+      "importIssues": [
+        "vfs:/src/App.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+      ],
       "runtime": {
         "rendered": false,
         "errors": [
@@ -250,6 +253,7 @@
         "lintWarnings": 0,
         "lintPer100Lines": 1.3,
         "tscErrors": 10,
+        "tscSyntaxErrors": 0,
         "tokensPerSecond": 58,
         "fixLatencyMs": null,
         "failKind": null

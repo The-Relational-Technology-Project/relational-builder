@@ -195,16 +195,12 @@ stack layer it moved; pace paid work at $3 to $5 a day.
    leaders are compared under the same two-pass default and the fixed React
    check. Shots and board. Then say plainly in the LOG which one leads on
    working builds; the design call is Josh's (question 6).
-2. **Re-measure the board with the fixed React check.** `npm run bench --
-   measure <runDir>` recomputes import issues for every November run; do
-   it for all of them and re-run the board, so the "undeclared" and fix
-   columns stop counting the type-only false positive. No spend.
-3. **Scan every check against clean builds, as a test.** Turn the Nov 4
+2. **Scan every check against clean builds, as a test.** Turn the Nov 4
    scan script into `bench/lib/check-scan.test.ts` over a small committed
    fixture set (three clean builds' files, copied under
    `bench/fixtures/clean/`): every static check must return nothing on
    them. This would have caught the React false positive on day one.
-4. **End-to-end check of export and delete.** Unchanged: needs a signed-in
+3. **End-to-end check of export and delete.** Unchanged: needs a signed-in
    Builder with a Community Cloud app.
 
 ## After that, in order

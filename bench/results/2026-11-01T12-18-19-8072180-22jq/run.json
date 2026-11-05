@@ -136,6 +136,7 @@
         "lintWarnings": 0,
         "lintPer100Lines": 0.5,
         "tscErrors": 2,
+        "tscSyntaxErrors": 0,
         "tokensPerSecond": 127.6,
         "fixLatencyMs": 2479,
         "failKind": "other"
@@ -241,6 +242,7 @@
         "lintWarnings": 0,
         "lintPer100Lines": 0.8,
         "tscErrors": 4,
+        "tscSyntaxErrors": 0,
         "tokensPerSecond": 45.2,
         "fixLatencyMs": 16937,
         "failKind": "other"
@@ -339,6 +341,7 @@
         "lintWarnings": 0,
         "lintPer100Lines": 2.9,
         "tscErrors": 1,
+        "tscSyntaxErrors": 0,
         "tokensPerSecond": 46.5,
         "fixLatencyMs": null,
         "failKind": null
@@ -445,6 +448,7 @@
         "lintWarnings": 0,
         "lintPer100Lines": 0.8,
         "tscErrors": 5,
+        "tscSyntaxErrors": 0,
         "tokensPerSecond": 47.4,
         "fixLatencyMs": 13121,
         "failKind": "bad-import"
@@ -540,7 +544,8 @@
         "lintErrors": 0,
         "lintWarnings": 0,
         "lintPer100Lines": 0,
-        "tscErrors": 4,
+        "tscErrors": 3,
+        "tscSyntaxErrors": 1,
         "tokensPerSecond": 36.7,
         "fixLatencyMs": null,
         "failKind": null
@@ -637,6 +642,7 @@
         "lintWarnings": 0,
         "lintPer100Lines": 0.6,
         "tscErrors": 2,
+        "tscSyntaxErrors": 0,
         "tokensPerSecond": 54.9,
         "fixLatencyMs": null,
         "failKind": null
