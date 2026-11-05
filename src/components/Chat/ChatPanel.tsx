@@ -13,6 +13,7 @@ import { effectiveRuntime } from '@/human-scale/runtime';
 import { humanScaleAiGuidance } from '@/human-scale/prompt';
 import { recordBuilderCall } from '@/human-scale/provenance-store';
 import { OPEN_BUILDER_MODELS } from '@/human-scale/builder-model';
+import { armAfterReply } from '@/human-scale/fix-passes';
 import type { StreamMeta } from '@/providers/types';
 import { registry } from '@/providers/registry';
 import type { StreamCallbacks, ThinkingEffort } from '@/providers/types';
@@ -1095,8 +1096,16 @@ export function ChatPanel() {
               // Arm exactly one automatic error→fix pass after normal
               // builds and completed continuation chains — never after an
               // error fix itself, so error→fix can't loop
+              const fixArm = armAfterReply({
+                wasFix,
+                wasContinuation,
+                lastFixWasAuto: useChatStore.getState().lastFixWasAuto,
+                passesUsed: useChatStore.getState().autoFixPassesUsed,
+                humanScale: isHumanScale(),
+              });
               useChatStore.setState({
-                autoFixArmed: !wasFix || wasContinuation,
+                autoFixArmed: fixArm.armed,
+                autoFixPassesUsed: fixArm.passesUsed,
                 continuationCount: 0,
                 chainFirstBuildAsk: null,
               });

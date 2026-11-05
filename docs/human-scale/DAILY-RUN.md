@@ -68,6 +68,18 @@ Before you stop, in this order:
    so BENCH-BOARD.md shows every model, build and screenshot over time.
 5. Commit and push.
 
+The standard bench invocation for open models (so rows stay like for like):
+
+```bash
+VITE_HUMAN_SCALE=1 BENCH_MAX_TOKENS=24000 BENCH_OPENROUTER_IGNORE=Darkbloom \
+  timeout 1200 npm run bench -- --models <alias> --tasks compare --trials 3 \
+  --import-guard --fix-passes 2
+```
+
+Two fix passes since Nov 5, matching the preview behind the flag (see
+`src/human-scale/fix-passes.ts`); hosts on the ignore list are the ones the
+board's by-host table shows at 0 clean over three or more builds.
+
 Spending pace: the OpenRouter balance is small (about $25 as of Oct 29).
 Plan paid runs at $3 to $5 a day so the balance lasts;
 the $20 daily cap is a ceiling, not a target. Open-weight models through

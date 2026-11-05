@@ -6,6 +6,7 @@ import { useProjectStore } from '@/store/project-store';
 import { recordBuildEvent } from '@/report/build-log';
 import { suggestLucideIcons } from '@/preview/lucide-icons';
 import { isHumanScale } from '@/human-scale/flag';
+import { mayAutoFix } from '@/human-scale/fix-passes';
 import { fixHints } from '@/project/fix-hints';
 import { KIT_FILES } from '@/kit';
 
@@ -109,11 +110,11 @@ function fixPrompt(errorText: string, attempt: number): string {
 }
 
 /** Queue a fix send, counting attempts at the same error so repeats escalate. */
-function queueFixForError(error: string): void {
+function queueFixForError(error: string, auto = false): void {
   const state = useChatStore.getState();
   const sig = errorSignature(error);
   const attempt = state.lastFixSignature === sig ? state.fixAttempts + 1 : 1;
-  useChatStore.setState({ lastFixSignature: sig, fixAttempts: attempt });
+  useChatStore.setState({ lastFixSignature: sig, fixAttempts: attempt, lastFixWasAuto: auto });
   state.queueFix(fixPrompt(error, attempt), 'Fixing a preview error');
 }
 
@@ -170,9 +171,15 @@ export function FixBanner({ error }: { error: string | null }) {
       // generation ends and re-arms the timer if the error survived
       if (chat.isGenerating || chat.queuedMessage || chat.pendingContinuationSend) return;
       if (!chat.autoFixArmed) return;
-      useChatStore.setState({ autoFixArmed: false });
+      // A second automatic pass (behind the flag) is for a new error the
+      // first fix surfaced, never the same one again
+      if (!mayAutoFix({ passesUsed: chat.autoFixPassesUsed, errorSignature: errorSignature(error), lastFixSignature: chat.lastFixSignature })) {
+        useChatStore.setState({ autoFixArmed: false });
+        return;
+      }
+      useChatStore.setState({ autoFixArmed: false, autoFixPassesUsed: chat.autoFixPassesUsed + 1 });
       recordBuildEvent('auto_error_fix');
-      queueFixForError(error);
+      queueFixForError(error, true);
     }, 2_500);
     return () => clearTimeout(timer);
   }, [error, autoFixArmed, isGenerating, viewingOldVersion]);

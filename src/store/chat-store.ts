@@ -121,6 +121,11 @@ interface ChatState {
   pendingFixSend: boolean;
   /** One automatic error→fix pass is allowed after each normal build */
   autoFixArmed: boolean;
+  /** Automatic passes used since the last normal build (two allowed behind
+   *  the human-scale flag, see src/human-scale/fix-passes.ts) */
+  autoFixPassesUsed: number;
+  /** Whether the fix in flight was one the preview sent on its own */
+  lastFixWasAuto: boolean;
   /** Badge label for the pending auto-fix send, so the chat can mark it as a
    * Builder action rather than one of the person's own messages */
   pendingFixLabel: string | null;
@@ -268,6 +273,8 @@ export const useChatStore = create<ChatState>()(persist((set, get) => ({
   clearQueuedMessage: () => set({ queuedMessage: null, queuedAttachments: [], queuedPhotos: [] }),
   pendingFixSend: false,
   autoFixArmed: false,
+  autoFixPassesUsed: 0,
+  lastFixWasAuto: false,
   pendingFixLabel: null,
   queueFix: (content: string, label?: string) =>
     set({
