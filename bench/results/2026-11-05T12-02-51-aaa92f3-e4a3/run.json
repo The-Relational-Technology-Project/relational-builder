@@ -1,0 +1,298 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1,exp-v1",
+  "gitCommit": "aaa92f3",
+  "createdAt": "2026-11-05T12:09:00.594Z",
+  "runId": "2026-11-05T12-02-51-aaa92f3-e4a3",
+  "config": {
+    "trials": 3,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": null,
+    "importGuard": true,
+    "fixHints": true,
+    "humanScaleRules": true,
+    "fixPasses": 1,
+    "openrouterIgnore": "Darkbloom",
+    "openrouterOnly": null
+  },
+  "models": [
+    {
+      "alias": "kimi-k2.7-code",
+      "providerId": "openrouter",
+      "modelId": "moonshotai/kimi-k2.7-code",
+      "pricing": {
+        "inputPerMTok": 0.6,
+        "outputPerMTok": 3.5,
+        "asOf": "2026-11"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "hs-community-fridge",
+      "version": "exp-v1"
+    },
+    {
+      "id": "hs-listening-wall",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "kimi-k2.7-code",
+      "providerId": "openrouter",
+      "modelId": "moonshotai/kimi-k2.7-code",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-05T12:02:51.645Z",
+      "plan": null,
+      "latencyMs": 142196,
+      "ttftMs": 22471,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 142195,
+          "chars": 29049
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 29049,
+      "estTokens": {
+        "input": 14179,
+        "output": 7263,
+        "estimated": true
+      },
+      "estCostUsd": 0.033927900000000004,
+      "extraction": {
+        "writes": 16,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/kimi-k2.7-code-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/components/StatusBadge.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/components/ShiftCard.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+          "vfs:/src/components/PostUpdateForm.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "solved": true,
+        "latencyMs": 29504,
+        "remainingErrors": [],
+        "estCostUsd": 0.0201869,
+        "passes": 1
+      },
+      "error": null,
+      "served": {
+        "model": "moonshotai/kimi-k2.7-code",
+        "provider": "StreamLake",
+        "systemFingerprint": "fpv0_8f8e1388"
+      },
+      "importIssues": []
+    },
+    {
+      "alias": "kimi-k2.7-code",
+      "providerId": "openrouter",
+      "modelId": "moonshotai/kimi-k2.7-code",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 2,
+      "startedAt": "2026-11-05T12:05:43.685Z",
+      "plan": null,
+      "latencyMs": 98180,
+      "ttftMs": 12046,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 98179,
+          "chars": 20898
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 20898,
+      "estTokens": {
+        "input": 14179,
+        "output": 5225,
+        "estimated": true
+      },
+      "estCostUsd": 0.026794899999999996,
+      "extraction": {
+        "writes": 8,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/kimi-k2.7-code-t2",
+      "fixRound": null,
+      "error": null,
+      "served": {
+        "model": "moonshotai/kimi-k2.7-code",
+        "provider": "StreamLake",
+        "systemFingerprint": "fpv0_8f8e1388"
+      },
+      "importIssues": []
+    },
+    {
+      "alias": "kimi-k2.7-code",
+      "providerId": "openrouter",
+      "modelId": "moonshotai/kimi-k2.7-code",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 3,
+      "startedAt": "2026-11-05T12:07:22.001Z",
+      "plan": null,
+      "latencyMs": 67064,
+      "ttftMs": 49085,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 67063,
+          "chars": 19915
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 19915,
+      "estTokens": {
+        "input": 14179,
+        "output": 4979,
+        "estimated": true
+      },
+      "estCostUsd": 0.025933900000000003,
+      "extraction": {
+        "writes": 12,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/kimi-k2.7-code-t3",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/components/UpdateForm.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "solved": true,
+        "latencyMs": 31260,
+        "remainingErrors": [],
+        "estCostUsd": 0.0144703,
+        "passes": 1
+      },
+      "error": null,
+      "served": {
+        "model": "moonshotai/kimi-k2.7-code",
+        "provider": "Moonshot AI",
+        "systemFingerprint": "fpv0_2742776c"
+      },
+      "importIssues": []
+    }
+  ]
+}

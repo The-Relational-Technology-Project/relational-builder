@@ -152,4 +152,11 @@ describe('checkImports', () => {
     const declared = { '/src/index.css': "@theme { --font-inter: 'Inter', sans-serif; }\nbody { @apply font-inter font-semibold font-sans; }" };
     expect(checkImports(declared)).toEqual([]);
   });
+
+  it('does not flag React used only in types, which compile away (Devstral, Nov 5)', () => {
+    const typesOnly = { '/src/Form.tsx': "import { useState } from 'react';\nexport function Form({ children }: { children: React.ReactNode }) { const [v] = useState(''); const go = (e: React.FormEvent) => e.preventDefault(); return <form onSubmit={go}>{v}{children}</form>; }" };
+    expect(checkImports(typesOnly)).toEqual([]);
+    const value = { '/src/main.tsx': "import App from './App';\nexport const x = <React.StrictMode><App /></React.StrictMode>;", '/src/App.tsx': 'export default function App() { return null; }' };
+    expect(checkImports(value).some(i => i.includes('React is not defined'))).toBe(true);
+  });
 });

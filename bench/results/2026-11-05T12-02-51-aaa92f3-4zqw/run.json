@@ -2,7 +2,7 @@
   "harnessVersion": "1.2.0",
   "taskVersion": "exp-v1,exp-v1",
   "gitCommit": "aaa92f3",
-  "createdAt": "2026-11-05T12:05:03.804Z",
+  "createdAt": "2026-11-05T12:08:38.295Z",
   "runId": "2026-11-05T12-02-51-aaa92f3-4zqw",
   "config": {
     "trials": 3,
@@ -149,9 +149,29 @@
         "provider": "Mistral"
       },
       "importIssues": [
-        "vfs:/src/pages/AddUpdate.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
-        "vfs:/src/pages/AddShift.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
-      ]
+        "vfs:/src/pages/AddShift.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+        "vfs:/src/pages/AddUpdate.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+      ],
+      "quality": {
+        "files": 11,
+        "codeFiles": 9,
+        "codeLines": 655,
+        "largestFile": "/src/pages/Shifts.tsx",
+        "largestFileLines": 131,
+        "anyCount": 0,
+        "kitImportingFiles": 5,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 7,
+        "lintWarnings": 0,
+        "lintPer100Lines": 1.1,
+        "tscErrors": null,
+        "tscSyntaxErrors": 4,
+        "tokensPerSecond": 166.3,
+        "fixLatencyMs": 11516,
+        "failKind": "syntax"
+      }
     },
     {
       "alias": "devstral",
@@ -241,7 +261,35 @@
       },
       "importIssues": [
         "vfs:/src/pages/AddUpdate.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
-      ]
+      ],
+      "runtime": {
+        "rendered": false,
+        "errors": [
+          "console: Error: Minified React error #130; visit https://reactjs.org/docs/error-decoder.html?invariant=130&args[]=undefined&args[]= for the full message or use the non-minified dev environment for full errors and additional helpf",
+          "pageerror: Minified React error #130; visit https://reactjs.org/docs/error-decoder.html?invariant=130&args[]=undefined&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warn"
+        ],
+        "bodyChars": 0
+      },
+      "quality": {
+        "files": 9,
+        "codeFiles": 7,
+        "codeLines": 516,
+        "largestFile": "/src/data/seed.ts",
+        "largestFileLines": 119,
+        "anyCount": 0,
+        "kitImportingFiles": 4,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 3,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.6,
+        "tscErrors": 5,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 169.3,
+        "fixLatencyMs": 5814,
+        "failKind": "other"
+      }
     },
     {
       "alias": "devstral",
@@ -335,9 +383,366 @@
         "provider": "Mistral"
       },
       "importIssues": [
-        "vfs:/src/pages/AddUpdate.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
-        "vfs:/src/pages/AddShift.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
-      ]
+        "vfs:/src/pages/AddShift.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)",
+        "vfs:/src/pages/AddUpdate.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+      ],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 485
+      },
+      "quality": {
+        "files": 11,
+        "codeFiles": 9,
+        "codeLines": 700,
+        "largestFile": "/src/pages/Shifts.tsx",
+        "largestFileLines": 139,
+        "anyCount": 0,
+        "kitImportingFiles": 5,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 4,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.6,
+        "tscErrors": 4,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 199,
+        "fixLatencyMs": 9545,
+        "failKind": "other"
+      }
+    },
+    {
+      "alias": "devstral",
+      "providerId": "openrouter",
+      "modelId": "mistralai/devstral-2512",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-05T12:05:03.820Z",
+      "plan": null,
+      "latencyMs": 49047,
+      "ttftMs": 646,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 49046,
+          "chars": 35316
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 35316,
+      "estTokens": {
+        "input": 14170,
+        "output": 8829,
+        "estimated": true
+      },
+      "estCostUsd": 0.023326,
+      "extraction": {
+        "writes": 10,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/devstral-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/App.tsx:4: Could not find \"./App.css\" in the project (imported from /src/App.tsx)"
+        ],
+        "solved": true,
+        "latencyMs": 7964,
+        "remainingErrors": [],
+        "estCostUsd": 0.0093224,
+        "passes": 1
+      },
+      "error": null,
+      "served": {
+        "model": "mistralai/devstral-2512",
+        "provider": "Mistral"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 2156
+      },
+      "quality": {
+        "files": 10,
+        "codeFiles": 7,
+        "codeLines": 643,
+        "largestFile": "/src/pages/WallPage.tsx",
+        "largestFileLines": 267,
+        "anyCount": 0,
+        "kitImportingFiles": 2,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 3,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.5,
+        "tscErrors": 2,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 180,
+        "fixLatencyMs": 7964,
+        "failKind": "missing-file"
+      }
+    },
+    {
+      "alias": "devstral",
+      "providerId": "openrouter",
+      "modelId": "mistralai/devstral-2512",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 2,
+      "startedAt": "2026-11-05T12:06:00.987Z",
+      "plan": null,
+      "latencyMs": 64836,
+      "ttftMs": 8030,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 60142,
+          "chars": 43403
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 4693,
+          "chars": 445
+        }
+      ],
+      "continuations": 1,
+      "truncatedFinal": false,
+      "outputChars": 43848,
+      "estTokens": {
+        "input": 39312,
+        "output": 10962,
+        "estimated": true
+      },
+      "estCostUsd": 0.037648799999999996,
+      "extraction": {
+        "writes": 9,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/devstral-t2",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/pages/WallPage.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "solved": false,
+        "latencyMs": 12324,
+        "remainingErrors": [
+          "vfs:/src/pages/WallPage.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "estCostUsd": 0.0164692,
+        "passes": 1
+      },
+      "error": null,
+      "served": {
+        "model": "mistralai/devstral-2512",
+        "provider": "Mistral"
+      },
+      "importIssues": [
+        "vfs:/src/pages/WallPage.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+      ],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 4793
+      },
+      "quality": {
+        "files": 8,
+        "codeFiles": 6,
+        "codeLines": 907,
+        "largestFile": "/src/pages/WallPage.tsx",
+        "largestFileLines": 353,
+        "anyCount": 1,
+        "kitImportingFiles": 2,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 6,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.7,
+        "tscErrors": 2,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 169.1,
+        "fixLatencyMs": 12324,
+        "failKind": "other"
+      }
+    },
+    {
+      "alias": "devstral",
+      "providerId": "openrouter",
+      "modelId": "mistralai/devstral-2512",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 3,
+      "startedAt": "2026-11-05T12:07:18.342Z",
+      "plan": null,
+      "latencyMs": 48682,
+      "ttftMs": 765,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 48682,
+          "chars": 43174
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 43174,
+      "estTokens": {
+        "input": 14170,
+        "output": 10794,
+        "estimated": true
+      },
+      "estCostUsd": 0.027256,
+      "extraction": {
+        "writes": 9,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/devstral-t3",
+      "fixRound": null,
+      "error": null,
+      "served": {
+        "model": "mistralai/devstral-2512",
+        "provider": "Mistral"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 1883
+      },
+      "quality": {
+        "files": 9,
+        "codeFiles": 7,
+        "codeLines": 964,
+        "largestFile": "/src/pages/WallPage.tsx",
+        "largestFileLines": 322,
+        "anyCount": 0,
+        "kitImportingFiles": 3,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "lintErrors": 4,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.4,
+        "tscErrors": 6,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 221.7,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
     }
   ]
 }

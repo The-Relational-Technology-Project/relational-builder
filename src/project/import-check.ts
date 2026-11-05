@@ -24,6 +24,9 @@
 import { isLucideIconName } from '@/preview/lucide-icons';
 
 const CODE_RE = /\.(tsx?|jsx?)$/;
+/** React members that exist at runtime: hooks and functions (lower-case
+ *  first letter) and the few components a file renders from React itself */
+const REACT_VALUE_USE_RE = /\bReact\.(?:[a-z]\w*|StrictMode|Fragment|Suspense|Profiler|Children|Component|PureComponent)\b/;
 const JSX_RE = /\.(tsx|jsx)$/;
 /** Bare packages known to export names only (a default import is a mistake) */
 const NAMED_ONLY_PACKAGES = new Set(['zustand', 'lucide-react']);
@@ -182,7 +185,12 @@ export function checkImports(files: Record<string, string>, opts: ImportCheckOpt
         if (!hasNamedExport(target, n)) issues.push(`vfs:${path}: No matching export in "vfs:${resolved}" for import "${n}"`);
       }
     }
-    if (CODE_RE.test(path) && /\bReact\./.test(source)) {
+    // Only a VALUE use of React needs React in scope (React.useState,
+    // React.forwardRef, <React.StrictMode>). Type uses (React.FormEvent,
+    // React.ReactNode, React.HTMLAttributes) are erased when the file is
+    // compiled, so flagging them sent builds that render fine through a
+    // fix pass (Nov 5: the most common trigger on the board was this)
+    if (CODE_RE.test(path) && REACT_VALUE_USE_RE.test(source)) {
       const importsReact = /import\s+(?:React\b|\*\s+as\s+React\b|React\s*,)/.test(source)
         || /import\s+type\s+React\b/.test(source);
       if (!importsReact) issues.push(`vfs:${path}: ReferenceError: React is not defined (uses React.* with no \`import React from 'react'\` or \`import * as React from 'react'\`)`);
