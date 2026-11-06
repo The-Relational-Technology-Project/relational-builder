@@ -1340,7 +1340,8 @@ async function proxyOpenRouterCommunity(
 
   // The request goes up as the client wrote it, minus anything that is not
   // the chat itself, plus the host exclusion and a usage chunk at the end
-  const { project_id: _projectId, web_tools: _webTools, mcp_servers: _mcp, effort: _effort, provider: _provider, ...chat } = body as Record<string, unknown>;
+  const chat: Record<string, unknown> = { ...body };
+  for (const k of ['project_id', 'web_tools', 'mcp_servers', 'effort', 'provider']) delete chat[k];
   const upstreamBody = {
     ...chat,
     ...(COMMUNITY_OPEN_IGNORE_HOSTS.length ? { provider: { ignore: COMMUNITY_OPEN_IGNORE_HOSTS } } : {}),
