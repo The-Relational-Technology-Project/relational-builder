@@ -17,6 +17,7 @@
  */
 
 import type { AppView } from '@/store/ui-store';
+import { GALLERY_PATH, ITEM_PARAM, parseEntryKey, type EntryRef } from '@/knowledge/entry-links';
 
 /** Every view that has an address. The builder is the app's root. */
 const VIEW_PATHS: Record<AppView, string> = {
@@ -96,7 +97,10 @@ function urlFor(path: string): string {
   // The gallery's shelf (?shelf=) is the gallery's own: it rides reloads
   // and back/forward there, and is dropped on the way to any other page
   const params = new URLSearchParams(window.location.search);
-  if (normalize(path) !== VIEW_PATHS.gallery) params.delete(SHELF_PARAM);
+  if (normalize(path) !== VIEW_PATHS.gallery) {
+    params.delete(SHELF_PARAM);
+    params.delete(ITEM_PARAM);
+  }
   const q = params.toString();
   return path + (q ? `?${q}` : '');
 }
@@ -121,6 +125,37 @@ export function writeShelfParam(shelf: string | null): void {
   const next = window.location.pathname + (q ? `?${q}` : '');
   if (next === window.location.pathname + window.location.search) return;
   window.history.pushState(null, '', next);
+}
+
+/**
+ * Which entry the gallery has open: `?item=<source>:<id>` (see
+ * src/knowledge/entry-links.ts). An entry's card is the thing people link
+ * to from chat, from other entries, and from a message to a neighbor, so
+ * it has an address of its own.
+ */
+export function readEntryParam(): EntryRef | null {
+  return parseEntryKey(new URLSearchParams(window.location.search).get(ITEM_PARAM));
+}
+
+/** Land on the gallery with an entry open — one history entry, whatever page we left */
+export function pushEntryPath(key: string): void {
+  const params = new URLSearchParams(window.location.search);
+  params.set(ITEM_PARAM, key);
+  const next = `${GALLERY_PATH}?${params.toString()}`;
+  if (next === window.location.pathname + window.location.search) return;
+  window.history.pushState(null, '', next);
+}
+
+/** Keep the address in step with the open card without growing history
+ *  (null = no card open). Only while on the gallery. */
+export function replaceEntryParam(key: string | null): void {
+  if (normalize(window.location.pathname) !== VIEW_PATHS.gallery) return;
+  const params = new URLSearchParams(window.location.search);
+  if (key) params.set(ITEM_PARAM, key); else params.delete(ITEM_PARAM);
+  const q = params.toString();
+  const next = window.location.pathname + (q ? `?${q}` : '');
+  if (next === window.location.pathname + window.location.search) return;
+  window.history.replaceState(null, '', next);
 }
 
 export function pushPath(path: string): void {

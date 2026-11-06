@@ -21,7 +21,9 @@ import { startFromStudioTool } from '@/project/start-from-tool';
 import { startFromCommonsItem } from '@/project/start-from-commons';
 import { BUILD_DAY_CARD_SLUG, BUILD_DAY_SHELF } from '@/knowledge/build-day';
 import { loadGalleryReferences, invalidateGalleryReferences } from '@/cloud/gallery-references';
-import type { GalleryReference, RefSource } from '@/knowledge/gallery-references';
+import { connectionsFor, type GalleryReference, type RefSource } from '@/knowledge/gallery-references';
+import { bodyLinkables, entryKey, type EntryLinkTarget, type EntryRef } from '@/knowledge/entry-links';
+import { EntryMarkdown } from '@/components/EntryMarkdown';
 import {
   ConnectionsSection,
   type ConnectableEntry,
@@ -37,7 +39,7 @@ import { useNearbyStore } from '@/store/nearby-store';
 import {
   catchmentContains, describeCatchment, formatMiles, isPlaceRooted, nearestLabel, nearestMiles, NEARBY_RADII_MILES, type GeoLocation,
 } from '@/knowledge/geo';
-import { readShelfParam, writeShelfParam } from '@/router';
+import { readShelfParam, replaceEntryParam, writeShelfParam } from '@/router';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
   DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger,
@@ -406,6 +408,47 @@ export function CommonsGallery() {
       clearStudioFocus();
     }
   }, [galleryFocusStudioItemId, clearStudioFocus, studioLibrary, libraryLoaded]);
+
+  // And for a KB tool or story (an in-line link in chat, or a shared
+  // /gallery?item=kb_tool:… address): open it once the knowledge store has
+  // it, and let the focus go if it never arrives.
+  const galleryFocusRef = useUIStore(s => s.galleryFocusRef);
+  const clearGalleryFocusRef = useUIStore(s => s.clearGalleryFocusRef);
+  const knowledgeLoaded = useKnowledgeStore(s => s.loaded);
+  useEffect(() => {
+    if (!galleryFocusRef) return;
+    const { source, id } = galleryFocusRef;
+    if (source === 'kb_tool') {
+      const t = tools.find(x => x.id === id);
+      if (t) { clearGalleryFocusRef(); setDetail(t); } else if (knowledgeLoaded) clearGalleryFocusRef();
+    } else if (source === 'kb_story') {
+      const st = stories.find(x => x.id === id);
+      if (st) { clearGalleryFocusRef(); setStoryDetail(st); } else if (knowledgeLoaded) clearGalleryFocusRef();
+    } else {
+      clearGalleryFocusRef();
+    }
+  }, [galleryFocusRef, clearGalleryFocusRef, tools, stories, knowledgeLoaded]);
+
+  // The open card is in the address bar (/gallery?item=commons:…), so any
+  // card is a link a person can copy for a neighbor. Replaced, not pushed:
+  // browsing cards shouldn't pile up history.
+  const hadCard = useRef(false);
+  useEffect(() => {
+    const key = detail
+      ? entryKey('kb_tool', detail.id)
+      : commonsDetail
+        ? entryKey('commons', commonsDetail.slug)
+        : studioDetail
+          ? entryKey('studio', studioDetail.id)
+          : storyDetail
+            ? entryKey('kb_story', storyDetail.id)
+            : null;
+    // Arriving at /gallery?item=… with no card open yet must not wipe the
+    // address the focus effects are about to honor
+    if (!key && !hadCard.current) return;
+    hadCard.current = !!key;
+    replaceEntryParam(key);
+  }, [detail, commonsDetail, studioDetail, storyDetail]);
 
   // Debounced hybrid search — the same semantic+text retrieval that informs
   // builds ranks the gallery, so "help seniors feel less alone" finds the
@@ -825,6 +868,28 @@ export function CommonsGallery() {
     return i ? open(() => setStudioDetail(i)) : false;
   }
 
+  /** Open an entry from a link inside a card's body. A commons entry that
+   *  isn't on the shelves right now (another studio's pin, say) is fetched
+   *  on its own. */
+  function openEntry(ref: EntryRef): void {
+    if (openRef(ref.source, ref.id)) return;
+    if (ref.source === 'commons') {
+      fetchCommonsItemDetail(ref.id)
+        .then(d => { if (d) { setDetail(null); setStudioDetail(null); setStoryDetail(null); setCommonsDetail(d); } })
+        .catch(() => {});
+    }
+  }
+
+  // Every entry on the shelves, as something a body can link to by title
+  // (see bodyLinkables for which titles are safe to link unprompted)
+  const linkables = useMemo<EntryLinkTarget[]>(() => [
+    ...tools.map(t => ({ source: 'kb_tool' as const, id: t.id, title: t.name })),
+    ...stories.filter(st => st.title).map(st => ({ source: 'kb_story' as const, id: st.id, title: st.title as string })),
+    ...[...buildDayCards, ...civicCards, ...neighboringCards, ...organizingCards, ...civicTechCards, ...micrograntCards, ...deliberationCards, ...prosocialCards, ...contributedCards]
+      .map(c => ({ source: 'commons' as const, id: c.slug, title: c.title })),
+    ...studioLibrary.map(i => ({ source: 'studio' as const, id: i.id, title: i.title })),
+  ], [tools, stories, buildDayCards, civicCards, neighboringCards, organizingCards, civicTechCards, micrograntCards, deliberationCards, prosocialCards, contributedCards, studioLibrary]);
+
   async function planCommons(card: CommonsCard) {
     setBusyKey(`commons-${card.slug}`);
     setError(null);
@@ -1201,7 +1266,9 @@ export function CommonsGallery() {
           busy={busyKey === `commons-${commonsDetail.slug}`}
           references={references}
           curation={curation}
+          linkables={linkables}
           onOpenRef={openRef}
+          onOpenEntry={openEntry}
           onPlan={() => planCommons(commonsDetail)}
           onOpenChange={open => { if (!open) setCommonsDetail(null); }}
         />
@@ -1219,7 +1286,9 @@ export function CommonsGallery() {
           credit={studioPartnerCredit(studioDetail.studio_slug)}
           references={references}
           curation={curation}
+          linkables={linkables}
           onOpenRef={openRef}
+          onOpenEntry={openEntry}
           onPlan={() => planStudioItem(studioDetail)}
           onOpenChange={open => { if (!open) setStudioDetail(null); }}
         />
@@ -1229,7 +1298,9 @@ export function CommonsGallery() {
           story={storyDetail}
           references={references}
           curation={curation}
+          linkables={linkables}
           onOpenRef={openRef}
+          onOpenEntry={openEntry}
           onOpenChange={open => { if (!open) setStoryDetail(null); }}
         />
       )}
@@ -1499,6 +1570,26 @@ function StudioPrinciplesPanel({
 }
 
 /** A studio library card — the studio's own shelf, marked private or shared */
+/**
+ * What a card's body may link to: its curated connections by any title,
+ * everything else only by an unmistakable one (see bodyLinkables). A
+ * mention of a connected entry in the body opens it from the words, the
+ * same way chat does.
+ */
+function useBodyLinkables(
+  linkables: EntryLinkTarget[],
+  references: GalleryReference[],
+  source: RefSource,
+  id: string,
+): EntryLinkTarget[] {
+  return useMemo(() => {
+    const connected = connectionsFor(references, source, id).map(c => ({
+      source: c.otherSource, id: c.otherId, title: c.otherTitle,
+    }));
+    return bodyLinkables(linkables, connected, { source, id });
+  }, [linkables, references, source, id]);
+}
+
 function StudioItemCard({
   item, studioLabel, lineage, credit, placeLine, anyBusy, onOpen, onPlan,
 }: {
@@ -1587,15 +1678,18 @@ function StudioItemCard({
 }
 
 function StudioItemDetailDialog({
-  item, studioLabel, remixOfTitle, lineage, credit, references, curation, onOpenRef, onPlan, onOpenChange,
+  item, studioLabel, remixOfTitle, lineage, credit, references, curation, linkables, onOpenRef, onOpenEntry, onPlan, onOpenChange,
 }: {
   item: StudioLibraryItem; studioLabel: string; remixOfTitle?: string | null;
   lineage?: string | null; credit?: string | null;
   references: GalleryReference[];
   curation?: ConnectionsCuration;
+  linkables: EntryLinkTarget[];
   onOpenRef: (source: RefSource, id: string) => boolean;
+  onOpenEntry: (ref: EntryRef) => void;
   onPlan: () => void; onOpenChange: (open: boolean) => void;
 }) {
+  const bodyEntries = useBodyLinkables(linkables, references, 'studio', item.id);
   return (
     <Dialog open onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl lg:max-w-4xl max-h-[85vh] overflow-y-auto">
@@ -1652,9 +1746,13 @@ function StudioItemDetailDialog({
         </div>
 
         {item.body && (
-          <div className="prose prose-sm dark:prose-invert max-w-none text-sm [&_p]:leading-relaxed">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{item.body}</ReactMarkdown>
-          </div>
+          <EntryMarkdown
+            className="prose prose-sm dark:prose-invert max-w-none text-sm [&_p]:leading-relaxed"
+            entries={bodyEntries}
+            onOpenEntry={onOpenEntry}
+          >
+            {item.body}
+          </EntryMarkdown>
         )}
 
         <ConnectionsSection
@@ -1710,14 +1808,17 @@ function KBStoryCard({ story, placeLine, onOpen }: { story: Story; placeLine?: s
 }
 
 function KBStoryDetailDialog({
-  story, references, curation, onOpenRef, onOpenChange,
+  story, references, curation, linkables, onOpenRef, onOpenEntry, onOpenChange,
 }: {
   story: Story;
   references: GalleryReference[];
   curation?: ConnectionsCuration;
+  linkables: EntryLinkTarget[];
   onOpenRef: (source: RefSource, id: string) => boolean;
+  onOpenEntry: (ref: EntryRef) => void;
   onOpenChange: (open: boolean) => void;
 }) {
+  const bodyEntries = useBodyLinkables(linkables, references, 'kb_story', story.id);
   return (
     <Dialog open onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl lg:max-w-4xl max-h-[85vh] overflow-y-auto">
@@ -1738,11 +1839,13 @@ function KBStoryDetailDialog({
           </p>
         </div>
 
-        <div className="prose prose-sm dark:prose-invert max-w-none text-sm [&_p]:leading-relaxed">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {story.full_story_text ?? story.story_text}
-          </ReactMarkdown>
-        </div>
+        <EntryMarkdown
+          className="prose prose-sm dark:prose-invert max-w-none text-sm [&_p]:leading-relaxed"
+          entries={bodyEntries}
+          onOpenEntry={onOpenEntry}
+        >
+          {story.full_story_text ?? story.story_text}
+        </EntryMarkdown>
 
         <ConnectionsSection
           source="kb_story"
@@ -1907,14 +2010,17 @@ function RecipeCard({
 }
 
 function RecipeDetailDialog({
-  card, shelfLabel, busy, references, curation, onOpenRef, onPlan, onOpenChange,
+  card, shelfLabel, busy, references, curation, linkables, onOpenRef, onOpenEntry, onPlan, onOpenChange,
 }: {
   card: CommonsCard; shelfLabel?: string; busy: boolean;
   references: GalleryReference[];
   curation?: ConnectionsCuration;
+  linkables: EntryLinkTarget[];
   onOpenRef: (source: RefSource, id: string) => boolean;
+  onOpenEntry: (ref: EntryRef) => void;
   onPlan: () => void; onOpenChange: (open: boolean) => void;
 }) {
+  const bodyEntries = useBodyLinkables(linkables, references, 'commons', card.slug);
   const [detail, setDetail] = useState<CommonsItemDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const shelf = shelfFor(card, shelfLabel);
@@ -1991,9 +2097,13 @@ function RecipeDetailDialog({
             <Loader2 className="size-3.5 animate-spin" /> Opening the recipe…
           </p>
         ) : detail?.body ? (
-          <div className="prose prose-sm dark:prose-invert max-w-none text-sm [&_p]:leading-relaxed">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{detail.body}</ReactMarkdown>
-          </div>
+          <EntryMarkdown
+            className="prose prose-sm dark:prose-invert max-w-none text-sm [&_p]:leading-relaxed"
+            entries={bodyEntries}
+            onOpenEntry={onOpenEntry}
+          >
+            {detail.body}
+          </EntryMarkdown>
         ) : null}
 
         <ConnectionsSection
