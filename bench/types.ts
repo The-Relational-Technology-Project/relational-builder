@@ -131,6 +131,8 @@ export interface TrialResult {
      *  here treated as untyped. Counted only on builds that bundled (from
      *  Nov 3, 2026); null when tsc could not run or the build did not compile. */
     tscErrors: number | null;
+    /** Mechanical design proxies (bench/lib/quality.ts), not scores (from Nov 6, 2026) */
+    design?: import('./lib/quality').DesignProxies;
     /** Syntax errors (TS1xxx) counted apart, since one bad token cascades
      *  through a file (absent before Nov 3, 2026) */
     tscSyntaxErrors?: number | null;

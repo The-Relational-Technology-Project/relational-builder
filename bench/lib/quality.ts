@@ -75,6 +75,65 @@ export function fileStats(files: Record<string, string>): FileStats {
   };
 }
 
+/** Mechanical DESIGN PROXIES (labeled as proxies, never as scores): what
+ *  the files show about whether a design decision was made at all. The
+ *  design call itself stays a person's, from the screenshots. */
+export interface DesignProxies {
+  /** Theme tokens in :root changed from the kit's gray placeholders, of those present */
+  tokensFilled: number;
+  tokensTotal: number;
+  /** Kit layout pieces used anywhere: AppBar, BottomNav, EmptyState, Card */
+  kitLayout: string[];
+  /** `md:` responsive classes across code files */
+  mdClasses: number;
+  /** A web font loaded (Google Fonts import or @font-face) */
+  fontLoaded: boolean;
+  /** WCAG contrast of --foreground on --background, and --muted-foreground on --background (null if unreadable) */
+  contrastText: number | null;
+  contrastMuted: number | null;
+}
+
+const PLACEHOLDER_TOKENS: Record<string, string> = {
+  background: '#ffffff', foreground: '#171717', card: '#fafafa', 'card-foreground': '#171717',
+  primary: '#404040', 'primary-foreground': '#ffffff', secondary: '#f5f5f5', 'secondary-foreground': '#404040',
+  muted: '#f5f5f5', 'muted-foreground': '#737373', accent: '#f5f5f5', 'accent-foreground': '#171717',
+  border: '#e5e5e5', input: '#d4d4d4', ring: '#404040',
+};
+
+function contrast(a: string, b: string): number | null {
+  const parse = (h: string) => {
+    let n = h.trim().replace('#', '');
+    if (n.length === 3) n = n.split('').map(c => c + c).join('');
+    if (!/^[0-9a-f]{6}$/i.test(n)) return null;
+    return [0, 2, 4].map(i => parseInt(n.slice(i, i + 2), 16) / 255).map(c => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+  };
+  const x = parse(a), y = parse(b);
+  if (!x || !y) return null;
+  const L = (c: number[]) => 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  const [hi, lo] = [L(x), L(y)].sort((p, q) => q - p);
+  return Math.round(((hi + 0.05) / (lo + 0.05)) * 10) / 10;
+}
+
+export function designProxies(files: Record<string, string>): DesignProxies {
+  const css = files['/src/index.css'] ?? files['src/index.css'] ?? '';
+  const root = css.match(/:root\s*\{([^}]*)\}/)?.[1] ?? '';
+  const tokens: Record<string, string> = {};
+  for (const m of root.matchAll(/--([a-z-]+)\s*:\s*([^;]+);/g)) tokens[m[1]] = m[2].trim().toLowerCase();
+  const present = Object.keys(PLACEHOLDER_TOKENS).filter(k => k in tokens);
+  const tokensFilled = present.filter(k => tokens[k] !== PLACEHOLDER_TOKENS[k]).length;
+  const code = Object.entries(files).filter(([p]) => CODE_RE.test(p)).map(([, c]) => c).join('\n');
+  const kitLayout = ['AppBar', 'BottomNav', 'EmptyState', 'Card'].filter(n => new RegExp(`<${n}[\\s>/]`).test(code));
+  return {
+    tokensFilled,
+    tokensTotal: present.length,
+    kitLayout,
+    mdClasses: (code.match(/\bmd:[a-z-]/g) ?? []).length,
+    fontLoaded: /fonts\.googleapis\.com|@font-face/.test(css + (files['/index.html'] ?? '')),
+    contrastText: tokens.foreground && tokens.background ? contrast(tokens.foreground, tokens.background) : null,
+    contrastMuted: tokens['muted-foreground'] && tokens.background ? contrast(tokens['muted-foreground'], tokens.background) : null,
+  };
+}
+
 export type FailKind =
   | 'missing-file'
   | 'bad-import'

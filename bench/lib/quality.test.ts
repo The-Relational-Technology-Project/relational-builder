@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { fileStats, classifyFailure, tokensPerSecond, lintPer100 } from './quality';
+import { fileStats, classifyFailure, tokensPerSecond, lintPer100, designProxies } from './quality';
 
 describe('fileStats', () => {
   it('counts what a reviewer would count', () => {
@@ -48,3 +48,24 @@ describe('speed and lint density', () => {
     expect(lintPer100({ errors: 3, warnings: 1 }, 0)).toBeNull();
   });
 });
+
+describe('design proxies', () => {
+  it('counts filled tokens, kit layout, md classes, fonts and contrast', () => {
+    const files = {
+      '/src/index.css': "@import url('https://fonts.googleapis.com/css2?family=Sora');\n:root { --background: #14121f; --foreground: #f4f1ea; --muted-foreground: #b3aec4; --primary: #404040; }",
+      '/src/App.tsx': 'export const A = () => <div className="md:flex md:grid-cols-2"><AppBar /><Card>x</Card><EmptyState title="none" /></div>;',
+    };
+    const d = designProxies(files);
+    expect(d.tokensTotal).toBe(4);
+    expect(d.tokensFilled).toBe(3);
+    expect(d.kitLayout).toEqual(['AppBar', 'EmptyState', 'Card']);
+    expect(d.mdClasses).toBe(2);
+    expect(d.fontLoaded).toBe(true);
+    expect(d.contrastText).toBeGreaterThan(10);
+  });
+  it('reads a missing stylesheet as nothing decided', () => {
+    const d = designProxies({ '/src/App.tsx': 'export const A = 1;' });
+    expect(d).toMatchObject({ tokensFilled: 0, tokensTotal: 0, kitLayout: [], mdClasses: 0, fontLoaded: false, contrastText: null });
+  });
+});
+

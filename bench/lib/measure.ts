@@ -13,7 +13,7 @@ import path from 'node:path';
 
 const execFileP = promisify(execFile);
 import type { TrialResult } from '../types';
-import { fileStats, classifyFailure, tokensPerSecond, lintPer100 } from './quality';
+import { fileStats, classifyFailure, tokensPerSecond, lintPer100, designProxies } from './quality';
 import { checkImports } from '@/project/import-check';
 import { KIT_FILES } from '@/kit';
 
@@ -173,6 +173,7 @@ export async function measureRun(runDir: string, trials: TrialResult[]): Promise
     const firstFailure = t.fixRound?.triggerErrors?.[0] ?? (t.bundle && !t.bundle.ok ? t.bundle.errors[0] : null);
     t.quality = {
       ...stats,
+      design: designProxies(files),
       lintErrors: lint?.errors ?? null,
       lintWarnings: lint?.warnings ?? null,
       lintPer100Lines: lint ? lintPer100(lint, stats.codeLines) : null,
