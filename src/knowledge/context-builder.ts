@@ -21,6 +21,7 @@ import type { ReferenceDoc } from '@/store/references-store';
 import { splitProjectSnapshot, formatChangedFilesForPrompt } from './snapshot-split';
 import { isHumanScale } from '@/human-scale/flag';
 import { HUMAN_SCALE_BUILD_RULES } from '@/human-scale/prompt';
+import { designScaffoldPrompt } from '@/human-scale/design-scaffold';
 
 /**
  * Builds the system prompt by combining the base instructions,
@@ -754,7 +755,13 @@ export function buildPromptContext(
   const sections = [base, '', formatPrinciplesForPrompt()];
   // Human-scale branch: import discipline for small open models (see
   // src/human-scale/prompt.ts); build mode only, off unless the flag is on
-  if (base === BASE_INSTRUCTIONS && isHumanScale()) sections.push('', HUMAN_SCALE_BUILD_RULES);
+  if (base === BASE_INSTRUCTIONS && isHumanScale()) {
+    sections.push('', HUMAN_SCALE_BUILD_RULES);
+    // The design-scaffolding experiment (src/human-scale/design-scaffold.ts):
+    // empty unless a variant is chosen
+    const scaffold = designScaffoldPrompt();
+    if (scaffold) sections.push('', scaffold);
+  }
   if (options.builderProfilePage && base !== PROFILE_PLAN_INSTRUCTIONS) {
     sections.push('', PROFILE_PROJECT_GUIDANCE);
   }
