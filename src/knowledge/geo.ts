@@ -447,3 +447,96 @@ export async function resolveBoundary(
     return null;
   }
 }
+
+// --- Typeahead for the Place dialog ---
+
+export interface PlaceSuggestion extends GeoPoint {
+  /** "Chicago, Illinois" — the parts after the name, for the second line */
+  context: string;
+  osmType?: 'N' | 'W' | 'R';
+  osmId?: number;
+  osmKey?: string;
+  osmValue?: string;
+}
+
+export type SuggestKind = 'place' | 'postcode' | 'boundary';
+
+const SUGGEST_TAGS: Record<SuggestKind, string[]> = {
+  // Neighborhoods, suburbs, towns, cities, villages — not stations or shops
+  place: ['place'],
+  postcode: ['place:postcode'],
+  // Boundary relations where OpenStreetMap has them, place nodes otherwise
+  boundary: ['boundary:administrative', 'place'],
+};
+
+/**
+ * Suggestions as a person types — Photon is built for this (it is komoot's
+ * autocomplete geocoder and allows it; Nominatim's policy does not). Each
+ * kind narrows the OpenStreetMap tags so "Logan Square" offers the
+ * neighborhood, not the Blue Line station. Picking one is the confirmation:
+ * nothing is saved from unpicked text.
+ */
+export async function suggestPlaces(query: string, kind: SuggestKind, signal?: AbortSignal): Promise<PlaceSuggestion[]> {
+  const q = query.trim();
+  if (q.length < 2) return [];
+  const params = new URLSearchParams({ q, limit: '6', lang: 'en' });
+  for (const t of SUGGEST_TAGS[kind]) params.append('osm_tag', t);
+  try {
+    const res = await fetch(`${PHOTON_URL}/api/?${params}`, { signal });
+    if (!res.ok) return [];
+    const data = (await res.json()) as { features?: (PhotonFeature & { properties: Record<string, string | number | undefined> })[] };
+    const seen = new Set<string>();
+    const out: PlaceSuggestion[] = [];
+    for (const f of data.features ?? []) {
+      const p = f.properties as Record<string, string | undefined>;
+      const name = p.name ?? p.postcode ?? '';
+      if (!name) continue;
+      const contextParts = [p.district, p.city ?? p.town ?? p.village, p.county, p.state, p.country]
+        .filter((v): v is string => !!v && v !== name)
+        .filter((v, i, arr) => arr.indexOf(v) === i);
+      const context = contextParts.slice(0, 3).join(', ');
+      const key = `${name}|${context}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const [lng, lat] = f.geometry.coordinates;
+      const osmType = p.osm_type as PlaceSuggestion['osmType'];
+      out.push({
+        lat, lng, label: context ? `${name}, ${context}` : name, context,
+        ...(osmType ? { osmType } : {}),
+        ...(p.osm_id ? { osmId: Number(p.osm_id) } : {}),
+        ...(p.osm_key ? { osmKey: p.osm_key } : {}),
+        ...(p.osm_value ? { osmValue: p.osm_value } : {}),
+      });
+    }
+    return out;
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * The boundary for a picked suggestion. A relation can be looked up by its
+ * id straight away; a place node (most neighborhoods) has its boundary, if
+ * any, in a separate relation that a name search finds. One Nominatim call
+ * either way, on Save, never while typing.
+ */
+export async function boundaryForSuggestion(
+  s: PlaceSuggestion,
+  source: Extract<CatchmentSource, 'zip' | 'neighborhood' | 'city' | 'county'>,
+  signal?: AbortSignal,
+): Promise<Catchment | null> {
+  const name = s.label.split(',')[0].trim();
+  if (s.osmType === 'R' && s.osmId) {
+    try {
+      const params = new URLSearchParams({ osm_ids: `R${s.osmId}`, format: 'jsonv2', polygon_geojson: '1' });
+      const res = await fetch(`${NOMINATIM_URL}/lookup?${params}`, { signal, headers: { Accept: 'application/json' } });
+      if (res.ok) {
+        const hits = (await res.json()) as NominatimHit[];
+        const rings = ringsFromGeometry(hits[0]?.geojson);
+        if (rings) return { kind: 'polygon', rings, label: source === 'zip' ? `ZIP ${name}` : name, source, ref: `relation/${s.osmId}` };
+      }
+    } catch { /* fall through to the name search */ }
+  }
+  const hit = await resolveBoundary(source === 'zip' ? name : s.label, source, signal);
+  return hit?.catchment ?? null;
+}

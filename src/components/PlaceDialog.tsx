@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { MapPin, Loader2, Trash2, ExternalLink } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { MapPin, Loader2, Trash2, ExternalLink, Check, X } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -14,24 +14,25 @@ import { useProjectStore } from '@/store/project-store';
 import {
   CATCHMENT_RADII_MILES,
   DEFAULT_CATCHMENT_MILES,
+  boundaryForSuggestion,
   catchmentFromGeoJson,
   centroidOfRings,
   describeCatchment,
-  geocodePlace,
-  resolveBoundary,
+  suggestPlaces,
   type Catchment,
   type CatchmentSource,
-  type GeoPoint,
+  type PlaceSuggestion,
+  type SuggestKind,
 } from '@/knowledge/geo';
 import type { ProjectPlace } from '@/project/place';
 
 /**
  * Where this software lives and the area it serves. Opened from the project
- * menu. Everything here is the builder's own call: the place is typed (or
- * left empty), the catchment is a radius, a ZIP, a named boundary from
- * OpenStreetMap, or a GeoJSON boundary pasted from anywhere (a watershed
- * from USGS, a bioregion from One Earth, a shape drawn at geojson.io), and
- * the public switch is off until they turn it on.
+ * menu. Everything here is the builder's own call: the place is searched
+ * and picked (never guessed from free text), the catchment is a radius, a
+ * ZIP, a named boundary from OpenStreetMap, or a GeoJSON boundary pasted
+ * from anywhere (a watershed from USGS, a bioregion from One Earth, a shape
+ * drawn at geojson.io), and the public switch is off until they turn it on.
  *
  * Saved onto the project's lineage (project/place), where it reaches the
  * prompt at once and the repo, the published site, and the commons when
@@ -42,8 +43,8 @@ type ServesMode = 'radius' | 'zip' | 'boundary' | 'geojson';
 
 const SERVES_MODES: { id: ServesMode; label: string; hint: string }[] = [
   { id: 'radius', label: 'A radius', hint: 'So many miles around the place' },
-  { id: 'zip', label: 'A ZIP or postcode', hint: 'A boundary from OpenStreetMap where one exists, a radius where not' },
-  { id: 'boundary', label: 'A neighborhood or town', hint: 'Its official boundary from OpenStreetMap' },
+  { id: 'zip', label: 'A ZIP or postcode', hint: 'Its boundary where OpenStreetMap has one, a radius where not' },
+  { id: 'boundary', label: 'A neighborhood or town', hint: 'Its boundary from OpenStreetMap' },
   { id: 'geojson', label: 'A boundary I bring', hint: 'A watershed, a bioregion, or a shape you drew, as GeoJSON' },
 ];
 
@@ -54,17 +55,133 @@ const GEOJSON_SOURCES: { id: CatchmentSource; label: string }[] = [
   { id: 'other', label: 'Something else' },
 ];
 
+/**
+ * Search and pick. Suggestions arrive as the person types (Photon, debounced);
+ * choosing one is the confirmation and shows as a chip. Typed text that was
+ * never picked is not a place — the parent refuses to save it and says so.
+ */
+function PlaceSearch({ id, kind, value, onPick, placeholder, autoFocus }: {
+  id: string;
+  kind: SuggestKind;
+  value: PlaceSuggestion | null;
+  onPick: (s: PlaceSuggestion | null) => void;
+  placeholder: string;
+  autoFocus?: boolean;
+}) {
+  const [typed, setTyped] = useState('');
+  const [options, setOptions] = useState<PlaceSuggestion[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(0);
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    if (value) return;
+    const q = typed.trim();
+    if (q.length < 2) return;
+    abortRef.current?.abort();
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+    const t = setTimeout(() => {
+      setSearching(true);
+      void suggestPlaces(q, kind, ctrl.signal).then(res => {
+        if (ctrl.signal.aborted) return;
+        setOptions(res);
+        setActive(0);
+        setOpen(true);
+        setSearching(false);
+      });
+    }, 280);
+    return () => { clearTimeout(t); ctrl.abort(); };
+  }, [typed, kind, value]);
+
+  if (value) {
+    return (
+      <div className="flex items-center gap-2 rounded-md border border-primary/50 bg-primary/5 px-2.5 py-1.5 text-sm">
+        <Check className="size-3.5 shrink-0 text-primary" />
+        <span className="min-w-0 truncate">{value.label}</span>
+        <button
+          type="button"
+          onClick={() => { onPick(null); setTyped(''); setOptions([]); }}
+          className="ml-auto inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+          title="Pick a different place"
+        >
+          <X className="size-3" /> change
+        </button>
+      </div>
+    );
+  }
+
+  const choose = (s: PlaceSuggestion) => { onPick(s); setOpen(false); setOptions([]); setTyped(''); };
+  const noMatch = !searching && open && typed.trim().length >= 2 && options.length === 0;
+
+  return (
+    <div className="relative">
+      <div className="relative">
+        <Input
+          id={id}
+          value={typed}
+          onChange={e => {
+            setTyped(e.target.value);
+            if (e.target.value.trim().length < 2) { setOptions([]); setOpen(false); setSearching(false); }
+          }}
+          onFocus={() => { if (options.length > 0) setOpen(true); }}
+          onBlur={() => setTimeout(() => setOpen(false), 120)}
+          onKeyDown={e => {
+            if (!open || options.length === 0) return;
+            if (e.key === 'ArrowDown') { e.preventDefault(); setActive(a => Math.min(a + 1, options.length - 1)); }
+            else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(a => Math.max(a - 1, 0)); }
+            else if (e.key === 'Enter') { e.preventDefault(); choose(options[active]); }
+            else if (e.key === 'Escape') setOpen(false);
+          }}
+          placeholder={placeholder}
+          className="h-8 text-sm pr-7"
+          autoComplete="off"
+          role="combobox"
+          aria-expanded={open}
+          aria-controls={`${id}-options`}
+          autoFocus={autoFocus}
+        />
+        {searching && <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 size-3.5 animate-spin text-muted-foreground" />}
+      </div>
+      {open && options.length > 0 && (
+        <ul
+          id={`${id}-options`}
+          role="listbox"
+          className="absolute z-10 mt-1 w-full max-h-56 overflow-y-auto rounded-md border bg-popover shadow-md text-sm"
+        >
+          {options.map((s, i) => (
+            <li
+              key={`${s.lat},${s.lng},${s.label}`}
+              role="option"
+              aria-selected={i === active}
+              onMouseDown={e => { e.preventDefault(); choose(s); }}
+              onMouseEnter={() => setActive(i)}
+              className={`cursor-pointer px-2.5 py-1.5 ${i === active ? 'bg-accent' : ''}`}
+            >
+              <span className="block truncate">{s.label.split(',')[0]}</span>
+              {s.context && <span className="block truncate text-[11px] text-muted-foreground">{s.context}</span>}
+            </li>
+          ))}
+        </ul>
+      )}
+      {noMatch && (
+        <p className="mt-1 text-[11px] text-muted-foreground">No places match that. Try adding the city or state, or a different spelling.</p>
+      )}
+    </div>
+  );
+}
+
 export function PlaceDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
   const lineage = useProjectStore(s => s.lineage);
   const setLineage = useProjectStore(s => s.setLineage);
   const existing = lineage?.place;
 
-  const [placeText, setPlaceText] = useState('');
-  const [point, setPoint] = useState<GeoPoint | null>(null);
+  const [where, setWhere] = useState<PlaceSuggestion | null>(null);
   const [mode, setMode] = useState<ServesMode>('radius');
   const [miles, setMiles] = useState<number>(DEFAULT_CATCHMENT_MILES);
-  const [zip, setZip] = useState('');
-  const [boundaryText, setBoundaryText] = useState('');
+  const [zip, setZip] = useState<PlaceSuggestion | null>(null);
+  const [boundary, setBoundary] = useState<PlaceSuggestion | null>(null);
   const [geojsonText, setGeojsonText] = useState('');
   const [geojsonSource, setGeojsonSource] = useState<CatchmentSource>('watershed');
   const [geojsonLabel, setGeojsonLabel] = useState('');
@@ -78,74 +195,76 @@ export function PlaceDialog({ open, onOpenChange }: { open: boolean; onOpenChang
     if (!open) return;
     setError(null);
     setNote(null);
+    setZip(null);
+    setBoundary(null);
+    setGeojsonText('');
     if (!existing) {
-      setPlaceText('');
-      setPoint(null);
+      setWhere(null);
       setMode('radius');
       setMiles(DEFAULT_CATCHMENT_MILES);
-      setZip('');
-      setBoundaryText('');
-      setGeojsonText('');
       setIsPublic(false);
       return;
     }
-    setPlaceText(existing.label);
-    setPoint({ lat: existing.lat, lng: existing.lng, label: existing.label });
+    setWhere({ lat: existing.lat, lng: existing.lng, label: existing.label, context: '' });
     setIsPublic(existing.public);
     const c = existing.catchment;
     if (!c) { setMode('radius'); setMiles(DEFAULT_CATCHMENT_MILES); return; }
-    if (c.kind === 'radius') { setMode(c.source === 'zip' ? 'zip' : 'radius'); setMiles(c.miles ?? DEFAULT_CATCHMENT_MILES); if (c.source === 'zip') setZip(c.ref ?? ''); return; }
-    if (c.source === 'zip') { setMode('zip'); setZip(c.ref ?? ''); return; }
-    if (c.source === 'neighborhood' || c.source === 'city' || c.source === 'county') { setMode('boundary'); setBoundaryText(c.label); return; }
+    if (c.source === 'zip') { setMode('zip'); if (c.ref) setZip({ lat: existing.lat, lng: existing.lng, label: c.ref, context: '' }); return; }
+    if (c.kind === 'radius') { setMode('radius'); setMiles(c.miles ?? DEFAULT_CATCHMENT_MILES); return; }
+    if (c.source === 'neighborhood' || c.source === 'city' || c.source === 'county') {
+      setMode('boundary');
+      setBoundary({ lat: existing.lat, lng: existing.lng, label: c.label, context: '', ...(c.ref?.startsWith('relation/') ? { osmType: 'R' as const, osmId: Number(c.ref.slice(9)) } : {}) });
+      return;
+    }
     setMode('geojson');
     setGeojsonSource(c.source);
     setGeojsonLabel(c.label);
-    setGeojsonText('');
   }, [open, existing]);
 
-  const canSave = placeText.trim().length > 0 || mode === 'geojson' || mode === 'zip' || mode === 'boundary';
+  const keepingSavedBoundary = (s: PlaceSuggestion | null) =>
+    !!s && !!existing?.catchment && existing.catchment.kind === 'polygon' && s.label === existing.catchment.label;
+
+  const needsWhere = mode === 'radius';
+  const canSave =
+    (mode === 'radius' && !!where) ||
+    (mode === 'zip' && !!zip) ||
+    (mode === 'boundary' && !!(boundary ?? where)) ||
+    mode === 'geojson';
 
   async function save() {
     setBusy(true);
     setError(null);
     setNote(null);
     try {
-      let resolvedPoint: GeoPoint | null = point && point.label === placeText.trim() ? point : null;
+      let point: PlaceSuggestion | null = where;
       let catchment: Catchment | undefined;
       let precision: ProjectPlace['precision'] = 'neighborhood';
 
       if (mode === 'radius') {
-        if (!resolvedPoint) resolvedPoint = await geocodePlace(placeText);
-        if (!resolvedPoint) throw new Error(`Couldn't find "${placeText.trim()}". Try a neighborhood and city, or a town and state.`);
-        catchment = { kind: 'radius', miles, label: `${miles} ${miles === 1 ? 'mile' : 'miles'} around ${resolvedPoint.label}`, source: 'radius' };
+        if (!point) throw new Error('Pick the place from the list first.');
+        catchment = { kind: 'radius', miles, label: `${miles} ${miles === 1 ? 'mile' : 'miles'} around ${point.label}`, source: 'radius' };
         precision = miles <= 3 ? 'neighborhood' : miles <= 12 ? 'city' : 'region';
       } else if (mode === 'zip') {
-        const q = zip.trim();
-        if (!q) throw new Error('Type the ZIP or postcode.');
-        const hit = await resolveBoundary(q, 'zip');
-        if (!hit) throw new Error(`Couldn't find a place for "${q}". Add the country if it is outside the US.`);
-        // The typed place names it; the ZIP's own centre only when nothing was typed
-        if (!resolvedPoint && placeText.trim()) resolvedPoint = await geocodePlace(placeText);
-        resolvedPoint = resolvedPoint ?? hit.point;
-        if (hit.catchment) {
-          catchment = hit.catchment;
+        if (!zip) throw new Error('Pick the ZIP or postcode from the list first.');
+        const code = zip.label.split(',')[0].trim();
+        const saved = existing?.catchment;
+        const found = saved?.source === 'zip' && saved.ref === code ? saved : await boundaryForSuggestion(zip, 'zip');
+        if (found && found.kind === 'polygon') {
+          catchment = { ...found, label: `ZIP ${code}`, ref: code };
         } else {
           // US ZIPs have no boundary in OpenStreetMap; the honest fallback is
           // a radius that says it is approximate
-          catchment = { kind: 'radius', miles: 2, label: `ZIP ${q} (about 2 miles around its centre)`, source: 'zip', ref: q };
-          setNote(`OpenStreetMap has no boundary for ${q}, so the Builder uses about 2 miles around its centre.`);
+          catchment = { kind: 'radius', miles: 2, label: `ZIP ${code} (about 2 miles around its centre)`, source: 'zip', ref: code };
+          setNote(`OpenStreetMap has no boundary for ${code}, so the Builder uses about 2 miles around its centre.`);
         }
-        precision = 'neighborhood';
+        point = point ?? zip;
       } else if (mode === 'boundary') {
-        const q = boundaryText.trim() || placeText.trim();
-        if (!q) throw new Error('Name the neighborhood or town.');
-        const hit = await resolveBoundary(q, 'neighborhood');
-        if (!hit) throw new Error(`Couldn't find "${q}" in OpenStreetMap. Try adding the city or state.`);
-        if (!hit.catchment) throw new Error(`OpenStreetMap knows where "${q}" is but has no boundary for it. Use a radius, or bring a boundary as GeoJSON.`);
-        if (!resolvedPoint && placeText.trim() && boundaryText.trim()) resolvedPoint = await geocodePlace(placeText);
-        resolvedPoint = resolvedPoint ?? hit.point;
-        catchment = hit.catchment;
-        precision = 'neighborhood';
+        const pick = boundary ?? where;
+        if (!pick) throw new Error('Pick the neighborhood or town from the list first.');
+        const found = keepingSavedBoundary(boundary) ? existing!.catchment! : await boundaryForSuggestion(pick, 'neighborhood');
+        if (!found) throw new Error(`OpenStreetMap knows where ${pick.label.split(',')[0]} is but has no boundary for it. Use a radius, or bring a boundary as GeoJSON.`);
+        catchment = found;
+        point = point ?? pick;
       } else {
         const label = geojsonLabel.trim();
         const fromText = geojsonText.trim();
@@ -158,21 +277,18 @@ export function PlaceDialog({ open, onOpenChange }: { open: boolean; onOpenChang
         } else {
           throw new Error('Paste the GeoJSON for the boundary.');
         }
-        if (!resolvedPoint) {
-          if (placeText.trim()) resolvedPoint = await geocodePlace(placeText);
-          if (!resolvedPoint) {
-            const c = centroidOfRings(catchment.rings ?? []);
-            if (!c) throw new Error('Could not find the centre of that boundary.');
-            resolvedPoint = { ...c, label: catchment.label };
-          }
+        if (!point) {
+          const c = centroidOfRings(catchment.rings ?? []);
+          if (!c) throw new Error('Could not find the centre of that boundary.');
+          point = { ...c, label: catchment.label, context: '' };
         }
         precision = geojsonSource === 'bioregion' ? 'region' : 'neighborhood';
       }
 
       const place: ProjectPlace = {
-        lat: resolvedPoint.lat,
-        lng: resolvedPoint.lng,
-        label: resolvedPoint.label,
+        lat: point.lat,
+        lng: point.lng,
+        label: point.label,
         precision,
         basis: 'manual',
         catchment,
@@ -208,16 +324,17 @@ export function PlaceDialog({ open, onOpenChange }: { open: boolean; onOpenChang
 
         <div className="space-y-4 text-sm">
           <div className="space-y-1.5">
-            <Label htmlFor="place-text" className="text-xs">Where</Label>
-            <Input
-              id="place-text"
-              value={placeText}
-              onChange={e => { setPlaceText(e.target.value); setPoint(null); }}
-              placeholder="A neighborhood and city, or a town and state"
-              className="h-8 text-sm"
+            <Label htmlFor="place-where" className="text-xs">Where{!needsWhere && mode !== 'geojson' && <span className="text-muted-foreground font-normal"> (optional)</span>}{mode === 'geojson' && <span className="text-muted-foreground font-normal"> (optional, names the place)</span>}</Label>
+            <PlaceSearch
+              id="place-where"
+              kind="place"
+              value={where}
+              onPick={setWhere}
+              placeholder="Start typing a neighborhood or town, then pick it"
+              autoFocus={!existing}
             />
             <p className="text-[11px] text-muted-foreground">
-              Resolved to the neighborhood or town, not an address. {mode === 'geojson' && 'Optional when you bring a boundary.'}
+              Search, then pick from the list. Neighborhoods and towns only, never an address.
             </p>
           </div>
 
@@ -260,7 +377,7 @@ export function PlaceDialog({ open, onOpenChange }: { open: boolean; onOpenChang
           {mode === 'zip' && (
             <div className="space-y-1.5">
               <Label htmlFor="place-zip" className="text-xs">ZIP or postcode</Label>
-              <Input id="place-zip" value={zip} onChange={e => setZip(e.target.value)} placeholder="60647, or SW1A 1AA" className="h-8 text-sm" />
+              <PlaceSearch id="place-zip" kind="postcode" value={zip} onPick={setZip} placeholder="Type the code, then pick it" />
               <p className="text-[11px] text-muted-foreground">US ZIP codes have no boundary in OpenStreetMap; those get about 2 miles around the centre.</p>
             </div>
           )}
@@ -268,8 +385,8 @@ export function PlaceDialog({ open, onOpenChange }: { open: boolean; onOpenChang
           {mode === 'boundary' && (
             <div className="space-y-1.5">
               <Label htmlFor="place-boundary" className="text-xs">Neighborhood, town, or county</Label>
-              <Input id="place-boundary" value={boundaryText} onChange={e => setBoundaryText(e.target.value)} placeholder={placeText.trim() || 'Logan Square, Chicago'} className="h-8 text-sm" />
-              <p className="text-[11px] text-muted-foreground">Leave it empty to use the place above. The boundary comes from OpenStreetMap where one is mapped.</p>
+              <PlaceSearch id="place-boundary" kind="boundary" value={boundary} onPick={setBoundary} placeholder={where ? `Leave empty to use ${where.label.split(',')[0]}` : 'Search, then pick it'} />
+              <p className="text-[11px] text-muted-foreground">The boundary comes from OpenStreetMap where one is mapped. Many neighborhoods have none; the Builder will say so.</p>
             </div>
           )}
 
