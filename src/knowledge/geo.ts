@@ -131,7 +131,8 @@ export function describeCatchment(loc: GeoLocation): string | null {
   if (!c) return null;
   if (c.kind === 'radius' && typeof c.miles === 'number') {
     const mi = c.miles < 1 ? 'about half a mile' : `${c.miles} ${c.miles === 1 ? 'mile' : 'miles'}`;
-    return `${mi} around ${loc.label}`;
+    // The first two parts of a long label: "Outer Sunset, San Francisco", not the whole chain
+    return `${mi} around ${loc.label.split(',').slice(0, 2).join(',').trim()}`;
   }
   return c.label || loc.label;
 }

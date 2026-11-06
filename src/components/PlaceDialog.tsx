@@ -97,13 +97,13 @@ function PlaceSearch({ id, kind, value, onPick, placeholder, autoFocus }: {
 
   if (value) {
     return (
-      <div className="flex items-center gap-2 rounded-md border border-primary/50 bg-primary/5 px-2.5 py-1.5 text-sm">
+      <div className="flex items-center gap-2 rounded-md border border-primary/50 bg-primary/5 px-2.5 py-1.5 text-sm min-w-0 max-w-full">
         <Check className="size-3.5 shrink-0 text-primary" />
-        <span className="min-w-0 truncate">{value.label}</span>
+        <span className="min-w-0 flex-1 truncate" title={value.label}>{value.label}</span>
         <button
           type="button"
           onClick={() => { onPick(null); setTyped(''); setOptions([]); }}
-          className="ml-auto inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+          className="shrink-0 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
           title="Pick a different place"
         >
           <X className="size-3" /> change
@@ -242,7 +242,8 @@ export function PlaceDialog({ open, onOpenChange }: { open: boolean; onOpenChang
 
       if (mode === 'radius') {
         if (!point) throw new Error('Pick the place from the list first.');
-        catchment = { kind: 'radius', miles, label: `${miles} ${miles === 1 ? 'mile' : 'miles'} around ${point.label}`, source: 'radius' };
+        const shortName = point.label.split(',').slice(0, 2).join(',').trim();
+        catchment = { kind: 'radius', miles, label: `${miles} ${miles === 1 ? 'mile' : 'miles'} around ${shortName}`, source: 'radius' };
         precision = miles <= 3 ? 'neighborhood' : miles <= 12 ? 'city' : 'region';
       } else if (mode === 'zip') {
         if (!zip) throw new Error('Pick the ZIP or postcode from the list first.');
@@ -313,7 +314,7 @@ export function PlaceDialog({ open, onOpenChange }: { open: boolean; onOpenChang
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto overflow-x-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2"><MapPin className="size-4 text-primary" /> Place</DialogTitle>
           <DialogDescription>
@@ -322,7 +323,7 @@ export function PlaceDialog({ open, onOpenChange }: { open: boolean; onOpenChang
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 text-sm">
+        <div className="space-y-4 text-sm min-w-0">
           <div className="space-y-1.5">
             <Label htmlFor="place-where" className="text-xs">Where{!needsWhere && mode !== 'geojson' && <span className="text-muted-foreground font-normal"> (optional)</span>}{mode === 'geojson' && <span className="text-muted-foreground font-normal"> (optional, names the place)</span>}</Label>
             <PlaceSearch
