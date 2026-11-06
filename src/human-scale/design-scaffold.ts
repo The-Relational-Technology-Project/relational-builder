@@ -14,7 +14,10 @@
  *              token sets; the model picks the one that fits the place
  *
  * The variant comes from BENCH_DESIGN_SCAFFOLD on the bench, or from this
- * browser's `rb.humanScale.designScaffold` in the Builder; none otherwise.
+ * browser's `rb.humanScale.designScaffold` in the Builder; `direction`
+ * otherwise. Josh, reviewing the Nov 6 side-by-side: the direction builds
+ * were "much better, not quite to Opus, but nearing it", so it is the
+ * default whenever the flag is on. `none` stays selectable as the control.
  */
 
 export type DesignScaffold = 'none' | 'recipe' | 'direction';
@@ -31,7 +34,7 @@ export function designScaffoldVariant(): DesignScaffold {
   } catch {
     // storage blocked: the default
   }
-  return 'none';
+  return 'direction';
 }
 
 export interface VisualDirection {

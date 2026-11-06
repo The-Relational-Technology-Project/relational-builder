@@ -6,12 +6,12 @@ afterEach(() => {
 });
 
 describe('design scaffolding', () => {
-  it('reads the bench variant and defaults to none', () => {
-    expect(designScaffoldVariant()).toBe('none');
-    process.env.BENCH_DESIGN_SCAFFOLD = 'direction';
+  it('defaults to direction (Josh, Nov 6) and still reads the bench control', () => {
     expect(designScaffoldVariant()).toBe('direction');
-    process.env.BENCH_DESIGN_SCAFFOLD = 'nonsense';
+    process.env.BENCH_DESIGN_SCAFFOLD = 'none';
     expect(designScaffoldVariant()).toBe('none');
+    process.env.BENCH_DESIGN_SCAFFOLD = 'nonsense';
+    expect(designScaffoldVariant()).toBe('direction');
   });
 
   it('none adds nothing; recipe and direction add their blocks', () => {

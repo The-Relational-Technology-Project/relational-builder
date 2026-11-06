@@ -86,6 +86,14 @@ the bad host, 9 of 12, is within a few points of GLM's 71%). Per-build
 scores in `SCORES.md` would still sharpen this; the overall read is
 recorded there too.
 
+## Design direction from Josh (2026-11-06)
+
+On the design scaffolding A/B: **the version with visual directions is
+"much better, not quite to Opus, but nearing it."** It is now the default
+behind the flag (`designScaffoldVariant()` returns `direction` unless the
+bench or the browser names another); `none` stays as the bench control.
+The `recipe`-only variant is dropped.
+
 ## Direction from Josh (2026-10-30, supersedes the order below where they differ)
 
 Focus the loop on **open models doing the app-building**, and on evaluating
@@ -190,12 +198,6 @@ stack layer it moved; pace paid work at $3 to $5 a day.
    closer to, name them in a line here; the `direction` variant will be
    written with them in mind. Default if unanswered: directions written
    from the board's best Gemma and Opus screenshots.
-8. **The design A/B sheet (Nov 6).** It was sent in the conversation and
-   is committed as `docs/human-scale/shots/design-ab-2026-11-06.html`:
-   rows are models, columns are the three versions of the design
-   guidance. Which column looks closest to what neighborhood tools should
-   look like, for the open models? Default if unanswered: the next run
-   adds trials before choosing.
 
 ## Tomorrow (one run, about 75 minutes)
 
@@ -207,12 +209,19 @@ stack layer it moved; pace paid work at $3 to $5 a day.
    many builds changed from blank or unstyled to clean, by model. No
    spend. If Gemma's or Opus's earlier rates move, the board's ranking
    paragraph in README needs the new numbers.
-2. **Act on Josh's read of the design A/B sheet** (question 8). If one
-   variant looks clearly closer to what neighborhood tools should look
-   like, make it the flag's default (`designScaffoldVariant()` returns it
-   when nothing is set) and run the losing variants no more. If he wants
-   more evidence first, three more trials a cell for Gemma and Mistral
-   only (about $0.20, log first). If no answer, run those trials anyway.
+2. **From "nearing Opus" to Opus: the next design step.** Josh's read on
+   Nov 6: directions are much better, not yet Opus. Look at the Opus and
+   Gemma direction screenshots side by side and name the two or three
+   concrete differences (Nov 6 notes: Opus fills the first screen with a
+   strong status block and a side column of shifts at desktop width, uses
+   avatars and per-item actions, and writes warmer, more specific copy;
+   Gemma's pages are cleaner but emptier). Turn each into one recipe line
+   or one worked example in `design-scaffold.ts` (a reference first screen
+   for a coordination tool and one for a content tool, as short JSX
+   sketches, may beat more prose). Then Gemma and Mistral Small, three
+   trials a prompt, `direction` against the new version (about $0.10,
+   log first), and send Josh the side-by-side sheet in the conversation
+   again with `design-ab-sheet.mjs`.
 3. **Scan every check against clean builds, as a test** (carried from
    Nov 5): a committed fixture set of three clean builds, and a test that
    every static check returns nothing on them.

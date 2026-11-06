@@ -12,6 +12,14 @@ experiment at most $5 and 30 minutes.
 
 ---
 
+## 2026-11-06, afternoon (Josh's read)
+
+Josh, on the design A/B sheet: the version with visual directions is much
+better, not quite to Opus but nearing it. It is now the default behind the
+flag for open-model builds; the bench keeps `none` as its control. Next
+run turns the remaining gap into concrete recipe lines and measures again.
+No spend.
+
 ## Week of Nov 2 to Nov 6: rollup
 
 **Spend.** About $2.50 of paid inference over the week (Mon $0.13, Tue
