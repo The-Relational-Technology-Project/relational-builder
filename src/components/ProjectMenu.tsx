@@ -7,6 +7,7 @@ import {
   Info,
   Loader2,
   Pencil,
+  MapPin,
 } from 'lucide-react';
 import {
   Dialog,
@@ -23,6 +24,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PlaceDialog } from './PlaceDialog';
+import { placeSummary } from '@/project/place';
 import { useCloudStore } from '@/store/cloud-store';
 import { useAuthStore, cloudEnabled } from '@/store/auth-store';
 import { useProjectStore } from '@/store/project-store';
@@ -74,6 +77,8 @@ export function ProjectMenu() {
   const setView = useUIStore(s => s.setView);
 
   const [open, setOpen] = useState(false);
+  const [placeOpen, setPlaceOpen] = useState(false);
+  const place = useProjectStore(s => s.lineage?.place);
   const [name, setName] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -205,11 +210,22 @@ export function ProjectMenu() {
               Save to your account
             </DropdownMenuItem>
           )}
+          {hasProject && (
+            <DropdownMenuItem onClick={() => setPlaceOpen(true)} className="gap-2 text-xs items-start">
+              <MapPin className="size-3.5 text-muted-foreground mt-0.5" />
+              <span className="min-w-0">
+                <span className="block">{place ? 'Place' : 'Give it a place'}</span>
+                {place && <span className="block truncate text-[11px] text-muted-foreground">{placeSummary(place)}</span>}
+              </span>
+            </DropdownMenuItem>
+          )}
           {/* Nothing else: this menu is only ever about *this project*. The
               ways out of it — Home, Projects, Gallery, a fresh start — live
               behind the wordmark, where the rest of the app always is. */}
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <PlaceDialog open={placeOpen} onOpenChange={setPlaceOpen} />
 
       <Dialog open={open} onOpenChange={handleOpen}>
         <DialogContent className="sm:max-w-sm">

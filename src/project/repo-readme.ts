@@ -55,6 +55,14 @@ export function ensureRepoReadme(repoFullName: string): void {
     'The `.reltech.yml` manifest carries the project’s lineage. On GitHub,',
     'adding the `relational-tech` topic makes the project appear on',
     '[updates.relationaltechproject.org](https://updates.relationaltechproject.org).',
+    ...(useProjectStore.getState().lineage?.place?.public
+      ? [
+          '',
+          'This software has a place. `place.json` (and the `place:` block in the',
+          'manifest) say where it lives and the area it serves, so it can appear',
+          'on a map of place-based community software. The builder chose to list it.',
+        ]
+      : []),
     '',
   ];
 

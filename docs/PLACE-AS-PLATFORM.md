@@ -1,6 +1,7 @@
 # Place as the platform: software with a catchment
 
-*Proposal, written 2026-11-05. Builds on [GEO-COMMONS.md](./GEO-COMMONS.md).*
+*Written 2026-11-05 as a proposal; first implementation landed 2026-11-06
+(see "What shipped" at the end). Builds on [GEO-COMMONS.md](./GEO-COMMONS.md).*
 
 ## The idea in a paragraph
 
@@ -239,3 +240,45 @@ Builder is.
 - **Tile hosting and regional mode.** Protomaps on our own storage keeps map
   loads inside the EU story. Worth deciding before step 3 ships a map that
   calls a US tile server.
+
+## What shipped (2026-11-06)
+
+The first pass, steps 1, 2 and 4 of the sequence above, with one change
+from the proposal: a catchment is stored as `radius` or `polygon` plus a
+`source` that says where the shape came from (`radius`, `drawn`, `zip`,
+`neighborhood`, `city`, `county`, `watershed`, `bioregion`, `geojson`,
+`other`), instead of a third `named` kind. A named boundary resolves to
+rings when it is saved, so readers never need a resolver.
+
+- **The shape.** `Catchment` on `GeoLocation` (`src/knowledge/geo.ts`),
+  with `catchmentContains`, `catchmentsOverlap`, `describeCatchment`,
+  `catchmentFromGeoJson` (Feature, FeatureCollection, Polygon,
+  MultiPolygon; outer rings only, trimmed to 400 points), `parseLocation`
+  reads it back, and `resolveBoundary` fetches a ZIP, neighborhood, town
+  or county boundary from OpenStreetMap through Nominatim. US ZIPs have no
+  boundary in OpenStreetMap and fall back to a radius that says so.
+- **Projects carry place.** `lineage.place` (`src/project/place.ts`), set
+  in the **Place** dialog off the project menu (`PlaceDialog.tsx`): a typed
+  place, then a radius slider, a ZIP, a named boundary, or pasted GeoJSON
+  for a watershed, a bioregion, or a shape drawn at geojson.io. Nothing is
+  inferred from the connection. The prompt gets a place block beside the
+  region block, and the place label feeds the civic data matcher.
+- **In the repo and on the site, opt in.** The dialog's one switch, "List
+  this project on the public map", writes a `place:` block into
+  `.reltech.yml` and a `place.json` (version 1: name, point, label,
+  precision, catchment; no builder identity) into the repo on push, the
+  source zip, and beside `index.html` on every hosting target. Off, the
+  place never leaves the Builder. A map of public place-based software can
+  read either file; nothing crawls yet.
+- **The commons.** A contribution carries the project's location and
+  catchment as `location`, the same shape the geotag pipeline writes, so
+  the gallery finds it the day a steward shelves it. The commons submit
+  function accepts the field as free-form metadata; stewards can still
+  move a pin.
+- **Serves here** in the gallery, beside Nearby: only what has a catchment
+  covering the remembered place.
+
+Not yet: place pages and the map (step 3), `PlaceGate` (step 5), a
+resolver for watersheds by name (step 6; today a watershed is pasted as
+GeoJSON), drawing a boundary inside the Builder (today: geojson.io), and
+the crawler that turns `place.json` files into the public map.

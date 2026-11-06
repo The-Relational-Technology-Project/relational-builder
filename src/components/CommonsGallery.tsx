@@ -35,7 +35,7 @@ import { EventInspiration } from '@/components/EventInspiration';
 import { fetchMyEvents, eventScopeFor, eventCodeOfScope, type EventShelfInfo } from '@/cloud/event-showcase';
 import { useNearbyStore } from '@/store/nearby-store';
 import {
-  formatMiles, isPlaceRooted, nearestLabel, nearestMiles, NEARBY_RADII_MILES, type GeoLocation,
+  catchmentContains, describeCatchment, formatMiles, isPlaceRooted, nearestLabel, nearestMiles, NEARBY_RADII_MILES, type GeoLocation,
 } from '@/knowledge/geo';
 import { readShelfParam, writeShelfParam } from '@/router';
 import {
@@ -59,7 +59,7 @@ import {
   BookOpen, ExternalLink, Gift, GitBranch, GitFork, Globe, Hammer,
   HandCoins, ImageOff, Landmark, Loader2, Map as MapIcon, Newspaper, ScrollText, Sprout,
   ChevronDown, ChevronRight, Library, Lock, KeyRound, Users, Plus,
-  ArrowLeft, LocateFixed, MapPin, Search, X,
+  ArrowLeft, LocateFixed, MapPin, Search, Target, X,
 } from 'lucide-react';
 import { ContributeDialog } from '@/components/ContributeDialog';
 
@@ -136,7 +136,7 @@ function galleryNameFor(studioLabel: string): string {
 /** Within this many miles of a pin's centre, "in <place>" is the honest
  *  distance: the pin is no finer than the place itself */
 const PRECISION_SCALE_MILES: Record<string, number> = { neighborhood: 1, city: 12, region: 80, country: 500, origin: 12 };
-interface PlaceHit { miles: number; label: string; origin: boolean; precision: string }
+interface PlaceHit { miles: number; label: string; origin: boolean; precision: string; serves?: string }
 
 /** Shelf presentation for a commons card */
 type ShelfIconKey = 'newspaper' | 'sprout' | 'users' | 'landmark' | 'coins' | 'gift' | 'hammer';
@@ -244,6 +244,10 @@ export function CommonsGallery() {
   // Nearby: the one filter that cuts across every shelf. It rides alongside
   // search and the shelf picker rather than replacing them.
   const [nearby, setNearby] = useState(false);
+  // Serves here: the other question. Not "what is within so many miles"
+  // but "whose catchment covers the ground I am standing on". Rides on the
+  // same remembered place; a point-only pin never answers it.
+  const [servesHere, setServesHere] = useState(false);
   const nearbyPoint = useNearbyStore(s => s.point);
   const nearbyRadius = useNearbyStore(s => s.radiusMiles);
   // Where the Studio KB's tools and stories are rooted (the commons mirror
@@ -673,6 +677,13 @@ export function CommonsGallery() {
       const loc = locationOf(e);
       if (!loc) continue;
       const d = nearestMiles(loc, nearbyPoint);
+      if (servesHere) {
+        // Only what was made FOR this ground: a catchment that covers the point
+        if (!isPlaceRooted(loc) || !catchmentContains(loc, nearbyPoint)) continue;
+        near.push({ e, d, origin: false });
+        miles.set(e.key, { miles: d, label: nearestLabel(loc, nearbyPoint), origin: false, precision: loc.precision, serves: describeCatchment(loc) ?? undefined });
+        continue;
+      }
       if (d > nearbyRadius) continue;
       const origin = !isPlaceRooted(loc);
       near.push({ e, d, origin });
@@ -680,7 +691,7 @@ export function CommonsGallery() {
     }
     near.sort((a, b) => Number(a.origin) - Number(b.origin) || a.d - b.d);
     return { entries: near.map(x => x.e), miles };
-  }, [entries, nearby, nearbyPoint, nearbyRadius, locationOf]);
+  }, [entries, nearby, servesHere, nearbyPoint, nearbyRadius, locationOf]);
   const visibleEntries = placed.entries;
   /** "12 mi · Logan Square, Chicago" for a card in Nearby. A pin only as
    *  fine as a city is measured to the city's centre, so inside that
@@ -688,6 +699,7 @@ export function CommonsGallery() {
   const placeLineFor = (e: GalleryEntry): string | undefined => {
     const hit = placed.miles.get(e.key);
     if (!hit) return undefined;
+    if (hit.serves) return `serves ${hit.serves}`;
     const made = hit.origin ? ' (made there)' : '';
     const within = PRECISION_SCALE_MILES[hit.precision] ?? 0;
     if (hit.miles < within) return `in ${hit.label}${made}`;
@@ -1015,13 +1027,22 @@ export function CommonsGallery() {
                 )}
               </div>
               <button
-                onClick={() => setNearby(v => !v)}
+                onClick={() => { setNearby(v => !v); setServesHere(false); }}
                 className={`inline-flex h-9 items-center gap-1.5 rounded-full border px-3 text-xs transition-colors ${
-                  nearby ? 'bg-foreground text-background border-foreground' : 'text-muted-foreground hover:text-foreground'
+                  nearby && !servesHere ? 'bg-foreground text-background border-foreground' : 'text-muted-foreground hover:text-foreground'
                 }`}
                 title="Only what is rooted near a place — your own, or one you type"
               >
                 <MapPin className="size-3.5" /> Nearby
+              </button>
+              <button
+                onClick={() => { const on = !servesHere; setServesHere(on); setNearby(on); }}
+                className={`inline-flex h-9 items-center gap-1.5 rounded-full border px-3 text-xs transition-colors ${
+                  servesHere ? 'bg-foreground text-background border-foreground' : 'text-muted-foreground hover:text-foreground'
+                }`}
+                title="Only what was made to serve the ground you are standing on — tools with a catchment that covers your place"
+              >
+                <Target className="size-3.5" /> Serves here
               </button>
               {scope === 'commons' && (
                 <DropdownMenu>
@@ -1046,6 +1067,7 @@ export function CommonsGallery() {
             </div>
             {nearby && (
               <NearbyBar
+                servesHere={servesHere}
                 shelves={nearbyShelves}
                 onOpenShelf={chooseScope}
                 placedCount={nearbyPoint ? visibleEntries.length : null}
@@ -1089,7 +1111,9 @@ export function CommonsGallery() {
           </p>
         ) : visibleEntries.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            {nearby
+            {servesHere
+              ? `Nothing on this shelf was made to serve ${nearbyPoint?.label ?? 'there'} yet. Try Nearby for what is rooted close by, or be the first: build something for this ground and give it a place.`
+              : nearby
               ? `Nothing on this shelf is placed within ${nearbyRadius} miles of ${nearbyPoint?.label ?? 'there'} yet. Widen the circle, or be the first: share something from your neighborhood.`
               : query.trim()
                 ? 'Nothing matches that search.'
@@ -1287,7 +1311,9 @@ function formatEventDay(iso: string): string {
  * A place set: the circle's size, and the ways to change it. Remembered in
  * this browser (nearby-store), so it is set once.
  */
-function NearbyBar({ shelves, onOpenShelf, placedCount }: {
+function NearbyBar({ servesHere, shelves, onOpenShelf, placedCount }: {
+  /** The "Serves here" question: the radius is beside the point, the place is the whole filter */
+  servesHere: boolean;
   shelves: { scope: string; label: string; miles: number }[];
   onOpenShelf: (scope: string) => void;
   /** How many cards the circle holds right now; null before a place is set */
@@ -1343,16 +1369,22 @@ function NearbyBar({ shelves, onOpenShelf, placedCount }: {
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <MapPin className="size-3 text-primary" />
           <span>
-            Within
-            <select
-              value={radius}
-              onChange={e => setRadius(Number(e.target.value))}
-              className="mx-1 rounded border bg-background px-1 py-0.5 text-xs"
-              title="How wide a circle"
-            >
-              {NEARBY_RADII_MILES.map(r => <option key={r} value={r}>{r} mi</option>)}
-            </select>
-            of <span className="font-medium">{point.label}</span>
+            {servesHere ? (
+              <>Made to serve <span className="font-medium">{point.label}</span></>
+            ) : (
+              <>
+                Within
+                <select
+                  value={radius}
+                  onChange={e => setRadius(Number(e.target.value))}
+                  className="mx-1 rounded border bg-background px-1 py-0.5 text-xs"
+                  title="How wide a circle"
+                >
+                  {NEARBY_RADII_MILES.map(r => <option key={r} value={r}>{r} mi</option>)}
+                </select>
+                of <span className="font-medium">{point.label}</span>
+              </>
+            )}
             {placedCount !== null && <span className="text-muted-foreground"> · {placedCount} {placedCount === 1 ? 'card' : 'cards'}</span>}
           </span>
           <button onClick={() => setEditing(true)} className="text-primary hover:underline">change</button>
@@ -1379,7 +1411,9 @@ function NearbyBar({ shelves, onOpenShelf, placedCount }: {
         </p>
       )}
       <p className="text-muted-foreground/80">
-        Closest first. Things only <em>made</em> near here (a book, a method pinned to its author's town) come after what is rooted here.
+        {servesHere
+          ? 'Only tools whose builders said they serve this ground: a radius, a ZIP, a neighborhood boundary, a watershed. Nearby shows what is merely close.'
+          : <>Closest first. Things only <em>made</em> near here (a book, a method pinned to its author's town) come after what is rooted here.</>}
         {' '}Places from OpenStreetMap.
       </p>
     </div>

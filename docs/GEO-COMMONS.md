@@ -78,6 +78,19 @@ Pins made for this pass that the taggers were least sure of are noted in
 `places.json` (`note`); the obvious review list is anything with precision
 `origin` whose note says "from memory".
 
+## Catchments and "Serves here"
+
+A location can also carry a **catchment**, the area the thing serves as
+opposed to where it was made: a radius in miles, or one or more boundary
+rings (a ZIP, a neighborhood from OpenStreetMap, a watershed or bioregion
+pasted as GeoJSON). `catchmentContains` and `catchmentsOverlap` in `geo.ts`
+answer the two questions it exists for, and the gallery's **Serves here**
+toggle (beside Nearby) shows only what was made to serve the ground the
+person is standing on. A point-only location never answers Serves here.
+Builders set a catchment on their own projects in the Place dialog; see
+[PLACE-AS-PLATFORM.md](./PLACE-AS-PLATFORM.md) for the shape and the repo
+and site files it reaches.
+
 ## Nearby in the gallery
 
 `src/store/nearby-store.ts` remembers one place per browser (the browser's

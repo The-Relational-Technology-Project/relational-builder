@@ -20,6 +20,7 @@ import { formatReferenceDocsForPrompt } from './references-prompt';
 import type { ReferenceDoc } from '@/store/references-store';
 import { splitProjectSnapshot, formatChangedFilesForPrompt } from './snapshot-split';
 import { formatRegionForPrompt, type RegionMode } from '@/regions/regions';
+import { formatPlaceForPrompt, type ProjectPlace } from '@/project/place';
 
 /**
  * Builds the system prompt by combining the base instructions,
@@ -617,6 +618,10 @@ export interface ContextOptions {
   /** The builder's regional mode (src/regions) — EU mode adds a block that
    *  overrides fonts, hosting, and shared-data defaults by name */
   regionMode?: RegionMode;
+  /** Where this project lives and the area it serves (project/place) — set
+   *  by the builder; adds a block that grounds examples, maps, and who the
+   *  tool is for */
+  place?: ProjectPlace;
 }
 
 /**
@@ -827,6 +832,10 @@ export function buildPromptContext(
   // mode writes the font links and data code. Stable for a session.
   const regionBlock = formatRegionForPrompt(options.regionMode ?? 'global');
   if (regionBlock) sections.push('', regionBlock);
+
+  // The project's place, both modes — stable for a session like the region
+  const placeBlock = formatPlaceForPrompt(options.place);
+  if (placeBlock) sections.push('', placeBlock);
 
   // Everything above is stable across sends in a session — cacheable.
   sections.push(CACHE_BREAK);

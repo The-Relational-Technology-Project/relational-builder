@@ -650,6 +650,8 @@ export function ChatPanel() {
         ...priorMessages.slice(-10).map(m => m.content.slice(0, 2000)),
         useAuthStore.getState().profile?.neighborhood,
         useAuthStore.getState().profile?.neighborhood_description,
+        // The project's own place is the strongest signal of all
+        useProjectStore.getState().lineage?.place?.label,
       ]),
     ]);
     if (civicData.length > 0) {
@@ -797,6 +799,7 @@ export function ChatPanel() {
       civicData,
       civicDataQueryable: mcpServers.length > 0,
       regionMode: useRegionStore.getState().mode,
+      place: useProjectStore.getState().lineage?.place,
     });
     setSystemPrompt(updatedPrompt);
 

@@ -3,6 +3,7 @@ import type { FileEntry } from './virtual-fs';
 import type { ProjectLineage } from '@/store/project-store';
 import { buildEnvJs, type PublicEnvVar } from './env-module';
 import { isBinaryFilePath } from './app-icon';
+import { placeFileContent, placeManifestLines } from './place';
 
 const yamlEscape = (s: string) => s.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 
@@ -77,6 +78,10 @@ export function generateManifest(
     );
   }
 
+  // Where the software lives and the area it serves — only when the builder
+  // opted into the public map (project/place)
+  lines.push(...placeManifestLines(lineage?.place));
+
   lines.push(
     'tags:',
     '  - community-tool',
@@ -126,6 +131,11 @@ export async function exportProjectZip(
 
   // Add .reltech.yml manifest
   zip.file('.reltech.yml', generateManifest(projectName, lineage, buildPrompt));
+
+  // The place file, when the builder listed this project on the public map
+  if (lineage?.place?.public && !files.some(f => f.path.replace(/^\//, '') === 'place.json')) {
+    zip.file('place.json', placeFileContent(lineage.place, projectName));
+  }
 
   // Add a basic README
   zip.file(

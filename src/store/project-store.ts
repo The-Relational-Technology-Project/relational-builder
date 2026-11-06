@@ -19,6 +19,7 @@ const MAX_CHECKPOINTS = 10;
 
 /** Provenance of this project — flows into the .reltech.yml manifest on export */
 import type { ProfileData } from '@/project/builder-profile';
+import type { ProjectPlace } from '@/project/place';
 
 export interface ProjectLineage {
   /** Where the starting point came from — 'repo-import' means the builder's
@@ -43,6 +44,10 @@ export interface ProjectLineage {
   /** Builder pages: what RB knew at the start, carried here until the build
    *  begins and it becomes /data/profile.json (see project/builder-profile) */
   profileSeed?: ProfileData;
+  /** Where this software lives and the area it serves — set by the builder
+   *  in the Place dialog, never inferred. Rides here because lineage already
+   *  persists locally, to the cloud, and into .reltech.yml (see project/place) */
+  place?: ProjectPlace;
 }
 
 interface ProjectState {

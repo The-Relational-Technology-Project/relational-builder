@@ -14,6 +14,7 @@ import { exportProjectZip, downloadBlob } from '@/project/export';
 import { buildEnvJs } from '@/project/env-module';
 import { needsBuild, buildStaticSite, materializeSource, vercelServerlessFiles, SERVERLESS_PATH } from '@/project/build-for-publish';
 import { withAppIcons } from '@/project/app-icon';
+import { withPlaceFile } from '@/project/place';
 import { publishToCommunityHosting } from '@/project/deploy-community';
 import { HANDLE_RE, PROFILE_PROJECT_NAME, suggestHandle } from '@/project/builder-profile';
 import { useAuthStore, cloudEnabled } from '@/store/auth-store';
@@ -184,7 +185,13 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
       // unless the project brings its own. Serverless sources stay out of the
       // static file set on every target — Vercel gets its `api/*` functions
       // appended below, where they actually run.
-      const siteFiles = withAppIcons(builtFiles, projectName).filter(f => !SERVERLESS_PATH.test(f.path));
+      // A public place ships as /place.json beside index.html, so a map of
+      // place-based software can read it straight off the live site
+      const siteFiles = withPlaceFile(
+        withAppIcons(builtFiles, projectName).filter(f => !SERVERLESS_PATH.test(f.path)),
+        lineage?.place,
+        projectName,
+      );
 
       if (activeTarget === 'community') {
         const res = await publishToCommunityHosting(

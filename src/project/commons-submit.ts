@@ -9,6 +9,8 @@
 import { useStudioStore } from '@/store/studio-store';
 import { useAuthStore } from '@/store/auth-store';
 import { builderClient } from '@/cloud/builder-client';
+import { useProjectStore } from '@/store/project-store';
+import type { GeoLocation } from '@/knowledge/geo';
 
 const COMMONS_URL =
   import.meta.env.VITE_COMMONS_SUPABASE_URL ?? 'https://odowkowcinyoxejyzhwl.supabase.co';
@@ -33,6 +35,9 @@ export interface CommonsSubmission {
   /** Up to 4 images as data URLs (downscaled client-side) — hosted by the
    *  commons and shown on the entry once a steward approves it */
   images?: string[];
+  /** Where this is rooted and the area it serves, for the gallery's Nearby
+   *  and "Serves here" filters. Defaults to the project's own place. */
+  location?: GeoLocation | null;
 }
 
 export interface SubmitResult {
@@ -46,6 +51,14 @@ export async function submitToCommons(submission: CommonsSubmission): Promise<Su
     // Builds grow inside a studio frame — the contribution carries it, so
     // studio-scoped views of the commons know where this one came from
     const activeStudio = useStudioStore.getState().activeStudio;
+    // The project's place travels with the contribution (stewards can still
+    // move the pin) — the public switch is about repos and sites, not the
+    // commons, where the builder is already choosing to share
+    const place = useProjectStore.getState().lineage?.place;
+    const location: GeoLocation | undefined =
+      submission.location === null
+        ? undefined
+        : submission.location ?? (place ? { lat: place.lat, lng: place.lng, label: place.label, precision: place.precision, basis: 'manual', ...(place.also ? { also: place.also } : {}), ...(place.catchment ? { catchment: place.catchment } : {}) } : undefined);
 
     const res = await fetch(`${COMMONS_URL}/functions/v1/submit-contribution`, {
       method: 'POST',
@@ -65,6 +78,7 @@ export async function submitToCommons(submission: CommonsSubmission): Promise<Su
         source_url: submission.sourceUrl || undefined,
         tags: submission.tags?.slice(0, 8),
         images: submission.images?.slice(0, 4),
+        ...(location ? { location } : {}),
         submitted_via: 'relational-builder',
         ...(activeStudio
           ? { studio_slug: activeStudio.slug, studio_label: activeStudio.label }

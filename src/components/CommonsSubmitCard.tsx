@@ -41,7 +41,9 @@ export function CommonsSubmitCard({
   const [expanded, setExpanded] = useState(false);
   // The profile already knows who this is — don't make them retype it
   const [builderName, setBuilderName] = useState(profile?.display_name ?? '');
-  const [neighborhood, setNeighborhood] = useState(profile?.neighborhood ?? '');
+  // The project's own place beats the profile's neighborhood as the default
+  const placeLabel = useProjectStore(s => s.lineage?.place?.label);
+  const [neighborhood, setNeighborhood] = useState(placeLabel ?? profile?.neighborhood ?? '');
   const [summary, setSummary] = useState('');
   const [manualUrl, setManualUrl] = useState('');
   const [consented, setConsented] = useState(false);
