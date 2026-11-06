@@ -13,6 +13,8 @@ import { renderableContent } from './display';
 import { QUESTION_HEADING_RE, docHeadingCount, isPlanDocument, shouldOfferBuild } from './plan-approval';
 import { CodeBlock } from './CodeBlock';
 import { ConnectionSuggestion } from './ConnectionSuggestion';
+import { entryLinkComponents } from '@/components/entry-link-components';
+import { hasEntryLink, linkifyEntries, type EntryLinkTarget } from '@/knowledge/entry-links';
 import { Button } from '@/components/ui/button';
 import { Hammer, History, FileCode, ChevronDown, ChevronRight, Loader2, Copy, Check, ArrowDown, ArrowRight, Code2, GitBranch, Sparkles, MessagesSquare, BookOpen, Library } from 'lucide-react';
 
@@ -627,9 +629,32 @@ const MessageBubble = memo(function MessageBubble({
   // Display-only strips and fence folding (see ./display.ts). Memoized so
   // settled bubbles never re-run it; the streaming bubble re-parses per
   // token anyway, and this pre-pass is small next to the markdown parse.
-  const rendered = useMemo(
+  const stripped = useMemo(
     () => renderableContent(message.isPlan ? stripPlanQuestions(message.content) : message.content),
     [message.content, message.isPlan],
+  );
+  // The entries this reply drew on, linked where the reply names them —
+  // "we're borrowing from the Mutual Aid Pod recipe" opens the recipe from
+  // the words themselves. The model links what it cites (the prompt hands
+  // it every entry's address); this pass catches the titles it named
+  // without a link. Refs land when the reply settles, so streaming text
+  // passes through untouched.
+  const { rendered, unlinkedRefs } = useMemo(() => {
+    const refs: EntryLinkTarget[] = [
+      ...(message.commonsRefs ?? []).map(r => ({ source: 'commons' as const, id: r.slug, title: r.title })),
+      ...(message.studioRefs ?? []).map(r => ({ source: 'studio' as const, id: r.id, title: r.title })),
+    ];
+    if (isUser || refs.length === 0) return { rendered: stripped, unlinkedRefs: [] as EntryLinkTarget[] };
+    const { text } = linkifyEntries(stripped, refs);
+    return {
+      rendered: text,
+      unlinkedRefs: refs.filter(r => !hasEntryLink(text, r.source, r.id)),
+    };
+  }, [stripped, isUser, message.commonsRefs, message.studioRefs]);
+  const openGalleryEntry = useUIStore(s => s.openGalleryEntry);
+  const linkComponents = useMemo(
+    () => entryLinkComponents(ref => openGalleryEntry(ref.source, ref.id)),
+    [openGalleryEntry],
   );
 
   // Auto sends (quality review, error fix, length continue) render as a
@@ -713,6 +738,7 @@ const MessageBubble = memo(function MessageBubble({
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
+                ...linkComponents,
                 code({ className, children, node, ...props }) {
                   const match = /language-(\w+)/.exec(className || '');
                   const codeStr = String(children).replace(/\n$/, '');
@@ -760,11 +786,8 @@ const MessageBubble = memo(function MessageBubble({
       {message.isPlan && !message.isStreaming && (
         <PlanQuestionCards message={message} />
       )}
-      {!isUser && !message.isStreaming && message.commonsRefs && message.commonsRefs.length > 0 && (
-        <CommonsRefChips refs={message.commonsRefs} />
-      )}
-      {!isUser && !message.isStreaming && message.studioRefs && message.studioRefs.length > 0 && (
-        <StudioRefChips refs={message.studioRefs} />
+      {!isUser && !message.isStreaming && unlinkedRefs.length > 0 && (
+        <DrewOnChips refs={unlinkedRefs} onOpen={openGalleryEntry} />
       )}
       {!isUser && !message.isStreaming && message.content.trim() && (
         <div className="mt-1 pl-1 flex items-center gap-2">
@@ -799,50 +822,29 @@ const MessageBubble = memo(function MessageBubble({
 });
 
 /**
- * The commons entries a reply actually drew on — surfaced by retrieval AND
- * named in the text. Each chip opens the entry's gallery card, so "we're
- * borrowing from the Mutual Aid Pod recipe" is one tap from the recipe
- * itself. This is the visible half of the commons loop; the build log keeps
- * the measurable half.
+ * The entries a reply drew on but didn't name in a linkable way — credited
+ * the way a person would ("the Ushahidi lesson"), so the in-line pass had
+ * nothing to wrap. Each chip opens the entry's card. Entries the reply does
+ * name are linked in the text itself; this is the remainder, not a footer
+ * of everything.
  */
-function CommonsRefChips({ refs }: { refs: { slug: string; title: string; kind: string }[] }) {
-  const openGalleryItem = useUIStore(s => s.openGalleryItem);
+function DrewOnChips({
+  refs, onOpen,
+}: {
+  refs: EntryLinkTarget[];
+  onOpen: (source: EntryLinkTarget['source'], id: string) => void;
+}) {
   return (
     <div className="mt-1.5 pl-1 flex flex-wrap items-center gap-1.5">
-      <span className="text-xs text-muted-foreground/70">Drew on the commons:</span>
+      <span className="text-xs text-muted-foreground/70">Also drew on:</span>
       {refs.slice(0, 4).map(r => (
         <button
-          key={r.slug}
-          onClick={() => openGalleryItem(r.slug)}
+          key={`${r.source}:${r.id}`}
+          onClick={() => onOpen(r.source, r.id)}
           className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-primary/5 transition-colors"
-          title={`Open "${r.title}" in the Commons Gallery`}
+          title={r.source === 'studio' ? `Open "${r.title}" in your studio's library` : `Open "${r.title}" in the Commons Gallery`}
         >
-          <BookOpen className="size-2.5 shrink-0" />
-          {r.title}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-/**
- * The studio library items a reply drew on — the same loop as the commons
- * chips, for the shelf that belongs to the builder's own studio. Each chip
- * opens the item's card in the gallery.
- */
-function StudioRefChips({ refs }: { refs: { id: string; title: string; kind: string }[] }) {
-  const openStudioLibraryItem = useUIStore(s => s.openStudioLibraryItem);
-  return (
-    <div className="mt-1.5 pl-1 flex flex-wrap items-center gap-1.5">
-      <span className="text-xs text-muted-foreground/70">Drew on the studio:</span>
-      {refs.slice(0, 4).map(r => (
-        <button
-          key={r.id}
-          onClick={() => openStudioLibraryItem(r.id)}
-          className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-primary/5 transition-colors"
-          title={`Open "${r.title}" in your studio's library`}
-        >
-          <Library className="size-2.5 shrink-0" />
+          {r.source === 'studio' ? <Library className="size-2.5 shrink-0" /> : <BookOpen className="size-2.5 shrink-0" />}
           {r.title}
         </button>
       ))}

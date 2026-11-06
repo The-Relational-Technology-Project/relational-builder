@@ -16,6 +16,7 @@ import {
   connectionIndex, refKey,
   type EntryConnection, type GalleryReference,
 } from './gallery-references';
+import { entryHref } from './entry-links';
 import { formatReferenceDocsForPrompt } from './references-prompt';
 import type { ReferenceDoc } from '@/store/references-store';
 import { splitProjectSnapshot, formatChangedFilesForPrompt } from './snapshot-split';
@@ -630,6 +631,8 @@ export interface ContextOptions {
  * doesn't import from cloud/.
  */
 export interface StudioLibraryPromptItem {
+  /** Present for real library rows — lets the prompt hand the model the item's link */
+  id?: string;
   kind: 'principle' | 'example' | 'story' | 'prompt' | 'tool' | 'recipe';
   title: string;
   summary: string | null;
@@ -1005,8 +1008,10 @@ function formatStudioLibraryForPrompt(
     for (const item of rest.slice(0, STUDIO_ITEM_LIMIT)) {
       const who = item.attribution ? ` — ${item.attribution}` : '';
       const gist = (item.summary ?? item.body ?? '').slice(0, STUDIO_ITEM_CHARS);
-      lines.push(`- **${item.title}** (${item.kind}${who})${gist ? `: ${gist}` : ''}`);
+      const link = item.id ? ` — link: ${entryHref('studio', item.id)}` : '';
+      lines.push(`- **${item.title}** (${item.kind}${who})${link}${gist ? `: ${gist}` : ''}`);
     }
+    lines.push('', LINKING_RULE);
   }
 
   return lines.join('\n');
@@ -1018,6 +1023,15 @@ const PROMPT_CONNECTION_LIMIT = 3;
 const PROMPT_CONNECTION_NOTE_CHARS = 140;
 
 type ConnectionMap = Map<string, EntryConnection[]>;
+
+/**
+ * How a reply points at what it drew on: the entry's own link, in the
+ * sentence that uses it, so the person opens the recipe from the words
+ * (the Builder renders these links as cards in place). Outside sources get
+ * the same treatment — a name that links, never a pasted URL.
+ */
+const LINKING_RULE =
+  'When you cite one of these entries, make its name a markdown link to the link given with it — for example [Mutual Aid Pod](/gallery?item=commons:mutual-aid-pod) — in the sentence where it shapes a decision, so the person can open it right there. Link an outside source the same way, by name ([outersunset.today](https://outersunset.today)), never as a bare pasted URL. Never make up a link that is not listed here.';
 
 function connectionLine(connections: ConnectionMap | undefined, key: string): string[] {
   const conns = connections?.get(key);
@@ -1037,7 +1051,7 @@ function formatCommonsForPrompt(results: CommonsSearchResult[], connections?: Co
       : '';
     const summary = r.summary ? `: ${r.summary.slice(0, 200)}` : '';
     return [
-      `- **${r.title}** (${r.kind}${who})${summary}`,
+      `- **${r.title}** (${r.kind}${who}) — link: ${entryHref('commons', r.slug)}${summary}`,
       ...connectionLine(connections, refKey('commons', r.slug)),
       // The strongest hits carry their full text (bounded) — this is what
       // lets a plan borrow a recipe's actual steps instead of name-dropping
@@ -1050,7 +1064,8 @@ function formatCommonsForPrompt(results: CommonsSearchResult[], connections?: Co
   return [
     '## Relevant Knowledge from the RT Commons',
     '',
-    'Tools, stories, recipes, and practice knowledge from the relational tech commons that relate to this build. These passed a relevance filter, so treat them as genuinely related: let them inform your design, cite them by name when one shapes a decision, and where full text is included, draw on its actual content — steps, sizes, cautions — not just its title. Where an entry lists connections, draw on them: they say where else the thing showed up and what it paired with ("it worked really well in…", "it pairs with the neighboring practice…"). Never invent a commons entry that is not listed here:',
+    'Tools, stories, recipes, and practice knowledge from the relational tech commons that relate to this build. These passed a relevance filter, so treat them as genuinely related: let them inform your design, cite them by name when one shapes a decision, and where full text is included, draw on its actual content — steps, sizes, cautions — not just its title. Where an entry lists connections, draw on them: they say where else the thing showed up and what it paired with ("it worked really well in…", "it pairs with the neighboring practice…"). Never invent a commons entry that is not listed here.',
+    LINKING_RULE,
     '',
     ...entries,
   ].join('\n');
@@ -1058,7 +1073,7 @@ function formatCommonsForPrompt(results: CommonsSearchResult[], connections?: Co
 
 function formatToolsForPrompt(tools: Tool[], connections?: ConnectionMap): string {
   const entries = tools.slice(0, 5).flatMap(t => {
-    let entry = `- **${t.name}** (${t.tool_category})`;
+    let entry = `- **${t.name}** (${t.tool_category}) — link: ${entryHref('kb_tool', t.id)}`;
     if (t.summary) entry += `: ${t.summary}`;
     else if (t.description) entry += `: ${t.description.slice(0, 150)}`;
     return [entry, ...connectionLine(connections, refKey('kb_tool', t.id))];
@@ -1067,7 +1082,8 @@ function formatToolsForPrompt(tools: Tool[], connections?: ConnectionMap): strin
   return [
     '## Relevant Tools from the RTP Library',
     '',
-    'These existing tools may inform your approach. Where an entry lists connections, draw on them — they say where else the tool showed up and what it paired with:',
+    'These existing tools may inform your approach. Where an entry lists connections, draw on them — they say where else the tool showed up and what it paired with.',
+    LINKING_RULE,
     '',
     ...entries,
   ].join('\n');
@@ -1078,7 +1094,7 @@ function formatStoriesForPrompt(stories: Story[], connections?: ConnectionMap): 
     const title = s.title ?? 'Community Story';
     const text = s.story_text.slice(0, 200);
     return [
-      `- **${title}** (${s.attribution}): ${text}...`,
+      `- **${title}** (${s.attribution}) — link: ${entryHref('kb_story', s.id)}: ${text}...`,
       ...connectionLine(connections, refKey('kb_story', s.id)),
     ];
   });
@@ -1086,7 +1102,8 @@ function formatStoriesForPrompt(stories: Story[], connections?: ConnectionMap): 
   return [
     '## Relevant Stories from Community Builders',
     '',
-    'Real experiences from builders doing similar work. Where a story lists connections, those are the tools and practices it involved — useful when one of them comes up:',
+    'Real experiences from builders doing similar work. Where a story lists connections, those are the tools and practices it involved — useful when one of them comes up.',
+    LINKING_RULE,
     '',
     ...entries,
   ].join('\n');
