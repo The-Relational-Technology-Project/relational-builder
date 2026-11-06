@@ -1,0 +1,587 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1,exp-v1",
+  "gitCommit": "0305b30",
+  "createdAt": "2026-11-06T12:02:31.030Z",
+  "runId": "2026-11-06T11-52-46-0305b30-ef64",
+  "config": {
+    "trials": 2,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": null,
+    "importGuard": true,
+    "fixHints": true,
+    "humanScaleRules": true,
+    "fixPasses": 2,
+    "designScaffold": "direction",
+    "openrouterIgnore": "Darkbloom",
+    "openrouterOnly": null
+  },
+  "models": [
+    {
+      "alias": "glm-4.5-air",
+      "providerId": "openrouter",
+      "modelId": "z-ai/glm-4.5-air",
+      "pricing": {
+        "inputPerMTok": 0.13,
+        "outputPerMTok": 0.85,
+        "asOf": "2026-10"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "hs-community-fridge",
+      "version": "exp-v1"
+    },
+    {
+      "id": "hs-listening-wall",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "glm-4.5-air",
+      "providerId": "openrouter",
+      "modelId": "z-ai/glm-4.5-air",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-06T11:52:46.893Z",
+      "plan": null,
+      "latencyMs": 103233,
+      "ttftMs": 7383,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 78200,
+          "chars": 25706
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 25032,
+          "chars": 7397
+        }
+      ],
+      "continuations": 1,
+      "truncatedFinal": false,
+      "outputChars": 33103,
+      "estTokens": {
+        "input": 37530,
+        "output": 8276,
+        "estimated": true
+      },
+      "estCostUsd": 0.0119135,
+      "extraction": {
+        "writes": 23,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": false,
+        "errors": [
+          "vfs:/src/pages/Posts.tsx:8: No matching export in \"vfs:/src/components/PostCard.tsx\" for import \"PostCard\""
+        ]
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/glm-4.5-air-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/pages/Posts.tsx:7: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectContent\"",
+          "vfs:/src/pages/Posts.tsx:7: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectItem\"",
+          "vfs:/src/pages/Posts.tsx:7: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectTrigger\"",
+          "vfs:/src/pages/Posts.tsx:7: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectValue\"",
+          "vfs:/src/pages/Posts.tsx:9: No matching export in \"vfs:/src/components/PostCard.tsx\" for import \"PostCard\"",
+          "vfs:/src/components/PostCard.tsx: <Icon> is used but never imported or declared in this file",
+          "vfs:/src/components/ShiftCard.tsx: <Icon> is used but never imported or declared in this file",
+          "vfs:/src/pages/Home.tsx: No matching export in \"vfs:/src/components/FridgeStatus.tsx\" for import \"FridgeStatus\"",
+          "vfs:/src/pages/Posts.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectContent\"",
+          "vfs:/src/pages/Posts.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectItem\"",
+          "vfs:/src/pages/Posts.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectTrigger\"",
+          "vfs:/src/pages/Posts.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectValue\"",
+          "vfs:/src/pages/Posts.tsx: No matching export in \"vfs:/src/components/PostCard.tsx\" for import \"PostCard\"",
+          "vfs:/src/pages/Shifts.tsx: No matching export in \"vfs:/src/components/ShiftCard.tsx\" for import \"ShiftCard\""
+        ],
+        "solved": false,
+        "latencyMs": 44048,
+        "remainingErrors": [
+          "vfs:/src/pages/Posts.tsx:8: No matching export in \"vfs:/src/components/PostCard.tsx\" for import \"PostCard\"",
+          "vfs:/src/pages/Home.tsx: No matching export in \"vfs:/src/components/FridgeStatus.tsx\" for import \"FridgeStatus\"",
+          "vfs:/src/pages/Posts.tsx: No matching export in \"vfs:/src/components/PostCard.tsx\" for import \"PostCard\"",
+          "vfs:/src/pages/Shifts.tsx: No matching export in \"vfs:/src/components/ShiftCard.tsx\" for import \"ShiftCard\""
+        ],
+        "estCostUsd": 0.009778219999999999,
+        "passes": 2
+      },
+      "error": null,
+      "served": {
+        "model": "z-ai/glm-4.5-air",
+        "provider": "Z.AI"
+      },
+      "importIssues": [
+        "vfs:/src/pages/Home.tsx: No matching export in \"vfs:/src/components/FridgeStatus.tsx\" for import \"FridgeStatus\"",
+        "vfs:/src/pages/Posts.tsx: No matching export in \"vfs:/src/components/PostCard.tsx\" for import \"PostCard\"",
+        "vfs:/src/pages/Shifts.tsx: No matching export in \"vfs:/src/components/ShiftCard.tsx\" for import \"ShiftCard\""
+      ],
+      "quality": {
+        "files": 17,
+        "codeFiles": 15,
+        "codeLines": 901,
+        "largestFile": "/src/data/seedData.ts",
+        "largestFileLines": 150,
+        "anyCount": 0,
+        "kitImportingFiles": 8,
+        "handRolledUiFiles": 1,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 14,
+          "tokensTotal": 15,
+          "kitLayout": [
+            "AppBar",
+            "BottomNav",
+            "Card"
+          ],
+          "mdClasses": 1,
+          "fontLoaded": true,
+          "contrastText": 13.1,
+          "contrastMuted": 5.9
+        },
+        "lintErrors": 9,
+        "lintWarnings": 0,
+        "lintPer100Lines": 1,
+        "tscErrors": null,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 80.2,
+        "fixLatencyMs": 44048,
+        "failKind": "bad-import"
+      }
+    },
+    {
+      "alias": "glm-4.5-air",
+      "providerId": "openrouter",
+      "modelId": "z-ai/glm-4.5-air",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 2,
+      "startedAt": "2026-11-06T11:55:14.474Z",
+      "plan": null,
+      "latencyMs": 103604,
+      "ttftMs": 7311,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 68082,
+          "chars": 18435
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 35521,
+          "chars": 10489
+        }
+      ],
+      "continuations": 1,
+      "truncatedFinal": false,
+      "outputChars": 28924,
+      "estTokens": {
+        "input": 35704,
+        "output": 7231,
+        "estimated": true
+      },
+      "estCostUsd": 0.01078787,
+      "extraction": {
+        "writes": 15,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/glm-4.5-air-t2",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/components/StockPost.tsx:6: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectContent\"",
+          "vfs:/src/components/StockPost.tsx:6: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectItem\"",
+          "vfs:/src/components/StockPost.tsx:6: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectTrigger\"",
+          "vfs:/src/components/StockPost.tsx:6: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectValue\"",
+          "vfs:/src/components/StockPost.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectContent\"",
+          "vfs:/src/components/StockPost.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectItem\"",
+          "vfs:/src/components/StockPost.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectTrigger\"",
+          "vfs:/src/components/StockPost.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectValue\""
+        ],
+        "solved": true,
+        "latencyMs": 15061,
+        "remainingErrors": [],
+        "estCostUsd": 0.00400796,
+        "passes": 1
+      },
+      "error": null,
+      "served": {
+        "model": "z-ai/glm-4.5-air",
+        "provider": "SiliconFlow"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 1117
+      },
+      "quality": {
+        "files": 13,
+        "codeFiles": 11,
+        "codeLines": 692,
+        "largestFile": "/src/components/StockPost.tsx",
+        "largestFileLines": 124,
+        "anyCount": 0,
+        "kitImportingFiles": 6,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 14,
+          "tokensTotal": 15,
+          "kitLayout": [
+            "AppBar",
+            "BottomNav",
+            "Card"
+          ],
+          "mdClasses": 2,
+          "fontLoaded": true,
+          "contrastText": 13.1,
+          "contrastMuted": 5.9
+        },
+        "lintErrors": 3,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.4,
+        "tscErrors": 9,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 69.8,
+        "fixLatencyMs": 15061,
+        "failKind": "bad-import"
+      }
+    },
+    {
+      "alias": "glm-4.5-air",
+      "providerId": "openrouter",
+      "modelId": "z-ai/glm-4.5-air",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-06T11:57:13.463Z",
+      "plan": null,
+      "latencyMs": 146409,
+      "ttftMs": 8640,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 146408,
+          "chars": 47100
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 47100,
+      "estTokens": {
+        "input": 15471,
+        "output": 11775,
+        "estimated": true
+      },
+      "estCostUsd": 0.01201998,
+      "extraction": {
+        "writes": 10,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/glm-4.5-air-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/pages/OrganizerDashboard.tsx:10: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectContent\"",
+          "vfs:/src/pages/OrganizerDashboard.tsx:10: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectItem\"",
+          "vfs:/src/pages/OrganizerDashboard.tsx:10: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectTrigger\"",
+          "vfs:/src/pages/OrganizerDashboard.tsx:10: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectValue\"",
+          "vfs:/src/pages/OrganizerDashboard.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectContent\"",
+          "vfs:/src/pages/OrganizerDashboard.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectItem\"",
+          "vfs:/src/pages/OrganizerDashboard.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectTrigger\"",
+          "vfs:/src/pages/OrganizerDashboard.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"SelectValue\""
+        ],
+        "solved": true,
+        "latencyMs": 36783,
+        "remainingErrors": [],
+        "estCostUsd": 0.00680145,
+        "passes": 1
+      },
+      "error": null,
+      "served": {
+        "model": "z-ai/glm-4.5-air",
+        "provider": "SiliconFlow"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 644
+      },
+      "quality": {
+        "files": 9,
+        "codeFiles": 7,
+        "codeLines": 1434,
+        "largestFile": "/src/data/seed.ts",
+        "largestFileLines": 582,
+        "anyCount": 2,
+        "kitImportingFiles": 4,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 13,
+          "tokensTotal": 15,
+          "kitLayout": [
+            "AppBar",
+            "EmptyState",
+            "Card"
+          ],
+          "mdClasses": 2,
+          "fontLoaded": true,
+          "contrastText": 16.1,
+          "contrastMuted": 7.9
+        },
+        "lintErrors": 10,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.7,
+        "tscErrors": 2,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 80.4,
+        "fixLatencyMs": 36783,
+        "failKind": "bad-import"
+      }
+    },
+    {
+      "alias": "glm-4.5-air",
+      "providerId": "openrouter",
+      "modelId": "z-ai/glm-4.5-air",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 2,
+      "startedAt": "2026-11-06T12:00:16.844Z",
+      "plan": null,
+      "latencyMs": 92513,
+      "ttftMs": 9274,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 92513,
+          "chars": 29887
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 29887,
+      "estTokens": {
+        "input": 15471,
+        "output": 7472,
+        "estimated": true
+      },
+      "estCostUsd": 0.00836243,
+      "extraction": {
+        "writes": 12,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/glm-4.5-air-t2",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/pages/AddAnswer.tsx: No matching export in \"vfs:/src/data/seedData.ts\" for import \"questions\""
+        ],
+        "solved": true,
+        "latencyMs": 19212,
+        "remainingErrors": [],
+        "estCostUsd": 0.00387392,
+        "passes": 1
+      },
+      "error": null,
+      "served": {
+        "model": "z-ai/glm-4.5-air",
+        "provider": "Novita"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": false,
+        "errors": [
+          "console: TypeError: answers is not iterable at file:///home/user/relational-builder/bench/results/2026-11-06T11-52-46-0305b30-ef64/artifacts/hs-listening-wall/glm-4.5-air-t2/preview.html:362:16 at Object.useMemo (https://esm.sh/r",
+          "pageerror: answers is not iterable"
+        ],
+        "bodyChars": 0
+      },
+      "quality": {
+        "files": 11,
+        "codeFiles": 9,
+        "codeLines": 588,
+        "largestFile": "/src/pages/OrganizerView.tsx",
+        "largestFileLines": 135,
+        "anyCount": 0,
+        "kitImportingFiles": 6,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 14,
+          "tokensTotal": 15,
+          "kitLayout": [
+            "AppBar",
+            "Card"
+          ],
+          "mdClasses": 1,
+          "fontLoaded": true,
+          "contrastText": 13.1,
+          "contrastMuted": 5.9
+        },
+        "lintErrors": 9,
+        "lintWarnings": 0,
+        "lintPer100Lines": 1.5,
+        "tscErrors": 5,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 80.8,
+        "fixLatencyMs": 19212,
+        "failKind": "bad-import"
+      }
+    }
+  ]
+}

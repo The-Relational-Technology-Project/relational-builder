@@ -1,0 +1,275 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1,exp-v1",
+  "gitCommit": "1efe144",
+  "createdAt": "2026-11-06T11:50:50.007Z",
+  "runId": "2026-11-06T11-45-08-1efe144-78ru",
+  "config": {
+    "trials": 1,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": null,
+    "importGuard": true,
+    "fixHints": true,
+    "humanScaleRules": true,
+    "fixPasses": 2,
+    "designScaffold": "none",
+    "openrouterIgnore": "Darkbloom",
+    "openrouterOnly": null
+  },
+  "models": [
+    {
+      "alias": "opus-5-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-opus-5.5",
+      "pricing": {
+        "inputPerMTok": 4,
+        "outputPerMTok": 20,
+        "asOf": "2026-10"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "hs-community-fridge",
+      "version": "exp-v1"
+    },
+    {
+      "id": "hs-listening-wall",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "opus-5-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-opus-5.5",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-06T11:45:08.840Z",
+      "plan": null,
+      "latencyMs": 173788,
+      "ttftMs": 99345,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 173787,
+          "chars": 26577
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 26577,
+      "estTokens": {
+        "input": 14237,
+        "output": 6645,
+        "estimated": true
+      },
+      "estCostUsd": 0.189848,
+      "extraction": {
+        "writes": 8,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/opus-5-5-t1",
+      "fixRound": null,
+      "error": null,
+      "served": {
+        "model": "anthropic/claude-opus-5.5",
+        "provider": "Claude Platform on AWS"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 1894
+      },
+      "quality": {
+        "files": 8,
+        "codeFiles": 6,
+        "codeLines": 577,
+        "largestFile": "/src/components/FridgeBoard.tsx",
+        "largestFileLines": 216,
+        "anyCount": 0,
+        "kitImportingFiles": 3,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 15,
+          "tokensTotal": 15,
+          "kitLayout": [
+            "AppBar",
+            "BottomNav",
+            "EmptyState",
+            "Card"
+          ],
+          "mdClasses": 9,
+          "fontLoaded": true,
+          "contrastText": 13,
+          "contrastMuted": 5.7
+        },
+        "lintErrors": 1,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.2,
+        "tscErrors": 0,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 38.2,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    },
+    {
+      "alias": "opus-5-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-opus-5.5",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-06T11:48:02.875Z",
+      "plan": null,
+      "latencyMs": 138080,
+      "ttftMs": 72384,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 138080,
+          "chars": 24140
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 24140,
+      "estTokens": {
+        "input": 14228,
+        "output": 6035,
+        "estimated": true
+      },
+      "estCostUsd": 0.177612,
+      "extraction": {
+        "writes": 9,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/opus-5-5-t1",
+      "fixRound": null,
+      "error": null,
+      "served": {
+        "model": "anthropic/claude-opus-5.5",
+        "provider": "Claude Platform on AWS"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 552
+      },
+      "quality": {
+        "files": 9,
+        "codeFiles": 7,
+        "codeLines": 454,
+        "largestFile": "/src/pages/Wall.tsx",
+        "largestFileLines": 121,
+        "anyCount": 0,
+        "kitImportingFiles": 4,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 14,
+          "tokensTotal": 15,
+          "kitLayout": [
+            "AppBar",
+            "EmptyState",
+            "Card"
+          ],
+          "mdClasses": 7,
+          "fontLoaded": true,
+          "contrastText": 13.3,
+          "contrastMuted": 6.1
+        },
+        "lintErrors": 0,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0,
+        "tscErrors": 0,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 43.7,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    }
+  ]
+}

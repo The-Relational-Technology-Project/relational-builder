@@ -159,6 +159,25 @@ async function captureWithPlaywright(pw: any, chromiumPath: string | null, targe
           .evaluate(() => (document.body?.innerText ?? '').trim())
           .catch(() => '');
         const bodyChars = bodyText.length;
+        // A page whose Tailwind classes did nothing: the stylesheet failed
+        // to compile, so the app opens as raw HTML (Nov 6: a gemma build
+        // looked like a 1995 page and still counted as clean)
+        const unstyled: boolean = await page
+          .evaluate(() => {
+            // Form controls carry browser padding and backgrounds of their
+            // own, so only plain elements say whether the classes took
+            const els = Array.from(document.querySelectorAll('div[class],section[class],main[class],header[class],nav[class],span[class],li[class],ul[class]'))
+              .filter(e => /\b(p|px|py|gap|rounded|bg)-/.test(String((e as HTMLElement).className || '')))
+              .slice(0, 40);
+            if (els.length < 5) return false;
+            const styled = els.filter(e => {
+              const cs = getComputedStyle(e as HTMLElement);
+              return cs.paddingTop !== '0px' || cs.paddingLeft !== '0px' || cs.borderRadius !== '0px' || cs.rowGap !== 'normal' || cs.columnGap !== 'normal' || cs.backgroundColor !== 'rgba(0, 0, 0, 0)';
+            });
+            return styled.length === 0;
+          })
+          .catch(() => false);
+        if (unstyled) note('style', 'the page rendered without its styles (Tailwind classes had no effect)');
         // A page that opens on its own 404 is a routing failure the console
         // never reports (BrowserRouter under a file or blob path)
         if (bodyChars < 400 && /\b(page not found|not found|404)\b/i.test(bodyText)) {

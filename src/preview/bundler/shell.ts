@@ -51,6 +51,32 @@ function stripModuleEntry(html: string): string {
   );
 }
 
+/**
+ * Pull remote stylesheet imports (web fonts, mostly) out of a CSS chunk.
+ * Tailwind's browser JIT treats any `@import url(...)` in a
+ * `text/tailwindcss` style as something to resolve itself, cannot, and then
+ * compiles NO utilities at all: the app opens as unstyled HTML. Checked in
+ * Chromium on Nov 6, 2026 (padding 32px without the import, 0px with it).
+ * A Google Fonts import is the normal way to load a font, so builds from
+ * every model, Opus included, were losing their whole design to it. The
+ * imports become `<link rel="stylesheet">` tags instead; the rest of the
+ * chunk goes to the JIT unchanged.
+ */
+export function splitRemoteCssImports(css: string): { urls: string[]; rest: string } {
+  const urls: string[] = [];
+  const rest = css.replace(
+    /@import\s+(?:url\(\s*(['"]?)(https?:\/\/[^'")\s]+)\1\s*\)|(['"])(https?:\/\/[^'"]+)\3)[^;\n]*;?/g,
+    (_m, _q1, u1, _q2, u2) => {
+      const url = (u1 ?? u2) as string;
+      if (!urls.includes(url)) urls.push(url);
+      return '';
+    },
+  );
+  return { urls, rest };
+}
+
+const escapeAttr = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+
 export function buildShellHtml(options: ShellOptions): string {
   const { bundle, headExtra = [], bodyExtra = [] } = options;
   let html = options.indexHtml ? stripModuleEntry(options.indexHtml) : DEFAULT_SHELL;
@@ -58,9 +84,14 @@ export function buildShellHtml(options: ShellOptions): string {
   const headBits = [
     `<script type="importmap">\n${bundle.importMap}\n</script>`,
     `<script src="${TAILWIND_BROWSER_URL}"></script>`,
-    ...bundle.css.map(
-      css => `<style type="text/tailwindcss">\n${css}\n</style>`,
-    ),
+    ...(() => {
+      const split = bundle.css.map(splitRemoteCssImports);
+      const urls = [...new Set(split.flatMap(x => x.urls))];
+      return [
+        ...urls.map(u => `<link rel="stylesheet" href="${escapeAttr(u)}">`),
+        ...split.map(x => `<style type="text/tailwindcss">\n${x.rest}\n</style>`),
+      ];
+    })(),
     ...headExtra,
   ].join('\n');
 
