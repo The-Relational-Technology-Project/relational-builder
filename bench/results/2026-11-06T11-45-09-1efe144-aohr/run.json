@@ -234,10 +234,8 @@
       "importIssues": [],
       "runtime": {
         "rendered": true,
-        "errors": [
-          "style: the page rendered without its styles (Tailwind classes had no effect)"
-        ],
-        "bodyChars": 880
+        "errors": [],
+        "bodyChars": 844
       },
       "quality": {
         "files": 10,

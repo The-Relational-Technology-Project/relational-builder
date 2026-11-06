@@ -245,10 +245,8 @@
       "importIssues": [],
       "runtime": {
         "rendered": true,
-        "errors": [
-          "style: the page rendered without its styles (Tailwind classes had no effect)"
-        ],
-        "bodyChars": 389
+        "errors": [],
+        "bodyChars": 393
       },
       "quality": {
         "files": 6,
@@ -362,10 +360,8 @@
       "importIssues": [],
       "runtime": {
         "rendered": true,
-        "errors": [
-          "style: the page rendered without its styles (Tailwind classes had no effect)"
-        ],
-        "bodyChars": 843
+        "errors": [],
+        "bodyChars": 825
       },
       "quality": {
         "files": 4,
@@ -479,10 +475,8 @@
       "importIssues": [],
       "runtime": {
         "rendered": true,
-        "errors": [
-          "style: the page rendered without its styles (Tailwind classes had no effect)"
-        ],
-        "bodyChars": 1197
+        "errors": [],
+        "bodyChars": 608
       },
       "quality": {
         "files": 8,

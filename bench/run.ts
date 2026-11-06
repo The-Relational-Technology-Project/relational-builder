@@ -144,6 +144,31 @@ export async function main(argv: string[]): Promise<number> {
     return 0;
   }
 
+  // Rebuild every bundled trial's preview.html from its saved files with the
+  // current shell, e.g. after a preview fix (Nov 6: web-font imports).
+  // Follow with `shots` to re-judge them in the browser.
+  if (argv[0] === 'rebuild') {
+    if (!argv[1]) {
+      console.error('Usage: npm run bench -- rebuild <runDir>');
+      return 1;
+    }
+    const { readFile } = await import('node:fs/promises');
+    const path = await import('node:path');
+    const { rebuildPreview } = await import('./lib/artifacts');
+    const { readTree } = await import('./lib/measure');
+    const runDir = path.resolve(argv[1]);
+    const run = JSON.parse(await readFile(path.join(runDir, 'run.json'), 'utf8'));
+    let n = 0;
+    for (const t of run.trials) {
+      if (!t.artifactDir || !t.bundle?.ok || t.previewKind !== 'framework') continue;
+      const dir = path.join(runDir, t.artifactDir);
+      const files = await readTree(path.join(dir, 'files'));
+      if (await rebuildPreview(dir, files)) n++;
+    }
+    console.log(`Rebuilt ${n} preview(s) under ${runDir}`);
+    return 0;
+  }
+
   // Compute (or recompute) code-quality measures for a finished run from its
   // artifacts and store them in run.json; regenerates the report.
   if (argv[0] === 'measure') {

@@ -20,7 +20,7 @@
 
 | Model | Bundle | First try | Renders | Fix | Fail kind | Files | Failed edits | Truncated | Checks | Sec flags | Lint/100 | tsc errors | Largest file | any | Kit files | tok/s | TTFT | Build time | Fix time | Total | ~$ | |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| opus-5-5 | 1/1 ✓ | 1/1 | 0/1 clean | — | — | 10 | 0 | no | 4/5 | 0 | 0 | 0 | 145 lines | 0 | 5/8 | 47.7 | 74s | 147s | — | 147s | 0.20 |
+| opus-5-5 | 1/1 ✓ | 1/1 | 1/1 clean | — | — | 10 | 0 | no | 4/5 | 0 | 0 | 0 | 145 lines | 0 | 5/8 | 47.7 | 74s | 147s | — | 147s | 0.20 |
 
 ## Human review
 
@@ -33,11 +33,6 @@ _Maintainer's call, informed by the tables above — the report feeds the decisi
 ## Served as (provider-reported)
 
 - **opus-5-5**: anthropic/claude-opus-5.5, via Claude Platform on AWS
-
-## In the browser (bundled, but)
-
-- **opus-5-5** · hs-listening-wall t1: renders with errors
-  - style: the page rendered without its styles (Tailwind classes had no effect)
 
 
 ## Previews

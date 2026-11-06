@@ -12,6 +12,113 @@ experiment at most $5 and 30 minutes.
 
 ---
 
+## Week of Nov 2 to Nov 6: rollup
+
+**Spend.** About $2.50 of paid inference over the week (Mon $0.13, Tue
+$0.25, Wed $0.12, Thu $0.54, Fri $1.37, most of Friday's on six Opus
+builds), against $11.20 reserved at worst case. Nothing near the daily
+cap.
+
+**What moved.**
+- The bench learned that a model name is not a model: it records the host
+  that served each build, and one host turned out to serve Gemma broken.
+- The Builder builds on open models behind the flag: Gemma 4 26B by
+  default (Josh's design read), the host exclusion on every call, and a
+  keyless community route through the proxy (written, not deployed).
+- Seven static checks and a second automatic fix pass behind the flag,
+  each written from a screenshot or a decoded error, plus one false
+  positive found and fixed.
+- Six open model families measured; Mistral Small 3.2 is the strongest
+  model that fits a single community machine by working builds.
+- The docs were reframed as a public exploration of community-controlled
+  AI.
+- Friday found a preview bug that unstyled any app loading a web font,
+  for every model (below).
+
+**Decisions needed from Josh.** The proxy and app-runtime deploys (NEXT,
+"Needs Josh"); his read of the design A/B sheet; a yes or no on the third
+prompt that asks for AI; and whether the model hosts should become an
+allowlist rather than an exclude list.
+
+## 2026-11-06
+
+**For Josh:** Today tested your question: does more detailed design
+guidance make open models design more like Opus? Three versions of the
+prompt (today's, a concrete recipe, and the recipe plus five ready-made
+visual styles) ran on Gemma, Mistral Small, GLM and Opus. The side-by-side
+sheet is sent to you in this conversation; the call on which looks best
+is yours. On working code, the versions are a wash at this sample size.
+On the way, the screenshots exposed a real bug: any app that loaded a font
+from Google Fonts lost all its styling in the preview and when published,
+for every model including Opus. That is fixed. Spend: about $1.37.
+
+**Stack layer moved:** Builder app and preview, from "a web font silently
+unstyles the app" to "fonts load beside the Tailwind stylesheet"; and the
+builder model's design guidance, from untested principles to a measured
+three-way comparison waiting on a human eye.
+
+**What was tried.**
+
+1. *Design scaffolding, built* (NEXT item 0). `src/human-scale/design-scaffold.ts`:
+   `none`, `recipe` (screen skeleton, spacing and type scale, filled
+   palette and 4.5:1 contrast, three don'ts from the board) and
+   `direction` (the recipe plus five named visual directions as full token
+   sets: Coastal fog, Civic paper, Schoolyard bright, Quiet library, Night
+   market; every text pairing tested at 4.5:1 or better). Appended to the
+   build prompt behind the flag when `BENCH_DESIGN_SCAFFOLD` or the
+   browser setting names a variant; recorded in run config and on the
+   board. The direction block adds about 1,300 prompt tokens.
+2. *Design proxies* in the bench (theme tokens filled, kit layout pieces
+   used, `md:` classes, font loaded, text contrast), labeled as proxies.
+3. *The runs.* Two trials a prompt per model and variant, two fix passes,
+   Darkbloom excluded; Opus one trial a prompt per variant. A 20-minute
+   cap cut one Mistral build.
+
+| Model | none | recipe | direction |
+|---|---|---|---|
+| Gemma 4 26B | 3 of 4 work, 152s | 2 of 4, 80s | 4 of 4, 61s |
+| Mistral Small 3.2 | 3 of 4, 92s | 2 of 4, 105s | 2 of 3, 79s |
+| GLM 4.5 Air | 2 of 4, 87s | 2 of 4, 75s | 2 of 4, 104s |
+| Opus 5.5 | 2 of 2, 174s | 2 of 2, 158s | 2 of 2, 147s |
+| Open models together | 8 of 12 | 6 of 12 | 8 of 11 |
+
+   Four builds a cell cannot tell these apart on working code; the
+   misses are the usual mix (a component named twice, an undefined
+   value, a nested router), not anything the scaffold introduced. The
+   proxies move the way the recipe asks: more desktop classes from Gemma
+   and Mistral under `recipe`, and every direction build used a named
+   palette. Whether the designs are better is the question the sheet is
+   for.
+4. *The font bug.* Three Gemma builds and one Opus build under the
+   `direction` variant rendered as raw HTML in the screenshots while the
+   browser check called them clean. A test page in Chromium settled it:
+   the Tailwind browser compiler compiles no utilities at all when its
+   stylesheet contains any `@import url(...)`, and loading a Google Font
+   that way is normal (the recipe even asked for it). The preview and
+   publish shell now lifts remote imports into `<link>` tags
+   (`splitRemoteCssImports` in `src/preview/bundler/shell.ts`, tested;
+   verified in Chromium: padding 32px and the font applied). This sits in
+   the shared preview rather than behind the flag, because it only
+   changes pages that were broken. The browser check now flags a page
+   whose Tailwind classes had no effect, and `npm run bench -- rebuild
+   <runDir>` regenerates previews with the current shell; every run from
+   today was rebuilt and re-judged before the table above.
+
+**What it cost.** About $1.37 estimated over 41 builds, logged as $4.00
+worst case before the runs; the estimate leaves out Opus's thinking and
+three retried Opus streams, so the real figure is likely somewhat higher.
+Session about 55 minutes.
+
+**Honest read.** The experiment answered a narrower question than the one
+asked: detailed design guidance does not cost open models working code at
+this sample size, and it does change what they produce in the direction
+the guidance points. Whether it closes the gap with Opus is a design
+judgment, and the sheet is built so Josh can make it in a few minutes.
+The bigger result was accidental: a bug in the shared preview has been
+unstyling every app that loads a web font, which means some earlier
+screenshots on the board, from any model, may have been judged on a
+broken page. Rebuilding the older runs is tomorrow's first job.
+
 ## 2026-11-05
 
 **For Josh:** You asked whether to include Kimi and Mistral, so today ran

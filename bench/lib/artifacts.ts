@@ -79,3 +79,19 @@ async function buildPreviewHtml(mech: MechanicalResult): Promise<string | null> 
   }
   return null;
 }
+
+/** Rebuild a trial's preview.html from its saved files with the current
+ *  shell (after a preview fix, so old builds are judged by today's
+ *  pipeline). Framework builds only; returns false when nothing was built. */
+export async function rebuildPreview(dir: string, files: Record<string, string>): Promise<boolean> {
+  try {
+    const site = await buildStaticSite(toEntries(files), []);
+    const html = site.find(f => f.path === '/index.html')?.content;
+    if (!html) return false;
+    await writeFile(path.join(dir, 'preview.html'), html, 'utf8');
+    return true;
+  } catch {
+    return false;
+  }
+}
+

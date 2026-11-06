@@ -14,13 +14,13 @@
 
 | Model | Bundle | First try | Renders | Fix | Fail kind | Files | Failed edits | Truncated | Checks | Sec flags | Lint/100 | tsc errors | Largest file | any | Kit files | tok/s | TTFT | Build time | Fix time | Total | ~$ | |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| gemma-4-26b | 2/2 ✓ | 1/2 | 1/2 clean | 1/1 solved | syntax | 8.5 | 0 | no | 5/5 | 0 | 3.6 | 4 | 176 lines | 0 | 2.5/4.5 | 134.20000000000002 | 1s | 63s | 20s | 63s | 0.00 |
+| gemma-4-26b | 2/2 ✓ | 1/2 | 2/2 clean | 1/1 solved | syntax | 8.5 | 0 | no | 5/5 | 0 | 3.6 | 4 | 176 lines | 0 | 2.5/4.5 | 134.20000000000002 | 1s | 63s | 20s | 63s | 0.00 |
 
 ### Task: hs-listening-wall (exp-v1)
 
 | Model | Bundle | First try | Renders | Fix | Fail kind | Files | Failed edits | Truncated | Checks | Sec flags | Lint/100 | tsc errors | Largest file | any | Kit files | tok/s | TTFT | Build time | Fix time | Total | ~$ | |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| gemma-4-26b | 2/2 ✓ | 2/2 | 0/2 clean | — | — | 6 | 0 | no | 4/5 | 0 | 1.75 | 2 | 226.5 lines | 1 | 2.5/4 | 98.1 | 1s | 48s | — | 48s | 0.00 |
+| gemma-4-26b | 2/2 ✓ | 2/2 | 2/2 clean | — | — | 6 | 0 | no | 4/5 | 0 | 1.75 | 2 | 226.5 lines | 1 | 2.5/4 | 98.1 | 1s | 48s | — | 48s | 0.00 |
 
 ## Human review
 
@@ -33,15 +33,6 @@ _Maintainer's call, informed by the tables above — the report feeds the decisi
 ## Served as (provider-reported)
 
 - **gemma-4-26b**: google/gemma-4-26b-a4b-it, via Makora / google/gemma-4-26b-a4b-it, via CoreWeave / google/gemma-4-26b-a4b-it, via Parasail / google/gemma-4-26b-a4b-it, via NextBit
-
-## In the browser (bundled, but)
-
-- **gemma-4-26b** · hs-community-fridge t2: renders with errors
-  - style: the page rendered without its styles (Tailwind classes had no effect)
-- **gemma-4-26b** · hs-listening-wall t1: renders with errors
-  - style: the page rendered without its styles (Tailwind classes had no effect)
-- **gemma-4-26b** · hs-listening-wall t2: renders with errors
-  - style: the page rendered without its styles (Tailwind classes had no effect)
 
 ## Fix passes (how solves went)
 

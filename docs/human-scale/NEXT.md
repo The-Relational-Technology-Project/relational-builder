@@ -190,93 +190,33 @@ stack layer it moved; pace paid work at $3 to $5 a day.
    closer to, name them in a line here; the `direction` variant will be
    written with them in mind. Default if unanswered: directions written
    from the board's best Gemma and Opus screenshots.
+8. **The design A/B sheet (Nov 6).** It was sent in the conversation and
+   is committed as `docs/human-scale/shots/design-ab-2026-11-06.html`:
+   rows are models, columns are the three versions of the design
+   guidance. Which column looks closest to what neighborhood tools should
+   look like, for the open models? Default if unanswered: the next run
+   adds trials before choosing.
 
 ## Tomorrow (one run, about 75 minutes)
 
-
-0. **Does more design scaffolding close the design gap for open models?
-   (Josh, Nov 5; the main experiment for the next run or two.)**
-   The question: if the Builder describes the UI, visual design and
-   aesthetic direction in more concrete detail, do open models produce
-   designs closer to Opus's, without losing working code?
-   Today's build prompt already carries a long design section
-   (`context-builder.ts`, "Design for Generated Apps": obvious in three
-   seconds, phone-first and desktop-real, resist the default look), but
-   it is principles, not recipes, and the theme contract's values are
-   deliberately blank. The hypothesis to test: small models follow
-   concrete instructions better than abstract ones, so a recipe helps
-   them more than it helps Opus.
-
-   *Build it behind the flag, bench-switchable.* `src/human-scale/design-scaffold.ts`
-   exports variants appended to the system prompt when
-   `isHumanScale()` and the bench env `BENCH_DESIGN_SCAFFOLD` (or a
-   later product setting) names one; record the variant in run config
-   and label it on the board like `guard` and `hints`.
-   - `none`: today's prompt (the control; the board already has it).
-   - `recipe` (about 400 tokens): a screen recipe for app-class builds
-     (sticky AppBar with the place's name; a first card that answers the
-     tool's main question at a glance; lists as kit Cards with a clear
-     primary action each; EmptyState on every list; BottomNav on phones,
-     top nav and a two-column list-plus-detail at md+ inside
-     `max-w-5xl`), a spacing and type scale to use (4/8/12/16/24/32;
-     one display size, one heading, one body, one caption), a rule to
-     FILL every theme token with a chosen palette (background, surface,
-     ink, muted, one accent, one warm or cool support) with contrast at
-     4.5:1 for text, and three named don'ts from the board's own failures
-     (shells with a header and nothing under it, gray-on-gray cards,
-     full-bleed phone layouts on desktop).
-   - `direction`: `recipe` plus a small library of five named visual
-     directions written as filled token sets and a one-line mood each
-     (for example a foggy coastal one, a civic-paper one, a bright
-     schoolyard one, a quiet library one, a night-market one; written
-     fresh, not the cream-serif-terracotta default the prompt warns
-     against), and an instruction to pick the one that fits the place
-     and say which in the reply. This tests whether choosing beats
-     inventing for a small model.
-
-   *Measure.* Gemma 4 26B, Mistral Small 3.2 and GLM 4.5 Air, plus Opus
-   once per variant as the reference, on `--tasks compare` with the
-   standard invocation, three trials a prompt per variant. About 36
-   open-model builds (about $0.25) and 4 Opus builds (about $1.20); log
-   spend first. Keep the code columns (clean rate, lint, tsc) to see
-   whether design detail costs working code. Add cheap mechanical design
-   proxies to `bench/lib/quality.ts`, labeled as proxies, not scores:
-   theme tokens filled (not placeholder), kit layout components used
-   (AppBar, BottomNav, EmptyState, Card), responsive `md:` classes
-   present, and text contrast computed from the token values.
-   Then a side-by-side page for Josh: a "Design scaffolding A/B" section
-   on the board with one row per model and one column per variant,
-   screenshots only, so the design call takes five minutes. The answer
-   to the question is his eye on that page plus whether the clean rate
-   held; say both in the LOG and do not declare a winner on proxies
-   alone.
-
-   *Show Josh in the conversation (he asked, Nov 5).* The daily run fires
-   in the same chat Josh reads, so at the end of the run put the outputs
-   in front of him there, not only on the board: build one self-contained
-   HTML contact sheet (`docs/human-scale/shots/design-ab-<date>.html`,
-   images embedded so it opens anywhere; rows are models, columns are
-   `none`, `recipe`, `direction`, both prompts, each image captioned with
-   model, variant, clean or not, and build time) and send it with the
-   file-sending tool to render inline, plus the three or four most
-   telling screenshots as individual images. Then a short note in the
-   final message: what changed, whether working code held, and the one
-   question for him (which column looks closest to what neighborhood
-   tools should look like).
-1. **Mistral Small 3.2, enough builds to trust.** Nov 5: 4 of 5 clean on
-   five builds. Run it again with the standard invocation (two fix passes,
-   about $0.02 for six builds, log first) so it has 11 builds like for
-   like, and run Gemma the same way (about $0.03) so the two box-sized
-   leaders are compared under the same two-pass default and the fixed React
-   check. Shots and board. Then say plainly in the LOG which one leads on
-   working builds; the design call is Josh's (question 6).
-2. **Scan every check against clean builds, as a test.** Turn the Nov 4
-   scan script into `bench/lib/check-scan.test.ts` over a small committed
-   fixture set (three clean builds' files, copied under
-   `bench/fixtures/clean/`): every static check must return nothing on
-   them. This would have caught the React false positive on day one.
-3. **End-to-end check of export and delete.** Unchanged: needs a signed-in
-   Builder with a Community Cloud app.
+1. **Rebuild the board with the font fix.** Since Nov 6 the preview lifts
+   web-font imports out of the Tailwind stylesheet; before that, any build
+   that loaded a Google Font rendered unstyled. Run
+   `npm run bench -- rebuild <runDir>` then `shots` on every run since
+   Oct 30, regenerate the reports and the board, and say in the LOG how
+   many builds changed from blank or unstyled to clean, by model. No
+   spend. If Gemma's or Opus's earlier rates move, the board's ranking
+   paragraph in README needs the new numbers.
+2. **Act on Josh's read of the design A/B sheet** (question 8). If one
+   variant looks clearly closer to what neighborhood tools should look
+   like, make it the flag's default (`designScaffoldVariant()` returns it
+   when nothing is set) and run the losing variants no more. If he wants
+   more evidence first, three more trials a cell for Gemma and Mistral
+   only (about $0.20, log first). If no answer, run those trials anyway.
+3. **Scan every check against clean builds, as a test** (carried from
+   Nov 5): a committed fixture set of three clean builds, and a test that
+   every static check returns nothing on them.
+4. **End-to-end check of export and delete.** Needs a signed-in Builder.
 
 ## After that, in order
 

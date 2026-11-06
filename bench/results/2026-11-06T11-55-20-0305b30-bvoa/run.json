@@ -120,7 +120,7 @@
       "runtime": {
         "rendered": false,
         "errors": [
-          "console: ReferenceError: BottomNav2 is not defined at App (file:///home/user/relational-builder/bench/results/2026-11-06T11-55-20-0305b30-bvoa/artifacts/hs-community-fridge/gemma-4-26b-t1/preview.html:435:27) at Hi (https://esm.s",
+          "console: ReferenceError: BottomNav2 is not defined at App (file:///home/user/relational-builder/bench/results/2026-11-06T11-55-20-0305b30-bvoa/artifacts/hs-community-fridge/gemma-4-26b-t1/preview.html:436:27) at Hi (https://esm.s",
           "pageerror: BottomNav2 is not defined"
         ],
         "bodyChars": 0
@@ -248,10 +248,8 @@
       "importIssues": [],
       "runtime": {
         "rendered": true,
-        "errors": [
-          "style: the page rendered without its styles (Tailwind classes had no effect)"
-        ],
-        "bodyChars": 324
+        "errors": [],
+        "bodyChars": 293
       },
       "quality": {
         "files": 9,

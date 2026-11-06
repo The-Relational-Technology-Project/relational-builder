@@ -19,7 +19,7 @@ import { KIT_FILES } from '@/kit';
 
 export type Quality = NonNullable<TrialResult['quality']>;
 
-async function readTree(dir: string, base = dir): Promise<Record<string, string>> {
+export async function readTree(dir: string, base = dir): Promise<Record<string, string>> {
   const out: Record<string, string> = {};
   let entries: import('node:fs').Dirent[] = [];
   try {

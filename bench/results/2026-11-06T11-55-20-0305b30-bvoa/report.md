@@ -14,7 +14,7 @@
 
 | Model | Bundle | First try | Renders | Fix | Fail kind | Files | Failed edits | Truncated | Checks | Sec flags | Lint/100 | tsc errors | Largest file | any | Kit files | tok/s | TTFT | Build time | Fix time | Total | ~$ | |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| gemma-4-26b | 2/2 ✓ | 1/2 | 0/2 clean, 1 blank | 1/1 solved | syntax | 8 | 0 | no | 4.5/5 | 0 | 1.3 | 3.5 | 173.5 lines | 0 | 3/5 | 74.2 | 2s | 62s | 14s | 62s | 0.00 |
+| gemma-4-26b | 2/2 ✓ | 1/2 | 1/2 clean, 1 blank | 1/1 solved | syntax | 8 | 0 | no | 4.5/5 | 0 | 1.3 | 3.5 | 173.5 lines | 0 | 3/5 | 74.2 | 2s | 62s | 14s | 62s | 0.00 |
 
 ### Task: hs-listening-wall (exp-v1)
 
@@ -37,10 +37,8 @@ _Maintainer's call, informed by the tables above — the report feeds the decisi
 ## In the browser (bundled, but)
 
 - **gemma-4-26b** · hs-community-fridge t1: BLANK PAGE
-  - console: ReferenceError: BottomNav2 is not defined at App (file:///home/user/relational-builder/bench/results/2026-11-06T11-55-20-0305b30-bvoa/artifacts/hs-community-fridge/gemma-4-26b-t1/preview.html:435:27) at Hi (https://esm.s
+  - console: ReferenceError: BottomNav2 is not defined at App (file:///home/user/relational-builder/bench/results/2026-11-06T11-55-20-0305b30-bvoa/artifacts/hs-community-fridge/gemma-4-26b-t1/preview.html:436:27) at Hi (https://esm.s
   - pageerror: BottomNav2 is not defined
-- **gemma-4-26b** · hs-community-fridge t2: renders with errors
-  - style: the page rendered without its styles (Tailwind classes had no effect)
 - **gemma-4-26b** · hs-listening-wall t1: BLANK PAGE
   - pageerror: Cannot read properties of null (reading 'useState')
 
