@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+:root {
+  /* Coastal fog: fog-gray ground, deep kelp teal, sea-glass and buoy-orange signals */
+  --background: #e6ecee;
+  --foreground: #16262d;
+  --card: #f6f9f9;
+  --card-foreground: #16262d;
+  --primary: #1f5c63;
+  --primary-foreground: #f2fbfa;
+  --secondary: #d3e2e0;
+  --secondary-foreground: #1f4a50;
+  --muted: #dde5e7;
+  --muted-foreground: #4b5e65;
+  --accent: #cfe6df;
+  --accent-foreground: #16262d;
+  --destructive: #b4441c;
+  --destructive-foreground: #fff4ee;
+  --border: #c5d1d4;
+  --input: #a9b9bd;
+  --ring: #1f5c63;
+  --radius: 1rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* Project styles */
+:root {
+  --font-display: "Bricolage Grotesque", "Atkinson Hyperlegible", sans-serif;
+  --font-body: "Atkinson Hyperlegible", "Helvetica Neue", sans-serif;
+  /* Fridge status signals (white text on each passes 4.5:1) */
+  --full: #2f7a66;
+  --some: #4b6f8a;
+  --empty: #b9501f;
+  --on-status: #ffffff;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.6;
+  background-image: linear-gradient(180deg, #d9e3e6 0%, var(--background) 320px);
+  background-repeat: no-repeat;
+}
+
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
