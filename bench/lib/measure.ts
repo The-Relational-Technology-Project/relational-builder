@@ -45,6 +45,9 @@ async function lintDir(dir: string): Promise<{ errors: number; warnings: number 
       cwd: root,
       overrideConfigFile: path.join(root, 'eslint.config.js'),
       errorOnUnmatchedPattern: false,
+      // The repo's lint skips bench output (model-written apps); this
+      // measure exists to lint exactly that, with the app's own rules
+      ignore: false,
     });
     const results = await eslint.lintFiles([path.join(dir, '**/*.{ts,tsx,js,jsx}')]);
     let errors = 0;
