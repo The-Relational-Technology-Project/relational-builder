@@ -11,7 +11,10 @@ there ("public data flows both ways") and the content half of step 4 in
 
 ## The two doors a pack serves
 
-- `GET <site>/place.json`: what the place is (label, center, catchment as a
+- `GET <site>/place.json`: it leads with the same fields a published
+  Builder app's `/place.json` carries (v1: `version`, `generator`, `name`,
+  `lat`, `lng`, `label`, `precision`, `catchment`), so a crawler drawing the
+  map of place-based software reads a pack like any app. Then the pack: what the place is (label, center, catchment as a
   radius, time zone), every source with its license and freshness, the
   constituents and their advocates, the rules that travel with the data, and
   how a tool can give back (feed formats and record shapes).
