@@ -21,6 +21,10 @@ describe('design scaffolding', () => {
     const d = designScaffoldPrompt('direction');
     expect(d).toContain('Design recipe');
     for (const v of VISUAL_DIRECTIONS) expect(d).toContain(v.name);
+    const r = designScaffoldPrompt('reference');
+    expect(r.startsWith(d)).toBe(true);
+    expect(r).toContain('Reference first screens');
+    expect(d).not.toContain('Reference first screens');
   });
 
   it('every direction meets 4.5:1 for its text pairings', () => {

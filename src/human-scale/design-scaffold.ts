@@ -20,9 +20,9 @@
  * default whenever the flag is on. `none` stays selectable as the control.
  */
 
-export type DesignScaffold = 'none' | 'recipe' | 'direction';
+export type DesignScaffold = 'none' | 'recipe' | 'direction' | 'reference';
 
-const VARIANTS: DesignScaffold[] = ['none', 'recipe', 'direction'];
+const VARIANTS: DesignScaffold[] = ['none', 'recipe', 'direction', 'reference'];
 const STORAGE_KEY = 'rb.humanScale.designScaffold';
 
 export function designScaffoldVariant(): DesignScaffold {
@@ -168,10 +168,55 @@ function directionsBlock(): string {
   return lines.join('\n');
 }
 
+/**
+ * What Opus did on Nov 6 that the open models' direction builds mostly did
+ * not, from the side-by-side screenshots: a first screen that is full, not
+ * tidy; texture on every item (a face, a time, an action of its own); and
+ * copy that names people and places. Written as three rules and two short
+ * reference first screens, because small models copy shapes better than
+ * they follow adjectives.
+ */
+const REFERENCE = [
+  '## Reference first screens (copy the SHAPE, not the words)',
+  '',
+  'Three things separate a finished neighborhood tool from a tidy demo; do all three:',
+  '- **The first screen is full.** Above the fold: the big status or question block, the main action, AND the first real items. At `md`+ a second column carries the next most useful list (this week\'s shifts, the other questions), so a laptop never shows one narrow column and empty space.',
+  '- **Every item has texture.** A face or initials (`<Avatar name=... />`), who and when ("Rosa Ng · 40 minutes ago"), a small badge for its kind, and ONE action of its own written as a verb a neighbor would say ("Thank Rosa", "I can bring this", "Me too"), not a generic "View".',
+  '- **Copy names people and places.** The steward by name, the street, the day: "Rosa keeps this fridge. Say hi on her Tuesday mornings." Never "Welcome to the app" or "Manage your items".',
+  '',
+  'A coordination tool (status plus tasks), as a shape:',
+  '```tsx',
+  '<main className="max-w-5xl mx-auto px-4 py-6 grid gap-6 md:grid-cols-[1fr_320px]">',
+  '  <section className="grid gap-4">',
+  '    <Card className="overflow-hidden">',
+  '      <div className="bg-accent text-accent-foreground p-6"><h1 className="text-3xl font-semibold">Fridge has some</h1><p>Checked by Rosa Ng · 40 minutes ago</p></div>',
+  '      <div className="p-4 grid gap-3"><p className="text-sm text-muted-foreground">Standing at the fridge? Tap how it looks:</p><div className="grid grid-cols-3 gap-2">{/* Full / Some / Empty buttons, the current one filled */}</div><Button>Post an update</Button></div>',
+  '    </Card>',
+  '    <h2 className="text-lg font-semibold">Latest at the fridge</h2>',
+  '    {updates.map(u => (<Card key={u.id} className="p-4 flex gap-3"><Avatar name={u.by} /><div className="grid gap-1"><p className="text-sm"><b>{u.by}</b> · {u.when} <Badge variant="secondary">{u.kind}</Badge></p><p>{u.text}</p><Button size="sm" variant="outline">Thank {u.first}</Button></div></Card>))}',
+  '  </section>',
+  '  <aside className="grid gap-3 content-start"><h2 className="text-lg font-semibold">This week\'s shifts</h2>{/* day cards, each shift: name, time, who has it, Claim or Join */}</aside>',
+  '</main>',
+  '```',
+  '',
+  'A content tool (questions plus answers), as a shape:',
+  '```tsx',
+  '<main className="max-w-5xl mx-auto px-4 py-6 grid gap-6 md:grid-cols-[1fr_300px]">',
+  '  <section className="grid gap-4">',
+  '    <header className="grid gap-2"><h1 className="text-3xl md:text-4xl font-semibold">Three questions this season</h1><p className="text-muted-foreground">Frome Town Council reads every answer. Pin yours with your first name, or without.</p></header>',
+  '    <Card className="p-5 grid gap-3"><p className="text-sm text-muted-foreground">Question 1</p><h2 className="text-xl font-semibold">What would make the town centre feel more like yours?</h2>{/* the answer box and a Pin it button, right here */}</Card>',
+  '    {answers.map(a => (<Card key={a.id} className="p-4 grid gap-2"><p className="text-lg">“{a.text}”</p><div className="flex items-center gap-2 text-sm text-muted-foreground"><Avatar name={a.by ?? "Anonymous"} />{a.by ?? "Anonymous"} · {a.when}<Button size="sm" variant="outline" className="ml-auto">Me too · {a.meToo}</Button></div></Card>))}',
+  '  </section>',
+  '  <aside className="grid gap-3 content-start">{/* the other two questions as cards with their answer counts; what organizers heard so far */}</aside>',
+  '</main>',
+  '```',
+].join('\n');
+
 /** The prompt block for a variant; empty for `none` */
 export function designScaffoldPrompt(variant: DesignScaffold = designScaffoldVariant()): string {
   if (variant === 'recipe') return RECIPE;
   if (variant === 'direction') return `${RECIPE}\n\n${directionsBlock()}`;
+  if (variant === 'reference') return `${RECIPE}\n\n${directionsBlock()}\n\n${REFERENCE}`;
   return '';
 }
 
