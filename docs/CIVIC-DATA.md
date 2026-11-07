@@ -69,7 +69,8 @@ shape: the Neighborhood API spec. Sketch: an opt-in per app ("publish
 this tool's public data"), an edge function exposing the consented slice
 under a stable schema, and eventually registration so city MCP servers
 can read community-generated data back — "public data flows both ways"
-(Responsive Cities principle 6). Not started.
+(Responsive Cities principle 6). First piece live: neighborhood place packs
+(`kind = 'place'` rows), see [PLACE-PACKS.md](./PLACE-PACKS.md).
 
 ## Steward operations
 
