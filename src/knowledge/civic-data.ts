@@ -155,8 +155,55 @@ function accessNotes(matches: CityDataEndpoint[], queryable: boolean): string[] 
   ];
 }
 
-/** The system-prompt section for matched endpoints */
-export function formatCivicDataForPrompt(matches: CityDataEndpoint[], queryable = false): string {
+/**
+ * Place packs: a neighborhood's own public data, kept by neighbors and
+ * served by a steward agent (first: Knowy Plover for the Outer Sunset,
+ * knowy.org/mcp). Same table, `kind = 'place'`, same JSON-RPC transport as
+ * the city servers, but a different contract: records come back as
+ * `structuredContent`, corrections are already applied, rules for credit and
+ * privacy travel with the data, and a build can offer its own public feed
+ * back to the place's stewards. See docs/PLACE-PACKS.md.
+ */
+export const PLACE_KIND = 'place';
+
+export function isPlacePack(e: CityDataEndpoint): boolean {
+  return e.kind === PLACE_KIND;
+}
+
+export function formatPlacePacksForPrompt(packs: CityDataEndpoint[], queryable = false): string {
+  const list = packs
+    .map(e => `- **${e.city}**: MCP endpoint \`${e.mcp_url}\`, overview at \`${e.mcp_url.replace(/\/mcp\/?$/, '/place.json')}\``)
+    .join('\n');
+  return [
+    '## Neighborhood Place Pack Available',
+    '',
+    'This build touches a neighborhood whose neighbors keep a public commons of their place: events, local places, groups, listed people and organizations, neighbors\' business recommendations, planned developments, the land and wildlife, all with sources and fetch times. A steward agent serves it, and neighborhood stewards review every addition.',
+    '',
+    list,
+    '',
+    queryable
+      ? '**You can call this endpoint yourself in this conversation.** Call `about_place` first: it gives the place\'s boundary and the rules that travel with the data. Then `search` or `list` to ground the plan in real records (a real calendar, real groups, real places) before proposing anything. A few calls per reply is plenty. Say which records you used.'
+      : '**You cannot call this endpoint from this conversation.** Plan around what the pack carries (above) and let the built app read it live.',
+    '',
+    'How to use it:',
+    '- **Draw from the place, not from invention.** Prefer the pack\'s real events, groups, and places over sample data. Never invent local businesses, people, or events for a place that has a pack. If the person has not heard of the pack, introduce it in a sentence.',
+    '- **Point to what already exists.** If the pack shows a group, site, or calendar that already does what the person wants, say so before building a duplicate; connecting to it is often the better build.',
+    '- **In live builds, read it live** with the same `rpc` helper (POST JSON-RPC, no key, CORS open). Tools: `about_place`, `search` (`query`, `kinds`, `upcoming`, `on`, `limit`), `list` (`kind`, `upcoming`, `limit`), `get` (`id`), `vital_signs`, `city_311`, `suggest_source`. Unlike the city portals, **replies carry `result.structuredContent`**: `records[]` with `id, kind, title, date?, start?, end?, location?, text, url?, source {id, name, url}, fetched_at, verified_at?, corrected?`. Use that, not the prose. Fetch when the app loads; cache a day at most, so a neighbor\'s correction reaches the app.',
+    '- **The rules that travel with the data** (from `about_place`; follow them in the UI): credit each record\'s `source.name` and "via" the place pack with a link to its sources page; show when the data is from; people only as listed, by the contact they chose, never combined to locate anyone; 311 stays at block level; hours are only as good as their `verified_at`; the ocean, dunes, and wildlife have advocates, so never speak as them.',
+    '- **Giving back.** When the build produces public data other neighbors could use (a calendar, a list of places, a group directory), have the app publish it as a feed: an .ics calendar, a Neighborhood API JSON list (`/events`, `/groups`, `/places`), RSS, or a public CSV, with the shapes `about_place` describes. Then offer, once, to suggest it to the place\'s stewards with `suggest_source` (`url`, `what`, `ok_to_share`, `kept_by`, `updates`, `made_with`). Only with the person\'s yes, only data the people in it agreed to share, and never from app code on load: it is one deliberate act, and a steward decides.',
+  ].join('\n');
+}
+
+/** The system-prompt section for matched endpoints: city portals and place packs */
+export function formatCivicDataForPrompt(all: CityDataEndpoint[], queryable = false): string {
+  const packs = all.filter(isPlacePack);
+  const matches = all.filter(e => !isPlacePack(e));
+  const placeSection = packs.length ? formatPlacePacksForPrompt(packs, queryable) : '';
+  if (matches.length === 0) return placeSection;
+  return [formatCityDataForPrompt(matches, queryable), placeSection].filter(Boolean).join('\n\n');
+}
+
+function formatCityDataForPrompt(matches: CityDataEndpoint[], queryable: boolean): string {
   const list = matches
     .map(e => `- **${e.city}** — MCP endpoint: \`${e.mcp_url}\` (${e.kind}-backed open data)`)
     .join('\n');
