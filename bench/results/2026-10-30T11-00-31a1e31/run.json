@@ -253,7 +253,8 @@
         "errors": [
           "pageerror: Cannot apply unknown utility class `fog-green`",
           "pageerror: Cannot apply unknown utility class `fog-green`",
-          "pageerror: Cannot apply unknown utility class `fog-green`"
+          "pageerror: Cannot apply unknown utility class `fog-green`",
+          "style: the page rendered without its styles (Tailwind classes had no effect)"
         ],
         "bodyChars": 271
       },

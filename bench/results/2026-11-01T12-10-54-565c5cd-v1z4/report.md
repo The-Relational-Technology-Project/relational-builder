@@ -20,7 +20,7 @@
 
 | Model | Bundle | First try | Renders | Fix | Fail kind | Files | Failed edits | Truncated | Checks | Sec flags | Lint/100 | tsc errors | Largest file | any | Kit files | tok/s | TTFT | Build time | Fix time | Total | ~$ | |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| gemma-4-26b | 3/3 ✓ | 0/3 | 2/3 clean | 3/3 solved | other | 9 | 0 | no | 4/5 | 0 | 0.8 | 3 | 133 lines | 0 | 3/6 | 63.8 | 1s | 67s | 15s | 67s | 0.00 |
+| gemma-4-26b | 3/3 ✓ | 0/3 | 3/3 clean | 3/3 solved | other | 9 | 0 | no | 4/5 | 0 | 0.8 | 3 | 133 lines | 0 | 3/6 | 63.8 | 1s | 67s | 15s | 67s | 0.00 |
 
 ## Human review
 
@@ -29,11 +29,6 @@ _Not scored yet — open review/index.html, score, export, save as review/scores
 ## Which model for what
 
 _Maintainer's call, informed by the tables above — the report feeds the decision, it doesn't make it._
-
-## In the browser (bundled, but)
-
-- **gemma-4-26b** · hs-listening-wall t1: renders with errors
-  - console: Failed to load resource: the server responded with a status of 400 (Bad Request)
 
 ## Fix passes (how solves went)
 

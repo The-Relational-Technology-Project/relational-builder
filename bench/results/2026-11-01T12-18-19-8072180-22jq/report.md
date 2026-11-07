@@ -14,7 +14,7 @@
 
 | Model | Bundle | First try | Renders | Fix | Fail kind | Files | Failed edits | Truncated | Checks | Sec flags | Lint/100 | tsc errors | Largest file | any | Kit files | tok/s | TTFT | Build time | Fix time | Total | ~$ | |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| gpt-oss-120b | 3/3 ✓ | 1/3 | 2/3 clean | 2/2 solved | other | 9 | 0 | no | 5/5 | 0 | 0.8 | 2 | 78 lines | 0 | 4/7 | 46.5 | 14s | 69s | 10s | 69s | 0.01 |
+| gpt-oss-120b | 3/3 ✓ | 1/3 | 3/3 clean | 2/2 solved | other | 9 | 0 | no | 5/5 | 0 | 0.8 | 2 | 78 lines | 0 | 4/7 | 46.5 | 14s | 69s | 10s | 69s | 0.01 |
 
 ### Task: hs-listening-wall (exp-v1)
 
@@ -29,11 +29,6 @@ _Not scored yet — open review/index.html, score, export, save as review/scores
 ## Which model for what
 
 _Maintainer's call, informed by the tables above — the report feeds the decision, it doesn't make it._
-
-## In the browser (bundled, but)
-
-- **gpt-oss-120b** · hs-community-fridge t3: renders with errors
-  - console: Failed to load resource: net::ERR_FILE_NOT_FOUND
 
 ## Fix passes (how solves went)
 

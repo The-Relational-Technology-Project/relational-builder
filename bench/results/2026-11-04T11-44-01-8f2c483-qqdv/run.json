@@ -127,7 +127,7 @@
       "runtime": {
         "rendered": true,
         "errors": [],
-        "bodyChars": 605
+        "bodyChars": 608
       },
       "quality": {
         "files": 9,
@@ -237,8 +237,8 @@
       "runtime": {
         "rendered": false,
         "errors": [
-          "console: TypeError: Cannot read properties of undefined (reading 'split') at Avatar (file:///home/user/relational-builder/bench/results/2026-11-04T11-44-01-8f2c483-qqdv/artifacts/hs-community-fridge/gpt-oss-120b-t2/preview.html:1",
-          "pageerror: Cannot read properties of undefined (reading 'split')"
+          "console: TypeError: set is not a function at loadSeed (file:///home/user/relational-builder/bench/results/2026-11-04T11-44-01-8f2c483-qqdv/artifacts/hs-community-fridge/gpt-oss-120b-t2/preview.html:473:3) at file:///home/user/rel",
+          "pageerror: set is not a function"
         ],
         "bodyChars": 0
       },
@@ -663,7 +663,7 @@
       "runtime": {
         "rendered": true,
         "errors": [],
-        "bodyChars": 1406
+        "bodyChars": 1377
       },
       "quality": {
         "files": 8,

@@ -432,9 +432,7 @@
       "importIssues": [],
       "runtime": {
         "rendered": true,
-        "errors": [
-          "console: Failed to load resource: the server responded with a status of 400 (Bad Request)"
-        ],
+        "errors": [],
         "bodyChars": 623
       },
       "quality": {

@@ -65,7 +65,10 @@ function stripModuleEntry(html: string): string {
 export function splitRemoteCssImports(css: string): { urls: string[]; rest: string } {
   const urls: string[] = [];
   const rest = css.replace(
-    /@import\s+(?:url\(\s*(['"]?)(https?:\/\/[^'")\s]+)\1\s*\)|(['"])(https?:\/\/[^'"]+)\3)[^;\n]*;?/g,
+    // Quotes are matched loosely: a model that opens with ' and closes with "
+    // (gemma, Nov 7) still meant the URL, and the stray quote otherwise
+    // reaches Tailwind as an unterminated string and blanks the page
+    /@import\s+(?:url\(\s*(['"]?)(https?:\/\/[^'")\s]+)['"]?\s*\)|(['"])(https?:\/\/[^'"]+)['"])[^;\n]*;?/g,
     (_m, _q1, u1, _q2, u2) => {
       const url = (u1 ?? u2) as string;
       if (!urls.includes(url)) urls.push(url);

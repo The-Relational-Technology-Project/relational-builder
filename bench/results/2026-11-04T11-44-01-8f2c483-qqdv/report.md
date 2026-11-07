@@ -37,8 +37,8 @@ _Maintainer's call, informed by the tables above — the report feeds the decisi
 ## In the browser (bundled, but)
 
 - **gpt-oss-120b** · hs-community-fridge t2: BLANK PAGE
-  - console: TypeError: Cannot read properties of undefined (reading 'split') at Avatar (file:///home/user/relational-builder/bench/results/2026-11-04T11-44-01-8f2c483-qqdv/artifacts/hs-community-fridge/gpt-oss-120b-t2/preview.html:1
-  - pageerror: Cannot read properties of undefined (reading 'split')
+  - console: TypeError: set is not a function at loadSeed (file:///home/user/relational-builder/bench/results/2026-11-04T11-44-01-8f2c483-qqdv/artifacts/hs-community-fridge/gpt-oss-120b-t2/preview.html:473:3) at file:///home/user/rel
+  - pageerror: set is not a function
 
 ## Fix passes (how solves went)
 

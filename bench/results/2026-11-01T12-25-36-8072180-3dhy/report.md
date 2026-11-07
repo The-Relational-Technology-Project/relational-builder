@@ -14,7 +14,7 @@
 
 | Model | Bundle | First try | Renders | Fix | Fail kind | Files | Failed edits | Truncated | Checks | Sec flags | Lint/100 | tsc errors | Largest file | any | Kit files | tok/s | TTFT | Build time | Fix time | Total | ~$ | |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| qwen3-coder-next | 2/3 ✓ | 0/3 | 1/2 clean, 1 blank | 1/3 solved | bad-import, other | 41 | 0 | no | 5/5 | 0 | 1.7 | 30 | 204 lines | 0 | 5/20 | 76.1 | 1s | 155s | 14s | 155s | 0.02 |
+| qwen3-coder-next | 2/3 ✓ | 0/3 | 0/2 clean, 2 blank | 1/3 solved | bad-import, other | 41 | 0 | no | 5/5 | 0 | 1.7 | 30 | 204 lines | 0 | 5/20 | 76.1 | 1s | 155s | 14s | 155s | 0.02 |
 
 ### Task: hs-listening-wall (exp-v1)
 
@@ -32,6 +32,7 @@ _Maintainer's call, informed by the tables above — the report feeds the decisi
 
 ## In the browser (bundled, but)
 
+- **qwen3-coder-next** · hs-community-fridge t1: BLANK PAGE
 - **qwen3-coder-next** · hs-community-fridge t3: BLANK PAGE
   - console: Error at B (https://esm.sh/@remix-run/router@1.23.0/es2022/router.mjs:2:2356) at re (https://esm.sh/react-router@6.30.0/X-ZXJlYWN0/es2022/react-router.mjs:2:12854) at Hi (https://esm.sh/react-dom@18.3.1/X-ZXJlYWN0/es2022
   - pageerror: Error

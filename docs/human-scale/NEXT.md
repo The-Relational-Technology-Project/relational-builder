@@ -198,34 +198,31 @@ stack layer it moved; pace paid work at $3 to $5 a day.
    closer to, name them in a line here; the `direction` variant will be
    written with them in mind. Default if unanswered: directions written
    from the board's best Gemma and Opus screenshots.
+9. **The Nov 7 sheet** (`docs/human-scale/shots/design-ab-2026-11-07.html`,
+   sent in the conversation): `direction` against `reference` for Gemma
+   and Mistral Small, with Opus from Nov 6 as a reference row. Is the
+   reference version's look worth Mistral losing half its working builds,
+   or should both stay on plain directions? Default if unanswered: plain
+   directions with the three rules added as lines, no code sketches.
 
 ## Tomorrow (one run, about 75 minutes)
 
-1. **Rebuild the board with the font fix.** Since Nov 6 the preview lifts
-   web-font imports out of the Tailwind stylesheet; before that, any build
-   that loaded a Google Font rendered unstyled. Run
-   `npm run bench -- rebuild <runDir>` then `shots` on every run since
-   Oct 30, regenerate the reports and the board, and say in the LOG how
-   many builds changed from blank or unstyled to clean, by model. No
-   spend. If Gemma's or Opus's earlier rates move, the board's ranking
-   paragraph in README needs the new numbers.
-2. **From "nearing Opus" to Opus: the next design step.** Josh's read on
-   Nov 6: directions are much better, not yet Opus. Look at the Opus and
-   Gemma direction screenshots side by side and name the two or three
-   concrete differences (Nov 6 notes: Opus fills the first screen with a
-   strong status block and a side column of shifts at desktop width, uses
-   avatars and per-item actions, and writes warmer, more specific copy;
-   Gemma's pages are cleaner but emptier). Turn each into one recipe line
-   or one worked example in `design-scaffold.ts` (a reference first screen
-   for a coordination tool and one for a content tool, as short JSX
-   sketches, may beat more prose). Then Gemma and Mistral Small, three
-   trials a prompt, `direction` against the new version (about $0.10,
-   log first), and send Josh the side-by-side sheet in the conversation
-   again with `design-ab-sheet.mjs`.
-3. **Scan every check against clean builds, as a test** (carried from
-   Nov 5): a committed fixture set of three clean builds, and a test that
-   every static check returns nothing on them.
-4. **End-to-end check of export and delete.** Needs a signed-in Builder.
+1. **Act on Josh's read of the Nov 7 sheet** (question 9). If the
+   `reference` column looks clearly better, keep it as the default for
+   Gemma only and leave Mistral on `direction` (a per-model variant in
+   `design-scaffold.ts`, keyed by the builder model id); if not, drop the
+   JSX shapes and keep the three rules as plain lines in `direction`
+   (call it `direction` still), then rerun Gemma and Mistral three trials
+   a prompt (about $0.05, log first) and send the sheet again.
+2. **The first screen and the copy.** Whatever the read, the gap that
+   remains in every open-model screenshot is a first screen with too
+   little on it and copy that sounds like a template. Two cheap checks to
+   add to the design proxies, labeled as proxies: visible text characters
+   above the fold at 1280x900 (Opus's Nov 6 fridge carried several times
+   Gemma's), and whether the seeded content names at least two people and
+   one place from the prompt. Score yesterday's and today's builds with
+   them and put the medians in the LOG.
+3. **End-to-end check of export and delete.** Needs a signed-in Builder.
 
 ## After that, in order
 

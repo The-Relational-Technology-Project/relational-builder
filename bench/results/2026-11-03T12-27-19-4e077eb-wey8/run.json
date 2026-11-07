@@ -133,9 +133,10 @@
         "errors": [
           "pageerror: Cannot apply unknown utility class `font-inter`",
           "pageerror: Cannot apply unknown utility class `font-inter`",
-          "pageerror: Cannot apply unknown utility class `font-inter`"
+          "pageerror: Cannot apply unknown utility class `font-inter`",
+          "style: the page rendered without its styles (Tailwind classes had no effect)"
         ],
-        "bodyChars": 365
+        "bodyChars": 364
       },
       "quality": {
         "files": 8,

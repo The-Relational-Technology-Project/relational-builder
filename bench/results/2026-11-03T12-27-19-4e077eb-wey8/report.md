@@ -40,6 +40,7 @@ _Maintainer's call, informed by the tables above — the report feeds the decisi
   - pageerror: Cannot apply unknown utility class `font-inter`
   - pageerror: Cannot apply unknown utility class `font-inter`
   - pageerror: Cannot apply unknown utility class `font-inter`
+  - style: the page rendered without its styles (Tailwind classes had no effect)
 - **gpt-oss-120b** · hs-community-fridge t3: BLANK PAGE
   - console: Error at B (https://esm.sh/@remix-run/router@1.23.0/es2022/router.mjs:2:2356) at re (https://esm.sh/react-router@6.30.0/X-ZXJlYWN0/es2022/react-router.mjs:2:12854) at Hi (https://esm.sh/react-dom@18.3.1/X-ZXJlYWN0/es2022
   - pageerror: Error

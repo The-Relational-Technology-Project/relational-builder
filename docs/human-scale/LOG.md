@@ -12,6 +12,82 @@ experiment at most $5 and 30 minutes.
 
 ---
 
+## 2026-11-07
+
+**For Josh:** You said the visual directions were nearing Opus, so today
+tried to close the rest: three rules taken from what Opus did (a full
+first screen, texture on every item, copy that names people and places)
+and two sketched reference screens, on subjects unlike the test prompts so
+nothing could be copied. The new sheet is sent to you in this
+conversation, with Opus from yesterday as a reference row. On working
+code, the plain directions did best: 6 of 6 for both Gemma and Mistral
+Small. The reference version gave Gemma the two-column desktop layout
+Opus uses, but cost Mistral half its working builds. Your eye decides
+whether the look is worth it. Spend about $0.10.
+
+**Stack layer moved:** Builder model's design guidance, from "directions
+default, gap to Opus unmeasured" to "a reference variant measured against
+it"; and the bench's own honesty (a check that every static check stays
+quiet on known-good builds, and a lint measure that had silently gone to
+zero, fixed).
+
+**What was tried.**
+
+1. *Reference first screens* (NEXT item 2). A `reference` variant:
+   directions plus three rules (first screen full, a second column at
+   desktop width; every item with a face, who and when, a badge and one
+   verb of its own; copy that names the steward, the street and the day)
+   and two JSX shapes, a tool library and a library survey. The recipe's
+   own examples had mentioned the fridge and the three questions, i.e.
+   the test prompts' subjects; they were changed to the same neutral
+   subjects before the runs, which makes today's `direction` a slightly
+   different prompt from Nov 6's.
+
+| Model | direction | reference |
+|---|---|---|
+| Gemma 4 26B | 6 of 6 work, 51s | 5 of 6, 39s |
+| Mistral Small 3.2 | 6 of 6, 107s | 3 of 6, 82s |
+
+   Gemma's reference builds took the shape (two columns at desktop width,
+   a sidebar of context); its first screens are still emptier than
+   Opus's. Mistral's reference misses were two that did not bundle and a
+   kit helper (`cn`) used without importing it: more code to copy, more
+   ways to copy it wrong.
+2. *A font import with mismatched quotes* (`url('...")`, Gemma) reached
+   Tailwind as an unterminated string and blanked the page; the shell now
+   lifts remote imports with loose quote matching (tested), and the build
+   renders.
+3. *Rebuilt the board with the Nov 6 font fix* (item 1). Every run from
+   Oct 30 to Nov 5 was rebuilt with the current shell and re-judged in
+   the browser: 156 builds, 4 verdicts changed (three to clean, one the
+   other way, all Nov 1). So the font bug hardly touched the earlier
+   board; most earlier builds loaded no web font. It started mattering on
+   Nov 6, when the design recipe asked for fonts.
+4. *Check scan as a test* (item 3). Four known-good builds (two Opus, one
+   Gemma, one Mistral Small) are fixtures under `bench/fixtures/clean/`,
+   and `bench/lib/check-scan.test.ts` asserts every static check finds
+   nothing in them.
+5. *The bench's lint column had gone to zero.* Yesterday's change that
+   stopped the repo's lint from reading model-written apps also stopped
+   the bench's lint measure from reading them. The measure now ignores
+   the repo's ignore list; today's runs were re-measured.
+
+**Board after today** (guarded comparison runs, all variants): Mistral
+Small 3.2 71% over 28 builds, GLM 64% over 36, Gemma 61% over 71 (it
+carries the Darkbloom days), GPT-OSS 60% over 30.
+
+**What it cost.** About $0.10 over 24 builds, logged as $1.00 worst case.
+Session about 35 minutes.
+
+**Honest read.** The plain directions are the sweet spot so far: they
+helped both small models and cost nothing in working code, at 12 of 12
+today. Adding reference code helped Gemma's layout and hurt Mistral's
+code, which is the usual small-model trade: the more they are given to
+copy, the more there is to get wrong. If the remaining gap to Opus is the
+first screen's fullness and the copy's warmth, a rule may carry it better
+than a sketch; that is a smaller next step than another variant. Design is
+still Josh's call from the sheet.
+
 ## 2026-11-06, afternoon (Josh's read)
 
 Josh, on the design A/B sheet: the version with visual directions is much

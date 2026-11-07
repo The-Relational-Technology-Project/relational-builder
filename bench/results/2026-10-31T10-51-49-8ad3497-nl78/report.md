@@ -7,19 +7,19 @@
 
 > Cost and token figures are **estimates** (chars ÷ 4 × list prices) — directional, not billing-grade.
 > Mechanical columns are medians across trials. Total = plan + build wall time.
-> **Bundle** = final compile success; **First try** = compiled without the auto-fix; **Renders** = opened in a browser after bundling, visible page and no uncaught errors (n/a before Oct 30, 2026); **Fail kind** = what the first-try bundle error was (missing-file, bad-import, unknown-package, syntax); **Lint/100** = eslint findings per 100 lines with the app's own config; **Largest file**, **any**, **Kit files** (files importing the RB kit over code files) and **tok/s** come from the files the model wrote (n/a before Oct 31, 2026); **Fix time** = the auto-fix pass's own wall time; **Fix** = of the builds that first failed, how many the single auto-fix pass solved. **~$** includes the fix pass when one ran.
+> **Bundle** = final compile success; **First try** = compiled without the auto-fix; **Renders** = opened in a browser after bundling, visible page and no uncaught errors (n/a before Oct 30, 2026); **Fail kind** = what the first-try bundle error was (missing-file, bad-import, unknown-package, syntax); **Lint/100** = eslint findings per 100 lines with the app's own config; **tsc errors** = type errors in the model's files with the kit merged and uninstalled packages untyped, counted only on builds that bundled, syntax errors kept apart (n/a before Nov 1, 2026); **Largest file**, **any**, **Kit files** (files importing the RB kit over code files) and **tok/s** come from the files the model wrote (n/a before Oct 31, 2026); **Fix time** = the auto-fix pass's own wall time; **Fix** = of the builds that first failed, how many the single auto-fix pass solved. **~$** includes the fix pass when one ran.
 
 ### Task: hs-community-fridge (exp-v1)
 
-| Model | Bundle | First try | Renders | Fix | Fail kind | Files | Failed edits | Truncated | Checks | Sec flags | Lint/100 | Largest file | any | Kit files | tok/s | TTFT | Build time | Fix time | Total | ~$ | |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| glm-4.5-air | 0/1 ✓ | 0/1 | n/a | 0/1 solved | bad-import | 22 | 0 | no | 5/5 | 0 | 2.6 | 111 lines | 10 | 11/19 | 86 | 11s | 75s | 29s | 75s | 0.01 |
+| Model | Bundle | First try | Renders | Fix | Fail kind | Files | Failed edits | Truncated | Checks | Sec flags | Lint/100 | tsc errors | Largest file | any | Kit files | tok/s | TTFT | Build time | Fix time | Total | ~$ | |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| glm-4.5-air | 0/1 ✓ | 0/1 | n/a | 0/1 solved | bad-import | 22 | 0 | no | 5/5 | 0 | 2.6 | n/a | 111 lines | 10 | 11/19 | 86 | 11s | 75s | 29s | 75s | 0.01 |
 
 ### Task: hs-listening-wall (exp-v1)
 
-| Model | Bundle | First try | Renders | Fix | Fail kind | Files | Failed edits | Truncated | Checks | Sec flags | Lint/100 | Largest file | any | Kit files | tok/s | TTFT | Build time | Fix time | Total | ~$ | |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| glm-4.5-air | 1/1 ✓ | 1/1 | 0/1 clean, 1 blank | — | — | 15 | 0 | no | 5/5 | 0 | 1 | 134 lines | 0 | 7/13 | 71.3 | 7s | 116s | — | 116s | 0.01 |
+| Model | Bundle | First try | Renders | Fix | Fail kind | Files | Failed edits | Truncated | Checks | Sec flags | Lint/100 | tsc errors | Largest file | any | Kit files | tok/s | TTFT | Build time | Fix time | Total | ~$ | |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| glm-4.5-air | 1/1 ✓ | 1/1 | 0/1 clean, 1 blank | — | — | 15 | 0 | no | 5/5 | 0 | 1 | n/a | 134 lines | 0 | 7/13 | 71.3 | 7s | 116s | — | 116s | 0.01 |
 
 ## Human review
 
@@ -39,7 +39,7 @@ _Maintainer's call, informed by the tables above — the report feeds the decisi
 
 ## Fix passes (how solves went)
 
-- **glm-4.5-air** · hs-community-fridge t1: build failed to bundle → auto-fix not solved — still: vfs:/src/components/PostForm.tsx:3: No matching export in "vfs:/src/components/ui/button.tsx" for import "Button"
+- **glm-4.5-air** · hs-community-fridge t1: build failed to bundle → auto-fix not solved after one pass — still: vfs:/src/components/PostForm.tsx:3: No matching export in "vfs:/src/components/ui/button.tsx" for import "Button"
   - triggered by: `vfs:/src/App.tsx:3: No matching export in "vfs:/src/components/ui/app-bar.tsx" for import "default"`
 
 

@@ -23,4 +23,12 @@ describe('remote CSS imports leave the Tailwind stylesheet', () => {
     const css = "@import './theme.css';\nbody { color: red; }";
     expect(splitRemoteCssImports(css)).toEqual({ urls: [], rest: css });
   });
+
+  it('lifts an import whose quotes do not match (gemma, Nov 7)', () => {
+    const css = `@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600&display=swap");\n:root{}`;
+    const { urls, rest } = splitRemoteCssImports(css);
+    expect(urls).toEqual(['https://fonts.googleapis.com/css2?family=Sora:wght@400;600&display=swap']);
+    expect(rest).not.toContain('@import');
+  });
 });
+

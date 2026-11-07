@@ -20,7 +20,7 @@
 
 | Model | Bundle | First try | Renders | Fix | Fail kind | Files | Failed edits | Truncated | Checks | Sec flags | Lint/100 | tsc errors | Largest file | any | Kit files | tok/s | TTFT | Build time | Fix time | Total | ~$ | |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| glm-4.5-air | 0/1 ✓ | 0/1 | 0/1 clean | — | — | 3 | 0 | no | 3/5 | 0 | 0 | n/a | 201 lines | 0 | 0/1 | 45.8 | 46s | 124s | — | 124s | 0.01 |
+| glm-4.5-air | 0/1 ✓ | 0/1 | 1/1 clean | — | — | 3 | 0 | no | 3/5 | 0 | 0 | n/a | 201 lines | 0 | 0/1 | 45.8 | 46s | 124s | — | 124s | 0.01 |
 
 ## Human review
 
@@ -29,12 +29,6 @@ _Not scored yet — open review/index.html, score, export, save as review/scores
 ## Which model for what
 
 _Maintainer's call, informed by the tables above — the report feeds the decision, it doesn't make it._
-
-## In the browser (bundled, but)
-
-- **glm-4.5-air** · hs-listening-wall t1: renders with errors
-  - console: Failed to load resource: net::ERR_FILE_NOT_FOUND
-  - console: Failed to load resource: net::ERR_FILE_NOT_FOUND
 
 ## Fix passes (how solves went)
 

@@ -109,9 +109,7 @@
       "importIssues": [],
       "runtime": {
         "rendered": true,
-        "errors": [
-          "console: Failed to load resource: net::ERR_FILE_NOT_FOUND"
-        ],
+        "errors": [],
         "bodyChars": 1125
       },
       "quality": {
