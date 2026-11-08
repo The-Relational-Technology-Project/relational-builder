@@ -109,6 +109,9 @@ export interface TrialResult {
     /** Uncaught page errors and console errors, first few, trimmed */
     errors: string[];
     bodyChars: number;
+    /** Visible text characters in the first 1280x900 view: how full the
+     *  first screen is, a design proxy, not a score (from Nov 8, 2026) */
+    aboveFoldChars?: number;
   } | null;
   /** Code quality and speed, measured from the files the model wrote
    *  (bench/lib/measure.ts). Absent on runs measured before Oct 31, 2026. */

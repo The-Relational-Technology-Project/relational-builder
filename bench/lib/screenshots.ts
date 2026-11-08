@@ -188,7 +188,24 @@ async function captureWithPlaywright(pw: any, chromiumPath: string | null, targe
         // under it (gpt-oss, Nov 3: 21 chars, a title and a name picker)
         // is a shell, not a rendered app
         const rendered = bodyChars >= 60;
-        checks[t.key] = { rendered, errors, bodyChars };
+        const aboveFoldChars: number = await page
+          .evaluate(() => {
+            const h = window.innerHeight;
+            let n = 0;
+            const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+            for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+              const text = (node.textContent ?? '').trim();
+              const el = node.parentElement;
+              if (!text || !el) continue;
+              const cs = getComputedStyle(el);
+              if (cs.visibility === 'hidden' || cs.display === 'none') continue;
+              const r = el.getBoundingClientRect();
+              if (r.width > 0 && r.height > 0 && r.top < h && r.bottom > 0) n += text.length;
+            }
+            return n;
+          })
+          .catch(() => 0);
+        checks[t.key] = { rendered, errors, bodyChars, aboveFoldChars };
         const verdict = bodyChars < 20 ? 'blank page' : !rendered ? `shell only (${bodyChars} chars of text)` : errors.length ? `renders, ${errors.length} error(s)` : 'renders clean';
         console.log(`  📸 ${t.label} · ${verdict}`);
       } catch (err) {

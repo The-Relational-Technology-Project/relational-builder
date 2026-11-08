@@ -91,6 +91,11 @@ export interface DesignProxies {
   /** WCAG contrast of --foreground on --background, and --muted-foreground on --background (null if unreadable) */
   contrastText: number | null;
   contrastMuted: number | null;
+  /** Distinct first names in seeded data fields (name, by, author, steward,
+   *  volunteer, host, organizer): does the content have people in it */
+  namedPeople?: number;
+  /** The prompt's place appears in the app's own text (from Nov 8, 2026) */
+  placeNamed?: boolean | null;
 }
 
 const PLACEHOLDER_TOKENS: Record<string, string> = {
@@ -114,7 +119,7 @@ function contrast(a: string, b: string): number | null {
   return Math.round(((hi + 0.05) / (lo + 0.05)) * 10) / 10;
 }
 
-export function designProxies(files: Record<string, string>): DesignProxies {
+export function designProxies(files: Record<string, string>, placeWords: string[] = []): DesignProxies {
   const css = files['/src/index.css'] ?? files['src/index.css'] ?? '';
   const root = css.match(/:root\s*\{([^}]*)\}/)?.[1] ?? '';
   const tokens: Record<string, string> = {};
@@ -131,6 +136,10 @@ export function designProxies(files: Record<string, string>): DesignProxies {
     fontLoaded: /fonts\.googleapis\.com|@font-face/.test(css + (files['/index.html'] ?? '')),
     contrastText: tokens.foreground && tokens.background ? contrast(tokens.foreground, tokens.background) : null,
     contrastMuted: tokens['muted-foreground'] && tokens.background ? contrast(tokens['muted-foreground'], tokens.background) : null,
+    namedPeople: new Set(
+      [...code.matchAll(/\b(?:name|by|author|steward|volunteer|host|organizer|postedBy|claimedBy)\s*:\s*['"]([A-Z][a-z]+)/g)].map(m => m[1]),
+    ).size,
+    placeNamed: placeWords.length ? placeWords.some(w => code.includes(w)) : null,
   };
 }
 

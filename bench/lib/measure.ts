@@ -37,6 +37,12 @@ export async function readTree(dir: string, base = dir): Promise<Record<string, 
   return out;
 }
 
+/** The place each comparison prompt names, for the placeNamed proxy */
+const PLACE_WORDS: Record<string, string[]> = {
+  'hs-community-fridge': ['Judah', 'Outer Sunset', 'laundromat'],
+  'hs-listening-wall': ['Frome'],
+};
+
 async function lintDir(dir: string): Promise<{ errors: number; warnings: number } | null> {
   try {
     const { ESLint } = await import('eslint');
@@ -176,7 +182,7 @@ export async function measureRun(runDir: string, trials: TrialResult[]): Promise
     const firstFailure = t.fixRound?.triggerErrors?.[0] ?? (t.bundle && !t.bundle.ok ? t.bundle.errors[0] : null);
     t.quality = {
       ...stats,
-      design: designProxies(files),
+      design: designProxies(files, PLACE_WORDS[t.taskId] ?? []),
       lintErrors: lint?.errors ?? null,
       lintWarnings: lint?.warnings ?? null,
       lintPer100Lines: lint ? lintPer100(lint, stats.codeLines) : null,

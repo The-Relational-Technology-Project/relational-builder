@@ -69,3 +69,13 @@ describe('design proxies', () => {
   });
 });
 
+describe('people and place proxies', () => {
+  it('counts distinct named people and finds the place', () => {
+    const files = { '/src/data.ts': "export const u = [{ name: 'Mara', by: 'Leo' }, { author: 'Mara' }, { steward: 'Rosa' }]; export const where = 'Judah St';" };
+    const d = designProxies(files, ['Judah']);
+    expect(d.namedPeople).toBe(3);
+    expect(d.placeNamed).toBe(true);
+    expect(designProxies(files).placeNamed).toBeNull();
+  });
+});
+
