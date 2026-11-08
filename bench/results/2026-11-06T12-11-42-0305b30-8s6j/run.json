@@ -141,7 +141,8 @@
       "runtime": {
         "rendered": true,
         "errors": [],
-        "bodyChars": 709
+        "bodyChars": 709,
+        "aboveFoldChars": 366
       },
       "quality": {
         "files": 23,
@@ -164,7 +165,9 @@
           "mdClasses": 1,
           "fontLoaded": true,
           "contrastText": 10.2,
-          "contrastMuted": 5
+          "contrastMuted": 5,
+          "namedPeople": 6,
+          "placeNamed": true
         },
         "lintErrors": 16,
         "lintWarnings": 0,
@@ -314,7 +317,9 @@
           "mdClasses": 0,
           "fontLoaded": true,
           "contrastText": 10.4,
-          "contrastMuted": 3.3
+          "contrastMuted": 3.3,
+          "namedPeople": 5,
+          "placeNamed": true
         },
         "lintErrors": 6,
         "lintWarnings": 0,
@@ -409,7 +414,8 @@
           "console: RangeError: Invalid time value at X (https://esm.sh/date-fns@4.1.0/X-ZXJlYWN0LHJlYWN0LWRvbQ/es2022/format.mjs:2:8319) at AnswerCard (file:///home/user/relational-builder/bench/results/2026-11-06T12-11-42-0305b30-8s6j/art",
           "pageerror: Invalid time value"
         ],
-        "bodyChars": 0
+        "bodyChars": 0,
+        "aboveFoldChars": 0
       },
       "quality": {
         "files": 9,
@@ -432,7 +438,9 @@
           "mdClasses": 0,
           "fontLoaded": true,
           "contrastText": 15.5,
-          "contrastMuted": 6
+          "contrastMuted": 6,
+          "namedPeople": 18,
+          "placeNamed": true
         },
         "lintErrors": 4,
         "lintWarnings": 0,
@@ -533,7 +541,8 @@
       "runtime": {
         "rendered": true,
         "errors": [],
-        "bodyChars": 881
+        "bodyChars": 881,
+        "aboveFoldChars": 853
       },
       "quality": {
         "files": 11,
@@ -556,7 +565,9 @@
           "mdClasses": 3,
           "fontLoaded": true,
           "contrastText": 12.9,
-          "contrastMuted": 4.9
+          "contrastMuted": 4.9,
+          "namedPeople": 12,
+          "placeNamed": true
         },
         "lintErrors": 4,
         "lintWarnings": 0,

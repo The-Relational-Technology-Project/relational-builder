@@ -140,7 +140,9 @@
           "mdClasses": 1,
           "fontLoaded": true,
           "contrastText": 13.1,
-          "contrastMuted": 5.9
+          "contrastMuted": 5.9,
+          "namedPeople": 4,
+          "placeNamed": true
         },
         "lintErrors": 9,
         "lintWarnings": 0,
@@ -154,7 +156,8 @@
       "runtime": {
         "rendered": true,
         "errors": [],
-        "bodyChars": 373
+        "bodyChars": 373,
+        "aboveFoldChars": 348
       }
     },
     {
@@ -265,7 +268,9 @@
           "mdClasses": 0,
           "fontLoaded": true,
           "contrastText": 13.1,
-          "contrastMuted": 5.9
+          "contrastMuted": 5.9,
+          "namedPeople": 4,
+          "placeNamed": true
         },
         "lintErrors": 3,
         "lintWarnings": 0,
@@ -282,7 +287,8 @@
           "console: Error: Minified React error #185; visit https://reactjs.org/docs/error-decoder.html?invariant=185 for the full message or use the non-minified dev environment for full errors and additional helpful warnings. at Ce (https",
           "pageerror: Minified React error #185; visit https://reactjs.org/docs/error-decoder.html?invariant=185 for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
         ],
-        "bodyChars": 0
+        "bodyChars": 0,
+        "aboveFoldChars": 0
       }
     },
     {
@@ -393,7 +399,9 @@
           "mdClasses": 6,
           "fontLoaded": true,
           "contrastText": 13.1,
-          "contrastMuted": 5.9
+          "contrastMuted": 5.9,
+          "namedPeople": 60,
+          "placeNamed": true
         },
         "lintErrors": 4,
         "lintWarnings": 0,
@@ -407,7 +415,8 @@
       "runtime": {
         "rendered": true,
         "errors": [],
-        "bodyChars": 2248
+        "bodyChars": 2248,
+        "aboveFoldChars": 489
       }
     }
   ]

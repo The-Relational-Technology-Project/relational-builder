@@ -120,7 +120,8 @@
       "runtime": {
         "rendered": true,
         "errors": [],
-        "bodyChars": 368
+        "bodyChars": 368,
+        "aboveFoldChars": 338
       },
       "quality": {
         "files": 5,
@@ -145,7 +146,9 @@
           "mdClasses": 4,
           "fontLoaded": true,
           "contrastText": 13.1,
-          "contrastMuted": 5.9
+          "contrastMuted": 5.9,
+          "namedPeople": 4,
+          "placeNamed": true
         },
         "lintErrors": 3,
         "lintWarnings": 0,
@@ -246,7 +249,8 @@
       "runtime": {
         "rendered": true,
         "errors": [],
-        "bodyChars": 101
+        "bodyChars": 101,
+        "aboveFoldChars": 78
       },
       "quality": {
         "files": 10,
@@ -270,7 +274,9 @@
           "mdClasses": 1,
           "fontLoaded": true,
           "contrastText": 13.1,
-          "contrastMuted": 5.9
+          "contrastMuted": 5.9,
+          "namedPeople": 3,
+          "placeNamed": true
         },
         "lintErrors": 14,
         "lintWarnings": 0,
@@ -360,7 +366,8 @@
       "runtime": {
         "rendered": true,
         "errors": [],
-        "bodyChars": 227
+        "bodyChars": 227,
+        "aboveFoldChars": 201
       },
       "quality": {
         "files": 8,
@@ -385,7 +392,9 @@
           "mdClasses": 5,
           "fontLoaded": true,
           "contrastText": 13.1,
-          "contrastMuted": 5.9
+          "contrastMuted": 5.9,
+          "namedPeople": 3,
+          "placeNamed": true
         },
         "lintErrors": 4,
         "lintWarnings": 0,
@@ -485,7 +494,8 @@
       "runtime": {
         "rendered": true,
         "errors": [],
-        "bodyChars": 3725
+        "bodyChars": 3725,
+        "aboveFoldChars": 714
       },
       "quality": {
         "files": 8,
@@ -510,7 +520,9 @@
           "mdClasses": 7,
           "fontLoaded": true,
           "contrastText": 14.4,
-          "contrastMuted": 6.4
+          "contrastMuted": 6.4,
+          "namedPeople": 1,
+          "placeNamed": true
         },
         "lintErrors": 24,
         "lintWarnings": 0,
@@ -600,7 +612,8 @@
       "runtime": {
         "rendered": true,
         "errors": [],
-        "bodyChars": 1924
+        "bodyChars": 1924,
+        "aboveFoldChars": 632
       },
       "quality": {
         "files": 8,
@@ -624,7 +637,9 @@
           "mdClasses": 9,
           "fontLoaded": true,
           "contrastText": 14.4,
-          "contrastMuted": 6.4
+          "contrastMuted": 6.4,
+          "namedPeople": 4,
+          "placeNamed": true
         },
         "lintErrors": 27,
         "lintWarnings": 0,
@@ -725,7 +740,8 @@
       "runtime": {
         "rendered": true,
         "errors": [],
-        "bodyChars": 3278
+        "bodyChars": 3297,
+        "aboveFoldChars": 581
       },
       "quality": {
         "files": 9,
@@ -750,7 +766,9 @@
           "mdClasses": 7,
           "fontLoaded": true,
           "contrastText": 14.4,
-          "contrastMuted": 6.4
+          "contrastMuted": 6.4,
+          "namedPeople": 0,
+          "placeNamed": true
         },
         "lintErrors": 12,
         "lintWarnings": 1,

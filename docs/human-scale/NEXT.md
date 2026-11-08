@@ -198,31 +198,34 @@ stack layer it moved; pace paid work at $3 to $5 a day.
    closer to, name them in a line here; the `direction` variant will be
    written with them in mind. Default if unanswered: directions written
    from the board's best Gemma and Opus screenshots.
-9. **The Nov 7 sheet** (`docs/human-scale/shots/design-ab-2026-11-07.html`,
-   sent in the conversation): `direction` against `reference` for Gemma
-   and Mistral Small, with Opus from Nov 6 as a reference row. Is the
-   reference version's look worth Mistral losing half its working builds,
-   or should both stay on plain directions? Default if unanswered: plain
-   directions with the three rules added as lines, no code sketches.
+9. **The Nov 7 and Nov 8 sheets** (`docs/human-scale/shots/design-ab-2026-11-07.html`,
+   `design-ab-2026-11-08.html`, both sent in the conversation). Nov 8 took
+   the default (the finish rules as plain lines, no code sketches). Does
+   today's look hold up against yesterday's reference column? Default if
+   unanswered: keep the lines, add the seed-data rule, no sketches.
 
 ## Tomorrow (one run, about 75 minutes)
 
-1. **Act on Josh's read of the Nov 7 sheet** (question 9). If the
-   `reference` column looks clearly better, keep it as the default for
-   Gemma only and leave Mistral on `direction` (a per-model variant in
-   `design-scaffold.ts`, keyed by the builder model id); if not, drop the
-   JSX shapes and keep the three rules as plain lines in `direction`
-   (call it `direction` still), then rerun Gemma and Mistral three trials
-   a prompt (about $0.05, log first) and send the sheet again.
-2. **The first screen and the copy.** Whatever the read, the gap that
-   remains in every open-model screenshot is a first screen with too
-   little on it and copy that sounds like a template. Two cheap checks to
-   add to the design proxies, labeled as proxies: visible text characters
-   above the fold at 1280x900 (Opus's Nov 6 fridge carried several times
-   Gemma's), and whether the seeded content names at least two people and
-   one place from the prompt. Score yesterday's and today's builds with
-   them and put the medians in the LOG.
-3. **End-to-end check of export and delete.** Needs a signed-in Builder.
+1. **Fill the first screen with content, not layout.** Nov 8: Opus's first
+   view carries about 800 to 900 characters of real content; Gemma's about
+   440, Mistral Small's about 500 with the finish rules. Add one line to
+   the finish rules about seed data (at least six seeded items, the first
+   three visible without scrolling at laptop width, each with a name, a
+   time and a detail), then Gemma and Mistral Small three trials a prompt
+   (about $0.05, log first), first-screen medians in the LOG and the sheet
+   sent in the conversation.
+2. **Router hooks outside the router.** Two Gemma crashes (Nov 6, Nov 8)
+   called `useLocation()` or `useParams()` in the component that renders
+   `<HashRouter>`/`<Routes>`. A static check: a file that renders a router
+   element and calls a router hook in the same component; a hint (read the
+   route param inside the page with `useParams()`). Test against the
+   clean-build fixtures first.
+3. **Runtime side, while the deploy waits.** The keyless community route
+   and the open runtime route are written and smoke-testable; nothing on
+   this side moves without the deploy. If it lands, run
+   `scripts/human-scale/smoke-runtime.mjs` with credentials and record the
+   first real open-model runtime call in the LOG.
+4. **End-to-end check of export and delete.** Needs a signed-in Builder.
 
 ## After that, in order
 

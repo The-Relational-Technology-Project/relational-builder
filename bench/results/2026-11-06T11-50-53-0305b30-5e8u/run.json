@@ -132,7 +132,8 @@
       "runtime": {
         "rendered": true,
         "errors": [],
-        "bodyChars": 258
+        "bodyChars": 258,
+        "aboveFoldChars": 235
       },
       "quality": {
         "files": 7,
@@ -156,7 +157,9 @@
           "mdClasses": 2,
           "fontLoaded": true,
           "contrastText": 13.1,
-          "contrastMuted": 5.9
+          "contrastMuted": 5.9,
+          "namedPeople": 8,
+          "placeNamed": true
         },
         "lintErrors": 11,
         "lintWarnings": 0,
@@ -246,7 +249,8 @@
       "runtime": {
         "rendered": true,
         "errors": [],
-        "bodyChars": 393
+        "bodyChars": 393,
+        "aboveFoldChars": 361
       },
       "quality": {
         "files": 6,
@@ -271,7 +275,9 @@
           "mdClasses": 0,
           "fontLoaded": true,
           "contrastText": 13.1,
-          "contrastMuted": 5.9
+          "contrastMuted": 5.9,
+          "namedPeople": 4,
+          "placeNamed": true
         },
         "lintErrors": 8,
         "lintWarnings": 0,
@@ -361,7 +367,8 @@
       "runtime": {
         "rendered": true,
         "errors": [],
-        "bodyChars": 825
+        "bodyChars": 825,
+        "aboveFoldChars": 455
       },
       "quality": {
         "files": 4,
@@ -386,7 +393,9 @@
           "mdClasses": 5,
           "fontLoaded": true,
           "contrastText": 14.4,
-          "contrastMuted": 6.4
+          "contrastMuted": 6.4,
+          "namedPeople": 4,
+          "placeNamed": true
         },
         "lintErrors": 5,
         "lintWarnings": 0,
@@ -476,7 +485,8 @@
       "runtime": {
         "rendered": true,
         "errors": [],
-        "bodyChars": 608
+        "bodyChars": 608,
+        "aboveFoldChars": 588
       },
       "quality": {
         "files": 8,
@@ -501,7 +511,9 @@
           "mdClasses": 8,
           "fontLoaded": true,
           "contrastText": 14.4,
-          "contrastMuted": 6.4
+          "contrastMuted": 6.4,
+          "namedPeople": 0,
+          "placeNamed": true
         },
         "lintErrors": 7,
         "lintWarnings": 0,

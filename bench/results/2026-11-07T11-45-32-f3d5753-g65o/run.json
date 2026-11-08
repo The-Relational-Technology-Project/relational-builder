@@ -133,7 +133,8 @@
       "runtime": {
         "rendered": true,
         "errors": [],
-        "bodyChars": 296
+        "bodyChars": 296,
+        "aboveFoldChars": 279
       },
       "quality": {
         "files": 9,
@@ -157,7 +158,9 @@
           "mdClasses": 6,
           "fontLoaded": true,
           "contrastText": 13.1,
-          "contrastMuted": 5.9
+          "contrastMuted": 5.9,
+          "namedPeople": 4,
+          "placeNamed": true
         },
         "lintErrors": 30,
         "lintWarnings": 0,
@@ -247,7 +250,8 @@
       "runtime": {
         "rendered": true,
         "errors": [],
-        "bodyChars": 704
+        "bodyChars": 704,
+        "aboveFoldChars": 620
       },
       "quality": {
         "files": 5,
@@ -272,7 +276,9 @@
           "mdClasses": 4,
           "fontLoaded": true,
           "contrastText": 13.1,
-          "contrastMuted": 5.9
+          "contrastMuted": 5.9,
+          "namedPeople": 4,
+          "placeNamed": true
         },
         "lintErrors": 3,
         "lintWarnings": 0,
@@ -365,7 +371,8 @@
           "console: TypeError: useStore is not a function at App (file:///home/user/relational-builder/bench/results/2026-11-07T11-45-32-f3d5753-g65o/artifacts/hs-community-fridge/gemma-4-26b-t3/preview.html:458:16) at Hi (https://esm.sh/re",
           "pageerror: useStore is not a function"
         ],
-        "bodyChars": 0
+        "bodyChars": 0,
+        "aboveFoldChars": 0
       },
       "quality": {
         "files": 8,
@@ -389,7 +396,9 @@
           "mdClasses": 3,
           "fontLoaded": true,
           "contrastText": 13.1,
-          "contrastMuted": 5.9
+          "contrastMuted": 5.9,
+          "namedPeople": 3,
+          "placeNamed": true
         },
         "lintErrors": 3,
         "lintWarnings": 0,
@@ -489,7 +498,8 @@
       "runtime": {
         "rendered": true,
         "errors": [],
-        "bodyChars": 752
+        "bodyChars": 752,
+        "aboveFoldChars": 731
       },
       "quality": {
         "files": 9,
@@ -513,7 +523,9 @@
           "mdClasses": 9,
           "fontLoaded": true,
           "contrastText": 14.4,
-          "contrastMuted": 6.4
+          "contrastMuted": 6.4,
+          "namedPeople": 0,
+          "placeNamed": true
         },
         "lintErrors": 2,
         "lintWarnings": 0,
@@ -618,7 +630,8 @@
       "runtime": {
         "rendered": true,
         "errors": [],
-        "bodyChars": 8515
+        "bodyChars": 8524,
+        "aboveFoldChars": 991
       },
       "quality": {
         "files": 7,
@@ -643,7 +656,9 @@
           "mdClasses": 6,
           "fontLoaded": true,
           "contrastText": 14.4,
-          "contrastMuted": 6.4
+          "contrastMuted": 6.4,
+          "namedPeople": 0,
+          "placeNamed": true
         },
         "lintErrors": 1,
         "lintWarnings": 0,
@@ -744,7 +759,8 @@
       "runtime": {
         "rendered": true,
         "errors": [],
-        "bodyChars": 345
+        "bodyChars": 345,
+        "aboveFoldChars": 332
       },
       "quality": {
         "files": 8,
@@ -768,7 +784,9 @@
           "mdClasses": 8,
           "fontLoaded": true,
           "contrastText": 14.4,
-          "contrastMuted": 6.4
+          "contrastMuted": 6.4,
+          "namedPeople": 3,
+          "placeNamed": true
         },
         "lintErrors": 6,
         "lintWarnings": 0,

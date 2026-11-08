@@ -178,7 +178,9 @@
           "mdClasses": 1,
           "fontLoaded": true,
           "contrastText": 13.1,
-          "contrastMuted": 5.9
+          "contrastMuted": 5.9,
+          "namedPeople": 6,
+          "placeNamed": true
         },
         "lintErrors": 9,
         "lintWarnings": 0,
@@ -290,7 +292,8 @@
       "runtime": {
         "rendered": true,
         "errors": [],
-        "bodyChars": 1117
+        "bodyChars": 1117,
+        "aboveFoldChars": 290
       },
       "quality": {
         "files": 13,
@@ -314,7 +317,9 @@
           "mdClasses": 2,
           "fontLoaded": true,
           "contrastText": 13.1,
-          "contrastMuted": 5.9
+          "contrastMuted": 5.9,
+          "namedPeople": 5,
+          "placeNamed": true
         },
         "lintErrors": 3,
         "lintWarnings": 0,
@@ -421,7 +426,8 @@
       "runtime": {
         "rendered": true,
         "errors": [],
-        "bodyChars": 644
+        "bodyChars": 644,
+        "aboveFoldChars": 621
       },
       "quality": {
         "files": 9,
@@ -445,7 +451,9 @@
           "mdClasses": 2,
           "fontLoaded": true,
           "contrastText": 16.1,
-          "contrastMuted": 7.9
+          "contrastMuted": 7.9,
+          "namedPeople": 24,
+          "placeNamed": true
         },
         "lintErrors": 10,
         "lintWarnings": 0,
@@ -548,7 +556,8 @@
           "console: TypeError: answers is not iterable at file:///home/user/relational-builder/bench/results/2026-11-06T11-52-46-0305b30-ef64/artifacts/hs-listening-wall/glm-4.5-air-t2/preview.html:362:16 at Object.useMemo (https://esm.sh/r",
           "pageerror: answers is not iterable"
         ],
-        "bodyChars": 0
+        "bodyChars": 0,
+        "aboveFoldChars": 0
       },
       "quality": {
         "files": 11,
@@ -571,7 +580,9 @@
           "mdClasses": 1,
           "fontLoaded": true,
           "contrastText": 13.1,
-          "contrastMuted": 5.9
+          "contrastMuted": 5.9,
+          "namedPeople": 41,
+          "placeNamed": true
         },
         "lintErrors": 9,
         "lintWarnings": 0,

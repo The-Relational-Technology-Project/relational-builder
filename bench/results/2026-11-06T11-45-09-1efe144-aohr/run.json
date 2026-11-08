@@ -120,7 +120,8 @@
       "runtime": {
         "rendered": true,
         "errors": [],
-        "bodyChars": 1550
+        "bodyChars": 1554,
+        "aboveFoldChars": 914
       },
       "quality": {
         "files": 8,
@@ -145,7 +146,9 @@
           "mdClasses": 8,
           "fontLoaded": true,
           "contrastText": 13.1,
-          "contrastMuted": 5.9
+          "contrastMuted": 5.9,
+          "namedPeople": 1,
+          "placeNamed": true
         },
         "lintErrors": 0,
         "lintWarnings": 0,
@@ -235,7 +238,8 @@
       "runtime": {
         "rendered": true,
         "errors": [],
-        "bodyChars": 844
+        "bodyChars": 844,
+        "aboveFoldChars": 774
       },
       "quality": {
         "files": 10,
@@ -260,7 +264,9 @@
           "mdClasses": 12,
           "fontLoaded": true,
           "contrastText": 14.4,
-          "contrastMuted": 6.4
+          "contrastMuted": 6.4,
+          "namedPeople": 2,
+          "placeNamed": true
         },
         "lintErrors": 0,
         "lintWarnings": 0,

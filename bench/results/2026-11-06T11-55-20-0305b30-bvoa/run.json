@@ -123,7 +123,8 @@
           "console: ReferenceError: BottomNav2 is not defined at App (file:///home/user/relational-builder/bench/results/2026-11-06T11-55-20-0305b30-bvoa/artifacts/hs-community-fridge/gemma-4-26b-t1/preview.html:436:27) at Hi (https://esm.s",
           "pageerror: BottomNav2 is not defined"
         ],
-        "bodyChars": 0
+        "bodyChars": 0,
+        "aboveFoldChars": 0
       },
       "quality": {
         "files": 5,
@@ -148,7 +149,9 @@
           "mdClasses": 0,
           "fontLoaded": true,
           "contrastText": 13.4,
-          "contrastMuted": 4.4
+          "contrastMuted": 4.4,
+          "namedPeople": 2,
+          "placeNamed": true
         },
         "lintErrors": 3,
         "lintWarnings": 0,
@@ -249,7 +252,8 @@
       "runtime": {
         "rendered": true,
         "errors": [],
-        "bodyChars": 293
+        "bodyChars": 293,
+        "aboveFoldChars": 270
       },
       "quality": {
         "files": 9,
@@ -273,7 +277,9 @@
           "mdClasses": 5,
           "fontLoaded": true,
           "contrastText": 12.8,
-          "contrastMuted": 4.5
+          "contrastMuted": 4.5,
+          "namedPeople": 2,
+          "placeNamed": true
         },
         "lintErrors": 6,
         "lintWarnings": 0,
@@ -375,7 +381,8 @@
         "errors": [
           "pageerror: Cannot read properties of null (reading 'useState')"
         ],
-        "bodyChars": 0
+        "bodyChars": 0,
+        "aboveFoldChars": 0
       },
       "quality": {
         "files": 6,
@@ -400,7 +407,9 @@
           "mdClasses": 13,
           "fontLoaded": true,
           "contrastText": 16.4,
-          "contrastMuted": 5.1
+          "contrastMuted": 5.1,
+          "namedPeople": 7,
+          "placeNamed": true
         },
         "lintErrors": 8,
         "lintWarnings": 0,
@@ -500,7 +509,8 @@
       "runtime": {
         "rendered": true,
         "errors": [],
-        "bodyChars": 5583
+        "bodyChars": 5583,
+        "aboveFoldChars": 667
       },
       "quality": {
         "files": 4,
@@ -523,7 +533,9 @@
           "mdClasses": 1,
           "fontLoaded": true,
           "contrastText": 17,
-          "contrastMuted": 7.4
+          "contrastMuted": 7.4,
+          "namedPeople": 0,
+          "placeNamed": true
         },
         "lintErrors": 0,
         "lintWarnings": 0,

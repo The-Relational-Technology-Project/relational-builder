@@ -12,6 +12,63 @@ experiment at most $5 and 30 minutes.
 
 ---
 
+## 2026-11-08
+
+**For Josh:** With no answer on yesterday's sheet, today took the default:
+the three rules from Opus's builds (a full first screen, texture on every
+item, copy that names people and places) went into the visual directions
+as plain lines, without the code sketches that cost Mistral half its
+working builds. Mistral Small built 6 working apps out of 6 with them, and
+its first screens carry about half again as much as before. Gemma held at
+4 of 6 and its first screens did not fill up. Opus's first screens still
+carry nearly twice what either open model shows. The sheet is sent to you
+here. Spend about $0.05.
+
+**Stack layer moved:** Builder model's design guidance, from "rules as
+sketches" to "rules as lines, measured", with a first-screen fullness
+signal that puts a number on the gap to Opus.
+
+**What was tried.**
+
+1. *Finish rules as plain lines* (NEXT item 1, the default). `direction`
+   now ends with three short rules; `reference` keeps the sketches for
+   comparison. Three trials a prompt for Gemma; Mistral's first run
+   stalled on its host after two builds and a top-up run added four.
+2. *Two new design proxies* (item 2), labeled as proxies: visible text
+   characters in the first 1280x900 view, and whether seeded content
+   names people and the prompt's place. Nov 6 and Nov 7 runs were
+   re-scored with them.
+
+| | Working builds | First-screen text, median chars |
+|---|---|---|
+| Opus 5.5 (Nov 6, all variants) | 6 of 6 | 768 to 914 |
+| Mistral Small, direction (Nov 6 to 7) | 8 of 9 | 336 |
+| Mistral Small, direction + rules (today) | 6 of 6 | 495 |
+| Gemma 4 26B, direction (Nov 6 to 7) | 10 of 10 | 455 |
+| Gemma 4 26B, direction + rules (today) | 4 of 6 | 437 |
+
+   The people proxy does not discriminate: it counts names in data fields
+   and Opus writes its seed data in shapes the pattern misses, so it reads
+   2 for Opus and 30 for Mistral. It stays in the data, unquoted. Every
+   build named the prompt's place.
+3. *Gemma's two misses.* One a syntax slip. The other called
+   `useLocation()` inside a route's `element` prop in the same component
+   that renders the router, so the hook ran outside it; the same crash
+   (`reading 'useState'` of null) appeared on Nov 6. A static check for
+   router hooks in the component that renders `<Routes>` is a candidate.
+
+**What it cost.** About $0.05 over 12 builds, logged as $0.50 worst case.
+Session about 42 minutes, longer than the work needed because one
+Mistral host stalled for the length of a cap.
+
+**Honest read.** The rules-as-lines change did what it was meant to for
+Mistral and nothing measurable for Gemma, on six builds each. The
+first-screen number is the first proxy that tracks the gap Josh sees:
+Opus fills the first view with roughly twice the content. That gap is a
+content gap (more seeded items above the fold, a second column filled),
+which suggests the next lever is the seed-data rule, not more layout
+guidance. Design remains Josh's call from the sheet.
+
 ## 2026-11-07
 
 **For Josh:** You said the visual directions were nearing Opus, so today

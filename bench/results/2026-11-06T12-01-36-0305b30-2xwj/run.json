@@ -131,7 +131,8 @@
       "runtime": {
         "rendered": true,
         "errors": [],
-        "bodyChars": 540
+        "bodyChars": 540,
+        "aboveFoldChars": 397
       },
       "quality": {
         "files": 11,
@@ -156,7 +157,9 @@
           "mdClasses": 5,
           "fontLoaded": true,
           "contrastText": 16.5,
-          "contrastMuted": 3.3
+          "contrastMuted": 3.3,
+          "namedPeople": 5,
+          "placeNamed": true
         },
         "lintErrors": 3,
         "lintWarnings": 0,
@@ -246,7 +249,8 @@
       "runtime": {
         "rendered": true,
         "errors": [],
-        "bodyChars": 194
+        "bodyChars": 194,
+        "aboveFoldChars": 181
       },
       "quality": {
         "files": 8,
@@ -271,7 +275,9 @@
           "mdClasses": 4,
           "fontLoaded": true,
           "contrastText": 16.5,
-          "contrastMuted": 4.4
+          "contrastMuted": 4.4,
+          "namedPeople": 4,
+          "placeNamed": true
         },
         "lintErrors": 0,
         "lintWarnings": 0,
@@ -379,7 +385,8 @@
           "console: Error at B (https://esm.sh/@remix-run/router@1.23.0/es2022/router.mjs:2:2356) at Z (https://esm.sh/react-router@6.30.0/X-ZXJlYWN0/es2022/react-router.mjs:2:2803) at he (https://esm.sh/react-router@6.30.0/X-ZXJlYWN0/es202",
           "pageerror: Error"
         ],
-        "bodyChars": 0
+        "bodyChars": 0,
+        "aboveFoldChars": 0
       },
       "quality": {
         "files": 9,
@@ -404,7 +411,9 @@
           "mdClasses": 2,
           "fontLoaded": true,
           "contrastText": 14,
-          "contrastMuted": 7.2
+          "contrastMuted": 7.2,
+          "namedPeople": 58,
+          "placeNamed": true
         },
         "lintErrors": 2,
         "lintWarnings": 0,
@@ -507,7 +516,8 @@
         "errors": [
           "pageerror: forwardRef is not defined"
         ],
-        "bodyChars": 0
+        "bodyChars": 0,
+        "aboveFoldChars": 0
       },
       "quality": {
         "files": 19,
@@ -532,7 +542,9 @@
           "mdClasses": 5,
           "fontLoaded": true,
           "contrastText": 13.3,
-          "contrastMuted": 6.4
+          "contrastMuted": 6.4,
+          "namedPeople": 32,
+          "placeNamed": true
         },
         "lintErrors": 9,
         "lintWarnings": 0,

@@ -137,7 +137,8 @@
       "runtime": {
         "rendered": true,
         "errors": [],
-        "bodyChars": 551
+        "bodyChars": 551,
+        "aboveFoldChars": 418
       },
       "quality": {
         "files": 9,
@@ -162,7 +163,9 @@
           "mdClasses": 1,
           "fontLoaded": true,
           "contrastText": 13.1,
-          "contrastMuted": 5.9
+          "contrastMuted": 5.9,
+          "namedPeople": 5,
+          "placeNamed": true
         },
         "lintErrors": 0,
         "lintWarnings": 0,
@@ -252,7 +255,8 @@
       "runtime": {
         "rendered": true,
         "errors": [],
-        "bodyChars": 578
+        "bodyChars": 578,
+        "aboveFoldChars": 476
       },
       "quality": {
         "files": 10,
@@ -276,7 +280,9 @@
           "mdClasses": 0,
           "fontLoaded": true,
           "contrastText": 13.1,
-          "contrastMuted": 5.9
+          "contrastMuted": 5.9,
+          "namedPeople": 5,
+          "placeNamed": true
         },
         "lintErrors": 5,
         "lintWarnings": 0,
@@ -366,7 +372,8 @@
       "runtime": {
         "rendered": true,
         "errors": [],
-        "bodyChars": 574
+        "bodyChars": 574,
+        "aboveFoldChars": 430
       },
       "quality": {
         "files": 9,
@@ -391,7 +398,9 @@
           "mdClasses": 0,
           "fontLoaded": true,
           "contrastText": 13.1,
-          "contrastMuted": 5.9
+          "contrastMuted": 5.9,
+          "namedPeople": 6,
+          "placeNamed": true
         },
         "lintErrors": 13,
         "lintWarnings": 0,
@@ -515,7 +524,9 @@
           "mdClasses": 4,
           "fontLoaded": true,
           "contrastText": 14.4,
-          "contrastMuted": 6.4
+          "contrastMuted": 6.4,
+          "namedPeople": 42,
+          "placeNamed": true
         },
         "lintErrors": 3,
         "lintWarnings": 0,
@@ -618,7 +629,8 @@
           "console: ReferenceError: cn is not defined at file:///home/user/relational-builder/bench/results/2026-11-07T11-45-32-f3d5753-mqmm/artifacts/hs-listening-wall/mistral-small-3.2-t2/preview.html:1192:18 at Hi (https://esm.sh/react-d",
           "pageerror: cn is not defined"
         ],
-        "bodyChars": 0
+        "bodyChars": 0,
+        "aboveFoldChars": 0
       },
       "quality": {
         "files": 21,
@@ -643,7 +655,9 @@
           "mdClasses": 4,
           "fontLoaded": true,
           "contrastText": 13.1,
-          "contrastMuted": 5.9
+          "contrastMuted": 5.9,
+          "namedPeople": 27,
+          "placeNamed": true
         },
         "lintErrors": 14,
         "lintWarnings": 0,
@@ -772,7 +786,9 @@
           "mdClasses": 1,
           "fontLoaded": true,
           "contrastText": 14.4,
-          "contrastMuted": 6.4
+          "contrastMuted": 6.4,
+          "namedPeople": 31,
+          "placeNamed": true
         },
         "lintErrors": 2,
         "lintWarnings": 0,
