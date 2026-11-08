@@ -176,13 +176,20 @@ function directionsBlock(): string {
  * reference first screens, because small models copy shapes better than
  * they follow adjectives.
  */
-const REFERENCE = [
-  '## Reference first screens (copy the SHAPE, not the words)',
+/** Three rules from what Opus did on Nov 6, as plain lines. Part of
+ *  `direction` since Nov 8 (Josh's default when the code sketches cost
+ *  Mistral half its working builds on Nov 7). */
+const FINISH_RULES = [
+  '## Finished, not tidy',
   '',
   'Three things separate a finished neighborhood tool from a tidy demo; do all three:',
   '- **The first screen is full.** Above the fold: the big status or question block, the main action, AND the first real items. At `md`+ a second column carries the next most useful list (this week\'s pickups, the other questions), so a laptop never shows one narrow column and empty space.',
   '- **Every item has texture.** A face or initials (`<Avatar name=... />`), who and when ("Dev Patel · 2 hours ago"), a small badge for its kind, and ONE action of its own written as a verb a neighbor would say ("Thank Dev", "I can return it", "Me too"), not a generic "View".',
   '- **Copy names people and places.** The steward by name, the street, the day: "Dev keeps the tool shed. He is there Saturday mornings." Never "Welcome to the app" or "Manage your items".',
+].join('\n');
+
+const REFERENCE = [
+  '## Reference first screens (copy the SHAPE, not the words)',
   '',
   'A coordination tool (status plus tasks; here a tool library), as a shape:',
   '```tsx',
@@ -215,8 +222,8 @@ const REFERENCE = [
 /** The prompt block for a variant; empty for `none` */
 export function designScaffoldPrompt(variant: DesignScaffold = designScaffoldVariant()): string {
   if (variant === 'recipe') return RECIPE;
-  if (variant === 'direction') return `${RECIPE}\n\n${directionsBlock()}`;
-  if (variant === 'reference') return `${RECIPE}\n\n${directionsBlock()}\n\n${REFERENCE}`;
+  if (variant === 'direction') return `${RECIPE}\n\n${directionsBlock()}\n\n${FINISH_RULES}`;
+  if (variant === 'reference') return `${RECIPE}\n\n${directionsBlock()}\n\n${FINISH_RULES}\n\n${REFERENCE}`;
   return '';
 }
 

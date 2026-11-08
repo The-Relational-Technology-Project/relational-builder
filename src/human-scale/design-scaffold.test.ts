@@ -25,6 +25,7 @@ describe('design scaffolding', () => {
     expect(r.startsWith(d)).toBe(true);
     expect(r).toContain('Reference first screens');
     expect(d).not.toContain('Reference first screens');
+    expect(d).toContain('Finished, not tidy');
   });
 
   it('every direction meets 4.5:1 for its text pairings', () => {
