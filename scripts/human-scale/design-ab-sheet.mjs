@@ -22,7 +22,9 @@ const TASKS = ['hs-community-fridge', 'hs-listening-wall'];
 const MODEL_ORDER = ['gemma-4-26b', 'mistral-small-3.2', 'glm-4.5-air', 'opus-5-5'];
 
 const cells = new Map(); // `${task}|${alias}|${variant}` -> [{img, caption}]
-for (const dir of readdirSync(root).filter(d => d.startsWith(date) || (also && d.startsWith(also.date)))) {
+// --only p1,p2 keeps just those runs from the main date (prefix match)
+const only = process.argv.includes('--only') ? process.argv[process.argv.indexOf('--only') + 1].split(',') : null;
+for (const dir of readdirSync(root).filter(d => (d.startsWith(date) && (!only || only.some(p => d.startsWith(p)))) || (also && d.startsWith(also.date)))) {
   const fromAlso = also && dir.startsWith(also.date) && !dir.startsWith(date);
   const f = path.join(root, dir, 'run.json');
   if (!existsSync(f)) continue;

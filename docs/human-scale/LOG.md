@@ -12,6 +12,87 @@ experiment at most $5 and 30 minutes.
 
 ---
 
+## 2026-11-09
+
+**For Josh:** The first day on your new focus, closing the gap between
+Gemma's builds and Opus's. The biggest finding was that most of Gemma's
+code failures were mechanical: it stutters inside import lines, reaches for
+a fancier dropdown than the kit has, and imports a helper from the wrong
+place. The Builder now quietly repairs or accepts all three, and Gemma went
+from 4 of 8 working apps to 7 of 8 in each of the three batches that had the
+fixes. A seed-data rule filled Gemma's first screens to about Opus's level in
+two batches out of three. And one host serving Gemma at reduced precision
+made 1 working app in 7, so the Builder now asks for full-precision hosts
+when building with Gemma. The sheet is sent to you here. Spend about $0.15.
+
+**Stack layer moved:** Builder model, from "Gemma needs a fix pass one
+time in three and its first screens are half of Opus's" to "the commonest
+causes repaired mechanically, first screens near Opus's on the content
+measure", with a script that prints the gap table each run.
+
+**What was tried, in the order of the gap table (NEXT, Focus).**
+
+1. *The content gap.* Opus's and Gemma's seed files hold about the same
+   number of items; the difference is specificity (Opus: "More benches on
+   Catherine Hill", relative times computed from now, a named steward with
+   a line) and what reaches the first screen. A fourth finish rule asks
+   for six items a list, each with a person, a computed relative time and
+   one concrete local detail, the first three above the fold.
+2. *The first-try gap.* Of 48 Gemma builds on good hosts since Nov 3, 28
+   needed a fix pass. Causes: 12 an invented kit name (9 of them shadcn's
+   Select parts), 12 syntax (almost all one glitch: a repeated import
+   clause, `import { Badge } { Avatar } from ...`), 11 React not defined
+   (some were the false positive fixed Nov 5), 6 a component never
+   imported. Responses, none of which needs a model call:
+   - `src/project/import-repair.ts`: behind the flag, the extractor
+     rewrites a stuttered import line to its last brace group, also with
+     a trailing comment, and `@/src/x` paths to `@/x`; valid lines are
+     never touched. Tested on the exact lines Gemma wrote.
+   - The kit's `Select` now accepts the shadcn shape (`SelectTrigger`,
+     `SelectValue`, `SelectContent`, `SelectItem`, `onValueChange`) and
+     renders it as the same native select. Render-tested.
+   - The kit gains `@/lib/cn`; models had imported `cn` from there 55
+     times across the board (it lives in `@/lib/utils`).
+3. *Type and lint slips.* 132 of Gemma's 146 lint findings in the
+   direction builds were unused imports; a rule line asks for imports
+   only of what the file uses.
+4. *Precision of the serving host.* Gemma's builds since Nov 3 by host:
+   the one fp4 host (AkashML) 1 working of 7; the bf16 hosts 35 of 42.
+   `BENCH_OPENROUTER_QUANT=bf16` on the bench, and behind the flag the
+   Builder's OpenRouter calls for Gemma carry OpenRouter's
+   `quantizations: ["bf16"]` preference (computed per request model;
+   tested).
+
+| | Opus (Nov 6) | Gemma Nov 6 to 8 | + seed rule | + repair, Select, imports | + bf16 hosts | all of today |
+|---|---|---|---|---|---|---|
+| Working builds | 6 of 6 | 14 of 16 | 4 of 8 | 7 of 8 | 7 of 8 | 7 of 8 |
+| Working on the first try | 6 of 6 | 10 of 16 | 1 of 8 | 3 of 8 | 5 of 8 | 3 of 8 |
+| Lint per 100 lines | 0 | 2.3 | 1.6 | 2.1 | 2.6 | 4.1 |
+| Type errors (median) | 0 | 3 | 3 | 3 | 3 | 3 |
+| Desktop classes (median) | 12 | 7 | 7 | 6 | 7 | 7 |
+| First-screen text (median chars) | 774 | 437 | 642 | 731 | 724 | 559 |
+| Build time (median) | 147s | 52s | 44s | 32s | 96s | 48s |
+
+   Each column is eight builds, so single cells move by chance; the
+   steady signals are working builds (4 of 8 before the repairs, 21 of 24
+   after) and first-screen text (higher in every batch with the seed
+   rule). First-try, lint and type errors did not improve: the unused-
+   imports line changed nothing measurable, and the fix pass is still
+   doing work the repairs do not reach.
+
+**What it cost.** About $0.15 over 32 Gemma builds, logged as $2.00 worst
+case before the runs. Session about 45 minutes.
+
+**Honest read.** Gemma's working-build gap to Opus was mostly not about
+intelligence; it was a short list of mechanical habits, and absorbing them
+in the Builder (repair the line, accept the shape, add the missing door)
+works better than asking the model not to have them. That lesson should
+carry to other open models, and this week's transfer check will say. The
+code-quality gap (lint, types, first try) has not moved and will need a
+different lever, likely a deterministic cleanup pass (remove unused
+imports, which is safe and mechanical) rather than more rules. The design
+gap is for Josh's eye.
+
 ## 2026-11-08, evening (Josh's read)
 
 Josh, on the Nov 8 sheet: Gemma looks better than Mistral Small, still not

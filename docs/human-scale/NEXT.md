@@ -113,6 +113,12 @@ in three and carries a few type and lint slips. Opus is clean on all of
 these. Design is judged by Josh from the sheets; the numbers say where to
 look.
 
+**Nov 9 update (eight builds a column; see the LOG for the full table).**
+After the import repair, the kit Select shape and `@/lib/cn`, Gemma made
+21 working builds of 24 (from 4 of 8 with the seed rule alone, which came
+first). First-screen text rose to 559 to 731 against Opus's 774. Lint,
+type errors, desktop classes and first-try rate did not move.
+
 **How each run works the gap.**
 1. Pick the largest remaining gap in the table, read the Opus and Gemma
    files and screenshots side by side for it, and name the cause in one
@@ -256,26 +262,26 @@ stack layer it moved; pace paid work at $3 to $5 a day.
 
 ## Tomorrow (one run, about 75 minutes)
 
-1. **Output and first screen: the content gap.** Gemma writes about a
-   third less than Opus and its first screen carries about 440 characters
-   against 774. Read two Opus and two Gemma `src/data` files side by side
-   and name how Opus's seed data differs (count, fields, specificity).
-   Add the seed-data rule to the finish rules (at least six seeded items,
-   the first three visible without scrolling at laptop width, each with a
-   name, a time and a detail, written for this place), then Gemma four
-   trials a prompt (about $0.04, log first). Sheet to Josh.
-2. **First-try code: the fix-pass gap.** 6 of 16 Gemma builds needed a
-   fix pass, none of Opus's. Tabulate the trigger errors of those six
-   (and of Gemma's Nov 3 to 5 builds) and take the most common cause.
-   Two known candidates: router hooks called in the component that
-   renders the router (Nov 6, Nov 8), and `React.*` value uses without
-   the import. One static check plus hint, tested against the clean-build
-   fixtures.
-3. **Type and lint slips.** List Gemma's tsc errors and lint findings
-   from the same builds by rule; if one or two rules make up most, add a
-   line for them to `HUMAN_SCALE_BUILD_RULES` (Gemma-keyed if the others
-   do not make them).
-4. **End-to-end check of export and delete.** Needs a signed-in Builder.
+1. **A deterministic cleanup pass for code quality.** Lint and type errors
+   did not move with a rule line. Behind the flag, after extraction and
+   before bundling, remove import specifiers a file never references
+   (identifier not used anywhere else in the file; never touch side-effect
+   imports or `React` in a file with JSX under the classic runtime), and
+   report how many were removed. Tested on the fixtures (no change to the
+   clean builds' behavior) and on three Gemma builds with unused imports.
+   Then Gemma, four trials a prompt (about $0.04, log first), and the gap
+   table with a new column.
+2. **The remaining first-try causes.** Tabulate the fix-pass triggers of
+   today's 32 Gemma builds the same way as on Nov 9 and take the commonest
+   one the repairs do not reach.
+3. **Desktop layout gap** (7 against Opus's 12 `md:` classes). Compare one
+   Opus and one Gemma build at 1280 width and name the difference; if it
+   is the second column, check whether the recipe's two-column line is
+   being followed and sharpen it.
+4. **Transfer check (this week's).** Run today's changes on Mistral Small
+   3.2 and GLM 4.5 Air, three trials a prompt each (about $0.10), and say
+   which carried over.
+5. **End-to-end check of export and delete.** Needs a signed-in Builder.
 
 ## After that, in order
 
