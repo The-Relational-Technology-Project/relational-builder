@@ -16,5 +16,7 @@ describe('open builder models', () => {
   it('routing body names the hosts to skip and is empty when there are none', () => {
     expect(openRouterRoutingBody()).toEqual({ provider: { ignore: OPENROUTER_IGNORE_HOSTS } });
     expect(openRouterRoutingBody([])).toEqual({});
+    expect(openRouterRoutingBody([], 'google/gemma-4-26b-a4b-it')).toEqual({ provider: { quantizations: ['bf16'] } });
+    expect(openRouterRoutingBody(['X'], 'z-ai/glm-4.5-air')).toEqual({ provider: { ignore: ['X'] } });
   });
 });

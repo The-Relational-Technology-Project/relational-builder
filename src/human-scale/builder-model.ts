@@ -60,7 +60,27 @@ export function isOpenBuilderModel(id: string): boolean {
  */
 export const OPENROUTER_IGNORE_HOSTS: string[] = ['Darkbloom'];
 
-/** The request-body fields that tell OpenRouter which hosts to skip */
-export function openRouterRoutingBody(ignore: string[] = OPENROUTER_IGNORE_HOSTS): Record<string, unknown> {
-  return ignore.length ? { provider: { ignore: [...ignore] } } : {};
+/**
+ * Precision to require from hosts, per model. Nov 9: the one host serving
+ * Gemma at 4-bit (AkashML, fp4) produced 1 working build in 7, while the
+ * full-precision (bf16) hosts produced 35 of 42; several of the fp4 builds
+ * carried token glitches (a stray Korean character inside a tag name, a
+ * repeated import clause). OpenRouter's `quantizations` preference keeps a
+ * request on hosts that declare the listed precision.
+ */
+export const OPENROUTER_QUANTIZATIONS: Record<string, string[]> = {
+  'google/gemma-4-26b-a4b-it': ['bf16'],
+};
+
+/** The request-body fields that tell OpenRouter which hosts to skip, and
+ *  for models listed above, which precision to require */
+export function openRouterRoutingBody(ignore: string[] = OPENROUTER_IGNORE_HOSTS, model?: string): Record<string, unknown> {
+  const quantizations = model ? OPENROUTER_QUANTIZATIONS[model] : undefined;
+  if (!ignore.length && !quantizations) return {};
+  return {
+    provider: {
+      ...(ignore.length ? { ignore: [...ignore] } : {}),
+      ...(quantizations ? { quantizations: [...quantizations] } : {}),
+    },
+  };
 }

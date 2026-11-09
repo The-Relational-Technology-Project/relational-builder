@@ -107,3 +107,18 @@ describe('the keyless community route', () => {
     vi.unstubAllEnvs();
   });
 });
+
+describe('per-model extra body', () => {
+  it('computes routing fields from the request model', async () => {
+    const fetchMock = vi.fn(async () => sse([{ choices: [{ delta: { content: 'x' } }] }]));
+    vi.stubGlobal('fetch', fetchMock);
+    const p = provider();
+    p.setExtraBodyForModel(m => (m === 'g' ? { provider: { quantizations: ['bf16'] } } : {}));
+    await p.chat([{ role: 'user', content: 'hi' }], 'g', { onToken: () => {}, onComplete: () => {}, onError: e => { throw e; } });
+    await p.chat([{ role: 'user', content: 'hi' }], 'other', { onToken: () => {}, onComplete: () => {}, onError: e => { throw e; } });
+    const bodies = fetchMock.mock.calls.map(c => JSON.parse((c as unknown as [string, { body: string }])[1].body));
+    expect(bodies[0].provider).toEqual({ quantizations: ['bf16'] });
+    expect(bodies[1].provider).toBeUndefined();
+  });
+});
+

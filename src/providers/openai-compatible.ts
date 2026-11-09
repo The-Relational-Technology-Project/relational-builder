@@ -27,6 +27,7 @@ export class OpenAICompatibleProvider implements LLMProvider {
   /** Extra fields merged into every chat request body (a router's routing
    *  preferences, for example). Set by the caller that knows the provider. */
   private extraBody: Record<string, unknown> = {};
+  private extraBodyFor: ((model: string) => Record<string, unknown>) | null = null;
   private defaultModels: ModelInfo[];
   // Path segment between baseUrl and /chat/completions. Most providers use
   // '/v1'; Google's OpenAI-compatibility layer already includes the version
@@ -83,6 +84,12 @@ export class OpenAICompatibleProvider implements LLMProvider {
 
   setExtraBody(fields: Record<string, unknown>): void {
     this.extraBody = { ...fields };
+  }
+
+  /** Like setExtraBody, but computed for each request's model (routing
+   *  preferences that differ by model) */
+  setExtraBodyForModel(fn: (model: string) => Record<string, unknown>): void {
+    this.extraBodyFor = fn;
   }
 
   setApiKey(key: string) {
@@ -166,6 +173,7 @@ export class OpenAICompatibleProvider implements LLMProvider {
         stream: true,
         ...(this.maxTokens ? { max_tokens: this.maxTokens } : {}),
         ...this.extraBody,
+        ...(this.extraBodyFor ? this.extraBodyFor(model) : {}),
       }),
       signal,
     });
@@ -413,6 +421,6 @@ export function createOpenRouterProvider(): OpenAICompatibleProvider {
   });
   // Hosts the board has shown serving a model broken stay out of every
   // Builder call while the flag is on (docs/human-scale/BENCH-BOARD.md)
-  if (humanScale) p.setExtraBody(openRouterRoutingBody());
+  if (humanScale) p.setExtraBodyForModel(model => openRouterRoutingBody(undefined, model));
   return p;
 }

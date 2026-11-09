@@ -65,11 +65,16 @@ export function providerFor(model: BenchModel): LLMProvider {
       // served host is recorded on every trial either way.
       const ignore = (process.env.BENCH_OPENROUTER_IGNORE ?? '').split(',').map(s => s.trim()).filter(Boolean);
       const only = (process.env.BENCH_OPENROUTER_ONLY ?? '').split(',').map(s => s.trim()).filter(Boolean);
-      if (ignore.length || only.length) {
+      // BENCH_OPENROUTER_QUANT=bf16 (comma list) keeps only hosts serving the
+      // model at that precision: Nov 9, the one fp4 host served Gemma 1
+      // clean build in 7 while the bf16 hosts served 35 of 42
+      const quant = (process.env.BENCH_OPENROUTER_QUANT ?? '').split(',').map(s => s.trim()).filter(Boolean);
+      if (ignore.length || only.length || quant.length) {
         p.setExtraBody({
           provider: {
             ...(ignore.length ? { ignore } : {}),
             ...(only.length ? { order: only, allow_fallbacks: false } : {}),
+            ...(quant.length ? { quantizations: quant } : {}),
           },
         });
       }
