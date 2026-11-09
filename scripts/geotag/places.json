@@ -316,6 +316,12 @@
    "basis": "text",
    "note": "Starter prompt; Front Porch Forum lineage is the referenced story's pin, not this template's"
   },
+  "build-knowy-for-your-place": {
+   "place": "Outer Sunset, San Francisco, California, USA",
+   "precision": "neighborhood",
+   "basis": "attribution",
+   "note": "Starter prompt drawn from Knowy Plover, the Outer Sunset's neighborhood agent"
+  },
   "build-living-asset-map": {
    "place": null,
    "precision": "none",
@@ -1453,6 +1459,12 @@
    "place": "Kansas City, Missouri, USA",
    "precision": "city",
    "basis": "attribution"
+  },
+  "knowy": {
+   "place": "Outer Sunset, San Francisco, California, USA",
+   "precision": "neighborhood",
+   "basis": "attribution",
+   "note": "Knowy Plover, built with Outer Sunset neighbors; live at knowy.org"
   },
   "lamplight-summer-camp": {
    "place": "Guntersville, Alabama, USA",

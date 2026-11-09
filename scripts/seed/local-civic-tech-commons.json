@@ -605,6 +605,48 @@
       "sort_order": 195
     },
     {
+      "slug": "knowy",
+      "kind": "tool",
+      "title": "Knowy: An AI Agent for a Place",
+      "summary": "AI that belongs to a place, not a person. Neighbors ask it anything, it answers from public neighborhood notes with sources, and every change it drafts waits for a steward. First home: the Outer Sunset, San Francisco.",
+      "body": "[Knowy Plover](https://knowy.org) is the neighborhood agent for the Outer Sunset in San Francisco: AI for a place, stewarded by neighbors. A personal AI agent gets better the more it knows about you. This one belongs to a neighborhood instead, and everything it knows is public and shared.\n\nAny neighbor can message it on a public page. It answers from the neighborhood's own notes and listed public sources, with the source and the time it was read. It says \"I don't know\" in those words when it doesn't, and it points to a person more often than it hands over a paragraph. Ask it to change something (\"add my event\", \"that closes at 6 now\", \"can we start a tool library?\") and it does not just do it. It writes the change up, shows the neighbor the exact file, and a steward decides.\n\n**The rules it is built around**\n\n- **The place is its stewards.** A small group of neighbors governs the agent through plain files: its voice (`place.md`), who the stewards are and how they review (`STEWARDS.md`), what it may read (`sources.yml`), who it may point to (`people.yml`), and its corrections.\n- **Public data only, and nothing kept.** It reads the listed sources and nothing else. No accounts, no memory of conversations.\n- **Good friction.** It never writes to the neighborhood directly. It drafts, the neighbor says yes, a steward merges.\n- **Humility is structural.** Every factual claim carries its source and when it was fetched. A steward's correction beats fetched data. Unknown hours are unknown.\n- **More-than-human neighbors have standing.** The ocean, the dunes, the plovers, the coyotes: it reports their vital signs, brings their interests into answers when a plan touches them, and names their human advocates. It never speaks as them.\n\n**The practice is part of the tool.** The code is the small half. What makes a Knowy trustworthy is the stewarding: a few named neighbors, a review checklist, a yes from every person it lists, and a question log the stewards read together.\n\n**One shape, many scales.** The same shape serves a house, a block, a co-op, a co-living community or a neighborhood. Smaller places change three things: fewer public sources (the memory is mostly what the household writes down), more consent questions (everyone it knows about lives there), and a private home for the notes may be right.\n\n**Two ways to make your own**\n\n1. *In Relational Builder.* Start from the prompt \"Build: A Knowy for Your Place\" on this shelf. Plan mode asks what a new place has to answer (its edges, its first stewards, its sources, its more-than-human neighbors, its name and voice) and builds a lighter Knowy: the place's notes as plain files, a page neighbors can ask, drafts that wait for a steward.\n2. *The full agent.* The original code is open (MIT) and takes a place's notes as config, so another place can run the same code on its own data. It adds live tool use, pull requests opened through a GitHub App, per-source adapters (calendars, open data, other sites), and a place pack other tools can read. A fictional place in the repo (`fixtures/elsewhere/`) shows a complete set of notes. The notes you write in Relational Builder follow the same shape, so they carry over.\n\nCode: MIT. The Outer Sunset's notes: CC BY 4.0, at github.com/The-Relational-Technology-Project/outer-sunset.\n\n**See it running**\n\nTry the original at [knowy.org](https://knowy.org): ask it how the ocean is today, or what is happening this weekend.\n\n![Knowy Plover on a phone: the day's vital signs, then one box to ask the neighborhood](https://relationalbuilder.org/media/commons/knowy-mobile.jpg)\n\n![The About page: what it reads, how it cites, how it checks before it adds, and what it keeps](https://relationalbuilder.org/media/commons/knowy-about.jpg)\n\n![The Sources page: everything it reads, and a form to suggest something new for a steward to review](https://relationalbuilder.org/media/commons/knowy-sources.jpg)",
+      "attribution": {
+        "name": "Relational Technology Project with Outer Sunset neighbors",
+        "neighborhood": "Outer Sunset, San Francisco",
+        "source": "knowy.org",
+        "source_repo": "The-Relational-Technology-Project/neighborhood-agent"
+      },
+      "source_url": "https://github.com/The-Relational-Technology-Project/neighborhood-agent",
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-tool",
+        "neighborhood-agent",
+        "stewardship",
+        "place-based-ai",
+        "open-source"
+      ],
+      "metadata": {
+        "image_url": "https://relationalbuilder.org/media/commons/knowy-home.jpg",
+        "hosted_url": "https://knowy.org",
+        "maker": "Relational Technology Project with Outer Sunset neighbors",
+        "license": "MIT (code); CC BY 4.0 (Outer Sunset notes)",
+        "repo_url": "https://github.com/The-Relational-Technology-Project/neighborhood-agent",
+        "data_repo_url": "https://github.com/The-Relational-Technology-Project/outer-sunset",
+        "hosted": "self-hostable (Vercel, Fly, any container host); a lighter version builds in Relational Builder",
+        "remix_idea": "A Knowy for your own place, at any scale from a house to a neighborhood, with your own stewards, sources and more-than-human neighbors.",
+        "starter_prompt": "build-knowy-for-your-place",
+        "practice_kind": "tool"
+      },
+      "license": "MIT",
+      "sort_order": 97,
+      "image_urls": [
+        "https://relationalbuilder.org/media/commons/knowy-home.jpg",
+        "https://relationalbuilder.org/media/commons/knowy-mobile.jpg",
+        "https://relationalbuilder.org/media/commons/knowy-about.jpg",
+        "https://relationalbuilder.org/media/commons/knowy-sources.jpg"
+      ]
+    },
+    {
       "slug": "learn-from-the-graveyard",
       "kind": "framework",
       "title": "Learn from the Graveyard",
@@ -1356,6 +1398,47 @@
         ]
       },
       "sort_order": 430
+    },
+    {
+      "slug": "build-knowy-for-your-place",
+      "kind": "prompt",
+      "title": "Build: A Knowy for Your Place",
+      "summary": "A starter build: an AI agent that belongs to your place, at any scale from a house to a neighborhood. Plan mode asks about your place's edges, stewards, sources, more-than-human neighbors and voice before anything is built.",
+      "body": "A Knowy is an AI agent that acts on behalf of a place, not a person. The first one is Knowy Plover, for the Outer Sunset in San Francisco (knowy.org). I want one for my place. It could be a house, a block, a co-op, a co-living community or a neighborhood.\n\nBefore you plan anything, ask me these, a few at a time, and wait for my answers:\n\n1. **The place and its edges.** What is this place, where does it start and stop, and how many people does it hold?\n2. **The first stewards.** Which two or three people will look after it, and how do they decide together? Only name people who have said yes.\n3. **What it may read.** Which sources can it draw on: notes we write ourselves, a shared calendar, public feeds, other sites? At the scale of a house the answer may be only what we write down.\n4. **More-than-human neighbors.** Who else lives here (a creek, a garden, street trees, birds, a dog), and which people speak up for them?\n5. **Its name and voice.** What is it called and how should it sound?\n6. **Who can see it.** Public like a neighborhood page, or only for the people who live here? For a household, assume private until I say otherwise.\n\nIf I am not ready with real answers, offer to start with a fictional place so I can see it work first.\n\nThen build this, and keep these rules:\n\n- **The place's memory is plain files** a steward can read and edit without code, in the shape the original uses: `place.md` (what the place is, its name and voice), `STEWARDS.md` (who the stewards are, how they decide, their review checklist), `sources.yml` (everything it may read), `people.yml` (people it may point to, each with the date they said yes), `constituents/` (one file per more-than-human neighbor and its advocates), plus `events/`, `corrections/` and `proposals/`. Write first drafts from my answers and mark anything you guessed.\n- **A page anyone in the place can ask.** It answers only from those files and the listed sources. Every factual claim shows its source and date. When the notes do not cover it, it says \"I don't know\" in those words and points to a person or a source. A correction beats anything fetched. Unknown hours stay unknown.\n- **Good friction on changes.** When someone asks to add or change something, it drafts the exact file, shows it to them, and only after their yes sends it to the stewards to review. It never changes its own memory, and it never says a change is done before a steward has accepted it.\n- **Nothing kept about people.** No accounts for asking, no memory of conversations. It declines questions about private individuals and offers the public way to reach someone instead. Nobody is listed without their yes.\n- **More-than-human neighbors have standing.** It brings their interests into answers when a plan touches them and names their advocates. It never speaks as them.\n- **Plain pages beside the chat:** what this is and who stewards it, what it reads, open proposals, and how to correct it.\n- **AI runs only when a person asks something.** Never on page load or in loops.\n\nAlso write `STEWARDING.md` in plain language for the stewards: how to review a draft, how to ask for consent before listing someone, how to correct the agent, and what it never does.\n\nSay plainly what this version does not do yet compared with the original (live tool use, pull requests opened by the agent, adapters for outside sources), so I can decide later whether to run the full agent on the same notes.",
+      "attribution": {
+        "name": "Relational Technology Project with Outer Sunset neighbors",
+        "neighborhood": "Outer Sunset, San Francisco",
+        "source": "Knowy Plover, knowy.org",
+        "source_repo": "The-Relational-Technology-Project/neighborhood-agent"
+      },
+      "source_url": "https://github.com/The-Relational-Technology-Project/neighborhood-agent",
+      "tags": [
+        "local-civic-tech",
+        "civic-tech-prompt",
+        "starter",
+        "neighborhood-agent",
+        "stewardship",
+        "place-based-ai"
+      ],
+      "metadata": {
+        "image_url": "https://relationalbuilder.org/media/commons/knowy-home.jpg",
+        "hosted_url": "https://knowy.org",
+        "practice_kind": "prompt",
+        "builds_on": [
+          "knowy"
+        ],
+        "guardrails": [
+          "it drafts, a neighbor says yes, a steward decides",
+          "nobody is listed without their yes",
+          "it says \"I don't know\" in those words",
+          "it never speaks as its more-than-human neighbors"
+        ]
+      },
+      "license": "MIT",
+      "sort_order": 395,
+      "image_urls": [
+        "https://relationalbuilder.org/media/commons/knowy-home.jpg"
+      ]
     }
   ]
 }
