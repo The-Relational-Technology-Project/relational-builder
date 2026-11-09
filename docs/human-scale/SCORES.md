@@ -19,6 +19,10 @@ best designs of the open models, and by a clear margin; GLM 4.5 Air next,
 then GPT-OSS 120B, then the Qwen coder. Not yet per-build scores; the
 builder default follows this read where clean rates are close.
 
+Josh, Nov 8, on the design A/B sheets: with the visual directions and
+finish rules, Gemma looks better than Mistral Small, still not quite
+matching Opus.
+
 ## Per-build scores
 
 | run | task | model | design | rtp fit | completeness | notes |

@@ -86,6 +86,15 @@ the bad host, 9 of 12, is within a few points of GLM's 71%). Per-build
 scores in `SCORES.md` would still sharpen this; the overall read is
 recorded there too.
 
+## Design read from Josh (2026-11-08 sheet)
+
+**Gemma looks better than Mistral Small, still not quite matching Opus.**
+So Gemma stays the open builder default, and the design work aims at
+Gemma first. Note what this says about the proxies: Mistral had more
+working builds and fuller first screens on Nov 8, and Gemma still looked
+better, so the first-screen number tracks the gap to Opus but does not
+rank the open models; the eye does.
+
 ## Design direction from Josh (2026-11-06)
 
 On the design scaffolding A/B: **the version with visual directions is
@@ -198,22 +207,19 @@ stack layer it moved; pace paid work at $3 to $5 a day.
    closer to, name them in a line here; the `direction` variant will be
    written with them in mind. Default if unanswered: directions written
    from the board's best Gemma and Opus screenshots.
-9. **The Nov 7 and Nov 8 sheets** (`docs/human-scale/shots/design-ab-2026-11-07.html`,
-   `design-ab-2026-11-08.html`, both sent in the conversation). Nov 8 took
-   the default (the finish rules as plain lines, no code sketches). Does
-   today's look hold up against yesterday's reference column? Default if
-   unanswered: keep the lines, add the seed-data rule, no sketches.
 
 ## Tomorrow (one run, about 75 minutes)
 
-1. **Fill the first screen with content, not layout.** Nov 8: Opus's first
+1. **Fill the first screen with content, not layout (Gemma first).** Nov 8: Opus's first
    view carries about 800 to 900 characters of real content; Gemma's about
    440, Mistral Small's about 500 with the finish rules. Add one line to
    the finish rules about seed data (at least six seeded items, the first
    three visible without scrolling at laptop width, each with a name, a
    time and a detail), then Gemma and Mistral Small three trials a prompt
    (about $0.05, log first), first-screen medians in the LOG and the sheet
-   sent in the conversation.
+   sent in the conversation. Josh judged Gemma's look ahead of Mistral's
+   on Nov 8, so Gemma's row is the one to compare against Opus; run
+   Gemma with four trials a prompt if the budget allows.
 2. **Router hooks outside the router.** Two Gemma crashes (Nov 6, Nov 8)
    called `useLocation()` or `useParams()` in the component that renders
    `<HashRouter>`/`<Routes>`. A static check: a file that renders a router

@@ -12,6 +12,14 @@ experiment at most $5 and 30 minutes.
 
 ---
 
+## 2026-11-08, evening (Josh's read)
+
+Josh, on the Nov 8 sheet: Gemma looks better than Mistral Small, still not
+quite matching Opus. Gemma stays the open builder default and the next
+design step aims at it. Worth noting: on the same day Mistral had more
+working builds and fuller first screens, so the first-screen proxy
+measures the gap to Opus but does not rank the open models. No spend.
+
 ## 2026-11-08
 
 **For Josh:** With no answer on yesterday's sheet, today took the default:
