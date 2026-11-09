@@ -5,17 +5,17 @@ import { KIT_FILES } from '@/kit';
 describe('kitExports', () => {
   it('reads the real kit', () => {
     const ex = kitExports(KIT_FILES);
-    expect(ex['/src/components/ui/select.tsx']).toEqual(['Select']);
+    expect(ex['/src/components/ui/select.tsx']).toEqual(expect.arrayContaining(['Select', 'SelectItem', 'SelectTrigger']));
     expect(ex['/src/components/ui/button.tsx']).toContain('Button');
     expect(ex['/src/components/ui/app-bar.tsx']).toEqual(expect.arrayContaining(['AppBar', 'AppBarTitle']));
   });
 });
 
 describe('fixHints', () => {
-  it('names the kit file\'s real exports for an invented name (glm, SelectContent)', () => {
-    const h = fixHints('vfs:/src/pages/AdminPage.tsx:8: No matching export in "vfs:/src/components/ui/select.tsx" for import "SelectContent"', KIT_FILES);
+  it('names the kit file\'s real exports for an invented name (glm, SelectContent; Select gained that shape Nov 9)', () => {
+    const h = fixHints('vfs:/src/pages/AdminPage.tsx:8: No matching export in "vfs:/src/components/ui/select.tsx" for import "SelectMenu"', KIT_FILES);
     expect(h).toHaveLength(1);
-    expect(h[0]).toMatch(/exports exactly: Select\./);
+    expect(h[0]).toMatch(/exports exactly: Select, /);
     expect(h[0]).toMatch(/plain `<option>` children/);
   });
 

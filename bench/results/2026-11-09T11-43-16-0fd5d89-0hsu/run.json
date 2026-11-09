@@ -2,7 +2,7 @@
   "harnessVersion": "1.2.0",
   "taskVersion": "exp-v1,exp-v1",
   "gitCommit": "0fd5d89",
-  "createdAt": "2026-11-09T11:45:56.671Z",
+  "createdAt": "2026-11-09T11:47:17.340Z",
   "runId": "2026-11-09T11-43-16-0fd5d89-0hsu",
   "config": {
     "trials": 4,
@@ -295,6 +295,94 @@
       "served": {
         "model": "google/gemma-4-26b-a4b-it",
         "provider": "NextBit"
+      },
+      "importIssues": []
+    },
+    {
+      "alias": "gemma-4-26b",
+      "providerId": "openrouter",
+      "modelId": "google/gemma-4-26b-a4b-it",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 4,
+      "startedAt": "2026-11-09T11:45:56.673Z",
+      "plan": null,
+      "latencyMs": 48614,
+      "ttftMs": 719,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 48614,
+          "chars": 13164
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 13164,
+      "estTokens": {
+        "input": 15808,
+        "output": 3291,
+        "estimated": true
+      },
+      "estCostUsd": 0.0024100199999999997,
+      "extraction": {
+        "writes": 6,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/gemma-4-26b-t4",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/App.tsx:185: Unexpected closing \"Card립\" tag does not match opening \"CardDescription\" tag",
+          "vfs:/src/App.tsx:185: Expected \">\" but found \"<\"",
+          "vfs:/src/App.tsx: ReferenceError: React is not defined (uses React.* with no `import React from 'react'` or `import * as React from 'react'`)"
+        ],
+        "solved": true,
+        "latencyMs": 31923,
+        "remainingErrors": [],
+        "estCostUsd": 0.00240903,
+        "passes": 1
+      },
+      "error": null,
+      "served": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "provider": "AkashML"
       },
       "importIssues": []
     }
