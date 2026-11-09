@@ -86,6 +86,52 @@ the bad host, 9 of 12, is within a few points of GLM's 71%). Per-build
 scores in `SCORES.md` would still sharpen this; the overall read is
 recorded there too.
 
+## Focus from Josh (2026-11-09): close the Gemma to Opus gap, design and code
+
+The loop's main line until further notice: **bridge the gap between Gemma
+4 26B's builds and Opus's, on design and on code**, then carry what works
+to the other open-weight models. Gemma is the open model Josh judges best
+by eye and the one that fits a 16 GB box.
+
+**The gap as measured (Nov 6 to 8, Gemma with visual directions, 16
+builds; Opus, 6 builds; same two prompts):**
+
+| | Gemma 4 26B | Opus 5.5 |
+|---|---|---|
+| Working builds | 14 of 16 | 6 of 6 |
+| Working on the first try (no fix pass) | 10 of 16 | 6 of 6 |
+| Lint findings per 100 lines | 2.3 | 0 |
+| Type errors (median) | 3 | 0 |
+| Desktop (`md:`) classes (median) | 7 | 12 |
+| First-screen text (median chars) | 437 | 774 |
+| Output per build (median tokens, estimated) | about 4,200 | about 6,600 |
+| Build time (median) | 52s | 147s |
+
+So Gemma writes about a third less, at a third of the time: less seeded
+content, thinner desktop layouts, and code that needs a fix pass one time
+in three and carries a few type and lint slips. Opus is clean on all of
+these. Design is judged by Josh from the sheets; the numbers say where to
+look.
+
+**How each run works the gap.**
+1. Pick the largest remaining gap in the table, read the Opus and Gemma
+   files and screenshots side by side for it, and name the cause in one
+   line (a missing rule, a kit gap, a habit the check could catch, a
+   prompt that invites brevity).
+2. Make one change aimed at that cause: a rule line, a kit addition, a
+   static check with a hint, or a prompt change. Keep it behind the flag
+   and tested.
+3. Measure Gemma only, four trials a prompt (8 builds, about $0.04),
+   standard invocation. Compare against the Gemma row above and the fixed
+   Opus baseline (the Nov 6 Opus builds; refresh Opus once a week, about
+   $2). Update the table in this section with the new Gemma row.
+4. Send Josh the side-by-side sheet (`design-ab-sheet.mjs --also
+   2026-11-06:opus-5-5`) whenever the change touches design.
+5. **Transfer check, weekly:** run the week's accumulated changes once on
+   Mistral Small 3.2 and GLM 4.5 Air (about $0.10) and say which changes
+   carried over and which were Gemma-specific. Gemma-specific fixes stay
+   keyed to Gemma (`design-scaffold.ts` can switch by builder model).
+
 ## Design read from Josh (2026-11-08 sheet)
 
 **Gemma looks better than Mistral Small, still not quite matching Opus.**
@@ -210,27 +256,25 @@ stack layer it moved; pace paid work at $3 to $5 a day.
 
 ## Tomorrow (one run, about 75 minutes)
 
-1. **Fill the first screen with content, not layout (Gemma first).** Nov 8: Opus's first
-   view carries about 800 to 900 characters of real content; Gemma's about
-   440, Mistral Small's about 500 with the finish rules. Add one line to
-   the finish rules about seed data (at least six seeded items, the first
-   three visible without scrolling at laptop width, each with a name, a
-   time and a detail), then Gemma and Mistral Small three trials a prompt
-   (about $0.05, log first), first-screen medians in the LOG and the sheet
-   sent in the conversation. Josh judged Gemma's look ahead of Mistral's
-   on Nov 8, so Gemma's row is the one to compare against Opus; run
-   Gemma with four trials a prompt if the budget allows.
-2. **Router hooks outside the router.** Two Gemma crashes (Nov 6, Nov 8)
-   called `useLocation()` or `useParams()` in the component that renders
-   `<HashRouter>`/`<Routes>`. A static check: a file that renders a router
-   element and calls a router hook in the same component; a hint (read the
-   route param inside the page with `useParams()`). Test against the
-   clean-build fixtures first.
-3. **Runtime side, while the deploy waits.** The keyless community route
-   and the open runtime route are written and smoke-testable; nothing on
-   this side moves without the deploy. If it lands, run
-   `scripts/human-scale/smoke-runtime.mjs` with credentials and record the
-   first real open-model runtime call in the LOG.
+1. **Output and first screen: the content gap.** Gemma writes about a
+   third less than Opus and its first screen carries about 440 characters
+   against 774. Read two Opus and two Gemma `src/data` files side by side
+   and name how Opus's seed data differs (count, fields, specificity).
+   Add the seed-data rule to the finish rules (at least six seeded items,
+   the first three visible without scrolling at laptop width, each with a
+   name, a time and a detail, written for this place), then Gemma four
+   trials a prompt (about $0.04, log first). Sheet to Josh.
+2. **First-try code: the fix-pass gap.** 6 of 16 Gemma builds needed a
+   fix pass, none of Opus's. Tabulate the trigger errors of those six
+   (and of Gemma's Nov 3 to 5 builds) and take the most common cause.
+   Two known candidates: router hooks called in the component that
+   renders the router (Nov 6, Nov 8), and `React.*` value uses without
+   the import. One static check plus hint, tested against the clean-build
+   fixtures.
+3. **Type and lint slips.** List Gemma's tsc errors and lint findings
+   from the same builds by rule; if one or two rules make up most, add a
+   line for them to `HUMAN_SCALE_BUILD_RULES` (Gemma-keyed if the others
+   do not make them).
 4. **End-to-end check of export and delete.** Needs a signed-in Builder.
 
 ## After that, in order
