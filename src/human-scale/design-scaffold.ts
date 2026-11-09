@@ -182,10 +182,11 @@ function directionsBlock(): string {
 const FINISH_RULES = [
   '## Finished, not tidy',
   '',
-  'Three things separate a finished neighborhood tool from a tidy demo; do all three:',
+  'Four things separate a finished neighborhood tool from a tidy demo; do all four:',
   '- **The first screen is full.** Above the fold: the big status or question block, the main action, AND the first real items. At `md`+ a second column carries the next most useful list (this week\'s pickups, the other questions), so a laptop never shows one narrow column and empty space.',
   '- **Every item has texture.** A face or initials (`<Avatar name=... />`), who and when ("Dev Patel · 2 hours ago"), a small badge for its kind, and ONE action of its own written as a verb a neighbor would say ("Thank Dev", "I can return it", "Me too"), not a generic "View".',
   '- **Copy names people and places.** The steward by name, the street, the day: "Dev keeps the tool shed. He is there Saturday mornings." Never "Welcome to the app" or "Manage your items".',
+  '- **Seed it like a week of real use.** At least six seeded items per main list, each with a person, a relative time ("2 hours ago", computed from now) and one concrete local detail (a street, a landmark, a day of the week, a named shop or stop in this place), never generic filler like "some bread" or "a great idea". The first three items of the main list and the first card of the second column must be visible without scrolling at laptop width.',
 ].join('\n');
 
 const REFERENCE = [
