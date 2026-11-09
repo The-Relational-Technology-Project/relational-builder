@@ -29,4 +29,10 @@ describe('stuttered import repair', () => {
     expect(r.content.split('\n')[0]).toBe("import { Badge } from '@/components/ui/badge';");
     expect(r.content.split('\n').slice(1)).toEqual(src.split('\n').slice(1));
   });
+
+  it('repairs a stutter followed by a comment, and an @/src/ alias (Gemma, Nov 9)', () => {
+    expect(repairImportLine("import { Badge } badge from '@/components/ui/badge'; // Note: kit")).toBe("import { Badge } from '@/components/ui/badge'; // Note: kit");
+    expect(repairImportLine("import { useStore } from '@/src/store';")).toBe("import { useStore } from '@/store';");
+  });
 });
+

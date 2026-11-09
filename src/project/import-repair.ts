@@ -13,10 +13,17 @@
  * import clause are touched.
  */
 
-const IMPORT_LINE = /^(\s*import\s+)(.+?)(\s+from\s+(['"])[^'"]+\4\s*;?\s*)$/;
+const IMPORT_LINE = /^(\s*import\s+)(.+?)(\s+from\s+(['"])[^'"]+\4\s*;?\s*(?:\/\/.*)?)$/;
 const VALID_CLAUSE = /^(?:type\s+)?(?:[A-Za-z_$][\w$]*|\*\s+as\s+[A-Za-z_$][\w$]*|\{[^{}]*\}|[A-Za-z_$][\w$]*\s*,\s*\{[^{}]*\}|[A-Za-z_$][\w$]*\s*,\s*\*\s+as\s+[A-Za-z_$][\w$]*)$/;
 
+/** `@/src/store` means `@/store`: the alias already points at /src
+ *  (Gemma, Nov 2026) */
+function repairSpecifier(line: string): string {
+  return line.replace(/(from\s+['"])@\/src\//, '$1@/');
+}
+
 export function repairImportLine(line: string): string {
+  line = repairSpecifier(line);
   const m = line.match(IMPORT_LINE);
   if (!m) return line;
   const clause = m[2].trim();

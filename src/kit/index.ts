@@ -18,6 +18,7 @@
  */
 
 import utilsSrc from './files/lib/utils.ts?raw';
+import cnSrc from './files/lib/cn.ts?raw';
 import aiSrc from './files/lib/ai.ts?raw';
 import slotSrc from './files/components/ui/slot.tsx?raw';
 import buttonSrc from './files/components/ui/button.tsx?raw';
@@ -41,6 +42,7 @@ import separatorSrc from './files/components/ui/separator.tsx?raw';
 /** Kit sources by the path they occupy inside a generated project. */
 export const KIT_FILES: Record<string, string> = {
   '/src/lib/utils.ts': utilsSrc,
+  '/src/lib/cn.ts': cnSrc,
   // Named AI jobs over the project's runtime setting (human-scale branch).
   // Inert unless a project imports it; the prompt mentions it only behind the flag.
   '/src/lib/ai.ts': aiSrc,

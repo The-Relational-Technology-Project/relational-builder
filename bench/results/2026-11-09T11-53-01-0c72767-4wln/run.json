@@ -2,7 +2,7 @@
   "harnessVersion": "1.2.0",
   "taskVersion": "exp-v1,exp-v1",
   "gitCommit": "0c72767",
-  "createdAt": "2026-11-09T11:54:01.861Z",
+  "createdAt": "2026-11-09T12:00:25.888Z",
   "runId": "2026-11-09T11-53-01-0c72767-4wln",
   "config": {
     "trials": 4,
@@ -116,7 +116,48 @@
         "model": "google/gemma-4-26b-a4b-it",
         "provider": "DekaLLM"
       },
-      "importIssues": []
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 702,
+        "aboveFoldChars": 652
+      },
+      "quality": {
+        "files": 7,
+        "codeFiles": 5,
+        "codeLines": 275,
+        "largestFile": "/src/pages/HomePage.tsx",
+        "largestFileLines": 103,
+        "anyCount": 0,
+        "kitImportingFiles": 3,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 14,
+          "tokensTotal": 15,
+          "kitLayout": [
+            "AppBar",
+            "BottomNav",
+            "Card"
+          ],
+          "mdClasses": 8,
+          "fontLoaded": true,
+          "contrastText": 13.1,
+          "contrastMuted": 5.9,
+          "namedPeople": 4,
+          "placeNamed": true
+        },
+        "lintErrors": 3,
+        "lintWarnings": 0,
+        "lintPer100Lines": 1.1,
+        "tscErrors": 2,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 111,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
     },
     {
       "alias": "gemma-4-26b",
@@ -204,7 +245,804 @@
         "model": "google/gemma-4-26b-a4b-it",
         "provider": "Makora"
       },
-      "importIssues": []
+      "importIssues": [],
+      "runtime": {
+        "rendered": false,
+        "errors": [
+          "pageerror: The requested module 'react-router-dom' does not provide an export named 'RouterLink'"
+        ],
+        "bodyChars": 0,
+        "aboveFoldChars": 0
+      },
+      "quality": {
+        "files": 12,
+        "codeFiles": 10,
+        "codeLines": 465,
+        "largestFile": "/src/data/seed.ts",
+        "largestFileLines": 98,
+        "anyCount": 0,
+        "kitImportingFiles": 5,
+        "handRolledUiFiles": 2,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 14,
+          "tokensTotal": 15,
+          "kitLayout": [
+            "AppBar",
+            "BottomNav",
+            "Card"
+          ],
+          "mdClasses": 6,
+          "fontLoaded": true,
+          "contrastText": 13.1,
+          "contrastMuted": 5.9,
+          "namedPeople": 5,
+          "placeNamed": true
+        },
+        "lintErrors": 13,
+        "lintWarnings": 0,
+        "lintPer100Lines": 2.8,
+        "tscErrors": 3,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 209,
+        "fixLatencyMs": 2983,
+        "failKind": "missing-file"
+      }
+    },
+    {
+      "alias": "gemma-4-26b",
+      "providerId": "openrouter",
+      "modelId": "google/gemma-4-26b-a4b-it",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 3,
+      "startedAt": "2026-11-09T11:54:01.862Z",
+      "plan": null,
+      "latencyMs": 20759,
+      "ttftMs": 704,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 20759,
+          "chars": 17028
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 17028,
+      "estTokens": {
+        "input": 15881,
+        "output": 4257,
+        "estimated": true
+      },
+      "estCostUsd": 0.00270639,
+      "extraction": {
+        "writes": 10,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/gemma-4-26b-t3",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/pages/Dashboard.tsx: <Calendar> is used but never imported or declared in this file",
+          "vfs:/src/pages/PostUpdate.tsx: No matching export in \"vfs:/src/components/ui/select.tsx\" for import \"select\""
+        ],
+        "solved": true,
+        "latencyMs": 30837,
+        "remainingErrors": [],
+        "estCostUsd": 0.0024305399999999997,
+        "passes": 1
+      },
+      "error": null,
+      "served": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "provider": "Makora"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 650,
+        "aboveFoldChars": 467
+      },
+      "quality": {
+        "files": 8,
+        "codeFiles": 6,
+        "codeLines": 359,
+        "largestFile": "/src/pages/Dashboard.tsx",
+        "largestFileLines": 97,
+        "anyCount": 0,
+        "kitImportingFiles": 4,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 14,
+          "tokensTotal": 15,
+          "kitLayout": [
+            "AppBar",
+            "BottomNav",
+            "Card"
+          ],
+          "mdClasses": 6,
+          "fontLoaded": true,
+          "contrastText": 13.1,
+          "contrastMuted": 5.9,
+          "namedPeople": 6,
+          "placeNamed": true
+        },
+        "lintErrors": 7,
+        "lintWarnings": 0,
+        "lintPer100Lines": 1.9,
+        "tscErrors": 6,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 205.1,
+        "fixLatencyMs": 30837,
+        "failKind": "other"
+      }
+    },
+    {
+      "alias": "gemma-4-26b",
+      "providerId": "openrouter",
+      "modelId": "google/gemma-4-26b-a4b-it",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 4,
+      "startedAt": "2026-11-09T11:54:53.607Z",
+      "plan": null,
+      "latencyMs": 20096,
+      "ttftMs": 394,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 20096,
+          "chars": 16722
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 16722,
+      "estTokens": {
+        "input": 15881,
+        "output": 4181,
+        "estimated": true
+      },
+      "estCostUsd": 0.0026835899999999996,
+      "extraction": {
+        "writes": 11,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/gemma-4-26b-t4",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/pages/Home.tsx:3: Expected \"from\" but found \"badge\"",
+          "vfs:/src/pages/Home.tsx: No matching export in \"vfs:/src/components/ui/badge.tsx\" for import \"default\" (it exports names only)",
+          "vfs:/src/pages/Home.tsx: <Calendar> is used but never imported or declared in this file"
+        ],
+        "solved": true,
+        "latencyMs": 46453,
+        "remainingErrors": [],
+        "estCostUsd": 0.00449226,
+        "passes": 2
+      },
+      "error": null,
+      "served": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "provider": "Makora"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 586,
+        "aboveFoldChars": 544
+      },
+      "quality": {
+        "files": 9,
+        "codeFiles": 7,
+        "codeLines": 356,
+        "largestFile": "/src/pages/Home.tsx",
+        "largestFileLines": 104,
+        "anyCount": 0,
+        "kitImportingFiles": 5,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 14,
+          "tokensTotal": 15,
+          "kitLayout": [
+            "AppBar",
+            "BottomNav",
+            "Card"
+          ],
+          "mdClasses": 9,
+          "fontLoaded": true,
+          "contrastText": 13.1,
+          "contrastMuted": 5.9,
+          "namedPeople": 2,
+          "placeNamed": true
+        },
+        "lintErrors": 17,
+        "lintWarnings": 0,
+        "lintPer100Lines": 4.8,
+        "tscErrors": 5,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 208,
+        "fixLatencyMs": 46453,
+        "failKind": "syntax"
+      }
+    },
+    {
+      "alias": "gemma-4-26b",
+      "providerId": "openrouter",
+      "modelId": "google/gemma-4-26b-a4b-it",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-09T11:56:00.323Z",
+      "plan": null,
+      "latencyMs": 81133,
+      "ttftMs": 4714,
+      "segments": [
+        {
+          "finishReason": null,
+          "latencyMs": 31878,
+          "chars": 2843
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 49253,
+          "chars": 14094
+        }
+      ],
+      "continuations": 1,
+      "truncatedFinal": false,
+      "outputChars": 16937,
+      "estTokens": {
+        "input": 32600,
+        "output": 4235,
+        "estimated": true
+      },
+      "estCostUsd": 0.0042045,
+      "extraction": {
+        "writes": 7,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/gemma-4-26b-t1",
+      "fixRound": null,
+      "error": null,
+      "served": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "provider": "Io Net"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 3523,
+        "aboveFoldChars": 1013
+      },
+      "quality": {
+        "files": 7,
+        "codeFiles": 5,
+        "codeLines": 353,
+        "largestFile": "/src/pages/WallPage.tsx",
+        "largestFileLines": 137,
+        "anyCount": 0,
+        "kitImportingFiles": 3,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 14,
+          "tokensTotal": 15,
+          "kitLayout": [
+            "AppBar",
+            "BottomNav",
+            "EmptyState",
+            "Card"
+          ],
+          "mdClasses": 6,
+          "fontLoaded": true,
+          "contrastText": 14.4,
+          "contrastMuted": 6.4,
+          "namedPeople": 0,
+          "placeNamed": true
+        },
+        "lintErrors": 3,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.8,
+        "tscErrors": 2,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 52.2,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    },
+    {
+      "alias": "gemma-4-26b",
+      "providerId": "openrouter",
+      "modelId": "google/gemma-4-26b-a4b-it",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 2,
+      "startedAt": "2026-11-09T11:57:21.584Z",
+      "plan": null,
+      "latencyMs": 74034,
+      "ttftMs": 2587,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 74033,
+          "chars": 16343
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 16343,
+      "estTokens": {
+        "input": 15871,
+        "output": 4086,
+        "estimated": true
+      },
+      "estCostUsd": 0.00265419,
+      "extraction": {
+        "writes": 9,
+        "editBlocks": 2,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/gemma-4-26b-t2",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/components/ResponseModal.tsx:7: Could not find \"@/src/store\" in the project (imported from /src/components/ResponseModal.tsx)",
+          "vfs:/src/pages/WallView.tsx:2: Could not find \"@/src/store\" in the project (imported from /src/pages/WallView.tsx)",
+          "vfs:/src/pages/WallView.tsx: Could not find \"@/src/store\" in the project (imported from /src/pages/WallView.tsx)",
+          "vfs:/src/components/ResponseModal.tsx: Could not find \"@/src/store\" in the project (imported from /src/components/ResponseModal.tsx)"
+        ],
+        "solved": true,
+        "latencyMs": 2552,
+        "remainingErrors": [],
+        "estCostUsd": 0.0018620099999999997,
+        "passes": 1
+      },
+      "error": null,
+      "served": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "provider": "AkashML"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 6227,
+        "aboveFoldChars": 1137
+      },
+      "quality": {
+        "files": 9,
+        "codeFiles": 7,
+        "codeLines": 335,
+        "largestFile": "/src/pages/WallView.tsx",
+        "largestFileLines": 108,
+        "anyCount": 0,
+        "kitImportingFiles": 3,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 14,
+          "tokensTotal": 15,
+          "kitLayout": [
+            "AppBar",
+            "BottomNav",
+            "Card"
+          ],
+          "mdClasses": 5,
+          "fontLoaded": true,
+          "contrastText": 14.4,
+          "contrastMuted": 6.4,
+          "namedPeople": 1,
+          "placeNamed": true
+        },
+        "lintErrors": 25,
+        "lintWarnings": 0,
+        "lintPer100Lines": 7.5,
+        "tscErrors": 2,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 55.2,
+        "fixLatencyMs": 2552,
+        "failKind": "missing-file"
+      }
+    },
+    {
+      "alias": "gemma-4-26b",
+      "providerId": "openrouter",
+      "modelId": "google/gemma-4-26b-a4b-it",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 3,
+      "startedAt": "2026-11-09T11:58:38.319Z",
+      "plan": null,
+      "latencyMs": 37485,
+      "ttftMs": 1134,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 37485,
+          "chars": 18203
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 18203,
+      "estTokens": {
+        "input": 15871,
+        "output": 4551,
+        "estimated": true
+      },
+      "estCostUsd": 0.0027936899999999997,
+      "extraction": {
+        "writes": 9,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/gemma-4-26b-t3",
+      "fixRound": null,
+      "error": null,
+      "served": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "provider": "NextBit"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 758,
+        "aboveFoldChars": 731
+      },
+      "quality": {
+        "files": 9,
+        "codeFiles": 7,
+        "codeLines": 390,
+        "largestFile": "/src/pages/QuestionPage.tsx",
+        "largestFileLines": 122,
+        "anyCount": 0,
+        "kitImportingFiles": 4,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 14,
+          "tokensTotal": 15,
+          "kitLayout": [
+            "AppBar",
+            "BottomNav",
+            "Card"
+          ],
+          "mdClasses": 4,
+          "fontLoaded": true,
+          "contrastText": 14.4,
+          "contrastMuted": 6.4,
+          "namedPeople": 0,
+          "placeNamed": true
+        },
+        "lintErrors": 8,
+        "lintWarnings": 0,
+        "lintPer100Lines": 2.1,
+        "tscErrors": 1,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 121.4,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    },
+    {
+      "alias": "gemma-4-26b",
+      "providerId": "openrouter",
+      "modelId": "google/gemma-4-26b-a4b-it",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 4,
+      "startedAt": "2026-11-09T11:59:15.902Z",
+      "plan": null,
+      "latencyMs": 17709,
+      "ttftMs": 705,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 17708,
+          "chars": 17833
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 17833,
+      "estTokens": {
+        "input": 15871,
+        "output": 4459,
+        "estimated": true
+      },
+      "estCostUsd": 0.0027660899999999997,
+      "extraction": {
+        "writes": 9,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/gemma-4-26b-t4",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/store.ts:30: Expected \"}\" but found \"s\""
+        ],
+        "solved": true,
+        "latencyMs": 9991,
+        "remainingErrors": [],
+        "estCostUsd": 0.0020426399999999996,
+        "passes": 1
+      },
+      "error": null,
+      "served": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "provider": "Makora"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 800,
+        "aboveFoldChars": 774
+      },
+      "quality": {
+        "files": 8,
+        "codeFiles": 6,
+        "codeLines": 387,
+        "largestFile": "/src/pages/QuestionPage.tsx",
+        "largestFileLines": 112,
+        "anyCount": 0,
+        "kitImportingFiles": 4,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 14,
+          "tokensTotal": 15,
+          "kitLayout": [
+            "AppBar",
+            "BottomNav",
+            "Card"
+          ],
+          "mdClasses": 10,
+          "fontLoaded": true,
+          "contrastText": 14.4,
+          "contrastMuted": 6.4,
+          "namedPeople": 0,
+          "placeNamed": true
+        },
+        "lintErrors": 4,
+        "lintWarnings": 0,
+        "lintPer100Lines": 1,
+        "tscErrors": 6,
+        "tscSyntaxErrors": 0,
+        "tokensPerSecond": 251.8,
+        "fixLatencyMs": 9991,
+        "failKind": "syntax"
+      }
     }
   ]
 }
