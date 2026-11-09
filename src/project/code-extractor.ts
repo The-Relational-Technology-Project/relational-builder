@@ -17,6 +17,9 @@
  *    ```tsx
  */
 
+import { isHumanScale } from '@/human-scale/flag';
+import { repairImports, REPAIRABLE_PATH } from './import-repair';
+
 export interface ExtractedFile {
   path: string;
   content: string;
@@ -106,7 +109,11 @@ export function extractOperations(markdown: string): ExtractionResult {
         const pairs = parseEditPairs(content);
         if (pairs.length > 0) edits.push({ path: filename, edits: pairs });
       } else {
-        writes.push({ path: filename, content, language });
+        // Behind the human-scale flag, a stuttered import line from a small
+        // model is repaired here, before anything reads the file
+        // (src/project/import-repair.ts)
+        const fixed = isHumanScale() && REPAIRABLE_PATH.test(filename) ? repairImports(content).content : content;
+        writes.push({ path: filename, content: fixed, language });
       }
     } else {
       // A fence opener glued to the end of a prose line ("…the shell.```html

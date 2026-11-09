@@ -1,0 +1,140 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1,exp-v1",
+  "gitCommit": "0fd5d89",
+  "createdAt": "2026-11-09T11:44:45.933Z",
+  "runId": "2026-11-09T11-43-16-0fd5d89-0hsu",
+  "config": {
+    "trials": 4,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": null,
+    "importGuard": true,
+    "fixHints": true,
+    "humanScaleRules": true,
+    "fixPasses": 2,
+    "designScaffold": "direction",
+    "openrouterIgnore": "Darkbloom",
+    "openrouterOnly": null
+  },
+  "models": [
+    {
+      "alias": "gemma-4-26b",
+      "providerId": "openrouter",
+      "modelId": "google/gemma-4-26b-a4b-it",
+      "pricing": {
+        "inputPerMTok": 0.09,
+        "outputPerMTok": 0.3,
+        "asOf": "2026-10"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "hs-community-fridge",
+      "version": "exp-v1"
+    },
+    {
+      "id": "hs-listening-wall",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "gemma-4-26b",
+      "providerId": "openrouter",
+      "modelId": "google/gemma-4-26b-a4b-it",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-09T11:43:16.771Z",
+      "plan": null,
+      "latencyMs": 43831,
+      "ttftMs": 1537,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 43831,
+          "chars": 11196
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 11196,
+      "estTokens": {
+        "input": 15808,
+        "output": 2799,
+        "estimated": true
+      },
+      "estCostUsd": 0.00226242,
+      "extraction": {
+        "writes": 7,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": false,
+        "errors": [
+          "vfs:/src/components/ui/app-bar.tsx:4: Unexpected end of file"
+        ]
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/gemma-4-26b-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/App.tsx:54: Expected \"}\" but found \"'s3'\"",
+          "vfs:/src/App.tsx: No matching export in \"vfs:/src/components/ui/app-bar.tsx\" for import \"AppBarTitle\""
+        ],
+        "solved": false,
+        "latencyMs": 45197,
+        "remainingErrors": [
+          "vfs:/src/components/ui/app-bar.tsx:4: Unexpected end of file",
+          "vfs:/src/App.tsx: No matching export in \"vfs:/src/components/ui/app-bar.tsx\" for import \"AppBarTitle\""
+        ],
+        "estCostUsd": 0.00465048,
+        "passes": 2
+      },
+      "error": null,
+      "served": {
+        "model": "google/gemma-4-26b-a4b-it",
+        "provider": "AkashML"
+      },
+      "importIssues": [
+        "vfs:/src/App.tsx: No matching export in \"vfs:/src/components/ui/app-bar.tsx\" for import \"AppBarTitle\""
+      ]
+    }
+  ]
+}
