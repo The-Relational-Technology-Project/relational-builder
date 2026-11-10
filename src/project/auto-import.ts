@@ -25,9 +25,17 @@ export function addMissingImports(
   kitFiles: Record<string, string>,
 ): { content: string; added: string[] } {
   const names = new Set<string>();
+  let needsReact = false;
   for (const issue of checkImports({ [path]: source }, { kitFiles })) {
     const m = issue.match(UNDECLARED);
     if (m) names.add(m[1]);
+    if (issue.includes('ReferenceError: React is not defined')) needsReact = true;
+  }
+  // React.* used as a value with no React import: the namespace import is
+  // always safe next to any named imports from 'react'
+  if (needsReact) {
+    const inner = addMissingImports(path, `import * as React from 'react';\n${source}`, kitFiles);
+    return { content: inner.content, added: ['React', ...inner.added] };
   }
   if (names.size === 0) return { content: source, added: [] };
 

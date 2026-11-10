@@ -18,4 +18,15 @@ describe('adding a forgotten import', () => {
     const src = 'export const A = () => <ShiftCard />;';
     expect(addMissingImports('/src/A.tsx', src, KIT_FILES)).toEqual({ content: src, added: [] });
   });
+  it('adds the React namespace when React.* is used as a value without an import', () => {
+    const src = "import { useState } from 'react';\nexport default function App() { const [n] = useState(0); return React.createElement('div', null, n); }";
+    const r = addMissingImports('/src/App.tsx', src, KIT_FILES);
+    expect(r.added).toContain('React');
+    expect(r.content.startsWith("import * as React from 'react';\n")).toBe(true);
+    expect(checkImports({ '/src/App.tsx': r.content }, { kitFiles: KIT_FILES }).some(i => i.includes('React is not defined'))).toBe(false);
+  });
+  it('leaves a file that only uses React types alone', () => {
+    const src = "export function F(e: React.FormEvent) { return e; }";
+    expect(addMissingImports('/src/F.tsx', src, KIT_FILES).added).toEqual([]);
+  });
 });
