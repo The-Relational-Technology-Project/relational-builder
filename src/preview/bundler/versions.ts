@@ -32,6 +32,10 @@ export const PINNED_VERSIONS: Record<string, string> = {
   'qrcode': '1.5.4',
   'marked': '15.0.7',
   'uuid': '11.1.0',
+  // Maps: react-leaflet 5 needs React 19's `use`; 4.2.1 is the React 18 line.
+  // leaflet pinned with it so its stylesheet and code match (Nov 10)
+  'react-leaflet': '4.2.1',
+  'leaflet': '1.9.4',
 };
 
 const ESM_CDN = 'https://esm.sh';

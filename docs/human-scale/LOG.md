@@ -12,6 +12,51 @@ experiment at most $5 and 30 minutes.
 
 ---
 
+## 2026-11-10 (afternoon): the spread set
+
+**For Josh:** You asked to see the open models on more kinds of
+relational tech, including remixes from the gallery. The bench now has a
+spread set of eight: remixes of Community Income Sharing, the Hello
+Neighbor Gathering Fund, Westminster Stories and the Tool Lending Library
+seed (worded like the gallery's own remix opening), plus a story circle
+companion, a bilingual ballot guide, a teen and elder skill swap and a
+bulletin board map. One build per model per prompt; the sheet is sent to
+you here. Spend about $2.93, most of it the Opus reference.
+
+| | Working | First try | First-screen text (median chars) |
+|---|---|---|---|
+| Opus 5.5 | 6 of 8 | 6 | 1,051 |
+| GLM 4.5 Air | 7 of 8 | 5 | 725 |
+| Gemma 4 26B | 6 of 8 | 2 | 727 |
+| GPT-OSS 120B | 5 of 8 | 4 | 561 |
+
+**What it showed.**
+- Two Builder bugs, not model bugs, both now fixed and replayed: an app
+  that imports a package stylesheet (`import 'leaflet/dist/leaflet.css'`,
+  the standard way to use Leaflet maps) failed to load at all, because
+  the stylesheet went through the import map as a script; and
+  `react-leaflet` came from the CDN at a version that needs React 19
+  while the preview runs 18. The map builds from GLM and GPT-OSS render
+  after both fixes. These affect every builder making a map, on any model.
+- Opus's two misses: one real (a crash on a missing variable in the
+  tool library), one the screenshot harness's (fetching a data file from
+  disk); the harness miss is not counted against it in the sheet's
+  captions, but is in the table above.
+- GLM and GPT-OSS answered three of the remix and ballot prompts with a
+  single HTML file rather than a React app; those took the simple preview
+  and worked.
+- On screen, the gap to Opus is wider here than on the two comparison
+  prompts: Opus's income-sharing remix weaves in Spanish, local
+  payment habits and a past month's notes; Gemma's has the core flow but
+  no Spanish switch and an empty history. Specificity, again.
+- Gemma's first-try rate (2 of 8) is lower than on the comparison prompts,
+  which the week's repairs were tuned on: one build used an icon it never
+  imported in a data file, one looped forever on a store selector.
+
+**Honest read:** one build a cell is a first look, not a measure. The set
+is worth running weekly at this size, and its first job is done: it found
+two product bugs the two comparison prompts never would have.
+
 ## 2026-11-10
 
 **For Josh:** Gemma's code now matches Opus's on lint and type errors

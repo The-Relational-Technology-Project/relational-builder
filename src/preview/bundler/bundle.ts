@@ -226,6 +226,19 @@ export async function bundleProject(input: BundleInput): Promise<BundleResult> {
           return { path, namespace: 'rb-router-preview' };
         }
 
+        // A package's stylesheet (`import 'leaflet/dist/leaflet.css'`) is not
+        // a module: through the import map the browser refuses it (CSS MIME
+        // for a module script) and the whole app fails to load. Collect it
+        // as a remote @import instead; the shell lifts those into <link>s.
+        if (/\.css$/.test(path)) {
+          const url = cdnUrl(path).split('?')[0];
+          if (!seenCss.has(url)) {
+            seenCss.add(url);
+            cssChunks.push(`@import url("${url}");`);
+          }
+          return { path, namespace: 'rb-package-css' };
+        }
+
         // Bare import → external, satisfied by the shell's import map
         bareImports.add(path);
         return { path, external: true };
@@ -244,6 +257,8 @@ export async function bundleProject(input: BundleInput): Promise<BundleResult> {
           loader: 'js',
         };
       });
+
+      build.onLoad({ filter: /.*/, namespace: 'rb-package-css' }, () => ({ contents: '', loader: 'js' }));
 
       build.onLoad({ filter: /.*/, namespace: 'rb-missing-image' }, () => ({
         contents: `export default ${JSON.stringify(PLACEHOLDER_DATA_URL)};`,

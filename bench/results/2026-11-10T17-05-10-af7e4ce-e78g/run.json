@@ -1,0 +1,1061 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1,exp-v1,exp-v1,exp-v1,exp-v1,exp-v1,exp-v1,exp-v1",
+  "gitCommit": "af7e4ce",
+  "createdAt": "2026-11-10T17:36:38.608Z",
+  "runId": "2026-11-10T17-05-10-af7e4ce-e78g",
+  "config": {
+    "trials": 1,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": null,
+    "importGuard": true,
+    "fixHints": true,
+    "humanScaleRules": true,
+    "fixPasses": 2,
+    "designScaffold": "direction",
+    "openrouterIgnore": "Darkbloom",
+    "openrouterOnly": null,
+    "openrouterQuant": null
+  },
+  "models": [
+    {
+      "alias": "opus-5-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-opus-5.5",
+      "pricing": {
+        "inputPerMTok": 4,
+        "outputPerMTok": 20,
+        "asOf": "2026-10"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "remix-income-sharing",
+      "version": "exp-v1"
+    },
+    {
+      "id": "remix-gathering-fund",
+      "version": "exp-v1"
+    },
+    {
+      "id": "remix-street-stories",
+      "version": "exp-v1"
+    },
+    {
+      "id": "remix-tool-lending-seed",
+      "version": "exp-v1"
+    },
+    {
+      "id": "hs-story-circle",
+      "version": "exp-v1"
+    },
+    {
+      "id": "hs-ballot-guide",
+      "version": "exp-v1"
+    },
+    {
+      "id": "hs-skill-swap",
+      "version": "exp-v1"
+    },
+    {
+      "id": "hs-bulletin-boards",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "opus-5-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-opus-5.5",
+      "taskId": "remix-income-sharing",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-10T17:05:10.796Z",
+      "plan": null,
+      "latencyMs": 276527,
+      "ttftMs": 135185,
+      "segments": [
+        {
+          "finishReason": "length",
+          "latencyMs": 204787,
+          "chars": 24451
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 71731,
+          "chars": 21251
+        }
+      ],
+      "continuations": 1,
+      "truncatedFinal": false,
+      "outputChars": 45702,
+      "estTokens": {
+        "input": 38544,
+        "output": 11426,
+        "estimated": true
+      },
+      "estCostUsd": 0.38269600000000004,
+      "extraction": {
+        "writes": 10,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/remix-income-sharing/opus-5-5-t1",
+      "fixRound": null,
+      "error": null,
+      "served": {
+        "model": "anthropic/claude-opus-5.5",
+        "provider": "Claude Platform on AWS"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 704,
+        "aboveFoldChars": 535
+      },
+      "quality": {
+        "files": 10,
+        "codeFiles": 8,
+        "codeLines": 945,
+        "largestFile": "/src/pages/ThisMonth.tsx",
+        "largestFileLines": 215,
+        "anyCount": 0,
+        "kitImportingFiles": 4,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 15,
+          "tokensTotal": 15,
+          "kitLayout": [
+            "AppBar",
+            "BottomNav",
+            "EmptyState",
+            "Card"
+          ],
+          "mdClasses": 10,
+          "fontLoaded": true,
+          "contrastText": 16.4,
+          "contrastMuted": 8.6,
+          "namedPeople": 2,
+          "placeNamed": false
+        },
+        "lintErrors": 0,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0,
+        "tscErrors": 0,
+        "tscSyntaxErrors": 0,
+        "tscCodes": {},
+        "tokensPerSecond": 41.3,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    },
+    {
+      "alias": "opus-5-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-opus-5.5",
+      "taskId": "remix-gathering-fund",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-10T17:09:47.589Z",
+      "plan": null,
+      "latencyMs": 121127,
+      "ttftMs": 42974,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 121127,
+          "chars": 24971
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 24971,
+      "estTokens": {
+        "input": 16116,
+        "output": 6243,
+        "estimated": true
+      },
+      "estCostUsd": 0.189324,
+      "extraction": {
+        "writes": 4,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "sandpack",
+      "previewKindMatch": false,
+      "bundle": null,
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": false
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": false
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/remix-gathering-fund/opus-5-5-t1",
+      "fixRound": null,
+      "error": null,
+      "served": {
+        "model": "anthropic/claude-opus-5.5",
+        "provider": "Claude Platform on AWS"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 1232,
+        "aboveFoldChars": 1051
+      },
+      "quality": {
+        "files": 4,
+        "codeFiles": 1,
+        "codeLines": 137,
+        "largestFile": "/app.js",
+        "largestFileLines": 137,
+        "anyCount": 0,
+        "kitImportingFiles": 0,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 0,
+          "tokensTotal": 0,
+          "kitLayout": [],
+          "mdClasses": 0,
+          "fontLoaded": true,
+          "contrastText": null,
+          "contrastMuted": null,
+          "namedPeople": 1,
+          "placeNamed": true
+        },
+        "lintErrors": 0,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0,
+        "tscErrors": null,
+        "tscSyntaxErrors": 0,
+        "tscCodes": null,
+        "tokensPerSecond": 51.5,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    },
+    {
+      "alias": "opus-5-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-opus-5.5",
+      "taskId": "remix-street-stories",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-10T17:11:48.724Z",
+      "plan": null,
+      "latencyMs": 197898,
+      "ttftMs": 65148,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 131062,
+          "chars": 21164
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 66832,
+          "chars": 19909
+        }
+      ],
+      "continuations": 1,
+      "truncatedFinal": false,
+      "outputChars": 41073,
+      "estTokens": {
+        "input": 37641,
+        "output": 10269,
+        "estimated": true
+      },
+      "estCostUsd": 0.35594400000000004,
+      "extraction": {
+        "writes": 12,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/remix-street-stories/opus-5-5-t1",
+      "fixRound": null,
+      "error": null,
+      "served": {
+        "model": "anthropic/claude-opus-5.5",
+        "provider": "Claude Platform on AWS"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 3125,
+        "aboveFoldChars": 1148
+      },
+      "quality": {
+        "files": 12,
+        "codeFiles": 10,
+        "codeLines": 813,
+        "largestFile": "/src/data/street.ts",
+        "largestFileLines": 202,
+        "anyCount": 0,
+        "kitImportingFiles": 5,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 14,
+          "tokensTotal": 15,
+          "kitLayout": [
+            "AppBar",
+            "BottomNav",
+            "EmptyState",
+            "Card"
+          ],
+          "mdClasses": 12,
+          "fontLoaded": true,
+          "contrastText": 14.4,
+          "contrastMuted": 6.4,
+          "namedPeople": 3,
+          "placeNamed": true
+        },
+        "lintErrors": 0,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0,
+        "tscErrors": 0,
+        "tscSyntaxErrors": 0,
+        "tscCodes": {},
+        "tokensPerSecond": 51.9,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    },
+    {
+      "alias": "opus-5-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-opus-5.5",
+      "taskId": "remix-tool-lending-seed",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-10T17:15:06.781Z",
+      "plan": null,
+      "latencyMs": 174630,
+      "ttftMs": 103723,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 174629,
+          "chars": 25876
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 25876,
+      "estTokens": {
+        "input": 16113,
+        "output": 6469,
+        "estimated": true
+      },
+      "estCostUsd": 0.193832,
+      "extraction": {
+        "writes": 11,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/remix-tool-lending-seed/opus-5-5-t1",
+      "fixRound": null,
+      "error": null,
+      "served": {
+        "model": "anthropic/claude-opus-5.5",
+        "provider": "Claude Platform on AWS"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": false,
+        "errors": [
+          "console: ReferenceError: categories is not defined at Shelf (file:///home/user/relational-builder/bench/results/2026-11-10T17-05-10-af7e4ce-e78g/artifacts/remix-tool-lending-seed/opus-5-5-t1/preview.html:791:94) at Hi (https://es",
+          "pageerror: categories is not defined"
+        ],
+        "bodyChars": 0,
+        "aboveFoldChars": 0
+      },
+      "quality": {
+        "files": 11,
+        "codeFiles": 9,
+        "codeLines": 537,
+        "largestFile": "/src/App.tsx",
+        "largestFileLines": 89,
+        "anyCount": 0,
+        "kitImportingFiles": 6,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 14,
+          "tokensTotal": 15,
+          "kitLayout": [
+            "AppBar",
+            "BottomNav",
+            "EmptyState",
+            "Card"
+          ],
+          "mdClasses": 8,
+          "fontLoaded": true,
+          "contrastText": 15.4,
+          "contrastMuted": 6.7,
+          "namedPeople": 7,
+          "placeNamed": true
+        },
+        "lintErrors": 0,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0,
+        "tscErrors": 1,
+        "tscSyntaxErrors": 0,
+        "tscCodes": {
+          "2304": 1
+        },
+        "tokensPerSecond": 37,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    },
+    {
+      "alias": "opus-5-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-opus-5.5",
+      "taskId": "hs-story-circle",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-10T17:18:01.591Z",
+      "plan": null,
+      "latencyMs": 222907,
+      "ttftMs": 109310,
+      "segments": [
+        {
+          "finishReason": "length",
+          "latencyMs": 196930,
+          "chars": 34435
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 25971,
+          "chars": 7943
+        }
+      ],
+      "continuations": 1,
+      "truncatedFinal": false,
+      "outputChars": 42378,
+      "estTokens": {
+        "input": 40905,
+        "output": 10595,
+        "estimated": true
+      },
+      "estCostUsd": 0.37551999999999996,
+      "extraction": {
+        "writes": 11,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-story-circle/opus-5-5-t1",
+      "fixRound": null,
+      "error": null,
+      "served": {
+        "model": "anthropic/claude-opus-5.5",
+        "provider": "Claude Platform on AWS"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 1032,
+        "aboveFoldChars": 689
+      },
+      "quality": {
+        "files": 11,
+        "codeFiles": 9,
+        "codeLines": 939,
+        "largestFile": "/src/pages/Tonight.tsx",
+        "largestFileLines": 188,
+        "anyCount": 0,
+        "kitImportingFiles": 5,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 14,
+          "tokensTotal": 15,
+          "kitLayout": [
+            "AppBar",
+            "BottomNav",
+            "EmptyState",
+            "Card"
+          ],
+          "mdClasses": 27,
+          "fontLoaded": true,
+          "contrastText": 14.4,
+          "contrastMuted": 6.4,
+          "namedPeople": 2,
+          "placeNamed": true
+        },
+        "lintErrors": 5,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.5,
+        "tscErrors": 0,
+        "tscSyntaxErrors": 0,
+        "tscCodes": {},
+        "tokensPerSecond": 47.5,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    },
+    {
+      "alias": "opus-5-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-opus-5.5",
+      "taskId": "hs-ballot-guide",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-10T17:21:44.632Z",
+      "plan": null,
+      "latencyMs": 349743,
+      "ttftMs": 109728,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 159068,
+          "chars": 16128
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 122996,
+          "chars": 20118
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 67672,
+          "chars": 18035
+        }
+      ],
+      "continuations": 2,
+      "truncatedFinal": false,
+      "outputChars": 54281,
+      "estTokens": {
+        "input": 61564,
+        "output": 13571,
+        "estimated": true
+      },
+      "estCostUsd": 0.517676,
+      "extraction": {
+        "writes": 15,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-ballot-guide/opus-5-5-t1",
+      "fixRound": null,
+      "error": null,
+      "served": {
+        "model": "anthropic/claude-opus-5.5",
+        "provider": "Claude Platform on AWS"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 5938,
+        "aboveFoldChars": 1846
+      },
+      "quality": {
+        "files": 15,
+        "codeFiles": 13,
+        "codeLines": 1293,
+        "largestFile": "/src/components/RideBoard.tsx",
+        "largestFileLines": 246,
+        "anyCount": 0,
+        "kitImportingFiles": 6,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 13,
+          "tokensTotal": 15,
+          "kitLayout": [
+            "AppBar",
+            "BottomNav",
+            "EmptyState",
+            "Card"
+          ],
+          "mdClasses": 5,
+          "fontLoaded": true,
+          "contrastText": 16.1,
+          "contrastMuted": 7.9,
+          "namedPeople": 16,
+          "placeNamed": true
+        },
+        "lintErrors": 0,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0,
+        "tscErrors": 1,
+        "tscSyntaxErrors": 0,
+        "tscCodes": {
+          "2307": 1
+        },
+        "tokensPerSecond": 38.8,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    },
+    {
+      "alias": "opus-5-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-opus-5.5",
+      "taskId": "hs-skill-swap",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-10T17:27:34.581Z",
+      "plan": null,
+      "latencyMs": 225595,
+      "ttftMs": 120654,
+      "segments": [
+        {
+          "finishReason": "length",
+          "latencyMs": 202294,
+          "chars": 29917
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 23297,
+          "chars": 7771
+        }
+      ],
+      "continuations": 1,
+      "truncatedFinal": false,
+      "outputChars": 37688,
+      "estTokens": {
+        "input": 39726,
+        "output": 9422,
+        "estimated": true
+      },
+      "estCostUsd": 0.347344,
+      "extraction": {
+        "writes": 9,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-skill-swap/opus-5-5-t1",
+      "fixRound": null,
+      "error": null,
+      "served": {
+        "model": "anthropic/claude-opus-5.5",
+        "provider": "Claude Platform on AWS"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 2921,
+        "aboveFoldChars": 899
+      },
+      "quality": {
+        "files": 9,
+        "codeFiles": 7,
+        "codeLines": 705,
+        "largestFile": "/src/pages/Saturdays.tsx",
+        "largestFileLines": 206,
+        "anyCount": 0,
+        "kitImportingFiles": 4,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 14,
+          "tokensTotal": 15,
+          "kitLayout": [
+            "AppBar",
+            "BottomNav",
+            "EmptyState",
+            "Card"
+          ],
+          "mdClasses": 32,
+          "fontLoaded": true,
+          "contrastText": 14.4,
+          "contrastMuted": 6.4,
+          "namedPeople": 1,
+          "placeNamed": true
+        },
+        "lintErrors": 0,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0,
+        "tscErrors": 0,
+        "tscSyntaxErrors": 0,
+        "tscCodes": {},
+        "tokensPerSecond": 41.8,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    },
+    {
+      "alias": "opus-5-5",
+      "providerId": "openrouter",
+      "modelId": "anthropic/claude-opus-5.5",
+      "taskId": "hs-bulletin-boards",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-10T17:31:20.305Z",
+      "plan": null,
+      "latencyMs": 273695,
+      "ttftMs": 80539,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 139415,
+          "chars": 20067
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 134277,
+          "chars": 28966
+        }
+      ],
+      "continuations": 1,
+      "truncatedFinal": false,
+      "outputChars": 49033,
+      "estTokens": {
+        "input": 37168,
+        "output": 12259,
+        "estimated": true
+      },
+      "estCostUsd": 0.393852,
+      "extraction": {
+        "writes": 13,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-bulletin-boards/opus-5-5-t1",
+      "fixRound": null,
+      "error": null,
+      "served": {
+        "model": "anthropic/claude-opus-5.5",
+        "provider": "Claude Platform on AWS"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [
+          "console: Access to fetch at 'file:///home/user/relational-builder/bench/results/2026-11-10T17-05-10-af7e4ce-e78g/artifacts/hs-bulletin-boards/opus-5-5-t1/data/boards.json' from origin 'null' has been blocked by CORS policy: Cross"
+        ],
+        "bodyChars": 1361,
+        "aboveFoldChars": 863
+      },
+      "quality": {
+        "files": 13,
+        "codeFiles": 11,
+        "codeLines": 1067,
+        "largestFile": "/src/store.ts",
+        "largestFileLines": 139,
+        "anyCount": 2,
+        "kitImportingFiles": 6,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 13,
+          "tokensTotal": 15,
+          "kitLayout": [
+            "AppBar",
+            "BottomNav",
+            "EmptyState",
+            "Card"
+          ],
+          "mdClasses": 19,
+          "fontLoaded": true,
+          "contrastText": 16.1,
+          "contrastMuted": 7.9,
+          "namedPeople": 8,
+          "placeNamed": true
+        },
+        "lintErrors": 2,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.2,
+        "tscErrors": 3,
+        "tscSyntaxErrors": 0,
+        "tscCodes": {
+          "2694": 3
+        },
+        "tokensPerSecond": 44.8,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    }
+  ]
+}
