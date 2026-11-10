@@ -316,6 +316,12 @@
    "basis": "text",
    "note": "Starter prompt; Front Porch Forum lineage is the referenced story's pin, not this template's"
   },
+  "build-host-map-day-of-gatherings": {
+   "place": "Sunset District, San Francisco, California, USA",
+   "precision": "neighborhood",
+   "basis": "attribution",
+   "note": "Starter prompt drawn from The Sunset Wave, the Sunset Social Club's day of gatherings"
+  },
   "build-knowy-for-your-place": {
    "place": "Outer Sunset, San Francisco, California, USA",
    "precision": "neighborhood",
@@ -3074,6 +3080,12 @@
    "precision": "none",
    "basis": "text",
    "note": "Universal Cookbook framework; News Futures is a distributed working group with no single home base"
+  },
+  "the-sunset-wave": {
+   "place": "Sunset District, San Francisco, California, USA",
+   "precision": "neighborhood",
+   "basis": "attribution",
+   "note": "The Sunset Wave, organized by the Sunset Social Club; live at thesunsetwave.org"
   },
   "the-village-square-tallahassee": {
    "place": "Tallahassee, Florida, USA",
