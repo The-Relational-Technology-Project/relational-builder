@@ -50,3 +50,44 @@ export function repairImports(source: string): { content: string; repaired: numb
 }
 
 export const REPAIRABLE_PATH = /\.(tsx?|jsx?|mjs)$/;
+
+const SINGLE_IMPORT = /^(\s*import\s+)(type\s+)?(?:([A-Za-z_$][\w$]*)\s*,?\s*)?(?:\{([^{}]*)\})?(\s+from\s+(['"])[^'"]+\6\s*;?\s*(?:\/\/.*)?)$/;
+
+/**
+ * Drop import names a file never uses (Nov 10). Unused imports were 132 of
+ * Gemma's 146 lint findings on the bench and a rule line did not move them;
+ * removing them is mechanical and safe: a name is kept if it appears
+ * anywhere else in the file, `React` is always kept (classic JSX), and
+ * side-effect imports (`import './x.css'`) and multi-line imports are left
+ * alone. An import with nothing left is removed.
+ */
+export function removeUnusedImports(source: string): { content: string; removed: number } {
+  const lines = source.split('\n');
+  let removed = 0;
+  const out: string[] = [];
+  lines.forEach((line, i) => {
+    const m = line.match(SINGLE_IMPORT);
+    if (!m || (!m[3] && m[4] === undefined)) {
+      out.push(line);
+      return;
+    }
+    const rest = lines.filter((_, j) => j !== i).join('\n');
+    const used = (name: string) => name === 'React' || new RegExp(`(^|[^\\w$.])${name.replace(/\$/g, '\\$')}([^\\w$]|$)`).test(rest);
+    const def = m[3] && used(m[3]) ? m[3] : null;
+    if (m[3] && !def) removed++;
+    let named: string[] | null = null;
+    if (m[4] !== undefined) {
+      const parts = m[4].split(',').map(p => p.trim()).filter(Boolean);
+      named = parts.filter(p => {
+        const local = p.replace(/^type\s+/, '').split(/\s+as\s+/).pop()!.trim();
+        const keep = used(local);
+        if (!keep) removed++;
+        return keep;
+      });
+    }
+    if (!def && (!named || named.length === 0)) return; // nothing left: drop the line
+    const clause = [def, named && named.length ? `{ ${named.join(', ')} }` : null].filter(Boolean).join(', ');
+    out.push(`${m[1]}${m[2] ?? ''}${clause}${m[5]}`);
+  });
+  return { content: out.join('\n'), removed };
+}

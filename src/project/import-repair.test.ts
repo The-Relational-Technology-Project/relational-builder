@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { repairImportLine, repairImports } from './import-repair';
+import { repairImportLine, repairImports, removeUnusedImports } from './import-repair';
 
 describe('stuttered import repair', () => {
   it('keeps the last brace group (the lines Gemma actually wrote)', () => {
@@ -33,6 +33,31 @@ describe('stuttered import repair', () => {
   it('repairs a stutter followed by a comment, and an @/src/ alias (Gemma, Nov 9)', () => {
     expect(repairImportLine("import { Badge } badge from '@/components/ui/badge'; // Note: kit")).toBe("import { Badge } from '@/components/ui/badge'; // Note: kit");
     expect(repairImportLine("import { useStore } from '@/src/store';")).toBe("import { useStore } from '@/store';");
+  });
+});
+
+describe('unused import removal', () => {
+  it('drops names the file never uses and keeps the rest', () => {
+    const src = [
+      "import React, { useState, useEffect } from 'react';",
+      "import { Plus, Trash, Heart } from 'lucide-react';",
+      "import { Badge } from '@/components/ui/badge';",
+      "import './index.css';",
+      "import type { Item } from './types';",
+      "export function A({ items }: { items: Item[] }) { const [n] = useState(0); return <div><Plus />{n}{items.length}<Heart /></div>; }",
+    ].join('\n');
+    const r = removeUnusedImports(src);
+    const lines = r.content.split('\n');
+    expect(lines[0]).toBe("import React, { useState } from 'react';");
+    expect(lines[1]).toBe("import { Plus, Heart } from 'lucide-react';");
+    expect(lines).not.toContain("import { Badge } from '@/components/ui/badge';");
+    expect(lines).toContain("import './index.css';");
+    expect(lines).toContain("import type { Item } from './types';");
+    expect(r.removed).toBe(3);
+  });
+  it('keeps aliased names by their local name and leaves a clean file unchanged', () => {
+    const src = "import { format as fmt } from 'date-fns';\nexport const d = fmt(new Date(), 'p');";
+    expect(removeUnusedImports(src)).toEqual({ content: src, removed: 0 });
   });
 });
 
