@@ -144,6 +144,12 @@ mechanical fixes carry to Mistral and GLM.
    Mistral Small 3.2 and GLM 4.5 Air (about $0.10) and say which changes
    carried over and which were Gemma-specific. Gemma-specific fixes stay
    keyed to Gemma (`design-scaffold.ts` can switch by builder model).
+6. **Spread set, weekly (Josh, Nov 10):** `--tasks spread` (four gallery
+   remixes, four new shapes), one build per prompt on Gemma, GLM 4.5 Air
+   and GPT-OSS 120B (about $0.15), with an Opus reference every other
+   week (about $2.80). Sheet: `spread-sheet.mjs --date <day>`, sent to
+   Josh. Its first run (Nov 10) found two preview bugs, so read its
+   failures for Builder bugs first, model habits second.
 
 ## Design read from Josh (2026-11-08 sheet)
 
