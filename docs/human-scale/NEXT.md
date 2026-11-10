@@ -285,6 +285,33 @@ stack layer it moved; pace paid work at $3 to $5 a day.
 
 ## Tomorrow (one run, about 75 minutes)
 
+0. **Josh's experiment (Nov 10): Gemma shown Opus's screens plus specific
+   UI guidance.** Does Gemma close the design gap when it is shown what
+   good looks like, rather than told?
+   - *Harness:* let a bench task carry reference images (`image_url` parts,
+     the shape the gallery remix already sends; Gemma 4 26B takes images
+     on OpenRouter). Tested.
+   - *Guidance:* for each prompt, a written UI spec drawn from the Opus
+     build: screen order, layout at phone and laptop width, which kit
+     parts, palette and type, and what the seed data must say (names,
+     places, the second language where asked). Committed as fixtures, so
+     it is clear the guidance came from Opus.
+   - *Arms, Gemma only, bf16, same prompts:* (A) today's guidance;
+     (B) plus the Opus screenshot of the same prompt, worded like the
+     remix path ("use it as the visual reference"); (C) plus the written
+     spec; (D) both; (E) the Opus screenshot of a *different* prompt,
+     to see whether visual quality carries to a new subject or only
+     gets copied.
+   - *Prompts:* the two comparison prompts plus the four spread prompts
+     where Opus pulled furthest ahead (income sharing, ballot guide,
+     street stories, skill swap). Two trials each: 6 x 5 x 2 = 60
+     builds, about $0.40 including images. Log first.
+   - *Report:* gap table by arm, and a sheet with Opus beside each arm.
+     Design is Josh's read. B and D measure a ceiling (Gemma copying
+     a design it is shown); E and C are the parts a community could
+     use without Opus, through a library of reference screens and
+     written design specs.
+
 1. **Measure everything from Nov 10 together.** Gemma, four trials a
    prompt, bf16 (about $0.04, log first). The batch on Nov 10 ran before the
    hand-written seed clause, the React auto-import and the nav-children
