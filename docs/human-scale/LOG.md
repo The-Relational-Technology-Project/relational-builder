@@ -12,6 +12,95 @@ experiment at most $5 and 30 minutes.
 
 ---
 
+## 2026-11-10
+
+**For Josh:** Gemma's code now matches Opus's on lint and type errors
+(from 2.5 lint findings per 100 lines to 0.3, and median type errors from
+3 to 0). Most of the type errors were one habit: Gemma links its bottom
+tabs with `to="/shifts"`, which the kit didn't accept, so the tabs rendered
+but went nowhere. The kit takes that now, and the same fixes cut Mistral's
+and GLM's type errors too. Working builds hold at about 7 of 8, but
+building right on the first try is still only half, against Opus's
+every time. On design, the listening wall now opens on what people said, but
+Gemma tends to fill it with loop-made filler text; tomorrow's batch tests
+a rule against that. The sheet is sent to you here. Spend about $0.22.
+
+**Stack layer moved:** Builder model and kit, from "Gemma's code carries
+lint and type slips Opus doesn't" to "lint and types at Opus's level,
+first-try rate the remaining code gap, seed specificity the remaining
+content gap".
+
+**What was tried, in NEXT's order.**
+
+1. *Deterministic cleanup.* Behind the flag the extractor now removes
+   single-line import specifiers a file never uses (safe on 157 earlier
+   builds, removing 851), then adds forgotten imports: kit components,
+   lucide icons and, last today, the React namespace when `React.*` is
+   used as a value. Lint dropped at once (2.5 to 0.2 per 100 lines).
+2. *First-try causes.* Before auto-import, 4 of 5 fix-pass triggers in
+   the first batch were "used but never imported"; after it, none. What is
+   left is scattered: React not defined (2, now repaired), an invented
+   icon (`Fridge`), a router in two files, two syntax slips. Two builds
+   failed outright by damaging shared files: a comment-only
+   `app-bar.tsx` that shadowed the kit, and a `main.tsx` rendering
+   `<React></React>`. The extractor now drops a kit-path write that
+   exports none of the kit's names and points such a `main.tsx` back at
+   `<App />`; replayed on those builds, both render.
+3. *Type errors.* The bench now records type-error codes per build
+   (`BENCH_TSC_DUMP=1` prints messages). Of Gemma's 106 since Nov 9, 69
+   were nav items given `to` or `href`, 6 `DialogTrigger asChild`. The
+   kit's `BottomNavItem` now takes `to`/`href` (as hash links, active
+   worked out from the route) and its text as children; `DialogTrigger`
+   takes `asChild`; `Avatar` takes `size`. Re-measuring the same code
+   against the kit: Gemma 3 to 0 median, Mistral 3 to 1, GLM 5 to 3.
+4. *Desktop and content.* A fifth finish rule (a content tool opens on
+   the content) moved the listening wall's first screen from questions
+   plus a "How this works" box to the responses themselves. But 7 of 8
+   of those builds made the responses in a loop (`texts[i % n]`, "This is
+   a meaningful response about..."), so the screen is full of filler.
+   Opus loops only for shift dates. The seed rule now says words by hand,
+   loops only for dates and slots; not yet measured. Desktop classes did
+   not move (6 against Opus's 12).
+5. *Transfer check (weekly).* Mistral Small 3.2 (6 builds) and GLM 4.5
+   Air (6) with the week's changes, against their Nov 6 to 8 direction
+   runs:
+
+| | Mistral before | Mistral Nov 10 | GLM before | GLM Nov 10 |
+|---|---|---|---|---|
+| Working builds | 18 of 21 | 5 of 6 | 2 of 4 | 4 of 6 |
+| Working on the first try | 9 of 21 | 3 of 6 | 0 of 4 | 3 of 6 |
+| Lint per 100 lines (median) | 0.4 | 0 | 1 | 0.3 |
+| Type errors (median, today's kit) | 3 | 1 | 5 | 3 |
+
+   The mechanical repairs and kit additions carry over; the samples are
+   small, so read the working-build counts as "no worse".
+
+**What happened (Gemma, eight builds a column, bf16 hosts):**
+
+| | Opus 5.5 (Nov 6) | Gemma Nov 9 | Gemma Nov 10 (24 builds) | Gemma, every change |
+|---|---|---|---|---|
+| Working builds | 6 of 6 | 21 of 24 | 20 of 24 (22 with today's guards) | 7 of 8 |
+| Working on the first try | 6 of 6 | 11 of 24 | 11 of 24 | 4 of 8 |
+| Lint findings per 100 lines | 0 | 2.5 | 0.3 | 0.3 |
+| Type errors (median) | 0 | 1 (3 before the kit fix) | 0 | 0 |
+| Desktop (`md:`) classes | 12 | 6 | 6 | 6 |
+| First-screen text (median chars) | 774 | 684 | 715 | 553 |
+
+The "every change" batch ran before the hand-written seed clause and the
+React and nav-children repairs, so tomorrow's batch is the first with all
+of them.
+
+**Cost:** five batches, 36 builds, about $0.22 (harness estimate; $2.50
+reserved at worst case beforehand). No Opus calls.
+
+**Honest read:** the code gap is now mostly first-try rate, and its causes
+are a long tail rather than one habit. Each repair takes one cause off,
+and the next one shows up at a similar rate. The bigger remaining
+difference is on screen: Gemma's content is less specific and its desktop
+layouts thinner. Rules have moved content before (Nov 9) and may again;
+desktop has not moved with a rule line in two tries, so the next attempt
+there should be in the kit, not the prompt.
+
 ## 2026-11-09
 
 **For Josh:** The first day on your new focus, closing the gap between

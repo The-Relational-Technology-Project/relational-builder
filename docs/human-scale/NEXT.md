@@ -119,6 +119,13 @@ After the import repair, the kit Select shape and `@/lib/cn`, Gemma made
 first). First-screen text rose to 559 to 731 against Opus's 774. Lint,
 type errors, desktop classes and first-try rate did not move.
 
+**Nov 10 update.** Lint 0.3 per 100 lines and median type errors 0, so
+code quality is at Opus's level on those two measures (import cleanup,
+auto-import, kit nav links, Dialog `asChild`). Still open: first try at
+about half (Opus: all), desktop classes 6 against 12, and seed text that
+Gemma generates in loops instead of writing. The transfer check showed the
+mechanical fixes carry to Mistral and GLM.
+
 **How each run works the gap.**
 1. Pick the largest remaining gap in the table, read the Opus and Gemma
    files and screenshots side by side for it, and name the cause in one
@@ -260,27 +267,38 @@ stack layer it moved; pace paid work at $3 to $5 a day.
    written with them in mind. Default if unanswered: directions written
    from the board's best Gemma and Opus screenshots.
 
+7. **Desktop nav in the kit for everyone?** Tomorrow's item 2 would make
+   the kit's bottom tabs hand over to a top nav at laptop width. The kit
+   is shared by every build, not only open-model ones, so this changes how
+   Opus-built apps look on desktop too. Default if unanswered: build it
+   behind the flag and show you both on the next sheet before it leaves
+   the flag.
+8. **Today's sheet.** Gemma's last 16 builds beside Opus's six. Worth a
+   look at the listening wall row in particular: content first now, but
+   with filler text in some builds.
+
 ## Tomorrow (one run, about 75 minutes)
 
-1. **A deterministic cleanup pass for code quality.** Lint and type errors
-   did not move with a rule line. Behind the flag, after extraction and
-   before bundling, remove import specifiers a file never references
-   (identifier not used anywhere else in the file; never touch side-effect
-   imports or `React` in a file with JSX under the classic runtime), and
-   report how many were removed. Tested on the fixtures (no change to the
-   clean builds' behavior) and on three Gemma builds with unused imports.
-   Then Gemma, four trials a prompt (about $0.04, log first), and the gap
-   table with a new column.
-2. **The remaining first-try causes.** Tabulate the fix-pass triggers of
-   today's 32 Gemma builds the same way as on Nov 9 and take the commonest
-   one the repairs do not reach.
-3. **Desktop layout gap** (7 against Opus's 12 `md:` classes). Compare one
-   Opus and one Gemma build at 1280 width and name the difference; if it
-   is the second column, check whether the recipe's two-column line is
-   being followed and sharpen it.
-4. **Transfer check (this week's).** Run today's changes on Mistral Small
-   3.2 and GLM 4.5 Air, three trials a prompt each (about $0.10), and say
-   which carried over.
+1. **Measure everything from Nov 10 together.** Gemma, four trials a
+   prompt, bf16 (about $0.04, log first). The batch on Nov 10 ran before the
+   hand-written seed clause, the React auto-import and the nav-children
+   kit change. Report the gap table, and count builds whose seed words come
+   from a loop (`grep -l "i % \|Array.from({ length"` on `src/data` and the
+   store; Nov 10: 7 of 8 listening-wall builds). If the count does not
+   fall, add a static check with a hint instead of another rule line.
+2. **Desktop in the kit, not the prompt.** Two rule lines have not moved
+   `md:` classes (6 against Opus's 12). Compare one Opus and one Gemma
+   build at 1280 wide and try a kit-level answer: e.g. a `PageGrid` or
+   two-column layout primitive with the breakpoints built in, and a
+   BottomNav that hands over to a top nav at `md`. Render-tested; measure
+   with item 1's batch if ready, otherwise next run.
+3. **Invented icons.** `Fridge` failed a Nov 10 build. The bench already
+   lists invalid lucide names per build (`invalidLucide`); tally them
+   across the board and, if a handful repeat, map them to real icons in
+   the extractor (behind the flag), the same way the kit absorbs Select.
+4. **First-try tail.** Tabulate Nov 10 and 11 fix-pass triggers again.
+   Each cause now shows up only once or twice, so only take one with an
+   obvious mechanical answer.
 5. **End-to-end check of export and delete.** Needs a signed-in Builder.
 
 ## After that, in order
