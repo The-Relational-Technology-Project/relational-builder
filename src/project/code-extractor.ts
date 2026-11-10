@@ -20,6 +20,7 @@
 import { isHumanScale } from '@/human-scale/flag';
 import { repairImports, removeUnusedImports, REPAIRABLE_PATH } from './import-repair';
 import { addMissingImports } from './auto-import';
+import { isKitStub, repairEntry } from './scaffold-guard';
 import { KIT_FILES } from '@/kit';
 
 export interface ExtractedFile {
@@ -114,11 +115,17 @@ export function extractOperations(markdown: string): ExtractionResult {
         // Behind the human-scale flag, a stuttered import line from a small
         // model is repaired here, before anything reads the file
         // (src/project/import-repair.ts)
+        // A kit file rewritten as a stub would shadow the kit; drop the
+        // write and keep the kit (src/project/scaffold-guard.ts)
+        if (isHumanScale() && isKitStub(filename, content, KIT_FILES)) continue;
         const fixed = isHumanScale() && REPAIRABLE_PATH.test(filename)
-          ? addMissingImports(
-              '/' + filename.replace(/^\//, ''),
-              removeUnusedImports(repairImports(content).content).content,
-              KIT_FILES,
+          ? repairEntry(
+              filename,
+              addMissingImports(
+                '/' + filename.replace(/^\//, ''),
+                removeUnusedImports(repairImports(content).content).content,
+                KIT_FILES,
+              ).content,
             ).content
           : content;
         writes.push({ path: filename, content: fixed, language });

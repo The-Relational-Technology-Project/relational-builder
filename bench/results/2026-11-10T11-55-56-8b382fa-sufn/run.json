@@ -1,0 +1,849 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1,exp-v1",
+  "gitCommit": "8b382fa",
+  "createdAt": "2026-11-10T12:11:48.363Z",
+  "runId": "2026-11-10T11-55-56-8b382fa-sufn",
+  "config": {
+    "trials": 3,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": null,
+    "importGuard": true,
+    "fixHints": true,
+    "humanScaleRules": true,
+    "fixPasses": 2,
+    "designScaffold": "direction",
+    "openrouterIgnore": "Darkbloom",
+    "openrouterOnly": null,
+    "openrouterQuant": null
+  },
+  "models": [
+    {
+      "alias": "glm-4.5-air",
+      "providerId": "openrouter",
+      "modelId": "z-ai/glm-4.5-air",
+      "pricing": {
+        "inputPerMTok": 0.13,
+        "outputPerMTok": 0.85,
+        "asOf": "2026-10"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "hs-community-fridge",
+      "version": "exp-v1"
+    },
+    {
+      "id": "hs-listening-wall",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "glm-4.5-air",
+      "providerId": "openrouter",
+      "modelId": "z-ai/glm-4.5-air",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-10T11:55:56.705Z",
+      "plan": null,
+      "latencyMs": 102296,
+      "ttftMs": 12426,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 102295,
+          "chars": 26995
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 26995,
+      "estTokens": {
+        "input": 15961,
+        "output": 6749,
+        "estimated": true
+      },
+      "estCostUsd": 0.007811579999999999,
+      "extraction": {
+        "writes": 22,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": false,
+        "errors": [
+          "vfs:/src/pages/HomePage.tsx:2: No matching export in \"vfs:/src/components/FridgeStatus.tsx\" for import \"FridgeStatus\"",
+          "vfs:/src/pages/HomePage.tsx:3: No matching export in \"vfs:/src/components/StockItem.tsx\" for import \"StockItem\"",
+          "vfs:/src/pages/ShiftsPage.tsx:2: No matching export in \"vfs:/src/components/ShiftItem.tsx\" for import \"ShiftItem\"",
+          "vfs:/src/pages/ShiftsPage.tsx:3: No matching export in \"vfs:/src/components/ClaimShiftForm.tsx\" for import \"ClaimShiftForm\"",
+          "vfs:/src/pages/StockPage.tsx:2: No matching export in \"vfs:/src/components/PostForm.tsx\" for import \"PostForm\""
+        ]
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/glm-4.5-air-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/App.tsx:6: No matching export in \"vfs:/src/components/ui/bottom-nav.tsx\" for import \"default\"",
+          "vfs:/src/pages/HomePage.tsx:2: No matching export in \"vfs:/src/components/FridgeStatus.tsx\" for import \"FridgeStatus\"",
+          "vfs:/src/pages/HomePage.tsx:3: No matching export in \"vfs:/src/components/StockItem.tsx\" for import \"StockItem\"",
+          "vfs:/src/pages/ShiftsPage.tsx:2: No matching export in \"vfs:/src/components/ShiftItem.tsx\" for import \"ShiftItem\"",
+          "vfs:/src/pages/ShiftsPage.tsx:3: No matching export in \"vfs:/src/components/ClaimShiftForm.tsx\" for import \"ClaimShiftForm\"",
+          "vfs:/src/pages/StockPage.tsx:2: No matching export in \"vfs:/src/components/PostForm.tsx\" for import \"PostForm\"",
+          "vfs:/src/App.tsx: No matching export in \"vfs:/src/components/ui/bottom-nav.tsx\" for import \"default\" (it exports names only)",
+          "vfs:/src/pages/HomePage.tsx: No matching export in \"vfs:/src/components/FridgeStatus.tsx\" for import \"FridgeStatus\"",
+          "vfs:/src/pages/HomePage.tsx: No matching export in \"vfs:/src/components/StockItem.tsx\" for import \"StockItem\"",
+          "vfs:/src/pages/StockPage.tsx: No matching export in \"vfs:/src/components/PostForm.tsx\" for import \"PostForm\"",
+          "vfs:/src/pages/ShiftsPage.tsx: No matching export in \"vfs:/src/components/ShiftItem.tsx\" for import \"ShiftItem\"",
+          "vfs:/src/pages/ShiftsPage.tsx: No matching export in \"vfs:/src/components/ClaimShiftForm.tsx\" for import \"ClaimShiftForm\""
+        ],
+        "solved": false,
+        "latencyMs": 74845,
+        "remainingErrors": [
+          "vfs:/src/pages/HomePage.tsx:2: No matching export in \"vfs:/src/components/FridgeStatus.tsx\" for import \"FridgeStatus\"",
+          "vfs:/src/pages/HomePage.tsx:3: No matching export in \"vfs:/src/components/StockItem.tsx\" for import \"StockItem\"",
+          "vfs:/src/pages/ShiftsPage.tsx:2: No matching export in \"vfs:/src/components/ShiftItem.tsx\" for import \"ShiftItem\"",
+          "vfs:/src/pages/ShiftsPage.tsx:3: No matching export in \"vfs:/src/components/ClaimShiftForm.tsx\" for import \"ClaimShiftForm\"",
+          "vfs:/src/pages/StockPage.tsx:2: No matching export in \"vfs:/src/components/PostForm.tsx\" for import \"PostForm\"",
+          "vfs:/src/pages/HomePage.tsx: No matching export in \"vfs:/src/components/FridgeStatus.tsx\" for import \"FridgeStatus\"",
+          "vfs:/src/pages/HomePage.tsx: No matching export in \"vfs:/src/components/StockItem.tsx\" for import \"StockItem\"",
+          "vfs:/src/pages/StockPage.tsx: No matching export in \"vfs:/src/components/PostForm.tsx\" for import \"PostForm\"",
+          "vfs:/src/pages/ShiftsPage.tsx: No matching export in \"vfs:/src/components/ShiftItem.tsx\" for import \"ShiftItem\"",
+          "vfs:/src/pages/ShiftsPage.tsx: No matching export in \"vfs:/src/components/ClaimShiftForm.tsx\" for import \"ClaimShiftForm\""
+        ],
+        "estCostUsd": 0.010984879999999999,
+        "passes": 2
+      },
+      "error": null,
+      "served": {
+        "model": "z-ai/glm-4.5-air",
+        "provider": "Novita"
+      },
+      "importIssues": [
+        "vfs:/src/pages/HomePage.tsx: No matching export in \"vfs:/src/components/FridgeStatus.tsx\" for import \"FridgeStatus\"",
+        "vfs:/src/pages/HomePage.tsx: No matching export in \"vfs:/src/components/StockItem.tsx\" for import \"StockItem\"",
+        "vfs:/src/pages/ShiftsPage.tsx: No matching export in \"vfs:/src/components/ShiftItem.tsx\" for import \"ShiftItem\"",
+        "vfs:/src/pages/ShiftsPage.tsx: No matching export in \"vfs:/src/components/ClaimShiftForm.tsx\" for import \"ClaimShiftForm\"",
+        "vfs:/src/pages/StockPage.tsx: No matching export in \"vfs:/src/components/PostForm.tsx\" for import \"PostForm\""
+      ],
+      "quality": {
+        "files": 13,
+        "codeFiles": 11,
+        "codeLines": 720,
+        "largestFile": "/src/pages/HomePage.tsx",
+        "largestFileLines": 117,
+        "anyCount": 0,
+        "kitImportingFiles": 9,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 14,
+          "tokensTotal": 15,
+          "kitLayout": [
+            "AppBar",
+            "BottomNav",
+            "Card"
+          ],
+          "mdClasses": 4,
+          "fontLoaded": true,
+          "contrastText": 13.1,
+          "contrastMuted": 5.9,
+          "namedPeople": 14,
+          "placeNamed": true
+        },
+        "lintErrors": 1,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.1,
+        "tscErrors": null,
+        "tscSyntaxErrors": 0,
+        "tscCodes": null,
+        "tokensPerSecond": 66,
+        "fixLatencyMs": 74845,
+        "failKind": "bad-import"
+      }
+    },
+    {
+      "alias": "glm-4.5-air",
+      "providerId": "openrouter",
+      "modelId": "z-ai/glm-4.5-air",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 2,
+      "startedAt": "2026-11-10T11:58:54.181Z",
+      "plan": null,
+      "latencyMs": 79203,
+      "ttftMs": 4916,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 79202,
+          "chars": 25032
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 25032,
+      "estTokens": {
+        "input": 15961,
+        "output": 6258,
+        "estimated": true
+      },
+      "estCostUsd": 0.00739423,
+      "extraction": {
+        "writes": 9,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/glm-4.5-air-t2",
+      "fixRound": null,
+      "error": null,
+      "served": {
+        "model": "z-ai/glm-4.5-air",
+        "provider": "Novita"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 323,
+        "aboveFoldChars": 301
+      },
+      "quality": {
+        "files": 9,
+        "codeFiles": 7,
+        "codeLines": 636,
+        "largestFile": "/src/components/ShiftList.tsx",
+        "largestFileLines": 151,
+        "anyCount": 0,
+        "kitImportingFiles": 6,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 14,
+          "tokensTotal": 15,
+          "kitLayout": [
+            "AppBar",
+            "BottomNav",
+            "EmptyState",
+            "Card"
+          ],
+          "mdClasses": 1,
+          "fontLoaded": true,
+          "contrastText": 13.1,
+          "contrastMuted": 5.9,
+          "namedPeople": 8,
+          "placeNamed": true
+        },
+        "lintErrors": 0,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0,
+        "tscErrors": 3,
+        "tscSyntaxErrors": 0,
+        "tscCodes": {
+          "2322": 3
+        },
+        "tokensPerSecond": 79,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    },
+    {
+      "alias": "glm-4.5-air",
+      "providerId": "openrouter",
+      "modelId": "z-ai/glm-4.5-air",
+      "taskId": "hs-community-fridge",
+      "taskVersion": "exp-v1",
+      "trial": 3,
+      "startedAt": "2026-11-10T12:00:13.704Z",
+      "plan": null,
+      "latencyMs": 98070,
+      "ttftMs": 5836,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 90145,
+          "chars": 26376
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 7921,
+          "chars": 661
+        }
+      ],
+      "continuations": 1,
+      "truncatedFinal": false,
+      "outputChars": 27037,
+      "estTokens": {
+        "input": 38656,
+        "output": 6760,
+        "estimated": true
+      },
+      "estCostUsd": 0.010771280000000001,
+      "extraction": {
+        "writes": 11,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-community-fridge/glm-4.5-air-t3",
+      "fixRound": null,
+      "error": null,
+      "served": {
+        "model": "z-ai/glm-4.5-air",
+        "provider": "Z.AI"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 363,
+        "aboveFoldChars": 300
+      },
+      "quality": {
+        "files": 11,
+        "codeFiles": 9,
+        "codeLines": 702,
+        "largestFile": "/src/pages/Home.tsx",
+        "largestFileLines": 143,
+        "anyCount": 0,
+        "kitImportingFiles": 6,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 14,
+          "tokensTotal": 15,
+          "kitLayout": [
+            "AppBar",
+            "BottomNav",
+            "Card"
+          ],
+          "mdClasses": 3,
+          "fontLoaded": true,
+          "contrastText": 13.1,
+          "contrastMuted": 5.9,
+          "namedPeople": 6,
+          "placeNamed": true
+        },
+        "lintErrors": 1,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.1,
+        "tscErrors": 1,
+        "tscSyntaxErrors": 0,
+        "tscCodes": {
+          "2304": 1
+        },
+        "tokensPerSecond": 68.9,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    },
+    {
+      "alias": "glm-4.5-air",
+      "providerId": "openrouter",
+      "modelId": "z-ai/glm-4.5-air",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-10T12:01:51.954Z",
+      "plan": null,
+      "latencyMs": 184065,
+      "ttftMs": 7172,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 184064,
+          "chars": 53948
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 53948,
+      "estTokens": {
+        "input": 15952,
+        "output": 13487,
+        "estimated": true
+      },
+      "estCostUsd": 0.013537710000000001,
+      "extraction": {
+        "writes": 12,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/glm-4.5-air-t1",
+      "fixRound": null,
+      "error": null,
+      "served": {
+        "model": "z-ai/glm-4.5-air",
+        "provider": "Novita"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": false,
+        "errors": [
+          "pageerror: answers is not defined"
+        ],
+        "bodyChars": 0,
+        "aboveFoldChars": 0
+      },
+      "quality": {
+        "files": 12,
+        "codeFiles": 10,
+        "codeLines": 1532,
+        "largestFile": "/src/data/seedData.ts",
+        "largestFileLines": 597,
+        "anyCount": 0,
+        "kitImportingFiles": 7,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 14,
+          "tokensTotal": 15,
+          "kitLayout": [
+            "AppBar",
+            "BottomNav",
+            "Card"
+          ],
+          "mdClasses": 9,
+          "fontLoaded": true,
+          "contrastText": 14.4,
+          "contrastMuted": 6.4,
+          "namedPeople": 20,
+          "placeNamed": true
+        },
+        "lintErrors": 6,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.4,
+        "tscErrors": 13,
+        "tscSyntaxErrors": 0,
+        "tscCodes": {
+          "2304": 5,
+          "2322": 1,
+          "2339": 3,
+          "2345": 1,
+          "2347": 1,
+          "2367": 2
+        },
+        "tokensPerSecond": 73.3,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    },
+    {
+      "alias": "glm-4.5-air",
+      "providerId": "openrouter",
+      "modelId": "z-ai/glm-4.5-air",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 2,
+      "startedAt": "2026-11-10T12:04:56.196Z",
+      "plan": null,
+      "latencyMs": 122636,
+      "ttftMs": 6555,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 113186,
+          "chars": 34221
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 9446,
+          "chars": 530
+        }
+      ],
+      "continuations": 1,
+      "truncatedFinal": false,
+      "outputChars": 34751,
+      "estTokens": {
+        "input": 40601,
+        "output": 8688,
+        "estimated": true
+      },
+      "estCostUsd": 0.01266293,
+      "extraction": {
+        "writes": 12,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/glm-4.5-air-t2",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/pages/Home.tsx: Dynamic require of \"@/data/seedData\" is not supported (this is an ES module; use import)"
+        ],
+        "solved": true,
+        "latencyMs": 16970,
+        "remainingErrors": [],
+        "estCostUsd": 0.0042711599999999995,
+        "passes": 1
+      },
+      "error": null,
+      "served": {
+        "model": "z-ai/glm-4.5-air",
+        "provider": "Z.AI"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 1295,
+        "aboveFoldChars": 1159
+      },
+      "quality": {
+        "files": 11,
+        "codeFiles": 9,
+        "codeLines": 770,
+        "largestFile": "/src/pages/QuestionDetail.tsx",
+        "largestFileLines": 128,
+        "anyCount": 0,
+        "kitImportingFiles": 6,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 14,
+          "tokensTotal": 15,
+          "kitLayout": [
+            "AppBar",
+            "BottomNav",
+            "Card"
+          ],
+          "mdClasses": 6,
+          "fontLoaded": true,
+          "contrastText": 14.4,
+          "contrastMuted": 6.4,
+          "namedPeople": 32,
+          "placeNamed": true
+        },
+        "lintErrors": 2,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.3,
+        "tscErrors": 5,
+        "tscSyntaxErrors": 0,
+        "tscCodes": {
+          "2304": 1,
+          "2322": 2,
+          "2339": 1,
+          "2347": 1
+        },
+        "tokensPerSecond": 70.8,
+        "fixLatencyMs": 16970,
+        "failKind": "other"
+      }
+    },
+    {
+      "alias": "glm-4.5-air",
+      "providerId": "openrouter",
+      "modelId": "z-ai/glm-4.5-air",
+      "taskId": "hs-listening-wall",
+      "taskVersion": "exp-v1",
+      "trial": 3,
+      "startedAt": "2026-11-10T12:07:15.980Z",
+      "plan": null,
+      "latencyMs": 177144,
+      "ttftMs": 5273,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 128041,
+          "chars": 34926
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 49092,
+          "chars": 13360
+        }
+      ],
+      "continuations": 1,
+      "truncatedFinal": false,
+      "outputChars": 48286,
+      "estTokens": {
+        "input": 40786,
+        "output": 12072,
+        "estimated": true
+      },
+      "estCostUsd": 0.015563380000000002,
+      "extraction": {
+        "writes": 24,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-listening-wall/glm-4.5-air-t3",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/data/seed.ts:69: Expected \"}\" but found \"isAnonymous\""
+        ],
+        "solved": true,
+        "latencyMs": 63316,
+        "remainingErrors": [],
+        "estCostUsd": 0.00654882,
+        "passes": 1
+      },
+      "error": null,
+      "served": {
+        "model": "z-ai/glm-4.5-air",
+        "provider": "Z.AI"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 709,
+        "aboveFoldChars": 680
+      },
+      "quality": {
+        "files": 23,
+        "codeFiles": 21,
+        "codeLines": 1085,
+        "largestFile": "/src/pages/OrganizerDashboard.tsx",
+        "largestFileLines": 139,
+        "anyCount": 0,
+        "kitImportingFiles": 7,
+        "handRolledUiFiles": 10,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 13,
+          "tokensTotal": 15,
+          "kitLayout": [
+            "AppBar",
+            "Card"
+          ],
+          "mdClasses": 4,
+          "fontLoaded": true,
+          "contrastText": 16.1,
+          "contrastMuted": 7.9,
+          "namedPeople": 23,
+          "placeNamed": true
+        },
+        "lintErrors": 5,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.5,
+        "tscErrors": 13,
+        "tscSyntaxErrors": 1,
+        "tscCodes": {
+          "2322": 12,
+          "2347": 1
+        },
+        "tokensPerSecond": 68.1,
+        "fixLatencyMs": 63316,
+        "failKind": "syntax"
+      }
+    }
+  ]
+}
