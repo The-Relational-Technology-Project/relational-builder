@@ -14,13 +14,13 @@
 
 | Model | Bundle | First try | Renders | Fix | Fail kind | Files | Failed edits | Truncated | Checks | Sec flags | Lint/100 | tsc errors | Largest file | any | Kit files | tok/s | TTFT | Build time | Fix time | Total | ~$ | |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| mistral-small-3.2 | 2/2 ✓ | 1/2 | 1/2 clean, 1 blank | 1/1 solved | other | 9.5 | 0 | no | 5/5 | 0 | 1.4 | 6 | 94.5 lines | 0 | 4.5/7 | 57.75 | 2s | 75s | 17s | 75s | 0.00 |
+| mistral-small-3.2 | 2/2 ✓ | 1/2 | 1/2 clean, 1 blank | 1/1 solved | other | 9.5 | 0 | no | 5/5 | 0 | 1.4 | 2.5 | 94.5 lines | 0 | 4.5/7 | 57.75 | 2s | 75s | 17s | 75s | 0.00 |
 
 ### Task: hs-listening-wall (exp-v1)
 
 | Model | Bundle | First try | Renders | Fix | Fail kind | Files | Failed edits | Truncated | Checks | Sec flags | Lint/100 | tsc errors | Largest file | any | Kit files | tok/s | TTFT | Build time | Fix time | Total | ~$ | |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| mistral-small-3.2 | 1/1 ✓ | 0/1 | 1/1 clean | 1/1 solved | missing-file | 16 | 0 | no | 4/5 | 0 | 0.4 | 6 | 485 lines | 0 | 5/9 | 49.6 | 2s | 171s | 34s | 171s | 0.01 |
+| mistral-small-3.2 | 1/1 ✓ | 0/1 | 1/1 clean | 1/1 solved | missing-file | 16 | 0 | no | 4/5 | 0 | 0.4 | 3 | 485 lines | 0 | 5/9 | 49.6 | 2s | 171s | 34s | 171s | 0.01 |
 
 ## Human review
 

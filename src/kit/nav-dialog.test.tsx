@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { BottomNav, BottomNavItem } from './files/components/ui/bottom-nav';
 import { Dialog, DialogTrigger } from './files/components/ui/dialog';
 import { Button } from './files/components/ui/button';
+import { Avatar } from './files/components/ui/avatar';
 
 describe('kit BottomNavItem', () => {
   it('stays a button with onClick', () => {
@@ -23,6 +24,10 @@ describe('kit BottomNavItem', () => {
     expect(html).toContain('href="https://example.org"');
     expect(html).not.toContain('<button');
   });
+  it('takes its text as children too', () => {
+    const html = renderToStaticMarkup(<BottomNavItem to="/map">Map</BottomNavItem>);
+    expect(html).toContain('>Map</a>');
+  });
   it('marks the home route active by default on the server', () => {
     const html = renderToStaticMarkup(<BottomNavItem label="Home" to="/" />);
     expect(html).toContain('aria-current="page"');
@@ -40,5 +45,13 @@ describe('kit DialogTrigger', () => {
   it('still renders its own button without asChild', () => {
     const html = renderToStaticMarkup(<Dialog><DialogTrigger>Open</DialogTrigger></Dialog>);
     expect(html).toBe('<button>Open</button>');
+  });
+});
+
+describe('kit Avatar', () => {
+  it('accepts a size', () => {
+    expect(renderToStaticMarkup(<Avatar name="Rosa Diaz" size="sm" />)).toContain('size-8');
+    expect(renderToStaticMarkup(<Avatar name="Rosa Diaz" />)).toContain('size-10');
+    expect(renderToStaticMarkup(<Avatar name="Rosa Diaz" size="xl" />)).toContain('size-10');
   });
 });

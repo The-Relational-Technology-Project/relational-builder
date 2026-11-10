@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { cn } from '../../lib/utils';
 
+const SIZES = { sm: 'size-8 text-xs', md: 'size-10 text-sm', lg: 'size-14 text-base' } as const;
+
 /**
  * Avatar with graceful fallback: shows the image when it loads, otherwise
  * initials derived from `name` on a tinted background.
@@ -8,9 +10,10 @@ import { cn } from '../../lib/utils';
 export function Avatar({
   src,
   name,
+  size = 'md',
   className,
   ...props
-}: React.HTMLAttributes<HTMLDivElement> & { src?: string; name?: string }) {
+}: React.HTMLAttributes<HTMLDivElement> & { src?: string; name?: string; size?: 'sm' | 'md' | 'lg' | string }) {
   const [failed, setFailed] = React.useState(false);
   // A missing name (a lookup that found nobody yet) must not crash the page:
   // show a neutral mark instead (gpt-oss, Nov 4: `name={users[id]?.name}`)
@@ -25,7 +28,8 @@ export function Avatar({
   return (
     <div
       className={cn(
-        'relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-secondary text-secondary-foreground text-sm font-medium',
+        'relative flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-secondary text-secondary-foreground font-medium',
+        SIZES[size as keyof typeof SIZES] ?? SIZES.md,
         className,
       )}
       {...props}

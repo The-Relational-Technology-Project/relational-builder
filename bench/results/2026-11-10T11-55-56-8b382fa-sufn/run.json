@@ -310,11 +310,9 @@
         "lintErrors": 0,
         "lintWarnings": 0,
         "lintPer100Lines": 0,
-        "tscErrors": 3,
+        "tscErrors": 0,
         "tscSyntaxErrors": 0,
-        "tscCodes": {
-          "2322": 3
-        },
+        "tscCodes": {},
         "tokensPerSecond": 79,
         "fixLatencyMs": null,
         "failKind": null
@@ -697,11 +695,10 @@
         "lintErrors": 2,
         "lintWarnings": 0,
         "lintPer100Lines": 0.3,
-        "tscErrors": 5,
+        "tscErrors": 3,
         "tscSyntaxErrors": 0,
         "tscCodes": {
           "2304": 1,
-          "2322": 2,
           "2339": 1,
           "2347": 1
         },

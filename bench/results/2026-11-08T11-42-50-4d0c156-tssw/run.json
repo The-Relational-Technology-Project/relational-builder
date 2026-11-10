@@ -155,6 +155,9 @@
         "lintPer100Lines": 0.7,
         "tscErrors": 4,
         "tscSyntaxErrors": 0,
+        "tscCodes": {
+          "2741": 4
+        },
         "tokensPerSecond": 68.5,
         "fixLatencyMs": null,
         "failKind": null
@@ -286,6 +289,9 @@
         "lintPer100Lines": 0.9,
         "tscErrors": 3,
         "tscSyntaxErrors": 0,
+        "tscCodes": {
+          "2741": 3
+        },
         "tokensPerSecond": 60.3,
         "fixLatencyMs": 9514,
         "failKind": "bad-import"

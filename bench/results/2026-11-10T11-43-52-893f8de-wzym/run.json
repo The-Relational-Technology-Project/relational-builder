@@ -154,8 +154,9 @@
         "lintErrors": 0,
         "lintWarnings": 0,
         "lintPer100Lines": 0,
-        "tscErrors": 3,
+        "tscErrors": 0,
         "tscSyntaxErrors": 0,
+        "tscCodes": {},
         "tokensPerSecond": 32.3,
         "fixLatencyMs": null,
         "failKind": null
@@ -273,6 +274,9 @@
         "lintPer100Lines": 0,
         "tscErrors": 1,
         "tscSyntaxErrors": 0,
+        "tscCodes": {
+          "2353": 1
+        },
         "tokensPerSecond": 41.3,
         "fixLatencyMs": null,
         "failKind": null
@@ -399,8 +403,9 @@
         "lintErrors": 0,
         "lintWarnings": 0,
         "lintPer100Lines": 0,
-        "tscErrors": 3,
+        "tscErrors": 0,
         "tscSyntaxErrors": 0,
+        "tscCodes": {},
         "tokensPerSecond": 54.7,
         "fixLatencyMs": 21088,
         "failKind": "other"
@@ -528,8 +533,12 @@
         "lintErrors": 0,
         "lintWarnings": 0,
         "lintPer100Lines": 0,
-        "tscErrors": 5,
+        "tscErrors": 2,
         "tscSyntaxErrors": 0,
+        "tscCodes": {
+          "2307": 1,
+          "2322": 1
+        },
         "tokensPerSecond": 72.7,
         "fixLatencyMs": 5712,
         "failKind": "missing-file"
@@ -656,6 +665,9 @@
         "lintPer100Lines": 0,
         "tscErrors": 1,
         "tscSyntaxErrors": 0,
+        "tscCodes": {
+          "2322": 1
+        },
         "tokensPerSecond": 57,
         "fixLatencyMs": 16274,
         "failKind": "missing-file"
@@ -777,8 +789,11 @@
         "lintErrors": 1,
         "lintWarnings": 0,
         "lintPer100Lines": 0.2,
-        "tscErrors": 4,
+        "tscErrors": 1,
         "tscSyntaxErrors": 0,
+        "tscCodes": {
+          "2322": 1
+        },
         "tokensPerSecond": 55.5,
         "fixLatencyMs": null,
         "failKind": null

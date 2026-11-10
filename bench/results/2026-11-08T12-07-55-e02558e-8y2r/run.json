@@ -166,6 +166,11 @@
         "lintPer100Lines": 0,
         "tscErrors": 5,
         "tscSyntaxErrors": 0,
+        "tscCodes": {
+          "2304": 2,
+          "2322": 1,
+          "2741": 2
+        },
         "tokensPerSecond": 56.4,
         "fixLatencyMs": 22429,
         "failKind": "missing-file"
@@ -295,6 +300,10 @@
         "lintPer100Lines": 0,
         "tscErrors": 4,
         "tscSyntaxErrors": 0,
+        "tscCodes": {
+          "2307": 1,
+          "2741": 3
+        },
         "tokensPerSecond": 68.3,
         "fixLatencyMs": 3477,
         "failKind": "bad-import"
@@ -412,6 +421,9 @@
         "lintPer100Lines": 0,
         "tscErrors": 3,
         "tscSyntaxErrors": 0,
+        "tscCodes": {
+          "2741": 3
+        },
         "tokensPerSecond": 64.5,
         "fixLatencyMs": null,
         "failKind": null
@@ -545,6 +557,11 @@
         "lintPer100Lines": 0.2,
         "tscErrors": 5,
         "tscSyntaxErrors": 0,
+        "tscCodes": {
+          "2307": 1,
+          "2322": 2,
+          "2741": 2
+        },
         "tokensPerSecond": 66.2,
         "fixLatencyMs": 21145,
         "failKind": "missing-file"

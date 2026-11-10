@@ -75,7 +75,8 @@ function useHashRoute(): string {
 
 type BottomNavItemProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   icon?: React.ReactNode;
-  label: string;
+  /** The tab's text; children work too */
+  label?: string;
   active?: boolean;
   /** A route ("/shifts") or URL; renders a link instead of a button */
   href?: string;
@@ -87,7 +88,8 @@ type BottomNavItemProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
  * One tab. Give it onClick, or a route with `to` / `href` (it becomes a
  * link, and works out `active` from the current route when you leave it off).
  */
-export function BottomNavItem({ icon, label, active, href, to, className, ...props }: BottomNavItemProps) {
+export function BottomNavItem({ icon, label, children, active, href, to, className, ...props }: BottomNavItemProps) {
+  const text = label ?? children;
   const route = useHashRoute();
   const target = to ?? href;
   const path = target?.replace(/^#/, '');
@@ -111,14 +113,14 @@ export function BottomNavItem({ icon, label, active, href, to, className, ...pro
         title={title}
       >
         {icon}
-        {label}
+        {text}
       </a>
     );
   }
   return (
     <button aria-current={isActive ? 'page' : undefined} className={classes} {...props}>
       {icon}
-      {label}
+      {text}
     </button>
   );
 }
