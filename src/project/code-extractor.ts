@@ -19,6 +19,8 @@
 
 import { isHumanScale } from '@/human-scale/flag';
 import { repairImports, removeUnusedImports, REPAIRABLE_PATH } from './import-repair';
+import { addMissingImports } from './auto-import';
+import { KIT_FILES } from '@/kit';
 
 export interface ExtractedFile {
   path: string;
@@ -113,7 +115,11 @@ export function extractOperations(markdown: string): ExtractionResult {
         // model is repaired here, before anything reads the file
         // (src/project/import-repair.ts)
         const fixed = isHumanScale() && REPAIRABLE_PATH.test(filename)
-          ? removeUnusedImports(repairImports(content).content).content
+          ? addMissingImports(
+              '/' + filename.replace(/^\//, ''),
+              removeUnusedImports(repairImports(content).content).content,
+              KIT_FILES,
+            ).content
           : content;
         writes.push({ path: filename, content: fixed, language });
       }
