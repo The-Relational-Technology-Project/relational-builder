@@ -270,6 +270,20 @@
   "build-commitment-ledger": null,
   "build-debrief-ritual": null,
   "build-front-porch-digest": null,
+  "build-host-map-day-of-gatherings": {
+   "lat": 37.7535418,
+   "lng": -122.4952495,
+   "label": "Sunset District, San Francisco, California",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
+  "build-knowy-for-your-place": {
+   "lat": 37.7541496,
+   "lng": -122.5061507,
+   "label": "Sunset District, San Francisco, California",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
   "build-living-asset-map": null,
   "build-local-ushahidi-third-places": null,
   "build-mutual-aid-intake": null,
@@ -1287,6 +1301,13 @@
    "lng": -94.5781416,
    "label": "Kansas City, Missouri",
    "precision": "city",
+   "basis": "attribution"
+  },
+  "knowy": {
+   "lat": 37.7541496,
+   "lng": -122.5061507,
+   "label": "Sunset District, San Francisco, California",
+   "precision": "neighborhood",
    "basis": "attribution"
   },
   "lamplight-summer-camp": {
@@ -2475,6 +2496,13 @@
   "the-search-to-belong-rethinking-intimacy-community-and-connection": null,
   "the-shared-clipboard": null,
   "the-shared-spine-civic-media-and-relational-tech": null,
+  "the-sunset-wave": {
+   "lat": 37.7535418,
+   "lng": -122.4952495,
+   "label": "Sunset District, San Francisco, California",
+   "precision": "neighborhood",
+   "basis": "attribution"
+  },
   "the-village-square-tallahassee": {
    "lat": 30.4380832,
    "lng": -84.2809332,
