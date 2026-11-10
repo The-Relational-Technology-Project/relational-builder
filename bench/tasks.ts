@@ -214,6 +214,119 @@ export const TASKS: TaskSpec[] = [
     expectedPreviewKind: 'framework',
     checks: CHECKS,
   })),
+  // --- The spread set (Josh, Nov 10, 2026): `--tasks spread`. More kinds of
+  //     relational tech than the two comparison prompts, so a model's read
+  //     isn't two apps deep. Half are gallery remixes, worded the way the
+  //     Builder's own gallery path opens a remix (start-from-commons.ts:
+  //     "I'd like to build a neighborhood-scale remix of …", then "What it
+  //     is:" from the item's summary), with the place filled in and a build
+  //     ask in place of the plan question, so one turn builds. With
+  //     --plan-first they go through Plan mode, as in the product. The
+  //     other half are fresh asks in shapes the pool lacks: a live in-room
+  //     tool, a bilingual civic guide, an intergenerational exchange, a map
+  //     of physical places. Sources are commons items as of Nov 10. ---
+  ...([
+    ['remix-income-sharing',
+      'I\'d like to build a neighborhood-scale remix of the open tool "Community ' +
+      'Income Sharing" (from the Relational Tech Project).\n\n' +
+      'What it is: Neighbors send a share of their monthly income directly to ' +
+      'each other. Each member contributes a percentage of their monthly income ' +
+      'and it is redistributed equally, person to person, with no pooled fund ' +
+      'and no money moving through the app: on the 1st a steward runs the ' +
+      'calculation, each sender sees one neighbor to send to with a short note, ' +
+      'and taps "I\'ve sent this". It also has a roster, gatherings and an ' +
+      'offers-and-needs board. Started in Baltimore in spring 2025.\n\n' +
+      'Build it for a club of about 30 neighbors in Albuquerque\'s ' +
+      'International District, at 5% of income, in English and Spanish. Keep ' +
+      'it warm and plain, closer to a potluck than a bank; income is visible ' +
+      'only to the member and the steward. Seed it with the club\'s members and ' +
+      'this month\'s pairings.'],
+    ['remix-gathering-fund',
+      'I\'d like to remix "Hello Neighbor Gathering Fund (Peoria, IL)" (from the ' +
+      'City of Peoria Community Development Department), a real project from ' +
+      'the commons, for my neighborhood.\n\n' +
+      'What it is: $100 to host a gathering that helps people connect with ' +
+      'their neighbors, 15 awards, a seven-step how-it-works from application ' +
+      'to a feedback session, gathering ideas before the rules, a printable ' +
+      'sign-in sheet, and the application on the same page.\n\n' +
+      'Build our version for the Lincoln Park neighborhood of Duluth, ' +
+      'Minnesota: $75 to host an indoor winter gathering, 20 awards, ' +
+      'applications open through December 15, gatherings January to March. ' +
+      'Lead with ideas that work in the cold (a soup swap, a sauna night, a ' +
+      'skate on the rink), then how it works, the form, and a wall of ' +
+      'last winter\'s gatherings with a photo spot and a line from each host.'],
+    ['remix-street-stories',
+      'I\'d like to remix "Westminster Stories" (from Andrew Losowsky and Lyra ' +
+      'Monteiro, The Museum On Site), a real project from the commons, for my ' +
+      'neighborhood.\n\n' +
+      'What it is: Told one street\'s story through 100+ interviews, archives, ' +
+      'and an interactive installation in an empty store window with ' +
+      'weekly-changing labels, then a two-day street museum and a launch ' +
+      'party for everyone interviewed.\n\n' +
+      'Build the digital side for Main Street in Hazard, Kentucky: each ' +
+      'building on the street has a page with short interview excerpts from ' +
+      'people who worked, shopped or grew up there, old photos and dates; a ' +
+      '"this week in the window" feature with the labels we print for the ' +
+      'empty storefront; and a way for a neighbor to suggest someone we ' +
+      'should interview. Warm, archival, readable by older eyes. Seed it with ' +
+      'eight buildings and their stories.'],
+    ['remix-tool-lending-seed',
+      'I\'d like to build from the commons prompt "Neighborhood Tool Lending ' +
+      'Library" (shared through Relational Builder).\n\n' +
+      'What it is: A community tool-lending app so neighbors share ladders, ' +
+      'drills and garden gear instead of everyone buying their own: a public ' +
+      'catalog anyone can browse without signing in, open listing with no ' +
+      'gatekeeping, available or borrowed at a glance, categories and search, ' +
+      'pickup notes from the owner, friendly microcopy ("Borrow me!" instead ' +
+      'of "Rent"), like a bulletin board rather than a rental platform.\n\n' +
+      'Build it for Kalihi in Honolulu: lots of yard and canoe-club gear, ' +
+      'tools for fixing up older homes, and party gear for big family ' +
+      'gatherings (pop-up tents, folding tables, rice cookers). Adapt the ' +
+      'palette to this place. Seed it with twenty items from real-feeling ' +
+      'neighbors, some out on loan.'],
+    ['hs-story-circle',
+      'Build a story circle companion for a monthly gathering at the Joel D. ' +
+      'Valdez branch library in Tucson, Arizona: the facilitator picks a theme ' +
+      'and a prompt, the app shows the prompt big enough to read across the ' +
+      'room, keeps the talking order, runs a gentle three-minute timer per ' +
+      'speaker with no alarm, and reminds everyone of the agreements (listen ' +
+      'without interrupting, no advice, what is said here stays here). It ' +
+      'saves no stories, only the date, theme and how many people came. Works ' +
+      'on a laptop hooked to a TV and on the facilitator\'s phone. Seed it ' +
+      'with a year of themes and prompts.'],
+    ['hs-ballot-guide',
+      'Build a plain-language "what\'s on your ballot" guide for East Boston, ' +
+      'Massachusetts, in English and Spanish with a switch at the top: each ' +
+      'race and ballot question explained in two or three sentences (what it ' +
+      'is, what a yes and a no would do, who it affects), when and where to ' +
+      'vote early, how to get a ride, and questions neighbors sent in with ' +
+      'answers. Nonpartisan, never tells anyone how to vote, prints well for ' +
+      'the laundromat. Seed it with a realistic municipal ballot: city ' +
+      'council, school committee and two ballot questions.'],
+    ['hs-skill-swap',
+      'Build a skill swap between teenagers and elders at the Mount Pleasant ' +
+      'branch library in Vancouver, BC: elders offer things like dumpling ' +
+      'folding, darning, fixing a bike or reading a bus map, teens offer ' +
+      'phone help, video calls, music or a resume, and pairs meet at the ' +
+      'library on Saturday mornings. A librarian sets the sessions, people ' +
+      'sign up for one, and each pair leaves a one-line thank-you on a shared ' +
+      'wall. Big type, simple words, no accounts for elders. Seed it with ' +
+      'a month of sessions and real-feeling people.'],
+    ['hs-bulletin-boards',
+      'Build a map of community bulletin boards in Richmond, Virginia\'s ' +
+      'Church Hill: the cork boards, poles and windows where neighbors post ' +
+      'flyers (the corner store, the library, the laundromat, the rec ' +
+      'center), each with a photo, what kind of flyers it takes, who keeps ' +
+      'it tidy and when it was last checked. Anyone can add a board or mark ' +
+      'one as gone, and there is a printable route for someone putting up ' +
+      'flyers for an event. Seed it with fifteen boards.'],
+  ] as const).map(([id, prompt]) => ({
+    id,
+    version: 'exp-v1',
+    prompt,
+    expectedPreviewKind: 'framework',
+    checks: CHECKS,
+  })),
   // --- Optional third comparison prompt: the listening wall plus one bounded
   //     AI job, so a build has a reason to import the kit's @/lib/ai. Not in
   //     `--tasks compare` until Josh says so (NEXT, Nov 4); run it by id. ---
@@ -271,8 +384,22 @@ export const EDIT_TASK_IDS = EDIT_TASKS.map(e => e.id);
  *  stays for spot checks. `--tasks compare` resolves to them. */
 export const HS_COMPARE_TASK_IDS = ['hs-community-fridge', 'hs-listening-wall'];
 
+/** The spread set (Josh, Nov 10, 2026): four gallery remixes and four fresh
+ *  asks in shapes the comparison prompts don't cover. `--tasks spread`. */
+export const HS_SPREAD_TASK_IDS = [
+  'remix-income-sharing',
+  'remix-gathering-fund',
+  'remix-street-stories',
+  'remix-tool-lending-seed',
+  'hs-story-circle',
+  'hs-ballot-guide',
+  'hs-skill-swap',
+  'hs-bulletin-boards',
+];
+
 export function resolveTasks(csv: string | undefined): TaskSpec[] {
   if (csv === 'compare') return TASKS.filter(t => HS_COMPARE_TASK_IDS.includes(t.id));
+  if (csv === 'spread') return TASKS.filter(t => HS_SPREAD_TASK_IDS.includes(t.id));
   if (csv === 'edit') return TASKS.filter(t => EDIT_TASK_IDS.includes(t.id));
   if (!csv) return [TASKS[0]];
   const wanted = csv.split(',').map(s => s.trim()).filter(Boolean);

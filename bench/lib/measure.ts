@@ -41,6 +41,14 @@ export async function readTree(dir: string, base = dir): Promise<Record<string, 
 const PLACE_WORDS: Record<string, string[]> = {
   'hs-community-fridge': ['Judah', 'Outer Sunset', 'laundromat'],
   'hs-listening-wall': ['Frome'],
+  'remix-income-sharing': ['Albuquerque', 'International District'],
+  'remix-gathering-fund': ['Duluth', 'Lincoln Park'],
+  'remix-street-stories': ['Hazard', 'Main Street'],
+  'remix-tool-lending-seed': ['Kalihi', 'Honolulu'],
+  'hs-story-circle': ['Tucson', 'Valdez'],
+  'hs-ballot-guide': ['East Boston'],
+  'hs-skill-swap': ['Mount Pleasant', 'Vancouver'],
+  'hs-bulletin-boards': ['Church Hill', 'Richmond'],
 };
 
 async function lintDir(dir: string): Promise<{ errors: number; warnings: number } | null> {
