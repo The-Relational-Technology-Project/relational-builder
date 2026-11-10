@@ -139,6 +139,8 @@ export interface TrialResult {
     /** Syntax errors (TS1xxx) counted apart, since one bad token cascades
      *  through a file (absent before Nov 3, 2026) */
     tscSyntaxErrors?: number | null;
+    /** Type-error counts by TS code (e.g. {"2322": 2}), for breaking the gap down by cause */
+    tscCodes?: Record<string, number> | null;
     tokensPerSecond: number | null;
     fixLatencyMs: number | null;
     failKind: 'missing-file' | 'bad-import' | 'unknown-package' | 'syntax' | 'other' | null;

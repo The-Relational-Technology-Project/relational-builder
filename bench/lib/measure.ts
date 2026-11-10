@@ -139,6 +139,7 @@ async function typecheckDir(filesDir: string, files: Record<string, string>): Pr
     const kitPaths = new Set(Object.keys(KIT_FILES).map(p => p.replace(/^\//, '')));
     let types = 0;
     let syntax = 0;
+    const codes: Record<string, number> = {};
     for (const line of stdout.split('\n')) {
       const m = /^(.+?)\(\d+,\d+\): error TS(\d+)/.exec(line);
       if (!m) continue;
@@ -146,9 +147,13 @@ async function typecheckDir(filesDir: string, files: Record<string, string>): Pr
       if (!file.startsWith('src/')) continue; // config or harness noise, not the model's code
       if (kitPaths.has(file) && !(('/' + file) in files)) continue;
       if (Number(m[2]) < 2000) syntax++;
-      else types++;
+      else {
+        types++;
+        codes[m[2]] = (codes[m[2]] ?? 0) + 1;
+        if (process.env.BENCH_TSC_DUMP) console.log(`    tsc: ${line.slice(line.indexOf('src/'))}`);
+      }
     }
-    return { types, syntax };
+    return { types, syntax, codes };
   } catch {
     return null;
   } finally {
@@ -188,6 +193,7 @@ export async function measureRun(runDir: string, trials: TrialResult[]): Promise
       lintPer100Lines: lint ? lintPer100(lint, stats.codeLines) : null,
       tscErrors,
       tscSyntaxErrors,
+      tscCodes: tsc && t.bundle?.ok ? tsc.codes : null,
       tokensPerSecond: tokensPerSecond(t.outputChars ?? 0, t.latencyMs - (t.plan?.latencyMs ?? 0)),
       fixLatencyMs: t.fixRound?.latencyMs ?? null,
       failKind: classifyFailure(firstFailure),

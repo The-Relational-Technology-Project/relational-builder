@@ -154,8 +154,9 @@
         "lintErrors": 11,
         "lintWarnings": 0,
         "lintPer100Lines": 2.2,
-        "tscErrors": 3,
+        "tscErrors": 0,
         "tscSyntaxErrors": 0,
+        "tscCodes": {},
         "tokensPerSecond": 41.9,
         "fixLatencyMs": null,
         "failKind": null
@@ -271,8 +272,11 @@
         "lintErrors": 9,
         "lintWarnings": 0,
         "lintPer100Lines": 2.6,
-        "tscErrors": 4,
+        "tscErrors": 1,
         "tscSyntaxErrors": 0,
+        "tscCodes": {
+          "2322": 1
+        },
         "tokensPerSecond": 35,
         "fixLatencyMs": null,
         "failKind": null
@@ -388,8 +392,9 @@
         "lintErrors": 6,
         "lintWarnings": 0,
         "lintPer100Lines": 1.8,
-        "tscErrors": 2,
+        "tscErrors": 0,
         "tscSyntaxErrors": 0,
+        "tscCodes": {},
         "tokensPerSecond": 39.2,
         "fixLatencyMs": null,
         "failKind": null
@@ -515,8 +520,11 @@
         "lintErrors": 21,
         "lintWarnings": 0,
         "lintPer100Lines": 8.9,
-        "tscErrors": 3,
+        "tscErrors": 1,
         "tscSyntaxErrors": 0,
+        "tscCodes": {
+          "5097": 1
+        },
         "tokensPerSecond": 69.4,
         "fixLatencyMs": 24339,
         "failKind": "other"
@@ -634,8 +642,12 @@
         "lintErrors": 7,
         "lintWarnings": 0,
         "lintPer100Lines": 2.1,
-        "tscErrors": 4,
+        "tscErrors": 2,
         "tscSyntaxErrors": 0,
+        "tscCodes": {
+          "2307": 1,
+          "5097": 1
+        },
         "tokensPerSecond": 101.3,
         "fixLatencyMs": null,
         "failKind": null
@@ -766,8 +778,11 @@
         "lintErrors": 4,
         "lintWarnings": 0,
         "lintPer100Lines": 0.9,
-        "tscErrors": 3,
+        "tscErrors": 2,
         "tscSyntaxErrors": 0,
+        "tscCodes": {
+          "2307": 2
+        },
         "tokensPerSecond": 72.3,
         "fixLatencyMs": 13406,
         "failKind": "syntax"
@@ -883,8 +898,9 @@
         "lintErrors": 14,
         "lintWarnings": 0,
         "lintPer100Lines": 3.1,
-        "tscErrors": 3,
+        "tscErrors": 0,
         "tscSyntaxErrors": 0,
+        "tscCodes": {},
         "tokensPerSecond": 59,
         "fixLatencyMs": null,
         "failKind": null
@@ -1011,8 +1027,9 @@
         "lintErrors": 14,
         "lintWarnings": 0,
         "lintPer100Lines": 3.5,
-        "tscErrors": 2,
+        "tscErrors": 0,
         "tscSyntaxErrors": 0,
+        "tscCodes": {},
         "tokensPerSecond": 84.1,
         "fixLatencyMs": 9327,
         "failKind": "syntax"

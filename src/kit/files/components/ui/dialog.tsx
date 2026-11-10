@@ -47,15 +47,31 @@ export function Dialog({
 export function DialogTrigger({
   className,
   onClick,
+  asChild,
+  children,
   ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & { asChild?: boolean }) {
   const ctx = React.useContext(DialogContext);
+  // asChild (shadcn's spelling): the child is the trigger, so a <Button>
+  // inside doesn't nest a button in a button; its own onClick still runs
+  if (asChild && React.isValidElement(children)) {
+    const child = children as React.ReactElement<{ onClick?: React.MouseEventHandler; className?: string }>;
+    return React.cloneElement(child, {
+      className: cn(className, child.props.className),
+      onClick: (e: React.MouseEvent) => {
+        child.props.onClick?.(e);
+        ctx?.setOpen(true);
+      },
+    });
+  }
   return (
     <button
       className={className}
       onClick={e => { onClick?.(e); ctx?.setOpen(true); }}
       {...props}
-    />
+    >
+      {children}
+    </button>
   );
 }
 

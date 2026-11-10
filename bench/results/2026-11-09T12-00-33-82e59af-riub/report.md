@@ -14,13 +14,13 @@
 
 | Model | Bundle | First try | Renders | Fix | Fail kind | Files | Failed edits | Truncated | Checks | Sec flags | Lint/100 | tsc errors | Largest file | any | Kit files | tok/s | TTFT | Build time | Fix time | Total | ~$ | |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| gemma-4-26b | 4/4 ✓ | 3/4 | 4/4 clean | 1/1 solved | other | 8 | 0 | no | 4.5/5 | 0 | 2.4000000000000004 | 3 | 117.5 lines | 0 | 3.5/5.5 | 40.55 | 1s | 108s | 24s | 108s | 0.00 |
+| gemma-4-26b | 4/4 ✓ | 3/4 | 4/4 clean | 1/1 solved | other | 8 | 0 | no | 4.5/5 | 0 | 2.4000000000000004 | 0.5 | 117.5 lines | 0 | 3.5/5.5 | 40.55 | 1s | 108s | 24s | 108s | 0.00 |
 
 ### Task: hs-listening-wall (exp-v1)
 
 | Model | Bundle | First try | Renders | Fix | Fail kind | Files | Failed edits | Truncated | Checks | Sec flags | Lint/100 | tsc errors | Largest file | any | Kit files | tok/s | TTFT | Build time | Fix time | Total | ~$ | |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| gemma-4-26b | 4/4 ✓ | 2/4 | 3/4 clean, 1 blank | 2/2 solved | syntax | 9 | 0 | no | 4.5/5 | 0 | 2.6 | 3 | 132.5 lines | 0 | 3.5/6.5 | 78.19999999999999 | 1s | 68s | 11s | 68s | 0.00 |
+| gemma-4-26b | 4/4 ✓ | 2/4 | 3/4 clean, 1 blank | 2/2 solved | syntax | 9 | 0 | no | 4.5/5 | 0 | 2.6 | 1 | 132.5 lines | 0 | 3.5/6.5 | 78.19999999999999 | 1s | 68s | 11s | 68s | 0.00 |
 
 ## Human review
 
