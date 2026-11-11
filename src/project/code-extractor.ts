@@ -20,7 +20,7 @@
 import { isHumanScale } from '@/human-scale/flag';
 import { repairImports, repairLucideImports, removeUnusedImports, REPAIRABLE_PATH } from './import-repair';
 import { addMissingImports } from './auto-import';
-import { isKitStub, repairEntry } from './scaffold-guard';
+import { hoistRouter, isKitStub, repairEntry } from './scaffold-guard';
 import { KIT_FILES } from '@/kit';
 
 export interface ExtractedFile {
@@ -146,7 +146,9 @@ export function extractOperations(markdown: string): ExtractionResult {
     }
   }
 
-  return { writes, edits, truncatedPath };
+  // One router, at the top (src/project/scaffold-guard.ts)
+  const routed = isHumanScale() ? hoistRouter(writes).writes : writes;
+  return { writes: routed, edits, truncatedPath };
 }
 
 /** Parse SEARCH/REPLACE pairs out of an edit block's body */
