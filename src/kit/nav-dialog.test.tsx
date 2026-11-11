@@ -55,3 +55,19 @@ describe('kit Avatar', () => {
     expect(renderToStaticMarkup(<Avatar name="Rosa Diaz" size="xl" />)).toContain('size-10');
   });
 });
+
+describe('kit layout', () => {
+  it('renders a one-then-two column page with a laptop top nav', async () => {
+    const { Page, PageGrid, PageMain, PageAside, TopNav, TopNavItem } = await import('./files/components/ui/layout');
+    const html = renderToStaticMarkup(
+      <Page>
+        <TopNav><TopNavItem to="/shifts" active>Shifts</TopNavItem></TopNav>
+        <PageGrid><PageMain>main</PageMain><PageAside>aside</PageAside></PageGrid>
+      </Page>,
+    );
+    expect(html).toContain('md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]');
+    expect(html).toContain('hidden items-center gap-1 md:flex');
+    expect(html).toContain('href="#/shifts"');
+    expect(html).toContain('<aside');
+  });
+});

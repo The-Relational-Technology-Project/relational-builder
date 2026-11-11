@@ -136,7 +136,7 @@ const RECIPE = [
   '1. A sticky `AppBar` with the place\'s or project\'s real name (never "My App").',
   '2. A first card that answers the tool\'s main question at a glance (are the ladders in? what is the library asking this month?), big and plain, with the one primary action beside it.',
   '3. Below it, the working lists as kit `Card`s: one clear title, one line of detail, at most one primary action per card. Every list that can be empty gets an `EmptyState` with warm words.',
-  '4. On phones a `BottomNav` with 3 or 4 items; at `md` and up the bottom nav hides (`md:hidden`), a top nav shows (`hidden md:flex`), and lists sit beside their detail in two columns inside `max-w-5xl mx-auto px-4`.',
+  '4. On phones a `BottomNav` with 3 or 4 items (`className="md:hidden"`); at `md` and up a `TopNav` of `TopNavItem`s inside the AppBar. Lay out every screen with the kit\'s `@/components/ui/layout`: `<Page><PageGrid><PageMain>` the main question and its list `</PageMain><PageAside>` a second column of real content (recent activity, people, what is next) `</PageAside></PageGrid></Page>`. The grid gives one column on phones and two at `md`+, so the laptop screen is never a stretched phone.',
   '',
   '**Scale.** Spacing only from 4, 8, 12, 16, 24, 32 px (`gap-1 gap-2 gap-3 gap-4 gap-6 gap-8`). Four type sizes only: one display (`text-3xl md:text-4xl font-semibold`), one heading (`text-lg font-semibold`), body (`text-base`), caption (`text-sm text-muted-foreground`). Load the two fonts you chose with a Google Fonts `@import` at the top of `/src/index.css` and set `--font-sans` (and a display font class) to them.',
   '',
