@@ -283,56 +283,34 @@ stack layer it moved; pace paid work at $3 to $5 a day.
    look at the listening wall row in particular: content first now, but
    with filler text in some builds.
 
+9. **Reference screens (Nov 11).** Showing Gemma a screenshot of a
+   *different* well-made app worked better than any written guidance so
+   far. If we build a small library of reference screens for the Builder
+   to show open models, which builds should be in it? Default if
+   unanswered: the Opus screens from Nov 6 and Nov 10 that the sheets
+   show, one per shape (a status tool, a content wall, a guide, an
+   archive, a schedule), until you pick.
+
 ## Tomorrow (one run, about 75 minutes)
 
-0. **Josh's experiment (Nov 10): Gemma shown Opus's screens plus specific
-   UI guidance.** Does Gemma close the design gap when it is shown what
-   good looks like, rather than told?
-   - *Harness:* let a bench task carry reference images (`image_url` parts,
-     the shape the gallery remix already sends; Gemma 4 26B takes images
-     on OpenRouter). Tested.
-   - *Guidance:* for each prompt, a written UI spec drawn from the Opus
-     build: screen order, layout at phone and laptop width, which kit
-     parts, palette and type, and what the seed data must say (names,
-     places, the second language where asked). Committed as fixtures, so
-     it is clear the guidance came from Opus.
-   - *Arms, Gemma only, bf16, same prompts:* (A) today's guidance;
-     (B) plus the Opus screenshot of the same prompt, worded like the
-     remix path ("use it as the visual reference"); (C) plus the written
-     spec; (D) both; (E) the Opus screenshot of a *different* prompt,
-     to see whether visual quality carries to a new subject or only
-     gets copied.
-   - *Prompts:* the two comparison prompts plus the four spread prompts
-     where Opus pulled furthest ahead (income sharing, ballot guide,
-     street stories, skill swap). Two trials each: 6 x 5 x 2 = 60
-     builds, about $0.40 including images. Log first.
-   - *Report:* gap table by arm, and a sheet with Opus beside each arm.
-     Design is Josh's read. B and D measure a ceiling (Gemma copying
-     a design it is shown); E and C are the parts a community could
-     use without Opus, through a library of reference screens and
-     written design specs.
-
-1. **Measure everything from Nov 10 together.** Gemma, four trials a
-   prompt, bf16 (about $0.04, log first). The batch on Nov 10 ran before the
-   hand-written seed clause, the React auto-import and the nav-children
-   kit change. Report the gap table, and count builds whose seed words come
-   from a loop (`grep -l "i % \|Array.from({ length"` on `src/data` and the
-   store; Nov 10: 7 of 8 listening-wall builds). If the count does not
-   fall, add a static check with a hint instead of another rule line.
-2. **Desktop in the kit, not the prompt.** Two rule lines have not moved
-   `md:` classes (6 against Opus's 12). Compare one Opus and one Gemma
-   build at 1280 wide and try a kit-level answer: e.g. a `PageGrid` or
-   two-column layout primitive with the breakpoints built in, and a
-   BottomNav that hands over to a top nav at `md`. Render-tested; measure
-   with item 1's batch if ready, otherwise next run.
-3. **Invented icons.** `Fridge` failed a Nov 10 build. The bench already
-   lists invalid lucide names per build (`invalidLucide`); tally them
-   across the board and, if a handful repeat, map them to real icons in
-   the extractor (behind the flag), the same way the kit absorbs Select.
-4. **First-try tail.** Tabulate Nov 10 and 11 fix-pass triggers again.
-   Each cause now shows up only once or twice, so only take one with an
-   obvious mechanical answer.
-5. **End-to-end check of export and delete.** Needs a signed-in Builder.
+1. **Measure the Nov 10 and 11 changes together on the comparison
+   prompts.** Gemma, four trials a prompt, bf16 (about $0.05, log first).
+   New since the last measured batch: hand-written seed clause, React
+   auto-import, nav children, lucide aliases, router hoist, and the kit's
+   `Page`/`PageGrid`/`TopNav` with the recipe line pointing to them.
+   Report the gap table (watch `md:` classes against Opus's 12) and count
+   loop-made seed text (Nov 10: 7 of 8 listening-wall builds).
+2. **Follow the reference result (Nov 11).** Seeing a *different* good
+   app (arm E) gave Gemma 12 of 12 working builds and Opus-like layouts
+   without copying the subject. Next step toward something a community
+   can use without Opus: a small reference library (three to five
+   screens of different shapes, from builds Josh rates well) and a way
+   for the Builder to show one beside the prompt behind the flag.
+   Measure E with a screen from the library against A on the spread set.
+   Ask Josh which screens first (question below).
+3. **First-try tail.** Tabulate Nov 11 fix-pass triggers across arms;
+   take one cause with an obvious mechanical answer.
+4. **End-to-end check of export and delete.** Needs a signed-in Builder.
 
 ## After that, in order
 

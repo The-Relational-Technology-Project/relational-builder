@@ -12,6 +12,73 @@ experiment at most $5 and 30 minutes.
 
 ---
 
+## 2026-11-11
+
+**For Josh:** Your experiment: does Gemma build closer to Opus when it is
+shown good design instead of told about it? Gemma built six apps two
+times in five ways. Shown Opus's screenshot of the same app, it copied
+it closely, a ceiling rather than a path. The surprise was showing it
+a screenshot of a *different* well-made app: every build worked (12 of
+12), layouts filled the laptop like Opus's, and it kept its own
+subject. The sheet is sent to you here. Spend about $0.20.
+
+**Stack layer moved:** Builder model, from "design quality comes only
+from written rules" to "a reference screen of another good app lifts
+Gemma's layouts without copying", which points at a reference library a
+community can keep without any closed model.
+
+**What was tried.**
+
+1. *Harness.* `BENCH_REFERENCE` adds to the build message this prompt's
+   Opus screenshot (worded like the gallery remix), a written UI spec
+   drawn from the Opus build, both, or the Opus screenshot of a
+   different prompt. Fixtures in `bench/reference/`, labeled as drawn
+   from Opus. Gemma 4 26B takes images on OpenRouter.
+2. *The run.* Gemma, bf16 hosts, six prompts (fridge, listening wall,
+   income-sharing remix, ballot guide, street-stories remix, skill swap),
+   two builds per arm.
+
+| | A today | B + same screenshot | C + spec | D + both | E + another app |
+|---|---|---|---|---|---|
+| Working builds | 11 of 12 | 10 of 12 | 8 of 12 | 7 of 12 | 12 of 12 |
+| Working on the first try | 9 of 12 | 5 of 12 | 8 of 12 | 8 of 12 | 10 of 12 |
+| Desktop (`md:`) classes | 5 | 7 | 7 | 5 | 7 |
+| First-screen text (median chars) | 739 | 771 | 907 | 898 | 800 |
+| Lint per 100 lines | 0.5 | 0.9 | 0.6 | 0.5 | 0.2 |
+
+3. *Why C and D broke more.* Three D builds and one C build blanked on a
+   react-router error: shown tabs with an active state, Gemma computed it
+   with `useLocation()` in the same component that renders the router,
+   or used `<Routes>` with no router. The board shows the same error 7
+   times across five models. The extractor now hoists the router into
+   `main.tsx` (behind the flag); replayed, all three D builds render,
+   which would put D at 10 of 12. One C build used an invented `Fridge`
+   icon that it never imported.
+4. *Also today.* Invented lucide icons now map to real ones
+   (`Fridge` to `Refrigerator`, 5 failures on the board; six others
+   once each). The kit gains `Page`, `PageGrid`, `PageMain`, `PageAside`
+   and `TopNav`: the main-plus-aside shape every Opus reference screen
+   uses at laptop width, breakpoints built in; the recipe points to it
+   behind the flag. Not yet measured.
+
+**A mid-run slip, fixed.** Arms B and E first started after the kit
+layout commit, so they would have built with a different recipe than A
+and D. Those three builds were set aside and B, C and E rerun from a
+worktree at the commit A and D used.
+
+**Cost:** about $0.20 for 63 builds (harness estimate; image input not
+counted, a fraction of a cent at this price).
+
+**Honest read:** two builds a cell is small, and design is Josh's call
+from the sheet. With that said: D (screenshot and spec of the same app)
+looks closest to Opus by eye, close to a copy, so it is a ceiling and
+not something a community gets without Opus. The written spec (C) put
+the most text on the first screen but did not move layout as much as a
+picture did. The most useful result is E: a good screen of a different
+app raised layout and reliability without copying its subject. That is
+something a community can own: a handful of reference screens, chosen
+by people, shown to whatever open model it runs.
+
 ## 2026-11-10 (afternoon): the spread set
 
 **For Josh:** You asked to see the open models on more kinds of
