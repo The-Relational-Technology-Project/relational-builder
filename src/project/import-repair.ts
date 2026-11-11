@@ -91,3 +91,44 @@ export function removeUnusedImports(source: string): { content: string; removed:
   });
   return { content: out.join('\n'), removed };
 }
+
+/**
+ * Icon names models invent that lucide doesn't have, mapped to the real
+ * icon closest in meaning. Tallied from the bench's fix-pass triggers
+ * (Nov 11, 2026): `Fridge` 5 times on the fridge prompt, the rest once.
+ */
+export const LUCIDE_ALIASES: Record<string, string> = {
+  Fridge: 'Refrigerator',
+  ThumbUp: 'ThumbsUp',
+  ThumbDown: 'ThumbsDown',
+  Broom: 'Brush',
+  Bread: 'Croissant',
+  MilkBottle: 'Milk',
+  Update: 'RefreshCw',
+  CircleHalf: 'Contrast',
+};
+
+/**
+ * In a lucide-react import, swap an invented name for its real icon under
+ * the invented name (`{ Refrigerator as Fridge }`), so the JSX that uses
+ * it keeps working. Names lucide has are never touched.
+ */
+export function repairLucideImports(source: string): { content: string; repaired: string[] } {
+  const repaired: string[] = [];
+  const content = source.replace(
+    /(import\s*\{)([^}]*)(\}\s*from\s*['"]lucide-react['"])/g,
+    (_all, open: string, names: string, close: string) => {
+      const parts = names.split(',').map(part => {
+        const m = part.match(/^(\s*)([A-Za-z_$][\w$]*)(\s+as\s+([A-Za-z_$][\w$]*))?(\s*)$/);
+        if (!m) return part;
+        const [, lead, name, asClause, local, trail] = m;
+        const real = LUCIDE_ALIASES[name];
+        if (!real) return part;
+        repaired.push(name);
+        return `${lead}${real} as ${asClause ? local : name}${trail}`;
+      });
+      return `${open}${parts.join(',')}${close}`;
+    },
+  );
+  return { content, repaired };
+}

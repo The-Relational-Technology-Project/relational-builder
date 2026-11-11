@@ -18,7 +18,7 @@
  */
 
 import { isHumanScale } from '@/human-scale/flag';
-import { repairImports, removeUnusedImports, REPAIRABLE_PATH } from './import-repair';
+import { repairImports, repairLucideImports, removeUnusedImports, REPAIRABLE_PATH } from './import-repair';
 import { addMissingImports } from './auto-import';
 import { isKitStub, repairEntry } from './scaffold-guard';
 import { KIT_FILES } from '@/kit';
@@ -123,7 +123,7 @@ export function extractOperations(markdown: string): ExtractionResult {
               filename,
               addMissingImports(
                 '/' + filename.replace(/^\//, ''),
-                removeUnusedImports(repairImports(content).content).content,
+                removeUnusedImports(repairLucideImports(repairImports(content).content).content).content,
                 KIT_FILES,
               ).content,
             ).content

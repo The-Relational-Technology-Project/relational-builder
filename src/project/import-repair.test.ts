@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { repairImportLine, repairImports, removeUnusedImports } from './import-repair';
+import { repairImportLine, repairImports, removeUnusedImports, repairLucideImports } from './import-repair';
 
 describe('stuttered import repair', () => {
   it('keeps the last brace group (the lines Gemma actually wrote)', () => {
@@ -61,3 +61,20 @@ describe('unused import removal', () => {
   });
 });
 
+
+describe('repairLucideImports', () => {
+  it('maps an invented icon to the real one under the same local name', () => {
+    const src = "import { Fridge, Heart, ThumbUp } from 'lucide-react';\nexport const A = () => <Fridge />;";
+    const r = repairLucideImports(src);
+    expect(r.content).toContain("import { Refrigerator as Fridge, Heart, ThumbsUp as ThumbUp } from 'lucide-react';");
+    expect(r.repaired).toEqual(['Fridge', 'ThumbUp']);
+  });
+  it('keeps an existing alias name', () => {
+    expect(repairLucideImports("import { Broom as CleanIcon } from 'lucide-react';").content)
+      .toBe("import { Brush as CleanIcon } from 'lucide-react';");
+  });
+  it('leaves real icons and other packages alone', () => {
+    const src = "import { Refrigerator } from 'lucide-react';\nimport { Fridge } from './icons';";
+    expect(repairLucideImports(src).content).toBe(src);
+  });
+});
