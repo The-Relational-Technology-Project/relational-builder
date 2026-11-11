@@ -1,0 +1,8 @@
+- Laptop: a warm paper-toned page with two columns: the street on the left (about 62%), the window and suggestions on the right. Phone: hero, then the window card, then buildings.
+- Top bar: "Main Street Stories" in a serif with "Hazard, Kentucky" under it, tabs "The street", "In the window", "Suggest someone", and a switcher between "You" and an example volunteer by name.
+- Hero card: a small caps place line ("MAIN STREET, HAZARD, KENTUCKY"), a large serif headline that counts what exists ("8 buildings, 16 voices so far"), one evocative line ("Who you remember behind each door: the counters, the chairs, the long lines on payday"), a "Suggest someone to interview" button, and a crew line with an avatar.
+- Building cards: name in serif ("The Movie House"), a decade range chip ("1930s – 1980s"), where on the street, one line of what it was, then a pull quote with a gold left rule and who said it ("A man who grew up two streets over"), and "Hear their stories".
+- Window card (tinted lavender): "In the window · Week 1", the label title, a quote in large serif, the object it sits beside, and "See all 4 labels".
+- "People we should talk to": suggestions with who suggested them, a relative time, and a status ("Just suggested", "Interview set").
+- Palette: cream paper background, off-white cards, aubergine for buttons and the active tab, a gold accent rule. Serif for headings and quotes, readable sans at a large size for older eyes.
+- Seed: eight buildings with dates and two excerpts each in plain Appalachian voices (payday, the courthouse, the bridge, the five-and-dime), four window labels, five suggestions.

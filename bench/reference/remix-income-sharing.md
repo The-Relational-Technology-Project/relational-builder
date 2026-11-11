@@ -1,0 +1,8 @@
+- Laptop: a centered page with two columns: the member's month on the left (about 60%), "Around the circle" on the right. Phone: one column, the send card first.
+- Top bar: club name ("Share Circle") on the left, tabs "This month", "My share", "Steward", and an EN / ES switch on the right that changes every label and the seeded notes' framing. A "Viewing as" select under the bar to switch between the member, another member and the steward.
+- Heading line: "November 2026 · Everyone gives 5%", and a small line with the steward's avatar ("Rosa keeps this circle. Ask her anything.").
+- Send card (the heart): a bordered card with "Your send this month", then a very large line "Send $45 to Lucía" with her initials avatar; a tinted box "How Lucía likes to receive" with her handle and a local alternative ("o en efectivo el domingo afuera de Talin Market"); an optional note textarea with a warm placeholder; and one full-width "I've sent this" button.
+- "Around the circle": who sends to whom this month with arrows between avatars and a status chip ("not yet", "sent"), amounts hidden. Copy says amounts stay between the two of you.
+- "Your past months": cards with the person, amount, month, a "received" chip, and the receiver's thank-you note in their own words and language.
+- Palette: dark warm-black background, raised dark cards, sunny orange for the send button and active switch, cream text. Geometric display font (Space Grotesk-like) for the big lines.
+- Seed: about 30 members with Albuquerque International District details (Talin Market, Central Ave, the Expo), notes in English and Spanish, three months of history; income visible only to the member and steward.

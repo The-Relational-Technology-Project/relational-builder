@@ -1,0 +1,8 @@
+- Laptop: a light page with a slim top bar and two columns: the ballot on the left (about 58%), voting logistics on the right. Phone: election day card, then the ballot, then voting early, then rides.
+- Top bar: "East Boston Ballot Guide", tabs "Ballot", "Vote early", "Rides", "Questions", and an English / Español segmented switch on the right that translates everything.
+- A thin notice line under the bar: sample races, check the official sample ballot before sharing.
+- Election day card: a navy header strip "ELECTION DAY", the weekday and a very large date, poll hours, where to find your polling place, an orange line "3 races and 2 questions on your ballot", and a "Get a ride to vote" button.
+- "What's on your ballot": one card per race with the race name and a "Vote for 1" chip, "What the job is:" and "Who it affects:" in two or three plain sentences, then candidates in ballot order with their neighborhood. Ballot questions: what a yes does, what a no does.
+- Right column: "Vote early or by mail" with three location cards (name, street address, days and hours in bold, a transit line like "Short walk from Airport station (Blue Line)"), a tinted vote-by-mail card, then "Rides to vote" with "Offer a ride" and "Ask for a ride".
+- Palette: white and pale blue-grey, deep navy for headers and buttons, orange for one emphasis per screen. Plain readable sans, large dates. Prints cleanly.
+- Seed: real-feeling East Boston places (Maverick Square, Jeffries Point, Orient Heights, Paris Street), a realistic municipal ballot, five neighbor questions with answers. Never says how to vote.
