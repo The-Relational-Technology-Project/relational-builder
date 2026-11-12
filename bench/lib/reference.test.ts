@@ -32,3 +32,12 @@ describe('reference arms', () => {
     }
   });
 });
+
+describe('library arm', () => {
+  it('attaches the Builder\'s pick with its wording', () => {
+    const c = userContent('hs-ballot-guide', 'Build a ballot guide for our neighborhood, a guide to how to vote.', 'library') as Array<{ type: string; text?: string }>;
+    expect(c[0].text).toContain("reference screen from the Builder's library");
+    expect(c[0].text).not.toContain('a plain-language guide with logistics');
+    expect(c[1].type).toBe('image_url');
+  });
+});

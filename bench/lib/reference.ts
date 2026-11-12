@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import type { ChatMessage } from '../../src/providers/types';
+import { pickReferenceScreen, referenceNote } from '../../src/human-scale/reference-screens';
 
 /**
  * The reference experiment (Nov 11, 2026): does an open model build closer
@@ -11,12 +12,15 @@ import type { ChatMessage } from '../../src/providers/types';
  *   BENCH_REFERENCE=spec   the written UI spec for this prompt
  *   BENCH_REFERENCE=both   screenshot and spec
  *   BENCH_REFERENCE=other  the Opus screenshot of a DIFFERENT prompt
+ *   BENCH_REFERENCE=library  the Builder's own pick from its reference
+ *                            library (src/human-scale/reference-screens.ts),
+ *                            with the Builder's wording: the product path
  *
  * The screenshot wording follows the Builder's gallery remix path
  * (src/project/start-from-commons.ts). Unset, the message is the bare
  * prompt, exactly as before.
  */
-export type ReferenceArm = 'same' | 'spec' | 'both' | 'other';
+export type ReferenceArm = 'same' | 'spec' | 'both' | 'other' | 'library';
 
 export const REFERENCE_DIR = path.resolve(import.meta.dirname ?? __dirname, '..', 'reference');
 
@@ -41,7 +45,7 @@ export const OTHER_NOTE =
 
 export function referenceArm(): ReferenceArm | null {
   const v = process.env.BENCH_REFERENCE?.trim();
-  return v === 'same' || v === 'spec' || v === 'both' || v === 'other' ? v : null;
+  return v === 'same' || v === 'spec' || v === 'both' || v === 'other' || v === 'library' ? v : null;
 }
 
 function imagePart(taskId: string, dir: string) {
@@ -59,6 +63,14 @@ function spec(taskId: string, dir: string): string {
 /** The first user message for a build, with the arm's reference attached */
 export function userContent(taskId: string, prompt: string, arm = referenceArm(), dir = REFERENCE_DIR): ChatMessage['content'] {
   if (!arm) return prompt;
+  if (arm === 'library') {
+    const screen = pickReferenceScreen(prompt);
+    const file = path.resolve(dir, '..', '..', 'public', 'human-scale', 'references', screen.file);
+    return [
+      { type: 'text', text: `${prompt}\n\n${referenceNote(screen)}` },
+      { type: 'image_url', image_url: { url: `data:image/png;base64,${readFileSync(file).toString('base64')}` } },
+    ];
+  }
   const withSpec = arm === 'spec' || arm === 'both'
     ? `${prompt}\n\n## UI spec (follow it closely)\n\n${spec(taskId, dir)}`
     : prompt;

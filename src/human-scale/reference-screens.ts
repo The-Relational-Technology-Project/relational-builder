@@ -47,7 +47,7 @@ export const REFERENCE_SCREENS: ReferenceScreen[] = [
     file: 'guide.png',
     shape: 'a plain-language guide with logistics (a ballot guide)',
     calls: /\b(guide|ballot|vote|voting|explain|how to|resources?|directory|faq|help desk|rights|benefits|where to)\b/i,
-    subject: /\b(ballot|voting) guide\b/i,
+    subject: /\bballot\b/i,
   },
   {
     id: 'archive',
