@@ -42,6 +42,7 @@ const SETTLE_MS = 60_000;
 
 const EVENT_LABELS: Record<BuildEventType, string> = {
   build_start: 'Build started',
+  reference_screen: 'Reference screen shown to the open model',
   gen_start: 'Generation started',
   gen_end: 'Generation ended',
   reply_cut_off: 'Reply cut off',

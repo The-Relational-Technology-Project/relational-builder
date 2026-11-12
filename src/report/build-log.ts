@@ -19,6 +19,8 @@ import { persist } from 'zustand/middleware';
 export type BuildEventType =
   /** First build of the project started */
   | 'build_start'
+  /** Human-scale: an open model's first build was shown a library reference screen (detail: its id) */
+  | 'reference_screen'
   /** A generation began — detail carries kind · provider · model, so every
    *  later event (cut-off, error, fix) is attributable to a specific reply */
   | 'gen_start'

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { pickReferenceScreen, referenceDataUrl, referenceNote } from '@/human-scale/reference-screens';
 import { extractOperations } from '@/project/code-extractor';
 import { ensureProfileDataFile } from '@/project/builder-profile';
 import { RotateCcw, X, Undo2, Check } from 'lucide-react';
@@ -12,7 +13,7 @@ import { isHumanScale } from '@/human-scale/flag';
 import { effectiveRuntime } from '@/human-scale/runtime';
 import { humanScaleAiGuidance } from '@/human-scale/prompt';
 import { recordBuilderCall } from '@/human-scale/provenance-store';
-import { OPEN_BUILDER_MODELS } from '@/human-scale/builder-model';
+import { OPEN_BUILDER_MODELS, isOpenBuilderModel } from '@/human-scale/builder-model';
 import { armAfterReply } from '@/human-scale/fix-passes';
 import type { StreamMeta } from '@/providers/types';
 import { registry } from '@/providers/registry';
@@ -627,9 +628,24 @@ export function ChatPanel() {
         photoNote = attachedPhotosNote(stored, useProjectStore.getState().getAllFiles());
       }
     }
+    // Behind the human-scale flag: an open model's first build sees one
+    // reference screen of a DIFFERENT well-made app, shown in the person's
+    // own message so they see what context travels, and removable next
+    // time by attaching their own image (src/human-scale/reference-screens.ts)
+    let sendAttachments = attachments;
+    if (isFirstBuild && !wasFix && !attachments?.length && isHumanScale() && isOpenBuilderModel(modelForSend)) {
+      const askedFor = [...priorMessages.filter(m => m.role === 'user').map(m => m.content), content].join('\n');
+      const screen = pickReferenceScreen(askedFor);
+      const url = await referenceDataUrl(screen);
+      if (url) {
+        sendAttachments = [url];
+        photoNote = [photoNote, referenceNote(screen)].filter(Boolean).join('\n\n');
+        recordBuildEvent('reference_screen', screen.id);
+      }
+    }
     addUserMessage(
       content,
-      attachments,
+      sendAttachments,
       wasFix ? { label: fixLabel ?? 'Automatic fix' } : undefined,
       photoNote,
     );
