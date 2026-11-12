@@ -12,6 +12,66 @@ experiment at most $5 and 30 minutes.
 
 ---
 
+## 2026-11-12
+
+**For Josh:** Yesterday's finding is now in the Builder, behind the
+flag: when an open model makes a first build, it is shown one screen of a
+different well-made app from a small library, and you can see the screen
+in your own message. On eight new prompts Gemma made 14 working apps of
+16 with it, against 12 without, and its laptop layouts doubled (8 layout
+classes against 4; Opus has 12). It is not Opus yet. Spend about $0.15.
+
+**Stack layer moved:** Builder model, from "a reference screen helps in a
+bench experiment" to "the Builder carries a reference library and shows
+open models one screen on a first build", a piece a community can curate
+for itself.
+
+**What was tried.**
+
+1. *The Nov 10 and 11 changes, measured together* (Gemma, comparison
+   prompts, 8 builds): 7 of 8 working, 6 of 8 on the first try (from
+   about half), but first-screen text fell to 477 characters (Opus 774)
+   and desktop classes to 4. Only 2 of 8 used the kit's new `PageGrid`;
+   a recipe line naming a kit part moved layout no more than earlier rule
+   lines did. Loop-made seed text: still 4 of 4 listening-wall builds.
+2. *Reference library in the Builder*
+   (`src/human-scale/reference-screens.ts`). Five screens, one per shape:
+   schedule, content wall, guide, archive, status tool (Opus builds from
+   the bench until people choose their own). The prompt's words pick the
+   shape; a screen on the prompt's own subject is never used. On an open
+   model's first build of an empty project, with no image of the person's
+   own, the screen rides in their message as a visible attachment with
+   one line of wording, and the build log records it.
+3. *Measured on the spread set* (`BENCH_REFERENCE=library`, the
+   Builder's own pick and wording), Gemma, two builds per prompt:
+
+| | Gemma, today's guidance | Gemma + library screen | Opus (Nov 10) |
+|---|---|---|---|
+| Working builds | 12 of 16 | 14 of 16 | 5 of 8 (two harness misses) |
+| Working on the first try | 10 of 16 | 12 of 16 | 7 of 8 |
+| Desktop (`md:`) classes | 4 | 8 | 12 |
+| First-screen text (median chars) | 840 | 818 | 899 |
+
+4. *First-try causes, Nov 10 and 11.* 18 of Gemma's fix-pass triggers
+   were a missing export. Three plain patterns now repair in the
+   extractor: kit names in the wrong case or from the wrong kit file,
+   main.tsx and App.tsx disagreeing on default versus named App, and two
+   more invented icons (`Window`, `Tool`).
+5. *A router gap.* Yesterday's router hoist missed one case: a fix reply
+   that rewrites App.tsx with its own router after main.tsx already has
+   one. The extractor now sees the project's main.tsx and strips the
+   nested router; replayed, that build renders.
+
+**Cost:** about $0.15 for 40 builds (harness estimate; image input not
+counted).
+
+**Honest read:** the library is the first design change in two weeks that
+moved Gemma's laptop layouts on prompts it was not tuned on, and it does
+it with something a community could own. Content is the gap it does not
+close: first screens hold about as much text with or without it, and seed
+text is still often made in loops. Two builds a cell; design is Josh's
+read from the sheet.
+
 ## 2026-11-11
 
 **For Josh:** Your experiment: does Gemma build closer to Opus when it is

@@ -69,7 +69,7 @@ figcaption.ok{border-left:3px solid var(--ok)}figcaption.bad{border-left:3px sol
 @media (max-width:720px){.grid{grid-template-columns:1fr}}
 </style></head><body>
 <h1>The spread set, ${esc(date)}</h1>
-<p>Eight more kinds of relational tech: four remixes of gallery items, worded the way the Builder's gallery opens a remix, and four new asks. One build per model per prompt, with the Builder's current design guidance and two fix passes. The open models have no Opus help. A green edge means the app works; a red one means it bundled with errors or didn't bundle.</p>
+<p>Eight more kinds of relational tech: four remixes of gallery items, worded the way the Builder's gallery opens a remix, and four new asks. Each column is a model, with the Builder's current design guidance and two fix passes. A column marked "+ library" also saw one reference screen of a different app from the Builder's library (for now, screens from Opus builds); other open-model columns had no Opus help. A green edge means the app works; a red one means it bundled with errors or didn't bundle.</p>
 <p>${models.map(m => { const l = works(m); return `<b>${esc(m)}</b> ${l.filter(c => c.clean).length} of ${l.length} working`; }).join(' · ')}</p>
 `;
 for (const [id, title, blurb] of TASKS) {

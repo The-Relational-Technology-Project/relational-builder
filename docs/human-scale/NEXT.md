@@ -283,6 +283,13 @@ stack layer it moved; pace paid work at $3 to $5 a day.
    look at the listening wall row in particular: content first now, but
    with filler text in some builds.
 
+10. **The library is in the Builder now (Nov 12), behind the flag.** It
+   shows open models one screen of a different app on a first build, and
+   the screen appears in the person's own message. Is that the right
+   amount of visibility, or should it also say in words which screen was
+   used and why? Default if unanswered: the attachment alone, plus the
+   build log line.
+
 9. **Reference screens (Nov 11).** Showing Gemma a screenshot of a
    *different* well-made app worked better than any written guidance so
    far. If we build a small library of reference screens for the Builder
@@ -291,26 +298,27 @@ stack layer it moved; pace paid work at $3 to $5 a day.
    show, one per shape (a status tool, a content wall, a guide, an
    archive, a schedule), until you pick.
 
-## Tomorrow (one run, about 75 minutes)
+## Tomorrow (one run, about 75 minutes; Friday, so the weekly rollup too)
 
-1. **Measure the Nov 10 and 11 changes together on the comparison
-   prompts.** Gemma, four trials a prompt, bf16 (about $0.05, log first).
-   New since the last measured batch: hand-written seed clause, React
-   auto-import, nav children, lucide aliases, router hoist, and the kit's
-   `Page`/`PageGrid`/`TopNav` with the recipe line pointing to them.
-   Report the gap table (watch `md:` classes against Opus's 12) and count
-   loop-made seed text (Nov 10: 7 of 8 listening-wall builds).
-2. **Follow the reference result (Nov 11).** Seeing a *different* good
-   app (arm E) gave Gemma 12 of 12 working builds and Opus-like layouts
-   without copying the subject. Next step toward something a community
-   can use without Opus: a small reference library (three to five
-   screens of different shapes, from builds Josh rates well) and a way
-   for the Builder to show one beside the prompt behind the flag.
-   Measure E with a screen from the library against A on the spread set.
-   Ask Josh which screens first (question below).
-3. **First-try tail.** Tabulate Nov 11 fix-pass triggers across arms;
-   take one cause with an obvious mechanical answer.
-4. **End-to-end check of export and delete.** Needs a signed-in Builder.
+1. **Weekly rollup in the LOG** (spend, what moved, decisions needed),
+   above the day's entry. This week: the code gap closed on lint and
+   types; first try about half to about three quarters; the reference
+   library is the design change that moved laptop layouts; content
+   specificity is the open gap.
+2. **Seed content, the remaining gap.** Rules have not stopped loop-made
+   seed text (4 of 4 listening-wall builds on Nov 12) and first screens
+   hold about as much text with or without a reference. Try a mechanical
+   answer: a static check that finds seed text built in a loop
+   (`texts[i % n]`, template strings over an index in `src/data` or the
+   store) and, behind the flag, raises it as a fix-pass trigger with a
+   hint naming the file and asking for hand-written items. Tested; then
+   Gemma on the comparison prompts (about $0.05, log first).
+3. **Library arm on the comparison prompts** (about $0.05): the Builder's
+   pick for the fridge and the listening wall, so the gap table has a
+   library row against the fixed Opus baseline.
+4. **Transfer check (weekly):** the library arm on GLM 4.5 Air and
+   Mistral Small 3.2, spread set, one build per prompt (about $0.10).
+5. **End-to-end check of export and delete.** Needs a signed-in Builder.
 
 ## After that, in order
 
