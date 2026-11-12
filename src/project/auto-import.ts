@@ -72,3 +72,49 @@ export function addMissingImports(
   }
   return { content, added };
 }
+
+/**
+ * A kit import whose name the kit file doesn't export, when the right name
+ * is plain to see: the same name in another case (`{ textarea }` from
+ * textarea.tsx is `Textarea`), or the name exported by a different kit file
+ * (`Textarea` imported from input.tsx). Bench, Nov 10 to 11: 4 of Gemma's
+ * fix-pass triggers. Lines with any name that can't be placed are left
+ * for the fix pass.
+ */
+export function repairKitImports(source: string, kitFiles: Record<string, string>): { content: string; repaired: string[] } {
+  const exportsByFile = kitExports(kitFiles);
+  const byAlias = new Map(Object.keys(exportsByFile).map(p => [aliasOf(p), p]));
+  const repaired: string[] = [];
+  const content = source.replace(
+    /^import\s*\{([^}]*)\}\s*from\s*['"](@\/components\/ui\/[\w-]+)['"];?[ \t]*$/gm,
+    (line, names: string, spec: string) => {
+      const file = byAlias.get(spec);
+      if (!file) return line;
+      const own = exportsByFile[file];
+      const stay: string[] = [];
+      const moved = new Map<string, string[]>();
+      for (const raw of names.split(',').map(s => s.trim()).filter(Boolean)) {
+        const [name, local] = raw.split(/\s+as\s+/).map(s => s.trim());
+        if (own.includes(name)) { stay.push(raw); continue; }
+        const sameFileCase = own.find(n => n.toLowerCase() === name.toLowerCase());
+        if (sameFileCase) {
+          // `{ textarea }` used as <textarea> is the HTML element and the
+          // import was simply wrong: bring the kit name in as itself
+          stay.push(local ? `${sameFileCase} as ${local}` : sameFileCase);
+          repaired.push(name);
+          continue;
+        }
+        const elsewhere = Object.entries(exportsByFile).find(([, ex]) => ex.includes(name))?.[0];
+        if (!elsewhere) return line; // not plain: leave the whole line for the fix pass
+        const a = aliasOf(elsewhere);
+        moved.set(a, [...(moved.get(a) ?? []), raw]);
+        repaired.push(name);
+      }
+      if (moved.size === 0 && repaired.length === 0) return line;
+      const out = stay.length ? [`import { ${stay.join(', ')} } from '${spec}';`] : [];
+      for (const [a, ns] of moved) out.push(`import { ${ns.join(', ')} } from '${a}';`);
+      return out.join('\n');
+    },
+  );
+  return { content, repaired };
+}

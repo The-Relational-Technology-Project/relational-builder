@@ -19,8 +19,8 @@
 
 import { isHumanScale } from '@/human-scale/flag';
 import { repairImports, repairLucideImports, removeUnusedImports, REPAIRABLE_PATH } from './import-repair';
-import { addMissingImports } from './auto-import';
-import { hoistRouter, isKitStub, repairEntry } from './scaffold-guard';
+import { addMissingImports, repairKitImports } from './auto-import';
+import { hoistRouter, isKitStub, matchAppImport, repairEntry } from './scaffold-guard';
 import { KIT_FILES } from '@/kit';
 
 export interface ExtractedFile {
@@ -123,7 +123,7 @@ export function extractOperations(markdown: string): ExtractionResult {
               filename,
               addMissingImports(
                 '/' + filename.replace(/^\//, ''),
-                removeUnusedImports(repairLucideImports(repairImports(content).content).content).content,
+                repairKitImports(removeUnusedImports(repairLucideImports(repairImports(content).content).content).content, KIT_FILES).content,
                 KIT_FILES,
               ).content,
             ).content
@@ -147,7 +147,7 @@ export function extractOperations(markdown: string): ExtractionResult {
   }
 
   // One router, at the top (src/project/scaffold-guard.ts)
-  const routed = isHumanScale() ? hoistRouter(writes).writes : writes;
+  const routed = isHumanScale() ? matchAppImport(hoistRouter(writes).writes).writes : writes;
   return { writes: routed, edits, truncatedPath };
 }
 

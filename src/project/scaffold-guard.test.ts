@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { hoistRouter, isKitStub, repairEntry } from './scaffold-guard';
+import { hoistRouter, isKitStub, matchAppImport, repairEntry } from './scaffold-guard';
 import { KIT_FILES } from '@/kit';
 
 describe('isKitStub', () => {
@@ -53,5 +53,21 @@ describe('hoistRouter', () => {
     const app = { path: 'src/App.tsx', content: "import { Routes } from 'react-router-dom';" };
     expect(hoistRouter([ok, app]).hoisted).toBe(false);
     expect(hoistRouter([main, { path: 'src/App.tsx', content: 'export default () => null;' }]).hoisted).toBe(false);
+  });
+});
+
+describe('matchAppImport', () => {
+  const main = (imp: string) => ({ path: 'src/main.tsx', content: `${imp}\nroot.render(<App />);` });
+  it('switches main to a named import when App has no default', () => {
+    const r = matchAppImport([main("import App from './App';"), { path: 'src/App.tsx', content: 'export function App() { return null; }' }]);
+    expect(r.fixed).toBe(true);
+    expect(r.writes[0].content).toContain("import { App } from './App';");
+  });
+  it('switches main to a default import when App has only a default', () => {
+    const r = matchAppImport([main("import { App } from './App';"), { path: 'src/App.tsx', content: 'export default function App() { return null; }' }]);
+    expect(r.writes[0].content).toContain("import App from './App';");
+  });
+  it('leaves a matching pair alone', () => {
+    expect(matchAppImport([main("import App from './App';"), { path: 'src/App.tsx', content: 'export default function App() {}' }]).fixed).toBe(false);
   });
 });

@@ -106,6 +106,9 @@ export const LUCIDE_ALIASES: Record<string, string> = {
   MilkBottle: 'Milk',
   Update: 'RefreshCw',
   CircleHalf: 'Contrast',
+  Window: 'AppWindow',
+  Tool: 'Wrench',
+  Tools: 'Wrench',
 };
 
 /**

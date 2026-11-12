@@ -73,3 +73,26 @@ export function hoistRouter<T extends { path: string; content: string }>(writes:
   });
   return { writes: out, hoisted: true };
 }
+
+/**
+ * main.tsx and App.tsx disagreeing on how App is exported: `import App
+ * from './App'` against `export function App`, or `import { App }`
+ * against `export default`. Bench, Nov 10 to 11: 3 of Gemma's fix-pass
+ * triggers. main's import is rewritten to match App; anything less plain
+ * is left alone.
+ */
+export function matchAppImport<T extends { path: string; content: string }>(writes: T[]): { writes: T[]; fixed: boolean } {
+  const mainIdx = writes.findIndex(w => ENTRY_RE.test(w.path));
+  const app = writes.find(w => /^\/?src\/App\.[jt]sx$/.test(w.path));
+  if (mainIdx < 0 || !app) return { writes, fixed: false };
+  const main = writes[mainIdx].content;
+  const hasDefault = /export\s+default\b/.test(app.content);
+  const hasNamed = /export\s+(?:function|const|class)\s+App\b/.test(app.content) || /export\s*\{[^}]*\bApp\b[^}]*\}/.test(app.content);
+  let next = main;
+  if (!hasDefault && hasNamed) next = main.replace(/import\s+App\s+from\s+(['"]\.\/App(?:\.[jt]sx)?['"])/, 'import { App } from $1');
+  else if (hasDefault && !hasNamed) next = main.replace(/import\s*\{\s*App\s*\}\s*from\s+(['"]\.\/App(?:\.[jt]sx)?['"])/, 'import App from $1');
+  if (next === main) return { writes, fixed: false };
+  const out = writes.slice();
+  out[mainIdx] = { ...writes[mainIdx], content: next };
+  return { writes: out, fixed: true };
+}

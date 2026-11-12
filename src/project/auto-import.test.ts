@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addMissingImports } from './auto-import';
+import { addMissingImports, repairKitImports } from './auto-import';
 import { checkImports } from './import-check';
 import { KIT_FILES } from '@/kit';
 
@@ -28,5 +28,20 @@ describe('adding a forgotten import', () => {
   it('leaves a file that only uses React types alone', () => {
     const src = "export function F(e: React.FormEvent) { return e; }";
     expect(addMissingImports('/src/F.tsx', src, KIT_FILES).added).toEqual([]);
+  });
+});
+
+describe('repairKitImports', () => {
+  it('fixes the case of a kit name', () => {
+    const r = repairKitImports("import { textarea } from '@/components/ui/textarea';", KIT_FILES);
+    expect(r.content).toBe("import { Textarea } from '@/components/ui/textarea';");
+  });
+  it('moves a name to the kit file that exports it', () => {
+    const r = repairKitImports("import { Input, Textarea } from '@/components/ui/input';", KIT_FILES);
+    expect(r.content).toBe("import { Input } from '@/components/ui/input';\nimport { Textarea } from '@/components/ui/textarea';");
+  });
+  it('leaves a line with an unplaceable name for the fix pass', () => {
+    const src = "import { Input, Wizard } from '@/components/ui/input';";
+    expect(repairKitImports(src, KIT_FILES).content).toBe(src);
   });
 });
