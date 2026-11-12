@@ -96,3 +96,33 @@ export function matchAppImport<T extends { path: string; content: string }>(writ
   out[mainIdx] = { ...writes[mainIdx], content: next };
   return { writes: out, fixed: true };
 }
+
+/**
+ * The later-reply half of hoistRouter: when the project's main.tsx already
+ * renders the router (often because hoistRouter put it there), a fix or
+ * edit reply that rewrites App.tsx with its own <HashRouter> nests two
+ * routers and blanks the page. Strip the router elements from such writes.
+ * `existingMain` is the project's current main.tsx, when the reply doesn't
+ * carry one.
+ */
+export function stripNestedRouter<T extends { path: string; content: string }>(writes: T[], existingMain: string | undefined): { writes: T[]; stripped: boolean } {
+  if (writes.some(w => ENTRY_RE.test(w.path))) return { writes, stripped: false };
+  if (!existingMain || !ANY_ROUTER_EL_RE.test(existingMain)) return { writes, stripped: false };
+  let stripped = false;
+  const out = writes.map(w => {
+    if (!/<(HashRouter|BrowserRouter)\b/.test(w.content)) return w;
+    stripped = true;
+    return { ...w, content: stripRouterElements(w.content) };
+  });
+  return { writes: out, stripped };
+}
+
+function stripRouterElements(content: string): string {
+  return content
+    .replace(/<(HashRouter|BrowserRouter)\b[^>]*>/g, '<>')
+    .replace(/<\/(HashRouter|BrowserRouter)>/g, '</>')
+    .replace(/(import\s*\{)([^}]*)(\}\s*from\s*['"]react-router-dom['"];?)/, (_a, o: string, names: string, c: string) => {
+      const kept = names.split(',').map(s => s.trim()).filter(n => n && !/^(HashRouter|BrowserRouter)\b/.test(n));
+      return kept.length ? `${o} ${kept.join(', ')} ${c}` : '';
+    });
+}

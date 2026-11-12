@@ -158,8 +158,9 @@ export const useProjectStore = create<ProjectState>()(persist((set, get) => ({
   },
 
   applyMessageFiles: (markdown, msgId, askLabel) => {
-    const { writes, edits, truncatedPath } = extractOperations(markdown);
     const { fs, checkpoints } = get();
+    const main = fs.getFile('/src/main.tsx') ?? fs.getFile('/src/main.jsx');
+    const { writes, edits, truncatedPath } = extractOperations(markdown, main ? { '/src/main.tsx': main.content } : undefined);
     const warnings: string[] = [];
     if (truncatedPath) {
       warnings.push(

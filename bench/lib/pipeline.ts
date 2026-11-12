@@ -60,7 +60,7 @@ export async function scoreOutput(task: TaskSpec, segmentTexts: string[]): Promi
   // Segments apply in order, like production extracts each reply message:
   // a continuation that re-outputs a cut-off file simply overwrites it.
   for (const text of segmentTexts) {
-    const ops = extractOperations(text);
+    const ops = extractOperations(text, files);
     for (const w of ops.writes) {
       const p = normalize(w.path);
       // A whole-file re-emit of a file that was already in the project is the

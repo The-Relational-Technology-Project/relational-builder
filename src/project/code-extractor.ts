@@ -20,7 +20,7 @@
 import { isHumanScale } from '@/human-scale/flag';
 import { repairImports, repairLucideImports, removeUnusedImports, REPAIRABLE_PATH } from './import-repair';
 import { addMissingImports, repairKitImports } from './auto-import';
-import { hoistRouter, isKitStub, matchAppImport, repairEntry } from './scaffold-guard';
+import { hoistRouter, isKitStub, matchAppImport, repairEntry, stripNestedRouter } from './scaffold-guard';
 import { KIT_FILES } from '@/kit';
 
 export interface ExtractedFile {
@@ -60,7 +60,12 @@ export function extractFiles(markdown: string): ExtractedFile[] {
  * Edit blocks use the fence language `edit` and contain one or more
  * SEARCH/REPLACE pairs (`<<<<<<< SEARCH` / `=======` / `>>>>>>> REPLACE`).
  */
-export function extractOperations(markdown: string): ExtractionResult {
+/**
+ * `existing` is the project's current files (paths like `/src/main.tsx`),
+ * when the caller has them; behind the human-scale flag a reply's writes
+ * are checked against them (stripNestedRouter).
+ */
+export function extractOperations(markdown: string, existing?: Record<string, string>): ExtractionResult {
   const writes: ExtractedFile[] = [];
   const edits: ExtractedEdit[] = [];
   let truncatedPath: string | undefined;
@@ -147,7 +152,10 @@ export function extractOperations(markdown: string): ExtractionResult {
   }
 
   // One router, at the top (src/project/scaffold-guard.ts)
-  const routed = isHumanScale() ? matchAppImport(hoistRouter(writes).writes).writes : writes;
+  const existingMain = existing?.['/src/main.tsx'] ?? existing?.['/src/main.jsx'];
+  const routed = isHumanScale()
+    ? stripNestedRouter(matchAppImport(hoistRouter(writes).writes).writes, existingMain).writes
+    : writes;
   return { writes: routed, edits, truncatedPath };
 }
 

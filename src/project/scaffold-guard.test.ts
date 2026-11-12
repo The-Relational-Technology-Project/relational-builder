@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { hoistRouter, isKitStub, matchAppImport, repairEntry } from './scaffold-guard';
+import { hoistRouter, isKitStub, matchAppImport, repairEntry, stripNestedRouter } from './scaffold-guard';
 import { KIT_FILES } from '@/kit';
 
 describe('isKitStub', () => {
@@ -69,5 +69,19 @@ describe('matchAppImport', () => {
   });
   it('leaves a matching pair alone', () => {
     expect(matchAppImport([main("import App from './App';"), { path: 'src/App.tsx', content: 'export default function App() {}' }]).fixed).toBe(false);
+  });
+});
+
+describe('stripNestedRouter', () => {
+  const app = { path: 'src/App.tsx', content: "import { HashRouter, Routes } from 'react-router-dom';\nexport default function App() { return <HashRouter><Routes /></HashRouter>; }" };
+  it('strips a rewritten App\'s router when main already has one', () => {
+    const r = stripNestedRouter([app], "root.render(<HashRouter><App /></HashRouter>);");
+    expect(r.stripped).toBe(true);
+    expect(r.writes[0].content).not.toContain('HashRouter');
+    expect(r.writes[0].content).toContain("import { Routes } from 'react-router-dom';");
+  });
+  it('leaves it when main has no router, or the reply carries main', () => {
+    expect(stripNestedRouter([app], 'root.render(<App />);').stripped).toBe(false);
+    expect(stripNestedRouter([app, { path: 'src/main.tsx', content: '<HashRouter><App /></HashRouter>' }], '<HashRouter>').stripped).toBe(false);
   });
 });

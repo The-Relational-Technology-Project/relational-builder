@@ -10,6 +10,8 @@ import path from 'node:path';
 
 const root = 'bench/results';
 const argDate = process.argv[process.argv.indexOf('--date') + 1];
+// --only p1,p2 keeps just runs whose directory starts with one of these
+const only = process.argv.includes('--only') ? process.argv[process.argv.indexOf('--only') + 1].split(',') : null;
 const date = argDate && !argDate.startsWith('--') ? argDate : new Date().toISOString().slice(0, 10);
 
 const TASKS = [
@@ -26,7 +28,7 @@ const MODEL_ORDER = ['gemma-4-26b', 'glm-4.5-air', 'gpt-oss-120b', 'mistral-smal
 const ids = TASKS.map(t => t[0]);
 
 const cells = new Map(); // `${task}|${alias}` -> [{img, caption, clean}]
-for (const dir of readdirSync(root).filter(d => d.startsWith(date))) {
+for (const dir of readdirSync(root).filter(d => d.startsWith(date) && (!only || only.some(p => d.startsWith(p))))) {
   const f = path.join(root, dir, 'run.json');
   if (!existsSync(f)) continue;
   const run = JSON.parse(readFileSync(f, 'utf8'));
@@ -37,15 +39,19 @@ for (const dir of readdirSync(root).filter(d => d.startsWith(date))) {
     const clean = !!(t.bundle?.ok && rt.rendered && !(rt.errors || []).length);
     const caption = `${t.alias} · ${clean ? 'works' : t.bundle?.ok ? 'bundled, not clean' : 'did not bundle'}` +
       `${t.fixRound ? ' after a fix pass' : ' first try'} · ${Math.round(t.latencyMs / 1000)}s`;
-    const key = `${t.taskId}|${t.alias}`;
+    // Runs with a reference arm get their own column (Nov 12: library vs none)
+    const col = run.config?.reference ? `${t.alias} + ${run.config.reference}` : t.alias;
+    const key = `${t.taskId}|${col}`;
     if (!cells.has(key)) cells.set(key, []);
     cells.get(key).push({ img: existsSync(shot) ? `data:image/png;base64,${readFileSync(shot).toString('base64')}` : null, caption, clean });
   }
 }
 
 const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
-const models = MODEL_ORDER.filter(m => [...cells.keys()].some(k => k.split('|')[1] === m));
-const works = m => [...cells.entries()].filter(([k]) => k.endsWith('|' + m)).flatMap(([, l]) => l);
+const cols = [...new Set([...cells.keys()].map(k => k.split('|')[1]))];
+const rank = c => { const i = MODEL_ORDER.indexOf(c.split(' + ')[0]); return (i < 0 ? 99 : i) * 10 + (c.includes(' + ') ? 1 : 0); };
+const models = cols.sort((a, b) => rank(a) - rank(b));
+const works = m => [...cells.entries()].filter(([k]) => k.split('|')[1] === m).flatMap(([, l]) => l);
 let html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Spread Set Sheet</title>
 <style>
