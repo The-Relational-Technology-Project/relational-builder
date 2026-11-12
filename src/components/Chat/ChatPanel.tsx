@@ -118,7 +118,11 @@ const FIX_EFFORT: ThinkingEffort = 'high';
  *  and medium 127s to first token, both bundling first try — the rung buys
  *  nothing in latency between those two, so medium is the cheaper one. */
 function effortFor(model: string, base: ThinkingEffort): ThinkingEffort {
-  return /opus-5-5/.test(model) ? lowerEffort(lowerEffort(base)) : base;
+  if (/opus-5-5/.test(model)) return lowerEffort(lowerEffort(base));
+  // Fable 5.2: Anthropic says start at `high` — gains above it are uneven —
+  // so the whole ladder runs one rung down (a plan or first build at `high`).
+  if (/fable-5-2|mythos-5-2/.test(model)) return lowerEffort(base);
+  return base;
 }
 
 /** How long a reply may think before its first output token. Thinking deltas
@@ -532,7 +536,7 @@ export function ChatPanel() {
       else useChatStore.getState().endCooking();
     }
 
-    // Free community building: Fable 5.1 does the plan-mode strategy work,
+    // Free community building: Fable 5.2 does the plan-mode strategy work,
     // Opus 5.5 does builds and edits — unless the person picked a model
     // themselves. Fix sends stay on whatever model is active (a continuation
     // must finish what it started).

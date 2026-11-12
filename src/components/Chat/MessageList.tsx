@@ -344,6 +344,16 @@ export function MessageList({ messages, onBuildPlan, isGenerating }: MessageList
   // Reading back through history shouldn't fight the auto-scroll — only
   // follow the stream while the person is already near the bottom
   const [nearBottom, setNearBottom] = useState(true);
+  // Whether the view follows the stream. Only the person's own scrolling
+  // (wheel, touch, keys, the scrollbar) turns it off — a fast stream can
+  // outrun a smooth scroll and briefly leave the view far from the bottom,
+  // which must not read as "they scrolled away". Reaching the bottom again,
+  // or sending a message, turns it back on.
+  const [following, setFollowing] = useState(true);
+  // Read by a follow already scheduled when the person scrolls away, so it
+  // stands down instead of dragging them back
+  const followingRef = useRef(true);
+  useEffect(() => { followingRef.current = following; }, [following]);
   // On a shared project, build asks carry the sender's name so everyone can
   // tell whose ask the AI is answering. Solo projects stay unlabelled.
   const shared = useCloudStore(s => s.members.length > 0);
@@ -352,22 +362,89 @@ export function MessageList({ messages, onBuildPlan, isGenerating }: MessageList
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    const onScroll = () => {
-      setNearBottom(el.scrollHeight - el.scrollTop - el.clientHeight < 120);
+    let userInputAt = 0;
+    const stopFollowing = () => {
+      followingRef.current = false;
+      setFollowing(false);
     };
+    // An upward wheel or key is unambiguous — stop at once, before the next
+    // streamed token can schedule a follow that drags the view back down
+    const onInput = (e: Event) => {
+      userInputAt = Date.now();
+      if (e instanceof WheelEvent && e.deltaY < 0) stopFollowing();
+      if (e instanceof KeyboardEvent && ['ArrowUp', 'PageUp', 'Home'].includes(e.key)) stopFollowing();
+    };
+    const onScroll = () => {
+      const near = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
+      setNearBottom(near);
+      if (near) {
+        setFollowing(true);
+      } else if (Date.now() - userInputAt < 400) {
+        stopFollowing();
+      }
+    };
+    const inputs = ['wheel', 'touchmove', 'pointerdown', 'keydown'] as const;
+    inputs.forEach(t => el.addEventListener(t, onInput, { passive: true }));
     el.addEventListener('scroll', onScroll, { passive: true });
-    return () => el.removeEventListener('scroll', onScroll);
+    return () => {
+      inputs.forEach(t => el.removeEventListener(t, onInput));
+      el.removeEventListener('scroll', onScroll);
+    };
   }, []);
+
+  // The person's newest message in this sitting is the reading anchor: a
+  // reply follows the stream only until that message reaches the top of the
+  // view, then stops — so a long reply (or a plan document that lands in one
+  // piece) is read from its start, not found at its end, and the arrow below
+  // says there's more. Messages from before this view mounted (opening a
+  // project) don't anchor; that view opens at the bottom as before.
+  const [mountedAt] = useState(() => Date.now());
+  const anchorId = useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const m = messages[i];
+      if (m.role === 'user' && !m.isAuto) {
+        return m.timestamp >= mountedAt - 5_000 ? m.id : null;
+      }
+    }
+    return null;
+  }, [messages, mountedAt]);
+  // A fresh send always brings the conversation back into view, even if the
+  // person had scrolled up through history while typing
+  const [seenAnchor, setSeenAnchor] = useState(anchorId);
+  if (anchorId !== seenAnchor) {
+    setSeenAnchor(anchorId);
+    if (anchorId) setFollowing(true);
+  }
 
   // Follow the stream, throttled: this effect fires on every streamed token,
   // and restarting a smooth scroll animation hundreds of times a second turns
-  // long builds into jank. One scroll per ~150ms reads identically.
+  // long builds into jank. One scroll per ~150ms reads identically. The
+  // target is recomputed when the scroll actually runs, so a delayed follow
+  // can never overshoot the anchor (it once dragged a just-landed plan
+  // document back to its end).
   const lastContent = messages[messages.length - 1]?.content;
   const lastFollowAt = useRef(0);
   const followTimer = useRef<number | null>(null);
   useEffect(() => {
-    if (!nearBottom) return;
-    const follow = () => bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (!following) return;
+    // Where following may scroll to: the bottom, capped at the anchor's top
+    // (or, for a long message, its last third of a screen). Measured when
+    // the scroll runs, not when it was scheduled.
+    const follow = () => {
+      const el = scrollRef.current;
+      if (!el || !followingRef.current) return;
+      let target = el.scrollHeight - el.clientHeight;
+      const anchor = anchorId && !cooking
+        ? el.querySelector<HTMLElement>(`[data-msg-id="${anchorId}"]`)
+        : null;
+      if (anchor) {
+        const top = anchor.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop;
+        const anchorTop = Math.max(top, top + anchor.offsetHeight - el.clientHeight / 3) - 16;
+        target = Math.min(target, Math.max(0, anchorTop));
+      }
+      if (Math.abs(el.scrollTop - target) < 2) return;
+      el.scrollTo({ top: target, behavior: 'smooth' });
+    };
     const since = Date.now() - lastFollowAt.current;
     if (since >= 150) {
       lastFollowAt.current = Date.now();
@@ -380,34 +457,15 @@ export function MessageList({ messages, onBuildPlan, isGenerating }: MessageList
       }, 150 - since);
     }
     // `cooking` rides the deps so the reveal (hidden chain → visible result)
-    // also follows to the bottom, where the summary and next step land
-  }, [messages, lastContent, nearBottom, cooking]);
+    // also follows, to the start of what landed
+  }, [messages, lastContent, following, cooking, anchorId]);
   useEffect(() => () => {
     if (followTimer.current !== null) clearTimeout(followTimer.current);
   }, []);
 
-  // A plan document stays hidden while it's written and lands in one piece —
-  // when it does, start the reader at its top instead of letting the
-  // bottom-follow drop them at the end of a document they haven't read yet.
-  // Conversational plan-mode replies stream live and never jump the scroll.
   const lastMessage = messages[messages.length - 1];
-  const streamingPlanId = useRef<string | null>(null);
-  useEffect(() => {
-    if (lastMessage?.isPlan && lastMessage.isStreaming) {
-      streamingPlanId.current = lastMessage.id;
-      return;
-    }
-    if (lastMessage && streamingPlanId.current === lastMessage.id && !lastMessage.isStreaming) {
-      streamingPlanId.current = null;
-      if (!isPlanDocument(lastMessage.content)) return;
-      const el = scrollRef.current?.querySelector(`[data-msg-id="${lastMessage.id}"]`);
-      // After the bottom-follow above has had its say — this jump wins
-      requestAnimationFrame(() => {
-        setNearBottom(false); // hand the scroll back to the reader
-        el?.scrollIntoView({ block: 'start' });
-      });
-    }
-  }, [lastMessage]);
+  // The arrow names what it's for when a reply runs on below the view
+  const moreBelow = !!anchorId && lastMessage?.role === 'assistant';
 
   if (messages.length === 0) {
     return null;
@@ -485,10 +543,11 @@ export function MessageList({ messages, onBuildPlan, isGenerating }: MessageList
       {!nearBottom && (
         <button
           onClick={() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' })}
-          className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 rounded-full border bg-background/95 shadow-md p-2 text-muted-foreground hover:text-foreground transition-colors"
+          className={`absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 rounded-full border bg-background/95 shadow-md text-muted-foreground hover:text-foreground transition-colors ${moreBelow ? 'px-3 py-1.5 text-xs' : 'p-2'}`}
           title="Jump to the latest"
         >
           <ArrowDown className="size-3.5" />
+          {moreBelow && <span>More below</span>}
         </button>
       )}
     </div>

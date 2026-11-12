@@ -109,7 +109,7 @@ export const useProviderStore = create<ProviderState>()(
     }),
     {
       name: 'rb-provider-config',
-      version: 8,
+      version: 9,
       migrate: (persisted, version) => {
         const state = persisted as Partial<ProviderState>;
 
@@ -189,6 +189,17 @@ export const useProviderStore = create<ProviderState>()(
 
         // v8: the local-model preset adds persisted endpoint overrides
         if (!state.baseUrls) state.baseUrls = {};
+
+        // v9: Fable 5.2 supersedes Fable 5.1 (2026-11-12). Cheaper, stronger,
+        // and 5.1 leaves the picker — so everyone on it moves, pinned or not,
+        // same reasoning as v6.
+        if (
+          version <= 8 &&
+          state.activeProviderId === 'claude' &&
+          state.activeModelId === 'claude-fable-5-1'
+        ) {
+          state.activeModelId = 'claude-fable-5-2';
+        }
 
         return state as ProviderState;
       },

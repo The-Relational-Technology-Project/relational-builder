@@ -5,13 +5,13 @@ import { useProviderStore } from '@/store/provider-store';
 
 /**
  * Models covered by the RTP community key (mirror of the proxy's allowlist).
- * Fable 5.1 is the default for planning (project strategy, commons work); Opus
+ * Fable 5.2 is the default for planning (project strategy, commons work); Opus
  * 5.5 for first builds AND edits (Sept 23 bench: 3/3 mutual-aid-board builds
  * compiled first try, matching Fable 5.1 at under half its cost — and cheaper
  * than Opus 5 at list, $4/$20 vs $5/$25). Opus 5 and Opus 4.8 stay covered
  * as manual picks; Sonnet 5 as the lighter pick.
  */
-export const COMMUNITY_MODELS = ['claude-opus-5-5', 'claude-fable-5-1', 'claude-opus-5', 'claude-opus-4-8', 'claude-sonnet-5', 'claude-haiku-4-5'];
+export const COMMUNITY_MODELS = ['claude-opus-5-5', 'claude-fable-5-2', 'claude-opus-5', 'claude-opus-4-8', 'claude-sonnet-5', 'claude-haiku-4-5'];
 
 /**
  * Community access (Tier 3): RTP-subsidized Claude for invited builders.
@@ -106,8 +106,8 @@ export const useCommunityStore = create<CommunityState>()((set) => ({
     });
 
     // Community default: a member with no personal Claude key gets steered off
-    // a model that would 403 — onto the stage-appropriate default (Fable 5.1
-    // while planning, Opus 5 for builds and edits).
+    // a model that would 403 — onto the stage-appropriate default (Fable 5.2
+    // while planning, Opus 5.5 for builds and edits).
     const providers = useProviderStore.getState();
     if (
       providers.activeProviderId === 'claude' &&
@@ -177,7 +177,7 @@ export function refreshCommunityUsageSoon(delayMs = 2500): void {
  * Smart model defaults for free community building — one slot per stage of a
  * project's life.
  *
- * - **Planning — Fable 5.1.** The strategy phase: exploring the project,
+ * - **Planning — Fable 5.2.** The strategy phase: exploring the project,
  *   drawing on the commons, and drafting the build plan. Owner decision
  *   (2026-08-21, project-first shift): the plan shapes everything downstream
  *   of it, and plan turns are short prose — so the strongest reasoning model
@@ -192,6 +192,10 @@ export function refreshCommunityUsageSoon(delayMs = 2500): void {
  *   slots stay on Opus 5: Fable 5.1's output price is double, and the
  *   first-build case needs the bench (three trials against Opus 5 on the
  *   mutual-aid-board task) before it's revisited.
+ *   2026-11-12: Fable 5.1 → Fable 5.2 (owner decision). Its successor, at a
+ *   lower price ($8/$40 vs $10/$50, cache reads $0.20). Anthropic's guidance
+ *   is to start 5.2 at `high` effort rather than `xhigh`, so plan and build
+ *   passes on it run one rung down (see `effortFor` in ChatPanel).
  * - **First build — Opus 5.** The moment the tool has to feel like magic.
  *   July 2026: matched-or-beat Fable 5 on completeness at half the cost, and
  *   clearly beat Opus 4.8 at the same cost (bench/results/2026-07-27T17-23-28db9a8).
@@ -225,7 +229,7 @@ export function refreshCommunityUsageSoon(delayMs = 2500): void {
  * showed an "edits and fixes" note to someone whose first build hadn't even
  * started).
  */
-export const COMMUNITY_PLAN_MODEL = 'claude-fable-5-1';
+export const COMMUNITY_PLAN_MODEL = 'claude-fable-5-2';
 export const COMMUNITY_FIRST_BUILD_MODEL = 'claude-opus-5-5';
 export const COMMUNITY_EDIT_MODEL = 'claude-opus-5-5';
 

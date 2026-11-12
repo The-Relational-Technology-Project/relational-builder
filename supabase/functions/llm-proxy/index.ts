@@ -165,9 +165,9 @@ const COMMUNITY_MODELS = (
   // Canonical covered set (mirrored in the client's community-store). The
   // env secret exists to narrow or extend this in an emergency without a
   // deploy; when it's unset, this list is the source of truth.
-  // Fable 5 stays covered for clients that haven't picked up the v6 store
-  // migration (Fable 5 → 5.1) yet; it is no longer in the picker.
-  'claude-opus-5-5,claude-fable-5-1,claude-opus-5,claude-fable-5,claude-opus-4-8,claude-sonnet-5,claude-haiku-4-5'
+  // Fable 5 and 5.1 stay covered for clients that haven't picked up the v6/v9
+  // store migrations (Fable 5 → 5.1 → 5.2) yet; neither is in the picker.
+  'claude-opus-5-5,claude-fable-5-2,claude-fable-5-1,claude-opus-5,claude-fable-5,claude-opus-4-8,claude-sonnet-5,claude-haiku-4-5'
 )
   .split(',')
   .map((s) => s.trim())
@@ -178,7 +178,7 @@ const COMMUNITY_MODELS = (
 // building never breaks on a model sunset. Format: 'model:fallback,...'.
 const MODEL_FALLBACKS: Record<string, string> = Object.fromEntries(
   (Deno.env.get('MODEL_FALLBACKS') ??
-    'claude-opus-5-5:claude-opus-5,claude-fable-5-1:claude-opus-5-5,claude-fable-5:claude-opus-4-8,claude-opus-5:claude-opus-4-8')
+    'claude-opus-5-5:claude-opus-5,claude-fable-5-2:claude-opus-5-5,claude-fable-5-1:claude-opus-5-5,claude-fable-5:claude-opus-4-8,claude-opus-5:claude-opus-4-8')
     .split(',')
     .map((pair) => pair.split(':').map((s) => s.trim()))
     .filter((p) => p.length === 2 && p[0] && p[1]),

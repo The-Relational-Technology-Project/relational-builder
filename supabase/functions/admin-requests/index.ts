@@ -136,7 +136,9 @@ function esc(s: string): string {
 const USAGE_DEFAULT_RATES = { input: 5, output: 25, cacheWrite: 10, cacheRead: 0.5 };
 
 const USAGE_MODEL_RATES: { match: RegExp; input: number; output: number }[] = [
+  { match: /fable-5-2|mythos-5-2/i, input: 8, output: 40 },
   { match: /fable|mythos/i, input: 10, output: 50 },
+  { match: /opus-5-5/i, input: 4, output: 20 },
   { match: /opus/i, input: 5, output: 25 },
   { match: /sonnet/i, input: 3, output: 15 },
   { match: /haiku/i, input: 1, output: 5 },
