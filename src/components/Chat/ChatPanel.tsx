@@ -13,7 +13,7 @@ import { isHumanScale } from '@/human-scale/flag';
 import { effectiveRuntime } from '@/human-scale/runtime';
 import { humanScaleAiGuidance } from '@/human-scale/prompt';
 import { recordBuilderCall } from '@/human-scale/provenance-store';
-import { OPEN_BUILDER_MODELS, isOpenBuilderModel } from '@/human-scale/builder-model';
+import { OPEN_BUILDER_MODELS, acceptsImages, isOpenBuilderModel } from '@/human-scale/builder-model';
 import { armAfterReply } from '@/human-scale/fix-passes';
 import type { StreamMeta } from '@/providers/types';
 import { registry } from '@/providers/registry';
@@ -631,9 +631,11 @@ export function ChatPanel() {
     // Behind the human-scale flag: an open model's first build sees one
     // reference screen of a DIFFERENT well-made app, shown in the person's
     // own message so they see what context travels, and removable next
-    // time by attaching their own image (src/human-scale/reference-screens.ts)
+    // time by attaching their own image (src/human-scale/reference-screens.ts).
+    // Only for models that read images: GLM 4.5 Air and GPT-OSS are
+    // text-only, and an image would fail their whole request (Nov 13)
     let sendAttachments = attachments;
-    if (isFirstBuild && !wasFix && !attachments?.length && isHumanScale() && isOpenBuilderModel(modelForSend)) {
+    if (isFirstBuild && !wasFix && !attachments?.length && isHumanScale() && isOpenBuilderModel(modelForSend) && acceptsImages(modelForSend)) {
       const askedFor = [...priorMessages.filter(m => m.role === 'user').map(m => m.content), content].join('\n');
       const screen = pickReferenceScreen(askedFor);
       const url = await referenceDataUrl(screen);

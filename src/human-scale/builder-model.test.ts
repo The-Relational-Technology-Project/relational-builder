@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { OPEN_BUILDER_DEFAULT, OPEN_BUILDER_MODELS, OPENROUTER_IGNORE_HOSTS, isOpenBuilderModel, openRouterRoutingBody } from './builder-model';
+import { OPEN_BUILDER_DEFAULT, acceptsImages, OPEN_BUILDER_MODELS, OPENROUTER_IGNORE_HOSTS, isOpenBuilderModel, openRouterRoutingBody } from './builder-model';
 
 describe('open builder models', () => {
   it('every pick carries evidence a person can check against the board', () => {
@@ -18,5 +18,13 @@ describe('open builder models', () => {
     expect(openRouterRoutingBody([])).toEqual({});
     expect(openRouterRoutingBody([], 'google/gemma-4-26b-a4b-it')).toEqual({ provider: { quantizations: ['bf16'] } });
     expect(openRouterRoutingBody(['X'], 'z-ai/glm-4.5-air')).toEqual({ provider: { ignore: ['X'] } });
+  });
+});
+
+describe('acceptsImages', () => {
+  it('knows which open models read images', () => {
+    expect(acceptsImages('google/gemma-4-26b-a4b-it')).toBe(true);
+    expect(acceptsImages('z-ai/glm-4.5-air')).toBe(false);
+    expect(acceptsImages('openai/gpt-oss-120b')).toBe(false);
   });
 });

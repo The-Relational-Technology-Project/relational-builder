@@ -22,6 +22,9 @@ export interface OpenBuilderModel {
   activeParams?: number;
   /** One line a person can check against the board */
   evidence: string;
+  /** Takes image input (OpenRouter's input_modalities, checked Nov 13).
+   *  A text-only model sent an image fails the whole request. */
+  images?: boolean;
 }
 
 export const OPEN_BUILDER_MODELS: OpenBuilderModel[] = [
@@ -29,6 +32,7 @@ export const OPEN_BUILDER_MODELS: OpenBuilderModel[] = [
     id: 'google/gemma-4-26b-a4b-it',
     name: 'Gemma 4 26B (open)',
     activeParams: 4e9,
+    images: true,
     evidence: 'Nov 5: best design of the open models by a clear margin (Josh, reviewing the board); 9 of 12 clean off the one host that serves it broken; 4B active parameters, runs on a 16 GB box',
   },
   {
@@ -83,4 +87,12 @@ export function openRouterRoutingBody(ignore: string[] = OPENROUTER_IGNORE_HOSTS
       ...(quantizations ? { quantizations: [...quantizations] } : {}),
     },
   };
+}
+
+/** Whether a builder model can be shown a reference screen (or any image).
+ *  Open models list it above; any other model is assumed able, since the
+ *  closed ones the Builder offers all read images. */
+export function acceptsImages(id: string): boolean {
+  const open = OPEN_BUILDER_MODELS.find(m => m.id === id);
+  return open ? !!open.images : true;
 }
