@@ -24,6 +24,7 @@ import { loadGalleryReferences, invalidateGalleryReferences } from '@/cloud/gall
 import { connectionsFor, type GalleryReference, type RefSource } from '@/knowledge/gallery-references';
 import { bodyLinkables, entryKey, type EntryLinkTarget, type EntryRef } from '@/knowledge/entry-links';
 import { EntryMarkdown } from '@/components/EntryMarkdown';
+import { printableMaterialComponents } from '@/components/printable-material-components';
 import {
   ConnectionsSection,
   type ConnectableEntry,
@@ -1750,6 +1751,7 @@ function StudioItemDetailDialog({
             className="prose prose-sm dark:prose-invert max-w-none text-sm [&_p]:leading-relaxed"
             entries={bodyEntries}
             onOpenEntry={onOpenEntry}
+            components={printableMaterialComponents}
           >
             {item.body}
           </EntryMarkdown>
@@ -2101,6 +2103,7 @@ function RecipeDetailDialog({
             className="prose prose-sm dark:prose-invert max-w-none text-sm [&_p]:leading-relaxed"
             entries={bodyEntries}
             onOpenEntry={onOpenEntry}
+            components={printableMaterialComponents}
           >
             {detail.body}
           </EntryMarkdown>

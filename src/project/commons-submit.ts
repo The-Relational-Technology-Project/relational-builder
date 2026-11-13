@@ -168,16 +168,22 @@ export function composeProgramBody(outputs: ProjectOutputs, lineageNote?: string
   for (const doc of outputs.docs) {
     parts.push(`\n## ${doc.path.replace(/^\//, '')}\n\n${doc.content.trim()}`);
   }
-  for (const m of outputs.materials) {
-    parts.push(
-      `\n## ${m.path.replace(/^\//, '')} (printable material)\n\n` +
-      '```html\n' + m.content.trim() + '\n```',
-    );
-  }
   let body = parts.join('\n');
   if (body.length > PROGRAM_BODY_LIMIT) {
-    body = body.slice(0, PROGRAM_BODY_LIMIT) +
-      '\n\n…(truncated for the commons — the full program lives with the builder)';
+    body = body.slice(0, PROGRAM_BODY_LIMIT);
+  }
+  // Materials go in whole or not at all: a flyer cut mid-document can't be
+  // shown as the page it is, or remixed
+  const left: string[] = [];
+  for (const m of outputs.materials) {
+    const block =
+      `\n\n## ${m.path.replace(/^\//, '')} (printable material)\n\n` +
+      '```html\n' + m.content.trim() + '\n```';
+    if (body.length + block.length <= PROGRAM_BODY_LIMIT) body += block;
+    else left.push(m.path.replace(/^\//, ''));
+  }
+  if (body.length >= PROGRAM_BODY_LIMIT || left.length > 0) {
+    body += `\n\n…(${left.length > 0 ? `${left.join(', ')} left out` : 'truncated'} for size — the full program lives with the builder)`;
   }
   return body;
 }

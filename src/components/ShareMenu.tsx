@@ -20,7 +20,10 @@ import { PromptDialog } from '@/components/PromptDialog';
 import { SharePreview } from '@/components/SharePreview';
 import { CollaborateDialog } from '@/components/CollaborateDialog';
 import { ShareLiveDialog } from '@/components/ShareLiveDialog';
-import { Share2, Upload, ScrollText, Eye, Users, ChevronDown, Presentation, Globe, Send } from 'lucide-react';
+import { StudioShareDialog } from '@/components/StudioSubmitCard';
+import { useStudioStore } from '@/store/studio-store';
+import { suggestProjectName } from '@/project/suggest-name';
+import { Share2, Upload, ScrollText, Eye, Users, ChevronDown, Presentation, Globe, Send, Library } from 'lucide-react';
 import { isStudioBriefProject, readStudioBrief, useStudioShareStore } from '@/report/studio-brief-share';
 import { cn } from '@/lib/utils';
 
@@ -72,6 +75,15 @@ export function ShareMenu({ mobile }: { mobile?: boolean }) {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [collabOpen, setCollabOpen] = useState(false);
   const [liveOpen, setLiveOpen] = useState(false);
+  const [studioOpen, setStudioOpen] = useState(false);
+  // A studio member can offer a build to their studio's shelf straight from
+  // here: publishing is not a prerequisite for being in the studio
+  const inAStudio = useStudioStore(s => s.memberships.some(m => m.status === 'approved'));
+  const cloudProjectName = useCloudStore(s => s.currentProjectName);
+  const localProjectName = useLocalProjects(s => s.currentName);
+  const studioProjectName = () =>
+    ((cloudProjectId ? cloudProjectName : localProjectName) ?? '').trim() ||
+    suggestProjectName() || 'Untitled build';
 
   const dialogs = (
     <>
@@ -80,6 +92,14 @@ export function ShareMenu({ mobile }: { mobile?: boolean }) {
       {previewOpen && <SharePreview open={previewOpen} onOpenChange={setPreviewOpen} />}
       {collabOpen && <CollaborateDialog open={collabOpen} onOpenChange={setCollabOpen} />}
       {liveOpen && <ShareLiveDialog open={liveOpen} onOpenChange={setLiveOpen} />}
+      {studioOpen && (
+        <StudioShareDialog
+          open={studioOpen}
+          onOpenChange={setStudioOpen}
+          projectName={studioProjectName()}
+          sourceUrl={liveSite?.url}
+        />
+      )}
     </>
   );
 
@@ -105,6 +125,18 @@ export function ShareMenu({ mobile }: { mobile?: boolean }) {
           <Upload className="size-3" />
           {publishLabel}
         </Button>
+        {inAStudio && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 gap-1 text-xs"
+            disabled={fileCount === 0}
+            onClick={() => setStudioOpen(true)}
+          >
+            <Library className="size-3" />
+            Share to studio
+          </Button>
+        )}
         <Button variant="outline" size="sm" className="h-8 gap-1 text-xs" onClick={() => setPromptOpen(true)}>
           <ScrollText className="size-3" />
           Prompt
@@ -186,6 +218,16 @@ export function ShareMenu({ mobile }: { mobile?: boolean }) {
             <Upload className="size-3.5 text-muted-foreground" />
             {publishLabel}
           </DropdownMenuItem>
+          {inAStudio && (
+            <DropdownMenuItem
+              onClick={() => setStudioOpen(true)}
+              disabled={fileCount === 0}
+              className="gap-2 text-xs"
+            >
+              <Library className="size-3.5 text-muted-foreground" />
+              Share to studio
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem onClick={() => setPromptOpen(true)} className="gap-2 text-xs">
             <ScrollText className="size-3.5 text-muted-foreground" />
             Prompt

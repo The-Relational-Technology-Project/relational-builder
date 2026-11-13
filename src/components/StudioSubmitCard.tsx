@@ -8,6 +8,9 @@ import {
 } from '@/project/commons-submit';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle,
+} from '@/components/ui/dialog';
 import { Check, Loader2, Library } from 'lucide-react';
 
 /**
@@ -20,9 +23,12 @@ import { Check, Loader2, Library } from 'lucide-react';
 export function StudioSubmitCard({
   projectName,
   sourceUrl,
+  standalone = false,
 }: {
   projectName: string;
   sourceUrl?: string;
+  /** Opened on its own (Share → Share to studio): no collapse toggle */
+  standalone?: boolean;
 }) {
   const lineage = useProjectStore(s => s.lineage);
   const version = useProjectStore(s => s.version);
@@ -55,7 +61,7 @@ export function StudioSubmitCard({
   const targetSlug = slug || homeSlug;
   const target = myStudios.find(m => m.studio_slug === targetSlug);
 
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(standalone);
   const [summary, setSummary] = useState('');
   const [attribution, setAttribution] = useState(profile?.display_name ?? '');
   const [manualUrl, setManualUrl] = useState('');
@@ -126,8 +132,8 @@ export function StudioSubmitCard({
   }
 
   return (
-    <div className="rounded-lg border border-dashed p-3 space-y-2">
-      <button
+    <div className={standalone ? 'space-y-2' : 'rounded-lg border border-dashed p-3 space-y-2'}>
+      {!standalone && <button
         onClick={() => setExpanded(!expanded)}
         className="flex items-center gap-1.5 text-xs font-medium w-full text-left"
       >
@@ -136,14 +142,15 @@ export function StudioSubmitCard({
         <span className="text-muted-foreground font-normal ml-auto">
           {expanded ? 'close' : 'optional'}
         </span>
-      </button>
+      </button>}
 
       {expanded && (
         <div className="space-y-2">
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Offer this build to your studio's own gallery. A Studio Admin
-            reviews it; approved builds appear for studio members only — until
-            an admin later shares them with the broader commons.
+            Offer this build to your studio's own gallery. It doesn't need to
+            be published: the plan, flyers and other materials travel with it.
+            A Studio Admin reviews it; approved builds appear for studio
+            members only, until an admin shares them with the broader commons.
           </p>
           {myStudios.length > 1 && (
             <div className="flex flex-wrap gap-1">
@@ -185,7 +192,7 @@ export function StudioSubmitCard({
             <Input
               value={manualUrl}
               onChange={e => setManualUrl(e.target.value)}
-              placeholder="Link to the live app (publish above to fill this automatically)"
+              placeholder="Link, if there is one (a live site, repo, or doc) — optional"
               className="h-7 text-xs"
             />
           )}
@@ -212,7 +219,7 @@ export function StudioSubmitCard({
             />
             <span>
               I've reviewed what will be shared with {target?.studio_label} (name,
-              summary, link{remixOf ? ', and its remix lineage' : ''}) and I want
+              summary, the project's files{sourceUrl || manualUrl.trim() ? ', link' : ''}{remixOf ? ', and its remix lineage' : ''}) and I want
               it offered to the studio gallery.
             </span>
           </label>
@@ -229,5 +236,30 @@ export function StudioSubmitCard({
         </div>
       )}
     </div>
+  );
+}
+
+/**
+ * The same offer, reachable from Share without going through Publish. A
+ * flyer or a plan belongs on the studio shelf whether or not it ever goes
+ * live, and making members publish first was the hard part.
+ */
+export function StudioShareDialog({
+  open, onOpenChange, projectName, sourceUrl,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  projectName: string;
+  sourceUrl?: string;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Share to your studio</DialogTitle>
+        </DialogHeader>
+        <StudioSubmitCard projectName={projectName} sourceUrl={sourceUrl} standalone />
+      </DialogContent>
+    </Dialog>
   );
 }
