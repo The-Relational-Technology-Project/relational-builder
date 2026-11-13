@@ -310,6 +310,19 @@ export function createMistralProvider(): OpenAICompatibleProvider {
   });
 }
 
+/** Pre-configured: Unbiased (Pareto, via api.unbiased.ai's OpenAI-compatible endpoint) */
+export function createUnbiasedProvider(): OpenAICompatibleProvider {
+  return new OpenAICompatibleProvider({
+    id: 'unbiased',
+    name: 'Unbiased (Pareto)',
+    baseUrl: 'https://api.unbiased.ai',
+    defaultModels: [
+      // 'pareto' tracks the current release; /v1/models replaces this list once a key is set
+      { id: 'pareto', name: 'Pareto', provider: 'unbiased' },
+    ],
+  });
+}
+
 /** Pre-configured: Google Gemini (Tier 2 -- BYOK, via Google's OpenAI-compatibility layer) */
 export function createGeminiProvider(): OpenAICompatibleProvider {
   return new OpenAICompatibleProvider({

@@ -9,6 +9,7 @@ import {
   createZaiProvider,
   createMoonshotProvider,
   createMistralProvider,
+  createUnbiasedProvider,
   createLocalProvider,
   OpenAICompatibleProvider,
 } from './openai-compatible';
@@ -41,6 +42,7 @@ class ProviderRegistry {
     this.register(createGeminiProvider(), 2, true);
     this.register(createMoonshotProvider(), 2, true);
     this.register(createMistralProvider(), 2, true);
+    this.register(createUnbiasedProvider(), 2, true);
     this.register(createTogetherProvider(), 2, true);
     this.register(createOpenRouterProvider(), 2, true);
 
