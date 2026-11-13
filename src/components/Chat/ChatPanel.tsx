@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { pickReferenceScreen, referenceDataUrl, referenceNote } from '@/human-scale/reference-screens';
+import { pickReferenceScreen, referenceDataUrl, referenceNote, referenceTextNote } from '@/human-scale/reference-screens';
 import { extractOperations } from '@/project/code-extractor';
 import { ensureProfileDataFile } from '@/project/builder-profile';
 import { RotateCcw, X, Undo2, Check } from 'lucide-react';
@@ -635,14 +635,20 @@ export function ChatPanel() {
     // Only for models that read images: GLM 4.5 Air and GPT-OSS are
     // text-only, and an image would fail their whole request (Nov 13)
     let sendAttachments = attachments;
-    if (isFirstBuild && !wasFix && !attachments?.length && isHumanScale() && isOpenBuilderModel(modelForSend) && acceptsImages(modelForSend)) {
+    if (isFirstBuild && !wasFix && !attachments?.length && isHumanScale() && isOpenBuilderModel(modelForSend)) {
       const askedFor = [...priorMessages.filter(m => m.role === 'user').map(m => m.content), content].join('\n');
       const screen = pickReferenceScreen(askedFor);
-      const url = await referenceDataUrl(screen);
-      if (url) {
-        sendAttachments = [url];
-        photoNote = [photoNote, referenceNote(screen)].filter(Boolean).join('\n\n');
-        recordBuildEvent('reference_screen', screen.id);
+      if (acceptsImages(modelForSend)) {
+        const url = await referenceDataUrl(screen);
+        if (url) {
+          sendAttachments = [url];
+          photoNote = [photoNote, referenceNote(screen)].filter(Boolean).join('\n\n');
+          recordBuildEvent('reference_screen', screen.id);
+        }
+      } else {
+        // Text-only models get the same screen in words
+        photoNote = [photoNote, referenceTextNote(screen)].filter(Boolean).join('\n\n');
+        recordBuildEvent('reference_screen', `${screen.id} (in words)`);
       }
     }
     addUserMessage(

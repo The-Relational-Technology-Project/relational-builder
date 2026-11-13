@@ -208,18 +208,18 @@ async function runTrial(
     if (opts.planFirst && !task.seedFiles) {
       planSession = await withRetries([
         { role: 'system', content: opts.planSystemPrompt },
-        { role: 'user', content: userContent(task.id, task.prompt) },
+        { role: 'user', content: userContent(task.id, task.prompt, undefined, undefined, model.modelId) },
       ]);
       buildMessages = [
         { role: 'system', content: taskSystemPrompt },
-        { role: 'user', content: userContent(task.id, task.prompt) },
+        { role: 'user', content: userContent(task.id, task.prompt, undefined, undefined, model.modelId) },
         { role: 'assistant', content: planSession.segmentTexts.join('\n') },
         { role: 'user', content: BUILD_GO_PROMPT },
       ];
     } else {
       buildMessages = [
         { role: 'system', content: taskSystemPrompt },
-        { role: 'user', content: userContent(task.id, task.prompt) },
+        { role: 'user', content: userContent(task.id, task.prompt, undefined, undefined, model.modelId) },
       ];
     }
     buildSession = await withRetries(buildMessages);

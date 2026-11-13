@@ -41,3 +41,11 @@ describe('library arm', () => {
     expect(c[1].type).toBe('image_url');
   });
 });
+
+describe('library arm for text-only models', () => {
+  it('describes the screen in words instead of attaching it', () => {
+    const c = userContent('hs-skill-swap', 'Build a teen and elder skill swap.', 'library', undefined, 'z-ai/glm-4.5-air');
+    expect(typeof c).toBe('string');
+    expect(c as string).toContain('described in words');
+  });
+});

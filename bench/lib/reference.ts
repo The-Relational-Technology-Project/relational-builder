@@ -1,7 +1,8 @@
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import type { ChatMessage } from '../../src/providers/types';
-import { pickReferenceScreen, referenceNote } from '../../src/human-scale/reference-screens';
+import { pickReferenceScreen, referenceNote, referenceTextNote } from '../../src/human-scale/reference-screens';
+import { acceptsImages } from '../../src/human-scale/builder-model';
 
 /**
  * The reference experiment (Nov 11, 2026): does an open model build closer
@@ -61,10 +62,12 @@ function spec(taskId: string, dir: string): string {
 }
 
 /** The first user message for a build, with the arm's reference attached */
-export function userContent(taskId: string, prompt: string, arm = referenceArm(), dir = REFERENCE_DIR): ChatMessage['content'] {
+export function userContent(taskId: string, prompt: string, arm = referenceArm(), dir = REFERENCE_DIR, modelId?: string): ChatMessage['content'] {
   if (!arm) return prompt;
   if (arm === 'library') {
     const screen = pickReferenceScreen(prompt);
+    // As in the Builder: a text-only model gets the screen in words
+    if (modelId && !acceptsImages(modelId)) return `${prompt}\n\n${referenceTextNote(screen)}`;
     const file = path.resolve(dir, '..', '..', 'public', 'human-scale', 'references', screen.file);
     return [
       { type: 'text', text: `${prompt}\n\n${referenceNote(screen)}` },
