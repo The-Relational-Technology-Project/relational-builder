@@ -124,6 +124,11 @@ export function fixHints(errorText: string, kitFiles: Record<string, string>): s
     hints.push(`\`require('${m[1]}')\` does not work here (ES modules only). Replace it with an import at the top of that file: \`import { ... } from '${m[1]}';\` and delete the require line.`);
   }
 
+  // Seed text made in a loop (checkSeedLoops)
+  if (/seed text is built in a loop/.test(errorText)) {
+    hints.push('Replace the loop that makes the seeded items with 8 to 12 items written out by hand as literals: each a different person, in their own words, naming a real place or habit from this neighborhood. Fewer real items beat sixty templated ones. A loop is fine for dates, slots and counts, never for the words people wrote.');
+  }
+
   // BrowserRouter, plain or aliased
   if (/BrowserRouter from 'react-router-dom'/.test(errorText)) {
     hints.push("Replace `BrowserRouter` with `HashRouter` in that import (import `{ HashRouter }` and render `<HashRouter>`); do not alias BrowserRouter as HashRouter. Hash routes are the only ones that work in the preview and on every static host.");

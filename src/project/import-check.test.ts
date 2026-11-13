@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { checkImports, formatImportIssues } from './import-check';
+import { checkImports, checkSeedLoops, formatImportIssues } from './import-check';
 
 const kit = {
   '/src/components/ui/button.tsx': 'export function Button() { return null; }\nexport const buttonVariants = 1;',
@@ -158,5 +158,17 @@ describe('checkImports', () => {
     expect(checkImports(typesOnly)).toEqual([]);
     const value = { '/src/main.tsx': "import App from './App';\nexport const x = <React.StrictMode><App /></React.StrictMode>;", '/src/App.tsx': 'export default function App() { return null; }' };
     expect(checkImports(value).some(i => i.includes('React is not defined'))).toBe(true);
+  });
+});
+
+describe('checkSeedLoops', () => {
+  it('flags seed text picked by the loop index', () => {
+    expect(checkSeedLoops({ '/src/data/seed.ts': 'for (let i = 0; i < 60; i++) {\n  const text = texts[i % texts.length];\n}' })[0])
+      .toMatch(/^vfs:\/src\/data\/seed\.ts:2: seed text is built in a loop/);
+    expect(checkSeedLoops({ '/src/store.ts': "    text = i % 2 === 0 ? 'More benches' : 'Better lights';" })).toHaveLength(1);
+  });
+  it('leaves loops over dates and counts alone', () => {
+    const src = "Array.from({ length: 7 }).map((_, i) => ({ date: addDays(start, i), slot: i % 2 ? 'am' : 'pm', meToo: i % 4 }))";
+    expect(checkSeedLoops({ '/src/data/seed.ts': src })).toEqual([]);
   });
 });

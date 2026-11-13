@@ -138,6 +138,7 @@ export function checkImports(files: Record<string, string>, opts: ImportCheckOpt
   const issues: string[] = [];
   issues.push(...checkRouters(files));
   issues.push(...checkFontUtilities(files));
+  issues.push(...checkSeedLoops(files));
   for (const [path, source] of Object.entries(files)) {
     if (!CODE_RE.test(path)) continue;
     // A CommonJS require in an ES module: the bundle carries no require,
@@ -273,6 +274,30 @@ function checkFontUtilities(files: Record<string, string>): string[] {
         issues.push(`vfs:${path}: Cannot apply unknown utility class \`font-${name}\` (declare \`--font-${name}\` under @theme or use font-sans)`);
       }
     }
+  }
+  return issues;
+}
+
+/** A text-like name on the same line as a modulo over a loop index:
+ *  `text = i % 2 === 0 ? '…' : '…'`, `text: texts[i % texts.length]` */
+const SEED_LOOP_RE = /\b(text|body|content|answer|response|message|note|description|quote|story|title)\b[^\n]*\b(i|idx|index|n|j)\s*%/;
+
+/**
+ * Seed text built in a loop from the index: the first screen is full but
+ * reads as filler ("This is a meaningful response about..."). Gemma only on
+ * the board (36 of 251 builds by Nov 13; none from Opus, GLM, GPT-OSS or
+ * Mistral), and rule lines did not stop it. Raised as a fix-pass trigger
+ * behind the flag, so the fix pass rewrites the items by hand.
+ */
+export function checkSeedLoops(files: Record<string, string>): string[] {
+  const issues: string[] = [];
+  for (const [path, source] of Object.entries(files)) {
+    if (!CODE_RE.test(path) || /\/components\/ui\//.test(path)) continue;
+    const lines = source.split('\n');
+    const at = lines.findIndex(l => SEED_LOOP_RE.test(l));
+    if (at < 0) continue;
+    const snippet = lines[at].trim().slice(0, 80);
+    issues.push(`vfs:${path}:${at + 1}: seed text is built in a loop from the index (\`${snippet}\`), so it reads as filler; write each item's words by hand`);
   }
   return issues;
 }
