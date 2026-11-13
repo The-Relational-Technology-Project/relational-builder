@@ -20,9 +20,23 @@ there ("public data flows both ways") and the content half of step 4 in
   how a tool can give back (feed formats and record shapes).
 - `POST <site>/mcp`: an open MCP server, JSON-RPC over HTTP, no auth, CORS
   open, the same transport as the city servers. Tools: `about_place`,
-  `search`, `list`, `get`, `vital_signs`, `city_311`, `suggest_source`.
+  `design_brief`, `live_endpoints`, `search`, `list`, `get`, `about_block`,
+  `vital_signs`, `city_311`, `suggest_source`.
   Unlike the city portals, replies carry `structuredContent` (a `records`
   array) next to the prose.
+
+A build for a place goes in three steps, and the pack has a tool for each:
+
+1. **Design:** `design_brief` takes the idea in a sentence (and a block or
+   corner) and returns what already exists that does something similar, what
+   neighbors have asked for, who to talk to first, the notes on that block,
+   the constituents a plan might touch, the place's voice, and the live URL
+   for each kind of record the idea touches. It leads with people.
+2. **Content:** `search` and `list`. Where the place has turned it on, search
+   blends full-text with closeness in meaning.
+3. **Wiring:** `live_endpoints` returns the plain URLs a built app fetches
+   (`GET <site>/records.json`, `<site>/block.json`), with sources, licenses,
+   and a snippet.
 
 What's in it: nothing a neighbor couldn't already read on the pack's site.
 The pack reads the same index the site's chat does, with the same privacy
@@ -31,10 +45,14 @@ filters (people only as listed, recommendations for individuals left out,
 
 ## How the Builder uses it
 
-A row in `city_data_endpoints` with `kind = 'place'`. Matching is the same
-name matching as cities (`matchCityEndpoints`): the row's `city` is the
+A row in `city_data_endpoints` with `kind = 'place'`. Two ways to match.
+By name, the same as cities (`matchCityEndpoints`): the row's `city` is the
 place's name, so "Outer Sunset, San Francisco" matches "outer sunset" in the
-conversation or the builder's profile. `formatCivicDataForPrompt` sends place
+conversation or the builder's profile. By ground
+(`matchPlacePacksByGround`): when the project carries a place, the Builder
+reads the head of each pack's `/place.json` and matches when the project's
+point falls inside the pack's catchment or the two catchments overlap, so a
+project pinned to a corner finds its neighborhood's pack without the name. `formatCivicDataForPrompt` sends place
 rows to their own section (`formatPlacePacksForPrompt`), not the city portal
 notes, which would be wrong for them. With web tools on, the pack is
 attached as an MCP server and the model can call it while planning.
@@ -70,8 +88,9 @@ and `place_about` lines at the end of its `place.md`.
 
 ## Not yet
 
-- The pack's catchment isn't used for matching. When projects carry a place
-  (PLACE-AS-PLATFORM step 4), match by point-in-catchment instead of by name.
+- Ground matching reads every registered pack's `/place.json` from the
+  browser. Fine for a handful of packs; with dozens, store each pack's
+  centre and catchment on its row and match in one query.
 - No kit component for "publish this app's public data as a feed" yet; the
   model writes the feed per build. Worth a kit piece once two or three builds
   have done it by hand.

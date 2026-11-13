@@ -656,7 +656,7 @@ export function ChatPanel() {
         useAuthStore.getState().profile?.neighborhood_description,
         // The project's own place is the strongest signal of all
         useProjectStore.getState().lineage?.place?.label,
-      ]),
+      ], useProjectStore.getState().lineage?.place),
     ]);
     if (civicData.length > 0) {
       recordBuildEvent('civic-data', `live city data in context: ${civicData.map(e => e.city).join(', ')}`);
