@@ -442,7 +442,11 @@ export function MessageList({ messages, onBuildPlan, isGenerating }: MessageList
         const anchorTop = Math.max(top, top + anchor.offsetHeight - el.clientHeight / 3) - 16;
         target = Math.min(target, Math.max(0, anchorTop));
       }
-      if (Math.abs(el.scrollTop - target) < 2) return;
+      // Following only ever moves down. The anchor caps how far it goes; it
+      // never pulls a reader who has scrolled past it back up (it did: reaching
+      // the bottom turned following back on, and the next token snapped the
+      // view to the top of the message).
+      if (target - el.scrollTop < 2) return;
       el.scrollTo({ top: target, behavior: 'smooth' });
     };
     const since = Date.now() - lastFollowAt.current;
