@@ -12,6 +12,8 @@ const root = 'bench/results';
 const argDate = process.argv[process.argv.indexOf('--date') + 1];
 // --only p1,p2 keeps just runs whose directory starts with one of these
 const only = process.argv.includes('--only') ? process.argv[process.argv.indexOf('--only') + 1].split(',') : null;
+// --also <runDir prefix>[,…] adds runs from other days as reference columns (e.g. Opus)
+const also = process.argv.includes('--also') ? process.argv[process.argv.indexOf('--also') + 1].split(',') : [];
 const date = argDate && !argDate.startsWith('--') ? argDate : new Date().toISOString().slice(0, 10);
 
 const TASKS = [
@@ -28,19 +30,26 @@ const MODEL_ORDER = ['gemma-4-26b', 'glm-4.5-air', 'gpt-oss-120b', 'mistral-smal
 const ids = TASKS.map(t => t[0]);
 
 const cells = new Map(); // `${task}|${alias}` -> [{img, caption, clean}]
-for (const dir of readdirSync(root).filter(d => d.startsWith(date) && (!only || only.some(p => d.startsWith(p))))) {
+for (const dir of readdirSync(root).filter(d => (d.startsWith(date) && (!only || only.some(p => d.startsWith(p)))) || also.some(p => d.startsWith(p)))) {
   const f = path.join(root, dir, 'run.json');
   if (!existsSync(f)) continue;
   const run = JSON.parse(readFileSync(f, 'utf8'));
   for (const t of run.trials) {
     if (!ids.includes(t.taskId)) continue;
+    // A request the host refused (e.g. image input to a text-only model)
+    // never built anything; it isn't a build to count or show
+    if (t.error) continue;
     const shot = path.join(root, dir, 'shots', `${t.taskId}--${t.alias}-t${t.trial}.png`);
     const rt = t.runtime || {};
-    const clean = !!(t.bundle?.ok && rt.rendered && !(rt.errors || []).length);
-    const caption = `${t.alias} · ${clean ? 'works' : t.bundle?.ok ? 'bundled, not clean' : 'did not bundle'}` +
+    // Single-file apps take the simple preview and never bundle: judge them
+    // by whether they render cleanly
+    const bundled = t.bundle ? t.bundle.ok : true;
+    const clean = !!(bundled && rt.rendered && !(rt.errors || []).length);
+    const caption = `${t.alias} · ${clean ? 'works' : bundled ? 'renders with errors' : 'did not bundle'}` +
       `${t.fixRound ? ' after a fix pass' : ' first try'} · ${Math.round(t.latencyMs / 1000)}s`;
     // Runs with a reference arm get their own column (Nov 12: library vs none)
-    const col = run.config?.reference ? `${t.alias} + ${run.config.reference}` : t.alias;
+    const fromAlso = !dir.startsWith(date);
+    const col = (run.config?.reference ? `${t.alias} + ${run.config.reference}` : t.alias) + (fromAlso ? ` (${dir.slice(0, 10)})` : '');
     const key = `${t.taskId}|${col}`;
     if (!cells.has(key)) cells.set(key, []);
     cells.get(key).push({ img: existsSync(shot) ? `data:image/png;base64,${readFileSync(shot).toString('base64')}` : null, caption, clean });

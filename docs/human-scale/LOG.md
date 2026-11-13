@@ -92,6 +92,17 @@ or in words), and Gemma's seeded content is checked mechanically".
 **Cost:** about $0.21 (harness estimate; image input not counted; the
 eight refused GLM requests cost nothing).
 
+**Afternoon, at Josh's ask (include Gemma beside GLM and Mistral).**
+Gemma on the same eight spread prompts, same code, library screen, two
+builds each: 15 of 16 working, 13 on the first try, desktop classes 6,
+first-screen text 772 characters. On the same sheet: GLM (screen in
+words) 7 of 8, Mistral (screen as image) 4 of 8, Opus (Nov 10) 6 of 8.
+The sheet script had been counting refused requests and single-file apps
+as failures, which made GLM and Mistral look worse than they were; fixed
+before sending. Gemma stays clearly ahead of the other open models by eye
+and by count; its gap to Opus on these prompts is layout and how much each
+screen says, not whether the app works.
+
 **Honest read:** the seed check is the cleanest win today: mechanical,
 measured, and the content it produces reads like a place. The library
 keeps helping Gemma, though which measure it moves depends on the
