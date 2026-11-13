@@ -1,6 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import { useKnowledgeStore } from '@/store/knowledge-store';
 import { useStudioStore, approvedMemberships, adminMemberships } from '@/store/studio-store';
 import { fetchPrompts, searchItems } from '@/knowledge/queries';
@@ -32,7 +30,6 @@ import {
 } from './GalleryConnections';
 import { isSuperAdmin } from '@/cloud/account-requests';
 import { GalleryToolBuilders } from '@/components/GalleryToolBuilders';
-import { StudioContributeDialog } from '@/components/StudioContributeDialog';
 import { EventShelf } from '@/components/EventShowcase';
 import { EventInspiration } from '@/components/EventInspiration';
 import { fetchMyEvents, eventScopeFor, eventCodeOfScope, type EventShelfInfo } from '@/cloud/event-showcase';
@@ -61,7 +58,7 @@ import { useUIStore } from '@/store/ui-store';
 import {
   BookOpen, ExternalLink, Gift, GitBranch, GitFork, Globe, Hammer,
   HandCoins, ImageOff, Landmark, Loader2, Map as MapIcon, Newspaper, ScrollText, Sprout,
-  ChevronDown, ChevronRight, Library, Lock, KeyRound, Users, Plus,
+  ChevronDown, ChevronRight, Library, Lock, KeyRound, Users,
   ArrowLeft, LocateFixed, MapPin, Search, Target, X,
 } from 'lucide-react';
 import { ContributeDialog } from '@/components/ContributeDialog';
@@ -330,7 +327,6 @@ export function CommonsGallery() {
   // A studio's own shelf: not the commons, not an event room. Only there
   // does the studio contribute door make sense.
   const isStudioScope = scope !== 'commons' && !isEventScope;
-  const [contributeOpen, setContributeOpen] = useState(false);
 
   // Which of the viewer's event shelves belongs on THIS page. An event that
   // carries a studio surfaces on that studio's gallery and nowhere else. An
@@ -1026,48 +1022,6 @@ export function CommonsGallery() {
           </section>
         )}
 
-        {/* The same invitation for a studio's own shelf. A member browsing
-            their gallery can add to it from here without building anything
-            first — the publish flow only covers builds, and a studio
-            collects models, practices and stories too. */}
-        {isStudioScope && (
-          <div className="rounded-lg border border-dashed p-3 flex items-start gap-3">
-            <Sprout className="size-4 text-primary mt-0.5 shrink-0" />
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium">Add something to this gallery</p>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                A model from your town, a practice that works, a prompt or a
-                story — it doesn't have to be something you built. A Studio
-                Admin reviews it before it lands on the shelf.
-              </p>
-            </div>
-            <Button size="sm" variant="outline" className="h-7 text-xs gap-1 shrink-0"
-              onClick={() => setContributeOpen(true)}>
-              <Plus className="size-3" /> Contribute
-            </Button>
-          </div>
-        )}
-        {isStudioScope && (
-          <StudioContributeDialog
-            open={contributeOpen}
-            onOpenChange={setContributeOpen}
-            studioSlug={scope}
-            studioLabel={scopeLabel(scope)}
-          />
-        )}
-
-        {/* The studio's principles aren't cards to remix — they're the live
-            frame every member build carries, layered on the base RTP
-            principles. Shown here so members know what's active. */}
-        {scope !== 'commons' && !isEventScope && (
-          <StudioPrinciplesPanel
-            studioLabel={scopeLabel(scope)}
-            principles={studioLibrary.filter(
-              i => i.studio_slug === scope && i.kind === 'principle' && i.status === 'approved',
-            )}
-          />
-        )}
-
         {/* One quiet toolbar: search first (it is the fastest way through
             six hundred cards), Nearby beside it, and the shelves behind one
             picker instead of a wall of chips. */}
@@ -1515,58 +1469,6 @@ function PlaceLine({ text }: { text?: string }) {
     <p className="text-[11px] text-primary/90 inline-flex items-center gap-1 -mt-0.5">
       <MapPin className="size-3 shrink-0" /> {text}
     </p>
-  );
-}
-
-/**
- * The studio's live frame: its principles, always on for member builds.
- * A quiet banner with the names; each expands to its full text on tap.
- */
-function StudioPrinciplesPanel({
-  studioLabel, principles,
-}: {
-  studioLabel: string; principles: StudioLibraryItem[];
-}) {
-  const [openId, setOpenId] = useState<string | null>(null);
-  if (principles.length === 0) return null;
-  return (
-    <section className="rounded-xl border border-dashed px-4 py-3 space-y-2">
-      <p className="text-sm">
-        <span className="font-medium">{studioLabel}'s principles are live in your builds</span>
-        <span className="text-muted-foreground">
-          {' '}— they layer on top of the Relational Tech principles in every chat and build while you work as a member.
-        </span>
-      </p>
-      <div className="flex flex-wrap gap-1">
-        {principles.map(p => (
-          <button
-            key={p.id}
-            onClick={() => setOpenId(openId === p.id ? null : p.id)}
-            className={`rounded-full border px-2.5 py-0.5 text-xs transition-colors ${
-              openId === p.id
-                ? 'bg-foreground text-background border-foreground'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            {p.title}
-          </button>
-        ))}
-      </div>
-      {openId && (() => {
-        const p = principles.find(x => x.id === openId);
-        if (!p) return null;
-        return (
-          <div className="rounded-lg bg-muted/50 px-3 py-2.5 text-sm space-y-1">
-            <p className="font-medium">{p.title}</p>
-            <div className="prose prose-sm dark:prose-invert max-w-none text-sm text-muted-foreground [&_p]:leading-relaxed">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {p.body ?? p.summary ?? ''}
-              </ReactMarkdown>
-            </div>
-          </div>
-        );
-      })()}
-    </section>
   );
 }
 

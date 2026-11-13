@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -19,6 +19,10 @@ import { submitToCommons } from '@/project/commons-submit';
 import { sendContactMessage } from '@/cloud/contact';
 import { fileToDataUrl, isImageFile } from '@/lib/image';
 import { Check, ImagePlus, Loader2, Plus, Sprout, X } from 'lucide-react';
+import { useStudioStore, approvedMemberships } from '@/store/studio-store';
+import { readShelfParam } from '@/router';
+import { ContributeDestinationRow } from '@/components/ContributeDestination';
+import { StudioContributeDialog } from '@/components/StudioContributeDialog';
 
 /**
  * The front door for giving to the commons — reachable from the header
@@ -87,9 +91,12 @@ const KIND_FOR: Record<Exclude<Category, 'feedback'>, 'story' | 'tool' | 'refere
 export function ContributeDialog({
   open,
   onOpenChange,
+  destination,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
+  /** The "Where does it go?" row, when the person belongs to a studio */
+  destination?: ReactNode;
 }) {
   const user = useAuthStore(s => s.user);
   const profile = useAuthStore(s => s.profile);
@@ -227,6 +234,7 @@ export function ContributeDialog({
           </div>
         ) : (
           <div className="space-y-4 pt-1">
+            {destination}
             <p className="text-sm text-muted-foreground leading-relaxed">
               Share a story, a tool, an idea, feedback, resources. All of these are
               gifts to the commons — and to the neighborhood stewards who build from it.
@@ -457,18 +465,42 @@ export function ContributeCallout() {
  */
 export function ContributeButton({ mobile }: { mobile?: boolean }) {
   const [open, setOpen] = useState(false);
+  // One door, several shelves: the commons, or a studio the person belongs
+  // to. It opens on the gallery they're looking at, so a member browsing
+  // their studio's shelf lands on that studio.
+  const [dest, setDest] = useState('commons');
+  const memberships = useStudioStore(s => s.memberships);
+  const studio = approvedMemberships(memberships).find(m => m.studio_slug === dest);
+  function openDoor() {
+    const shelf = readShelfParam();
+    const inStudio = shelf && approvedMemberships(useStudioStore.getState().memberships)
+      .some(m => m.studio_slug === shelf);
+    setDest(inStudio ? shelf : 'commons');
+    setOpen(true);
+  }
+  const row = <ContributeDestinationRow value={dest} onChange={setDest} />;
   return (
     <>
       <Button
         variant="outline"
         size="sm"
         className={mobile ? 'h-8 gap-1 text-xs' : 'h-7 gap-1 rounded-full px-3 text-xs'}
-        onClick={() => setOpen(true)}
+        onClick={openDoor}
       >
         <Sprout className="size-3 text-green-600" />
         Contribute
       </Button>
-      {open && <ContributeDialog open={open} onOpenChange={setOpen} />}
+      {open && (studio ? (
+        <StudioContributeDialog
+          open={open}
+          onOpenChange={setOpen}
+          studioSlug={studio.studio_slug}
+          studioLabel={studio.studio_label}
+          destination={row}
+        />
+      ) : (
+        <ContributeDialog open={open} onOpenChange={setOpen} destination={row} />
+      ))}
     </>
   );
 }
