@@ -298,27 +298,25 @@ stack layer it moved; pace paid work at $3 to $5 a day.
    show, one per shape (a status tool, a content wall, a guide, an
    archive, a schedule), until you pick.
 
-## Tomorrow (one run, about 75 minutes; Friday, so the weekly rollup too)
+## Tomorrow (one run, about 75 minutes)
 
-1. **Weekly rollup in the LOG** (spend, what moved, decisions needed),
-   above the day's entry. This week: the code gap closed on lint and
-   types; first try about half to about three quarters; the reference
-   library is the design change that moved laptop layouts; content
-   specificity is the open gap.
-2. **Seed content, the remaining gap.** Rules have not stopped loop-made
-   seed text (4 of 4 listening-wall builds on Nov 12) and first screens
-   hold about as much text with or without a reference. Try a mechanical
-   answer: a static check that finds seed text built in a loop
-   (`texts[i % n]`, template strings over an index in `src/data` or the
-   store) and, behind the flag, raises it as a fix-pass trigger with a
-   hint naming the file and asking for hand-written items. Tested; then
-   Gemma on the comparison prompts (about $0.05, log first).
-3. **Library arm on the comparison prompts** (about $0.05): the Builder's
-   pick for the fridge and the listening wall, so the gap table has a
-   library row against the fixed Opus baseline.
-4. **Transfer check (weekly):** the library arm on GLM 4.5 Air and
-   Mistral Small 3.2, spread set, one build per prompt (about $0.10).
-5. **End-to-end check of export and delete.** Needs a signed-in Builder.
+1. **Everything from this week together, on both sets.** Gemma with the
+   library screen and the seed check: comparison prompts four trials,
+   spread set two (24 builds, about $0.15, log first). This is the
+   week's Gemma row for the gap table, and the first spread result with
+   the seed check. Count loop-made seeds (should be 0 in final files) and
+   how many builds the seed check sent through a fix pass.
+2. **Desktop is the gap the library moves least on the comparison
+   prompts** (5 `md:` classes against Opus's 12; 8 on the spread set).
+   Look at why: compare the library screen Gemma was shown for the fridge
+   (it gets the schedule screen) against its output at 1280 wide, and
+   try one change: the layout words from `layout` added beside the image
+   too (image plus words), measured on the comparison prompts.
+3. **Mistral's runaway build** (Nov 13: 175 files over 20 minutes on
+   one remix). The bench should stop a build that writes more than, say,
+   60 files or runs past 10 minutes, and log it as a runaway. Check how
+   production guards the same case (continuation cap) and match it.
+4. **End-to-end check of export and delete.** Needs a signed-in Builder.
 
 ## After that, in order
 

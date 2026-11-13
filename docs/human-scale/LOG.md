@@ -12,6 +12,93 @@ experiment at most $5 and 30 minutes.
 
 ---
 
+## Week of Nov 9 to Nov 13: rollup
+
+**Spend.** About $3.90 of paid inference over the week (Mon $0.15, Tue
+$3.15, of which $2.76 was eight Opus reference builds for the new spread
+set, Wed $0.20, Thu $0.15, Fri $0.21), against about $10 reserved at
+worst case. Nothing near the daily cap.
+
+**What moved.** The week's focus was Josh's: close the gap between Gemma
+4 26B's builds and Opus's.
+- **Code quality: closed on two measures.** Lint findings went from 2.5
+  to about 0.3 per 100 lines, and median type errors from 3 to 0. Most of
+  it was mechanical: unused imports removed, forgotten imports added, the
+  kit learning the shapes models reach for (nav links, `asChild`, Avatar
+  sizes). Every repair is behind the flag and tested.
+- **First try: from about half to about three quarters**, through repairs
+  for the commonest causes (missing exports, routers, invented icons,
+  damaged scaffold files). It is a long tail now.
+- **Design: showing beats telling.** Rule lines and kit primitives barely
+  moved Gemma's laptop layouts. A screenshot of a *different* well-made
+  app did, without copying (Nov 11), and the Builder now carries a small
+  library of reference screens a community can curate (Nov 12), in words
+  for text-only models (Nov 13).
+- **Content: one mechanical fix.** Gemma alone makes seeded posts in a
+  loop (36 of its 251 builds); a static check now catches it and the fix
+  pass writes them by hand.
+- **Breadth:** a spread set of eight more prompts, half of them gallery
+  remixes, found two preview bugs that broke every map app for any model
+  (fixed).
+
+**Decisions needed from Josh.** Design scores for this week's sheets;
+which screens belong in the reference library (Opus screens stand in
+until then); whether the reference screen needs a sentence in words as
+well as the image; the desktop nav handover in the kit; and the standing
+deploys and keys in "Needs Josh".
+
+## 2026-11-13
+
+**For Josh:** Three results today. Shown a library screen, Gemma's first
+screens on the two comparison prompts held more than Opus's (873
+characters against 774). A new check catches Gemma's habit of making
+seeded posts in a loop and has the fix pass write them by hand: all 8
+apps worked, with real local detail. And the weekly check on other open
+models found a bug from yesterday: two of them can't read images, so they
+now get the reference screen in words. Spend about $0.21.
+
+**Stack layer moved:** Builder model, from "the reference library works
+for Gemma" to "the library reaches every open builder model (as an image
+or in words), and Gemma's seeded content is checked mechanically".
+
+**What was tried.**
+
+1. *Library arm on the comparison prompts* (Gemma, 8 builds): 7 of 8
+   working, first-screen text 873 characters (Gemma Nov 12: 477; Opus
+   774), desktop classes 5 (Opus 12). The library moves content more than
+   layout on these two prompts; on the spread set it was the other way.
+2. *Seed-loop check* (`checkSeedLoops` in `import-check.ts`, behind the
+   flag). Flags a text-like field on a line with a modulo over the loop
+   index. On the board: 36 of 251 Gemma builds, none from Opus, GLM,
+   GPT-OSS or Mistral, none in the clean fixtures. Measured (Gemma, 8
+   builds): it fired on both loop-made seeds, the fix pass rewrote them by
+   hand (the Corn Exchange, West Street, the Saturday market), 0 left in
+   final files, 8 of 8 working. First try fell to 4 of 8 because those
+   two fixes count as fix passes.
+3. *Transfer check, and a bug.* GLM 4.5 Air refused every request with an
+   image ("No endpoints found that support image input"); GPT-OSS 120B is
+   text-only too. Since Nov 12 the Builder would have sent them a
+   reference screen and failed their first build. Fixed: open builder
+   models now say whether they read images, and the screen goes only to
+   those that do. Mistral Small 3.2 (reads images): 4 of 8 working with
+   the screen, no earlier spread baseline to compare; one build ran away
+   (175 files over 20 minutes).
+4. *The library in words.* Each screen now has a written,
+   subject-neutral account of its layout and content, sent to text-only
+   open models instead of the image. GLM on the spread set: 7 of 8
+   working (Nov 10, without: 7 of 8), desktop classes 5 (from 2),
+   first-screen text about the same, first try 3 of 8 (from 5).
+
+**Cost:** about $0.21 (harness estimate; image input not counted; the
+eight refused GLM requests cost nothing).
+
+**Honest read:** the seed check is the cleanest win today: mechanical,
+measured, and the content it produces reads like a place. The library
+keeps helping Gemma, though which measure it moves depends on the
+prompts. In words it helped GLM's layout a little, on one build a prompt.
+The image bug was caught by the weekly transfer check before any person
+hit it, which is what that check is for.
+
 ## 2026-11-12
 
 **For Josh:** Yesterday's finding is now in the Builder, behind the

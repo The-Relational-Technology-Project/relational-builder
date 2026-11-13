@@ -1,0 +1,1330 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1,exp-v1,exp-v1,exp-v1,exp-v1,exp-v1,exp-v1,exp-v1",
+  "gitCommit": "28cf548",
+  "createdAt": "2026-11-13T12:21:11.945Z",
+  "runId": "2026-11-13T11-43-08-28cf548-9nb9",
+  "config": {
+    "trials": 1,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": null,
+    "importGuard": true,
+    "fixHints": true,
+    "humanScaleRules": true,
+    "fixPasses": 2,
+    "designScaffold": "direction",
+    "openrouterIgnore": "Darkbloom",
+    "openrouterOnly": null,
+    "openrouterQuant": null,
+    "reference": "library"
+  },
+  "models": [
+    {
+      "alias": "glm-4.5-air",
+      "providerId": "openrouter",
+      "modelId": "z-ai/glm-4.5-air",
+      "pricing": {
+        "inputPerMTok": 0.13,
+        "outputPerMTok": 0.85,
+        "asOf": "2026-10"
+      },
+      "enabled": false
+    },
+    {
+      "alias": "mistral-small-3.2",
+      "providerId": "openrouter",
+      "modelId": "mistralai/mistral-small-3.2-24b-instruct",
+      "pricing": {
+        "inputPerMTok": 0.075,
+        "outputPerMTok": 0.2,
+        "asOf": "2026-11"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "remix-income-sharing",
+      "version": "exp-v1"
+    },
+    {
+      "id": "remix-gathering-fund",
+      "version": "exp-v1"
+    },
+    {
+      "id": "remix-street-stories",
+      "version": "exp-v1"
+    },
+    {
+      "id": "remix-tool-lending-seed",
+      "version": "exp-v1"
+    },
+    {
+      "id": "hs-story-circle",
+      "version": "exp-v1"
+    },
+    {
+      "id": "hs-ballot-guide",
+      "version": "exp-v1"
+    },
+    {
+      "id": "hs-skill-swap",
+      "version": "exp-v1"
+    },
+    {
+      "id": "hs-bulletin-boards",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "glm-4.5-air",
+      "providerId": "openrouter",
+      "modelId": "z-ai/glm-4.5-air",
+      "taskId": "remix-income-sharing",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-13T11:43:08.885Z",
+      "plan": null,
+      "latencyMs": 0,
+      "ttftMs": null,
+      "segments": [],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 0,
+      "estTokens": {
+        "input": 0,
+        "output": 0,
+        "estimated": true
+      },
+      "estCostUsd": null,
+      "extraction": {
+        "writes": 0,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "none",
+      "previewKindMatch": false,
+      "bundle": null,
+      "securityFindings": 0,
+      "checks": [],
+      "artifactDir": null,
+      "fixRound": null,
+      "error": "OpenRouter API error (404): {\"error\":{\"message\":\"No endpoints found that support image input\",\"code\":404,\"metadata\":{\"routing_funnel\":[{\"step\":\"Initial Endpoints\",\"endpoint_count\":3}],\"failed_routing_step\":\"Filter by Image Support\"}}}"
+    },
+    {
+      "alias": "glm-4.5-air",
+      "providerId": "openrouter",
+      "modelId": "z-ai/glm-4.5-air",
+      "taskId": "remix-gathering-fund",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-13T11:43:09.552Z",
+      "plan": null,
+      "latencyMs": 0,
+      "ttftMs": null,
+      "segments": [],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 0,
+      "estTokens": {
+        "input": 0,
+        "output": 0,
+        "estimated": true
+      },
+      "estCostUsd": null,
+      "extraction": {
+        "writes": 0,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "none",
+      "previewKindMatch": false,
+      "bundle": null,
+      "securityFindings": 0,
+      "checks": [],
+      "artifactDir": null,
+      "fixRound": null,
+      "error": "OpenRouter API error (404): {\"error\":{\"message\":\"No endpoints found that support image input\",\"code\":404,\"metadata\":{\"routing_funnel\":[{\"step\":\"Initial Endpoints\",\"endpoint_count\":3}],\"failed_routing_step\":\"Filter by Image Support\"}}}"
+    },
+    {
+      "alias": "glm-4.5-air",
+      "providerId": "openrouter",
+      "modelId": "z-ai/glm-4.5-air",
+      "taskId": "remix-street-stories",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-13T11:43:09.685Z",
+      "plan": null,
+      "latencyMs": 0,
+      "ttftMs": null,
+      "segments": [],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 0,
+      "estTokens": {
+        "input": 0,
+        "output": 0,
+        "estimated": true
+      },
+      "estCostUsd": null,
+      "extraction": {
+        "writes": 0,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "none",
+      "previewKindMatch": false,
+      "bundle": null,
+      "securityFindings": 0,
+      "checks": [],
+      "artifactDir": null,
+      "fixRound": null,
+      "error": "OpenRouter API error (404): {\"error\":{\"message\":\"No endpoints found that support image input\",\"code\":404,\"metadata\":{\"routing_funnel\":[{\"step\":\"Initial Endpoints\",\"endpoint_count\":3}],\"failed_routing_step\":\"Filter by Image Support\"}}}"
+    },
+    {
+      "alias": "glm-4.5-air",
+      "providerId": "openrouter",
+      "modelId": "z-ai/glm-4.5-air",
+      "taskId": "remix-tool-lending-seed",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-13T11:43:09.840Z",
+      "plan": null,
+      "latencyMs": 0,
+      "ttftMs": null,
+      "segments": [],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 0,
+      "estTokens": {
+        "input": 0,
+        "output": 0,
+        "estimated": true
+      },
+      "estCostUsd": null,
+      "extraction": {
+        "writes": 0,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "none",
+      "previewKindMatch": false,
+      "bundle": null,
+      "securityFindings": 0,
+      "checks": [],
+      "artifactDir": null,
+      "fixRound": null,
+      "error": "OpenRouter API error (404): {\"error\":{\"message\":\"No endpoints found that support image input\",\"code\":404,\"metadata\":{\"routing_funnel\":[{\"step\":\"Initial Endpoints\",\"endpoint_count\":3}],\"failed_routing_step\":\"Filter by Image Support\"}}}"
+    },
+    {
+      "alias": "glm-4.5-air",
+      "providerId": "openrouter",
+      "modelId": "z-ai/glm-4.5-air",
+      "taskId": "hs-story-circle",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-13T11:43:09.960Z",
+      "plan": null,
+      "latencyMs": 0,
+      "ttftMs": null,
+      "segments": [],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 0,
+      "estTokens": {
+        "input": 0,
+        "output": 0,
+        "estimated": true
+      },
+      "estCostUsd": null,
+      "extraction": {
+        "writes": 0,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "none",
+      "previewKindMatch": false,
+      "bundle": null,
+      "securityFindings": 0,
+      "checks": [],
+      "artifactDir": null,
+      "fixRound": null,
+      "error": "OpenRouter API error (404): {\"error\":{\"message\":\"No endpoints found that support image input\",\"code\":404,\"metadata\":{\"routing_funnel\":[{\"step\":\"Initial Endpoints\",\"endpoint_count\":3}],\"failed_routing_step\":\"Filter by Image Support\"}}}"
+    },
+    {
+      "alias": "glm-4.5-air",
+      "providerId": "openrouter",
+      "modelId": "z-ai/glm-4.5-air",
+      "taskId": "hs-ballot-guide",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-13T11:43:10.079Z",
+      "plan": null,
+      "latencyMs": 0,
+      "ttftMs": null,
+      "segments": [],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 0,
+      "estTokens": {
+        "input": 0,
+        "output": 0,
+        "estimated": true
+      },
+      "estCostUsd": null,
+      "extraction": {
+        "writes": 0,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "none",
+      "previewKindMatch": false,
+      "bundle": null,
+      "securityFindings": 0,
+      "checks": [],
+      "artifactDir": null,
+      "fixRound": null,
+      "error": "OpenRouter API error (404): {\"error\":{\"message\":\"No endpoints found that support image input\",\"code\":404,\"metadata\":{\"routing_funnel\":[{\"step\":\"Initial Endpoints\",\"endpoint_count\":3}],\"failed_routing_step\":\"Filter by Image Support\"}}}"
+    },
+    {
+      "alias": "glm-4.5-air",
+      "providerId": "openrouter",
+      "modelId": "z-ai/glm-4.5-air",
+      "taskId": "hs-skill-swap",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-13T11:43:10.241Z",
+      "plan": null,
+      "latencyMs": 0,
+      "ttftMs": null,
+      "segments": [],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 0,
+      "estTokens": {
+        "input": 0,
+        "output": 0,
+        "estimated": true
+      },
+      "estCostUsd": null,
+      "extraction": {
+        "writes": 0,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "none",
+      "previewKindMatch": false,
+      "bundle": null,
+      "securityFindings": 0,
+      "checks": [],
+      "artifactDir": null,
+      "fixRound": null,
+      "error": "OpenRouter API error (404): {\"error\":{\"message\":\"No endpoints found that support image input\",\"code\":404,\"metadata\":{\"routing_funnel\":[{\"step\":\"Initial Endpoints\",\"endpoint_count\":3}],\"failed_routing_step\":\"Filter by Image Support\"}}}"
+    },
+    {
+      "alias": "glm-4.5-air",
+      "providerId": "openrouter",
+      "modelId": "z-ai/glm-4.5-air",
+      "taskId": "hs-bulletin-boards",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-13T11:43:10.365Z",
+      "plan": null,
+      "latencyMs": 0,
+      "ttftMs": null,
+      "segments": [],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 0,
+      "estTokens": {
+        "input": 0,
+        "output": 0,
+        "estimated": true
+      },
+      "estCostUsd": null,
+      "extraction": {
+        "writes": 0,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "none",
+      "previewKindMatch": false,
+      "bundle": null,
+      "securityFindings": 0,
+      "checks": [],
+      "artifactDir": null,
+      "fixRound": null,
+      "error": "OpenRouter API error (404): {\"error\":{\"message\":\"No endpoints found that support image input\",\"code\":404,\"metadata\":{\"routing_funnel\":[{\"step\":\"Initial Endpoints\",\"endpoint_count\":3}],\"failed_routing_step\":\"Filter by Image Support\"}}}"
+    },
+    {
+      "alias": "mistral-small-3.2",
+      "providerId": "openrouter",
+      "modelId": "mistralai/mistral-small-3.2-24b-instruct",
+      "taskId": "remix-income-sharing",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-13T11:43:10.481Z",
+      "plan": null,
+      "latencyMs": 1220799,
+      "ttftMs": 3276,
+      "segments": [
+        {
+          "finishReason": "error",
+          "latencyMs": 301831,
+          "chars": 61863
+        },
+        {
+          "finishReason": "error",
+          "latencyMs": 301945,
+          "chars": 49096
+        },
+        {
+          "finishReason": "error",
+          "latencyMs": 313952,
+          "chars": 32814
+        },
+        {
+          "finishReason": "error",
+          "latencyMs": 302954,
+          "chars": 32306
+        }
+      ],
+      "continuations": 3,
+      "truncatedFinal": true,
+      "outputChars": 176079,
+      "estTokens": {
+        "input": 149039,
+        "output": 44020,
+        "estimated": true
+      },
+      "estCostUsd": 0.019981924999999998,
+      "extraction": {
+        "writes": 175,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/remix-income-sharing/mistral-small-3.2-t1",
+      "fixRound": null,
+      "error": null,
+      "served": {
+        "model": "mistralai/mistral-small-3.2-24b-instruct",
+        "provider": "Parasail"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": false,
+        "errors": [],
+        "bodyChars": 48,
+        "aboveFoldChars": 45
+      },
+      "quality": {
+        "files": 50,
+        "codeFiles": 48,
+        "codeLines": 2025,
+        "largestFile": "/src/stores.ts",
+        "largestFileLines": 215,
+        "anyCount": 0,
+        "kitImportingFiles": 4,
+        "handRolledUiFiles": 42,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 14,
+          "tokensTotal": 15,
+          "kitLayout": [
+            "AppBar",
+            "BottomNav",
+            "Card"
+          ],
+          "mdClasses": 8,
+          "fontLoaded": true,
+          "contrastText": 15.4,
+          "contrastMuted": 6.7,
+          "namedPeople": 8,
+          "placeNamed": true
+        },
+        "lintErrors": 5,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.2,
+        "tscErrors": 9,
+        "tscSyntaxErrors": 0,
+        "tscCodes": {
+          "2322": 1,
+          "2339": 3,
+          "2552": 1,
+          "2769": 4
+        },
+        "tokensPerSecond": 36.1,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    },
+    {
+      "alias": "mistral-small-3.2",
+      "providerId": "openrouter",
+      "modelId": "mistralai/mistral-small-3.2-24b-instruct",
+      "taskId": "remix-gathering-fund",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-13T12:03:31.669Z",
+      "plan": null,
+      "latencyMs": 111079,
+      "ttftMs": 1884,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 111078,
+          "chars": 14489
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 14489,
+      "estTokens": {
+        "input": 16288,
+        "output": 3623,
+        "estimated": true
+      },
+      "estCostUsd": 0.0019462,
+      "extraction": {
+        "writes": 1,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "sandpack",
+      "previewKindMatch": false,
+      "bundle": null,
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": false
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": false
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/remix-gathering-fund/mistral-small-3.2-t1",
+      "fixRound": null,
+      "error": null,
+      "served": {
+        "model": "mistralai/mistral-small-3.2-24b-instruct",
+        "provider": "Parasail"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 3301,
+        "aboveFoldChars": 1185
+      },
+      "quality": {
+        "files": 1,
+        "codeFiles": 0,
+        "codeLines": 0,
+        "largestFile": null,
+        "largestFileLines": 0,
+        "anyCount": 0,
+        "kitImportingFiles": 0,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 0,
+          "tokensTotal": 0,
+          "kitLayout": [],
+          "mdClasses": 0,
+          "fontLoaded": true,
+          "contrastText": null,
+          "contrastMuted": null,
+          "namedPeople": 0,
+          "placeNamed": false
+        },
+        "lintErrors": 0,
+        "lintWarnings": 0,
+        "lintPer100Lines": null,
+        "tscErrors": null,
+        "tscSyntaxErrors": 0,
+        "tscCodes": null,
+        "tokensPerSecond": 32.6,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    },
+    {
+      "alias": "mistral-small-3.2",
+      "providerId": "openrouter",
+      "modelId": "mistralai/mistral-small-3.2-24b-instruct",
+      "taskId": "remix-street-stories",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-13T12:05:22.755Z",
+      "plan": null,
+      "latencyMs": 141980,
+      "ttftMs": 1701,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 141979,
+          "chars": 19770
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 19770,
+      "estTokens": {
+        "input": 16288,
+        "output": 4943,
+        "estimated": true
+      },
+      "estCostUsd": 0.0022102,
+      "extraction": {
+        "writes": 10,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/remix-street-stories/mistral-small-3.2-t1",
+      "fixRound": null,
+      "error": null,
+      "served": {
+        "model": "mistralai/mistral-small-3.2-24b-instruct",
+        "provider": "Parasail"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 318,
+        "aboveFoldChars": 306
+      },
+      "quality": {
+        "files": 10,
+        "codeFiles": 8,
+        "codeLines": 477,
+        "largestFile": "/src/pages/SuggestPerson.tsx",
+        "largestFileLines": 100,
+        "anyCount": 0,
+        "kitImportingFiles": 5,
+        "handRolledUiFiles": 1,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 14,
+          "tokensTotal": 15,
+          "kitLayout": [
+            "AppBar",
+            "BottomNav",
+            "Card"
+          ],
+          "mdClasses": 7,
+          "fontLoaded": true,
+          "contrastText": 12.9,
+          "contrastMuted": 6.4,
+          "namedPeople": 1,
+          "placeNamed": true
+        },
+        "lintErrors": 0,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0,
+        "tscErrors": 1,
+        "tscSyntaxErrors": 0,
+        "tscCodes": {
+          "2322": 1
+        },
+        "tokensPerSecond": 34.8,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    },
+    {
+      "alias": "mistral-small-3.2",
+      "providerId": "openrouter",
+      "modelId": "mistralai/mistral-small-3.2-24b-instruct",
+      "taskId": "remix-tool-lending-seed",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-13T12:07:45.019Z",
+      "plan": null,
+      "latencyMs": 153176,
+      "ttftMs": 1909,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 153176,
+          "chars": 22820
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 22820,
+      "estTokens": {
+        "input": 16285,
+        "output": 5705,
+        "estimated": true
+      },
+      "estCostUsd": 0.002362375,
+      "extraction": {
+        "writes": 8,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/remix-tool-lending-seed/mistral-small-3.2-t1",
+      "fixRound": null,
+      "error": null,
+      "served": {
+        "model": "mistralai/mistral-small-3.2-24b-instruct",
+        "provider": "Parasail"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": false,
+        "errors": [
+          "console: TypeError: tools.filter is not a function at Home (file:///home/user/relational-builder/bench/results/2026-11-13T11-43-08-28cf548-9nb9/artifacts/remix-tool-lending-seed/mistral-small-3.2-t1/preview.html:512:32) at Hi (ht",
+          "pageerror: tools.filter is not a function"
+        ],
+        "bodyChars": 0,
+        "aboveFoldChars": 0
+      },
+      "quality": {
+        "files": 8,
+        "codeFiles": 6,
+        "codeLines": 586,
+        "largestFile": "/src/data/tools.ts",
+        "largestFileLines": 188,
+        "anyCount": 0,
+        "kitImportingFiles": 4,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 14,
+          "tokensTotal": 15,
+          "kitLayout": [
+            "AppBar",
+            "BottomNav",
+            "Card"
+          ],
+          "mdClasses": 7,
+          "fontLoaded": true,
+          "contrastText": 16.2,
+          "contrastMuted": 4.5,
+          "namedPeople": 21,
+          "placeNamed": true
+        },
+        "lintErrors": 1,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.2,
+        "tscErrors": 3,
+        "tscSyntaxErrors": 0,
+        "tscCodes": {
+          "2339": 3
+        },
+        "tokensPerSecond": 37.2,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    },
+    {
+      "alias": "mistral-small-3.2",
+      "providerId": "openrouter",
+      "modelId": "mistralai/mistral-small-3.2-24b-instruct",
+      "taskId": "hs-story-circle",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-13T12:10:18.327Z",
+      "plan": null,
+      "latencyMs": 81020,
+      "ttftMs": 1576,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 81020,
+          "chars": 19078
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 19078,
+      "estTokens": {
+        "input": 16227,
+        "output": 4770,
+        "estimated": true
+      },
+      "estCostUsd": 0.002171025,
+      "extraction": {
+        "writes": 6,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": false,
+        "errors": [
+          "vfs:/app.js:86: The JSX syntax extension is not currently enabled"
+        ]
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": false
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-story-circle/mistral-small-3.2-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/app.js:86: The JSX syntax extension is not currently enabled"
+        ],
+        "solved": false,
+        "latencyMs": 165999,
+        "remainingErrors": [
+          "vfs:/app.js:86: The JSX syntax extension is not currently enabled"
+        ],
+        "estCostUsd": 0.004906025,
+        "passes": 2
+      },
+      "error": null,
+      "served": {
+        "model": "mistralai/mistral-small-3.2-24b-instruct",
+        "provider": "Parasail"
+      },
+      "importIssues": [],
+      "quality": {
+        "files": 4,
+        "codeFiles": 2,
+        "codeLines": 374,
+        "largestFile": "/app.js",
+        "largestFileLines": 312,
+        "anyCount": 0,
+        "kitImportingFiles": 1,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 0,
+          "tokensTotal": 0,
+          "kitLayout": [
+            "AppBar",
+            "BottomNav",
+            "EmptyState",
+            "Card"
+          ],
+          "mdClasses": 6,
+          "fontLoaded": true,
+          "contrastText": null,
+          "contrastMuted": null,
+          "namedPeople": 0,
+          "placeNamed": false
+        },
+        "lintErrors": 1,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.3,
+        "tscErrors": null,
+        "tscSyntaxErrors": 0,
+        "tscCodes": null,
+        "tokensPerSecond": 58.9,
+        "fixLatencyMs": 165999,
+        "failKind": "other"
+      }
+    },
+    {
+      "alias": "mistral-small-3.2",
+      "providerId": "openrouter",
+      "modelId": "mistralai/mistral-small-3.2-24b-instruct",
+      "taskId": "hs-ballot-guide",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-13T12:14:25.485Z",
+      "plan": null,
+      "latencyMs": 119872,
+      "ttftMs": 9104,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 119872,
+          "chars": 18413
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 18413,
+      "estTokens": {
+        "input": 16213,
+        "output": 4604,
+        "estimated": true
+      },
+      "estCostUsd": 0.002136775,
+      "extraction": {
+        "writes": 1,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "sandpack",
+      "previewKindMatch": false,
+      "bundle": null,
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": false
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": false
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-ballot-guide/mistral-small-3.2-t1",
+      "fixRound": null,
+      "error": null,
+      "served": {
+        "model": "mistralai/mistral-small-3.2-24b-instruct",
+        "provider": "Parasail"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 3925,
+        "aboveFoldChars": 898
+      },
+      "quality": {
+        "files": 1,
+        "codeFiles": 0,
+        "codeLines": 0,
+        "largestFile": null,
+        "largestFileLines": 0,
+        "anyCount": 0,
+        "kitImportingFiles": 0,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 0,
+          "tokensTotal": 0,
+          "kitLayout": [],
+          "mdClasses": 0,
+          "fontLoaded": true,
+          "contrastText": null,
+          "contrastMuted": null,
+          "namedPeople": 0,
+          "placeNamed": false
+        },
+        "lintErrors": 0,
+        "lintWarnings": 0,
+        "lintPer100Lines": null,
+        "tscErrors": null,
+        "tscSyntaxErrors": 0,
+        "tscCodes": null,
+        "tokensPerSecond": 38.4,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    },
+    {
+      "alias": "mistral-small-3.2",
+      "providerId": "openrouter",
+      "modelId": "mistralai/mistral-small-3.2-24b-instruct",
+      "taskId": "hs-skill-swap",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-13T12:16:25.363Z",
+      "plan": null,
+      "latencyMs": 130717,
+      "ttftMs": 7149,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 130715,
+          "chars": 17531
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 17531,
+      "estTokens": {
+        "input": 16209,
+        "output": 4383,
+        "estimated": true
+      },
+      "estCostUsd": 0.002092275,
+      "extraction": {
+        "writes": 9,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-skill-swap/mistral-small-3.2-t1",
+      "fixRound": null,
+      "error": null,
+      "served": {
+        "model": "mistralai/mistral-small-3.2-24b-instruct",
+        "provider": "Parasail"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 731,
+        "aboveFoldChars": 355
+      },
+      "quality": {
+        "files": 9,
+        "codeFiles": 7,
+        "codeLines": 406,
+        "largestFile": "/src/pages/Home.tsx",
+        "largestFileLines": 90,
+        "anyCount": 0,
+        "kitImportingFiles": 4,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 14,
+          "tokensTotal": 15,
+          "kitLayout": [
+            "AppBar",
+            "BottomNav",
+            "Card"
+          ],
+          "mdClasses": 6,
+          "fontLoaded": true,
+          "contrastText": 13.1,
+          "contrastMuted": 5.9,
+          "namedPeople": 0,
+          "placeNamed": true
+        },
+        "lintErrors": 0,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0,
+        "tscErrors": 0,
+        "tscSyntaxErrors": 0,
+        "tscCodes": {},
+        "tokensPerSecond": 33.5,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    },
+    {
+      "alias": "mistral-small-3.2",
+      "providerId": "openrouter",
+      "modelId": "mistralai/mistral-small-3.2-24b-instruct",
+      "taskId": "hs-bulletin-boards",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-13T12:18:36.245Z",
+      "plan": null,
+      "latencyMs": 114836,
+      "ttftMs": 2178,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 114836,
+          "chars": 15759
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 15759,
+      "estTokens": {
+        "input": 16192,
+        "output": 3940,
+        "estimated": true
+      },
+      "estCostUsd": 0.0020024,
+      "extraction": {
+        "writes": 4,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "sandpack",
+      "previewKindMatch": false,
+      "bundle": null,
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": false
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": false
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-bulletin-boards/mistral-small-3.2-t1",
+      "fixRound": null,
+      "error": null,
+      "served": {
+        "model": "mistralai/mistral-small-3.2-24b-instruct",
+        "provider": "Parasail"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": false,
+        "errors": [],
+        "bodyChars": 53,
+        "aboveFoldChars": 50
+      },
+      "quality": {
+        "files": 4,
+        "codeFiles": 2,
+        "codeLines": 249,
+        "largestFile": "/app.js",
+        "largestFileLines": 233,
+        "anyCount": 0,
+        "kitImportingFiles": 0,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 0,
+          "tokensTotal": 0,
+          "kitLayout": [],
+          "mdClasses": 0,
+          "fontLoaded": false,
+          "contrastText": null,
+          "contrastMuted": null,
+          "namedPeople": 15,
+          "placeNamed": true
+        },
+        "lintErrors": 0,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0,
+        "tscErrors": null,
+        "tscSyntaxErrors": 0,
+        "tscCodes": null,
+        "tokensPerSecond": 34.3,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    }
+  ]
+}
