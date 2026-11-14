@@ -16,8 +16,9 @@ import { acceptsImages } from '../../src/human-scale/builder-model';
  *   BENCH_REFERENCE=library  the Builder's own pick from its reference
  *                            library (src/human-scale/reference-screens.ts),
  *                            with the Builder's wording: the product path
- *   BENCH_REFERENCE=library-words  the same image plus its layout in words
- *                            (Nov 14: does naming the layout move desktop?)
+ *   BENCH_REFERENCE=library-words  image plus layout in words; since Nov 14
+ *                            the Builder's own note includes the words, so
+ *                            this now repeats them (kept for the record)
  *
  * The screenshot wording follows the Builder's gallery remix path
  * (src/project/start-from-commons.ts). Unset, the message is the bare

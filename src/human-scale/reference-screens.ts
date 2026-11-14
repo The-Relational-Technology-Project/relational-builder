@@ -97,7 +97,11 @@ export function referenceNote(screen: ReferenceScreen): string {
   return (
     `The attached screenshot is a reference screen from the Builder's library: ${screen.shape}, a different app, built well. ` +
     'Use it as the reference for quality, not subject: match its layout density, hierarchy, type, how it uses color and how ' +
-    'specific its content is, while building this app for its own place and people. Do not copy its subject or its words.'
+    'specific its content is, while building this app for its own place and people. Do not copy its subject or its words.' +
+    // The layout named beside the image: over 16 Gemma builds each (Nov 14),
+    // image plus words gave 16 of 16 working and 6 desktop classes, against
+    // 15 of 16 and 4 for the image alone
+    ` The screen, described: ${screen.layout}`
   );
 }
 

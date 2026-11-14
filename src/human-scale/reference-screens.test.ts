@@ -24,3 +24,10 @@ describe('reference screens', () => {
     expect(referenceNote(REFERENCE_SCREENS[0])).toContain('not subject');
   });
 });
+
+describe('reference note', () => {
+  it('names the layout beside the image', () => {
+    const screen = REFERENCE_SCREENS.find(s => s.id === 'schedule')!;
+    expect(referenceNote(screen)).toContain('The screen, described: At laptop width');
+  });
+});
