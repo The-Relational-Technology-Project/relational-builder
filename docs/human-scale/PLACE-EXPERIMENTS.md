@@ -12,11 +12,11 @@ step, which model does the work today and what it would take to do it on a small
 
 | Step in the demo | Model today | Open-model arm | How it is measured | Status |
 |---|---|---|---|---|
-| 1. Knowy answers a neighbor | Claude Haiku 5.5 | Any OpenAI-compatible endpoint (`MODEL_BASE_URL` in neighborhood-agent) | 19 scored questions: `golden.yml` + `golden-block.yml` | First pass done, below |
+| 1. Knowy answers a neighbor | Claude Haiku 5.5 | Any OpenAI-compatible endpoint (`MODEL_BASE_URL` in neighborhood-agent) | 19 scored questions: `golden.yml` + `golden-block.yml` | Four passes done, below |
 | 2. Search by meaning in the commons | Voyage embeddings | An open embedding model on the same box (`EMBED_URL` seam exists) | A small set of "plain words to the right record" pairs, hit in top 5 | Not built |
 | 3. The place's design brief | No model | Already model-free: search, block lookup, city data | n/a | Done, live on knowy.org |
 | 4. The Builder plans | Claude (also under the flag) | Open model for planning | Does the plan open with the block's real facts; do question cards parse | Not started |
-| 5. The Builder builds | Sonnet 5 in the demo capture; Gemma 4 26B under the flag | `hs-block-sweep` on Gemma, Mistral Small, GLM, Opus as reference | Working and first try (as now), plus six grounding checks | Task and check added; not run |
+| 5. The Builder builds | Sonnet 5 in the demo capture; Gemma 4 26B under the flag | `hs-block-sweep` on Gemma, Mistral Small, GLM | Working and first try (as now), plus six grounding checks | First run done, below |
 | 6. The built app runs | No model | Stays that way: it reads `block.json` | n/a | Done |
 | 7. Hardware | Hosted (OpenRouter, Anthropic) | One box in the neighborhood for Knowy's model and embeddings | Tokens a second, watts, cost a question | Not run; no box |
 
@@ -49,21 +49,52 @@ Full table and every answer: neighborhood-agent `docs/golden-results.md` and `be
   sources credited; no location gate; no year the brief never gave (a flag for a person to look at).
   The app Sonnet 5 built in the demo capture scores 6 of 6.
 
+## Step 5 results (14 Nov): the street cleaning build on open models
+
+`--tasks place --trials 3`, standard flags, import guard, two fix passes. Runs
+`2026-11-14T23-42-49-ce73c71-{abw2,5m40,p19x}`; grounding per build in each run's `grounding.jsonl`.
+
+| Model | Bundled | First try | Renders clean | Grounding, of 6, per trial | Median build |
+|---|---|---|---|---|---|
+| Gemma 4 26B (bf16) | 3/3 | 3/3 | 3/3 | 5, 6, 6 | 45s |
+| Mistral Small 3.2 | 0/3 | 0/3 | 2/3 | 6, 4, 6 | 63s |
+| GLM 4.5 Air | 0/3 | 0/3 | 2/3 | 3, 5, 5 | 76s |
+
+- **Gemma built it every time, first try**, with the block's real schedule and history on screen
+  (see `shots/` in abw2). Its one grounding miss was crediting only one source.
+- **Mistral and GLM wrote a single page, not the app shape the bench bundles**, so they read as 0/3
+  bundled though two of three rendered. For a tool this small a single page is arguably the right
+  answer; the bundle column is measuring shape, not usefulness, on this task.
+- **No build invented a year.** Across nine builds, every four-digit year on screen was one the
+  brief gave. The grounding misses were: not reading the block live (3 builds, hardcoding the
+  schedule instead), dropping "the signs on the block are the last word" (2), crediting fewer than
+  two sources (2).
+- For comparison, the app Claude Sonnet 5 built in the demo capture scores 6 of 6 (not a bench run).
+- Nine builds cost about seven cents.
+
+## Step 1 repeats (14 Nov)
+
+Passed of 19 over four passes: Claude Haiku 18, 16, 18, 18 (mean 17.5). Mistral Small 3.2: 16, 15,
+16, 17 (mean 16.0). Gemma 4 26B with look-first: 14, 14, 14 (a fourth pass did not finish). On the
+seven block questions Mistral matched Haiku pass for pass (6, 6, 7, 7). Every block failure by an
+open model was a source named without its link; no pass gave a wrong fact.
+
 ## Next, in order
 
-1. **Run `hs-block-sweep`** on gemma-4-26b (bf16), mistral-small-3.2 and glm-4.5-air, three trials,
-   standard flags, then `place-grounding.mjs` on each build. About $0.10. Log it in SPEND first.
-2. **Repeat step 1 three times** on Haiku, Mistral Small and Gemma with look-first, so a difference
-   of one question can be told from noise. About $0.50.
-3. **Shrink Knowy's standing prompt for small models** (it is about 30k tokens a round) and rerun.
-4. **Bring main into this branch.** The flag and the place work (area, boundary, block, the Builder
-   fetching the brief itself) are on different branches. Josh's call when and how.
-5. **Planning on an open model** (step 4), scored on whether the plan opens with the place's facts.
-6. **An open embedding model** for search by meaning (step 2).
-7. **A box.** Knowy's model and embeddings on hardware in the neighborhood. Needs a machine.
+1. **Make reading the block live the default shape of a build**, since hardcoding the schedule was
+   the commonest grounding miss: a kit helper or a prompt rule, then rerun `--tasks place`.
+2. **Require a link wherever Knowy names a source**, the one thing between Mistral Small and the
+   reference on the block questions, then repeat.
+3. **Shrink Knowy's standing prompt for small models** (about 30k tokens a round) and rerun.
+4. **Let a small tool be a single page** in the bench's scoring for this task, or add a second
+   place task that needs the app shape, so "bundled" is not penalizing the right answer.
+5. **Bring main into this branch.** The flag and the place work are on different branches. Josh's call.
+6. **Planning on an open model** (step 4), scored on whether the plan opens with the place's facts.
+7. **An open embedding model** for search by meaning (step 2).
+8. **A box.** Knowy's model and embeddings on hardware in the neighborhood. Needs a machine.
 
 ## What would change the default
 
 Knowy moves to an open model by default when, on three repeats, it is within one question of the
 reference overall and passes all seven block questions, on a model that fits a 16 to 24 GB box.
-Mistral Small 3.2 is the closest today.
+Not met yet. Mistral Small 3.2 is 1.5 questions behind on average and level on the block questions.
