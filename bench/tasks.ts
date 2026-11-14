@@ -17,6 +17,12 @@ import { EDIT_SEED_FILES, EDIT_SEED_VERSION, EDIT_TASKS } from './edit-task';
  * usage, router choice, seeded data, no-backend — which are task-agnostic.
  */
 
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+
+/** What a place's commons says about one block: a captured design brief (see the fixture's header). */
+const PLACE_BRIEF_46_MORAGA = readFileSync(fileURLToPath(new URL('./fixtures/place-brief-46-moraga.md', import.meta.url)), 'utf8').replace(/<!--[\s\S]*?-->\n?/, '').trim();
+
 export interface TaskSpec {
   id: string;
   version: string;
@@ -320,6 +326,25 @@ export const TASKS: TaskSpec[] = [
       'it tidy and when it was last checked. Anyone can add a board or mark ' +
       'one as gone, and there is a printable route for someone putting up ' +
       'flyers for an event. Seed it with fifteen boards.'],
+    // A build for one block that has a local commons (Nov 14, 2026). The
+    // place's own design brief rides in the prompt, the way the Builder on
+    // main puts it in the turn context, so the question is whether a model
+    // builds from what the place says: its real schedule and history, read
+    // live, with sources, and nothing invented. scripts/human-scale/
+    // place-grounding.mjs scores that on the built files.
+    ['hs-block-sweep',
+      'Build a street cleaning reminder for the neighbors on our block: 46th ' +
+      'Ave between Moraga and Noriega in the Outer Sunset, San Francisco. A ' +
+      'page neighbors bookmark, no sign-up. It shows the next cleaning day ' +
+      'for each side of the street and, each time, one fun true fact about ' +
+      'the history of our block, with a way to see another. This is for our ' +
+      'block only. Foggy Outer Sunset look, big friendly type, phone-first.\n\n' +
+      'The Outer Sunset keeps a public commons of what neighbors know, and ' +
+      'this is what it says about our block. It is real and current. Build ' +
+      'from it: read the block live from the URL it gives so a correction ' +
+      'reaches the app, use only the facts below for history, credit each ' +
+      'source on screen, and keep the line about the signs on the block.\n\n' +
+      PLACE_BRIEF_46_MORAGA],
   ] as const).map(([id, prompt]) => ({
     id,
     version: 'exp-v1',
@@ -397,9 +422,14 @@ export const HS_SPREAD_TASK_IDS = [
   'hs-bulletin-boards',
 ];
 
+/** Builds for a place that has a local commons (Nov 14, 2026): the place's
+ *  design brief rides in the prompt. `--tasks place`. */
+export const HS_PLACE_TASK_IDS = ['hs-block-sweep'];
+
 export function resolveTasks(csv: string | undefined): TaskSpec[] {
   if (csv === 'compare') return TASKS.filter(t => HS_COMPARE_TASK_IDS.includes(t.id));
   if (csv === 'spread') return TASKS.filter(t => HS_SPREAD_TASK_IDS.includes(t.id));
+  if (csv === 'place') return TASKS.filter(t => HS_PLACE_TASK_IDS.includes(t.id));
   if (csv === 'edit') return TASKS.filter(t => EDIT_TASK_IDS.includes(t.id));
   if (!csv) return [TASKS[0]];
   const wanted = csv.split(',').map(s => s.trim()).filter(Boolean);
