@@ -84,6 +84,7 @@ export function placeManifestLines(place: ProjectPlace | undefined): string[] {
     if (c.kind === 'radius' && typeof c.miles === 'number') lines.push(`    miles: ${c.miles}`);
     if (c.kind === 'polygon') lines.push('    rings: see place.json');
     if (c.ref) lines.push(`    ref: "${yamlEscape(c.ref)}"`);
+    if (c.edges) lines.push(`    edges: ${c.edges}`);
   }
   lines.push('  public: true', '');
   return lines;
@@ -92,7 +93,10 @@ export function placeManifestLines(place: ProjectPlace | undefined): string[] {
 /** One line for a card or a menu: "Palmer Square, Chicago · serves 1.5 miles around it" */
 export function placeSummary(place: ProjectPlace): string {
   const serves = describeCatchment(place);
-  return serves ? `${place.label} · serves ${serves}` : place.label;
+  const edges = place.catchment?.edges ? ` · ${place.catchment.edges} borders` : '';
+  // A block's label already is the area: "46th Ave, Moraga to Noriega, Outer Sunset"
+  if (place.catchment?.source === 'block') return `${place.label}${edges}`;
+  return serves ? `${place.label} · serves ${serves}${edges}` : place.label;
 }
 
 /**
@@ -106,6 +110,7 @@ export function formatPlaceForPrompt(place: ProjectPlace | undefined): string | 
   const kind =
     c?.source === 'watershed' ? 'a watershed, so its neighbors are everyone upstream and downstream of it'
     : c?.source === 'bioregion' ? 'a bioregion, a boundary drawn by the land rather than by an administration'
+    : c?.source === 'block' ? 'one block: both sides of the street between its two corners'
     : c?.source === 'zip' ? 'a ZIP code'
     : c?.source === 'drawn' || c?.source === 'geojson' ? 'a boundary the builder drew or chose'
     : c?.kind === 'polygon' ? 'a named boundary'
@@ -117,8 +122,11 @@ export function formatPlaceForPrompt(place: ProjectPlace | undefined): string | 
     `This software is for **${place.label}**${serves ? `, and serves ${serves}` : ''}${kind ? ` (${kind})` : ''}. The builder set this themselves; treat it as a fact about the tool, not a guess.`,
     '',
     '- **Draw from the place.** Names, examples, default map centres, time zone, units, and the plan\'s Look & feel can all come from this place rather than from nowhere. Prefer a real street, park, or landmark there over a generic one when an example needs one.',
-    `- **Maps.** When the tool shows a map, centre it on the place (lat ${place.lat}, lng ${place.lng})${c?.kind === 'radius' ? ` and fit roughly ${c.miles} miles` : c?.kind === 'polygon' ? ' and draw the catchment boundary from /place.json when it ships' : ''}. Leaflet + OpenStreetMap, never Google Maps.`,
-    '- **Who it is for.** If the brief says the tool is for people in this place, say so on the page in plain words ("For the blocks around Palmer Square") and welcome visitors rather than blocking them. Never gate by IP address or GPS: that excludes the people who belong and stops nobody else.',
+    `- **Maps.** When the tool shows a map, centre it on the place (lat ${place.lat}, lng ${place.lng})${c?.source === 'block' ? ' and zoom to the block (about zoom 17)' : c?.kind === 'radius' ? ` and fit roughly ${c.miles} miles` : c?.kind === 'polygon' ? ' and draw the catchment boundary from /place.json when it ships' : ''}. Leaflet + OpenStreetMap, never Google Maps.`,
+    c?.edges === 'strict'
+      ? `- **Strict borders.** The builder said this tool is for ${serves ?? place.label} and nowhere else. Say so on the page in plain words ("For 46th Avenue between Moraga and Noriega"). Keep what it shows and collects inside the area: local data filtered to it, no "nearby" feed from outside it, and when someone signs up or adds something, ask in words whether they live or work here (a cross street or a yes is enough, never an address) and take their word. A person from outside gets a kind line about who it is for and, where one exists, a pointer to the wider place's tools. Never gate by IP address or GPS: that excludes the people who belong and stops nobody else.`
+      : `- **${c?.edges === 'rough' ? 'Rough borders. ' : ''}Who it is for.** ${c?.edges === 'rough' ? `The builder said the area is who this is mostly for, not a line: someone a street over is welcome. ` : ''}If the brief says the tool is for people in this place, say so on the page in plain words ("For the blocks around Palmer Square") and welcome visitors rather than blocking them. Never gate by IP address or GPS: that excludes the people who belong and stops nobody else.`,
+    ...(c?.source === 'block' ? [`- **One block.** Everything can be this specific: the street's real name, its two cross streets, what is true of this block alone. If the place's commons is listed in this prompt, its notes on this block (history pinned to it, old photographs, the city's schedule for it) are the first material to design from${c.ref ? `; the block's id there is \`${c.ref}\`` : ''}.`] : []),
     '- **Local data.** If live civic data for this city is listed in this prompt, reach for it before asking people to type what the city already publishes.',
     place.public
       ? '- **Public map.** The builder has chosen to list this project on the public map of place-based software: the published site serves `/place.json` describing the place and catchment. Do not write that file yourself; the Builder adds it at publish time.'

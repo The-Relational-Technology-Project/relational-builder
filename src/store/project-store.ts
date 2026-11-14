@@ -48,6 +48,9 @@ export interface ProjectLineage {
    *  in the Place dialog, never inferred. Rides here because lineage already
    *  persists locally, to the cloud, and into .reltech.yml (see project/place) */
   place?: ProjectPlace;
+  /** The builder passed on "Where will this serve?" at the start of this
+   *  project. The invitation stays away; the project menu still offers it. */
+  placeSkipped?: boolean;
 }
 
 interface ProjectState {

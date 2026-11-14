@@ -214,7 +214,7 @@ export function ProjectMenu() {
             <DropdownMenuItem onClick={() => setPlaceOpen(true)} className="gap-2 text-xs items-start">
               <MapPin className="size-3.5 text-muted-foreground mt-0.5" />
               <span className="min-w-0">
-                <span className="block">{place ? 'Place' : 'Give it a place'}</span>
+                <span className="block">{place ? 'Area it serves' : 'Set the area it serves'}</span>
                 {place && <span className="block truncate text-[11px] text-muted-foreground">{placeSummary(place)}</span>}
               </span>
             </DropdownMenuItem>

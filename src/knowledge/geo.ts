@@ -53,7 +53,20 @@ export interface GeoLocation extends GeoPoint {
  */
 export type CatchmentSource =
   | 'radius' | 'drawn' | 'zip' | 'neighborhood' | 'city' | 'county'
-  | 'watershed' | 'bioregion' | 'geojson' | 'other';
+  | 'watershed' | 'bioregion' | 'geojson' | 'block' | 'other';
+
+/**
+ * How firm a catchment's edge is. `rough` (the default when unset): the
+ * area is who the tool is mostly for, and someone a street over is welcome.
+ * `strict`: the tool is for this area and says so; what it shows and
+ * collects stays inside it. Neither is enforced by location: a tool asks
+ * people where they are in words, it never checks.
+ */
+export type CatchmentEdges = 'strict' | 'rough';
+
+/** A block's catchment is a short radius around its midpoint: enough to
+ *  cover both sides of the street and its two corners */
+export const BLOCK_CATCHMENT_MILES = 0.08;
 
 /** One ring of [lng, lat] pairs, GeoJSON order, outer rings only */
 export type Ring = [number, number][];
@@ -71,8 +84,10 @@ export interface Catchment {
   label: string;
   source: CatchmentSource;
   /** The identifier in the source's own terms: "60647", "relation/122604",
-   *  "huc12:071200040203" */
+   *  "huc12:071200040203", or a block id from the place's own commons */
   ref?: string;
+  /** Strict or rough borders. Absent reads as rough. */
+  edges?: CatchmentEdges;
 }
 
 /** Radii the Place dialog offers, in miles — neighborhood scale up to a county */
@@ -129,6 +144,7 @@ export function catchmentsOverlap(a: GeoLocation, b: GeoLocation): boolean {
 export function describeCatchment(loc: GeoLocation): string | null {
   const c = loc.catchment;
   if (!c) return null;
+  if (c.source === 'block') return c.label || loc.label;
   if (c.kind === 'radius' && typeof c.miles === 'number') {
     const mi = c.miles < 1 ? 'about half a mile' : `${c.miles} ${c.miles === 1 ? 'mile' : 'miles'}`;
     // The first two parts of a long label: "Outer Sunset, San Francisco", not the whole chain
@@ -206,21 +222,22 @@ export function centroidOfRings(rings: Ring[]): { lat: number; lng: number } | n
 export function parseCatchment(raw: unknown): Catchment | undefined {
   if (!raw || typeof raw !== 'object') return undefined;
   const r = raw as Record<string, unknown>;
-  const sources: CatchmentSource[] = ['radius', 'drawn', 'zip', 'neighborhood', 'city', 'county', 'watershed', 'bioregion', 'geojson', 'other'];
+  const sources: CatchmentSource[] = ['radius', 'drawn', 'zip', 'neighborhood', 'city', 'county', 'watershed', 'bioregion', 'geojson', 'block', 'other'];
+  const edges = r.edges === 'strict' || r.edges === 'rough' ? { edges: r.edges as CatchmentEdges } : {};
   const source = sources.includes(r.source as CatchmentSource) ? (r.source as CatchmentSource) : 'other';
   const label = String(r.label ?? '').slice(0, 160);
   const ref = r.ref ? String(r.ref).slice(0, 120) : undefined;
   if (r.kind === 'radius') {
     const miles = Number(r.miles);
     if (!Number.isFinite(miles) || miles <= 0 || miles > 500) return undefined;
-    return { kind: 'radius', miles, label, source, ...(ref ? { ref } : {}) };
+    return { kind: 'radius', miles, label, source, ...(ref ? { ref } : {}), ...edges };
   }
   if (r.kind === 'polygon' && Array.isArray(r.rings)) {
     const rings = (r.rings as unknown[])
       .filter((ring): ring is Ring => Array.isArray(ring) && ring.length >= 4 && ring.every(p => Array.isArray(p) && Number.isFinite(Number(p[0])) && Number.isFinite(Number(p[1]))))
       .map(ring => simplifyRing(ring.map(([x, y]) => [Number(x), Number(y)] as [number, number])));
     if (rings.length === 0) return undefined;
-    return { kind: 'polygon', rings, label, source, ...(ref ? { ref } : {}) };
+    return { kind: 'polygon', rings, label, source, ...(ref ? { ref } : {}), ...edges };
   }
   return undefined;
 }

@@ -70,6 +70,32 @@ The prompt section asks the model to:
   stewards with `suggest_source`. A steward decides; nothing enters the
   commons automatically.
 
+## The area a project serves, and one block
+
+A new project is invited to say where it will serve before anything is
+planned ("Where will this serve?", `PlaceInviteCard`, above the composer
+until the first build; skippable, and the skip rides on the project). The
+dialog it opens is the same one in the project menu afterwards.
+
+- **Borders.** A catchment carries `edges: strict | rough` (absent reads as
+  rough). Rough: mostly for people here, a street over is welcome. Strict:
+  for this area only; the tool says so and keeps what it shows and collects
+  inside it. Neither is enforced by location. It reaches the prompt
+  (`formatPlaceForPrompt`), `place.json`, and the manifest.
+- **One block.** Where a pack covers the chosen spot, the dialog offers "One
+  block": type a block or a corner, the pack's `/block.json` answers with
+  the blocks, the builder picks one. Saved as a short radius around the
+  block's midpoint with `source: block` and `ref` set to the block's id in
+  that commons.
+- **The brief, fetched by the Builder.** On each send with a matched pack,
+  the Builder itself calls the pack's `design_brief` (idea: what the project
+  set out to be; `where`: the block id when the area is a block) and puts
+  the result in the turn context (`retrievePlaceBrief`,
+  `formatPlaceBriefForPrompt`). So every model plans from the place, not
+  only Claude chats with the MCP connector. Cached per idea and block.
+- Signed-out builders get packs too: `loadCityEndpoints` falls back to the
+  open `public_city_data_endpoints()` RPC when the table returns nothing.
+
 ## Adding a place
 
 Steward operation, Management API, never the repo:
