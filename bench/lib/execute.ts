@@ -246,6 +246,7 @@ async function runTrial(
     ttftMs: buildSession.ttftMs,
     segments: buildSession.segments,
     continuations: buildSession.continuations,
+    runaway: buildSession.runaway,
     truncatedFinal: buildSession.truncatedFinal,
     served: buildSession.served,
     outputChars,

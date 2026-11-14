@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { pickReferenceScreen, referenceDataUrl, referenceNote, referenceTextNote } from '@/human-scale/reference-screens';
+import { runawayReason } from '@/human-scale/runaway';
 import { extractOperations } from '@/project/code-extractor';
 import { ensureProfileDataFile } from '@/project/builder-profile';
 import { RotateCcw, X, Undo2, Check } from 'lucide-react';
@@ -1079,7 +1080,22 @@ export function ChatPanel() {
                 if (note) appendToMessage(msgId, `\n\n> ${note}`);
               });
             }
-            if ((truncated || chunked || fileRequest) && useChatStore.getState().continuationCount < MAX_CONTINUATIONS) {
+            // Behind the human-scale flag: a chain that only rewrites files it
+            // already wrote, or keeps writing past the cap, has stopped making
+            // progress; stop it rather than spend the remaining continuations
+            // (src/human-scale/runaway.ts; Mistral, Nov 13: 175 writes)
+            const chainTexts = isHumanScale() && (truncated || chunked)
+              ? useChatStore.getState().messages
+                  .filter(m => m.role === 'assistant')
+                  .slice(-(useChatStore.getState().continuationCount + 1))
+                  .map(m => m.content)
+              : [];
+            const stalled = chainTexts.length ? runawayReason(chainTexts, 0) : null;
+            if (stalled) {
+              appendToMessage(msgId, `\n\n> Stopped asking for more: ${stalled}. The files so far are applied; say what is missing to continue.`);
+              recordBuildEvent('continuation_cap', `stalled: ${stalled}`);
+            }
+            if (!stalled && (truncated || chunked || fileRequest) && useChatStore.getState().continuationCount < MAX_CONTINUATIONS) {
               // Continue through the fix channel. Truncated continuations
               // keep chaining (big builds routinely need more than one
               // extra reply); MAX_CONTINUATIONS bounds the spend.

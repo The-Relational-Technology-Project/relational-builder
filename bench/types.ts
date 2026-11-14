@@ -38,6 +38,8 @@ export interface TrialResult {
   segments: Array<{ finishReason: string | null; latencyMs: number; chars: number }>;
   /** Automatic continuations used (production cap is 3) */
   continuations: number;
+  /** The build chain was stopped for lack of progress (absent before Nov 14) */
+  runaway?: string | null;
   /** Still inside a code fence after the continuation cap — reply incomplete */
   truncatedFinal: boolean;
   /** What the provider reported serving the build: the model id it named

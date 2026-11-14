@@ -1,6 +1,7 @@
 import { extractOperations } from '@/project/code-extractor';
 import type { ChatMessage, LLMProvider, StreamMeta, ThinkingEffort } from '@/providers/types';
 import { contentToText } from '@/providers/types';
+import { runawayReason } from '@/human-scale/runaway';
 
 /**
  * One generation "session": the initial reply plus the same automatic
@@ -50,6 +51,8 @@ export interface SessionResult {
   segmentTexts: string[];
   segments: SessionSegment[];
   continuations: number;
+  /** Why the chain was stopped early for lack of progress, or null */
+  runaway: string | null;
   truncatedFinal: boolean;
   ttftMs: number | null;
   latencyMs: number;
@@ -89,6 +92,7 @@ export async function runSession(
   let served: StreamMeta | null = null;
   let truncatedFinal = false;
   let sentChars = 0;
+  let runaway: string | null = null;
   const sessionStart = Date.now();
 
   for (let round = 0; round <= MAX_CONTINUATIONS; round++) {
@@ -156,6 +160,15 @@ export async function runSession(
     // boundary — continue the chain on purpose, like production does
     const chunked = !cutOff && CHUNK_MARKER.test(segText);
     if (!cutOff && !chunked) break;
+    // A chain that has stopped making progress (only rewrites, too many
+    // writes, too long): stop and record it, as the Builder does behind
+    // the flag (src/human-scale/runaway.ts)
+    const stalled = runawayReason(segmentTexts, Date.now() - sessionStart);
+    if (stalled) {
+      runaway = stalled;
+      truncatedFinal = true;
+      break;
+    }
     if (round === MAX_CONTINUATIONS) {
       // Chain capped with work still declared/cut off — the build is
       // incomplete either way
@@ -178,6 +191,7 @@ export async function runSession(
     segmentTexts,
     segments,
     continuations: segments.length - 1,
+    runaway,
     truncatedFinal,
     ttftMs,
     latencyMs: Date.now() - sessionStart,
