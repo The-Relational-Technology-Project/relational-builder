@@ -49,12 +49,13 @@ for (const dir of readdirSync(root).filter(d => (d.startsWith(date) && (!only ||
 const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 const models = MODEL_ORDER.filter(m => [...cells.keys()].some(k => k.split('|')[1] === m));
 const VARIANTS = ALL_VARIANTS.filter(v => [...cells.keys()].some(k => k.split('|')[2] === v));
-let html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Design scaffolding A/B</title>
+let html = `<title>Design Sheet ${date}</title>
+<meta name="claude:viewport-fit-sides" content="cover">
 <style>
 :root{--bg:#f6f7f9;--ink:#1d232b;--muted:#5b6573;--card:#fff;--line:#dde2e8;--ok:#1f7a4d;--bad:#a33a2a}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15181d;--ink:#e8ebef;--muted:#a3adb9;--card:#1e2229;--line:#333a44;--ok:#5fc48f;--bad:#ef8a78}}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,sans-serif;padding:16px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15181d;--ink:#e8ebef;--muted:#a3adb9;--card:#1e2229;--line:#333a44;--ok:#5fc48f;--bad:#ef8a78;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#15181d;--ink:#e8ebef;--muted:#a3adb9;--card:#1e2229;--line:#333a44;--ok:#5fc48f;--bad:#ef8a78;color-scheme:dark}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,sans-serif;padding-block:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 h1{font-size:22px;margin:0 0 4px}h2{font-size:18px;margin:28px 0 8px}p{color:var(--muted);margin:0 0 12px;max-width:70ch}
 .grid{display:grid;grid-template-columns:140px repeat(var(--cols),minmax(0,1fr));gap:10px;align-items:start}
 .head{font-weight:600;color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.04em}
@@ -66,7 +67,7 @@ figcaption{font-size:12px;padding:6px 8px;color:var(--muted)}
 figcaption.ok{border-left:3px solid var(--ok)}figcaption.bad{border-left:3px solid var(--bad)}
 .none{font-size:12px;color:var(--muted);padding:8px}
 @media (max-width:720px){.grid{grid-template-columns:1fr}.head{display:none}}
-</style></head><body>
+</style>
 <h1>Design scaffolding A/B, ${esc(date)}</h1>
 <p>Same models, same prompts, versions of the Builder's design guidance: <b>none</b> (the original prompt), <b>recipe</b> (a concrete screen layout, spacing and type scale, filled palette and contrast rules), <b>direction</b> (the recipe plus five ready-made visual styles to choose from), <b>reference</b> (direction plus three rules and two reference first-screen shapes on other subjects). Columns appear only for versions run that day; a row marked with another date is a reference from that day. Two fix passes, the bad host excluded. Captions: model, version, trial, whether the app works, build time, and two mechanical signals (theme tokens filled, desktop classes), which are not design scores.</p>
 `;
@@ -81,7 +82,7 @@ for (const task of TASKS) {
   }
   html += '</div>';
 }
-html += '</body></html>';
+// The Artifact publish wraps this in its own document skeleton
 mkdirSync('docs/human-scale/shots', { recursive: true });
 const out = `docs/human-scale/shots/design-ab-${date}.html`;
 writeFileSync(out, html);

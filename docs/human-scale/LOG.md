@@ -52,6 +52,13 @@ loop", both behind the flag.
    transcript: it would have stopped after reply 2 of 4. The bench records
    `runaway`; the Builder, behind the flag, stops and says why.
 
+**Sheets, now published as Artifacts** (Josh: one tap from a phone):
+Nov 14 design sheet https://claude.ai/artifact/1rTEbAek59SvF9z3gkzGgZ ·
+Nov 13 spread https://claude.ai/artifact/XEQo3xG11jQtoGQNmsdvxk ·
+Nov 12 spread https://claude.ai/artifact/BvxmqSbXMCVqX4tydyGVQP ·
+Nov 11 reference experiment https://claude.ai/artifact/SKWr2rwVcF7Rgk9tbeazgv
+(private to Josh until shared).
+
 **Cost:** about $0.06 (harness estimate).
 
 **Honest read:** the words help a little, consistently, and cost nothing,

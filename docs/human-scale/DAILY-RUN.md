@@ -67,6 +67,12 @@ Before you stop, in this order:
    (`npm run bench -- shots <runDir>` retakes them), then `npm run bench:board`
    so BENCH-BOARD.md shows every model, build and screenshot over time.
 5. Commit and push.
+6. **Publish each contact sheet as an Artifact** (Josh, Nov 14: reports
+   must open with one tap on a phone, never as a file to download). Build
+   the sheet with the script (`design-ab-sheet.mjs`, `spread-sheet.mjs`,
+   `reference-sheet.mjs`; they emit Artifact-ready pages), publish it with
+   the Artifact tool, put the link in the day's LOG entry, and give the
+   link in the final message. Every sheet carries a Gemma column.
 
 The standard bench invocation for open models (so rows stay like for like):
 

@@ -61,12 +61,13 @@ const cols = [...new Set([...cells.keys()].map(k => k.split('|')[1]))];
 const rank = c => { const i = MODEL_ORDER.indexOf(c.split(' + ')[0]); return (i < 0 ? 99 : i) * 10 + (c.includes(' + ') ? 1 : 0); };
 const models = cols.sort((a, b) => rank(a) - rank(b));
 const works = m => [...cells.entries()].filter(([k]) => k.split('|')[1] === m).flatMap(([, l]) => l);
-let html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Spread Set Sheet</title>
+let html = `<title>Spread Sheet ${date}</title>
+<meta name="claude:viewport-fit-sides" content="cover">
 <style>
 :root{--bg:#f6f7f9;--ink:#1d232b;--muted:#5b6573;--card:#fff;--line:#dde2e8;--ok:#1f7a4d;--bad:#a33a2a}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15181d;--ink:#e8ebef;--muted:#a3adb9;--card:#1e2229;--line:#333a44;--ok:#5fc48f;--bad:#ef8a78}}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,sans-serif;padding:16px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15181d;--ink:#e8ebef;--muted:#a3adb9;--card:#1e2229;--line:#333a44;--ok:#5fc48f;--bad:#ef8a78;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#15181d;--ink:#e8ebef;--muted:#a3adb9;--card:#1e2229;--line:#333a44;--ok:#5fc48f;--bad:#ef8a78;color-scheme:dark}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,sans-serif;padding-block:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 h1{font-size:22px;margin:0 0 4px}h2{font-size:18px;margin:28px 0 2px}p{color:var(--muted);margin:0 0 12px;max-width:75ch}
 .grid{display:grid;grid-template-columns:repeat(var(--cols),minmax(0,1fr));gap:10px;align-items:start}
 .head{font-weight:600;color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.04em}
@@ -76,7 +77,7 @@ figcaption{font-size:12px;padding:6px 8px;color:var(--muted)}
 figcaption.ok{border-left:3px solid var(--ok)}figcaption.bad{border-left:3px solid var(--bad)}
 .none{font-size:12px;color:var(--muted);padding:8px}
 @media (max-width:720px){.grid{grid-template-columns:1fr}}
-</style></head><body>
+</style>
 <h1>The spread set, ${esc(date)}</h1>
 <p>Eight more kinds of relational tech: four remixes of gallery items, worded the way the Builder's gallery opens a remix, and four new asks. Each column is a model, with the Builder's current design guidance and two fix passes. A column marked "+ library" also saw one reference screen of a different app from the Builder's library (for now, screens from Opus builds); other open-model columns had no Opus help. A green edge means the app works; a red one means it bundled with errors or didn't bundle.</p>
 <p>${models.map(m => { const l = works(m); return `<b>${esc(m)}</b> ${l.filter(c => c.clean).length} of ${l.length} working`; }).join(' · ')}</p>
@@ -89,7 +90,7 @@ for (const [id, title, blurb] of TASKS) {
   }
   html += '</div>';
 }
-html += '</body></html>';
+// The Artifact publish wraps this in its own document skeleton
 mkdirSync('docs/human-scale/shots', { recursive: true });
 const out = `docs/human-scale/shots/spread-${date}.html`;
 writeFileSync(out, html);

@@ -60,12 +60,13 @@ for (const dir of readdirSync(root).filter(d => d.startsWith(date))) {
 
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
 const fig = c => `<figure>${c.img ? `<img src="${c.img}" alt="${esc(c.caption)}" loading="lazy">` : '<div class="none">no screenshot</div>'}<figcaption class="${c.clean ? 'ok' : 'bad'}">${esc(c.caption)}</figcaption></figure>`;
-let html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Reference Screens Sheet</title>
+let html = `<title>Reference Screens ${date}</title>
+<meta name="claude:viewport-fit-sides" content="cover">
 <style>
 :root{--bg:#f6f7f9;--ink:#1d232b;--muted:#5b6573;--card:#fff;--line:#dde2e8;--ok:#1f7a4d;--bad:#a33a2a;--ref:#6b4fa0}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15181d;--ink:#e8ebef;--muted:#a3adb9;--card:#1e2229;--line:#333a44;--ok:#5fc48f;--bad:#ef8a78;--ref:#b9a2e6}}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,sans-serif;padding:16px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15181d;--ink:#e8ebef;--muted:#a3adb9;--card:#1e2229;--line:#333a44;--ok:#5fc48f;--bad:#ef8a78;--ref:#b9a2e6;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#15181d;--ink:#e8ebef;--muted:#a3adb9;--card:#1e2229;--line:#333a44;--ok:#5fc48f;--bad:#ef8a78;--ref:#b9a2e6;color-scheme:dark}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,sans-serif;padding-block:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 h1{font-size:22px;margin:0 0 4px}h2{font-size:18px;margin:28px 0 8px}p{color:var(--muted);margin:0 0 12px;max-width:78ch}
 .grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;align-items:start}
 .head{font-weight:600;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
@@ -79,7 +80,7 @@ figcaption.ok{border-left:3px solid var(--ok)}figcaption.bad{border-left:3px sol
 table{border-collapse:collapse;margin:8px 0 16px}td,th{padding:4px 12px 4px 0;text-align:left;font-size:14px}
 @media (max-width:900px){.grid{grid-template-columns:1fr 1fr}}
 @media (max-width:560px){.grid{grid-template-columns:1fr}}
-</style></head><body>
+</style>
 <h1>Showing Gemma what good looks like, ${esc(date)}</h1>
 <p>${esc(alias)} on six prompts, two builds per version. The first column is Opus's build (the reference). A: the Builder's current design guidance. B: plus Opus's screenshot of this same app. C: plus a written UI spec drawn from Opus's build. D: both. E: plus Opus's screenshot of a <em>different</em> app, to see whether quality carries to a new subject. B and D measure a ceiling; C and E are what a community could use without Opus.</p>
 <table><tr><th>Version</th><th>Working</th><th>First try</th></tr>${ARMS.map(([a, label]) => { const s = tally.get(a) ?? { n: 0, ok: 0, first: 0 }; return `<tr><td>${esc(label)}</td><td>${s.ok} of ${s.n}</td><td>${s.first}</td></tr>`; }).join('')}</table>
@@ -94,7 +95,7 @@ for (const [id, title] of TASKS) {
   }
   html += '</div>';
 }
-html += '</body></html>';
+// The Artifact publish wraps this in its own document skeleton
 mkdirSync('docs/human-scale/shots', { recursive: true });
 const out = `docs/human-scale/shots/reference-${date}.html`;
 writeFileSync(out, html);
