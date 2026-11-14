@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useProjectStore } from '@/store/project-store';
 import {
+  BLOCK_CATCHMENT_MILES,
   CATCHMENT_RADII_MILES,
   DEFAULT_CATCHMENT_MILES,
   boundaryForSuggestion,
@@ -20,11 +21,13 @@ import {
   describeCatchment,
   suggestPlaces,
   type Catchment,
+  type CatchmentEdges,
   type CatchmentSource,
   type PlaceSuggestion,
   type SuggestKind,
 } from '@/knowledge/geo';
 import type { ProjectPlace } from '@/project/place';
+import { lookupPackBlocks, placePacksAt, type CityDataEndpoint, type PackBlock } from '@/knowledge/civic-data';
 
 /**
  * Where this software lives and the area it serves. Opened from the project
@@ -39,13 +42,20 @@ import type { ProjectPlace } from '@/project/place';
  * those happen.
  */
 
-type ServesMode = 'radius' | 'zip' | 'boundary' | 'geojson';
+type ServesMode = 'block' | 'radius' | 'zip' | 'boundary' | 'geojson';
 
 const SERVES_MODES: { id: ServesMode; label: string; hint: string }[] = [
   { id: 'radius', label: 'A radius', hint: 'So many miles around the place' },
   { id: 'zip', label: 'A ZIP or postcode', hint: 'Its boundary where OpenStreetMap has one, a radius where not' },
   { id: 'boundary', label: 'A neighborhood or town', hint: 'Its boundary from OpenStreetMap' },
   { id: 'geojson', label: 'A boundary I bring', hint: 'A watershed, a bioregion, or a shape you drew, as GeoJSON' },
+];
+
+const BLOCK_MODE = { id: 'block' as const, label: 'One block', hint: 'A street between its two corners, from the place\'s own notes' };
+
+const EDGES: { id: CatchmentEdges; label: string; hint: string }[] = [
+  { id: 'rough', label: 'Rough', hint: 'Mostly for people here. Someone a street over is welcome.' },
+  { id: 'strict', label: 'Strict', hint: 'For this area only. The tool says so and keeps what it shows inside it.' },
 ];
 
 const GEOJSON_SOURCES: { id: CatchmentSource; label: string }[] = [
@@ -186,6 +196,14 @@ export function PlaceDialog({ open, onOpenChange }: { open: boolean; onOpenChang
   const [geojsonSource, setGeojsonSource] = useState<CatchmentSource>('watershed');
   const [geojsonLabel, setGeojsonLabel] = useState('');
   const [isPublic, setIsPublic] = useState(false);
+  const [edges, setEdges] = useState<CatchmentEdges>('rough');
+  // "One block" is offered only where a place's commons keeps block notes
+  const [pack, setPack] = useState<CityDataEndpoint | null>(null);
+  const [blockQuery, setBlockQuery] = useState('');
+  const [blockOptions, setBlockOptions] = useState<PackBlock[]>([]);
+  const [blockHint, setBlockHint] = useState<string | null>(null);
+  const [block, setBlock] = useState<PackBlock | null>(null);
+  const [finding, setFinding] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
@@ -198,16 +216,27 @@ export function PlaceDialog({ open, onOpenChange }: { open: boolean; onOpenChang
     setZip(null);
     setBoundary(null);
     setGeojsonText('');
+    setBlockQuery('');
+    setBlockOptions([]);
+    setBlockHint(null);
+    setBlock(null);
     if (!existing) {
       setWhere(null);
       setMode('radius');
       setMiles(DEFAULT_CATCHMENT_MILES);
       setIsPublic(false);
+      setEdges('rough');
       return;
     }
     setWhere({ lat: existing.lat, lng: existing.lng, label: existing.label, context: '' });
     setIsPublic(existing.public);
     const c = existing.catchment;
+    setEdges(c?.edges ?? 'rough');
+    if (c?.source === 'block' && c.ref) {
+      setMode('block');
+      setBlock({ id: c.ref, name: c.label, lat: existing.lat, lng: existing.lng });
+      return;
+    }
     if (!c) { setMode('radius'); setMiles(DEFAULT_CATCHMENT_MILES); return; }
     if (c.source === 'zip') { setMode('zip'); if (c.ref) setZip({ lat: existing.lat, lng: existing.lng, label: c.ref, context: '' }); return; }
     if (c.kind === 'radius') { setMode('radius'); setMiles(c.miles ?? DEFAULT_CATCHMENT_MILES); return; }
@@ -221,11 +250,35 @@ export function PlaceDialog({ open, onOpenChange }: { open: boolean; onOpenChang
     setGeojsonLabel(c.label);
   }, [open, existing]);
 
+  // Does a place's commons cover the chosen spot? Then a block can be picked.
+  const whereLat = where?.lat;
+  const whereLng = where?.lng;
+  useEffect(() => {
+    if (!open || whereLat === undefined || whereLng === undefined) { setPack(null); return; }
+    let live = true;
+    void placePacksAt({ lat: whereLat, lng: whereLng }).then(found => { if (live) setPack(found[0] ?? null); });
+    return () => { live = false; };
+  }, [open, whereLat, whereLng]);
+
+  async function findBlocks() {
+    if (!pack || blockQuery.trim().length < 3) return;
+    setFinding(true);
+    setBlockHint(null);
+    const found = await lookupPackBlocks(pack, blockQuery.trim());
+    setBlockOptions(found.blocks);
+    setBlockHint(found.blocks.length === 0 ? (found.hint ?? 'No block matches that. Try a street and its two cross streets, or a corner.') : null);
+    if (found.blocks.length === 1) setBlock(found.blocks[0]);
+    setFinding(false);
+  }
+
+  const modes = pack || mode === 'block' ? [BLOCK_MODE, ...SERVES_MODES] : SERVES_MODES;
+
   const keepingSavedBoundary = (s: PlaceSuggestion | null) =>
     !!s && !!existing?.catchment && existing.catchment.kind === 'polygon' && s.label === existing.catchment.label;
 
-  const needsWhere = mode === 'radius';
+  const needsWhere = mode === 'radius' || mode === 'block';
   const canSave =
+    (mode === 'block' && !!block && !!where) ||
     (mode === 'radius' && !!where) ||
     (mode === 'zip' && !!zip) ||
     (mode === 'boundary' && !!(boundary ?? where)) ||
@@ -240,7 +293,15 @@ export function PlaceDialog({ open, onOpenChange }: { open: boolean; onOpenChang
       let catchment: Catchment | undefined;
       let precision: ProjectPlace['precision'] = 'neighborhood';
 
-      if (mode === 'radius') {
+      if (mode === 'block') {
+        if (!point) throw new Error('Pick the place from the list first.');
+        if (!block) throw new Error('Find your block and pick it from the list.');
+        // The block's own midpoint is the project's point; the wider place stays in the label
+        const placeName = point.label.split(',').slice(0, 2).join(',').trim();
+        const named = point.label.startsWith(block.name) ? point.label : `${block.name}, ${placeName}`;
+        point = { lat: block.lat, lng: block.lng, label: named, context: '' };
+        catchment = { kind: 'radius', miles: BLOCK_CATCHMENT_MILES, label: block.name, source: 'block', ref: block.id };
+      } else if (mode === 'radius') {
         if (!point) throw new Error('Pick the place from the list first.');
         const shortName = point.label.split(',').slice(0, 2).join(',').trim();
         catchment = { kind: 'radius', miles, label: `${miles} ${miles === 1 ? 'mile' : 'miles'} around ${shortName}`, source: 'radius' };
@@ -292,7 +353,7 @@ export function PlaceDialog({ open, onOpenChange }: { open: boolean; onOpenChang
         label: point.label,
         precision,
         basis: 'manual',
-        catchment,
+        catchment: catchment ? { ...catchment, edges } : catchment,
         public: isPublic,
       };
       setLineage({ ...(lineage ?? { source: null }), place });
@@ -316,10 +377,10 @@ export function PlaceDialog({ open, onOpenChange }: { open: boolean; onOpenChang
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto overflow-x-hidden">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2"><MapPin className="size-4 text-primary" /> Place</DialogTitle>
+          <DialogTitle className="flex items-center gap-2"><MapPin className="size-4 text-primary" /> The area this serves</DialogTitle>
           <DialogDescription>
-            Where this software lives and the area it serves. The Builder draws on it for examples, maps, and local data.
-            Nothing here is guessed from your connection.
+            Where this software lives and who it is for. The Builder draws on it for examples, maps, and what the place already knows.
+            Nothing here is guessed from your connection, and you can change it any time.
           </DialogDescription>
         </DialogHeader>
 
@@ -342,7 +403,7 @@ export function PlaceDialog({ open, onOpenChange }: { open: boolean; onOpenChang
           <div className="space-y-1.5">
             <Label className="text-xs">Serves</Label>
             <div className="grid grid-cols-2 gap-1.5">
-              {SERVES_MODES.map(m => (
+              {modes.map(m => (
                 <button
                   key={m.id}
                   type="button"
@@ -355,6 +416,56 @@ export function PlaceDialog({ open, onOpenChange }: { open: boolean; onOpenChang
               ))}
             </div>
           </div>
+
+          {mode === 'block' && (
+            <div className="space-y-1.5">
+              <Label htmlFor="place-block" className="text-xs">Your block</Label>
+              {block ? (
+                <div className="flex items-center gap-2 rounded-md border border-primary/50 bg-primary/5 px-2.5 py-1.5 text-sm min-w-0 max-w-full">
+                  <Check className="size-3.5 shrink-0 text-primary" />
+                  <span className="min-w-0 flex-1 truncate" title={block.name}>{block.name}</span>
+                  <button type="button" onClick={() => setBlock(null)} className="shrink-0 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground" title="Pick a different block">
+                    <X className="size-3" /> change
+                  </button>
+                </div>
+              ) : !pack ? (
+                <p className="text-[11px] text-muted-foreground">Pick the place above first. Blocks come from a place's own notes, where neighbors keep them.</p>
+              ) : (
+                <>
+                  <div className="flex gap-1.5">
+                    <Input
+                      id="place-block"
+                      value={blockQuery}
+                      onChange={e => setBlockQuery(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); void findBlocks(); } }}
+                      placeholder="46th and Moraga, or 46th between Moraga and Noriega"
+                      className="h-8 text-sm"
+                      autoComplete="off"
+                    />
+                    <Button type="button" variant="outline" size="sm" onClick={() => void findBlocks()} disabled={finding || blockQuery.trim().length < 3}>
+                      {finding ? <Loader2 className="size-3.5 animate-spin" /> : 'Find'}
+                    </Button>
+                  </div>
+                  {blockOptions.length > 0 && (
+                    <ul className="rounded-md border divide-y text-sm">
+                      {blockOptions.map(b => (
+                        <li key={b.id}>
+                          <button type="button" onClick={() => setBlock(b)} className="w-full text-left px-2.5 py-1.5 hover:bg-accent">
+                            <span className="block text-xs font-medium">{b.name}</span>
+                            {b.about && <span className="block text-[11px] text-muted-foreground leading-snug">{b.about}</span>}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {blockHint && <p className="text-[11px] text-muted-foreground">{blockHint}</p>}
+                  <p className="text-[11px] text-muted-foreground leading-snug">
+                    A street and its cross streets, or a corner. Never a house number. Blocks come from {pack.city}'s own notes, kept by neighbors.
+                  </p>
+                </>
+              )}
+            </div>
+          )}
 
           {mode === 'radius' && (
             <div className="space-y-1.5">
@@ -420,6 +531,26 @@ export function PlaceDialog({ open, onOpenChange }: { open: boolean; onOpenChang
             </div>
           )}
 
+          <div className="space-y-1.5">
+            <Label className="text-xs">How firm is the boundary?</Label>
+            <div className="grid grid-cols-2 gap-1.5" role="radiogroup" aria-label="Boundary">
+              {EDGES.map(e => (
+                <button
+                  key={e.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={edges === e.id}
+                  onClick={() => setEdges(e.id)}
+                  className={`rounded-lg border px-2.5 py-1.5 text-left transition-colors ${edges === e.id ? 'border-primary bg-primary/10' : 'hover:bg-accent'}`}
+                >
+                  <span className="block text-xs font-medium">{e.label}</span>
+                  <span className="block text-[11px] text-muted-foreground leading-snug">{e.hint}</span>
+                </button>
+              ))}
+            </div>
+            <p className="text-[11px] text-muted-foreground">Either way, a tool asks people where they are in words. It never checks their location.</p>
+          </div>
+
           <label className="flex items-start gap-2 rounded-lg border px-3 py-2 cursor-pointer">
             <input type="checkbox" checked={isPublic} onChange={e => setIsPublic(e.target.checked)} className="mt-0.5 accent-primary" />
             <span className="space-y-0.5">
@@ -433,7 +564,7 @@ export function PlaceDialog({ open, onOpenChange }: { open: boolean; onOpenChang
 
           {existing && (
             <p className="text-[11px] text-muted-foreground">
-              Saved now: {existing.label}{existing.catchment ? ` · serves ${describeCatchment(existing)}` : ''}{existing.public ? ' · on the public map' : ''}
+              Saved now: {existing.label}{existing.catchment ? ` · serves ${describeCatchment(existing)}` : ''}{existing.catchment?.edges ? ` · ${existing.catchment.edges} boundary` : ''}{existing.public ? ' · on the public map' : ''}
             </p>
           )}
           {note && <p className="text-[11px] text-muted-foreground">{note}</p>}
