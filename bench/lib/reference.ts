@@ -16,12 +16,14 @@ import { acceptsImages } from '../../src/human-scale/builder-model';
  *   BENCH_REFERENCE=library  the Builder's own pick from its reference
  *                            library (src/human-scale/reference-screens.ts),
  *                            with the Builder's wording: the product path
+ *   BENCH_REFERENCE=library-words  the same image plus its layout in words
+ *                            (Nov 14: does naming the layout move desktop?)
  *
  * The screenshot wording follows the Builder's gallery remix path
  * (src/project/start-from-commons.ts). Unset, the message is the bare
  * prompt, exactly as before.
  */
-export type ReferenceArm = 'same' | 'spec' | 'both' | 'other' | 'library';
+export type ReferenceArm = 'same' | 'spec' | 'both' | 'other' | 'library' | 'library-words';
 
 export const REFERENCE_DIR = path.resolve(import.meta.dirname ?? __dirname, '..', 'reference');
 
@@ -46,7 +48,7 @@ export const OTHER_NOTE =
 
 export function referenceArm(): ReferenceArm | null {
   const v = process.env.BENCH_REFERENCE?.trim();
-  return v === 'same' || v === 'spec' || v === 'both' || v === 'other' || v === 'library' ? v : null;
+  return v === 'same' || v === 'spec' || v === 'both' || v === 'other' || v === 'library' || v === 'library-words' ? v : null;
 }
 
 function imagePart(taskId: string, dir: string) {
@@ -64,13 +66,13 @@ function spec(taskId: string, dir: string): string {
 /** The first user message for a build, with the arm's reference attached */
 export function userContent(taskId: string, prompt: string, arm = referenceArm(), dir = REFERENCE_DIR, modelId?: string): ChatMessage['content'] {
   if (!arm) return prompt;
-  if (arm === 'library') {
+  if (arm === 'library' || arm === 'library-words') {
     const screen = pickReferenceScreen(prompt);
     // As in the Builder: a text-only model gets the screen in words
     if (modelId && !acceptsImages(modelId)) return `${prompt}\n\n${referenceTextNote(screen)}`;
     const file = path.resolve(dir, '..', '..', 'public', 'human-scale', 'references', screen.file);
     return [
-      { type: 'text', text: `${prompt}\n\n${referenceNote(screen)}` },
+      { type: 'text', text: `${prompt}\n\n${referenceNote(screen)}${arm === 'library-words' ? `\n\nThe screen, described: ${screen.layout}` : ''}` },
       { type: 'image_url', image_url: { url: `data:image/png;base64,${readFileSync(file).toString('base64')}` } },
     ];
   }

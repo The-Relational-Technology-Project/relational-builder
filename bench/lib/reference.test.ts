@@ -49,3 +49,11 @@ describe('library arm for text-only models', () => {
     expect(c as string).toContain('described in words');
   });
 });
+
+describe('library-words arm', () => {
+  it('sends the image and the layout in words', () => {
+    const c = userContent('hs-community-fridge', 'Build a community fridge app with shifts.', 'library-words', undefined, 'google/gemma-4-26b-a4b-it') as Array<{ type: string; text?: string }>;
+    expect(c[0].text).toContain('The screen, described:');
+    expect(c[1].type).toBe('image_url');
+  });
+});
