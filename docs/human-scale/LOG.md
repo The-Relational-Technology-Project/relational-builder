@@ -12,6 +12,52 @@ experiment at most $5 and 30 minutes.
 
 ---
 
+## 2026-11-14
+
+**For Josh:** A short Saturday. Telling Gemma the reference screen's
+layout in words, beside the image, gave a small but steady gain: all 16
+apps worked and laptop layouts got fuller (6 layout classes against 4;
+Opus 12). The Builder now does this by default behind the flag. A guard
+also stops a build that keeps rewriting the same files, the case where
+Mistral ran for 20 minutes. Spend about $0.06.
+
+**Stack layer moved:** Builder model, from "the reference screen as an
+image" to "the image plus its layout in words, and a stop for builds that
+loop", both behind the flag.
+
+**What was tried.**
+
+1. *The week's Gemma row.* Already in hand from Nov 13 (comparison
+   prompts and spread set with the library and seed check): 8 of 8 and
+   15 of 16 working; no loop-made seed text in any final file; the seed
+   check fired twice on the comparison prompts and not at all on the
+   spread set.
+2. *Image plus layout words* (`BENCH_REFERENCE=library-words`, Gemma,
+   comparison prompts, two batches of 8):
+
+| | Opus 5.5 | Gemma + library (Nov 13) | Gemma + library + words (Nov 14) |
+|---|---|---|---|
+| Working builds | 6 of 6 | 15 of 16 | 16 of 16 |
+| Working on the first try | 6 of 6 | 9 of 16 | 10 of 16 |
+| Desktop (`md:`) classes | 12 | 4 | 6 |
+| First-screen text (median chars) | 774 | 739 | 731 |
+
+   The Builder's reference note now includes the words. By eye, the
+   fridge's first column now reads like Opus's (a status card, the
+   steward, feed items saying what was left and where), but the second
+   column is often a single static card (location and hours).
+3. *Runaway guard* (`src/human-scale/runaway.ts`). Stops a continuation
+   chain when the last reply only rewrote files it had already written,
+   past 60 writes, or (bench) past 15 minutes. Replayed on Mistral's Nov 13
+   transcript: it would have stopped after reply 2 of 4. The bench records
+   `runaway`; the Builder, behind the flag, stops and says why.
+
+**Cost:** about $0.06 (harness estimate).
+
+**Honest read:** the words help a little, consistently, and cost nothing,
+so they stay. The remaining laptop gap is now specific enough to aim at:
+what goes in the second column. That is tomorrow's one change.
+
 ## Week of Nov 9 to Nov 13: rollup
 
 **Spend.** About $3.90 of paid inference over the week (Mon $0.15, Tue

@@ -304,22 +304,22 @@ stack layer it moved; pace paid work at $3 to $5 a day.
 
 ## Tomorrow (one run, about 75 minutes)
 
-1. **Everything from this week together, on both sets.** Gemma with the
-   library screen and the seed check: comparison prompts four trials,
-   spread set two (24 builds, about $0.15, log first). This is the
-   week's Gemma row for the gap table, and the first spread result with
-   the seed check. Count loop-made seeds (should be 0 in final files) and
-   how many builds the seed check sent through a fix pass.
-2. **Desktop is the gap the library moves least on the comparison
-   prompts** (5 `md:` classes against Opus's 12; 8 on the spread set).
-   Look at why: compare the library screen Gemma was shown for the fridge
-   (it gets the schedule screen) against its output at 1280 wide, and
-   try one change: the layout words from `layout` added beside the image
-   too (image plus words), measured on the comparison prompts.
-3. **Mistral's runaway build** (Nov 13: 175 files over 20 minutes on
-   one remix). The bench should stop a build that writes more than, say,
-   60 files or runs past 10 minutes, and log it as a runaway. Check how
-   production guards the same case (continuation cap) and match it.
+1. **The thin second column.** With the library and its layout words,
+   Gemma's laptop screens now have the right first column (status, the
+   steward, a specific feed) but the second column is often one small card
+   (location and hours) where Opus puts real content (a week of shifts, a
+   thank-you wall). Try one change aimed there: the finish rule or the
+   reference note asks for the second column to hold live content (what is
+   next, who is doing it), never only static facts. Gemma, comparison
+   prompts, four trials (about $0.05, log first); compare desktop classes
+   and look at the right column in the screenshots.
+2. **The spread set with everything** (Gemma, two trials, about $0.07,
+   log first), to confirm the layout words and the runaway guard hold on
+   prompts they weren't tuned on. Per Josh: Gemma is the anchor column on
+   every sheet.
+3. **Runaway guard, measured.** Run Mistral Small 3.2 on the one remix
+   that ran away (remix-income-sharing, two trials, about $0.02) and check
+   the bench records `runaway` and stops early.
 4. **End-to-end check of export and delete.** Needs a signed-in Builder.
 
 ## After that, in order
