@@ -77,7 +77,7 @@ planned ("Where will this serve?", `PlaceInviteCard`, above the composer
 until the first build; skippable, and the skip rides on the project). The
 dialog it opens is the same one in the project menu afterwards.
 
-- **Borders.** A catchment carries `edges: strict | rough` (absent reads as
+- **Boundary.** A catchment carries `edges: strict | rough` (absent reads as
   rough). Rough: mostly for people here, a street over is welcome. Strict:
   for this area only; the tool says so and keeps what it shows and collects
   inside it. Neither is enforced by location. It reaches the prompt

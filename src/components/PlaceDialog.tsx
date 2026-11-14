@@ -532,8 +532,8 @@ export function PlaceDialog({ open, onOpenChange }: { open: boolean; onOpenChang
           )}
 
           <div className="space-y-1.5">
-            <Label className="text-xs">Borders</Label>
-            <div className="grid grid-cols-2 gap-1.5" role="radiogroup" aria-label="Borders">
+            <Label className="text-xs">How firm is the boundary?</Label>
+            <div className="grid grid-cols-2 gap-1.5" role="radiogroup" aria-label="Boundary">
               {EDGES.map(e => (
                 <button
                   key={e.id}
@@ -564,7 +564,7 @@ export function PlaceDialog({ open, onOpenChange }: { open: boolean; onOpenChang
 
           {existing && (
             <p className="text-[11px] text-muted-foreground">
-              Saved now: {existing.label}{existing.catchment ? ` · serves ${describeCatchment(existing)}` : ''}{existing.catchment?.edges ? ` · ${existing.catchment.edges} borders` : ''}{existing.public ? ' · on the public map' : ''}
+              Saved now: {existing.label}{existing.catchment ? ` · serves ${describeCatchment(existing)}` : ''}{existing.catchment?.edges ? ` · ${existing.catchment.edges} boundary` : ''}{existing.public ? ' · on the public map' : ''}
             </p>
           )}
           {note && <p className="text-[11px] text-muted-foreground">{note}</p>}

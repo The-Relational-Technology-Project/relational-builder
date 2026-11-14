@@ -8,7 +8,7 @@ import { formatCivicDataForPrompt, formatPlaceBriefForPrompt, type CityDataEndpo
 const ASK_FOR_PLACE = [
   '## Where This Will Serve',
   '',
-  'The builder has not said what area this tool serves. Software made for a real place is better software: it can use the place\'s own names, data, and history, and its neighbors can find it. In this reply, once, in one or two plain sentences near the end, invite them to set it with **Set the area** above the chat: the area it serves (a block, a few blocks, a neighborhood, a watershed) and whether its borders are strict or rough. Say it can be skipped and changed later. Do not ask it as a numbered question, do not guess a place, and do not ask again if they carry on without one.',
+  'The builder has not said what area this tool serves. Software made for a real place is better software: it can use the place\'s own names, data, and history, and its neighbors can find it. In this reply, once, in one or two plain sentences near the end, invite them to set it with **Set the area** above the chat: the area it serves (a block, a few blocks, a neighborhood, a watershed) and whether its boundary is strict or rough. Say it can be skipped and changed later. Do not ask it as a numbered question, do not guess a place, and do not ask again if they carry on without one.',
 ].join('\n');
 import { DEMO_DATA_EVENT_BLOCK, isDemoDataEvent } from './event-modes';
 import type { DomainFrame } from './frames';

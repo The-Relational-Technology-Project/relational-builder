@@ -7,7 +7,7 @@ import { placeSummary } from '@/project/place';
 
 /**
  * "Where will this serve?" — the invitation at the start of a build to say
- * what area the software is for and whether its borders are strict or rough.
+ * what area the software is for and whether its boundary is strict or rough.
  *
  * It sits above the composer from the first empty screen until something is
  * built, so the very first plan can stand on the place: its names, its data,
@@ -54,7 +54,7 @@ export function PlaceInviteCard({ variant = 'chat' }: { variant?: 'hero' | 'chat
           <div className="min-w-0 flex-1 space-y-1.5">
             <p className="text-sm font-medium">Where will this serve?</p>
             <p className="text-xs text-muted-foreground leading-snug">
-              A block, a few blocks, a neighborhood, a watershed. Set the area and whether its borders are strict or rough,
+              A block, a few blocks, a neighborhood, a watershed. Set the area and whether its boundary is strict or rough,
               and the Builder designs from what that place already knows: its names, its history, its own data.
             </p>
             <div className="flex flex-wrap items-center gap-2 pt-0.5">

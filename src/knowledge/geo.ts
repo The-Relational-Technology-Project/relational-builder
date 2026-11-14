@@ -86,7 +86,7 @@ export interface Catchment {
   /** The identifier in the source's own terms: "60647", "relation/122604",
    *  "huc12:071200040203", or a block id from the place's own commons */
   ref?: string;
-  /** Strict or rough borders. Absent reads as rough. */
+  /** A strict or rough boundary. Absent reads as rough. */
   edges?: CatchmentEdges;
 }
 
