@@ -9,6 +9,7 @@ import {
   createOpenAIProvider,
   createOpenRouterProvider,
   createTogetherProvider,
+  createUnbiasedProvider,
 } from '@/providers/openai-compatible';
 import type { LLMProvider } from '@/providers/types';
 import { ENV_KEYS } from '../models';
@@ -46,6 +47,11 @@ export function providerFor(model: BenchModel): LLMProvider {
     }
     case 'moonshot': {
       const p = createMoonshotProvider();
+      p.setApiKey(key);
+      return p;
+    }
+    case 'unbiased': {
+      const p = createUnbiasedProvider();
       p.setApiKey(key);
       return p;
     }

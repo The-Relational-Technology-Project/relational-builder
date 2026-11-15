@@ -190,6 +190,18 @@ export const BENCH_MODELS: BenchModel[] = [
     modelId: 'kimi-k3',
     enabled: false,
   },
+
+  // --- Unbiased direct (env: UNBIASED_API_KEY) --- Pareto on Unbiased's own
+  //     OpenAI-compatible API, the path the Builder's BYOK preset takes.
+  //     Pinned to the dated release: the bare 'pareto' id moves with each
+  //     release, which would make two runs silently incomparable.
+  {
+    alias: 'pareto',
+    providerId: 'unbiased',
+    modelId: 'pareto-26.10',
+    pricing: { inputPerMTok: 0.8, outputPerMTok: 3.2, asOf: '2026-11' },
+    enabled: false,
+  },
 ];
 
 export function resolveModels(csv: string | undefined): BenchModel[] {
@@ -212,4 +224,5 @@ export const ENV_KEYS: Record<BenchModel['providerId'], string> = {
   together: 'TOGETHER_API_KEY',
   openrouter: 'OPENROUTER_API_KEY',
   moonshot: 'MOONSHOT_API_KEY',
+  unbiased: 'UNBIASED_API_KEY',
 };

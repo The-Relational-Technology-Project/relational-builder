@@ -37,6 +37,7 @@ export ANTHROPIC_API_KEY=…   # claude-*
 export OPENAI_API_KEY=…      # gpt-*
 export GEMINI_API_KEY=…      # gemini-*
 export TOGETHER_API_KEY=…    # open models
+export UNBIASED_API_KEY=…    # pareto
 
 npm run bench -- --list-models        # what's in the matrix
 npm run bench -- --dry-run            # prompt size + cost estimate, no API calls
