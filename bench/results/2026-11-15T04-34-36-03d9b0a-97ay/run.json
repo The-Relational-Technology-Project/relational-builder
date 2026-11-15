@@ -2,7 +2,7 @@
   "harnessVersion": "1.2.0",
   "taskVersion": "exp-v1",
   "gitCommit": "03d9b0a",
-  "createdAt": "2026-11-15T04:40:51.941Z",
+  "createdAt": "2026-11-15T04:49:28.783Z",
   "runId": "2026-11-15T04-34-36-03d9b0a-97ay",
   "config": {
     "trials": 2,
@@ -125,7 +125,199 @@
         "model": "qwen/qwen3.8-27b",
         "provider": "DekaLLM"
       },
-      "importIssues": []
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 2694,
+        "aboveFoldChars": 1316
+      },
+      "quality": {
+        "files": 11,
+        "codeFiles": 9,
+        "codeLines": 1187,
+        "largestFile": "/src/App.tsx",
+        "largestFileLines": 344,
+        "anyCount": 0,
+        "kitImportingFiles": 4,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 14,
+          "tokensTotal": 15,
+          "kitLayout": [
+            "AppBar",
+            "BottomNav"
+          ],
+          "mdClasses": 18,
+          "fontLoaded": true,
+          "contrastText": 13.1,
+          "contrastMuted": 5.9,
+          "namedPeople": 6,
+          "placeNamed": null
+        },
+        "lintErrors": 3,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.3,
+        "tscErrors": 8,
+        "tscSyntaxErrors": 0,
+        "tscCodes": {
+          "2339": 8
+        },
+        "tokensPerSecond": 32.4,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    },
+    {
+      "alias": "qwen3.8-27b",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3.8-27b",
+      "taskId": "hs-block-sweep",
+      "taskVersion": "exp-v1",
+      "trial": 2,
+      "startedAt": "2026-11-15T04:40:51.943Z",
+      "plan": null,
+      "latencyMs": 447718,
+      "ttftMs": 261841,
+      "segments": [
+        {
+          "finishReason": "length",
+          "latencyMs": 131249,
+          "chars": 0
+        },
+        {
+          "finishReason": "length",
+          "latencyMs": 133842,
+          "chars": 2696
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 115908,
+          "chars": 10516
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 66703,
+          "chars": 12924
+        }
+      ],
+      "continuations": 3,
+      "truncatedFinal": true,
+      "outputChars": 26136,
+      "estTokens": {
+        "input": 76174,
+        "output": 6534,
+        "estimated": true
+      },
+      "estCostUsd": 0.02371002,
+      "extraction": {
+        "writes": 12,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-block-sweep/qwen3.8-27b-t2",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/App.tsx:6: Could not find \"@/pages/Today\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx:7: Could not find \"@/pages/Stories\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx:8: Could not find \"@/pages/Block\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx: Could not find \"@/pages/Today\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx: Could not find \"@/pages/Stories\" in the project (imported from /src/App.tsx)",
+          "vfs:/src/App.tsx: Could not find \"@/pages/Block\" in the project (imported from /src/App.tsx)"
+        ],
+        "solved": true,
+        "latencyMs": 51438,
+        "remainingErrors": [],
+        "estCostUsd": 0.01023294,
+        "passes": 1
+      },
+      "error": null,
+      "runaway": null,
+      "served": {
+        "model": "qwen/qwen3.8-27b",
+        "provider": "Modal"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 1708,
+        "aboveFoldChars": 1327
+      },
+      "quality": {
+        "files": 12,
+        "codeFiles": 10,
+        "codeLines": 830,
+        "largestFile": "/src/pages/Block.tsx",
+        "largestFileLines": 156,
+        "anyCount": 0,
+        "kitImportingFiles": 5,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 14,
+          "tokensTotal": 15,
+          "kitLayout": [
+            "AppBar",
+            "BottomNav",
+            "Card"
+          ],
+          "mdClasses": 12,
+          "fontLoaded": true,
+          "contrastText": 13.1,
+          "contrastMuted": 5.9,
+          "namedPeople": 8,
+          "placeNamed": null
+        },
+        "lintErrors": 0,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0,
+        "tscErrors": 0,
+        "tscSyntaxErrors": 0,
+        "tscCodes": {},
+        "tokensPerSecond": 14.6,
+        "fixLatencyMs": 51438,
+        "failKind": "missing-file"
+      }
     }
   ]
 }

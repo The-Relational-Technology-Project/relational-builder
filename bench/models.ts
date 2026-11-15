@@ -245,6 +245,9 @@ export const BENCH_MODELS: BenchModel[] = [
   // task-by-task screen (Nov 15, 2026). Sizes and licenses are not restated
   // here; see docs/human-scale/MODELS-BY-TASK.md. Pricing = OpenRouter list
   // prices on Nov 15, 2026.
+  // Open-weight and too large for a community box (320B and 552B); in the screen because a hosted default has no size limit (Nov 15).
+  { alias: 'glm-5.3-flash', providerId: 'openrouter', modelId: 'z-ai/glm-5.3-flash', pricing: { inputPerMTok: 0.04, outputPerMTok: 0.08, asOf: '2026-11' }, enabled: false },
+  { alias: 'deepseek-v4.1-flash', providerId: 'openrouter', modelId: 'deepseek/deepseek-v4.1-flash', pricing: { inputPerMTok: 0.05, outputPerMTok: 0.2, asOf: '2026-11' }, enabled: false },
   { alias: 'gemma-4-31b', providerId: 'openrouter', modelId: 'google/gemma-4-31b-it', pricing: { inputPerMTok: 0.2, outputPerMTok: 0.4, asOf: '2026-11' }, enabled: false },
   { alias: 'mistral-small-4', providerId: 'openrouter', modelId: 'mistralai/mistral-small-2603', pricing: { inputPerMTok: 0.15, outputPerMTok: 0.6, asOf: '2026-11' }, enabled: false },
   { alias: 'qwen3.8-27b', providerId: 'openrouter', modelId: 'qwen/qwen3.8-27b', pricing: { inputPerMTok: 0.15, outputPerMTok: 1.88, asOf: '2026-11' }, enabled: false },
