@@ -241,6 +241,15 @@ export const BENCH_MODELS: BenchModel[] = [
     pricing: { inputPerMTok: 0.075, outputPerMTok: 0.2, asOf: '2026-11' },
     enabled: false,
   },
+  // Newer candidates at sizes a community box might hold, added for the
+  // task-by-task screen (Nov 15, 2026). Sizes and licenses are not restated
+  // here; see docs/human-scale/MODELS-BY-TASK.md. Pricing = OpenRouter list
+  // prices on Nov 15, 2026.
+  { alias: 'gemma-4-31b', providerId: 'openrouter', modelId: 'google/gemma-4-31b-it', pricing: { inputPerMTok: 0.2, outputPerMTok: 0.4, asOf: '2026-11' }, enabled: false },
+  { alias: 'mistral-small-4', providerId: 'openrouter', modelId: 'mistralai/mistral-small-2603', pricing: { inputPerMTok: 0.15, outputPerMTok: 0.6, asOf: '2026-11' }, enabled: false },
+  { alias: 'qwen3.8-27b', providerId: 'openrouter', modelId: 'qwen/qwen3.8-27b', pricing: { inputPerMTok: 0.15, outputPerMTok: 1.88, asOf: '2026-11' }, enabled: false },
+  { alias: 'qwen3.6-35b-a3b', providerId: 'openrouter', modelId: 'qwen/qwen3.6-35b-a3b', pricing: { inputPerMTok: 0.1, outputPerMTok: 0.9, asOf: '2026-11' }, enabled: false },
+  { alias: 'nemotron-3.5-lightning', providerId: 'openrouter', modelId: 'nvidia/nemotron-3.5-lightning', pricing: { inputPerMTok: 0.07, outputPerMTok: 0.2, asOf: '2026-11' }, enabled: false },
   {
     alias: 'ministral-14b',
     providerId: 'openrouter',
