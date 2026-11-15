@@ -1,0 +1,268 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1",
+  "gitCommit": "03d9b0a",
+  "createdAt": "2026-11-15T04:41:44.513Z",
+  "runId": "2026-11-15T04-38-20-03d9b0a-3cdw",
+  "config": {
+    "trials": 2,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": null,
+    "importGuard": true,
+    "fixHints": true,
+    "humanScaleRules": true,
+    "fixPasses": 2,
+    "designScaffold": null,
+    "openrouterIgnore": "Darkbloom",
+    "openrouterOnly": null,
+    "openrouterQuant": null,
+    "reference": null
+  },
+  "models": [
+    {
+      "alias": "qwen3.6-27b",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3.6-27b",
+      "pricing": {
+        "inputPerMTok": 0.32,
+        "outputPerMTok": 3.2,
+        "asOf": "2026-11"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "hs-block-sweep",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "qwen3.6-27b",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3.6-27b",
+      "taskId": "hs-block-sweep",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-15T04:38:20.157Z",
+      "plan": null,
+      "latencyMs": 82705,
+      "ttftMs": 8089,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 82705,
+          "chars": 20275
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 20275,
+      "estTokens": {
+        "input": 17884,
+        "output": 5069,
+        "estimated": true
+      },
+      "estCostUsd": 0.02194368,
+      "extraction": {
+        "writes": 1,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "sandpack",
+      "previewKindMatch": false,
+      "bundle": null,
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": false
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": false
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-block-sweep/qwen3.6-27b-t1",
+      "fixRound": null,
+      "error": null,
+      "runaway": null,
+      "served": {
+        "model": "qwen/qwen3.6-27b",
+        "provider": "DeepInfra"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 1271,
+        "aboveFoldChars": 921
+      },
+      "quality": {
+        "files": 1,
+        "codeFiles": 0,
+        "codeLines": 0,
+        "largestFile": null,
+        "largestFileLines": 0,
+        "anyCount": 0,
+        "kitImportingFiles": 0,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 0,
+          "tokensTotal": 0,
+          "kitLayout": [],
+          "mdClasses": 0,
+          "fontLoaded": true,
+          "contrastText": null,
+          "contrastMuted": null,
+          "namedPeople": 0,
+          "placeNamed": null
+        },
+        "lintErrors": 0,
+        "lintWarnings": 0,
+        "lintPer100Lines": null,
+        "tscErrors": null,
+        "tscSyntaxErrors": 0,
+        "tscCodes": null,
+        "tokensPerSecond": 61.3,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    },
+    {
+      "alias": "qwen3.6-27b",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3.6-27b",
+      "taskId": "hs-block-sweep",
+      "taskVersion": "exp-v1",
+      "trial": 2,
+      "startedAt": "2026-11-15T04:39:42.875Z",
+      "plan": null,
+      "latencyMs": 111148,
+      "ttftMs": 6213,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 111148,
+          "chars": 24042
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 24042,
+      "estTokens": {
+        "input": 17884,
+        "output": 6011,
+        "estimated": true
+      },
+      "estCostUsd": 0.02495808,
+      "extraction": {
+        "writes": 1,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "sandpack",
+      "previewKindMatch": false,
+      "bundle": null,
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": false
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": false
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-block-sweep/qwen3.6-27b-t2",
+      "fixRound": null,
+      "error": null,
+      "runaway": null,
+      "served": {
+        "model": "qwen/qwen3.6-27b",
+        "provider": "Venice"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 1186,
+        "aboveFoldChars": 946
+      },
+      "quality": {
+        "files": 1,
+        "codeFiles": 0,
+        "codeLines": 0,
+        "largestFile": null,
+        "largestFileLines": 0,
+        "anyCount": 0,
+        "kitImportingFiles": 0,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 0,
+          "tokensTotal": 0,
+          "kitLayout": [],
+          "mdClasses": 0,
+          "fontLoaded": true,
+          "contrastText": null,
+          "contrastMuted": null,
+          "namedPeople": 0,
+          "placeNamed": null
+        },
+        "lintErrors": 0,
+        "lintWarnings": 0,
+        "lintPer100Lines": null,
+        "tscErrors": null,
+        "tscSyntaxErrors": 0,
+        "tscCodes": null,
+        "tokensPerSecond": 54.1,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    }
+  ]
+}

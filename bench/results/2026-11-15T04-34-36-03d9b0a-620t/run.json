@@ -1,0 +1,313 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1",
+  "gitCommit": "03d9b0a",
+  "createdAt": "2026-11-15T04:37:15.515Z",
+  "runId": "2026-11-15T04-34-36-03d9b0a-620t",
+  "config": {
+    "trials": 2,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": null,
+    "importGuard": true,
+    "fixHints": true,
+    "humanScaleRules": true,
+    "fixPasses": 2,
+    "designScaffold": null,
+    "openrouterIgnore": "Darkbloom",
+    "openrouterOnly": null,
+    "openrouterQuant": null,
+    "reference": null
+  },
+  "models": [
+    {
+      "alias": "nemotron-3.5-lightning",
+      "providerId": "openrouter",
+      "modelId": "nvidia/nemotron-3.5-lightning",
+      "pricing": {
+        "inputPerMTok": 0.07,
+        "outputPerMTok": 0.2,
+        "asOf": "2026-11"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "hs-block-sweep",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "nemotron-3.5-lightning",
+      "providerId": "openrouter",
+      "modelId": "nvidia/nemotron-3.5-lightning",
+      "taskId": "hs-block-sweep",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-15T04:34:36.562Z",
+      "plan": null,
+      "latencyMs": 21031,
+      "ttftMs": 1088,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 14255,
+          "chars": 12299
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 6758,
+          "chars": 642
+        }
+      ],
+      "continuations": 1,
+      "truncatedFinal": false,
+      "outputChars": 12941,
+      "estTokens": {
+        "input": 38972,
+        "output": 3236,
+        "estimated": true
+      },
+      "estCostUsd": 0.0033752400000000003,
+      "extraction": {
+        "writes": 26,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": false,
+        "errors": [
+          "vfs:/src/pages/StreetPage.tsx:87: Expected \">\" but found \"<\""
+        ]
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-block-sweep/nemotron-3.5-lightning-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/pages/StreetPage.tsx:86: Expected \"...\" but found \"\\\" \\\"\"",
+          "vfs:/src/main.tsx: No matching export in \"vfs:/src/App.tsx\" for import \"default\" (it exports names only)"
+        ],
+        "solved": false,
+        "latencyMs": 75994,
+        "remainingErrors": [
+          "vfs:/src/pages/StreetPage.tsx:87: Expected \">\" but found \"<\""
+        ],
+        "estCostUsd": 0.008441500000000001,
+        "passes": 2
+      },
+      "error": null,
+      "runaway": null,
+      "served": {
+        "model": "nvidia/nemotron-3.5-lightning",
+        "provider": "DeepInfra"
+      },
+      "importIssues": [],
+      "quality": {
+        "files": 8,
+        "codeFiles": 6,
+        "codeLines": 238,
+        "largestFile": "/src/pages/StreetPage.tsx",
+        "largestFileLines": 107,
+        "anyCount": 3,
+        "kitImportingFiles": 2,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 14,
+          "tokensTotal": 15,
+          "kitLayout": [
+            "AppBar",
+            "EmptyState",
+            "Card"
+          ],
+          "mdClasses": 2,
+          "fontLoaded": true,
+          "contrastText": 14.4,
+          "contrastMuted": 6.4,
+          "namedPeople": 0,
+          "placeNamed": null
+        },
+        "lintErrors": 5,
+        "lintWarnings": 0,
+        "lintPer100Lines": 2.1,
+        "tscErrors": null,
+        "tscSyntaxErrors": 4,
+        "tscCodes": null,
+        "tokensPerSecond": 153.8,
+        "fixLatencyMs": 75994,
+        "failKind": "syntax"
+      }
+    },
+    {
+      "alias": "nemotron-3.5-lightning",
+      "providerId": "openrouter",
+      "modelId": "nvidia/nemotron-3.5-lightning",
+      "taskId": "hs-block-sweep",
+      "taskVersion": "exp-v1",
+      "trial": 2,
+      "startedAt": "2026-11-15T04:36:13.688Z",
+      "plan": null,
+      "latencyMs": 48151,
+      "ttftMs": 651,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 48149,
+          "chars": 69648
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 69648,
+      "estTokens": {
+        "input": 17884,
+        "output": 17412,
+        "estimated": true
+      },
+      "estCostUsd": 0.00473428,
+      "extraction": {
+        "writes": 3,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": false,
+        "errors": [
+          "vfs:/main.tsx:2: Could not find \"@/index.css\" in the project (imported from /main.tsx)"
+        ]
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": false
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-block-sweep/nemotron-3.5-lightning-t2",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/main.tsx:2: Could not find \"@/index.css\" in the project (imported from /main.tsx)",
+          "vfs:/main.tsx: No matching export in \"vfs:/App.tsx\" for import \"default\" (it exports names only)",
+          "vfs:/App.tsx: No matching export in \"vfs:/src/components/ui/button.tsx\" for import \"ButtonVariant\"",
+          "vfs:/App.tsx: No matching export in \"vfs:/src/components/ui/button.tsx\" for import \"ButtonSize\"",
+          "vfs:/App.tsx: Could not find \"@/lib/fonts\" in the project (imported from /App.tsx)"
+        ],
+        "solved": false,
+        "latencyMs": 10021,
+        "remainingErrors": [
+          "vfs:/main.tsx:2: Could not find \"@/index.css\" in the project (imported from /main.tsx)",
+          "vfs:/main.tsx: No matching export in \"vfs:/App.tsx\" for import \"default\" (it exports names only)",
+          "vfs:/App.tsx: No matching export in \"vfs:/src/components/ui/button.tsx\" for import \"ButtonVariant\"",
+          "vfs:/App.tsx: No matching export in \"vfs:/src/components/ui/button.tsx\" for import \"ButtonSize\"",
+          "vfs:/App.tsx: Could not find \"@/lib/fonts\" in the project (imported from /App.tsx)"
+        ],
+        "estCostUsd": 0.006487790000000001,
+        "passes": 2
+      },
+      "error": null,
+      "runaway": null,
+      "served": {
+        "model": "nvidia/nemotron-3.5-lightning",
+        "provider": "DeepInfra"
+      },
+      "importIssues": [
+        "vfs:/App.tsx: No matching export in \"vfs:/src/components/ui/button.tsx\" for import \"ButtonVariant\"",
+        "vfs:/App.tsx: No matching export in \"vfs:/src/components/ui/button.tsx\" for import \"ButtonSize\"",
+        "vfs:/App.tsx: Could not find \"@/lib/fonts\" in the project (imported from /App.tsx)",
+        "vfs:/main.tsx: No matching export in \"vfs:/App.tsx\" for import \"default\" (it exports names only)"
+      ],
+      "quality": {
+        "files": 3,
+        "codeFiles": 2,
+        "codeLines": 22,
+        "largestFile": "/App.tsx",
+        "largestFileLines": 14,
+        "anyCount": 0,
+        "kitImportingFiles": 1,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 0,
+          "tokensTotal": 0,
+          "kitLayout": [],
+          "mdClasses": 0,
+          "fontLoaded": true,
+          "contrastText": null,
+          "contrastMuted": null,
+          "namedPeople": 0,
+          "placeNamed": null
+        },
+        "lintErrors": 10,
+        "lintWarnings": 0,
+        "lintPer100Lines": 45.5,
+        "tscErrors": null,
+        "tscSyntaxErrors": 0,
+        "tscCodes": null,
+        "tokensPerSecond": 361.6,
+        "fixLatencyMs": 10021,
+        "failKind": "missing-file"
+      }
+    }
+  ]
+}

@@ -1,0 +1,131 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1",
+  "gitCommit": "03d9b0a",
+  "createdAt": "2026-11-15T04:40:51.941Z",
+  "runId": "2026-11-15T04-34-36-03d9b0a-97ay",
+  "config": {
+    "trials": 2,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": null,
+    "importGuard": true,
+    "fixHints": true,
+    "humanScaleRules": true,
+    "fixPasses": 2,
+    "designScaffold": null,
+    "openrouterIgnore": "Darkbloom",
+    "openrouterOnly": null,
+    "openrouterQuant": null,
+    "reference": null
+  },
+  "models": [
+    {
+      "alias": "qwen3.8-27b",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3.8-27b",
+      "pricing": {
+        "inputPerMTok": 0.15,
+        "outputPerMTok": 1.88,
+        "asOf": "2026-11"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "hs-block-sweep",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "qwen3.8-27b",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3.8-27b",
+      "taskId": "hs-block-sweep",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-15T04:34:36.198Z",
+      "plan": null,
+      "latencyMs": 375426,
+      "ttftMs": 314041,
+      "segments": [
+        {
+          "finishReason": "length",
+          "latencyMs": 163199,
+          "chars": 0
+        },
+        {
+          "finishReason": "length",
+          "latencyMs": 148786,
+          "chars": 0
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 63438,
+          "chars": 48706
+        }
+      ],
+      "continuations": 2,
+      "truncatedFinal": false,
+      "outputChars": 48706,
+      "estTokens": {
+        "input": 53922,
+        "output": 12177,
+        "estimated": true
+      },
+      "estCostUsd": 0.030981059999999998,
+      "extraction": {
+        "writes": 11,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-block-sweep/qwen3.8-27b-t1",
+      "fixRound": null,
+      "error": null,
+      "runaway": null,
+      "served": {
+        "model": "qwen/qwen3.8-27b",
+        "provider": "DekaLLM"
+      },
+      "importIssues": []
+    }
+  ]
+}

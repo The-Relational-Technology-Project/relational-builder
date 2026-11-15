@@ -1,0 +1,2 @@
+{"build":"gemma-4-31b-t1","passed":5,"of":6,"checks":{"reads_live":true,"real_schedule":true,"signs_caveat":true,"credits_sources":false,"no_location_gate":true,"years_from_brief":true},"credited":["knowy.org"],"years_not_in_brief":[],"chars":9827}
+{"build":"gemma-4-31b-t2","passed":6,"of":6,"checks":{"reads_live":true,"real_schedule":true,"signs_caveat":true,"credits_sources":true,"no_location_gate":true,"years_from_brief":true},"credited":["knowy.org","opensfhistory.org"],"years_not_in_brief":[],"chars":11410}

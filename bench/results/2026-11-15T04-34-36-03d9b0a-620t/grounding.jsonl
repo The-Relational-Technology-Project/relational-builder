@@ -1,0 +1,2 @@
+{"build":"nemotron-3.5-lightning-t1","passed":5,"of":6,"checks":{"reads_live":false,"real_schedule":true,"signs_caveat":true,"credits_sources":true,"no_location_gate":true,"years_from_brief":true},"credited":["knowy.org","outsidelands.org","spur.org","home.nps.gov","nps.gov"],"years_not_in_brief":[],"chars":10035}
+{"build":"nemotron-3.5-lightning-t2","passed":2,"of":6,"checks":{"reads_live":false,"real_schedule":false,"signs_caveat":false,"credits_sources":false,"no_location_gate":true,"years_from_brief":true},"credited":[],"years_not_in_brief":[],"chars":625}

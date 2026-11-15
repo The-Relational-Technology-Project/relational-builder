@@ -1,0 +1,285 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1",
+  "gitCommit": "03d9b0a",
+  "createdAt": "2026-11-15T04:36:51.194Z",
+  "runId": "2026-11-15T04-34-36-03d9b0a-vu79",
+  "config": {
+    "trials": 2,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": null,
+    "importGuard": true,
+    "fixHints": true,
+    "humanScaleRules": true,
+    "fixPasses": 2,
+    "designScaffold": null,
+    "openrouterIgnore": "Darkbloom",
+    "openrouterOnly": null,
+    "openrouterQuant": null,
+    "reference": null
+  },
+  "models": [
+    {
+      "alias": "qwen3.6-35b-a3b",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3.6-35b-a3b",
+      "pricing": {
+        "inputPerMTok": 0.1,
+        "outputPerMTok": 0.9,
+        "asOf": "2026-11"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "hs-block-sweep",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "qwen3.6-35b-a3b",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3.6-35b-a3b",
+      "taskId": "hs-block-sweep",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-15T04:34:36.742Z",
+      "plan": null,
+      "latencyMs": 44910,
+      "ttftMs": 10443,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 44909,
+          "chars": 22684
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 22684,
+      "estTokens": {
+        "input": 17884,
+        "output": 5671,
+        "estimated": true
+      },
+      "estCostUsd": 0.0068923,
+      "extraction": {
+        "writes": 9,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-block-sweep/qwen3.6-35b-a3b-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "vfs:/src/pages/Home.tsx:10: Could not find \"@/components/ui/all\" in the project (imported from /src/pages/Home.tsx)",
+          "vfs:/src/pages/Home.tsx: Could not find \"@/components/ui/all\" in the project (imported from /src/pages/Home.tsx)"
+        ],
+        "solved": true,
+        "latencyMs": 25246,
+        "remainingErrors": [],
+        "estCostUsd": 0.0050607000000000004,
+        "passes": 1
+      },
+      "error": null,
+      "runaway": null,
+      "served": {
+        "model": "qwen/qwen3.6-35b-a3b",
+        "provider": "CoreWeave"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 1120,
+        "aboveFoldChars": 773
+      },
+      "quality": {
+        "files": 8,
+        "codeFiles": 6,
+        "codeLines": 478,
+        "largestFile": "/src/pages/Home.tsx",
+        "largestFileLines": 275,
+        "anyCount": 0,
+        "kitImportingFiles": 1,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 14,
+          "tokensTotal": 15,
+          "kitLayout": [
+            "AppBar",
+            "Card"
+          ],
+          "mdClasses": 0,
+          "fontLoaded": true,
+          "contrastText": 13.1,
+          "contrastMuted": 5.9,
+          "namedPeople": 0,
+          "placeNamed": null
+        },
+        "lintErrors": 1,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.2,
+        "tscErrors": 0,
+        "tscSyntaxErrors": 0,
+        "tscCodes": {},
+        "tokensPerSecond": 126.3,
+        "fixLatencyMs": 25246,
+        "failKind": "missing-file"
+      }
+    },
+    {
+      "alias": "qwen3.6-35b-a3b",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3.6-35b-a3b",
+      "taskId": "hs-block-sweep",
+      "taskVersion": "exp-v1",
+      "trial": 2,
+      "startedAt": "2026-11-15T04:35:47.273Z",
+      "plan": null,
+      "latencyMs": 51691,
+      "ttftMs": 11470,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 51691,
+          "chars": 22487
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 22487,
+      "estTokens": {
+        "input": 17884,
+        "output": 5622,
+        "estimated": true
+      },
+      "estCostUsd": 0.0068482000000000005,
+      "extraction": {
+        "writes": 1,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "sandpack",
+      "previewKindMatch": false,
+      "bundle": null,
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": false
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": false
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-block-sweep/qwen3.6-35b-a3b-t2",
+      "fixRound": null,
+      "error": null,
+      "runaway": null,
+      "served": {
+        "model": "qwen/qwen3.6-35b-a3b",
+        "provider": "CoreWeave"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 1150,
+        "aboveFoldChars": 760
+      },
+      "quality": {
+        "files": 1,
+        "codeFiles": 0,
+        "codeLines": 0,
+        "largestFile": null,
+        "largestFileLines": 0,
+        "anyCount": 0,
+        "kitImportingFiles": 0,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 0,
+          "tokensTotal": 0,
+          "kitLayout": [],
+          "mdClasses": 0,
+          "fontLoaded": true,
+          "contrastText": null,
+          "contrastMuted": null,
+          "namedPeople": 0,
+          "placeNamed": null
+        },
+        "lintErrors": 0,
+        "lintWarnings": 0,
+        "lintPer100Lines": null,
+        "tscErrors": null,
+        "tscSyntaxErrors": 0,
+        "tscCodes": null,
+        "tokensPerSecond": 108.8,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    }
+  ]
+}
