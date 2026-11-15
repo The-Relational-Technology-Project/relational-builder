@@ -1,0 +1,340 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "v1",
+  "gitCommit": "5a6404b",
+  "createdAt": "2026-11-15T22:07:33.082Z",
+  "runId": "2026-11-15T22-00-5a6404b",
+  "config": {
+    "trials": 2,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": "medium"
+  },
+  "models": [
+    {
+      "alias": "pareto",
+      "providerId": "unbiased",
+      "modelId": "pareto-26.10",
+      "pricing": {
+        "inputPerMTok": 0.8,
+        "outputPerMTok": 3.2,
+        "asOf": "2026-11"
+      },
+      "enabled": false
+    },
+    {
+      "alias": "claude-opus-5-5",
+      "providerId": "claude",
+      "modelId": "claude-opus-5-5",
+      "pricing": {
+        "inputPerMTok": 4,
+        "outputPerMTok": 20,
+        "asOf": "2026-09"
+      },
+      "enabled": true
+    }
+  ],
+  "tasks": [
+    {
+      "id": "mutual-aid-board",
+      "version": "v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "pareto",
+      "providerId": "unbiased",
+      "modelId": "pareto-26.10",
+      "taskId": "mutual-aid-board",
+      "taskVersion": "v1",
+      "trial": 1,
+      "startedAt": "2026-11-15T22:00:08.079Z",
+      "plan": null,
+      "latencyMs": 126940,
+      "ttftMs": 126746,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 126940,
+          "chars": 22574
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 22574,
+      "estTokens": {
+        "input": 14267,
+        "output": 5644,
+        "estimated": true
+      },
+      "estCostUsd": 0.029474399999999998,
+      "extraction": {
+        "writes": 8,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/mutual-aid-board/pareto-t1",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "claude-opus-5-5",
+      "providerId": "claude",
+      "modelId": "claude-opus-5-5",
+      "taskId": "mutual-aid-board",
+      "taskVersion": "v1",
+      "trial": 1,
+      "startedAt": "2026-11-15T22:00:08.087Z",
+      "plan": null,
+      "latencyMs": 258674,
+      "ttftMs": 113046,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 158281,
+          "chars": 16557
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 100391,
+          "chars": 23563
+        }
+      ],
+      "continuations": 1,
+      "truncatedFinal": false,
+      "outputChars": 40120,
+      "estTokens": {
+        "input": 32780,
+        "output": 10030,
+        "estimated": true
+      },
+      "estCostUsd": 0.33172,
+      "extraction": {
+        "writes": 10,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/mutual-aid-board/claude-opus-5-5-t1",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "pareto",
+      "providerId": "unbiased",
+      "modelId": "pareto-26.10",
+      "taskId": "mutual-aid-board",
+      "taskVersion": "v1",
+      "trial": 2,
+      "startedAt": "2026-11-15T22:02:15.194Z",
+      "plan": null,
+      "latencyMs": 149085,
+      "ttftMs": 148921,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 149085,
+          "chars": 22462
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 22462,
+      "estTokens": {
+        "input": 14267,
+        "output": 5616,
+        "estimated": true
+      },
+      "estCostUsd": 0.029384800000000003,
+      "extraction": {
+        "writes": 8,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/mutual-aid-board/pareto-t2",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "claude-opus-5-5",
+      "providerId": "claude",
+      "modelId": "claude-opus-5-5",
+      "taskId": "mutual-aid-board",
+      "taskVersion": "v1",
+      "trial": 2,
+      "startedAt": "2026-11-15T22:04:26.892Z",
+      "plan": null,
+      "latencyMs": 186081,
+      "ttftMs": 64311,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 102798,
+          "chars": 13170
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 83282,
+          "chars": 20299
+        }
+      ],
+      "continuations": 1,
+      "truncatedFinal": false,
+      "outputChars": 33469,
+      "estTokens": {
+        "input": 31941,
+        "output": 8368,
+        "estimated": true
+      },
+      "estCostUsd": 0.295124,
+      "extraction": {
+        "writes": 10,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/mutual-aid-board/claude-opus-5-5-t2",
+      "fixRound": null,
+      "error": null
+    }
+  ]
+}
