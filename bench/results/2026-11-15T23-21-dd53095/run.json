@@ -1,0 +1,362 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1",
+  "gitCommit": "dd53095",
+  "createdAt": "2026-11-15T23:29:34.239Z",
+  "runId": "2026-11-15T23-21-dd53095",
+  "config": {
+    "trials": 2,
+    "timeoutMs": 600000,
+    "planFirst": true,
+    "planModel": "claude-fable-5-2",
+    "planEffort": "high",
+    "studio": null,
+    "effort": "medium"
+  },
+  "models": [
+    {
+      "alias": "pareto",
+      "providerId": "unbiased",
+      "modelId": "pareto-26.10",
+      "pricing": {
+        "inputPerMTok": 0.8,
+        "outputPerMTok": 3.2,
+        "asOf": "2026-11"
+      },
+      "enabled": false
+    },
+    {
+      "alias": "claude-opus-5-5",
+      "providerId": "claude",
+      "modelId": "claude-opus-5-5",
+      "pricing": {
+        "inputPerMTok": 4,
+        "outputPerMTok": 20,
+        "asOf": "2026-09"
+      },
+      "enabled": true
+    }
+  ],
+  "tasks": [
+    {
+      "id": "mutual-aid-board-planned",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "pareto",
+      "providerId": "unbiased",
+      "modelId": "pareto-26.10",
+      "taskId": "mutual-aid-board-planned",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-15T23:21:43.851Z",
+      "plan": {
+        "latencyMs": 46955,
+        "ttftMs": 28408,
+        "chars": 5206,
+        "alias": "claude-fable-5-2"
+      },
+      "latencyMs": 164397,
+      "ttftMs": 117197,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 117442,
+          "chars": 22650
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 27856,
+      "estTokens": {
+        "input": 22416,
+        "output": 6964,
+        "estimated": true
+      },
+      "estCostUsd": 0.1345896,
+      "extraction": {
+        "writes": 8,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/mutual-aid-board-planned/pareto-t1",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "claude-opus-5-5",
+      "providerId": "claude",
+      "modelId": "claude-opus-5-5",
+      "taskId": "mutual-aid-board-planned",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-15T23:21:43.856Z",
+      "plan": {
+        "latencyMs": 46955,
+        "ttftMs": 28408,
+        "chars": 5206,
+        "alias": "claude-fable-5-2"
+      },
+      "latencyMs": 258856,
+      "ttftMs": 77312,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 114780,
+          "chars": 12411
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 97119,
+          "chars": 22417
+        }
+      ],
+      "continuations": 1,
+      "truncatedFinal": false,
+      "outputChars": 40034,
+      "estTokens": {
+        "input": 41592,
+        "output": 10009,
+        "estimated": true
+      },
+      "estCostUsd": 0.4184,
+      "extraction": {
+        "writes": 9,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/mutual-aid-board-planned/claude-opus-5-5-t1",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "pareto",
+      "providerId": "unbiased",
+      "modelId": "pareto-26.10",
+      "taskId": "mutual-aid-board-planned",
+      "taskVersion": "exp-v1",
+      "trial": 2,
+      "startedAt": "2026-11-15T23:24:28.450Z",
+      "plan": {
+        "latencyMs": 55358,
+        "ttftMs": 40176,
+        "chars": 4448,
+        "alias": "claude-fable-5-2"
+      },
+      "latencyMs": 211307,
+      "ttftMs": 155743,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 155948,
+          "chars": 23383
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 27831,
+      "estTokens": {
+        "input": 22227,
+        "output": 6958,
+        "estimated": true
+      },
+      "estCostUsd": 0.127424,
+      "extraction": {
+        "writes": 8,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/mutual-aid-board-planned/pareto-t2",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "claude-opus-5-5",
+      "providerId": "claude",
+      "modelId": "claude-opus-5-5",
+      "taskId": "mutual-aid-board-planned",
+      "taskVersion": "exp-v1",
+      "trial": 2,
+      "startedAt": "2026-11-15T23:26:02.817Z",
+      "plan": {
+        "latencyMs": 55358,
+        "ttftMs": 40176,
+        "chars": 4448,
+        "alias": "claude-fable-5-2"
+      },
+      "latencyMs": 266696,
+      "ttftMs": 111053,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 153478,
+          "chars": 14662
+        },
+        {
+          "finishReason": "stop",
+          "latencyMs": 57859,
+          "chars": 16067
+        }
+      ],
+      "continuations": 1,
+      "truncatedFinal": false,
+      "outputChars": 35177,
+      "estTokens": {
+        "input": 41781,
+        "output": 8795,
+        "estimated": true
+      },
+      "estCostUsd": 0.39107600000000003,
+      "extraction": {
+        "writes": 10,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/mutual-aid-board-planned/claude-opus-5-5-t2",
+      "fixRound": null,
+      "error": null
+    }
+  ]
+}
