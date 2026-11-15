@@ -12,6 +12,61 @@ experiment at most $5 and 30 minutes.
 
 ---
 
+## 2026-11-15
+
+**For Josh:** Gemma 4 31B, the larger Gemma the place-demo session
+found to be a strong all-rounder, built as well as the 26B we've been
+tuning: 15 of 16 working apps each on the eight extra prompts. A rule
+asking for live content in the second column helped the listening wall
+(organizers, emerging themes) but not the fridge, which still has no
+shift list there. Today's sheets are linked below. Spend about $0.20.
+
+**Stack layer moved:** Builder model, from "one open build candidate
+(Gemma 4 26B)" to "two that build equally well on prompts neither was
+tuned on (Gemma 4 26B and 31B)", useful now that size is off the table
+for hosted defaults.
+
+**What was tried.**
+
+1. *Live second column.* The first finish rule now asks the second column
+   at laptop width for a live list that names people (shifts, thank-yous,
+   what is next), with static facts only beneath it. Gemma 26B,
+   comparison prompts, 8 builds: 7 of 8 working, desktop classes 7 (Nov 14
+   with layout words: 6), first-screen text about the same. By eye: the
+   listening wall's second column holds the organizers and emerging
+   themes; the fridge's holds a steward card with a quote and two links,
+   still no shifts.
+2. *The spread set with everything, Gemma 26B and 31B* (two builds per
+   prompt, library screen with layout words, seed check):
+
+| | Gemma 4 26B | Gemma 4 31B | Gemma 26B (Nov 13) | Opus (Nov 10) |
+|---|---|---|---|---|
+| Working builds | 15 of 16 | 15 of 16 | 15 of 16 | 5 of 8 |
+| Working on the first try | 14 of 16 | 13 of 16 | 13 of 16 | 7 of 8 |
+| Desktop (`md:`) classes | 6 | 6 | 6 | 12 |
+| First-screen text (median chars) | 878 | 813 | 772 | 899 |
+| Build time (median) | 114s | 66s | 44s | 226s |
+
+3. *Runaway guard on Mistral.* Inconclusive: the first try lost its
+   connection, the retry ran long, and the lane's 25-minute limit ended
+   the process before a build was recorded. The guard checks between
+   replies, so it cannot shorten one long reply.
+4. *Another session on this branch.* A place-demo session added
+   MODELS-BY-TASK.md, PLACE-EXPERIMENTS.md and its own bench tasks
+   overnight, and logged about $7 reserved (about $2.80 actual) today
+   before this run. This run kept to its own files and read its numbers.
+
+**Sheets (Artifacts):** spread set, 26B and 31B beside Opus
+https://claude.ai/artifact/927inaMC1RZLwv81RGUM7w · comparison prompts
+with the second-column rule https://claude.ai/artifact/FYjSEumg3s5GSeXVVUR36x
+
+**Cost:** about $0.20 (harness estimate).
+
+**Honest read:** the two Gemmas are a tie on these prompts, so the choice
+between them is about hosting cost and speed, which is Josh's call. Rule
+lines keep moving content more than layout; the fridge's second column
+probably needs a kit part, not more words.
+
 ## 2026-11-14
 
 **For Josh:** A short Saturday. Telling Gemma the reference screen's

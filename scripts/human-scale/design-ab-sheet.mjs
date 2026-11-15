@@ -19,7 +19,7 @@ const alsoArg = process.argv.includes('--also') ? process.argv[process.argv.inde
 const also = alsoArg ? { date: alsoArg.split(':')[0], alias: alsoArg.split(':')[1] } : null;
 const ALL_VARIANTS = ['none', 'recipe', 'direction', 'reference'];
 const TASKS = ['hs-community-fridge', 'hs-listening-wall'];
-const MODEL_ORDER = ['gemma-4-26b', 'mistral-small-3.2', 'glm-4.5-air', 'opus-5-5'];
+const MODEL_ORDER = ['gemma-4-26b', 'gemma-4-31b', 'mistral-small-3.2', 'glm-4.5-air', 'opus-5-5'];
 
 const cells = new Map(); // `${task}|${alias}|${variant}` -> [{img, caption}]
 // --only p1,p2 keeps just those runs from the main date (prefix match)

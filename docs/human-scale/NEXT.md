@@ -304,23 +304,31 @@ stack layer it moved; pace paid work at $3 to $5 a day.
 
 ## Tomorrow (one run, about 75 minutes)
 
-1. **The thin second column.** With the library and its layout words,
-   Gemma's laptop screens now have the right first column (status, the
-   steward, a specific feed) but the second column is often one small card
-   (location and hours) where Opus puts real content (a week of shifts, a
-   thank-you wall). Try one change aimed there: the finish rule or the
-   reference note asks for the second column to hold live content (what is
-   next, who is doing it), never only static facts. Gemma, comparison
-   prompts, four trials (about $0.05, log first); compare desktop classes
-   and look at the right column in the screenshots.
-2. **The spread set with everything** (Gemma, two trials, about $0.07,
-   log first), to confirm the layout words and the runaway guard hold on
-   prompts they weren't tuned on. Per Josh: Gemma is the anchor column on
-   every sheet.
-3. **Runaway guard, measured.** Run Mistral Small 3.2 on the one remix
-   that ran away (remix-income-sharing, two trials, about $0.02) and check
-   the bench records `runaway` and stops early.
-4. **End-to-end check of export and delete.** Needs a signed-in Builder.
+1. **The fridge's second column still lacks shifts.** The Nov 15 rule
+   gave the listening wall real second-column content (organizers,
+   emerging themes) but the fridge got a steward card and two links, no
+   shift list with names. Try a kit answer rather than a third rule line:
+   a small `ListCard` (title, three to five rows with avatar, name, what,
+   when) the recipe names for the second column, render-tested. Gemma 26B,
+   comparison prompts, four trials (about $0.05, log first).
+2. **Gemma 4 31B as a second build candidate.** Josh (Nov 15, via the
+   place-demo session): size is off the table for hosted defaults, so
+   31B is fair game. On the spread set it matched 26B (15 of 16 each,
+   same desktop classes; 26B more first-screen text, 31B faster). Run
+   31B on the comparison prompts, four trials (about $0.03), and put it
+   on the sheet beside 26B and Opus. Do not change the Builder's default
+   without Josh.
+3. **Runaway guard, still unmeasured.** Nov 15's Mistral try lost its
+   connection and the lane's time limit ended it before a build was
+   recorded. The guard checks between replies, so one very long reply
+   still runs to the per-reply cap. Try once more on a different host
+   (two trials, about $0.02); if the host is still unstable, drop it and
+   say so.
+4. **Coordinate with the place-demo session.** It runs on this branch
+   and spends from the same daily budget (Nov 15: about $7 reserved
+   before this run). Read its SPEND rows first each day and keep the day
+   under the pace.
+5. **End-to-end check of export and delete.** Needs a signed-in Builder.
 
 ## After that, in order
 

@@ -26,7 +26,7 @@ const TASKS = [
   ['hs-skill-swap', 'Teen and elder skill swap', 'Library sessions, big type, no accounts for elders. Vancouver.'],
   ['hs-bulletin-boards', 'Bulletin board map', 'A map of physical boards with a printable flyer route. Richmond\'s Church Hill.'],
 ];
-const MODEL_ORDER = ['gemma-4-26b', 'glm-4.5-air', 'gpt-oss-120b', 'mistral-small-3.2', 'opus-5-5'];
+const MODEL_ORDER = ['gemma-4-26b', 'gemma-4-31b', 'glm-4.5-air', 'gpt-oss-120b', 'mistral-small-3.2', 'opus-5-5'];
 const ids = TASKS.map(t => t[0]);
 
 const cells = new Map(); // `${task}|${alias}` -> [{img, caption, clean}]
