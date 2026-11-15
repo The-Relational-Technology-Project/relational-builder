@@ -92,6 +92,18 @@ export function pickReferenceScreen(text: string): ReferenceScreen {
   return allowed.find(s => s.id === DEFAULT_ID) ?? allowed[0] ?? REFERENCE_SCREENS[0];
 }
 
+/** Several screens for one prompt: its best shape first, then the others
+ *  it shares most words with, never one showing the prompt's own subject */
+export function pickReferenceScreens(text: string, n: number): ReferenceScreen[] {
+  const first = pickReferenceScreen(text);
+  const rest = REFERENCE_SCREENS
+    .filter(s => s.id !== first.id && !s.subject.test(text))
+    .map(s => ({ s, k: (text.match(new RegExp(s.calls.source, 'gi')) ?? []).length }))
+    .sort((a, b) => b.k - a.k)
+    .map(x => x.s);
+  return [first, ...rest].slice(0, n);
+}
+
 /** What the model is told about the attached screen (the Nov 11 wording) */
 export function referenceNote(screen: ReferenceScreen): string {
   return (

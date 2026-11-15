@@ -20,9 +20,9 @@
  * default whenever the flag is on. `none` stays selectable as the control.
  */
 
-export type DesignScaffold = 'none' | 'recipe' | 'direction' | 'reference';
+export type DesignScaffold = 'none' | 'recipe' | 'direction' | 'reference' | 'intuitive';
 
-const VARIANTS: DesignScaffold[] = ['none', 'recipe', 'direction', 'reference'];
+const VARIANTS: DesignScaffold[] = ['none', 'recipe', 'direction', 'reference', 'intuitive'];
 const STORAGE_KEY = 'rb.humanScale.designScaffold';
 
 export function designScaffoldVariant(): DesignScaffold {
@@ -222,10 +222,35 @@ const REFERENCE = [
 ].join('\n');
 
 /** The prompt block for a variant; empty for `none` */
+/**
+ * Intuitive, not more: Josh (Nov 15) asked whether lots of design direction
+ * and examples bring open models closer to Opus's design, "not more
+ * complex, just more intuitive". These rules and before/after pairs were
+ * drawn from what Opus's screens do on the bench prompts.
+ */
+const INTUITIVE = [
+  '## Make it obvious (a neighbor who has never seen this app should know in five seconds what it is, what is happening, and what to do)',
+  '',
+  'Add nothing to do this; take things away. Rules, each with a pair to copy the spirit of:',
+  '- **Name the place and the job.** The header says whose and what: "Judah St Fridge", "Frome Listening Wall", "Saturday Skill Swap, Mount Pleasant Library". Never "Dashboard", "Home", "My App" or the tool category alone.',
+  '- **Say the state as a sentence, big.** "The fridge is getting low" / "3 sessions this Saturday, 2 still open" / "Election day is Tuesday, November 2". Not "Status: LOW", not a number without a noun, not a chart.',
+  '- **One obvious next step per screen, worded as what the person does.** "I just stocked", "Pin it to the wall", "Learn this with Harjit", "Get a ride to vote". Never "Submit", "Add item", "Create new", "Manage". If there are two actions, one is filled and one is outlined.',
+  '- **Put the action next to what it acts on.** The "Me too" button sits on the answer; "Claim this shift" sits on the shift; the post box sits under the status it changes. Not a toolbar at the top, not a floating button far from the content.',
+  '- **Every item answers who, what, when, in that order and in plain words.** "Rosa · 35 minutes ago · Two dozen eggs and a bag of mandarins, top shelf." Not "Item #12 · created 2026-11-03T09:12 · qty 24".',
+  '- **A person is always in view.** One line names who keeps this going and where to find them: "Rosa keeps this fridge outside the laundromat; say hi if you see her." It replaces any "About" or "How it works" box in prime space; put how-it-works in one sentence under the main action or in a footer.',
+  '- **Neighbor words, never admin words.** "Who is bringing what" not "Assignments"; "Things to borrow" not "Inventory"; "What we heard" not "Analytics"; "Ask for a ride" not "Request transportation".',
+  '- **Placeholders teach by example.** "What did you put in? e.g. a dozen eggs, bag of apples" / "A sentence or two is plenty". Not "Enter text", not "Description".',
+  '- **Show, don\'t explain.** If a screen needs a paragraph to explain itself, change the screen. Labels are short; nothing is icon-only; no tooltip is needed to understand a control.',
+  '- **Fewer kinds of thing.** At most one accent color for actions, one for status. No tabs with a single item, no modal for the main flow, no badge on everything, no second menu.',
+  '',
+  'Before you finish, read the first screen as a neighbor would and check: the name says whose and what; the biggest text is the state; the one filled button says what I do; I can see a person; every label is a word my neighbor uses.',
+].join('\n');
+
 export function designScaffoldPrompt(variant: DesignScaffold = designScaffoldVariant()): string {
   if (variant === 'recipe') return RECIPE;
   if (variant === 'direction') return `${RECIPE}\n\n${directionsBlock()}\n\n${FINISH_RULES}`;
   if (variant === 'reference') return `${RECIPE}\n\n${directionsBlock()}\n\n${FINISH_RULES}\n\n${REFERENCE}`;
+  if (variant === 'intuitive') return `${RECIPE}\n\n${directionsBlock()}\n\n${FINISH_RULES}\n\n${INTUITIVE}`;
   return '';
 }
 

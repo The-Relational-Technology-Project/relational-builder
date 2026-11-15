@@ -46,3 +46,13 @@ describe('design scaffolding', () => {
     }
   });
 });
+
+describe('intuitive variant', () => {
+  it('adds the make-it-obvious rules to the direction guidance', async () => {
+    const { designScaffoldPrompt } = await import('./design-scaffold');
+    const p = designScaffoldPrompt('intuitive');
+    expect(p).toContain('Make it obvious');
+    expect(p).toContain('Neighbor words, never admin words');
+    expect(designScaffoldPrompt('direction')).not.toContain('Make it obvious');
+  });
+});

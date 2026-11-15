@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import type { ChatMessage } from '../../src/providers/types';
-import { pickReferenceScreen, referenceNote, referenceTextNote } from '../../src/human-scale/reference-screens';
+import { pickReferenceScreen, pickReferenceScreens, referenceNote, referenceTextNote } from '../../src/human-scale/reference-screens';
 import { acceptsImages } from '../../src/human-scale/builder-model';
 
 /**
@@ -24,7 +24,7 @@ import { acceptsImages } from '../../src/human-scale/builder-model';
  * (src/project/start-from-commons.ts). Unset, the message is the bare
  * prompt, exactly as before.
  */
-export type ReferenceArm = 'same' | 'spec' | 'both' | 'other' | 'library' | 'library-words';
+export type ReferenceArm = 'same' | 'spec' | 'both' | 'other' | 'library' | 'library-words' | 'library-multi';
 
 export const REFERENCE_DIR = path.resolve(import.meta.dirname ?? __dirname, '..', 'reference');
 
@@ -49,7 +49,7 @@ export const OTHER_NOTE =
 
 export function referenceArm(): ReferenceArm | null {
   const v = process.env.BENCH_REFERENCE?.trim();
-  return v === 'same' || v === 'spec' || v === 'both' || v === 'other' || v === 'library' || v === 'library-words' ? v : null;
+  return v === 'same' || v === 'spec' || v === 'both' || v === 'other' || v === 'library' || v === 'library-words' || v === 'library-multi' ? v : null;
 }
 
 function imagePart(taskId: string, dir: string) {
@@ -67,6 +67,16 @@ function spec(taskId: string, dir: string): string {
 /** The first user message for a build, with the arm's reference attached */
 export function userContent(taskId: string, prompt: string, arm = referenceArm(), dir = REFERENCE_DIR, modelId?: string): ChatMessage['content'] {
   if (!arm) return prompt;
+  if (arm === 'library-multi') {
+    // Three different well-made screens (Nov 15: "tons of design direction
+    // and examples"), each with its layout in words
+    const screens = pickReferenceScreens(prompt, 3);
+    const notes = screens.map((sc, i) => `Reference ${i + 1}: ${sc.shape}. ${sc.layout}`).join('\n\n');
+    return [
+      { type: 'text', text: `${prompt}\n\nThe attached screenshots are three reference screens from the Builder's library, each a different app, built well. Use them as the reference for quality, not subject: match their layout density, hierarchy, type, how they use color and how specific and obvious their content is, while building this app for its own place and people. Do not copy their subjects or their words.\n\n${notes}` },
+      ...screens.map(sc => ({ type: 'image_url' as const, image_url: { url: `data:image/png;base64,${readFileSync(path.resolve(dir, '..', '..', 'public', 'human-scale', 'references', sc.file)).toString('base64')}` } })),
+    ];
+  }
   if (arm === 'library' || arm === 'library-words') {
     const screen = pickReferenceScreen(prompt);
     // As in the Builder: a text-only model gets the screen in words

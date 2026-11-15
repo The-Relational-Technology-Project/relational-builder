@@ -57,3 +57,12 @@ describe('library-words arm', () => {
     expect(c[1].type).toBe('image_url');
   });
 });
+
+describe('library-multi arm', () => {
+  it('attaches three different screens, none of the prompt subject', () => {
+    const c = userContent('hs-community-fridge', 'Build a community fridge app with shifts and stock updates.', 'library-multi', undefined, 'google/gemma-4-26b-a4b-it') as Array<{ type: string; text?: string }>;
+    expect(c.filter(p => p.type === 'image_url')).toHaveLength(3);
+    expect(c[0].text).toContain('Reference 3:');
+    expect(c[0].text).not.toContain('a community fridge)');
+  });
+});
