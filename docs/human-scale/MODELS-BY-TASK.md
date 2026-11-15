@@ -69,9 +69,68 @@ Fits a box = runs on a 16 to 24 GB GPU or a 32 GB Mac at 4-bit, per the maker or
 4. **An open embedding model** for Knowy's search: `granite-embedding-english-r2` (149M, Apache
    2.0) or `Qwen3-Embedding-0.6B` (Apache 2.0). Neither tested.
 
+## If RTP hosts the default (added later on 15 Nov)
+
+Josh, Nov 15: RTP will likely offer one or more default open models before anyone hosts locally.
+That removes the two limits the advice above leaned on: a model no longer has to fit a box, and
+each job can have its own model at no extra cost. So a second round, size off the table.
+
+**Knowy, four passes each (of 19):** Mistral Small 3.2 24B: 16, 15, 16, 17 (mean 16.0). GLM-5.3-Flash
+320B: 17, 16, 15, 14 (mean 15.5; the 17 was its best). Gemma 4 31B: 15, 15, 15, 15. Gemma 4 31B with
+look-first: 12, 14, 16 (worse and less steady; look-first is for models that don't look). Reference
+Claude Haiku 5.5: 17.5. The smallest of these is still the best.
+
+**Planning, three plans each, marked blind by Claude Sonnet 5** against five things (opens with what
+exists, points to people, facts right, two useful questions, plain voice), 0 to 2 each
+(`scripts/human-scale/plan-judge.mjs`; plans and marks in `screens/2026-11-15-plans-x3/`):
+
+| Model | Mean of 10 | Each plan | Exists + people + facts, of 6 |
+|---|---|---|---|
+| Qwen 3.8 27B | 7.3 | 8, 8, 6 | 4.7 |
+| Gemma 4 31B | 7.0 | 6, 7, 8 | 5.0 |
+| Claude Sonnet 5 (reference) | 6.7 | 6, 8, 6 | 4.7 |
+| DeepSeek V4.1 Flash | 6.5 | 7, 6 (one unmarked) | 5.7 |
+| Claude Haiku 5.5 (reference) | 6.3 | 7, 6, 6 | 5.3 |
+| GLM-5.3-Flash | 5.7 | 7, 6, 4 | 4.7 |
+| Qwen 3.6 27B | 5.7 | 7, 7, 3 | 4.7 |
+| Nemotron 3.5 Lightning | 4.3 | 3, 4, 6 | 2.7 |
+| Mistral Small 4 | 4.0 | 5, 3 (one unmarked) | 1.3 |
+| Mistral Small 3.2 | 2.7 | 0, 4, 4 | 0.3 |
+
+Two open models marked at or above the Claude references. The Mistral models mostly ignored the
+place's brief when planning: the best at answering neighbors is the worst at planning. Nemotron's
+8 of 8 on the earlier plain checks did not survive a closer read; those checks rewarded form.
+
+**Builds, the block reminder:**
+
+| Model | Tries | App shape | Opened cleanly | Grounding, of 6 | Build time |
+|---|---|---|---|---|---|
+| Gemma 4 31B | 5 | 5, all first try | 4 | 5, 6, 5, 6, 6 | 9 to 32s |
+| Gemma 4 26B A4B | 3 | 3, all first try | 3 | 5, 6, 6 | 45s |
+| Mistral Small 4 | 5 | 0 (single page) | 5 | 6, 6, 5, 6, 5 | 12 to 26s |
+| Kimi K2.7 Code | 3 | 0 (single page) | 3 | 6, 6, 6 | 81 to 150s |
+| Qwen3 Coder Next | 3 | 2 | 3 | 6, 5, 5 | 32 to 88s |
+| Qwen 3.8 27B | 2 | 2 | 2 | 5, 6 | about 7 minutes |
+| gpt-oss-120b | 3 | 0 (single page) | 3, but bare and empty | 6, 4, 5 | 6 to 9s |
+| Devstral 2 | 3 | 0 (single page) | 2 | 5, 6, 5 | about 20s |
+| GLM-5.3-Flash, DeepSeek V4.1 Flash | 1 each | 0 | stopped | n/a | over 4 and 6 minutes |
+
+"Opened cleanly" overstates: gpt-oss-120b's page opened with no styling and no values. Of the ones
+looked at by eye, Kimi's and Mistral Small 4's single pages and both Gemmas' apps were usable.
+
+**A default routing, if hosted:**
+
+- Knowy: Mistral Small 3.2 (24B, Apache 2.0).
+- Planning: Qwen 3.8 27B (Apache 2.0), or Gemma 4 31B at a third of the wait.
+- Builds: Gemma 4 31B (Apache 2.0). Mistral Small 4 if a single page is acceptable.
+
+Every one of these is Apache 2.0 and served by more than one host. A Mistral-and-Qwen-only route
+(Mistral Small 3.2, Qwen 3.8 27B, Mistral Small 4) exists for anyone who wants no model from a
+frontier lab; it gives up the app shape on builds.
+
 ## Caveats
 
-One or two tries per cell except where a mean is given. All hosted through OpenRouter; nothing ran
+One or two tries per cell in the first table. The hosted round has three to five tries per cell and a single judge model, which has tastes of its own; its marks for the question format are harsh on plans that follow the Builder's own format. All hosted through OpenRouter; nothing ran
 on a box, and hosted speed says little about local speed. The plan checks reward form. Qwen 3.8
 27B's second build was still running when this was written. Knowy on production uses Claude Sonnet
 5.5, which was not run as a reference.

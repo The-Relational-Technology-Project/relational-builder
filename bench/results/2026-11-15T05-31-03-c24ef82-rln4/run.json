@@ -1,0 +1,403 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "exp-v1",
+  "gitCommit": "c24ef82",
+  "createdAt": "2026-11-15T05:34:33.907Z",
+  "runId": "2026-11-15T05-31-03-c24ef82-rln4",
+  "config": {
+    "trials": 3,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "studio": null,
+    "effort": null,
+    "importGuard": true,
+    "fixHints": true,
+    "humanScaleRules": true,
+    "fixPasses": 2,
+    "designScaffold": null,
+    "openrouterIgnore": "Darkbloom",
+    "openrouterOnly": null,
+    "openrouterQuant": null,
+    "reference": null
+  },
+  "models": [
+    {
+      "alias": "qwen3-coder-next",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-next",
+      "pricing": {
+        "inputPerMTok": 0.12,
+        "outputPerMTok": 0.8,
+        "asOf": "2026-10"
+      },
+      "enabled": false
+    }
+  ],
+  "tasks": [
+    {
+      "id": "hs-block-sweep",
+      "version": "exp-v1"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "qwen3-coder-next",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-next",
+      "taskId": "hs-block-sweep",
+      "taskVersion": "exp-v1",
+      "trial": 1,
+      "startedAt": "2026-11-15T05:31:03.526Z",
+      "plan": null,
+      "latencyMs": 31711,
+      "ttftMs": 1162,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 31711,
+          "chars": 12456
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 12456,
+      "estTokens": {
+        "input": 17884,
+        "output": 3114,
+        "estimated": true
+      },
+      "estCostUsd": 0.004637280000000001,
+      "extraction": {
+        "writes": 5,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-block-sweep/qwen3-coder-next-t1",
+      "fixRound": {
+        "attempted": true,
+        "triggerErrors": [
+          "No entry module found (no index.html module script or /src/main.tsx)"
+        ],
+        "solved": true,
+        "latencyMs": 12748,
+        "remainingErrors": [],
+        "estCostUsd": 0.0033549599999999997,
+        "passes": 1
+      },
+      "error": null,
+      "runaway": null,
+      "served": {
+        "model": "qwen/qwen3-coder-next",
+        "provider": "Parasail"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 1349,
+        "aboveFoldChars": 940
+      },
+      "quality": {
+        "files": 5,
+        "codeFiles": 3,
+        "codeLines": 284,
+        "largestFile": "/src/pages/BlockInfo.tsx",
+        "largestFileLines": 261,
+        "anyCount": 1,
+        "kitImportingFiles": 1,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 14,
+          "tokensTotal": 15,
+          "kitLayout": [
+            "Card"
+          ],
+          "mdClasses": 0,
+          "fontLoaded": true,
+          "contrastText": 13.1,
+          "contrastMuted": 5.9,
+          "namedPeople": 0,
+          "placeNamed": null
+        },
+        "lintErrors": 2,
+        "lintWarnings": 0,
+        "lintPer100Lines": 0.7,
+        "tscErrors": 0,
+        "tscSyntaxErrors": 0,
+        "tscCodes": {},
+        "tokensPerSecond": 98.2,
+        "fixLatencyMs": 12748,
+        "failKind": "other"
+      }
+    },
+    {
+      "alias": "qwen3-coder-next",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-next",
+      "taskId": "hs-block-sweep",
+      "taskVersion": "exp-v1",
+      "trial": 2,
+      "startedAt": "2026-11-15T05:31:48.215Z",
+      "plan": null,
+      "latencyMs": 57442,
+      "ttftMs": 686,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 57441,
+          "chars": 20281
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 20281,
+      "estTokens": {
+        "input": 17884,
+        "output": 5071,
+        "estimated": true
+      },
+      "estCostUsd": 0.00620288,
+      "extraction": {
+        "writes": 1,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "sandpack",
+      "previewKindMatch": false,
+      "bundle": null,
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": false
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": false
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": false
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-block-sweep/qwen3-coder-next-t2",
+      "fixRound": null,
+      "error": null,
+      "runaway": null,
+      "served": {
+        "model": "qwen/qwen3-coder-next",
+        "provider": "Parasail"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 871,
+        "aboveFoldChars": 645
+      },
+      "quality": {
+        "files": 1,
+        "codeFiles": 0,
+        "codeLines": 0,
+        "largestFile": null,
+        "largestFileLines": 0,
+        "anyCount": 0,
+        "kitImportingFiles": 0,
+        "handRolledUiFiles": 0,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 0,
+          "tokensTotal": 0,
+          "kitLayout": [],
+          "mdClasses": 0,
+          "fontLoaded": true,
+          "contrastText": null,
+          "contrastMuted": null,
+          "namedPeople": 0,
+          "placeNamed": null
+        },
+        "lintErrors": 0,
+        "lintWarnings": 0,
+        "lintPer100Lines": null,
+        "tscErrors": null,
+        "tscSyntaxErrors": 0,
+        "tscCodes": null,
+        "tokensPerSecond": 88.3,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    },
+    {
+      "alias": "qwen3-coder-next",
+      "providerId": "openrouter",
+      "modelId": "qwen/qwen3-coder-next",
+      "taskId": "hs-block-sweep",
+      "taskVersion": "exp-v1",
+      "trial": 3,
+      "startedAt": "2026-11-15T05:32:45.664Z",
+      "plan": null,
+      "latencyMs": 87943,
+      "ttftMs": 480,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 87942,
+          "chars": 35478
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 35478,
+      "estTokens": {
+        "input": 17884,
+        "output": 8870,
+        "estimated": true
+      },
+      "estCostUsd": 0.00924208,
+      "extraction": {
+        "writes": 11,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": null,
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "theme-tokens",
+          "description": "index.css declares the @theme token block (theme contract)",
+          "pass": true
+        },
+        {
+          "id": "kit-components",
+          "description": "imports RB kit components (@/components/ui/*)",
+          "pass": true
+        },
+        {
+          "id": "hash-router",
+          "description": "uses HashRouter (BrowserRouter 404s on static hosting)",
+          "pass": true
+        },
+        {
+          "id": "seeded-data",
+          "description": "ships realistic seeded posts (no empty first render)",
+          "pass": true
+        },
+        {
+          "id": "no-backend",
+          "description": "zero-setup: no required external backend for first render",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/hs-block-sweep/qwen3-coder-next-t3",
+      "fixRound": null,
+      "error": null,
+      "runaway": null,
+      "served": {
+        "model": "qwen/qwen3-coder-next",
+        "provider": "Parasail"
+      },
+      "importIssues": [],
+      "runtime": {
+        "rendered": true,
+        "errors": [],
+        "bodyChars": 972,
+        "aboveFoldChars": 723
+      },
+      "quality": {
+        "files": 10,
+        "codeFiles": 8,
+        "codeLines": 691,
+        "largestFile": "/src/pages/Home.tsx",
+        "largestFileLines": 350,
+        "anyCount": 0,
+        "kitImportingFiles": 2,
+        "handRolledUiFiles": 3,
+        "invalidLucide": [],
+        "tailwindV3Habits": 0,
+        "design": {
+          "tokensFilled": 0,
+          "tokensTotal": 0,
+          "kitLayout": [
+            "EmptyState",
+            "Card"
+          ],
+          "mdClasses": 15,
+          "fontLoaded": true,
+          "contrastText": null,
+          "contrastMuted": null,
+          "namedPeople": 0,
+          "placeNamed": null
+        },
+        "lintErrors": 11,
+        "lintWarnings": 0,
+        "lintPer100Lines": 1.6,
+        "tscErrors": 2,
+        "tscSyntaxErrors": 0,
+        "tscCodes": {
+          "2339": 2
+        },
+        "tokensPerSecond": 100.9,
+        "fixLatencyMs": null,
+        "failKind": null
+      }
+    }
+  ]
+}
