@@ -44,6 +44,46 @@ export const TASKS: TaskSpec[] = [
     checks: CHECKS,
   },
   {
+    // The headline ask, word for word, plus a full art-direction brief:
+    // concept, palette, type, layout, texture, motion, voice, and what to
+    // avoid. Read against mutual-aid-board, it shows what a model does with
+    // heavy aesthetic direction versus being left to its own taste.
+    id: 'mutual-aid-board-directed',
+    version: 'exp-v1',
+    prompt:
+      PROMPT +
+      '\n\nDesign direction, please follow it closely:\n' +
+      '- Concept: a hand-printed neighborhood bulletin. Risograph poster meets ' +
+      'the corkboard by the corner store door. It should look made by a ' +
+      'neighbor with good taste, not by a software company.\n' +
+      '- Palette: warm paper #F6EFE2 for the page, deep ink navy #1F2A44 for ' +
+      'text, riso tomato #E4572E for needs, teal #2A9D8F for offers, mustard ' +
+      '#E9B44C as the one accent. Flat color only, with slight misregistration ' +
+      'offsets where two colors overlap.\n' +
+      '- Type: Fraunces for headlines (big, tight, a little wonky), ' +
+      'Instrument Sans for body, and Caveat used sparingly for handwritten ' +
+      'touches like a margin note or a signature. Set headlines large enough ' +
+      'to read from across the street.\n' +
+      '- Layout: posts are index cards pinned to the board, each tilted a ' +
+      'degree or two, with a pushpin or a strip of tape. Needs and offers are ' +
+      'told apart at a glance by color and a stamped label. Categories are ' +
+      'tear-off tabs along the top. On phones, one column of cards and a ' +
+      'sticky bottom bar for posting.\n' +
+      '- Texture: subtle paper grain and a halftone dot pattern in the header. ' +
+      'Hard offset shadows in ink, never soft blurry ones.\n' +
+      '- Fulfilled: a rubber stamp that lands across the card at an angle, ' +
+      'with a small thunk of motion. Fulfilled cards stay on the board, faded, ' +
+      'as proof that neighbors show up.\n' +
+      '- Motion: cards settle onto the board on load, one after another. ' +
+      'Nothing else moves unless touched.\n' +
+      '- Voice: plainspoken and specific. First names, cross streets, real ' +
+      'times. "I have a ladder" not "Resource available".\n' +
+      '- Avoid: gradients, glass effects, rounded generic app cards, emoji as ' +
+      'icons, purple, and anything that reads as a startup dashboard.',
+    expectedPreviewKind: 'framework',
+    checks: CHECKS,
+  },
+  {
     // From the RT commons library: "Block Party Organizing" — sign-ups,
     // task coordination, event planning. Place-grounded per experiment.
     id: 'pdx-block-party',

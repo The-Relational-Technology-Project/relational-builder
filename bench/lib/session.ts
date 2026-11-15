@@ -65,19 +65,26 @@ export interface SessionResult {
  *  xhigh, past the Builder's 180s thinking budget), so the production rung
  *  for a new model is a measurement, not a carry-over. */
 const BENCH_EFFORTS = new Set(['low', 'medium', 'high', 'xhigh']);
-const benchEffort = (() => {
-  const v = process.env.BENCH_EFFORT?.trim();
+function envEffort(name: string): ThinkingEffort | undefined {
+  const v = process.env[name]?.trim();
   if (!v) return undefined;
-  if (!BENCH_EFFORTS.has(v)) throw new Error(`BENCH_EFFORT must be one of ${[...BENCH_EFFORTS].join(', ')} (got "${v}")`);
+  if (!BENCH_EFFORTS.has(v)) throw new Error(`${name} must be one of ${[...BENCH_EFFORTS].join(', ')} (got "${v}")`);
   return v as ThinkingEffort;
-})();
+}
+const benchEffort = envEffort('BENCH_EFFORT');
+/** Effort for the plan stage when a separate --plan-model drafts the plan
+ *  (BENCH_PLAN_EFFORT). Unset falls back to BENCH_EFFORT, then the provider. */
+export const benchPlanEffort = envEffort('BENCH_PLAN_EFFORT');
 
 export async function runSession(
   provider: LLMProvider,
   modelId: string,
   initialMessages: ChatMessage[],
   timeoutMs: number,
+  /** Per-call effort; wins over BENCH_EFFORT (the plan stage runs its own rung) */
+  effortOverride?: ThinkingEffort,
 ): Promise<SessionResult> {
+  const effort = effortOverride ?? benchEffort;
   const messages: ChatMessage[] = [...initialMessages];
 
   const segmentTexts: string[] = [];
@@ -126,7 +133,7 @@ export async function runSession(
               onError: err => reject(err),
             },
             ac.signal,
-            benchEffort ? { effort: benchEffort } : undefined,
+            effort ? { effort } : undefined,
           )
           .catch(reject); // pre-stream failures (HTTP errors) reject the call itself
       });

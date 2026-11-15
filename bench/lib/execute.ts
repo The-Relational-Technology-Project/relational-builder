@@ -6,7 +6,7 @@ import type { BenchModel, RunReport, TrialResult } from '../types';
 import { BUILD_GO_PROMPT, type TaskSpec } from '../tasks';
 import { charsToTokens, estimateCostUsd, HARNESS_VERSION } from './cost';
 import { providerFor } from './providers';
-import { runSession, type SessionResult } from './session';
+import { benchPlanEffort, runSession, type SessionResult } from './session';
 import { scoreOutput } from './pipeline';
 import { writeTrialArtifacts } from './artifacts';
 
@@ -24,6 +24,10 @@ export interface ExecuteOptions {
   planSystemPrompt: string;
   /** Plan-mode generation precedes each build (mirrors production flow) */
   planFirst: boolean;
+  /** A different model drafts the plan (production: Fable plans, another
+   *  model builds). The plan is drafted once per task per trial and every
+   *  builder in the run receives that same plan, so builds are comparable. */
+  planModel?: BenchModel | null;
   outDir: string;
   screenshots: boolean;
   /** Studio slug when the run is studio-framed (--studio) — recorded in run.json */
@@ -68,6 +72,27 @@ function gitCommit(): string {
 function newRunId(sha: string): string {
   const stamp = new Date().toISOString().slice(0, 16).replace(/:/g, '-');
   return `${stamp}-${sha}`;
+}
+
+/** One plan per (task, trial) when a separate plan model is set — the promise
+ *  is cached so builders running in parallel await the same draft. */
+const sharedPlans = new Map<string, Promise<SessionResult>>();
+function sharedPlan(
+  planModel: BenchModel,
+  task: TaskSpec,
+  trial: number,
+  messages: ChatMessage[],
+): Promise<SessionResult> {
+  const key = `${task.id}#${trial}`;
+  let hit = sharedPlans.get(key);
+  if (!hit) {
+    console.log(`  ✎ ${planModel.alias} drafting the plan · ${task.id} (trial ${trial})…`);
+    hit = runSession(providerFor(planModel), planModel.modelId, messages, TRIAL_TIMEOUT_MS, benchPlanEffort);
+    // A failed draft shouldn't poison later trials' retries of the same key
+    hit.catch(() => sharedPlans.delete(key));
+    sharedPlans.set(key, hit);
+  }
+  return hit;
 }
 
 async function runTrial(
@@ -153,10 +178,13 @@ async function runTrial(
     // An edit is a single turn against an existing project — there is no plan
     // phase to mirror, so plan-first never applies to a seeded task.
     if (opts.planFirst && !task.seedFiles) {
-      planSession = await withRetries([
+      const planMessages: ChatMessage[] = [
         { role: 'system', content: opts.planSystemPrompt },
         { role: 'user', content: task.prompt },
-      ]);
+      ];
+      planSession = opts.planModel
+        ? await sharedPlan(opts.planModel, task, trial, planMessages)
+        : await withRetries(planMessages);
       buildMessages = [
         { role: 'system', content: taskSystemPrompt },
         { role: 'user', content: task.prompt },
@@ -174,11 +202,22 @@ async function runTrial(
     return { ...base, error: err instanceof Error ? err.message : String(err) };
   }
 
-  const outputChars =
-    buildSession.segmentTexts.reduce((n, t) => n + t.length, 0) +
-    (planSession?.segmentTexts.reduce((n, t) => n + t.length, 0) ?? 0);
+  const planChars = planSession?.segmentTexts.reduce((n, t) => n + t.length, 0) ?? 0;
+  const buildChars = buildSession.segmentTexts.reduce((n, t) => n + t.length, 0);
+  const outputChars = buildChars + planChars;
   const inTokens = charsToTokens(buildSession.sentChars + (planSession?.sentChars ?? 0));
   const outTokens = charsToTokens(outputChars);
+  // With a separate plan model each stage is priced at its own model's rate.
+  // The shared plan's cost is counted in every trial that used it: that is
+  // what the pairing costs per build, which is the number being compared.
+  const estCostUsd =
+    opts.planModel && planSession
+      ? (() => {
+          const plan = estimateCostUsd(opts.planModel, charsToTokens(planSession.sentChars), charsToTokens(planChars));
+          const build = estimateCostUsd(model, charsToTokens(buildSession.sentChars), charsToTokens(buildChars));
+          return plan == null || build == null ? null : plan + build;
+        })()
+      : estimateCostUsd(model, inTokens, outTokens);
 
   const result: TrialResult = {
     ...base,
@@ -186,7 +225,8 @@ async function runTrial(
       ? {
           latencyMs: planSession.latencyMs,
           ttftMs: planSession.ttftMs,
-          chars: planSession.segmentTexts.reduce((n, t) => n + t.length, 0),
+          chars: planChars,
+          ...(opts.planModel ? { alias: opts.planModel.alias } : {}),
         }
       : null,
     latencyMs: buildSession.latencyMs + (planSession?.latencyMs ?? 0),
@@ -196,7 +236,7 @@ async function runTrial(
     truncatedFinal: buildSession.truncatedFinal,
     outputChars,
     estTokens: { input: inTokens, output: outTokens, estimated: true },
-    estCostUsd: estimateCostUsd(model, inTokens, outTokens),
+    estCostUsd,
   };
 
   try {
@@ -348,7 +388,7 @@ async function writeRunJson(
     gitCommit: sha,
     createdAt: new Date().toISOString(),
     runId,
-    config: { trials: opts.trials, timeoutMs: TRIAL_TIMEOUT_MS, planFirst: opts.planFirst, studio: opts.studio ?? null, effort: process.env.BENCH_EFFORT?.trim() || null },
+    config: { trials: opts.trials, timeoutMs: TRIAL_TIMEOUT_MS, planFirst: opts.planFirst, planModel: opts.planModel?.alias ?? null, planEffort: (opts.planModel && process.env.BENCH_PLAN_EFFORT?.trim()) || null, studio: opts.studio ?? null, effort: process.env.BENCH_EFFORT?.trim() || null },
     models: opts.models,
     tasks: opts.tasks.map(t => ({ id: t.id, version: t.version })),
     trials,

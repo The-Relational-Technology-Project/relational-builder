@@ -129,6 +129,7 @@ export async function main(argv: string[]): Promise<number> {
       tasks: { type: 'string' },
       trials: { type: 'string', default: '1' },
       'plan-first': { type: 'boolean', default: false },
+      'plan-model': { type: 'string' },
       studio: { type: 'string' },
       'dry-run': { type: 'boolean', default: false },
       'skip-screenshots': { type: 'boolean', default: false },
@@ -141,7 +142,7 @@ export async function main(argv: string[]): Promise<number> {
 
   if (values.help) {
     console.log(
-      'npm run bench -- [--models a,b,c] [--tasks x,y] [--trials N] [--plan-first] ' +
+      'npm run bench -- [--models a,b,c] [--tasks x,y] [--trials N] [--plan-first] [--plan-model alias] ' +
         '[--studio slug] [--dry-run] [--skip-screenshots] [--out dir] [--list-models] [--list-tasks]\n' +
         'npm run bench -- report <runDir> | review <runDir> | selftest\n' +
         'npm run bench -- plan [--help]        (plan-phase bench — see bench/plan-bench.ts)',
@@ -168,7 +169,10 @@ export async function main(argv: string[]): Promise<number> {
   const models = resolveModels(values.models);
   const tasks = resolveTasks(values.tasks);
   const trials = Math.max(1, parseInt(values.trials ?? '1', 10) || 1);
-  const planFirst = values['plan-first'] ?? false;
+  // --plan-model implies --plan-first: a different model drafts the plan and
+  // every model in --models builds from that same draft.
+  const planModel = values['plan-model'] ? resolveModels(values['plan-model'])[0] : null;
+  const planFirst = (values['plan-first'] ?? false) || !!planModel;
 
   console.log('Assembling production system prompts…');
   // Studio-framed runs (--studio thread) build the prompt an approved member
@@ -217,13 +221,14 @@ export async function main(argv: string[]): Promise<number> {
   console.log('Bundler self-test passed.');
 
   printMatrix(models, tasks, inputTokens, trials, planFirst);
+  if (planModel) console.log(`Plans drafted by ${planModel.alias} (one per task per trial, shared by every builder; not in the estimate above).\n`);
 
   if (values['dry-run']) {
     console.log('Dry run — no API calls made.');
     return 0;
   }
 
-  const missing = models.filter(m => !process.env[ENV_KEYS[m.providerId]]);
+  const missing = [...models, ...(planModel ? [planModel] : [])].filter(m => !process.env[ENV_KEYS[m.providerId]]);
   if (missing.length > 0) {
     console.error(
       `Missing API keys for: ${missing.map(m => m.alias).join(', ')}. ` +
@@ -241,6 +246,7 @@ export async function main(argv: string[]): Promise<number> {
     systemPromptFor,
     planSystemPrompt,
     planFirst,
+    planModel,
     outDir: values.out ?? 'bench/results',
     screenshots: !values['skip-screenshots'],
     studio: values.studio ?? null,
