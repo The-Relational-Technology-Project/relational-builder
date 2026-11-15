@@ -12,6 +12,57 @@ experiment at most $5 and 30 minutes.
 
 ---
 
+## 2026-11-15 (evening): more design direction, more intuitive?
+
+**For Josh:** You asked whether lots of design direction and examples
+bring open models closer to Opus's design, more intuitive rather than
+more complex. With make-it-obvious rules (with before and after examples)
+plus three reference screens, Gemma made 12 working apps of 12, 11 on the
+first try, with first screens as full as Opus's. By eye they are clearer:
+one state in a sentence and one button that says what you do. They are
+still plainer than Opus on a laptop. Sheet:
+https://claude.ai/artifact/NFwUoQNfVpJ7hokCpezjQA
+
+**What was tried.** Six prompts (fridge, listening wall, income-sharing
+remix, ballot guide, street-stories remix, skill swap), two builds each,
+four versions:
+- A: today's guidance plus one library screen (Gemma 4 26B).
+- B: A plus an "intuitive" section in the design guidance
+  (`design-scaffold.ts`, variant `intuitive`): name the place and job,
+  the state as a sentence, one next step in the person's words, the
+  action beside what it acts on, a person in view, neighbor words,
+  example placeholders, fewer kinds of thing, each with a pair drawn
+  from Opus's screens, and a five-second check at the end.
+- C: B plus three library screens instead of one, each with its layout
+  in words (`BENCH_REFERENCE=library-multi`).
+- D: C on Gemma 4 31B.
+
+| | A today | B + rules | C + rules + three screens | D 31B, as C |
+|---|---|---|---|---|
+| Working builds | 11 of 12 | 11 of 12 | 12 of 12 | 12 of 12 |
+| Working on the first try | 6 of 12 | 8 of 12 | 11 of 12 | 9 of 12 |
+| Desktop (`md:`) classes | 5 | 6 | 7 | 6 |
+| First-screen text (median chars) | 799 | 796 | 907 | 815 |
+
+By eye: A's income-sharing build opened on "No pairing assigned for this
+month" beside a "Demo Controls" box; C's said "Send to Mateo, $225" with
+one button, "I've sent this", and a line that money never passes through
+the app. C's ballot guide reads clearly (plain headings, who it affects,
+a ride line, common questions) but showed internal codes ("CITY-01") and
+YES/NO boxes on candidate races, where they make no sense. C still uses
+one column on a laptop more often than Opus. Two cheap proxies (admin
+words in labels; "How it works" boxes) did not separate the versions;
+C had more "How it works" sections, against the rule.
+
+**Cost:** about $0.25 (harness estimate).
+
+**Honest read:** more direction and more examples together helped, on
+reliability and on how obvious the first screen is; rules alone (B) did
+little that the counts can see. Two builds a cell; whether C is "more
+intuitive" is Josh's read from the sheet. If it holds, the next step is
+the product path: the Builder shows up to three library screens and
+uses the intuitive guidance by default, behind the flag.
+
 ## 2026-11-15
 
 **For Josh:** Gemma 4 31B, the larger Gemma the place-demo session

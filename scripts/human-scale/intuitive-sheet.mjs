@@ -1,0 +1,94 @@
+#!/usr/bin/env node
+/**
+ * Contact sheet for the intuitive-design experiment (Nov 15): one row per
+ * prompt; Opus's screen first, then each arm. Artifact-ready page.
+ *
+ *   node scripts/human-scale/intuitive-sheet.mjs --date 2026-11-15 --after 2026-11-15T13
+ */
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import path from 'node:path';
+
+const root = 'bench/results';
+const arg = k => (process.argv.includes(k) ? process.argv[process.argv.indexOf(k) + 1] : null);
+const date = arg('--date') ?? new Date().toISOString().slice(0, 10);
+const after = arg('--after') ?? date;
+
+const TASKS = [
+  ['hs-community-fridge', 'Community fridge'],
+  ['hs-listening-wall', 'Listening wall'],
+  ['remix-income-sharing', 'Remix: Community Income Sharing'],
+  ['hs-ballot-guide', 'Ballot guide'],
+  ['remix-street-stories', 'Remix: Westminster Stories'],
+  ['hs-skill-swap', 'Teen and elder skill swap'],
+];
+const ARMS = [
+  ['gemma-4-26b|direction|library', 'A · Gemma 26B, today\'s guidance + one screen'],
+  ['gemma-4-26b|intuitive|library', 'B · Gemma 26B, + make-it-obvious rules'],
+  ['gemma-4-26b|intuitive|library-multi', 'C · Gemma 26B, + rules + three screens'],
+  ['gemma-4-31b|intuitive|library-multi', 'D · Gemma 31B, + rules + three screens'],
+];
+const b64 = f => `data:image/png;base64,${readFileSync(f).toString('base64')}`;
+const cells = new Map();
+const tally = new Map();
+for (const dir of readdirSync(root).filter(d => d.startsWith(date) && d >= after)) {
+  const f = path.join(root, dir, 'run.json');
+  if (!existsSync(f)) continue;
+  const run = JSON.parse(readFileSync(f, 'utf8'));
+  for (const t of run.trials) {
+    if (t.error || !TASKS.some(([id]) => id === t.taskId)) continue;
+    const arm = `${t.alias}|${run.config?.designScaffold}|${run.config?.reference}`;
+    if (!ARMS.some(([a]) => a === arm)) continue;
+    const shot = path.join(root, dir, 'shots', `${t.taskId}--${t.alias}-t${t.trial}.png`);
+    const rt = t.runtime || {};
+    const bundled = t.bundle ? t.bundle.ok : true;
+    const clean = !!(bundled && rt.rendered && !(rt.errors || []).length);
+    const caption = `t${t.trial} · ${clean ? 'works' : 'broken'}${t.fixRound ? ' after a fix pass' : ', first try'} · ${rt.aboveFoldChars ?? 0} chars on screen`;
+    const key = `${t.taskId}|${arm}`;
+    if (!cells.has(key)) cells.set(key, []);
+    cells.get(key).push({ img: existsSync(shot) ? b64(shot) : null, caption, clean });
+    const s = tally.get(arm) ?? { n: 0, ok: 0, first: 0 };
+    s.n++; if (clean) s.ok++; if (clean && !t.fixRound) s.first++;
+    tally.set(arm, s);
+  }
+}
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+const fig = c => `<figure>${c.img ? `<img src="${c.img}" alt="${esc(c.caption)}" loading="lazy">` : '<div class="none">no screenshot</div>'}<figcaption class="${c.clean ? 'ok' : 'bad'}">${esc(c.caption)}</figcaption></figure>`;
+let html = `<title>Intuitive Design ${date}</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+:root{--bg:#f6f7f9;--ink:#1d232b;--muted:#5b6573;--card:#fff;--line:#dde2e8;--ok:#1f7a4d;--bad:#a33a2a;--ref:#6b4fa0}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15181d;--ink:#e8ebef;--muted:#a3adb9;--card:#1e2229;--line:#333a44;--ok:#5fc48f;--bad:#ef8a78;--ref:#b9a2e6;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#15181d;--ink:#e8ebef;--muted:#a3adb9;--card:#1e2229;--line:#333a44;--ok:#5fc48f;--bad:#ef8a78;--ref:#b9a2e6;color-scheme:dark}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,sans-serif;padding-block:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{font-size:22px;margin:0 0 4px;text-wrap:balance}h2{font-size:18px;margin:28px 0 8px}p{color:var(--muted);margin:0 0 12px;max-width:72ch}
+.grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;align-items:start}
+.head{font-weight:600;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+.col{display:grid;gap:8px;min-width:0}
+img{display:block;width:100%;height:auto}
+figure{margin:0;background:var(--card);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+figure.ref{border:2px solid var(--ref)}
+figcaption{font-size:12px;padding:6px 8px;color:var(--muted)}
+figcaption.ok{border-left:3px solid var(--ok)}figcaption.bad{border-left:3px solid var(--bad)}
+.none{font-size:12px;color:var(--muted);padding:8px}
+.table-wrap{overflow-x:auto}table{border-collapse:collapse;margin:8px 0 16px}td,th{padding:4px 12px 4px 0;text-align:left;font-size:14px;font-variant-numeric:tabular-nums}
+@media (max-width:900px){.grid{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.grid{grid-template-columns:1fr}}
+</style>
+<h1>More design direction, more intuitive? ${esc(date)}</h1>
+<p>Six prompts, two builds per version. First column: Opus's build. A is the Builder's current guidance with one reference screen. B adds make-it-obvious rules with before and after examples (name the place and job, the state as a sentence, one next step in the person's words, a person in view, neighbor words). C adds three reference screens instead of one. D is C on Gemma 4 31B. Nothing here asks for more features.</p>
+<div class="table-wrap"><table><tr><th>Version</th><th>Working</th><th>First try</th></tr>${ARMS.map(([a, l]) => { const s = tally.get(a) ?? { n: 0, ok: 0, first: 0 }; return `<tr><td>${esc(l)}</td><td>${s.ok} of ${s.n}</td><td>${s.first}</td></tr>`; }).join('')}</table></div>
+`;
+for (const [id, title] of TASKS) {
+  html += `<h2>${esc(title)}</h2><div class="grid"><div class="head">Opus</div>${ARMS.map(([, l]) => `<div class="head">${esc(l.split(' · ')[0])}</div>`).join('')}`;
+  const ref = `bench/reference/${id}.png`;
+  html += `<div class="col"><figure class="ref">${existsSync(ref) ? `<img src="${b64(ref)}" alt="Opus build" loading="lazy">` : ''}<figcaption>Opus 5.5</figcaption></figure></div>`;
+  for (const [a] of ARMS) {
+    const list = cells.get(`${id}|${a}`) || [];
+    html += `<div class="col">${list.length ? list.map(fig).join('') : '<div class="none">not run</div>'}</div>`;
+  }
+  html += '</div>';
+}
+mkdirSync('docs/human-scale/shots', { recursive: true });
+const out = `docs/human-scale/shots/intuitive-${date}.html`;
+writeFileSync(out, html);
+console.log(`Intuitive sheet: ${out} (${[...cells.values()].reduce((n, l) => n + l.length, 0)} builds, ${(html.length / 1e6).toFixed(1)} MB)`);
