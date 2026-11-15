@@ -27,6 +27,12 @@ export interface TaskSpec {
    *  set, the run sends the production build prompt WITH this snapshot in
    *  its Current Project Files section, exactly as an edit turn does. */
   seedFiles?: Record<string, string>;
+  /** Plan-first only: a frozen shaping conversation (first turn the ask,
+   *  then the assistant's questions and the person's one-tap answers, in
+   *  production's "question → answer" format) so the plan model's measured
+   *  reply is the drafted plan. Plan mode asks before it drafts; without
+   *  this, "build it" lands on unanswered questions. */
+  planTurns?: { role: 'user' | 'assistant'; content: string }[];
   /** Paths this edit may legitimately touch; anything else is collateral. */
   editTargets?: string[];
 }
@@ -80,6 +86,49 @@ export const TASKS: TaskSpec[] = [
       'times. "I have a ladder" not "Resource available".\n' +
       '- Avoid: gradients, glass effects, rounded generic app cards, emoji as ' +
       'icons, purple, and anything that reads as a startup dashboard.',
+    expectedPreviewKind: 'framework',
+    checks: CHECKS,
+  },
+  {
+    // The headline ask taken through production's real order: shaping
+    // questions, the person's answers, a drafted plan, then "build it".
+    // Run with --plan-model so one model plans and another builds. The
+    // scripted questions are modeled on what Fable 5.2 actually asked.
+    id: 'mutual-aid-board-planned',
+    version: 'exp-v1',
+    prompt: PROMPT,
+    planTurns: [
+      { role: 'user', content: PROMPT },
+      {
+        role: 'assistant',
+        content: [
+          'A board with offers and needs, browsable by category, with a fulfilled mark, is a clear enough loop to plan from. Boards like this tend to fill up with offers and go quiet on needs, because asking is harder than giving, so who tends it and where it first gets shared matter as much as the features.',
+          '',
+          '## Question for you',
+          '1. Where does this get shared first?',
+          '   - An existing group chat or email list',
+          '   - A QR code on a physical spot (laundromat, lobby, corner store)',
+          '   - Through a group already doing this work (church, tenant union, school)',
+          '   - Nothing exists yet, I’m starting from scratch',
+          '2. How should neighbors post?',
+          '   - Anyone posts with a first name and a way to reach them, no account',
+          '   - Neighbors sign in first, so posts are only visible to members',
+          '   - Anyone submits, a steward approves before it shows',
+          '3. Which of these does it look like?',
+          '   - The laundromat corkboard: cork tan, index-card cream, pushpin red, marker-style headings, cards slightly askew',
+          '   - A hand-painted porch sign: deep green, cream, marigold, painted serif lettering, soft rounded edges',
+          '   - The church-basement sign-up sheet: warm white, ink navy, highlighter yellow, typewriter-style text, ruled lines',
+        ].join('\n'),
+      },
+      {
+        role: 'user',
+        content: [
+          'Where does this get shared first? → A QR code on a physical spot, the laundromat on Stark Street, and then our block group chat',
+          'How should neighbors post? → Anyone posts with a first name and a way to reach them, no account',
+          'Which of these does it look like? → The laundromat corkboard: cork tan, index-card cream, pushpin red, marker-style headings, cards slightly askew',
+        ].join('\n'),
+      },
+    ],
     expectedPreviewKind: 'framework',
     checks: CHECKS,
   },

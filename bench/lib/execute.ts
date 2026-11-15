@@ -178,16 +178,19 @@ async function runTrial(
     // An edit is a single turn against an existing project — there is no plan
     // phase to mirror, so plan-first never applies to a seeded task.
     if (opts.planFirst && !task.seedFiles) {
+      // A task with a scripted shaping conversation is planned from it, and
+      // the builder then sees the same conversation the plan came out of.
+      const convo: ChatMessage[] = task.planTurns ?? [{ role: 'user', content: task.prompt }];
       const planMessages: ChatMessage[] = [
         { role: 'system', content: opts.planSystemPrompt },
-        { role: 'user', content: task.prompt },
+        ...convo,
       ];
       planSession = opts.planModel
         ? await sharedPlan(opts.planModel, task, trial, planMessages)
         : await withRetries(planMessages);
       buildMessages = [
         { role: 'system', content: taskSystemPrompt },
-        { role: 'user', content: task.prompt },
+        ...convo,
         { role: 'assistant', content: planSession.segmentTexts.join('\n') },
         { role: 'user', content: BUILD_GO_PROMPT },
       ];
