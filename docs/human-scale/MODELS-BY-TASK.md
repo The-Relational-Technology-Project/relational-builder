@@ -124,7 +124,7 @@ looked at by eye, Kimi's and Mistral Small 4's single pages and both Gemmas' app
 - Planning: Qwen 3.8 27B (Apache 2.0), or Gemma 4 31B at a third of the wait.
 - Builds: Gemma 4 31B (Apache 2.0). Mistral Small 4 if a single page is acceptable.
 
-Every one of these is Apache 2.0 and served by more than one host. A Mistral-and-Qwen-only route
+Every one of these is Apache 2.0. Checked on OpenRouter on Nov 15: Mistral Small 3.2 has four hosts, Qwen 3.8 27B and Gemma 4 31B more than eight each, and Mistral Small 4 only Mistral itself. The Knowy and planning runs did not pin a host or a precision, so those scores mix them; a default should pin its host and be retested. A Mistral-and-Qwen-only route
 (Mistral Small 3.2, Qwen 3.8 27B, Mistral Small 4) exists for anyone who wants no model from a
 frontier lab; it gives up the app shape on builds.
 
