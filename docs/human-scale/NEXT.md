@@ -302,6 +302,14 @@ stack layer it moved; pace paid work at $3 to $5 a day.
    show, one per shape (a status tool, a content wall, a guide, an
    archive, a schedule), until you pick.
 
+11. **More direction, more intuitive (Nov 15 evening).** Make-it-obvious
+   rules plus three library screens gave Gemma 12 of 12 working apps, 11
+   on the first try, first screens as full as Opus's, and by eye clearer
+   ones (sheet: https://claude.ai/artifact/NFwUoQNfVpJ7hokCpezjQA). If
+   that matches your read, the Builder can use both by default behind the
+   flag. Default if unanswered: the next run puts them in the Builder
+   behind the flag and measures on the spread set.
+
 ## Tomorrow (one run, about 75 minutes)
 
 1. **The fridge's second column still lacks shifts.** The Nov 15 rule
