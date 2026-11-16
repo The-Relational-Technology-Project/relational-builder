@@ -103,6 +103,7 @@ export async function writeReviewPage(
   #ranking { margin: 1.25rem 0; }
   #ranking ol { display: flex; gap: .5rem; flex-wrap: wrap; list-style: none; padding: 0; }
   #ranking li { border: 1px solid currentColor; border-radius: 8px; padding: .3rem .6rem; cursor: grab; user-select: none; }
+  #ranking li button { font: inherit; padding: 0 .35rem; margin-left: .15rem; cursor: pointer; }
   button { padding: .4rem .8rem; border-radius: 8px; cursor: pointer; }
   .taskhead { font-size: 1rem; margin: 1.5rem 0 .5rem; opacity: .85; }
 </style>
@@ -115,11 +116,11 @@ export async function writeReviewPage(
   <span id="saved" style="opacity:.6;font-size:.8rem"></span>
 </header>
 <div id="ranking">
-  <strong>Overall ranking</strong> (drag to reorder, best first)
+  <strong>Overall ranking</strong> (best first: use the arrows, or drag)
   <ol id="ranklist">${shuffled
     .map(
       a =>
-        `<li draggable="true" data-alias="${a}"><span class="blind">${blindLabel.get(a)}</span><span class="real hidden">${a}</span></li>`,
+        `<li draggable="true" data-alias="${a}"><span class="blind">${blindLabel.get(a)}</span><span class="real hidden">${a}</span> <button type="button" data-move="-1" aria-label="Move earlier">←</button><button type="button" data-move="1" aria-label="Move later">→</button></li>`,
     )
     .join('')}</ol>
 </div>
@@ -165,9 +166,22 @@ list.addEventListener('dragover', e => {
   const before = e.clientX < rect.x + rect.width / 2;
   list.insertBefore(dragging, before ? over : over.nextSibling);
 });
-list.addEventListener('drop', () => {
+// The order only counts once the reviewer has moved something. Exporting an
+// untouched list would report the page's shuffled order as their judgment.
+function commitRanking() {
   state.ranking = [...list.querySelectorAll('li')].map(li => li.dataset.alias);
   save();
+}
+list.addEventListener('drop', commitRanking);
+// Arrow buttons: HTML drag-and-drop never fires on touch screens, and is
+// unreliable in some desktop browsers for a page opened from disk.
+list.addEventListener('click', e => {
+  const btn = e.target.closest('button[data-move]');
+  if (!btn) return;
+  const li = btn.closest('li');
+  if (btn.dataset.move === '-1' && li.previousElementSibling) list.insertBefore(li, li.previousElementSibling);
+  else if (btn.dataset.move === '1' && li.nextElementSibling) list.insertBefore(li.nextElementSibling, li);
+  commitRanking();
 });
 if (state.ranking.length) {
   for (const alias of [...state.ranking].reverse()) {
@@ -178,7 +192,7 @@ if (state.ranking.length) {
 
 document.getElementById('export').addEventListener('click', () => {
   const reviewer = prompt('Your name (for the report):') || 'anonymous';
-  const ranking = [...list.querySelectorAll('li')].map(li => li.dataset.alias);
+  const ranking = state.ranking;
   const blob = new Blob(
     [JSON.stringify({ runId: RUN_ID, reviewer, scores: state.scores, ranking }, null, 2)],
     { type: 'application/json' },

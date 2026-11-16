@@ -20,8 +20,8 @@
 
 | Model | Design | RTP fit | Complete | Rank |
 |---|---|---|---|---|
-| pareto | 4 | 5 | 4 | #1 |
-| claude-opus-5-5 | 5 | 5 | 5 | #2 |
+| pareto | 4 | 5 | 4 | — |
+| claude-opus-5-5 | 5 | 5 | 5 | — |
 
 ## Which model for what
 

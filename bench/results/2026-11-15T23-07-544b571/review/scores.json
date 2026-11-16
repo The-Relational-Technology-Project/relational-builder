@@ -13,8 +13,5 @@
       "completeness": 5
     }
   },
-  "ranking": [
-    "pareto",
-    "claude-opus-5-5"
-  ]
+  "ranking": []
 }
