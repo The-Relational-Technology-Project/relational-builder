@@ -1,10 +1,10 @@
 import { create } from 'zustand';
+import { communityOpenBuildModel, communityOpenBuilds } from '@/human-scale/open-build';
 import { builderClient } from '@/cloud/builder-client';
 import { useAuthStore } from '@/store/auth-store';
 import { useProviderStore } from '@/store/provider-store';
 import { setCommunityTokenSource } from '@/providers/openai-compatible';
-import { isHumanScale } from '@/human-scale/flag';
-import { OPEN_BUILDER_DEFAULT, isOpenBuilderModel } from '@/human-scale/builder-model';
+import { isOpenBuilderModel } from '@/human-scale/builder-model';
 
 /**
  * Models covered by the RTP community key (mirror of the proxy's allowlist).
@@ -252,8 +252,8 @@ export function communityDefaultModelFor(
   // bench vouches for (docs/human-scale/builder-model.ts), through the
   // community route; planning stays on Claude until an open model has
   // earned that stage too. Off the flag, nothing changes.
-  if (isHumanScale() && stage !== 'plan') {
-    return { model: OPEN_BUILDER_DEFAULT, providerId: 'openrouter', stage };
+  if (communityOpenBuilds() && stage !== 'plan') {
+    return { model: communityOpenBuildModel(), providerId: 'openrouter', stage };
   }
   const model =
     stage === 'plan'
@@ -272,7 +272,7 @@ function onCommunityDefaults(): boolean {
   const providers = useProviderStore.getState();
   if (!useCommunityStore.getState().active || providers.modelPinned) return false;
   if (providers.activeProviderId === 'claude') return !providers.apiKeys['claude'];
-  if (isHumanScale() && providers.activeProviderId === 'openrouter') return !providers.apiKeys['openrouter'];
+  if (communityOpenBuilds() && providers.activeProviderId === 'openrouter') return !providers.apiKeys['openrouter'];
   return false;
 }
 
@@ -292,6 +292,6 @@ export function resolveCommunityModelDefault(
  *  open builder models behind the flag */
 export function communityCovers(providerId: string, modelId: string): boolean {
   if (providerId === 'claude') return COMMUNITY_MODELS.includes(modelId);
-  if (providerId === 'openrouter') return isHumanScale() && isOpenBuilderModel(modelId);
+  if (providerId === 'openrouter') return communityOpenBuilds() && isOpenBuilderModel(modelId);
   return false;
 }

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { openModelBuildPath } from '@/human-scale/open-build';
 import { Loader2 } from 'lucide-react';
 import type { FileEntry } from '@/project/virtual-fs';
 import type { EnvVar } from '@/store/env-store';
@@ -9,7 +10,6 @@ import { bundleProject, findFrameworkEntry } from '@/preview/bundler/bundle';
 import { ASSET_APPLIER, buildShellHtml, EMPTY_RENDER_SENTRY, ERROR_RELAY, NAV_BRIDGE } from '@/preview/bundler/shell';
 import { isPhotoAssetPath } from '@/project/assets';
 import { KIT_FILES } from '@/kit';
-import { isHumanScale } from '@/human-scale/flag';
 import { checkImports, formatImportIssues } from '@/project/import-check';
 import { INSPECT_SOURCE } from '@/preview/inspect-source';
 import {
@@ -121,7 +121,7 @@ export function FrameworkPreview({
         return;
       }
       setHealth('ok');
-      if (isHumanScale()) {
+      if (openModelBuildPath()) {
         const projectFiles: Record<string, string> = {};
         for (const f of files) projectFiles[f.path.startsWith('/') ? f.path : '/' + f.path] = f.content;
         setStaticError(formatImportIssues(checkImports(projectFiles, { kitFiles: KIT_FILES })));

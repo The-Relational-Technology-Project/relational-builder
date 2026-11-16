@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { registry } from '@/providers/registry';
 import type { ModelInfo } from '@/providers/types';
+import { setActiveBuilderModelSource } from '@/human-scale/open-build';
 
 interface ApiKeyConfig {
   [providerId: string]: string;
@@ -203,3 +204,8 @@ export const useProviderStore = create<ProviderState>()(
     },
   ),
 );
+
+// Lets modules that can't import this store (the code extractor, the
+// context builder) ask which model is building: the open-model build path
+// follows the model (src/human-scale/open-build.ts)
+setActiveBuilderModelSource(() => useProviderStore.getState().activeModelId ?? null);

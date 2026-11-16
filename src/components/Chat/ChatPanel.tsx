@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { communityOpenBuildModel, communityOpenBuilds, openModelBuildPath } from '@/human-scale/open-build';
 import { REFERENCE_SCREEN_COUNT, pickReferenceScreens, referenceDataUrl, referenceScreensNote } from '@/human-scale/reference-screens';
 import { runawayReason } from '@/human-scale/runaway';
 import { extractOperations } from '@/project/code-extractor';
@@ -235,8 +236,8 @@ function communityModelNote(stage: CommunityModelStage, movedOff: string): strin
     );
   // Behind the flag, builds and edits run on an open model the community
   // could host itself; the note says so and where the evidence is
-  if (isHumanScale() && stage !== 'plan') {
-    const open = OPEN_BUILDER_MODELS[0];
+  if (communityOpenBuilds() && stage !== 'plan') {
+    const open = OPEN_BUILDER_MODELS.find(m => m.id === communityOpenBuildModel()) ?? OPEN_BUILDER_MODELS[0];
     return `This ${stage === 'first-build' ? 'build' : 'change'} runs on **${open.name}**, an open model a community can host itself, chosen from the bench board (${open.evidence}). It says which host served it in the build report. Rather use ${name(movedOff)}? Pick it in the model menu and it will stick for this project.`;
   }
   if (stage === 'plan') {
@@ -636,7 +637,7 @@ export function ChatPanel() {
     // Only for models that read images: GLM 4.5 Air and GPT-OSS are
     // text-only, and an image would fail their whole request (Nov 13)
     let sendAttachments = attachments;
-    if (isFirstBuild && !wasFix && !attachments?.length && isHumanScale() && isOpenBuilderModel(modelForSend)) {
+    if (isFirstBuild && !wasFix && !attachments?.length && isOpenBuilderModel(modelForSend)) {
       const askedFor = [...priorMessages.filter(m => m.role === 'user').map(m => m.content), content].join('\n');
       const screens = pickReferenceScreens(askedFor, REFERENCE_SCREEN_COUNT);
       if (acceptsImages(modelForSend)) {
@@ -1085,7 +1086,7 @@ export function ChatPanel() {
             // already wrote, or keeps writing past the cap, has stopped making
             // progress; stop it rather than spend the remaining continuations
             // (src/human-scale/runaway.ts; Mistral, Nov 13: 175 writes)
-            const chainTexts = isHumanScale() && (truncated || chunked)
+            const chainTexts = openModelBuildPath() && (truncated || chunked)
               ? useChatStore.getState().messages
                   .filter(m => m.role === 'assistant')
                   .slice(-(useChatStore.getState().continuationCount + 1))

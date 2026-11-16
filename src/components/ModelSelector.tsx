@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
+import { communityOpenBuilds } from '@/human-scale/open-build';
 import { useProviderStore } from '@/store/provider-store';
 import { useCommunityStore, communityCovers } from '@/store/community-store';
-import { isHumanScale } from '@/human-scale/flag';
 import { registry } from '@/providers/registry';
 import { modelLabel } from '@/providers/model-label';
 import {
@@ -50,7 +50,7 @@ export function ModelSelector({ className }: { className?: string }) {
   const onCommunityKey =
     communityActive &&
     ((activeProviderId === 'claude' && !apiKeys['claude']) ||
-      (isHumanScale() && activeProviderId === 'openrouter' && !apiKeys['openrouter']));
+      (communityOpenBuilds() && activeProviderId === 'openrouter' && !apiKeys['openrouter']));
 
   // The chip names the model, not its maker — "Opus 5", not "Claude Opus 5".
   // The full name is one hover (or one open menu) away, so nothing is hidden;

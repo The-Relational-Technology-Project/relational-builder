@@ -1,6 +1,7 @@
 import type { LLMProvider, ChatMessage, StreamCallbacks, ModelInfo } from './types';
+import { communityOpenBuilds } from '@/human-scale/open-build';
 import { isHumanScale } from '@/human-scale/flag';
-import { OPEN_BUILDER_MODELS, openRouterRoutingBody } from '@/human-scale/builder-model';
+import { OPEN_BUILDER_MODELS, isOpenBuilderModel, openRouterRoutingBody } from '@/human-scale/builder-model';
 
 /**
  * Community route: a signed-in builder with no personal key can reach an
@@ -403,24 +404,33 @@ export function createOpenAIProvider(): OpenAICompatibleProvider {
 
 /** Pre-configured: OpenRouter (Tier 2 -- BYOK, access to many models) */
 export function createOpenRouterProvider(): OpenAICompatibleProvider {
-  const humanScale = isHumanScale();
+  const communityOpen = communityOpenBuilds();
+  const openModels = OPEN_BUILDER_MODELS.map(m => ({ id: m.id, name: m.name, provider: 'openrouter' }));
   const p = new OpenAICompatibleProvider({
     id: 'openrouter',
     name: 'OpenRouter',
     baseUrl: 'https://openrouter.ai/api',
     defaultModels: [
-      // Behind the flag the open models the bench vouches for come first,
-      // and the community route lets a signed-in builder use them with no key
-      ...(humanScale
-        ? OPEN_BUILDER_MODELS.map(m => ({ id: m.id, name: m.name, provider: 'openrouter' }))
-        : []),
+      // The open models the bench vouches for, Gemma first: anyone with an
+      // OpenRouter key can build with them (BYOK). When community builds
+      // switch to an open model, the community route lets a signed-in
+      // builder use them with no key (src/human-scale/open-build.ts)
+      // Listed first (so picked by default) only when open models are the
+      // community path or the flag is on; otherwise Claude stays first and
+      // the open models follow as choices
+      ...(communityOpen || isHumanScale() ? openModels : []),
       { id: 'anthropic/claude-sonnet-5', name: 'Claude Sonnet 5', provider: 'openrouter' },
       { id: 'google/gemini-3.5-flash', name: 'Gemini 3.5 Flash', provider: 'openrouter' },
+      ...(communityOpen || isHumanScale() ? [] : openModels),
     ],
-    ...(humanScale ? { communityRoute: 'openrouter-community' } : {}),
+    ...(communityOpen ? { communityRoute: 'openrouter-community' } : {}),
   });
-  // Hosts the board has shown serving a model broken stay out of every
-  // Builder call while the flag is on (docs/human-scale/BENCH-BOARD.md)
-  if (humanScale) p.setExtraBodyForModel(model => openRouterRoutingBody(undefined, model));
+  // Hosts the board has shown serving a model broken stay out of every call
+  // to an open builder model, flag or not (Gemma 26B on an fp4 host built
+  // 1 working app in 7; docs/human-scale/BENCH-BOARD.md). Behind the flag
+  // the exclusion covers every model, as before.
+  p.setExtraBodyForModel(model =>
+    isHumanScale() || isOpenBuilderModel(model) ? openRouterRoutingBody(undefined, model) : {},
+  );
   return p;
 }

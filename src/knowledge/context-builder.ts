@@ -1,4 +1,5 @@
 import { formatPrinciplesForPrompt } from './rtp-principles';
+import { openModelBuildPath } from '@/human-scale/open-build';
 import { INTEGRATIONS, GUIDED_SERVICES } from '@/integrations/catalog';
 import { formatStudioForPrompt, type StudioContext } from './studio-context';
 import { formatCivicDataForPrompt, type CityDataEndpoint } from './civic-data';
@@ -19,7 +20,6 @@ import {
 import { formatReferenceDocsForPrompt } from './references-prompt';
 import type { ReferenceDoc } from '@/store/references-store';
 import { splitProjectSnapshot, formatChangedFilesForPrompt } from './snapshot-split';
-import { isHumanScale } from '@/human-scale/flag';
 import { HUMAN_SCALE_BUILD_RULES } from '@/human-scale/prompt';
 import { designScaffoldPrompt } from '@/human-scale/design-scaffold';
 
@@ -755,7 +755,7 @@ export function buildPromptContext(
   const sections = [base, '', formatPrinciplesForPrompt()];
   // Human-scale branch: import discipline for small open models (see
   // src/human-scale/prompt.ts); build mode only, off unless the flag is on
-  if (base === BASE_INSTRUCTIONS && isHumanScale()) {
+  if (base === BASE_INSTRUCTIONS && openModelBuildPath()) {
     sections.push('', HUMAN_SCALE_BUILD_RULES);
     // The design-scaffolding experiment (src/human-scale/design-scaffold.ts):
     // empty unless a variant is chosen

@@ -36,6 +36,12 @@ export const OPEN_BUILDER_MODELS: OpenBuilderModel[] = [
     evidence: 'Nov 5: best design of the open models by a clear margin (Josh, reviewing the board); 9 of 12 clean off the one host that serves it broken; 4B active parameters, runs on a 16 GB box',
   },
   {
+    id: 'google/gemma-4-31b-it',
+    name: 'Gemma 4 31B (open)',
+    images: true,
+    evidence: 'Nov 15 to 16: matched Gemma 4 26B on the bench (15 of 16 working on the spread set, 8 of 8 on the comparison prompts) and builds faster; 31B dense, Apache 2.0, about 17.5 GB at 4-bit',
+  },
+  {
     id: 'z-ai/glm-4.5-air',
     name: 'GLM 4.5 Air (open)',
     evidence: 'Nov 4: 71% clean over 24 guarded builds on the comparison prompts, 86s median, under a cent a build',

@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react';
+import { openModelBuildPath } from '@/human-scale/open-build';
 import { Wrench, Loader2 } from 'lucide-react';
 import { useChatStore } from '@/store/chat-store';
 import { useHistoryStore } from '@/store/history-store';
 import { useProjectStore } from '@/store/project-store';
 import { recordBuildEvent } from '@/report/build-log';
 import { suggestLucideIcons } from '@/preview/lucide-icons';
-import { isHumanScale } from '@/human-scale/flag';
 import { mayAutoFix } from '@/human-scale/fix-passes';
 import { fixHints } from '@/project/fix-hints';
 import { KIT_FILES } from '@/kit';
@@ -82,7 +82,7 @@ function fixPrompt(errorText: string, attempt: number): string {
   }
   // Human-scale branch: exact kit export names and import lines for the
   // import mistakes the static guard raises (src/project/fix-hints.ts)
-  if (isHumanScale()) {
+  if (openModelBuildPath()) {
     const hints = fixHints(errorText, KIT_FILES);
     if (hints.length) parts.push('', ...hints);
   }

@@ -17,7 +17,7 @@
  *    ```tsx
  */
 
-import { isHumanScale } from '@/human-scale/flag';
+import { openModelBuildPath } from '@/human-scale/open-build';
 import { repairImports, repairLucideImports, removeUnusedImports, REPAIRABLE_PATH } from './import-repair';
 import { addMissingImports, repairKitImports } from './auto-import';
 import { hoistRouter, isKitStub, matchAppImport, repairEntry, stripNestedRouter } from './scaffold-guard';
@@ -66,6 +66,10 @@ export function extractFiles(markdown: string): ExtractedFile[] {
  * are checked against them (stripNestedRouter).
  */
 export function extractOperations(markdown: string, existing?: Record<string, string>): ExtractionResult {
+  // The repairs below run on the open-model build path: behind the
+  // human-scale flag, or whenever an open model is the one building
+  // (src/human-scale/open-build.ts). Claude builds off the flag are untouched.
+  const openPath = openModelBuildPath();
   const writes: ExtractedFile[] = [];
   const edits: ExtractedEdit[] = [];
   let truncatedPath: string | undefined;
@@ -122,8 +126,8 @@ export function extractOperations(markdown: string, existing?: Record<string, st
         // (src/project/import-repair.ts)
         // A kit file rewritten as a stub would shadow the kit; drop the
         // write and keep the kit (src/project/scaffold-guard.ts)
-        if (isHumanScale() && isKitStub(filename, content, KIT_FILES)) continue;
-        const fixed = isHumanScale() && REPAIRABLE_PATH.test(filename)
+        if (openPath && isKitStub(filename, content, KIT_FILES)) continue;
+        const fixed = openPath && REPAIRABLE_PATH.test(filename)
           ? repairEntry(
               filename,
               addMissingImports(
@@ -153,7 +157,7 @@ export function extractOperations(markdown: string, existing?: Record<string, st
 
   // One router, at the top (src/project/scaffold-guard.ts)
   const existingMain = existing?.['/src/main.tsx'] ?? existing?.['/src/main.jsx'];
-  const routed = isHumanScale()
+  const routed = openPath
     ? stripNestedRouter(matchAppImport(hoistRouter(writes).writes).writes, existingMain).writes
     : writes;
   return { writes: routed, edits, truncatedPath };

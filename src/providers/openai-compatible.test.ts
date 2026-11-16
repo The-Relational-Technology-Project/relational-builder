@@ -122,3 +122,13 @@ describe('per-model extra body', () => {
   });
 });
 
+
+describe('OpenRouter BYOK menu', () => {
+  it('lists Gemma for everyone, after Claude when the flag is off', async () => {
+    const { createOpenRouterProvider } = await import('./openai-compatible');
+    const ids = createOpenRouterProvider().getDefaultModelsList().map(m => m.id);
+    expect(ids[0]).toBe('anthropic/claude-sonnet-5');
+    expect(ids).toContain('google/gemma-4-26b-a4b-it');
+    expect(ids).toContain('google/gemma-4-31b-it');
+  });
+});
