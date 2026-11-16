@@ -13,6 +13,8 @@ import { renderableContent } from './display';
 import { QUESTION_HEADING_RE, docHeadingCount, isPlanDocument, shouldOfferBuild } from './plan-approval';
 import { CodeBlock } from './CodeBlock';
 import { ConnectionSuggestion } from './ConnectionSuggestion';
+import { entryLinkComponents } from '@/components/entry-link-components';
+import { hasEntryLink, linkifyEntries, type EntryLinkTarget } from '@/knowledge/entry-links';
 import { Button } from '@/components/ui/button';
 import { Hammer, History, FileCode, ChevronDown, ChevronRight, Loader2, Copy, Check, ArrowDown, ArrowRight, Code2, GitBranch, Sparkles, MessagesSquare, BookOpen, Library } from 'lucide-react';
 
@@ -342,6 +344,16 @@ export function MessageList({ messages, onBuildPlan, isGenerating }: MessageList
   // Reading back through history shouldn't fight the auto-scroll — only
   // follow the stream while the person is already near the bottom
   const [nearBottom, setNearBottom] = useState(true);
+  // Whether the view follows the stream. Only the person's own scrolling
+  // (wheel, touch, keys, the scrollbar) turns it off — a fast stream can
+  // outrun a smooth scroll and briefly leave the view far from the bottom,
+  // which must not read as "they scrolled away". Reaching the bottom again,
+  // or sending a message, turns it back on.
+  const [following, setFollowing] = useState(true);
+  // Read by a follow already scheduled when the person scrolls away, so it
+  // stands down instead of dragging them back
+  const followingRef = useRef(true);
+  useEffect(() => { followingRef.current = following; }, [following]);
   // On a shared project, build asks carry the sender's name so everyone can
   // tell whose ask the AI is answering. Solo projects stay unlabelled.
   const shared = useCloudStore(s => s.members.length > 0);
@@ -350,22 +362,93 @@ export function MessageList({ messages, onBuildPlan, isGenerating }: MessageList
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    const onScroll = () => {
-      setNearBottom(el.scrollHeight - el.scrollTop - el.clientHeight < 120);
+    let userInputAt = 0;
+    const stopFollowing = () => {
+      followingRef.current = false;
+      setFollowing(false);
     };
+    // An upward wheel or key is unambiguous — stop at once, before the next
+    // streamed token can schedule a follow that drags the view back down
+    const onInput = (e: Event) => {
+      userInputAt = Date.now();
+      if (e instanceof WheelEvent && e.deltaY < 0) stopFollowing();
+      if (e instanceof KeyboardEvent && ['ArrowUp', 'PageUp', 'Home'].includes(e.key)) stopFollowing();
+    };
+    const onScroll = () => {
+      const near = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
+      setNearBottom(near);
+      if (near) {
+        setFollowing(true);
+      } else if (Date.now() - userInputAt < 400) {
+        stopFollowing();
+      }
+    };
+    const inputs = ['wheel', 'touchmove', 'pointerdown', 'keydown'] as const;
+    inputs.forEach(t => el.addEventListener(t, onInput, { passive: true }));
     el.addEventListener('scroll', onScroll, { passive: true });
-    return () => el.removeEventListener('scroll', onScroll);
+    return () => {
+      inputs.forEach(t => el.removeEventListener(t, onInput));
+      el.removeEventListener('scroll', onScroll);
+    };
   }, []);
+
+  // The person's newest message in this sitting is the reading anchor: a
+  // reply follows the stream only until that message reaches the top of the
+  // view, then stops — so a long reply (or a plan document that lands in one
+  // piece) is read from its start, not found at its end, and the arrow below
+  // says there's more. Messages from before this view mounted (opening a
+  // project) don't anchor; that view opens at the bottom as before.
+  const [mountedAt] = useState(() => Date.now());
+  const anchorId = useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const m = messages[i];
+      if (m.role === 'user' && !m.isAuto) {
+        return m.timestamp >= mountedAt - 5_000 ? m.id : null;
+      }
+    }
+    return null;
+  }, [messages, mountedAt]);
+  // A fresh send always brings the conversation back into view, even if the
+  // person had scrolled up through history while typing
+  const [seenAnchor, setSeenAnchor] = useState(anchorId);
+  if (anchorId !== seenAnchor) {
+    setSeenAnchor(anchorId);
+    if (anchorId) setFollowing(true);
+  }
 
   // Follow the stream, throttled: this effect fires on every streamed token,
   // and restarting a smooth scroll animation hundreds of times a second turns
-  // long builds into jank. One scroll per ~150ms reads identically.
+  // long builds into jank. One scroll per ~150ms reads identically. The
+  // target is recomputed when the scroll actually runs, so a delayed follow
+  // can never overshoot the anchor (it once dragged a just-landed plan
+  // document back to its end).
   const lastContent = messages[messages.length - 1]?.content;
   const lastFollowAt = useRef(0);
   const followTimer = useRef<number | null>(null);
   useEffect(() => {
-    if (!nearBottom) return;
-    const follow = () => bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (!following) return;
+    // Where following may scroll to: the bottom, capped at the anchor's top
+    // (or, for a long message, its last third of a screen). Measured when
+    // the scroll runs, not when it was scheduled.
+    const follow = () => {
+      const el = scrollRef.current;
+      if (!el || !followingRef.current) return;
+      let target = el.scrollHeight - el.clientHeight;
+      const anchor = anchorId && !cooking
+        ? el.querySelector<HTMLElement>(`[data-msg-id="${anchorId}"]`)
+        : null;
+      if (anchor) {
+        const top = anchor.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop;
+        const anchorTop = Math.max(top, top + anchor.offsetHeight - el.clientHeight / 3) - 16;
+        target = Math.min(target, Math.max(0, anchorTop));
+      }
+      // Following only ever moves down. The anchor caps how far it goes; it
+      // never pulls a reader who has scrolled past it back up (it did: reaching
+      // the bottom turned following back on, and the next token snapped the
+      // view to the top of the message).
+      if (target - el.scrollTop < 2) return;
+      el.scrollTo({ top: target, behavior: 'smooth' });
+    };
     const since = Date.now() - lastFollowAt.current;
     if (since >= 150) {
       lastFollowAt.current = Date.now();
@@ -378,34 +461,15 @@ export function MessageList({ messages, onBuildPlan, isGenerating }: MessageList
       }, 150 - since);
     }
     // `cooking` rides the deps so the reveal (hidden chain → visible result)
-    // also follows to the bottom, where the summary and next step land
-  }, [messages, lastContent, nearBottom, cooking]);
+    // also follows, to the start of what landed
+  }, [messages, lastContent, following, cooking, anchorId]);
   useEffect(() => () => {
     if (followTimer.current !== null) clearTimeout(followTimer.current);
   }, []);
 
-  // A plan document stays hidden while it's written and lands in one piece —
-  // when it does, start the reader at its top instead of letting the
-  // bottom-follow drop them at the end of a document they haven't read yet.
-  // Conversational plan-mode replies stream live and never jump the scroll.
   const lastMessage = messages[messages.length - 1];
-  const streamingPlanId = useRef<string | null>(null);
-  useEffect(() => {
-    if (lastMessage?.isPlan && lastMessage.isStreaming) {
-      streamingPlanId.current = lastMessage.id;
-      return;
-    }
-    if (lastMessage && streamingPlanId.current === lastMessage.id && !lastMessage.isStreaming) {
-      streamingPlanId.current = null;
-      if (!isPlanDocument(lastMessage.content)) return;
-      const el = scrollRef.current?.querySelector(`[data-msg-id="${lastMessage.id}"]`);
-      // After the bottom-follow above has had its say — this jump wins
-      requestAnimationFrame(() => {
-        setNearBottom(false); // hand the scroll back to the reader
-        el?.scrollIntoView({ block: 'start' });
-      });
-    }
-  }, [lastMessage]);
+  // The arrow names what it's for when a reply runs on below the view
+  const moreBelow = !!anchorId && lastMessage?.role === 'assistant';
 
   if (messages.length === 0) {
     return null;
@@ -483,10 +547,11 @@ export function MessageList({ messages, onBuildPlan, isGenerating }: MessageList
       {!nearBottom && (
         <button
           onClick={() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' })}
-          className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 rounded-full border bg-background/95 shadow-md p-2 text-muted-foreground hover:text-foreground transition-colors"
+          className={`absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 rounded-full border bg-background/95 shadow-md text-muted-foreground hover:text-foreground transition-colors ${moreBelow ? 'px-3 py-1.5 text-xs' : 'p-2'}`}
           title="Jump to the latest"
         >
           <ArrowDown className="size-3.5" />
+          {moreBelow && <span>More below</span>}
         </button>
       )}
     </div>
@@ -627,9 +692,32 @@ const MessageBubble = memo(function MessageBubble({
   // Display-only strips and fence folding (see ./display.ts). Memoized so
   // settled bubbles never re-run it; the streaming bubble re-parses per
   // token anyway, and this pre-pass is small next to the markdown parse.
-  const rendered = useMemo(
+  const stripped = useMemo(
     () => renderableContent(message.isPlan ? stripPlanQuestions(message.content) : message.content),
     [message.content, message.isPlan],
+  );
+  // The entries this reply drew on, linked where the reply names them —
+  // "we're borrowing from the Mutual Aid Pod recipe" opens the recipe from
+  // the words themselves. The model links what it cites (the prompt hands
+  // it every entry's address); this pass catches the titles it named
+  // without a link. Refs land when the reply settles, so streaming text
+  // passes through untouched.
+  const { rendered, unlinkedRefs } = useMemo(() => {
+    const refs: EntryLinkTarget[] = [
+      ...(message.commonsRefs ?? []).map(r => ({ source: 'commons' as const, id: r.slug, title: r.title })),
+      ...(message.studioRefs ?? []).map(r => ({ source: 'studio' as const, id: r.id, title: r.title })),
+    ];
+    if (isUser || refs.length === 0) return { rendered: stripped, unlinkedRefs: [] as EntryLinkTarget[] };
+    const { text } = linkifyEntries(stripped, refs);
+    return {
+      rendered: text,
+      unlinkedRefs: refs.filter(r => !hasEntryLink(text, r.source, r.id)),
+    };
+  }, [stripped, isUser, message.commonsRefs, message.studioRefs]);
+  const openGalleryEntry = useUIStore(s => s.openGalleryEntry);
+  const linkComponents = useMemo(
+    () => entryLinkComponents(ref => openGalleryEntry(ref.source, ref.id)),
+    [openGalleryEntry],
   );
 
   // Auto sends (quality review, error fix, length continue) render as a
@@ -713,6 +801,7 @@ const MessageBubble = memo(function MessageBubble({
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
+                ...linkComponents,
                 code({ className, children, node, ...props }) {
                   const match = /language-(\w+)/.exec(className || '');
                   const codeStr = String(children).replace(/\n$/, '');
@@ -760,11 +849,8 @@ const MessageBubble = memo(function MessageBubble({
       {message.isPlan && !message.isStreaming && (
         <PlanQuestionCards message={message} />
       )}
-      {!isUser && !message.isStreaming && message.commonsRefs && message.commonsRefs.length > 0 && (
-        <CommonsRefChips refs={message.commonsRefs} />
-      )}
-      {!isUser && !message.isStreaming && message.studioRefs && message.studioRefs.length > 0 && (
-        <StudioRefChips refs={message.studioRefs} />
+      {!isUser && !message.isStreaming && unlinkedRefs.length > 0 && (
+        <DrewOnChips refs={unlinkedRefs} onOpen={openGalleryEntry} />
       )}
       {!isUser && !message.isStreaming && message.content.trim() && (
         <div className="mt-1 pl-1 flex items-center gap-2">
@@ -799,50 +885,29 @@ const MessageBubble = memo(function MessageBubble({
 });
 
 /**
- * The commons entries a reply actually drew on — surfaced by retrieval AND
- * named in the text. Each chip opens the entry's gallery card, so "we're
- * borrowing from the Mutual Aid Pod recipe" is one tap from the recipe
- * itself. This is the visible half of the commons loop; the build log keeps
- * the measurable half.
+ * The entries a reply drew on but didn't name in a linkable way — credited
+ * the way a person would ("the Ushahidi lesson"), so the in-line pass had
+ * nothing to wrap. Each chip opens the entry's card. Entries the reply does
+ * name are linked in the text itself; this is the remainder, not a footer
+ * of everything.
  */
-function CommonsRefChips({ refs }: { refs: { slug: string; title: string; kind: string }[] }) {
-  const openGalleryItem = useUIStore(s => s.openGalleryItem);
+function DrewOnChips({
+  refs, onOpen,
+}: {
+  refs: EntryLinkTarget[];
+  onOpen: (source: EntryLinkTarget['source'], id: string) => void;
+}) {
   return (
     <div className="mt-1.5 pl-1 flex flex-wrap items-center gap-1.5">
-      <span className="text-xs text-muted-foreground/70">Drew on the commons:</span>
+      <span className="text-xs text-muted-foreground/70">Also drew on:</span>
       {refs.slice(0, 4).map(r => (
         <button
-          key={r.slug}
-          onClick={() => openGalleryItem(r.slug)}
+          key={`${r.source}:${r.id}`}
+          onClick={() => onOpen(r.source, r.id)}
           className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-primary/5 transition-colors"
-          title={`Open "${r.title}" in the Commons Gallery`}
+          title={r.source === 'studio' ? `Open "${r.title}" in your studio's library` : `Open "${r.title}" in the Commons Gallery`}
         >
-          <BookOpen className="size-2.5 shrink-0" />
-          {r.title}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-/**
- * The studio library items a reply drew on — the same loop as the commons
- * chips, for the shelf that belongs to the builder's own studio. Each chip
- * opens the item's card in the gallery.
- */
-function StudioRefChips({ refs }: { refs: { id: string; title: string; kind: string }[] }) {
-  const openStudioLibraryItem = useUIStore(s => s.openStudioLibraryItem);
-  return (
-    <div className="mt-1.5 pl-1 flex flex-wrap items-center gap-1.5">
-      <span className="text-xs text-muted-foreground/70">Drew on the studio:</span>
-      {refs.slice(0, 4).map(r => (
-        <button
-          key={r.id}
-          onClick={() => openStudioLibraryItem(r.id)}
-          className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-primary/5 transition-colors"
-          title={`Open "${r.title}" in your studio's library`}
-        >
-          <Library className="size-2.5 shrink-0" />
+          {r.source === 'studio' ? <Library className="size-2.5 shrink-0" /> : <BookOpen className="size-2.5 shrink-0" />}
           {r.title}
         </button>
       ))}

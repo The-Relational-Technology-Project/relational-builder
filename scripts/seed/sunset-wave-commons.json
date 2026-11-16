@@ -1,0 +1,101 @@
+{
+ "studio": {
+  "slug": "local-civic-tech",
+  "display_name": "Local Civic Tech",
+  "home_url": null,
+  "steward_email": "humans@relationaltechproject.org",
+  "notes": "Tools, practices, and stories of civic technology remixable at the neighborhood level — global open-source platforms deployed at block scale, patterns proven in one place and adopted in another, and the lessons of what worked and what died. Researched substantially from the Civic Tech Field Guide (civictech.guide)."
+ },
+ "items": [
+  {
+   "slug": "the-sunset-wave",
+   "kind": "tool",
+   "title": "The Sunset Wave: A Host Map for a Day of Gatherings",
+   "summary": "400 neighbor gatherings on one day, across San Francisco's Sunset District. A map shows every block: an open dot waits for a host, a waving hand means a neighbor has said yes. New hosts claim their stretch in under a minute, neighbors send a note to the host on their block, and hosts who need a little money tick one box.",
+   "body": "[The Sunset Wave](https://thesunsetwave.org) is a day when neighbors across San Francisco's Sunset District host gatherings on their own blocks, all at once: Saturday, March 20, 2027, the spring equinox. The goal is 400 hosts, about one for every block west of 19th Avenue from Lincoln to south of Sloat. A gathering can be coffee and donuts in a driveway, a potluck out front, card games in the garage, tea on the steps, or a kids' bike parade. The host decides.\n\nIt is organized by the [Sunset Social Club](https://sunsetsocialclub.org), a free neighborhood club started by two Sunset neighbors, Josh Nesbit and Sandi Lam Harder. The Sunset has spent four years in a fight over the Great Highway. The Wave is a new story to stand next to that one: neighbors who look and believe differently, hanging out on the same sidewalk. As Josh told The San Francisco Standard, \"it's easier to create culture than change it.\" [Read the story](https://sfstandard.com/2026/11/01/the-sunset-wave-is-coming-this-spring/).\n\n**The map is the invitation**\n\nEvery block is a dot on a real street map. An open dot is waiting for someone. A waving hand means a neighbor has raised their hand there. People look for their own block first, and what they find decides what they do next:\n\n- **Their block is open.** They tap it and offer to host in under a minute: name, email or phone, and their stretch, already filled in from the dot. They can add co-hosts, say the spot is sheltered from rain, and tick one box if their block could use some funds.\n- **Someone is already hosting.** They send the host a note (\"I live on this block and could bring chairs\"). A steward reads the note first, then passes it and the sender's contact on to the host, who gets in touch directly.\n- **Their spot is not a dot.** A courtyard, a parklet, a corner, a street off the grid: they describe the stretch in their own words and a steward places it on the map.\n\nMore than one host on a block is welcome.\n\n**What stays private**\n\nHost names and contact details never appear on the map. The public page can only ask which blocks are claimed. A neighbor's note goes to a steward, not straight to the host, and the host's contact is never given out. The one number shown is how many neighbors have raised a hand, and the site waited until that number was encouraging before showing it.\n\n**More than money**\n\nThe Wave counts as a microgrant program: sponsors and neighbors fund it, and hosts who say they need a little money get it. But the money is one checkbox on the host form, not an application. What a host really gets is company:\n\n- a party for hosts before the day, to meet each other\n- a host network, with experienced block party hosts nearby\n- planning help when they ask\n- flyers by local artists\n- a little money if they need it\n- support on the day\n\n**Where it is going**\n\nThe day is step one. The idea is that 400 block hosts get to know one another, find out they can host, and then go on to do many neighborhood projects together with their neighbors. In Josh's words: \"I want our kids to grow up in a place where they know someone on every block.\"\n\n**How it is built**\n\n- One page in English, Mandarin, Cantonese and Spanish, with all the words in one dictionary per language so no language falls behind.\n- Block dots generated from the city's public street centerlines, drawn with Leaflet on OpenStreetMap tiles. Block ids never change, so a host stays attached to their block as the map grows.\n- A steward desk behind a sign-in: host signups and exports, the notes waiting for review, locations that need a person to place them, and the questions page, editable per language.\n- A thank-you page and email that ask each new host to share the Wave with a neighbor.\n- Built by neighbors with Lovable. The code is open (MIT).\n\nBy November 10, 2026, 88 neighbors had raised a hand.\n\n**Make your own**\n\n1. *In Relational Builder.* Start from the prompt \"Build: A Host Map for a Day of Gatherings\" on this shelf. Plan mode asks about your place and its edges, the day, your stewards, your languages and what hosts get, then builds the map, the host form, the note to a host and the steward desk.\n2. *From the code.* Fork [the repo](https://github.com/The-Relational-Technology-Project/sunset-wave-host-map). The Sunset's streets live in one generated file, so another neighborhood swaps in its own.\n\n**See it running**\n\nFind a block at [thesunsetwave.org](https://thesunsetwave.org).\n\n![The front page: the name with its waving hand, the date, and how many neighbors have raised a hand](https://relationalbuilder.org/media/commons/sunset-wave-home.jpg)\n\n![Offering to host: the stretch is filled in from the dot, with a small map to confirm it](https://relationalbuilder.org/media/commons/sunset-wave-host-form.jpg)\n\n![A note to the host of a claimed block: a steward reviews it before passing it on](https://relationalbuilder.org/media/commons/sunset-wave-note.jpg)\n\n![What hosts get, and how businesses and neighbors can support the day](https://relationalbuilder.org/media/commons/sunset-wave-support.jpg)",
+   "attribution": {
+    "name": "Sunset Social Club",
+    "neighborhood": "The Sunset, San Francisco",
+    "source": "thesunsetwave.org",
+    "source_repo": "The-Relational-Technology-Project/sunset-wave-host-map"
+   },
+   "source_url": "https://github.com/The-Relational-Technology-Project/sunset-wave-host-map",
+   "tags": [
+    "local-civic-tech",
+    "civic-tech-tool",
+    "microgrants",
+    "gatherings",
+    "block-parties",
+    "mapping",
+    "host-network",
+    "open-source"
+   ],
+   "metadata": {
+    "image_url": "https://relationalbuilder.org/media/commons/sunset-wave-map.jpg",
+    "hosted_url": "https://thesunsetwave.org",
+    "maker": "Sunset Social Club",
+    "license": "MIT",
+    "repo_url": "https://github.com/The-Relational-Technology-Project/sunset-wave-host-map",
+    "story_url": "https://sfstandard.com/2026/11/01/the-sunset-wave-is-coming-this-spring/",
+    "place": "The Sunset, San Francisco, CA",
+    "local_object": "a waving hand: a wave from the ocean and a hello across the street",
+    "grant_shape": "one checkbox on the host form, for hosts who say they need it",
+    "hosted": "built with Lovable (TanStack Start, Leaflet, a Postgres backend); a lighter version builds in Relational Builder",
+    "remix_idea": "A day of gatherings for your own neighborhood, with a map where neighbors claim their block and reach the host next door.",
+    "starter_prompt": "build-host-map-day-of-gatherings",
+    "practice_kind": "tool"
+   },
+   "license": "MIT",
+   "sort_order": 98,
+   "image_urls": [
+    "https://relationalbuilder.org/media/commons/sunset-wave-map.jpg",
+    "https://relationalbuilder.org/media/commons/sunset-wave-home.jpg",
+    "https://relationalbuilder.org/media/commons/sunset-wave-host-form.jpg",
+    "https://relationalbuilder.org/media/commons/sunset-wave-note.jpg",
+    "https://relationalbuilder.org/media/commons/sunset-wave-support.jpg"
+   ]
+  },
+  {
+   "slug": "build-host-map-day-of-gatherings",
+   "kind": "prompt",
+   "title": "Build: A Host Map for a Day of Gatherings",
+   "summary": "A starter build: one day when neighbors host gatherings on their own blocks, and a map that shows which blocks have a host and which are waiting. Plan mode asks about your place's edges, the day, your stewards, your languages and what hosts get before anything is built.",
+   "body": "The Sunset Wave (thesunsetwave.org) is a day when neighbors across San Francisco's Sunset District host gatherings on their own blocks, all at once. Its map shows every block: an open dot waits for a host, a waving hand means a neighbor has said yes. I want a day like that for my place, with a map like that.\n\nBefore you plan anything, ask me these, a few at a time, and wait for my answers:\n\n1. **The place and its edges.** Which streets are in, where does it stop, and what is one \"spot\" on the map: a block, a stretch of road, a building, a cul-de-sac? Roughly how many spots is that?\n2. **The day.** The date, the hours you suggest, why this day, and what happens if the weather turns.\n3. **Who is behind it.** The group neighbors will recognize, and the two or three stewards who will read notes and place tricky locations. Where should a host's reply go?\n4. **Languages.** Which languages do my neighbors read? The page should be whole in each one.\n5. **What hosts get.** A party for hosts beforehand, a group thread, planning help, flyers, supplies on the day? Is there any money, and where does it come from?\n6. **The name and the mark.** What is the day called, and what small symbol marks a claimed spot? (The Sunset's is a waving hand.)\n7. **After the day.** What do you hope the hosts go on to do together?\n\nIf I do not have a list of streets yet, offer to start with a small hand-written list of spots so I can see it work first.\n\nThen build this, and keep these rules:\n\n- **One page with the map in the middle.** The name and the date, a short invitation in a neighbor's words, the map, a few tiny examples of what hosting can look like (coffee and donuts, a potluck out front, cards in the garage), what hosts get, and the questions people really ask (What do I have to do? Do I need a permit? Someone is already hosting on my block, now what? What if it rains? Who is behind this?).\n- **Two kinds of spots.** Open, and claimed. Tapping an open spot offers to host there. Tapping a claimed one offers to send the host a note. More than one host on a spot is fine.\n- **Offering to host takes under a minute.** Name, email or phone, and the stretch, filled in from the spot they tapped and editable. Optional: co-hosts, \"the place where I'll host is sheltered from rain\", and one checkbox, \"my block could use some funds to help cover expenses\". No application, no essay. Do not call it a grant on anything a neighbor sees.\n- **A way in for places that are not on the map.** A courtyard, a corner, a street just outside the edges: they describe it in their own words, it is saved, and a steward places it. Say so on the form.\n- **A note to a host goes through a steward.** The neighbor writes a short note and leaves their email or phone. A steward reads it, then forwards the note and the neighbor's contact to that spot's host, who gets in touch directly. Tell the neighbor this before they send.\n- **Privacy is the design.** Host names and contact details never appear on the public page. The public page can only learn which spots are claimed, never who claimed them. Visitors can add an offer or a note but cannot read any.\n- **One count, shown late.** Show how many neighbors have raised a hand, and only once the number is encouraging (the Sunset waited for 20). No counts in the map legend.\n- **A steward desk behind a sign-in.** Host signups with an export, notes waiting for review with a forward button, locations waiting to be placed, and the questions section editable in each language. Every action on the desk checks the sign-in again.\n- **A thank-you that asks for one more.** After someone offers to host: \"You're on the map!\", what happens next, and an invitation to share the page with a neighbor who might host the next block.\n- **Every word in one place per language**, so no language is left half done.\n- **Spot ids never change** once people have claimed them, so the map can grow without losing anyone.\n\nNames and phone numbers need a real backend with private tables. Before the form takes real signups, tell me plainly what has to be connected and what is not safe yet, and never pretend to save.\n\nAlso write a short page for the stewards in plain language: how to review a note, how to place a location, what to say when two neighbors want the same spot, and how hosts meet each other before the day. The map fills because hosts invite hosts, so the practice matters as much as the page.\n\nCredit the lineage in one line: remixed from The Sunset Wave by the Sunset Social Club, through Relational Builder.",
+   "attribution": {
+    "name": "Sunset Social Club",
+    "neighborhood": "The Sunset, San Francisco",
+    "source": "The Sunset Wave, thesunsetwave.org",
+    "source_repo": "The-Relational-Technology-Project/sunset-wave-host-map"
+   },
+   "source_url": "https://github.com/The-Relational-Technology-Project/sunset-wave-host-map",
+   "tags": [
+    "local-civic-tech",
+    "civic-tech-prompt",
+    "starter",
+    "microgrants",
+    "gatherings",
+    "block-parties",
+    "mapping"
+   ],
+   "metadata": {
+    "image_url": "https://relationalbuilder.org/media/commons/sunset-wave-map.jpg",
+    "hosted_url": "https://thesunsetwave.org",
+    "practice_kind": "prompt",
+    "builds_on": [
+     "the-sunset-wave"
+    ],
+    "guardrails": [
+     "host names and contact details never show on the map",
+     "a steward reads every note before a host sees it",
+     "money is one checkbox, never an application",
+     "the count shows only once it is encouraging"
+    ]
+   },
+   "license": "MIT",
+   "sort_order": 396,
+   "image_urls": [
+    "https://relationalbuilder.org/media/commons/sunset-wave-map.jpg"
+   ]
+  }
+ ]
+}

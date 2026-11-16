@@ -1,6 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import { useKnowledgeStore } from '@/store/knowledge-store';
 import { useStudioStore, approvedMemberships, adminMemberships } from '@/store/studio-store';
 import { fetchPrompts, searchItems } from '@/knowledge/queries';
@@ -21,7 +19,10 @@ import { startFromStudioTool } from '@/project/start-from-tool';
 import { startFromCommonsItem } from '@/project/start-from-commons';
 import { BUILD_DAY_CARD_SLUG, BUILD_DAY_SHELF } from '@/knowledge/build-day';
 import { loadGalleryReferences, invalidateGalleryReferences } from '@/cloud/gallery-references';
-import type { GalleryReference, RefSource } from '@/knowledge/gallery-references';
+import { connectionsFor, type GalleryReference, type RefSource } from '@/knowledge/gallery-references';
+import { bodyLinkables, entryKey, type EntryLinkTarget, type EntryRef } from '@/knowledge/entry-links';
+import { EntryMarkdown } from '@/components/EntryMarkdown';
+import { printableMaterialComponents } from '@/components/printable-material-components';
 import {
   ConnectionsSection,
   type ConnectableEntry,
@@ -29,15 +30,14 @@ import {
 } from './GalleryConnections';
 import { isSuperAdmin } from '@/cloud/account-requests';
 import { GalleryToolBuilders } from '@/components/GalleryToolBuilders';
-import { StudioContributeDialog } from '@/components/StudioContributeDialog';
 import { EventShelf } from '@/components/EventShowcase';
 import { EventInspiration } from '@/components/EventInspiration';
 import { fetchMyEvents, eventScopeFor, eventCodeOfScope, type EventShelfInfo } from '@/cloud/event-showcase';
 import { useNearbyStore } from '@/store/nearby-store';
 import {
-  formatMiles, isPlaceRooted, nearestLabel, nearestMiles, NEARBY_RADII_MILES, type GeoLocation,
+  catchmentContains, describeCatchment, formatMiles, isPlaceRooted, nearestLabel, nearestMiles, NEARBY_RADII_MILES, type GeoLocation,
 } from '@/knowledge/geo';
-import { readShelfParam, writeShelfParam } from '@/router';
+import { readShelfParam, replaceEntryParam, writeShelfParam } from '@/router';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
   DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuTrigger,
@@ -58,8 +58,8 @@ import { useUIStore } from '@/store/ui-store';
 import {
   BookOpen, ExternalLink, Gift, GitBranch, GitFork, Globe, Hammer,
   HandCoins, ImageOff, Landmark, Loader2, Map as MapIcon, Newspaper, ScrollText, Sprout,
-  ChevronDown, ChevronRight, Library, Lock, KeyRound, Users, Plus,
-  ArrowLeft, LocateFixed, MapPin, Search, X,
+  ChevronDown, ChevronRight, Library, Lock, KeyRound, Users,
+  ArrowLeft, LocateFixed, MapPin, Search, Target, X,
 } from 'lucide-react';
 import { ContributeDialog } from '@/components/ContributeDialog';
 
@@ -136,7 +136,7 @@ function galleryNameFor(studioLabel: string): string {
 /** Within this many miles of a pin's centre, "in <place>" is the honest
  *  distance: the pin is no finer than the place itself */
 const PRECISION_SCALE_MILES: Record<string, number> = { neighborhood: 1, city: 12, region: 80, country: 500, origin: 12 };
-interface PlaceHit { miles: number; label: string; origin: boolean; precision: string }
+interface PlaceHit { miles: number; label: string; origin: boolean; precision: string; serves?: string }
 
 /** Shelf presentation for a commons card */
 type ShelfIconKey = 'newspaper' | 'sprout' | 'users' | 'landmark' | 'coins' | 'gift' | 'hammer';
@@ -244,6 +244,10 @@ export function CommonsGallery() {
   // Nearby: the one filter that cuts across every shelf. It rides alongside
   // search and the shelf picker rather than replacing them.
   const [nearby, setNearby] = useState(false);
+  // Serves here: the other question. Not "what is within so many miles"
+  // but "whose catchment covers the ground I am standing on". Rides on the
+  // same remembered place; a point-only pin never answers it.
+  const [servesHere, setServesHere] = useState(false);
   const nearbyPoint = useNearbyStore(s => s.point);
   const nearbyRadius = useNearbyStore(s => s.radiusMiles);
   // Where the Studio KB's tools and stories are rooted (the commons mirror
@@ -323,7 +327,6 @@ export function CommonsGallery() {
   // A studio's own shelf: not the commons, not an event room. Only there
   // does the studio contribute door make sense.
   const isStudioScope = scope !== 'commons' && !isEventScope;
-  const [contributeOpen, setContributeOpen] = useState(false);
 
   // Which of the viewer's event shelves belongs on THIS page. An event that
   // carries a studio surfaces on that studio's gallery and nowhere else. An
@@ -402,6 +405,47 @@ export function CommonsGallery() {
       clearStudioFocus();
     }
   }, [galleryFocusStudioItemId, clearStudioFocus, studioLibrary, libraryLoaded]);
+
+  // And for a KB tool or story (an in-line link in chat, or a shared
+  // /gallery?item=kb_tool:… address): open it once the knowledge store has
+  // it, and let the focus go if it never arrives.
+  const galleryFocusRef = useUIStore(s => s.galleryFocusRef);
+  const clearGalleryFocusRef = useUIStore(s => s.clearGalleryFocusRef);
+  const knowledgeLoaded = useKnowledgeStore(s => s.loaded);
+  useEffect(() => {
+    if (!galleryFocusRef) return;
+    const { source, id } = galleryFocusRef;
+    if (source === 'kb_tool') {
+      const t = tools.find(x => x.id === id);
+      if (t) { clearGalleryFocusRef(); setDetail(t); } else if (knowledgeLoaded) clearGalleryFocusRef();
+    } else if (source === 'kb_story') {
+      const st = stories.find(x => x.id === id);
+      if (st) { clearGalleryFocusRef(); setStoryDetail(st); } else if (knowledgeLoaded) clearGalleryFocusRef();
+    } else {
+      clearGalleryFocusRef();
+    }
+  }, [galleryFocusRef, clearGalleryFocusRef, tools, stories, knowledgeLoaded]);
+
+  // The open card is in the address bar (/gallery?item=commons:…), so any
+  // card is a link a person can copy for a neighbor. Replaced, not pushed:
+  // browsing cards shouldn't pile up history.
+  const hadCard = useRef(false);
+  useEffect(() => {
+    const key = detail
+      ? entryKey('kb_tool', detail.id)
+      : commonsDetail
+        ? entryKey('commons', commonsDetail.slug)
+        : studioDetail
+          ? entryKey('studio', studioDetail.id)
+          : storyDetail
+            ? entryKey('kb_story', storyDetail.id)
+            : null;
+    // Arriving at /gallery?item=… with no card open yet must not wipe the
+    // address the focus effects are about to honor
+    if (!key && !hadCard.current) return;
+    hadCard.current = !!key;
+    replaceEntryParam(key);
+  }, [detail, commonsDetail, studioDetail, storyDetail]);
 
   // Debounced hybrid search — the same semantic+text retrieval that informs
   // builds ranks the gallery, so "help seniors feel less alone" finds the
@@ -673,6 +717,13 @@ export function CommonsGallery() {
       const loc = locationOf(e);
       if (!loc) continue;
       const d = nearestMiles(loc, nearbyPoint);
+      if (servesHere) {
+        // Only what was made FOR this ground: a catchment that covers the point
+        if (!isPlaceRooted(loc) || !catchmentContains(loc, nearbyPoint)) continue;
+        near.push({ e, d, origin: false });
+        miles.set(e.key, { miles: d, label: nearestLabel(loc, nearbyPoint), origin: false, precision: loc.precision, serves: describeCatchment(loc) ?? undefined });
+        continue;
+      }
       if (d > nearbyRadius) continue;
       const origin = !isPlaceRooted(loc);
       near.push({ e, d, origin });
@@ -680,7 +731,7 @@ export function CommonsGallery() {
     }
     near.sort((a, b) => Number(a.origin) - Number(b.origin) || a.d - b.d);
     return { entries: near.map(x => x.e), miles };
-  }, [entries, nearby, nearbyPoint, nearbyRadius, locationOf]);
+  }, [entries, nearby, servesHere, nearbyPoint, nearbyRadius, locationOf]);
   const visibleEntries = placed.entries;
   /** "12 mi · Logan Square, Chicago" for a card in Nearby. A pin only as
    *  fine as a city is measured to the city's centre, so inside that
@@ -688,6 +739,7 @@ export function CommonsGallery() {
   const placeLineFor = (e: GalleryEntry): string | undefined => {
     const hit = placed.miles.get(e.key);
     if (!hit) return undefined;
+    if (hit.serves) return `serves ${hit.serves}`;
     const made = hit.origin ? ' (made there)' : '';
     const within = PRECISION_SCALE_MILES[hit.precision] ?? 0;
     if (hit.miles < within) return `in ${hit.label}${made}`;
@@ -812,6 +864,28 @@ export function CommonsGallery() {
     const i = studioLibrary.find(x => x.id === id);
     return i ? open(() => setStudioDetail(i)) : false;
   }
+
+  /** Open an entry from a link inside a card's body. A commons entry that
+   *  isn't on the shelves right now (another studio's pin, say) is fetched
+   *  on its own. */
+  function openEntry(ref: EntryRef): void {
+    if (openRef(ref.source, ref.id)) return;
+    if (ref.source === 'commons') {
+      fetchCommonsItemDetail(ref.id)
+        .then(d => { if (d) { setDetail(null); setStudioDetail(null); setStoryDetail(null); setCommonsDetail(d); } })
+        .catch(() => {});
+    }
+  }
+
+  // Every entry on the shelves, as something a body can link to by title
+  // (see bodyLinkables for which titles are safe to link unprompted)
+  const linkables = useMemo<EntryLinkTarget[]>(() => [
+    ...tools.map(t => ({ source: 'kb_tool' as const, id: t.id, title: t.name })),
+    ...stories.filter(st => st.title).map(st => ({ source: 'kb_story' as const, id: st.id, title: st.title as string })),
+    ...[...buildDayCards, ...civicCards, ...neighboringCards, ...organizingCards, ...civicTechCards, ...micrograntCards, ...deliberationCards, ...prosocialCards, ...contributedCards]
+      .map(c => ({ source: 'commons' as const, id: c.slug, title: c.title })),
+    ...studioLibrary.map(i => ({ source: 'studio' as const, id: i.id, title: i.title })),
+  ], [tools, stories, buildDayCards, civicCards, neighboringCards, organizingCards, civicTechCards, micrograntCards, deliberationCards, prosocialCards, contributedCards, studioLibrary]);
 
   async function planCommons(card: CommonsCard) {
     setBusyKey(`commons-${card.slug}`);
@@ -948,48 +1022,6 @@ export function CommonsGallery() {
           </section>
         )}
 
-        {/* The same invitation for a studio's own shelf. A member browsing
-            their gallery can add to it from here without building anything
-            first — the publish flow only covers builds, and a studio
-            collects models, practices and stories too. */}
-        {isStudioScope && (
-          <div className="rounded-lg border border-dashed p-3 flex items-start gap-3">
-            <Sprout className="size-4 text-primary mt-0.5 shrink-0" />
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium">Add something to this gallery</p>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                A model from your town, a practice that works, a prompt or a
-                story — it doesn't have to be something you built. A Studio
-                Admin reviews it before it lands on the shelf.
-              </p>
-            </div>
-            <Button size="sm" variant="outline" className="h-7 text-xs gap-1 shrink-0"
-              onClick={() => setContributeOpen(true)}>
-              <Plus className="size-3" /> Contribute
-            </Button>
-          </div>
-        )}
-        {isStudioScope && (
-          <StudioContributeDialog
-            open={contributeOpen}
-            onOpenChange={setContributeOpen}
-            studioSlug={scope}
-            studioLabel={scopeLabel(scope)}
-          />
-        )}
-
-        {/* The studio's principles aren't cards to remix — they're the live
-            frame every member build carries, layered on the base RTP
-            principles. Shown here so members know what's active. */}
-        {scope !== 'commons' && !isEventScope && (
-          <StudioPrinciplesPanel
-            studioLabel={scopeLabel(scope)}
-            principles={studioLibrary.filter(
-              i => i.studio_slug === scope && i.kind === 'principle' && i.status === 'approved',
-            )}
-          />
-        )}
-
         {/* One quiet toolbar: search first (it is the fastest way through
             six hundred cards), Nearby beside it, and the shelves behind one
             picker instead of a wall of chips. */}
@@ -1015,13 +1047,22 @@ export function CommonsGallery() {
                 )}
               </div>
               <button
-                onClick={() => setNearby(v => !v)}
+                onClick={() => { setNearby(v => !v); setServesHere(false); }}
                 className={`inline-flex h-9 items-center gap-1.5 rounded-full border px-3 text-xs transition-colors ${
-                  nearby ? 'bg-foreground text-background border-foreground' : 'text-muted-foreground hover:text-foreground'
+                  nearby && !servesHere ? 'bg-foreground text-background border-foreground' : 'text-muted-foreground hover:text-foreground'
                 }`}
                 title="Only what is rooted near a place — your own, or one you type"
               >
                 <MapPin className="size-3.5" /> Nearby
+              </button>
+              <button
+                onClick={() => { const on = !servesHere; setServesHere(on); setNearby(on); }}
+                className={`inline-flex h-9 items-center gap-1.5 rounded-full border px-3 text-xs transition-colors ${
+                  servesHere ? 'bg-foreground text-background border-foreground' : 'text-muted-foreground hover:text-foreground'
+                }`}
+                title="Only what was made to serve the ground you are standing on — tools with a catchment that covers your place"
+              >
+                <Target className="size-3.5" /> Serves here
               </button>
               {scope === 'commons' && (
                 <DropdownMenu>
@@ -1046,6 +1087,7 @@ export function CommonsGallery() {
             </div>
             {nearby && (
               <NearbyBar
+                servesHere={servesHere}
                 shelves={nearbyShelves}
                 onOpenShelf={chooseScope}
                 placedCount={nearbyPoint ? visibleEntries.length : null}
@@ -1089,7 +1131,9 @@ export function CommonsGallery() {
           </p>
         ) : visibleEntries.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            {nearby
+            {servesHere
+              ? `Nothing on this shelf was made to serve ${nearbyPoint?.label ?? 'there'} yet. Try Nearby for what is rooted close by, or be the first: build something for this ground and give it a place.`
+              : nearby
               ? `Nothing on this shelf is placed within ${nearbyRadius} miles of ${nearbyPoint?.label ?? 'there'} yet. Widen the circle, or be the first: share something from your neighborhood.`
               : query.trim()
                 ? 'Nothing matches that search.'
@@ -1177,7 +1221,9 @@ export function CommonsGallery() {
           busy={busyKey === `commons-${commonsDetail.slug}`}
           references={references}
           curation={curation}
+          linkables={linkables}
           onOpenRef={openRef}
+          onOpenEntry={openEntry}
           onPlan={() => planCommons(commonsDetail)}
           onOpenChange={open => { if (!open) setCommonsDetail(null); }}
         />
@@ -1195,7 +1241,9 @@ export function CommonsGallery() {
           credit={studioPartnerCredit(studioDetail.studio_slug)}
           references={references}
           curation={curation}
+          linkables={linkables}
           onOpenRef={openRef}
+          onOpenEntry={openEntry}
           onPlan={() => planStudioItem(studioDetail)}
           onOpenChange={open => { if (!open) setStudioDetail(null); }}
         />
@@ -1205,7 +1253,9 @@ export function CommonsGallery() {
           story={storyDetail}
           references={references}
           curation={curation}
+          linkables={linkables}
           onOpenRef={openRef}
+          onOpenEntry={openEntry}
           onOpenChange={open => { if (!open) setStoryDetail(null); }}
         />
       )}
@@ -1287,7 +1337,9 @@ function formatEventDay(iso: string): string {
  * A place set: the circle's size, and the ways to change it. Remembered in
  * this browser (nearby-store), so it is set once.
  */
-function NearbyBar({ shelves, onOpenShelf, placedCount }: {
+function NearbyBar({ servesHere, shelves, onOpenShelf, placedCount }: {
+  /** The "Serves here" question: the radius is beside the point, the place is the whole filter */
+  servesHere: boolean;
   shelves: { scope: string; label: string; miles: number }[];
   onOpenShelf: (scope: string) => void;
   /** How many cards the circle holds right now; null before a place is set */
@@ -1343,16 +1395,22 @@ function NearbyBar({ shelves, onOpenShelf, placedCount }: {
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <MapPin className="size-3 text-primary" />
           <span>
-            Within
-            <select
-              value={radius}
-              onChange={e => setRadius(Number(e.target.value))}
-              className="mx-1 rounded border bg-background px-1 py-0.5 text-xs"
-              title="How wide a circle"
-            >
-              {NEARBY_RADII_MILES.map(r => <option key={r} value={r}>{r} mi</option>)}
-            </select>
-            of <span className="font-medium">{point.label}</span>
+            {servesHere ? (
+              <>Made to serve <span className="font-medium">{point.label}</span></>
+            ) : (
+              <>
+                Within
+                <select
+                  value={radius}
+                  onChange={e => setRadius(Number(e.target.value))}
+                  className="mx-1 rounded border bg-background px-1 py-0.5 text-xs"
+                  title="How wide a circle"
+                >
+                  {NEARBY_RADII_MILES.map(r => <option key={r} value={r}>{r} mi</option>)}
+                </select>
+                of <span className="font-medium">{point.label}</span>
+              </>
+            )}
             {placedCount !== null && <span className="text-muted-foreground"> · {placedCount} {placedCount === 1 ? 'card' : 'cards'}</span>}
           </span>
           <button onClick={() => setEditing(true)} className="text-primary hover:underline">change</button>
@@ -1379,7 +1437,9 @@ function NearbyBar({ shelves, onOpenShelf, placedCount }: {
         </p>
       )}
       <p className="text-muted-foreground/80">
-        Closest first. Things only <em>made</em> near here (a book, a method pinned to its author's town) come after what is rooted here.
+        {servesHere
+          ? 'Only tools whose builders said they serve this ground: a radius, a ZIP, a neighborhood boundary, a watershed. Nearby shows what is merely close.'
+          : <>Closest first. Things only <em>made</em> near here (a book, a method pinned to its author's town) come after what is rooted here.</>}
         {' '}Places from OpenStreetMap.
       </p>
     </div>
@@ -1412,59 +1472,27 @@ function PlaceLine({ text }: { text?: string }) {
   );
 }
 
+/** A studio library card — the studio's own shelf, marked private or shared */
 /**
- * The studio's live frame: its principles, always on for member builds.
- * A quiet banner with the names; each expands to its full text on tap.
+ * What a card's body may link to: its curated connections by any title,
+ * everything else only by an unmistakable one (see bodyLinkables). A
+ * mention of a connected entry in the body opens it from the words, the
+ * same way chat does.
  */
-function StudioPrinciplesPanel({
-  studioLabel, principles,
-}: {
-  studioLabel: string; principles: StudioLibraryItem[];
-}) {
-  const [openId, setOpenId] = useState<string | null>(null);
-  if (principles.length === 0) return null;
-  return (
-    <section className="rounded-xl border border-dashed px-4 py-3 space-y-2">
-      <p className="text-sm">
-        <span className="font-medium">{studioLabel}'s principles are live in your builds</span>
-        <span className="text-muted-foreground">
-          {' '}— they layer on top of the Relational Tech principles in every chat and build while you work as a member.
-        </span>
-      </p>
-      <div className="flex flex-wrap gap-1">
-        {principles.map(p => (
-          <button
-            key={p.id}
-            onClick={() => setOpenId(openId === p.id ? null : p.id)}
-            className={`rounded-full border px-2.5 py-0.5 text-xs transition-colors ${
-              openId === p.id
-                ? 'bg-foreground text-background border-foreground'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            {p.title}
-          </button>
-        ))}
-      </div>
-      {openId && (() => {
-        const p = principles.find(x => x.id === openId);
-        if (!p) return null;
-        return (
-          <div className="rounded-lg bg-muted/50 px-3 py-2.5 text-sm space-y-1">
-            <p className="font-medium">{p.title}</p>
-            <div className="prose prose-sm dark:prose-invert max-w-none text-sm text-muted-foreground [&_p]:leading-relaxed">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {p.body ?? p.summary ?? ''}
-              </ReactMarkdown>
-            </div>
-          </div>
-        );
-      })()}
-    </section>
-  );
+function useBodyLinkables(
+  linkables: EntryLinkTarget[],
+  references: GalleryReference[],
+  source: RefSource,
+  id: string,
+): EntryLinkTarget[] {
+  return useMemo(() => {
+    const connected = connectionsFor(references, source, id).map(c => ({
+      source: c.otherSource, id: c.otherId, title: c.otherTitle,
+    }));
+    return bodyLinkables(linkables, connected, { source, id });
+  }, [linkables, references, source, id]);
 }
 
-/** A studio library card — the studio's own shelf, marked private or shared */
 function StudioItemCard({
   item, studioLabel, lineage, credit, placeLine, anyBusy, onOpen, onPlan,
 }: {
@@ -1553,15 +1581,18 @@ function StudioItemCard({
 }
 
 function StudioItemDetailDialog({
-  item, studioLabel, remixOfTitle, lineage, credit, references, curation, onOpenRef, onPlan, onOpenChange,
+  item, studioLabel, remixOfTitle, lineage, credit, references, curation, linkables, onOpenRef, onOpenEntry, onPlan, onOpenChange,
 }: {
   item: StudioLibraryItem; studioLabel: string; remixOfTitle?: string | null;
   lineage?: string | null; credit?: string | null;
   references: GalleryReference[];
   curation?: ConnectionsCuration;
+  linkables: EntryLinkTarget[];
   onOpenRef: (source: RefSource, id: string) => boolean;
+  onOpenEntry: (ref: EntryRef) => void;
   onPlan: () => void; onOpenChange: (open: boolean) => void;
 }) {
+  const bodyEntries = useBodyLinkables(linkables, references, 'studio', item.id);
   return (
     <Dialog open onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl lg:max-w-4xl max-h-[85vh] overflow-y-auto">
@@ -1618,9 +1649,14 @@ function StudioItemDetailDialog({
         </div>
 
         {item.body && (
-          <div className="prose prose-sm dark:prose-invert max-w-none text-sm [&_p]:leading-relaxed">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{item.body}</ReactMarkdown>
-          </div>
+          <EntryMarkdown
+            className="prose prose-sm dark:prose-invert max-w-none text-sm [&_p]:leading-relaxed"
+            entries={bodyEntries}
+            onOpenEntry={onOpenEntry}
+            components={printableMaterialComponents}
+          >
+            {item.body}
+          </EntryMarkdown>
         )}
 
         <ConnectionsSection
@@ -1676,14 +1712,17 @@ function KBStoryCard({ story, placeLine, onOpen }: { story: Story; placeLine?: s
 }
 
 function KBStoryDetailDialog({
-  story, references, curation, onOpenRef, onOpenChange,
+  story, references, curation, linkables, onOpenRef, onOpenEntry, onOpenChange,
 }: {
   story: Story;
   references: GalleryReference[];
   curation?: ConnectionsCuration;
+  linkables: EntryLinkTarget[];
   onOpenRef: (source: RefSource, id: string) => boolean;
+  onOpenEntry: (ref: EntryRef) => void;
   onOpenChange: (open: boolean) => void;
 }) {
+  const bodyEntries = useBodyLinkables(linkables, references, 'kb_story', story.id);
   return (
     <Dialog open onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl lg:max-w-4xl max-h-[85vh] overflow-y-auto">
@@ -1704,11 +1743,13 @@ function KBStoryDetailDialog({
           </p>
         </div>
 
-        <div className="prose prose-sm dark:prose-invert max-w-none text-sm [&_p]:leading-relaxed">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {story.full_story_text ?? story.story_text}
-          </ReactMarkdown>
-        </div>
+        <EntryMarkdown
+          className="prose prose-sm dark:prose-invert max-w-none text-sm [&_p]:leading-relaxed"
+          entries={bodyEntries}
+          onOpenEntry={onOpenEntry}
+        >
+          {story.full_story_text ?? story.story_text}
+        </EntryMarkdown>
 
         <ConnectionsSection
           source="kb_story"
@@ -1873,14 +1914,17 @@ function RecipeCard({
 }
 
 function RecipeDetailDialog({
-  card, shelfLabel, busy, references, curation, onOpenRef, onPlan, onOpenChange,
+  card, shelfLabel, busy, references, curation, linkables, onOpenRef, onOpenEntry, onPlan, onOpenChange,
 }: {
   card: CommonsCard; shelfLabel?: string; busy: boolean;
   references: GalleryReference[];
   curation?: ConnectionsCuration;
+  linkables: EntryLinkTarget[];
   onOpenRef: (source: RefSource, id: string) => boolean;
+  onOpenEntry: (ref: EntryRef) => void;
   onPlan: () => void; onOpenChange: (open: boolean) => void;
 }) {
+  const bodyEntries = useBodyLinkables(linkables, references, 'commons', card.slug);
   const [detail, setDetail] = useState<CommonsItemDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const shelf = shelfFor(card, shelfLabel);
@@ -1957,9 +2001,14 @@ function RecipeDetailDialog({
             <Loader2 className="size-3.5 animate-spin" /> Opening the recipe…
           </p>
         ) : detail?.body ? (
-          <div className="prose prose-sm dark:prose-invert max-w-none text-sm [&_p]:leading-relaxed">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{detail.body}</ReactMarkdown>
-          </div>
+          <EntryMarkdown
+            className="prose prose-sm dark:prose-invert max-w-none text-sm [&_p]:leading-relaxed"
+            entries={bodyEntries}
+            onOpenEntry={onOpenEntry}
+            components={printableMaterialComponents}
+          >
+            {detail.body}
+          </EntryMarkdown>
         ) : null}
 
         <ConnectionsSection

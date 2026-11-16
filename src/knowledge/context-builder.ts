@@ -2,7 +2,15 @@ import { formatPrinciplesForPrompt } from './rtp-principles';
 import { openModelBuildPath } from '@/human-scale/open-build';
 import { INTEGRATIONS, GUIDED_SERVICES } from '@/integrations/catalog';
 import { formatStudioForPrompt, type StudioContext } from './studio-context';
-import { formatCivicDataForPrompt, type CityDataEndpoint } from './civic-data';
+import { formatCivicDataForPrompt, formatPlaceBriefForPrompt, type CityDataEndpoint, type PlaceBrief } from './civic-data';
+
+/** One nudge while a project has no place and nothing built. The card above
+ *  the chat ("Where will this serve?") is where the answer is actually set. */
+const ASK_FOR_PLACE = [
+  '## Where This Will Serve',
+  '',
+  'The builder has not said what area this tool serves. Software made for a real place is better software: it can use the place\'s own names, data, and history, and its neighbors can find it. In this reply, once, in one or two plain sentences near the end, invite them to set it with **Set the area** above the chat: the area it serves (a block, a few blocks, a neighborhood, a watershed) and whether its boundary is strict or rough. Say it can be skipped and changed later. Do not ask it as a numbered question, do not guess a place, and do not ask again if they carry on without one.',
+].join('\n');
 import { DEMO_DATA_EVENT_BLOCK, isDemoDataEvent } from './event-modes';
 import type { DomainFrame } from './frames';
 import { MICROGRANT_FRAME, MICROGRANT_PLAN_INSTRUCTIONS } from './microgrants';
@@ -17,11 +25,14 @@ import {
   connectionIndex, refKey,
   type EntryConnection, type GalleryReference,
 } from './gallery-references';
+import { entryHref } from './entry-links';
 import { formatReferenceDocsForPrompt } from './references-prompt';
 import type { ReferenceDoc } from '@/store/references-store';
 import { splitProjectSnapshot, formatChangedFilesForPrompt } from './snapshot-split';
 import { HUMAN_SCALE_BUILD_RULES } from '@/human-scale/prompt';
 import { designScaffoldPrompt } from '@/human-scale/design-scaffold';
+import { formatRegionForPrompt, type RegionMode } from '@/regions/regions';
+import { formatPlaceForPrompt, type ProjectPlace } from '@/project/place';
 
 /**
  * Builds the system prompt by combining the base instructions,
@@ -616,6 +627,18 @@ export interface ContextOptions {
    *  connector is attached — Claude provider only). Off means the prompt
    *  says so plainly instead of letting the model try and fail. */
   civicDataQueryable?: boolean;
+  /** The builder's regional mode (src/regions) — EU mode adds a block that
+   *  overrides fonts, hosting, and shared-data defaults by name */
+  regionMode?: RegionMode;
+  /** Where this project lives and the area it serves (project/place) — set
+   *  by the builder; adds a block that grounds examples, maps, and who the
+   *  tool is for */
+  place?: ProjectPlace;
+  /** The place's own design brief on this idea, fetched by the Builder from
+   *  the matched place pack so it reaches every model (knowledge/civic-data) */
+  placeBrief?: PlaceBrief | null;
+  /** No place set yet, and nothing built: ask once where this will serve */
+  askForPlace?: boolean;
 }
 
 /**
@@ -624,6 +647,8 @@ export interface ContextOptions {
  * doesn't import from cloud/.
  */
 export interface StudioLibraryPromptItem {
+  /** Present for real library rows — lets the prompt hand the model the item's link */
+  id?: string;
   kind: 'principle' | 'example' | 'story' | 'prompt' | 'tool' | 'recipe';
   title: string;
   summary: string | null;
@@ -831,6 +856,15 @@ export function buildPromptContext(
     );
   }
 
+  // Regional mode, both modes: plan mode picks services and hosts, build
+  // mode writes the font links and data code. Stable for a session.
+  const regionBlock = formatRegionForPrompt(options.regionMode ?? 'global');
+  if (regionBlock) sections.push('', regionBlock);
+
+  // The project's place, both modes — stable for a session like the region
+  const placeBlock = formatPlaceForPrompt(options.place);
+  if (placeBlock) sections.push('', placeBlock);
+
   // Everything above is stable across sends in a session — cacheable.
   sections.push(CACHE_BREAK);
 
@@ -882,7 +916,15 @@ export function buildPromptContext(
   // Live civic data endpoints matched to this build's city — volatile,
   // since a city can enter the conversation on any turn
   if (options.civicData && options.civicData.length > 0) {
-    turn.push('', formatCivicDataForPrompt(options.civicData, options.civicDataQueryable === true));
+    const c = options.place?.catchment;
+    const block = c?.source === 'block' && c.ref ? { id: c.ref, name: c.label } : undefined;
+    turn.push('', formatCivicDataForPrompt(options.civicData, options.civicDataQueryable === true, block));
+  }
+  if (options.placeBrief) {
+    turn.push('', formatPlaceBriefForPrompt(options.placeBrief));
+  }
+  if (options.askForPlace) {
+    turn.push('', ASK_FOR_PLACE);
   }
 
   if (options.references && options.references.length > 0) {
@@ -999,8 +1041,10 @@ function formatStudioLibraryForPrompt(
     for (const item of rest.slice(0, STUDIO_ITEM_LIMIT)) {
       const who = item.attribution ? ` — ${item.attribution}` : '';
       const gist = (item.summary ?? item.body ?? '').slice(0, STUDIO_ITEM_CHARS);
-      lines.push(`- **${item.title}** (${item.kind}${who})${gist ? `: ${gist}` : ''}`);
+      const link = item.id ? ` — link: ${entryHref('studio', item.id)}` : '';
+      lines.push(`- **${item.title}** (${item.kind}${who})${link}${gist ? `: ${gist}` : ''}`);
     }
+    lines.push('', LINKING_RULE);
   }
 
   return lines.join('\n');
@@ -1012,6 +1056,15 @@ const PROMPT_CONNECTION_LIMIT = 3;
 const PROMPT_CONNECTION_NOTE_CHARS = 140;
 
 type ConnectionMap = Map<string, EntryConnection[]>;
+
+/**
+ * How a reply points at what it drew on: the entry's own link, in the
+ * sentence that uses it, so the person opens the recipe from the words
+ * (the Builder renders these links as cards in place). Outside sources get
+ * the same treatment — a name that links, never a pasted URL.
+ */
+const LINKING_RULE =
+  'When you cite one of these entries, make its name a markdown link to the link given with it — for example [Mutual Aid Pod](/gallery?item=commons:mutual-aid-pod) — in the sentence where it shapes a decision, so the person can open it right there. Link an outside source the same way, by name ([outersunset.today](https://outersunset.today)), never as a bare pasted URL. Never make up a link that is not listed here.';
 
 function connectionLine(connections: ConnectionMap | undefined, key: string): string[] {
   const conns = connections?.get(key);
@@ -1031,7 +1084,7 @@ function formatCommonsForPrompt(results: CommonsSearchResult[], connections?: Co
       : '';
     const summary = r.summary ? `: ${r.summary.slice(0, 200)}` : '';
     return [
-      `- **${r.title}** (${r.kind}${who})${summary}`,
+      `- **${r.title}** (${r.kind}${who}) — link: ${entryHref('commons', r.slug)}${summary}`,
       ...connectionLine(connections, refKey('commons', r.slug)),
       // The strongest hits carry their full text (bounded) — this is what
       // lets a plan borrow a recipe's actual steps instead of name-dropping
@@ -1044,7 +1097,8 @@ function formatCommonsForPrompt(results: CommonsSearchResult[], connections?: Co
   return [
     '## Relevant Knowledge from the RT Commons',
     '',
-    'Tools, stories, recipes, and practice knowledge from the relational tech commons that relate to this build. These passed a relevance filter, so treat them as genuinely related: let them inform your design, cite them by name when one shapes a decision, and where full text is included, draw on its actual content — steps, sizes, cautions — not just its title. Where an entry lists connections, draw on them: they say where else the thing showed up and what it paired with ("it worked really well in…", "it pairs with the neighboring practice…"). Never invent a commons entry that is not listed here:',
+    'Tools, stories, recipes, and practice knowledge from the relational tech commons that relate to this build. These passed a relevance filter, so treat them as genuinely related: let them inform your design, cite them by name when one shapes a decision, and where full text is included, draw on its actual content — steps, sizes, cautions — not just its title. Where an entry lists connections, draw on them: they say where else the thing showed up and what it paired with ("it worked really well in…", "it pairs with the neighboring practice…"). Never invent a commons entry that is not listed here.',
+    LINKING_RULE,
     '',
     ...entries,
   ].join('\n');
@@ -1052,7 +1106,7 @@ function formatCommonsForPrompt(results: CommonsSearchResult[], connections?: Co
 
 function formatToolsForPrompt(tools: Tool[], connections?: ConnectionMap): string {
   const entries = tools.slice(0, 5).flatMap(t => {
-    let entry = `- **${t.name}** (${t.tool_category})`;
+    let entry = `- **${t.name}** (${t.tool_category}) — link: ${entryHref('kb_tool', t.id)}`;
     if (t.summary) entry += `: ${t.summary}`;
     else if (t.description) entry += `: ${t.description.slice(0, 150)}`;
     return [entry, ...connectionLine(connections, refKey('kb_tool', t.id))];
@@ -1061,7 +1115,8 @@ function formatToolsForPrompt(tools: Tool[], connections?: ConnectionMap): strin
   return [
     '## Relevant Tools from the RTP Library',
     '',
-    'These existing tools may inform your approach. Where an entry lists connections, draw on them — they say where else the tool showed up and what it paired with:',
+    'These existing tools may inform your approach. Where an entry lists connections, draw on them — they say where else the tool showed up and what it paired with.',
+    LINKING_RULE,
     '',
     ...entries,
   ].join('\n');
@@ -1072,7 +1127,7 @@ function formatStoriesForPrompt(stories: Story[], connections?: ConnectionMap): 
     const title = s.title ?? 'Community Story';
     const text = s.story_text.slice(0, 200);
     return [
-      `- **${title}** (${s.attribution}): ${text}...`,
+      `- **${title}** (${s.attribution}) — link: ${entryHref('kb_story', s.id)}: ${text}...`,
       ...connectionLine(connections, refKey('kb_story', s.id)),
     ];
   });
@@ -1080,7 +1135,8 @@ function formatStoriesForPrompt(stories: Story[], connections?: ConnectionMap): 
   return [
     '## Relevant Stories from Community Builders',
     '',
-    'Real experiences from builders doing similar work. Where a story lists connections, those are the tools and practices it involved — useful when one of them comes up:',
+    'Real experiences from builders doing similar work. Where a story lists connections, those are the tools and practices it involved — useful when one of them comes up.',
+    LINKING_RULE,
     '',
     ...entries,
   ].join('\n');

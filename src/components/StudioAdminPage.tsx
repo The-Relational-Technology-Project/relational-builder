@@ -41,6 +41,7 @@ import {
   SelectItem,
   SelectTrigger,
 } from '@/components/ui/select';
+import { StudioPrinciplesPanel } from '@/components/StudioPrinciplesPanel';
 import {
   Check, X, Loader2, Plus, Pencil, Trash2, Share2, Lock, KeyRound, Users, BookOpen, Mail, Table2, ExternalLink,
 } from 'lucide-react';
@@ -568,6 +569,13 @@ function LibraryTab({ slug, label }: { slug: string; label: string }) {
         </Button>
       </div>
       {error && <p className="text-xs text-destructive">{error}</p>}
+
+      {/* What every member build carries. Lives here, with the people who
+          tend it, rather than at the top of the members' gallery */}
+      <StudioPrinciplesPanel
+        studioLabel={label}
+        principles={items.filter(i => i.kind === 'principle' && i.status === 'approved')}
+      />
 
       {pendingItems.length > 0 && (
         <div className="space-y-1.5">

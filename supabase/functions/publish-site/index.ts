@@ -63,7 +63,7 @@ const RESERVED_HANDLES = new Set([
   'sites', 'steward', 'studio', 'studios', 'support', 'www',
 ]);
 const MAX_PREVIEWS_PER_BUILDER = 10;
-const PREVIEW_DAYS = 30;
+const PREVIEW_DAYS = 120;
 const MAX_FILES = 150;
 const MAX_FILE_BYTES = 512 * 1024;
 const MAX_TOTAL_BYTES = 20 * 1024 * 1024;

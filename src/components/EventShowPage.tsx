@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { fetchEventShow, type EventShow } from '@/cloud/event-join';
 import { isOutsideBuild, type ShowcaseEntry } from '@/cloud/event-showcase';
 import { ShowcaseContact } from '@/components/EventShowcase';
+import { PREVIEW_DAYS } from '@/project/share-preview';
 import { LANDING_COLORS as C } from '@/components/Landing';
 import {
   Presentation,
@@ -172,6 +173,7 @@ export function EventShowPage({ code }: { code: string }) {
                         <ExternalLink className="size-3" /> Open the app
                       </a>
                     )}
+                    {entry.lapsed && <span>Links expired</span>}
                   </div>
                 </div>
               </li>
@@ -183,7 +185,8 @@ export function EventShowPage({ code }: { code: string }) {
           A build is on this list when its builder ticked "pin to the demo wall" in
           Share Live, or shared it from their own AI tool through the Relational
           Tech MCP server or the build day inbox. Re-sharing a project moves it to
-          the end. Links lapse 30 days after sharing, and the list fades with them.
+          the end. Links lapse {PREVIEW_DAYS} days after sharing; the build stays on
+          the list with its picture.
         </p>
       </div>
     </div>

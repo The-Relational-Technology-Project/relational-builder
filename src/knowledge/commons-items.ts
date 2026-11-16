@@ -229,9 +229,16 @@ export async function fetchBuildDayCards(): Promise<CommonsCard[]> {
  * the point of the shelf is that a contributor finds their own gift.
  */
 export async function fetchContributedCards(): Promise<CommonsCard[]> {
+  // Two doors feed this shelf: the Builder's own contribute flows tag their
+  // gifts `relational-builder`; the Studio site's public commons page tags
+  // its `commons-page` and files them under `open-contributions`. Both are
+  // steward-approved gifts, and a gift read by only one door was canonical
+  // but invisible here — and so invisible to gallery search, which ranks
+  // only the cards a shelf already loaded.
   return rest<CommonsCard[]>(
     `commons_items?select=${CARD_COLUMNS}` +
-      `&tags=cs.{relational-builder}&status=eq.canonical&order=created_at.desc`,
+      `&or=(tags.cs.{relational-builder},tags.cs.{commons-page},source_studio_slug.eq.open-contributions)` +
+      `&status=eq.canonical&order=created_at.desc`,
   );
 }
 

@@ -15,6 +15,8 @@ import { createPreviewLink, PREVIEW_DAYS, type ShareResult } from '@/project/sha
 import { needsBuild, buildStaticSite } from '@/project/build-for-publish';
 import { withAppIcons } from '@/project/app-icon';
 import { suggestProjectName } from '@/project/suggest-name';
+import { regionalizeFiles } from '@/regions/regions';
+import { currentRegionMode } from '@/store/region-store';
 import QRCode from 'react-qr-code';
 import {
   Share2,
@@ -62,7 +64,7 @@ function ShareContent() {
       // the preview host doesn't need to understand the RB stack)
       const builtFiles = needsBuild(files)
         ? await buildStaticSite(files, publicVars.map(v => ({ key: v.key, value: v.value })))
-        : files;
+        : regionalizeFiles(files, currentRegionMode());
       const name =
         cloudProjectName || localProjectName || suggestProjectName() || 'Preview';
       // Preview links get the same home-screen icons as a real publish

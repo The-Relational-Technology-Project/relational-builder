@@ -36,6 +36,11 @@ export async function startFromCommonsItem(card: CommonsCard): Promise<void> {
           : card.kind === 'reference'
             ? `I'd like to plan something for my neighborhood grounded in "${card.title}"${who}.`
             : `I'd like to bring the practice "${card.title}"${who} to my neighborhood.`;
+  // A prompt card IS its body: the questions it asks and the guardrails it
+  // sets are the thing being built from. The summary alone left that to
+  // retrieval, which carries at most a short excerpt and only when it ranks,
+  // so a prompt written to ask a new place its questions never asked them.
+  const promptBody = card.kind === 'prompt' ? detail?.body?.trim() ?? '' : '';
   const frames = frameSlugsForCommonsItem(card);
   // A build day remix opens the organizer's own conversation, not a
   // practice-adaptation ask; the studio door opens the partner's
@@ -45,7 +50,7 @@ export async function startFromCommonsItem(card: CommonsCard): Promise<void> {
       ? studioBriefOpening()
       : [
     opening,
-    summary ? `\nWhat it is: ${summary}` : '',
+    promptBody ? `\n${promptBody}` : summary ? `\nWhat it is: ${summary}` : '',
     // When the original's source is a public repo, say so — the model can
     // consult how it was actually built instead of guessing from the summary
     referenceCodebaseNote(card.source_url),

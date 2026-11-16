@@ -18,6 +18,7 @@ import { useChatStore } from '@/store/chat-store';
 import { useCloudStore } from '@/store/cloud-store';
 import { useEnvStore } from '@/store/env-store';
 import { generateManifest } from './export';
+import { withPlaceFile } from './place';
 import { needsBuild, materializeSource } from './build-for-publish';
 import { isBinaryFilePath } from './app-icon';
 import type { FileEntry } from './virtual-fs';
@@ -268,11 +269,13 @@ export function filesForPush(repo: ConnectedRepo): FileEntry[] {
   if (files.length === 0) return [];
 
   const sourceFiles = needsBuild(files) ? materializeSource(files) : files;
-  const out = [...sourceFiles];
+  const { lineage } = useProjectStore.getState();
+  const repoName = repo.fullName.split('/')[1] ?? 'my-community-app';
+  // A public place ships as place.json in the repo too, so a map of
+  // place-based software can read repos as well as live sites
+  const out = [...withPlaceFile(sourceFiles, lineage?.place, repoName)];
   const hasManifest = files.some(f => f.path.replace(/^\//, '') === '.reltech.yml');
   if (!hasManifest) {
-    const { lineage } = useProjectStore.getState();
-    const repoName = repo.fullName.split('/')[1] ?? 'my-community-app';
     out.push({
       path: '.reltech.yml',
       content: generateManifest(repoName, lineage),

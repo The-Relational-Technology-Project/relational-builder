@@ -93,6 +93,16 @@ Chat/Builder Panel  |  Preview Sandbox (iframe)  |  RTP Knowledge Base Panel
     machine or a box in the room (`createLocalProvider`, keyless, URL set in
     Settings); see `docs/LOCAL-MODEL.md`
   - Tier 3: RTP-subsidized cloud access (for workshops/pilots)
+- **Regional mode:** a profile setting (`profiles.region_mode`, mirrored in
+  `src/store/region-store.ts`) that decides where the apps a person builds
+  live. `src/regions/regions.ts` owns it: EU mode ranks EU-run services first
+  in the Services tab and Publish (every catalog entry and deploy target
+  carries a `ServiceHome`), rewrites Google Fonts → Bunny Fonts in every
+  preview and publish, adds the EU hosts (`deploy-bunny.ts`, `deploy-codeberg.ts`),
+  and injects a prompt block. It covers the apps, not the Builder; the gaps
+  and their ranking are in `docs/REGIONAL-MODE.md`; the self-hosted EU
+  backend runbook is `docs/POCKETBASE-ON-HETZNER.md`. Keep the doc and the
+  prompt block in step when either changes.
 
 ## Key Directories
 
@@ -134,7 +144,13 @@ Chat/Builder Panel  |  Preview Sandbox (iframe)  |  RTP Knowledge Base Panel
   geocoder behind the gallery's **Nearby** filter (`src/store/nearby-store.ts`
   remembers where a person measures from). `scripts/geotag/` is the tagging
   pipeline (`places.json` is the curated truth; geocode, then apply); see
-  `docs/GEO-COMMONS.md`
+  `docs/GEO-COMMONS.md`. A location can carry a **catchment** (the area it
+  serves: a radius or boundary rings); the gallery's **Serves here** toggle
+  reads it. `src/project/place.ts` gives a project its own place
+  (`lineage.place`, set in the Place dialog): a prompt block, and, only when
+  the builder opts in, a `place:` block in `.reltech.yml` plus `place.json`
+  in the repo and beside the published site, for a public map of
+  place-based software; see `docs/PLACE-AS-PLATFORM.md`
 - `src/components/` — React components (UI lives here)
 - `src/components/Chat/` — Chat interface (panel, messages, input, code blocks)
 - `src/components/ui/` — shadcn/ui primitives (don't edit directly)

@@ -30,6 +30,8 @@ import { extractHashRoutes } from '@/preview/routes';
 import { buildStandaloneHtml } from '@/preview/standalone';
 import { renderDocHtml } from '@/preview/doc-html';
 import { FrameworkPreview } from './preview/FrameworkPreview';
+import { useRegionStore } from '@/store/region-store';
+import { regionalizeFiles, regionalizeUrls } from '@/regions/regions';
 import { PointAtIt } from './preview/PointAtIt';
 import { FixBanner } from './preview/FixBanner';
 import {
@@ -296,13 +298,16 @@ function SandpackPath({
   pointing: boolean;
   onPointingChange: (on: boolean) => void;
 }) {
+  // Regional mode rewrites (EU: Google Fonts → Bunny Fonts) apply to the
+  // files Sandpack sees, so the simple-tool preview matches what publishes
+  const regionMode = useRegionStore(s => s.mode);
   const { sandpackFiles, template, entry, externalResources } = useMemo(() => {
     const spFiles: SandpackFiles = {};
     let hasJsx = false;
     let hasTsx = false;
     let hasHtml = false;
 
-    for (const file of files) {
+    for (const file of regionalizeFiles(files, regionMode)) {
       // Sandpack wants paths starting with /
       const path = file.path.startsWith('/') ? file.path : '/' + file.path;
       spFiles[path] = { code: file.content };
@@ -383,8 +388,8 @@ function SandpackPath({
       }
     }
 
-    return { sandpackFiles: spFiles, template: tmpl, entry, externalResources: externalFromHtml };
-  }, [files, publicEnvVars]);
+    return { sandpackFiles: spFiles, template: tmpl, entry, externalResources: regionalizeUrls(externalFromHtml, regionMode) };
+  }, [files, publicEnvVars, regionMode]);
 
   // The build report's optional snapshot: find this engine's iframe and ask
   // it to capture itself (the Sandpack document is cross-origin, so the

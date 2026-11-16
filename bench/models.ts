@@ -67,6 +67,13 @@ export const BENCH_MODELS: BenchModel[] = [
     pricing: { inputPerMTok: 10, outputPerMTok: 50, asOf: '2026-09' },
     enabled: true,
   },
+  {
+    alias: 'claude-fable-5-2',
+    providerId: 'claude',
+    modelId: 'claude-fable-5-2',
+    pricing: { inputPerMTok: 8, outputPerMTok: 40, asOf: '2026-11' },
+    enabled: true,
+  },
 
   // --- OpenAI (env: OPENAI_API_KEY) ---
   {

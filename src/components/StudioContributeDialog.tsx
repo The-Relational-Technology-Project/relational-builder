@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
@@ -33,11 +33,14 @@ export function StudioContributeDialog({
   onOpenChange,
   studioSlug,
   studioLabel,
+  destination,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   studioSlug: string;
   studioLabel: string;
+  /** The "Where does it go?" row from the header's Contribute door */
+  destination?: ReactNode;
 }) {
   const profile = useAuthStore(s => s.profile);
   const loadLibrary = useStudioStore(s => s.loadLibrary);
@@ -121,6 +124,7 @@ export function StudioContributeDialog({
           </div>
         ) : (
           <div className="space-y-3">
+            {destination}
             <p className="text-sm text-muted-foreground leading-relaxed">
               Something that belongs in this studio's shared shelf — a model
               from your town, a practice that works, a prompt, a recipe, a

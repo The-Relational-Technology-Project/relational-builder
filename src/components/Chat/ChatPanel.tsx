@@ -33,6 +33,7 @@ interface SendOptions {
 import { CLAUDE_MODELS } from '@/providers/claude';
 import { shortModelName } from '@/providers/model-label';
 import { useEnvStore } from '@/store/env-store';
+import { useRegionStore } from '@/store/region-store';
 import {
   getConnectedIntegrations,
   communityCloudConnected,
@@ -62,7 +63,8 @@ import { retrieveCommonsContext, findMentionedResults, slugForMention } from '@/
 import { loadGalleryReferences } from '@/cloud/gallery-references';
 import { detectFrames, framesFromSlugs } from '@/knowledge/frames';
 import { buildMentionContext } from '@/knowledge/mentions';
-import { retrieveCivicDataContext, toMcpServers } from '@/knowledge/civic-data';
+import { isPlacePack, retrieveCivicDataContext, retrievePlaceBrief, toMcpServers } from '@/knowledge/civic-data';
+import { PlaceInviteCard } from './PlaceInviteCard';
 import { runQualityReview, messageProducedFiles } from '@/knowledge/review-pass';
 import { requestBuildNotifyPermission, notifyBuildReady } from '@/notify/build-ready';
 import { adoptDraftedProjectName } from '@/project/drafted-name';
@@ -127,7 +129,11 @@ const FIX_EFFORT: ThinkingEffort = 'high';
  *  and medium 127s to first token, both bundling first try — the rung buys
  *  nothing in latency between those two, so medium is the cheaper one. */
 function effortFor(model: string, base: ThinkingEffort): ThinkingEffort {
-  return /opus-5-5/.test(model) ? lowerEffort(lowerEffort(base)) : base;
+  if (/opus-5-5/.test(model)) return lowerEffort(lowerEffort(base));
+  // Fable 5.2: Anthropic says start at `high` — gains above it are uneven —
+  // so the whole ladder runs one rung down (a plan or first build at `high`).
+  if (/fable-5-2|mythos-5-2/.test(model)) return lowerEffort(base);
+  return base;
 }
 
 /** How long a reply may think before its first output token. Thinking deltas
@@ -549,7 +555,7 @@ export function ChatPanel() {
       else useChatStore.getState().endCooking();
     }
 
-    // Free community building: Fable 5.1 does the plan-mode strategy work,
+    // Free community building: Fable 5.2 does the plan-mode strategy work,
     // Opus 5.5 does builds and edits — unless the person picked a model
     // themselves. Fix sends stay on whatever model is active (a continuation
     // must finish what it started).
@@ -694,10 +700,27 @@ export function ChatPanel() {
         ...priorMessages.slice(-10).map(m => m.content.slice(0, 2000)),
         useAuthStore.getState().profile?.neighborhood,
         useAuthStore.getState().profile?.neighborhood_description,
-      ]),
+        // The project's own place is the strongest signal of all
+        useProjectStore.getState().lineage?.place?.label,
+      ], useProjectStore.getState().lineage?.place),
     ]);
     if (civicData.length > 0) {
       recordBuildEvent('civic-data', `live city data in context: ${civicData.map(e => e.city).join(', ')}`);
+    }
+    // The place's own brief on this idea, asked for here so it reaches every
+    // model (the MCP connector only rides Claude chats). The idea is what the
+    // project set out to be, so the brief is fetched once and then reused.
+    const projectPlace = useProjectStore.getState().lineage?.place;
+    const placePack = wasFix ? undefined : civicData.find(isPlacePack);
+    const placeBrief = placePack
+      ? await retrievePlaceBrief(
+          placePack,
+          priorMessages.find(m => m.role === 'user' && !m.isAuto)?.content ?? content,
+          projectPlace?.catchment?.source === 'block' ? projectPlace.catchment.ref : undefined,
+        ).catch(() => null)
+      : null;
+    if (placeBrief) {
+      recordBuildEvent('civic-data', `design brief from ${placePack!.city}${placeBrief.where ? ` for block ${placeBrief.where}` : ''}`);
     }
     const commonsResults = retrieval.results;
     if (retrieval.query !== null) {
@@ -844,6 +867,15 @@ export function ChatPanel() {
       webTools,
       civicData,
       civicDataQueryable: mcpServers.length > 0,
+      regionMode: useRegionStore.getState().mode,
+      place: projectPlace,
+      placeBrief,
+      askForPlace:
+        !projectPlace &&
+        !useProjectStore.getState().lineage?.placeSkipped &&
+        currentMode === 'plan' &&
+        projectFiles.length === 0 &&
+        !priorMessages.some(m => m.role === 'user'),
     });
     setSystemPrompt(updatedPrompt);
 
@@ -1479,6 +1511,7 @@ export function ChatPanel() {
           composer={
             <div className="space-y-2">
               <CommunityBudgetBanner />
+              <PlaceInviteCard variant="hero" />
               <MessageInput {...composerProps} variant="hero" />
               <NeedsKeyHint needsKey={needsKey} />
             </div>
@@ -1509,6 +1542,8 @@ export function ChatPanel() {
       {/* A studio being designed: once its brief exists, the door to send it to RTP */}
       <StudioBriefShareCard />
       {!isGenerating && !cooking && <CommunityBudgetBanner />}
+      {/* Still planning: the area this serves can be set or changed right here */}
+      {!isGenerating && !cooking && <PlaceInviteCard />}
       {!isGenerating && !cooking && <UndoLastChange />}
       {needsKey && (
         <div className="px-4 py-2 text-xs text-center bg-muted/50 border-t">

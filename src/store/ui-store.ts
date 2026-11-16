@@ -4,11 +4,15 @@ import {
   isNewProjectPath,
   isStudioBriefPath,
   pathForView,
+  pushEntryPath,
   pushPath,
+  readEntryParam,
   replacePath,
   viewForPath,
 } from '@/router';
 import { startNewProject } from '@/project/new-project';
+import { entryKey, type EntryRef } from '@/knowledge/entry-links';
+import type { RefSource } from '@/knowledge/gallery-references';
 
 /**
  * App-level view state that more than one surface needs to reach — e.g. the
@@ -46,6 +50,13 @@ interface UIState {
   galleryFocusStudioItemId: string | null;
   openStudioLibraryItem: (id: string) => void;
   clearStudioFocus: () => void;
+  /** A KB tool or story the gallery should open on arrival — consumed by
+   *  CommonsGallery once the knowledge store has it */
+  galleryFocusRef: EntryRef | null;
+  clearGalleryFocusRef: () => void;
+  /** Open any gallery entry by (source, id) — the one door every in-line
+   *  link uses (see src/knowledge/entry-links.ts) */
+  openGalleryEntry: (source: RefSource, id: string) => void;
 }
 
 export const useUIStore = create<UIState>(set => ({
@@ -59,16 +70,33 @@ export const useUIStore = create<UIState>(set => ({
   galleryFocusSlug: null,
   openGalleryItem: slug => {
     set({ galleryFocusSlug: slug, view: 'gallery' });
-    pushPath(pathForView('gallery'));
+    pushEntryPath(entryKey('commons', slug));
   },
   clearGalleryFocus: () => set({ galleryFocusSlug: null }),
   galleryFocusStudioItemId: null,
   openStudioLibraryItem: id => {
     set({ galleryFocusStudioItemId: id, view: 'gallery' });
-    pushPath(pathForView('gallery'));
+    pushEntryPath(entryKey('studio', id));
   },
   clearStudioFocus: () => set({ galleryFocusStudioItemId: null }),
+  galleryFocusRef: null,
+  clearGalleryFocusRef: () => set({ galleryFocusRef: null }),
+  openGalleryEntry: (source, id) => {
+    focusEntry({ source, id });
+    pushEntryPath(entryKey(source, id));
+  },
 }));
+
+/** Point the gallery at an entry without touching the address bar */
+function focusEntry(ref: EntryRef): void {
+  if (ref.source === 'commons') {
+    useUIStore.setState({ galleryFocusSlug: ref.id, view: 'gallery' });
+  } else if (ref.source === 'studio') {
+    useUIStore.setState({ galleryFocusStudioItemId: ref.id, view: 'gallery' });
+  } else {
+    useUIStore.setState({ galleryFocusRef: ref, view: 'gallery' });
+  }
+}
 
 /**
  * Adopt the view from the address bar, and keep it in step with the browser's
@@ -113,6 +141,11 @@ function applyLocation(initial: boolean): void {
   const view = viewForPath(pathname);
   if (view) {
     useUIStore.setState({ view });
+    // /gallery?item=commons:mutual-aid-pod — a shared link to one card
+    if (view === 'gallery') {
+      const entry = readEntryParam();
+      if (entry) focusEntry(entry);
+    }
     return;
   }
 

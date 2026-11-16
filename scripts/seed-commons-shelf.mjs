@@ -8,6 +8,12 @@
  * commons_studios row for the shelf, then upserts every item keyed on
  * (slug, kind). Re-running is safe — existing rows are updated in place.
  *
+ * Metadata is merged, not replaced: the seed's keys win, and keys that only
+ * exist on the live row are kept. Other steps write there after seeding
+ * (scripts/geotag/apply.mjs sets metadata.location; some rows carry an
+ * image_url), and a re-seed must not erase them. To remove a metadata key
+ * from a live row, remove it by hand; dropping it from the seed file won't.
+ *
  * Applies via the Supabase Management API (SQL over
  * POST /v1/projects/{ref}/database/query). Dry-run prints the SQL;
  * pass --apply to execute.
@@ -19,7 +25,7 @@
  *     "studio": { "slug": "...", "display_name": "...", "home_url": null, "notes": "..." },
  *     "items": [ { "slug", "kind", "title", "summary", "body", "attribution": {},
  *                  "source_url", "tags": [], "image_urls": [], "metadata": {},
- *                  "license", "sort_order" } ]
+ *                  "license", "sort_order", "parent_slug"? } ]
  *   }
  */
 
@@ -77,12 +83,12 @@ statements.push(
 for (const [i, it] of items.entries()) {
   const sort = Number.isFinite(it.sort_order) ? it.sort_order : (i + 1) * 10;
   statements.push(
-    `INSERT INTO commons_items (slug, kind, title, summary, body, attribution, source_studio_slug, source_url, tags, image_urls, metadata, license, status, sort_order, published_at)\n` +
+    `INSERT INTO commons_items (slug, kind, title, summary, body, attribution, source_studio_slug, parent_slug, source_url, tags, image_urls, metadata, license, status, sort_order, published_at)\n` +
       `VALUES (${q(it.slug)}, ${q(it.kind)}, ${q(it.title)}, ${qn(it.summary)}, ${qn(it.body)}, ${jb(it.attribution)}, ` +
-      `${q(slug)}, ${qn(it.source_url)}, ${arr(it.tags)}, ${arr(it.image_urls)}, ${jb(it.metadata)}, ${qn(it.license)}, 'canonical', ${sort}, now())\n` +
+      `${q(slug)}, ${qn(it.parent_slug)}, ${qn(it.source_url)}, ${arr(it.tags)}, ${arr(it.image_urls)}, ${jb(it.metadata)}, ${qn(it.license)}, 'canonical', ${sort}, now())\n` +
       `ON CONFLICT (slug, kind) DO UPDATE SET title = EXCLUDED.title, summary = EXCLUDED.summary, body = EXCLUDED.body, ` +
-      `attribution = EXCLUDED.attribution, source_studio_slug = EXCLUDED.source_studio_slug, source_url = EXCLUDED.source_url, ` +
-      `tags = EXCLUDED.tags, image_urls = EXCLUDED.image_urls, metadata = EXCLUDED.metadata, license = EXCLUDED.license, sort_order = EXCLUDED.sort_order, updated_at = now();`,
+      `attribution = EXCLUDED.attribution, source_studio_slug = EXCLUDED.source_studio_slug, parent_slug = EXCLUDED.parent_slug, source_url = EXCLUDED.source_url, ` +
+      `tags = EXCLUDED.tags, image_urls = EXCLUDED.image_urls, metadata = COALESCE(commons_items.metadata, '{}'::jsonb) || EXCLUDED.metadata, license = EXCLUDED.license, sort_order = EXCLUDED.sort_order, updated_at = now();`,
   );
 }
 

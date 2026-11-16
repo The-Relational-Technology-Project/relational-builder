@@ -15,7 +15,7 @@ export interface NetlifyDeployResult {
 }
 
 export interface DnsInstruction {
-  type: 'CNAME' | 'A' | 'ALIAS';
+  type: 'CNAME' | 'A' | 'ALIAS' | 'TXT';
   host: string;
   value: string;
 }
