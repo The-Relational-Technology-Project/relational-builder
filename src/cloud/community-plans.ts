@@ -1,4 +1,4 @@
-import { communityOpenBuildModel, communityOpenBuilds } from '@/human-scale/open-build';
+import { communityOpenBuilds } from '@/human-scale/open-build';
 import { isOpenBuilderModel } from '@/human-scale/builder-model';
 
 /**
@@ -47,11 +47,17 @@ export const COMMUNITY_EDIT_MODEL = 'claude-opus-5-5';
  *  third of the wait of the top-marked open model; docs/human-scale/MODELS-BY-TASK.md) */
 export const OPEN_WEIGHT_PLAN_MODEL = 'google/gemma-4-31b-it';
 
+/** The open model that builds and edits (owner decision, Nov 16: the same
+ *  Gemma 4 31B, one model for every job. Nov 15 to 16 it matched Gemma 4 26B
+ *  on the bench and builds faster). This is the plan's own pick: the earlier
+ *  single switch keeps its own model, VITE_COMMUNITY_OPEN_BUILD_MODEL. */
+export const OPEN_WEIGHT_BUILD_MODEL = 'google/gemma-4-31b-it';
+
 /** The plan a person is on until they choose (owner decision, Nov 16) */
 export const DEFAULT_COMMUNITY_PLAN: CommunityPlanId = 'open-weight';
 
 export function communityPlans(): CommunityPlan[] {
-  const openBuild: StageModel = { providerId: 'openrouter', model: communityOpenBuildModel() };
+  const openBuild: StageModel = { providerId: 'openrouter', model: OPEN_WEIGHT_BUILD_MODEL };
   return [
     {
       id: 'open-weight',
@@ -100,7 +106,7 @@ export function communityOpenRoute(): boolean {
   return communityPlanChoice() || communityOpenBuilds();
 }
 
-/** "Gemma 4 31B plans; Gemma 4 26B builds and edits": who does what on a
+/** "Fable 5.2 plans; Opus 5.5 builds and edits": who does what on a
  *  plan, naming a model once when it holds several jobs */
 export function planJobsLine(plan: CommunityPlan, nameOf: (modelId: string) => string): string {
   const jobs: [CommunityModelStage, string][] = [

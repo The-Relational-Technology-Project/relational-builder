@@ -45,7 +45,7 @@ describe('community plans', () => {
   it('says who does what, naming a model once', () => {
     const name = (id: string) => id.split('/').pop()!;
     expect(planJobsLine(communityPlan('open-weight'), name)).toBe(
-      'gemma-4-31b-it plans; gemma-4-26b-a4b-it builds and edits',
+      'gemma-4-31b-it plans, builds and edits',
     );
     expect(planJobsLine(communityPlan('frontier'), name)).toBe(
       'claude-fable-5-2 plans; claude-opus-5-5 builds and edits',
