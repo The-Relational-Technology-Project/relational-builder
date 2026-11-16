@@ -308,35 +308,30 @@ stack layer it moved; pace paid work at $3 to $5 a day.
    ones (sheet: https://claude.ai/artifact/NFwUoQNfVpJ7hokCpezjQA). If
    that matches your read, the Builder can use both by default behind the
    flag. Default if unanswered: the next run puts them in the Builder
-   behind the flag and measures on the spread set.
+   behind the flag and measures on the spread set. Done Nov 16 (default
+   taken): both are now the Builder's path for open models, behind the
+   flag; say if you'd rather they weren't.
 
 ## Tomorrow (one run, about 75 minutes)
 
-1. **The fridge's second column still lacks shifts.** The Nov 15 rule
-   gave the listening wall real second-column content (organizers,
-   emerging themes) but the fridge got a steward card and two links, no
-   shift list with names. Try a kit answer rather than a third rule line:
-   a small `ListCard` (title, three to five rows with avatar, name, what,
-   when) the recipe names for the second column, render-tested. Gemma 26B,
-   comparison prompts, four trials (about $0.05, log first).
-2. **Gemma 4 31B as a second build candidate.** Josh (Nov 15, via the
-   place-demo session): size is off the table for hosted defaults, so
-   31B is fair game. On the spread set it matched 26B (15 of 16 each,
-   same desktop classes; 26B more first-screen text, 31B faster). Run
-   31B on the comparison prompts, four trials (about $0.03), and put it
-   on the sheet beside 26B and Opus. Do not change the Builder's default
-   without Josh.
-3. **Runaway guard, still unmeasured.** Nov 15's Mistral try lost its
-   connection and the lane's time limit ended it before a build was
-   recorded. The guard checks between replies, so one very long reply
-   still runs to the per-reply cap. Try once more on a different host
-   (two trials, about $0.02); if the host is still unstable, drop it and
-   say so.
-4. **Coordinate with the place-demo session.** It runs on this branch
-   and spends from the same daily budget (Nov 15: about $7 reserved
-   before this run). Read its SPEND rows first each day and keep the day
-   under the pace.
-5. **End-to-end check of export and delete.** Needs a signed-in Builder.
+1. **The new default on the place prompt and the edit tasks.** Since Nov
+   16 open models build with the make-it-obvious guidance, up to three
+   library screens and ListCard. Check it doesn't hurt the place-demo
+   session's `--tasks place` (Gemma 26B, three trials) or an edit turn
+   (`--tasks edit`, one trial each); about $0.10, log first.
+2. **Admin words still slip in** ("Manage Shifts" on a Nov 16 fridge).
+   A static hint, not a fix-pass trigger: list button and heading labels
+   that use admin words (Manage, Submit, Dashboard, Admin, Settings) in
+   the build report the Builder shows, so a person can see and change them.
+   Tested; no inference.
+3. **Gemma 4 31B on the spread set with the new default** (two trials,
+   about $0.04), so both Gemmas have a full row under today's path. Then
+   put the two side by side for Josh on one sheet.
+4. **End-to-end check of export and delete.** Needs a signed-in Builder.
+
+Dropped: the Mistral runaway retry. Nov 16's two builds finished in one
+reply each, so the guard had nothing to stop; the Nov 13 replay stands as
+the evidence.
 
 ## After that, in order
 

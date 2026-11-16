@@ -12,6 +12,57 @@ experiment at most $5 and 30 minutes.
 
 ---
 
+## 2026-11-16
+
+**For Josh:** Last night's result is now how the Builder builds with open
+models, behind the flag: the make-it-obvious guidance and up to three
+reference screens. On the eight extra prompts Gemma's first screens held
+as much as Opus's. A new kit part fixed the fridge's empty right column:
+it now lists this week's shifts with names. Gemma 31B did as well as 26B
+on the two main prompts. Spend about $0.15. Sheets linked below.
+
+**Stack layer moved:** Builder model, from "the intuitive guidance and
+three screens work in an experiment" to "they are the Builder's path for
+open models", plus a kit part (`ListCard`) for the second column.
+
+**What was tried.**
+
+1. *The new default in the Builder* (your Nov 15 question, default
+   taken): the design guidance defaults to `intuitive`; an open model's
+   first build sees up to three library screens, as images or, for
+   text-only models, in words, with one note. The bench's `library` arm
+   is the same code. Gemma 26B, spread set, 16 builds: 14 working, 13 on
+   the first try, first-screen text 920 characters (Opus 899), desktop
+   classes 7 (Opus 12), 48 seconds a build. Of the two failures, one was
+   a syntax slip and one a `./src/App` import from inside `/src`, now
+   repaired in the extractor.
+2. *ListCard* (`@/components/ui/list-card`): a title and three to five
+   rows of person, what and when, with an open slot reading "anyone can
+   take it"; the second-column rule names it with an example. Gemma 26B,
+   comparison prompts, 8 builds: 7 working, all 7 on the first try; three
+   of four fridge builds used it, and by eye the right column now shows
+   "This week's help" with four named shifts, the shape Opus used. One
+   admin label slipped in ("Manage Shifts").
+3. *Gemma 4 31B, comparison prompts, new default:* 8 of 8 working, 7 on
+   the first try, first-screen text 934 characters, 40 seconds a build.
+4. *Mistral runaway retry:* both builds finished in one reply (455s and
+   253s), so the guard had nothing to stop. Dropped; the Nov 13 replay
+   stands.
+
+**Sheets (Artifacts):** comparison prompts, 26B with ListCard and 31B,
+beside Opus https://claude.ai/artifact/3tovqLLbfuQCofKH7AbaGV · spread
+set with the new default, beside Opus
+https://claude.ai/artifact/K3Q16Fh7MoSEh3kU2iCc5D
+
+**Cost:** about $0.15 (harness estimate). No spend from the place-demo
+session today at the time of this run.
+
+**Honest read:** on content and reliability the open path is now at
+Opus's level on these prompts; on laptop layout it is about halfway (7
+desktop classes against 12), and ListCard is the first change that
+visibly filled the second column. Design is still your read from the
+sheets.
+
 ## 2026-11-15 (evening): more design direction, more intuitive?
 
 **For Josh:** You asked whether lots of design direction and examples

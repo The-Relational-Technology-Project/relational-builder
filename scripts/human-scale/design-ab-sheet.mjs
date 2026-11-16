@@ -17,7 +17,7 @@ const date = argDate && !argDate.startsWith('--') ? argDate : new Date().toISOSt
 // --also 2026-11-06:opus-5-5 pulls one model's builds from another day in as a reference row
 const alsoArg = process.argv.includes('--also') ? process.argv[process.argv.indexOf('--also') + 1] : null;
 const also = alsoArg ? { date: alsoArg.split(':')[0], alias: alsoArg.split(':')[1] } : null;
-const ALL_VARIANTS = ['none', 'recipe', 'direction', 'reference'];
+const ALL_VARIANTS = ['none', 'recipe', 'direction', 'reference', 'intuitive'];
 const TASKS = ['hs-community-fridge', 'hs-listening-wall'];
 const MODEL_ORDER = ['gemma-4-26b', 'gemma-4-31b', 'mistral-small-3.2', 'glm-4.5-air', 'opus-5-5'];
 
