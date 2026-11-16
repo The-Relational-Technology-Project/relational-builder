@@ -39,6 +39,7 @@ import emptyStateSrc from './files/components/ui/empty-state.tsx?raw';
 import skeletonSrc from './files/components/ui/skeleton.tsx?raw';
 import separatorSrc from './files/components/ui/separator.tsx?raw';
 import layoutSrc from './files/components/ui/layout.tsx?raw';
+import listCardSrc from './files/components/ui/list-card.tsx?raw';
 
 /** Kit sources by the path they occupy inside a generated project. */
 export const KIT_FILES: Record<string, string> = {
@@ -66,6 +67,7 @@ export const KIT_FILES: Record<string, string> = {
   '/src/components/ui/skeleton.tsx': skeletonSrc,
   '/src/components/ui/separator.tsx': separatorSrc,
   '/src/components/ui/layout.tsx': layoutSrc,
+  '/src/components/ui/list-card.tsx': listCardSrc,
 };
 
 /** Resolve an import specifier (`@/…` or a relative path already joined to

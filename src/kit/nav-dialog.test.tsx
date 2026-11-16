@@ -71,3 +71,20 @@ describe('kit layout', () => {
     expect(html).toContain('<aside');
   });
 });
+
+describe('kit ListCard', () => {
+  it('renders people rows and an open slot as an invitation', async () => {
+    const { ListCard, ListCardRow } = await import('./files/components/ui/list-card');
+    const html = renderToStaticMarkup(
+      <ListCard title="This week's shifts">
+        <ListCardRow name="Rosa Diaz" what="Restock and wipe down" when="Tue 8am" />
+        <ListCardRow open what="Evening check" when="Wed 6pm" />
+      </ListCard>,
+    );
+    expect(html).toContain('This week&#x27;s shifts');
+    expect(html).toContain('Rosa Diaz');
+    expect(html).toContain('RD');
+    expect(html).toContain('Open: anyone can take it');
+    expect(html).toContain('Tue 8am');
+  });
+});
