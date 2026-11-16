@@ -34,7 +34,9 @@ export function designScaffoldVariant(): DesignScaffold {
   } catch {
     // storage blocked: the default
   }
-  return 'direction';
+  // Nov 16: make-it-obvious rules on by default (Nov 15 experiment: with
+  // three reference screens, 12 of 12 working and clearer first screens)
+  return 'intuitive';
 }
 
 export interface VisualDirection {

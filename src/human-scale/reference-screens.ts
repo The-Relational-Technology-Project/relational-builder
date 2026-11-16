@@ -125,6 +125,22 @@ export function referenceTextNote(screen: ReferenceScreen): string {
   );
 }
 
+/** How many library screens a first build sees (Nov 15: three beat one) */
+export const REFERENCE_SCREEN_COUNT = 3;
+
+/** The note for several screens at once; `asImages` false describes them
+ *  in words only, for models that can't read images */
+export function referenceScreensNote(screens: ReferenceScreen[], asImages: boolean): string {
+  const lead = asImages
+    ? `The attached screenshots are ${screens.length} reference screens from the Builder's library, each a different app, built well.`
+    : `Here are ${screens.length} reference screens from the Builder's library, described in words, each a different app, built well.`;
+  const each = screens.map((sc, i) => `Reference ${i + 1}: ${sc.shape}. ${sc.layout}`).join('\n\n');
+  return (
+    `${lead} Use them as the reference for quality, not subject: match their layout density, hierarchy, type, how they use color and how ` +
+    `specific and obvious their content is, while building this app for its own place and people. Do not copy their subjects or their words.\n\n${each}`
+  );
+}
+
 export function referenceUrl(screen: ReferenceScreen): string {
   return `/human-scale/references/${screen.file}`;
 }

@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import type { ChatMessage } from '../../src/providers/types';
-import { pickReferenceScreen, pickReferenceScreens, referenceNote, referenceTextNote } from '../../src/human-scale/reference-screens';
+import { REFERENCE_SCREEN_COUNT, pickReferenceScreen, pickReferenceScreens, referenceNote, referenceScreensNote, referenceTextNote } from '../../src/human-scale/reference-screens';
 import { acceptsImages } from '../../src/human-scale/builder-model';
 
 /**
@@ -13,7 +13,9 @@ import { acceptsImages } from '../../src/human-scale/builder-model';
  *   BENCH_REFERENCE=spec   the written UI spec for this prompt
  *   BENCH_REFERENCE=both   screenshot and spec
  *   BENCH_REFERENCE=other  the Opus screenshot of a DIFFERENT prompt
- *   BENCH_REFERENCE=library  the Builder's own pick from its reference
+ *   BENCH_REFERENCE=library  the Builder's own path (since Nov 16 up to
+ *                            three screens; library-one keeps the single
+ *                            screen for comparison). The Builder's own pick from its reference
  *                            library (src/human-scale/reference-screens.ts),
  *                            with the Builder's wording: the product path
  *   BENCH_REFERENCE=library-words  image plus layout in words; since Nov 14
@@ -24,7 +26,7 @@ import { acceptsImages } from '../../src/human-scale/builder-model';
  * (src/project/start-from-commons.ts). Unset, the message is the bare
  * prompt, exactly as before.
  */
-export type ReferenceArm = 'same' | 'spec' | 'both' | 'other' | 'library' | 'library-words' | 'library-multi';
+export type ReferenceArm = 'same' | 'spec' | 'both' | 'other' | 'library' | 'library-words' | 'library-multi' | 'library-one';
 
 export const REFERENCE_DIR = path.resolve(import.meta.dirname ?? __dirname, '..', 'reference');
 
@@ -49,7 +51,7 @@ export const OTHER_NOTE =
 
 export function referenceArm(): ReferenceArm | null {
   const v = process.env.BENCH_REFERENCE?.trim();
-  return v === 'same' || v === 'spec' || v === 'both' || v === 'other' || v === 'library' || v === 'library-words' || v === 'library-multi' ? v : null;
+  return v === 'same' || v === 'spec' || v === 'both' || v === 'other' || v === 'library' || v === 'library-words' || v === 'library-multi' || v === 'library-one' ? v : null;
 }
 
 function imagePart(taskId: string, dir: string) {
@@ -67,6 +69,17 @@ function spec(taskId: string, dir: string): string {
 /** The first user message for a build, with the arm's reference attached */
 export function userContent(taskId: string, prompt: string, arm = referenceArm(), dir = REFERENCE_DIR, modelId?: string): ChatMessage['content'] {
   if (!arm) return prompt;
+  if (arm === 'library') {
+    // The Builder's own path since Nov 16: up to three screens, its note,
+    // and the screens in words for a text-only model
+    const screens = pickReferenceScreens(prompt, REFERENCE_SCREEN_COUNT);
+    if (modelId && !acceptsImages(modelId)) return `${prompt}\n\n${referenceScreensNote(screens, false)}`;
+    return [
+      { type: 'text', text: `${prompt}\n\n${referenceScreensNote(screens, true)}` },
+      ...screens.map(sc => ({ type: 'image_url' as const, image_url: { url: `data:image/png;base64,${readFileSync(path.resolve(dir, '..', '..', 'public', 'human-scale', 'references', sc.file)).toString('base64')}` } })),
+    ];
+  }
+  if (arm === 'library-one') arm = 'library-words';
   if (arm === 'library-multi') {
     // Three different well-made screens (Nov 15: "tons of design direction
     // and examples"), each with its layout in words

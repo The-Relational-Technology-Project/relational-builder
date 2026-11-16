@@ -34,11 +34,11 @@ describe('reference arms', () => {
 });
 
 describe('library arm', () => {
-  it('attaches the Builder\'s pick with its wording', () => {
-    const c = userContent('hs-ballot-guide', 'Build a ballot guide for our neighborhood, a guide to how to vote.', 'library') as Array<{ type: string; text?: string }>;
-    expect(c[0].text).toContain("reference screen from the Builder's library");
+  it('takes the Builder\'s path: up to three screens with its note', () => {
+    const c = userContent('hs-ballot-guide', 'Build a ballot guide for our neighborhood, a guide to how to vote.', 'library', undefined, 'google/gemma-4-26b-a4b-it') as Array<{ type: string; text?: string }>;
+    expect(c[0].text).toContain("reference screens from the Builder's library");
     expect(c[0].text).not.toContain('a plain-language guide with logistics');
-    expect(c[1].type).toBe('image_url');
+    expect(c.filter(p => p.type === 'image_url').length).toBeGreaterThanOrEqual(2);
   });
 });
 

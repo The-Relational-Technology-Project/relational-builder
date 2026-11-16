@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { pickReferenceScreen, referenceDataUrl, referenceNote, referenceTextNote } from '@/human-scale/reference-screens';
+import { REFERENCE_SCREEN_COUNT, pickReferenceScreens, referenceDataUrl, referenceScreensNote } from '@/human-scale/reference-screens';
 import { runawayReason } from '@/human-scale/runaway';
 import { extractOperations } from '@/project/code-extractor';
 import { ensureProfileDataFile } from '@/project/builder-profile';
@@ -638,18 +638,19 @@ export function ChatPanel() {
     let sendAttachments = attachments;
     if (isFirstBuild && !wasFix && !attachments?.length && isHumanScale() && isOpenBuilderModel(modelForSend)) {
       const askedFor = [...priorMessages.filter(m => m.role === 'user').map(m => m.content), content].join('\n');
-      const screen = pickReferenceScreen(askedFor);
+      const screens = pickReferenceScreens(askedFor, REFERENCE_SCREEN_COUNT);
       if (acceptsImages(modelForSend)) {
-        const url = await referenceDataUrl(screen);
-        if (url) {
-          sendAttachments = [url];
-          photoNote = [photoNote, referenceNote(screen)].filter(Boolean).join('\n\n');
-          recordBuildEvent('reference_screen', screen.id);
+        const urls = (await Promise.all(screens.map(referenceDataUrl))).filter((u): u is string => !!u);
+        if (urls.length) {
+          const shown = screens.slice(0, urls.length);
+          sendAttachments = urls;
+          photoNote = [photoNote, referenceScreensNote(shown, true)].filter(Boolean).join('\n\n');
+          recordBuildEvent('reference_screen', shown.map(sc => sc.id).join(', '));
         }
       } else {
-        // Text-only models get the same screen in words
-        photoNote = [photoNote, referenceTextNote(screen)].filter(Boolean).join('\n\n');
-        recordBuildEvent('reference_screen', `${screen.id} (in words)`);
+        // Text-only models get the same screens in words
+        photoNote = [photoNote, referenceScreensNote(screens, false)].filter(Boolean).join('\n\n');
+        recordBuildEvent('reference_screen', `${screens.map(sc => sc.id).join(', ')} (in words)`);
       }
     }
     addUserMessage(
