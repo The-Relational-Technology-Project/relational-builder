@@ -346,8 +346,11 @@ function BuildRecovery() {
  */
 function RetryBanner({
   onRetry,
+  remoteBusy,
 }: {
   onRetry: (content: string, attachments?: string[], opts?: SendOptions) => void;
+  /** A teammate is generating: their ask is waiting on THEIR reply */
+  remoteBusy: boolean;
 }) {
   const messages = useChatStore(s => s.messages);
   const [dismissedId, setDismissedId] = useState<string | null>(null);
@@ -355,6 +358,23 @@ function RetryBanner({
   const last = messages[messages.length - 1];
   const ask = messages[messages.length - 2];
   const candidate = useMemo(() => {
+    // An ask with no reply at all: the page went away mid-send (a deploy's
+    // stale-chunk reload, a closed tab) after the ask was saved but before
+    // a reply existed. Nothing in flight can answer it now, so it would
+    // otherwise sit there looking like the Builder is still thinking.
+    if (
+      last && last.role === 'user' && !last.isAuto && !last.isCollabNote && !last.isSync &&
+      !remoteBusy && dismissedId !== last.id
+    ) {
+      return {
+        failedId: last.id,
+        askId: last.id,
+        content: last.content,
+        attachments: last.attachments,
+        photoNote: last.photoNote,
+        orphan: true,
+      };
+    }
     if (!last || last.role !== 'assistant' || !last.errored || last.isStreaming) return null;
     if (dismissedId === last.id) return null;
     // Only retry a person's own ask — auto sends (fixes, continuations) have
@@ -368,8 +388,9 @@ function RetryBanner({
       content: ask.content,
       attachments: ask.attachments,
       photoNote: ask.photoNote,
+      orphan: false,
     };
-  }, [last, ask, dismissedId]);
+  }, [last, ask, dismissedId, remoteBusy]);
 
   if (!candidate) return null;
 
@@ -389,7 +410,9 @@ function RetryBanner({
   return (
     <div className="mx-4 mb-2 flex items-center gap-3 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2.5">
       <p className="text-sm flex-1">
-        That reply didn't make it through — usually just a network hiccup.
+        {candidate.orphan
+          ? "This didn't get a reply. The page reloaded before it went out."
+          : "That reply didn't make it through — usually just a network hiccup."}
       </p>
       <Button size="sm" variant="outline" onClick={retry} className="shrink-0">
         <RotateCcw className="size-3.5 mr-1.5" />
@@ -1543,7 +1566,7 @@ export function ChatPanel() {
           not flash banners — the cooking line is the only thing happening */}
       {!isGenerating && !cooking && <RemoteChangesBanner />}
       {!isGenerating && !cooking && <BuildRecovery />}
-      {!isGenerating && !cooking && <RetryBanner onRetry={handleSend} />}
+      {!isGenerating && !cooking && <RetryBanner onRetry={handleSend} remoteBusy={remoteBuilder !== null} />}
       {/* Always mounted: the card itself picks its calm moment to appear
           (and retires the ask if the person builds on past it) */}
       <BuildReportCard />
