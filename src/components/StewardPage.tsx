@@ -54,6 +54,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Check, X, Loader2, ChevronDown, ChevronRight, ShieldCheck, KeyRound, Lock, LockOpen, Ticket, Copy, Printer, Trophy, Presentation, Archive, ArchiveRestore, CalendarDays, UserPlus, MapPin } from 'lucide-react';
 import { locationFromPlace } from '@/knowledge/geo';
+import { planOfModel } from '@/cloud/community-plans';
 
 /**
  * The Steward page — every steward task in one full-width space (these
@@ -216,6 +217,19 @@ function fmtUsd(n: number): string {
   return n >= 100 ? `$${Math.round(n)}` : `$${n.toFixed(2)}`;
 }
 
+/** All-time spend by the kind of model that ran, across every member */
+function spendByPlan(members: MemberUsage[]): { open: number; frontier: number } {
+  const totals = { open: 0, frontier: 0 };
+  for (const m of members) {
+    for (const row of m.models) {
+      const plan = planOfModel(row.model);
+      if (plan === 'open-weight') totals.open += row.usd;
+      else if (plan === 'frontier') totals.frontier += row.usd;
+    }
+  }
+  return totals;
+}
+
 /** "claude-fable-5 $6.10 · claude-opus-5 $3.20" → "fable-5 $6.10 · opus-5 $3.20" */
 function modelMix(models: MemberUsage['models']): string {
   return models
@@ -286,6 +300,16 @@ function UsageTab() {
           </p>
         </div>
       </div>
+
+      {/* The two kinds of model, side by side: what each has cost so far */}
+      {(() => {
+        const byPlan = spendByPlan(report.members);
+        return (
+          <p className="text-xs text-muted-foreground tabular-nums">
+            All time by kind of model: open-weight {fmtUsd(byPlan.open)} · frontier {fmtUsd(byPlan.frontier)}
+          </p>
+        );
+      })()}
 
       {/* Two weeks of daily spend, oldest first — the pulse */}
       <div className="rounded-lg border px-3 py-2.5 space-y-1.5">

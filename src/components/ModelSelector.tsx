@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { communityOpenBuilds } from '@/human-scale/open-build';
+import { communityOpenRoute, communityPlanChoice } from '@/cloud/community-plans';
+import { CommunityPlanPicker } from '@/components/CommunityPlanPicker';
 import { useProviderStore } from '@/store/provider-store';
 import { useCommunityStore, communityCovers } from '@/store/community-store';
 import { registry } from '@/providers/registry';
@@ -50,7 +51,7 @@ export function ModelSelector({ className }: { className?: string }) {
   const onCommunityKey =
     communityActive &&
     ((activeProviderId === 'claude' && !apiKeys['claude']) ||
-      (communityOpenBuilds() && activeProviderId === 'openrouter' && !apiKeys['openrouter']));
+      (communityOpenRoute() && activeProviderId === 'openrouter' && !apiKeys['openrouter']));
 
   // The chip names the model, not its maker — "Opus 5", not "Claude Opus 5".
   // The full name is one hover (or one open menu) away, so nothing is hidden;
@@ -78,7 +79,8 @@ export function ModelSelector({ className }: { className?: string }) {
         </SelectValue>
       </SelectTrigger>
       <SelectContent className="min-w-64 max-w-72">
-        {onCommunityKey && (
+        {onCommunityKey && communityPlanChoice() && <CommunityPlanPicker />}
+        {onCommunityKey && !communityPlanChoice() && (
           <p className="px-2 py-1.5 text-xs leading-snug text-muted-foreground">
             Included with community access — every model draws on the same
             weekly budget. Builds and edits pick a sensible default

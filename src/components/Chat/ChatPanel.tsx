@@ -31,6 +31,8 @@ interface SendOptions {
   photoNote?: string;
 }
 import { CLAUDE_MODELS } from '@/providers/claude';
+import { communityPlan, communityPlanChoice, planModelNote } from '@/cloud/community-plans';
+import { currentCommunityPlan } from '@/store/community-plan-store';
 import { shortModelName } from '@/providers/model-label';
 import { useEnvStore } from '@/store/env-store';
 import { useRegionStore } from '@/store/region-store';
@@ -240,6 +242,12 @@ function communityModelNote(stage: CommunityModelStage, movedOff: string): strin
     shortModelName(
       CLAUDE_MODELS.find(m => m.id === id)?.name ?? OPEN_BUILDER_MODELS.find(m => m.id === id)?.name ?? id,
     );
+  // With the plan choice on, the note names the plan and what kind of
+  // model it is: the two plans teach the difference as they go
+  if (communityPlanChoice()) {
+    const plan = communityPlan(currentCommunityPlan());
+    return planModelNote(plan, stage, name(plan.stages[stage].model));
+  }
   // Behind the flag, builds and edits run on an open model the community
   // could host itself; the note says so and where the evidence is
   if (communityOpenBuilds() && stage !== 'plan') {

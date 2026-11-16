@@ -1,5 +1,16 @@
 import { create } from 'zustand';
 import { communityOpenBuildModel, communityOpenBuilds } from '@/human-scale/open-build';
+import {
+  COMMUNITY_EDIT_MODEL,
+  COMMUNITY_FIRST_BUILD_MODEL,
+  COMMUNITY_PLAN_MODEL,
+  communityOpenRoute,
+  communityPlan,
+  communityPlanChoice,
+  type CommunityModelStage,
+  type CommunityPlanId,
+} from '@/cloud/community-plans';
+import { currentCommunityPlan, useCommunityPlanStore } from '@/store/community-plan-store';
 import { builderClient } from '@/cloud/builder-client';
 import { useAuthStore } from '@/store/auth-store';
 import { useProviderStore } from '@/store/provider-store';
@@ -128,6 +139,9 @@ export const useCommunityStore = create<CommunityState>()((set) => ({
       if (d.providerId !== providers.activeProviderId) providers.setActiveProvider(d.providerId);
       providers.setActiveModel(d.model);
     }
+    // With the plan choice on, the model chip shows the person's plan from
+    // the start, so the menu never says one plan while the chip shows the other
+    if (communityPlanChoice() && onCommunityDefaults()) await applyCommunityDefault();
   },
 
   refreshUsage: async () => {
@@ -236,11 +250,10 @@ export function refreshCommunityUsageSoon(delayMs = 2500): void {
  * showed an "edits and fixes" note to someone whose first build hadn't even
  * started).
  */
-export const COMMUNITY_PLAN_MODEL = 'claude-fable-5-2';
-export const COMMUNITY_FIRST_BUILD_MODEL = 'claude-opus-5-5';
-export const COMMUNITY_EDIT_MODEL = 'claude-opus-5-5';
-
-export type CommunityModelStage = 'plan' | 'first-build' | 'edit';
+// The constants live with the plan table (src/cloud/community-plans.ts),
+// where they are the Frontier plan's stages
+export { COMMUNITY_PLAN_MODEL, COMMUNITY_FIRST_BUILD_MODEL, COMMUNITY_EDIT_MODEL };
+export type { CommunityModelStage };
 
 /** Stage → model, from what the person is doing right now. Plan mode is the
  *  plan stage whatever the file count — a rethink on a built project is
@@ -252,6 +265,10 @@ export function communityDefaultModelFor(
 ): { model: string; providerId: 'claude' | 'openrouter'; stage: CommunityModelStage } {
   const stage: CommunityModelStage =
     chatMode === 'plan' ? 'plan' : projectFileCount === 0 ? 'first-build' : 'edit';
+  // With the plan choice on, the person's plan decides every stage
+  if (communityPlanChoice()) {
+    return { ...communityPlan(currentCommunityPlan()).stages[stage], stage };
+  }
   // Behind the human-scale flag, builds and edits run on the open model the
   // bench vouches for (docs/human-scale/builder-model.ts), through the
   // community route; planning stays on Claude until an open model has
@@ -276,7 +293,7 @@ function onCommunityDefaults(): boolean {
   const providers = useProviderStore.getState();
   if (!useCommunityStore.getState().active || providers.modelPinned) return false;
   if (providers.activeProviderId === 'claude') return !providers.apiKeys['claude'];
-  if (communityOpenBuilds() && providers.activeProviderId === 'openrouter') return !providers.apiKeys['openrouter'];
+  if (communityOpenRoute() && providers.activeProviderId === 'openrouter') return !providers.apiKeys['openrouter'];
   return false;
 }
 
@@ -296,6 +313,32 @@ export function resolveCommunityModelDefault(
  *  open builder models behind the flag */
 export function communityCovers(providerId: string, modelId: string): boolean {
   if (providerId === 'claude') return COMMUNITY_MODELS.includes(modelId);
-  if (providerId === 'openrouter') return communityOpenBuilds() && isOpenBuilderModel(modelId);
+  if (providerId === 'openrouter') return communityOpenRoute() && isOpenBuilderModel(modelId);
   return false;
+}
+
+/**
+ * A person picked a community plan in the model menu. The choice is
+ * deliberate, so it replaces any single-model pin, takes effect on the
+ * model chip right away (no note in chat: they just chose it), and is saved
+ * to their profile so it follows them to another browser.
+ */
+export async function chooseCommunityPlan(plan: CommunityPlanId): Promise<void> {
+  useCommunityPlanStore.getState().setPlan(plan);
+  useProviderStore.getState().clearModelPin();
+  await applyCommunityDefault();
+  if (useAuthStore.getState().user) void useAuthStore.getState().saveProfile({ community_plan: plan });
+}
+
+/** Put the model chip on the community default for what the person is
+ *  doing right now (their plan's model for this stage) */
+export async function applyCommunityDefault(): Promise<void> {
+  const [{ useProjectStore }, { useChatStore }] = await Promise.all([
+    import('@/store/project-store'),
+    import('@/store/chat-store'),
+  ]);
+  const providers = useProviderStore.getState();
+  const d = communityDefaultModelFor(useChatStore.getState().mode, useProjectStore.getState().getFileCount());
+  if (providers.activeProviderId !== d.providerId) providers.setActiveProvider(d.providerId);
+  providers.setActiveModel(d.model);
 }

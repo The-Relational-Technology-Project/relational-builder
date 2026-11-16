@@ -1,5 +1,5 @@
 import type { LLMProvider, ChatMessage, StreamCallbacks, ModelInfo } from './types';
-import { communityOpenBuilds } from '@/human-scale/open-build';
+import { communityOpenRoute } from '@/cloud/community-plans';
 import { isHumanScale } from '@/human-scale/flag';
 import { OPEN_BUILDER_MODELS, isOpenBuilderModel, openRouterRoutingBody } from '@/human-scale/builder-model';
 
@@ -417,7 +417,7 @@ export function createOpenAIProvider(): OpenAICompatibleProvider {
 
 /** Pre-configured: OpenRouter (Tier 2 -- BYOK, access to many models) */
 export function createOpenRouterProvider(): OpenAICompatibleProvider {
-  const communityOpen = communityOpenBuilds();
+  const communityOpen = communityOpenRoute();
   const openModels = OPEN_BUILDER_MODELS.map(m => ({ id: m.id, name: m.name, provider: 'openrouter' }));
   const p = new OpenAICompatibleProvider({
     id: 'openrouter',

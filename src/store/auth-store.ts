@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { builderClient, cloudEnabled } from '@/cloud/builder-client';
 import { checkSignInGate, gateMessage } from '@/cloud/signin-gate';
 import { useRegionStore } from '@/store/region-store';
+import { useCommunityPlanStore } from '@/store/community-plan-store';
 
 /**
  * Where a magic link should land the builder. In production this is pinned to
@@ -84,6 +85,9 @@ export interface BuilderProfile {
   event_code: string | null;
   /** Where their tools and data should live — 'global' | 'eu' (see src/regions) */
   region_mode: string | null;
+  /** Which community plan they chose: 'open-weight' | 'frontier', null until
+   *  they choose (src/cloud/community-plans.ts) */
+  community_plan?: string | null;
 }
 
 const PROFILE_COLUMNS =
@@ -250,13 +254,15 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       set({ profile: null, profileLoaded: true });
       return;
     }
-    const select = (withRegion: boolean) =>
+    const select = (withRegion: boolean, withPlan = withRegion) =>
       builderClient!
         .from('profiles')
-        .select(PROFILE_COLUMNS + (withRegion ? ', region_mode' : ''))
+        .select(PROFILE_COLUMNS + (withRegion ? ', region_mode' : '') + (withPlan ? ', community_plan' : ''))
         .eq('id', user.id)
         .maybeSingle();
     let { data, error } = await select(true);
+    // Same tolerance for migration 20261116090000 (community_plan)
+    if (error && /community_plan/.test(error.message)) ({ data, error } = await select(true, false));
     // Until migration 20261101090000 (region_mode) is applied, the column
     // is missing — fall back to the older column list rather than leaving
     // every profile unloaded
@@ -271,6 +277,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     set({ profile, profileLoaded: true });
     // The profile row is the source of truth for the regional mode
     if (profile) useRegionStore.getState().adopt(profile.region_mode);
+    if (profile) useCommunityPlanStore.getState().adopt(profile.community_plan);
   },
 
   saveProfile: async (fields) => {
@@ -285,6 +292,13 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     if (error && /region_mode/.test(error.message) && 'region_mode' in fields) {
       const { region_mode: _skip, ...rest } = fields;
       void _skip;
+      ({ error } = await builderClient.from('profiles').update(rest).eq('id', user.id));
+    }
+    // The community plan choice likewise holds locally (community-plan-store)
+    if (error && /community_plan/.test(error.message) && 'community_plan' in fields) {
+      const { community_plan: _skipPlan, ...rest } = fields;
+      void _skipPlan;
+      if (Object.keys(rest).length === 0) return { error: null };
       ({ error } = await builderClient.from('profiles').update(rest).eq('id', user.id));
     }
     if (!error) {
