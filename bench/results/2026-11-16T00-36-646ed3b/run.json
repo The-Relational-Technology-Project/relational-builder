@@ -1,0 +1,860 @@
+{
+  "harnessVersion": "1.2.0",
+  "taskVersion": "edit-seed-v2,edit-seed-v2,edit-seed-v2",
+  "gitCommit": "646ed3b",
+  "createdAt": "2026-11-16T00:37:44.239Z",
+  "runId": "2026-11-16T00-36-646ed3b",
+  "config": {
+    "trials": 2,
+    "timeoutMs": 600000,
+    "planFirst": false,
+    "planModel": null,
+    "planEffort": null,
+    "studio": null,
+    "effort": "medium"
+  },
+  "models": [
+    {
+      "alias": "pareto",
+      "providerId": "unbiased",
+      "modelId": "pareto-26.10",
+      "pricing": {
+        "inputPerMTok": 0.8,
+        "outputPerMTok": 3.2,
+        "asOf": "2026-11"
+      },
+      "enabled": false
+    },
+    {
+      "alias": "claude-opus-5-5",
+      "providerId": "claude",
+      "modelId": "claude-opus-5-5",
+      "pricing": {
+        "inputPerMTok": 4,
+        "outputPerMTok": 20,
+        "asOf": "2026-09"
+      },
+      "enabled": true
+    }
+  ],
+  "tasks": [
+    {
+      "id": "edit-copy",
+      "version": "edit-seed-v2"
+    },
+    {
+      "id": "edit-feature",
+      "version": "edit-seed-v2"
+    },
+    {
+      "id": "edit-restyle",
+      "version": "edit-seed-v2"
+    }
+  ],
+  "trials": [
+    {
+      "alias": "claude-opus-5-5",
+      "providerId": "claude",
+      "modelId": "claude-opus-5-5",
+      "taskId": "edit-copy",
+      "taskVersion": "edit-seed-v2",
+      "trial": 1,
+      "startedAt": "2026-11-16T00:36:35.825Z",
+      "plan": null,
+      "latencyMs": 3541,
+      "ttftMs": 2603,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 3541,
+          "chars": 637
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 637,
+      "estTokens": {
+        "input": 15405,
+        "output": 160,
+        "estimated": true
+      },
+      "estCostUsd": 0.06482,
+      "extraction": {
+        "writes": 0,
+        "editBlocks": 1,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": {
+        "filesChanged": 1,
+        "collateralFiles": [],
+        "bytesRewritten": 1341,
+        "seedFilesRewritten": 0,
+        "filesAdded": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "copy-landed",
+          "description": "Both new strings present",
+          "pass": true
+        },
+        {
+          "id": "old-copy-gone",
+          "description": "Old heading text removed",
+          "pass": true
+        },
+        {
+          "id": "seed-intact",
+          "description": "Seed data still present (edit did not wipe the project)",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/edit-copy/claude-opus-5-5-t1",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "pareto",
+      "providerId": "unbiased",
+      "modelId": "pareto-26.10",
+      "taskId": "edit-copy",
+      "taskVersion": "edit-seed-v2",
+      "trial": 1,
+      "startedAt": "2026-11-16T00:36:35.806Z",
+      "plan": null,
+      "latencyMs": 4912,
+      "ttftMs": 4909,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 4912,
+          "chars": 587
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 587,
+      "estTokens": {
+        "input": 15405,
+        "output": 147,
+        "estimated": true
+      },
+      "estCostUsd": 0.012794400000000001,
+      "extraction": {
+        "writes": 0,
+        "editBlocks": 1,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": {
+        "filesChanged": 1,
+        "collateralFiles": [],
+        "bytesRewritten": 1341,
+        "seedFilesRewritten": 0,
+        "filesAdded": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "copy-landed",
+          "description": "Both new strings present",
+          "pass": true
+        },
+        {
+          "id": "old-copy-gone",
+          "description": "Old heading text removed",
+          "pass": true
+        },
+        {
+          "id": "seed-intact",
+          "description": "Seed data still present (edit did not wipe the project)",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/edit-copy/pareto-t1",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "claude-opus-5-5",
+      "providerId": "claude",
+      "modelId": "claude-opus-5-5",
+      "taskId": "edit-copy",
+      "taskVersion": "edit-seed-v2",
+      "trial": 2,
+      "startedAt": "2026-11-16T00:36:39.464Z",
+      "plan": null,
+      "latencyMs": 2952,
+      "ttftMs": 1924,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 2952,
+          "chars": 637
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 637,
+      "estTokens": {
+        "input": 15405,
+        "output": 160,
+        "estimated": true
+      },
+      "estCostUsd": 0.06482,
+      "extraction": {
+        "writes": 0,
+        "editBlocks": 1,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": {
+        "filesChanged": 1,
+        "collateralFiles": [],
+        "bytesRewritten": 1341,
+        "seedFilesRewritten": 0,
+        "filesAdded": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "copy-landed",
+          "description": "Both new strings present",
+          "pass": true
+        },
+        {
+          "id": "old-copy-gone",
+          "description": "Old heading text removed",
+          "pass": true
+        },
+        {
+          "id": "seed-intact",
+          "description": "Seed data still present (edit did not wipe the project)",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/edit-copy/claude-opus-5-5-t2",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "pareto",
+      "providerId": "unbiased",
+      "modelId": "pareto-26.10",
+      "taskId": "edit-copy",
+      "taskVersion": "edit-seed-v2",
+      "trial": 2,
+      "startedAt": "2026-11-16T00:36:40.775Z",
+      "plan": null,
+      "latencyMs": 3602,
+      "ttftMs": 3601,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 3602,
+          "chars": 590
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 590,
+      "estTokens": {
+        "input": 15405,
+        "output": 148,
+        "estimated": true
+      },
+      "estCostUsd": 0.012797600000000001,
+      "extraction": {
+        "writes": 0,
+        "editBlocks": 1,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": {
+        "filesChanged": 1,
+        "collateralFiles": [],
+        "bytesRewritten": 1341,
+        "seedFilesRewritten": 0,
+        "filesAdded": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "copy-landed",
+          "description": "Both new strings present",
+          "pass": true
+        },
+        {
+          "id": "old-copy-gone",
+          "description": "Old heading text removed",
+          "pass": true
+        },
+        {
+          "id": "seed-intact",
+          "description": "Seed data still present (edit did not wipe the project)",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/edit-copy/pareto-t2",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "claude-opus-5-5",
+      "providerId": "claude",
+      "modelId": "claude-opus-5-5",
+      "taskId": "edit-feature",
+      "taskVersion": "edit-seed-v2",
+      "trial": 1,
+      "startedAt": "2026-11-16T00:36:42.487Z",
+      "plan": null,
+      "latencyMs": 9330,
+      "ttftMs": 5792,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 9330,
+          "chars": 1451
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 1451,
+      "estTokens": {
+        "input": 15409,
+        "output": 363,
+        "estimated": true
+      },
+      "estCostUsd": 0.068896,
+      "extraction": {
+        "writes": 0,
+        "editBlocks": 4,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": {
+        "filesChanged": 2,
+        "collateralFiles": [],
+        "bytesRewritten": 1593,
+        "seedFilesRewritten": 0,
+        "filesAdded": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "urgent-in-data",
+          "description": "urgent field added to the Post data",
+          "pass": true
+        },
+        {
+          "id": "urgent-in-ui",
+          "description": "Card renders something for urgent",
+          "pass": true
+        },
+        {
+          "id": "seed-intact",
+          "description": "Seed data still present (edit did not wipe the project)",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/edit-feature/claude-opus-5-5-t1",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "claude-opus-5-5",
+      "providerId": "claude",
+      "modelId": "claude-opus-5-5",
+      "taskId": "edit-feature",
+      "taskVersion": "edit-seed-v2",
+      "trial": 2,
+      "startedAt": "2026-11-16T00:36:51.863Z",
+      "plan": null,
+      "latencyMs": 8387,
+      "ttftMs": 4454,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 8386,
+          "chars": 1604
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 1604,
+      "estTokens": {
+        "input": 15409,
+        "output": 401,
+        "estimated": true
+      },
+      "estCostUsd": 0.069656,
+      "extraction": {
+        "writes": 0,
+        "editBlocks": 4,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": {
+        "filesChanged": 2,
+        "collateralFiles": [],
+        "bytesRewritten": 1593,
+        "seedFilesRewritten": 0,
+        "filesAdded": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "urgent-in-data",
+          "description": "urgent field added to the Post data",
+          "pass": true
+        },
+        {
+          "id": "urgent-in-ui",
+          "description": "Card renders something for urgent",
+          "pass": true
+        },
+        {
+          "id": "seed-intact",
+          "description": "Seed data still present (edit did not wipe the project)",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/edit-feature/claude-opus-5-5-t2",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "pareto",
+      "providerId": "unbiased",
+      "modelId": "pareto-26.10",
+      "taskId": "edit-feature",
+      "taskVersion": "edit-seed-v2",
+      "trial": 1,
+      "startedAt": "2026-11-16T00:36:44.424Z",
+      "plan": null,
+      "latencyMs": 22848,
+      "ttftMs": 22737,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 22848,
+          "chars": 1242
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 1242,
+      "estTokens": {
+        "input": 15409,
+        "output": 311,
+        "estimated": true
+      },
+      "estCostUsd": 0.013322400000000002,
+      "extraction": {
+        "writes": 0,
+        "editBlocks": 4,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": {
+        "filesChanged": 2,
+        "collateralFiles": [],
+        "bytesRewritten": 1593,
+        "seedFilesRewritten": 0,
+        "filesAdded": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "urgent-in-data",
+          "description": "urgent field added to the Post data",
+          "pass": true
+        },
+        {
+          "id": "urgent-in-ui",
+          "description": "Card renders something for urgent",
+          "pass": true
+        },
+        {
+          "id": "seed-intact",
+          "description": "Seed data still present (edit did not wipe the project)",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/edit-feature/pareto-t1",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "pareto",
+      "providerId": "unbiased",
+      "modelId": "pareto-26.10",
+      "taskId": "edit-feature",
+      "taskVersion": "edit-seed-v2",
+      "trial": 2,
+      "startedAt": "2026-11-16T00:37:07.313Z",
+      "plan": null,
+      "latencyMs": 13202,
+      "ttftMs": 13202,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 13201,
+          "chars": 1952
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 1952,
+      "estTokens": {
+        "input": 15409,
+        "output": 488,
+        "estimated": true
+      },
+      "estCostUsd": 0.013888800000000001,
+      "extraction": {
+        "writes": 0,
+        "editBlocks": 3,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": {
+        "filesChanged": 2,
+        "collateralFiles": [],
+        "bytesRewritten": 1593,
+        "seedFilesRewritten": 0,
+        "filesAdded": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "urgent-in-data",
+          "description": "urgent field added to the Post data",
+          "pass": true
+        },
+        {
+          "id": "urgent-in-ui",
+          "description": "Card renders something for urgent",
+          "pass": true
+        },
+        {
+          "id": "seed-intact",
+          "description": "Seed data still present (edit did not wipe the project)",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/edit-feature/pareto-t2",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "claude-opus-5-5",
+      "providerId": "claude",
+      "modelId": "claude-opus-5-5",
+      "taskId": "edit-restyle",
+      "taskVersion": "edit-seed-v2",
+      "trial": 1,
+      "startedAt": "2026-11-16T00:37:00.298Z",
+      "plan": null,
+      "latencyMs": 22779,
+      "ttftMs": 15589,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 22779,
+          "chars": 2570
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 2570,
+      "estTokens": {
+        "input": 15400,
+        "output": 643,
+        "estimated": true
+      },
+      "estCostUsd": 0.07446,
+      "extraction": {
+        "writes": 1,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": {
+        "filesChanged": 1,
+        "collateralFiles": [],
+        "bytesRewritten": 475,
+        "seedFilesRewritten": 1,
+        "filesAdded": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "palette-changed",
+          "description": "Theme values differ from the seed",
+          "pass": true
+        },
+        {
+          "id": "layout-untouched",
+          "description": "App.tsx structure preserved (max-w-xl container still there)",
+          "pass": true
+        },
+        {
+          "id": "seed-intact",
+          "description": "Seed data still present (edit did not wipe the project)",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/edit-restyle/claude-opus-5-5-t1",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "pareto",
+      "providerId": "unbiased",
+      "modelId": "pareto-26.10",
+      "taskId": "edit-restyle",
+      "taskVersion": "edit-seed-v2",
+      "trial": 1,
+      "startedAt": "2026-11-16T00:37:20.558Z",
+      "plan": null,
+      "latencyMs": 15159,
+      "ttftMs": 14063,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 15159,
+          "chars": 1430
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 1430,
+      "estTokens": {
+        "input": 15400,
+        "output": 358,
+        "estimated": true
+      },
+      "estCostUsd": 0.013465600000000001,
+      "extraction": {
+        "writes": 1,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": {
+        "filesChanged": 1,
+        "collateralFiles": [],
+        "bytesRewritten": 475,
+        "seedFilesRewritten": 1,
+        "filesAdded": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "palette-changed",
+          "description": "Theme values differ from the seed",
+          "pass": true
+        },
+        {
+          "id": "layout-untouched",
+          "description": "App.tsx structure preserved (max-w-xl container still there)",
+          "pass": true
+        },
+        {
+          "id": "seed-intact",
+          "description": "Seed data still present (edit did not wipe the project)",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/edit-restyle/pareto-t1",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "pareto",
+      "providerId": "unbiased",
+      "modelId": "pareto-26.10",
+      "taskId": "edit-restyle",
+      "taskVersion": "edit-seed-v2",
+      "trial": 2,
+      "startedAt": "2026-11-16T00:37:35.765Z",
+      "plan": null,
+      "latencyMs": 6937,
+      "ttftMs": 5882,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 6937,
+          "chars": 1086
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 1086,
+      "estTokens": {
+        "input": 15400,
+        "output": 272,
+        "estimated": true
+      },
+      "estCostUsd": 0.013190400000000001,
+      "extraction": {
+        "writes": 1,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": {
+        "filesChanged": 1,
+        "collateralFiles": [],
+        "bytesRewritten": 475,
+        "seedFilesRewritten": 1,
+        "filesAdded": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "palette-changed",
+          "description": "Theme values differ from the seed",
+          "pass": true
+        },
+        {
+          "id": "layout-untouched",
+          "description": "App.tsx structure preserved (max-w-xl container still there)",
+          "pass": true
+        },
+        {
+          "id": "seed-intact",
+          "description": "Seed data still present (edit did not wipe the project)",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/edit-restyle/pareto-t2",
+      "fixRound": null,
+      "error": null
+    },
+    {
+      "alias": "claude-opus-5-5",
+      "providerId": "claude",
+      "modelId": "claude-opus-5-5",
+      "taskId": "edit-restyle",
+      "taskVersion": "edit-seed-v2",
+      "trial": 2,
+      "startedAt": "2026-11-16T00:37:23.123Z",
+      "plan": null,
+      "latencyMs": 21051,
+      "ttftMs": 13877,
+      "segments": [
+        {
+          "finishReason": "stop",
+          "latencyMs": 21051,
+          "chars": 2598
+        }
+      ],
+      "continuations": 0,
+      "truncatedFinal": false,
+      "outputChars": 2598,
+      "estTokens": {
+        "input": 15400,
+        "output": 650,
+        "estimated": true
+      },
+      "estCostUsd": 0.0746,
+      "extraction": {
+        "writes": 1,
+        "editBlocks": 0,
+        "failedEditBlocks": 0
+      },
+      "editDiscipline": {
+        "filesChanged": 1,
+        "collateralFiles": [],
+        "bytesRewritten": 475,
+        "seedFilesRewritten": 1,
+        "filesAdded": 0
+      },
+      "previewKind": "framework",
+      "previewKindMatch": true,
+      "bundle": {
+        "ok": true,
+        "errors": []
+      },
+      "securityFindings": 0,
+      "checks": [
+        {
+          "id": "palette-changed",
+          "description": "Theme values differ from the seed",
+          "pass": true
+        },
+        {
+          "id": "layout-untouched",
+          "description": "App.tsx structure preserved (max-w-xl container still there)",
+          "pass": true
+        },
+        {
+          "id": "seed-intact",
+          "description": "Seed data still present (edit did not wipe the project)",
+          "pass": true
+        }
+      ],
+      "artifactDir": "artifacts/edit-restyle/claude-opus-5-5-t2",
+      "fixRound": null,
+      "error": null
+    }
+  ]
+}
