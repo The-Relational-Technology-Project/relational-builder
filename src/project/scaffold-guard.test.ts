@@ -85,3 +85,12 @@ describe('stripNestedRouter', () => {
     expect(stripNestedRouter([app, { path: 'src/main.tsx', content: '<HashRouter><App /></HashRouter>' }], '<HashRouter>').stripped).toBe(false);
   });
 });
+
+describe('repairEntry paths', () => {
+  it('drops a ./src/ segment from main.tsx imports', () => {
+    const out = repairEntry('/src/main.tsx', "import App from './src/App';\nimport './src/index.css';\nroot.render(<App />);");
+    expect(out.repaired).toBe(true);
+    expect(out.content).toContain("import App from './App';");
+    expect(out.content).toContain("import './index.css';");
+  });
+});

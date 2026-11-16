@@ -27,6 +27,13 @@ const ENTRY_RE = /^\/?src\/main\.[jt]sx$/;
 
 export function repairEntry(path: string, content: string): { content: string; repaired: boolean } {
   if (!ENTRY_RE.test(path)) return { content, repaired: false };
+  // main.tsx lives in /src, so './src/App' points at /src/src/App (Gemma,
+  // Nov 16): drop the extra segment from relative imports
+  const pathFixed = content.replace(/((?:from|import)\s+['"])\.\/src\//g, '$1./');
+  if (pathFixed !== content) {
+    const rest = repairEntry(path, pathFixed);
+    return { content: rest.content, repaired: true };
+  }
   if (!/import\s+App\s+from\s+['"]/.test(content) || /<App[\s/>]/.test(content)) return { content, repaired: false };
   const calls = content.match(/\.render\(/g) ?? [];
   if (calls.length !== 1) return { content, repaired: false };
