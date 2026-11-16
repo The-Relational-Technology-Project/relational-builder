@@ -3,7 +3,7 @@
 - **Tasks:** mutual-aid-board-directed (harness 1.2.0, commit `544b571`)
 - **Date:** 2026-11-15T23:20:40.472Z
 - **Trials per model per task:** 2
-- **Human review:** _pending_
+- **Human review:** scored by first
 
 > Cost and token figures are **estimates** (chars ÷ 4 × list prices) — directional, not billing-grade.
 > Mechanical columns are medians across trials. Total = plan + build wall time.
@@ -18,7 +18,10 @@
 
 ## Human review
 
-_Not scored yet — open review/index.html, score, export, save as review/scores.json, re-run report._
+| Model | Design | RTP fit | Complete | Rank |
+|---|---|---|---|---|
+| pareto | 4 | 4 | 4 | #1 |
+| claude-opus-5-5 | 4 | 4 | 5 | #2 |
 
 ## Which model for what
 

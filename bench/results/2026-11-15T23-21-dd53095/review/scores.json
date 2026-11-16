@@ -1,0 +1,20 @@
+{
+  "runId": "2026-11-15T23-21-dd53095",
+  "reviewer": "second",
+  "scores": {
+    "pareto": {
+      "designQuality": 4,
+      "completeness": 4,
+      "rtpFit": 5
+    },
+    "claude-opus-5-5": {
+      "designQuality": 5,
+      "completeness": 5,
+      "rtpFit": 5
+    }
+  },
+  "ranking": [
+    "pareto",
+    "claude-opus-5-5"
+  ]
+}
