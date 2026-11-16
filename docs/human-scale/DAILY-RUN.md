@@ -78,9 +78,14 @@ The standard bench invocation for open models (so rows stay like for like):
 
 ```bash
 VITE_HUMAN_SCALE=1 BENCH_MAX_TOKENS=24000 BENCH_OPENROUTER_IGNORE=Darkbloom \
+  BENCH_REFERENCE=library [BENCH_OPENROUTER_QUANT=bf16 for gemma-4-26b] \
   timeout 1200 npm run bench -- --models <alias> --tasks compare --trials 3 \
   --import-guard --fix-passes 2
 ```
+
+Since Nov 16 this is the Builder's own path for open models: the design
+guidance defaults to the `intuitive` variant, and `BENCH_REFERENCE=library`
+shows up to three library screens (in words for text-only models).
 
 Two fix passes since Nov 5, matching the preview behind the flag (see
 `src/human-scale/fix-passes.ts`); hosts on the ignore list are the ones the
