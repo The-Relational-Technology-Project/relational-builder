@@ -312,6 +312,13 @@ stack layer it moved; pace paid work at $3 to $5 a day.
    taken): both are now the Builder's path for open models, behind the
    flag; say if you'd rather they weren't.
 
+## Paused (Nov 16)
+
+Josh paused the daily human-scale run: a technical plan for multi-model
+open-model use on the community plan takes over. The work is on `main`.
+The items below are kept as a record and a starting list if the loop
+resumes; nothing runs on a schedule.
+
 ## Tomorrow (one run, about 75 minutes)
 
 1. **The new default on the place prompt and the edit tasks.** Since Nov

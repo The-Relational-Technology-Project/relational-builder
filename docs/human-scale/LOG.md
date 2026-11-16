@@ -12,7 +12,27 @@ experiment at most $5 and 30 minutes.
 
 ---
 
-## 2026-11-16
+## 2026-11-16 (later): landed on main; daily runs paused
+
+**For Josh:** As you asked, the branch's improvements and findings are now
+on `main`, with the community plan still planning and building on Claude.
+Gemma 4 26B and 31B are in the OpenRouter BYOK menu for everyone, after
+Claude, and builds with an open model get the open-model path (repairs,
+make-it-obvious guidance, reference screens). Community builds can move to
+an open model later with one setting (`docs/human-scale/COMMUNITY-OPEN-BUILDS.md`);
+it is off. The daily human-scale run is paused: a technical plan for
+using several open models across the community plan takes over.
+
+**Stack layer moved:** Builder model, from "open models only behind the
+flag" to "Gemma available to anyone with a key, and the community switch
+wired but off", on `main`.
+
+**Checked before landing:** typecheck, 181 tests, the production build,
+lint unchanged, and a browser run with no console errors in which the
+community defaults read Claude Fable for planning and Claude Opus for
+builds and edits, and the OpenRouter menu listed Claude Sonnet 5 first,
+then Gemma 26B and 31B.
+
 
 **For Josh:** Last night's result is now how the Builder builds with open
 models, behind the flag: the make-it-obvious guidance and up to three
