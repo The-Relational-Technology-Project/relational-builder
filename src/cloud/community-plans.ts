@@ -16,8 +16,9 @@ import { isOpenBuilderModel } from '@/human-scale/builder-model';
  *
  * The choice is behind a switch, VITE_COMMUNITY_PLAN_CHOICE=1, and is
  * **off**. Off, nothing here is consulted and the community plan behaves
- * as before. On, a person picks a plan in the model menu and a new person
- * starts on DEFAULT_COMMUNITY_PLAN. See docs/human-scale/COMMUNITY-OPEN-BUILDS.md.
+ * as before. On, a person picks a plan in Settings (two Community Plan
+ * cards under Community Access) and a new person starts on
+ * DEFAULT_COMMUNITY_PLAN. See docs/human-scale/COMMUNITY-OPEN-BUILDS.md.
  */
 
 export type CommunityModelStage = 'plan' | 'first-build' | 'edit';
@@ -54,7 +55,7 @@ export const OPEN_WEIGHT_PLAN_MODEL = 'google/gemma-4-31b-it';
 export const OPEN_WEIGHT_BUILD_MODEL = 'google/gemma-4-31b-it';
 
 /** The plan a person is on until they choose (owner decision, Nov 17:
- *  Frontier, with Open-Weight one click away in the model menu) */
+ *  Frontier, with Open-Weight one click away in Settings) */
 export const DEFAULT_COMMUNITY_PLAN: CommunityPlanId = 'frontier';
 
 export function communityPlans(): CommunityPlan[] {
@@ -128,7 +129,7 @@ export function planJobsLine(plan: CommunityPlan, nameOf: (modelId: string) => s
 /** The note in chat when a plan's default takes over a turn */
 export function planModelNote(plan: CommunityPlan, stage: CommunityModelStage, modelName: string): string {
   const what = stage === 'plan' ? 'Planning runs' : stage === 'first-build' ? 'This build runs' : 'Edits and fixes run';
-  return `${what} on **${modelName}**, part of the **${plan.name}** plan. ${plan.about} You can switch plans in the model menu, or pick a single model there and it will stick for this project.`;
+  return `${what} on **${modelName}**, part of the **${plan.name}** plan. ${plan.about} You can switch plans in Settings, or pick a single model in the model menu and it will stick for this project.`;
 }
 
 /** Which plan a metered model belongs to, for the steward's spend view.

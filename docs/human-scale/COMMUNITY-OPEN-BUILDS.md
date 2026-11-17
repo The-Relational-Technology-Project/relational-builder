@@ -34,7 +34,9 @@ To switch back, unset `VITE_COMMUNITY_OPEN_BUILDS` and redeploy.
 ## Two plans to choose from: the second switch
 
 `VITE_COMMUNITY_PLAN_CHOICE=1` replaces the single default with a choice
-each person makes at the top of the model menu. It is **off**. The plans,
+each person makes in Settings, where Community Access shows two plans:
+Frontier Models Community Plan and Open-Weight Models Community Plan. It
+is **on** in production since Nov 17. The plans,
 and which model does which job on each, are one table in
 `src/cloud/community-plans.ts`:
 

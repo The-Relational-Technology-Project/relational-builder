@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import { communityOpenRoute, communityPlanChoice } from '@/cloud/community-plans';
-import { CommunityPlanPicker } from '@/components/CommunityPlanPicker';
+import { DEFAULT_COMMUNITY_PLAN, communityOpenRoute, communityPlan, communityPlanChoice } from '@/cloud/community-plans';
+import { useCommunityPlanStore } from '@/store/community-plan-store';
 import { useProviderStore } from '@/store/provider-store';
 import { useCommunityStore, communityCovers } from '@/store/community-store';
 import { registry } from '@/providers/registry';
@@ -46,6 +46,7 @@ export function ModelSelector({ className }: { className?: string }) {
   }
 
   const activeModel = models.find(m => m.id === activeModelId);
+  const chosenPlan = useCommunityPlanStore(s => s.plan) ?? DEFAULT_COMMUNITY_PLAN;
 
   // On community access without a personal key, only covered models will work
   const onCommunityKey =
@@ -79,7 +80,12 @@ export function ModelSelector({ className }: { className?: string }) {
         </SelectValue>
       </SelectTrigger>
       <SelectContent className="min-w-64 max-w-72">
-        {onCommunityKey && communityPlanChoice() && <CommunityPlanPicker />}
+        {onCommunityKey && communityPlanChoice() && (
+          <p className="px-2 py-1.5 text-xs leading-snug text-muted-foreground">
+            Included with your {communityPlan(chosenPlan).name} Community Plan. Pick one
+            model here and it sticks for this project. To change plans, open Settings.
+          </p>
+        )}
         {onCommunityKey && !communityPlanChoice() && (
           <p className="px-2 py-1.5 text-xs leading-snug text-muted-foreground">
             Included with community access — every model draws on the same

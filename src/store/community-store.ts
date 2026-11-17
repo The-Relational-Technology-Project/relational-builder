@@ -318,7 +318,7 @@ export function communityCovers(providerId: string, modelId: string): boolean {
 }
 
 /**
- * A person picked a community plan in the model menu. The choice is
+ * A person picked a community plan in Settings. The choice is
  * deliberate, so it replaces any single-model pin, takes effect on the
  * model chip right away (no note in chat: they just chose it), and is saved
  * to their profile so it follows them to another browser.

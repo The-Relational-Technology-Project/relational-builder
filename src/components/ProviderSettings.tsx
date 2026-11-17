@@ -1,8 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useProviderStore } from '@/store/provider-store';
-import { useCommunityStore } from '@/store/community-store';
+import { useCommunityStore, chooseCommunityPlan } from '@/store/community-store';
+import { useCommunityPlanStore } from '@/store/community-plan-store';
+import {
+  DEFAULT_COMMUNITY_PLAN,
+  communityPlanChoice,
+  communityPlans,
+  planJobsLine,
+} from '@/cloud/community-plans';
 import { useRegionStore } from '@/store/region-store';
 import { registry } from '@/providers/registry';
+import { CLAUDE_MODELS } from '@/providers/claude';
+import { shortModelName } from '@/providers/model-label';
+import { OPEN_BUILDER_MODELS } from '@/human-scale/builder-model';
 import { LOCAL_MODEL_DEFAULT_URL } from '@/providers/openai-compatible';
 import {
   Dialog,
@@ -16,6 +26,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+
+/** A plan's model, named the way the model menu names it, without the
+ *  "(open)" tag the plan's own name already carries */
+function planModelName(id: string): string {
+  const full = CLAUDE_MODELS.find(m => m.id === id)?.name ?? OPEN_BUILDER_MODELS.find(m => m.id === id)?.name ?? id;
+  return shortModelName(full).replace(/\s*\(open\)$/, '');
+}
 
 /** Covered models, in the order the community proxy prefers them */
 const COMMUNITY_MODEL_NAMES = 'Claude Opus 5.5 (the default builder), Fable 5.2 (the default planner), Opus 5, Opus 4.8, Sonnet 5, and Haiku 4.5';
@@ -59,8 +76,22 @@ export function ProviderSettings({ open: controlledOpen, onOpenChange, hideTrigg
   // The two settings rows reflect that split.
   const claudeKeySet = !!apiKeys['claude'];
   const communityInUse = communityActive && activeProviderId === 'claude' && !claudeKeySet;
+  // With the plan choice on there are two community plans, one per kind of
+  // model. Each runs on its own provider under the hood (Frontier on claude,
+  // Open-Weight on openrouter), keyless; a personal key on that provider wins.
+  const planChoice = communityPlanChoice();
+  const chosenPlan = useCommunityPlanStore(s => s.plan) ?? DEFAULT_COMMUNITY_PLAN;
+  const openRouterKeySet = !!apiKeys['openrouter'];
+  const openPlanInUse =
+    planChoice && communityActive && activeProviderId === 'openrouter' && !openRouterKeySet;
   const rowActive = (id: string) =>
-    activeProviderId === id && !(id === 'claude' && communityInUse);
+    activeProviderId === id &&
+    !(id === 'claude' && communityInUse) &&
+    !(id === 'openrouter' && openPlanInUse);
+  // The default plan first, so the one a new person is on leads
+  const plans = [...communityPlans()].sort(
+    (a, b) => Number(b.id === DEFAULT_COMMUNITY_PLAN) - Number(a.id === DEFAULT_COMMUNITY_PLAN),
+  );
 
   useEffect(() => {
     const inputs: Record<string, string> = {};
@@ -121,7 +152,60 @@ export function ProviderSettings({ open: controlledOpen, onOpenChange, hideTrigg
               row. Active when signed in as an approved member; routes through
               the claude provider without a personal key (the RTP key stays
               server-side). */}
-          {communityActive && (
+          {communityActive && planChoice && (
+            <div className="space-y-2">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Community Access
+              </p>
+              {plans.map(plan => {
+                const ownKey = plan.id === 'frontier' ? claudeKeySet : openRouterKeySet;
+                const inUse =
+                  chosenPlan === plan.id && (plan.id === 'frontier' ? communityInUse : openPlanInUse);
+                return (
+                  <div
+                    key={plan.id}
+                    className={`rounded-md border px-3 py-2.5 space-y-1.5 ${
+                      inUse ? 'bg-green-600/10 border-green-600/30' : ''
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="font-medium text-sm">{plan.name} Community Plan</span>
+                        <Badge className="text-xs shrink-0">Free</Badge>
+                      </div>
+                      <Button
+                        variant={inUse ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => { if (!inUse) void chooseCommunityPlan(plan.id); }}
+                        disabled={ownKey}
+                      >
+                        {inUse ? 'Active' : 'Use'}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-foreground">{plan.about}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {planJobsLine(plan, planModelName)}.
+                    </p>
+                    {ownKey && (
+                      <p className="text-xs text-muted-foreground">
+                        Your own {plan.id === 'frontier' ? 'Anthropic' : 'OpenRouter'} key is set
+                        below, so builds use it instead. Clear it to use this plan.
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+              <p className="text-xs text-muted-foreground">
+                Free building, covered by the Relational Tech Project. Both plans draw on
+                the same weekly budget
+                {weeklyBudget > 0
+                  ? `: ${formatTokens(usedThisWeek)} of ${formatTokens(weeklyBudget)} tokens used this week (resets Monday 00:00 UTC).`
+                  : '.'}
+              </p>
+            </div>
+          )}
+
+          {communityActive && !planChoice && (
             <div className="space-y-2">
               <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Community Access
