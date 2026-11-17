@@ -18,8 +18,8 @@ describe('community plans', () => {
     expect(communityOpenRoute()).toBe(false);
   });
 
-  it('defaults to open-weight', () => {
-    expect(DEFAULT_COMMUNITY_PLAN).toBe('open-weight');
+  it('defaults to frontier', () => {
+    expect(DEFAULT_COMMUNITY_PLAN).toBe('frontier');
   });
 
   it('runs every open-weight job on an open model the community route covers', () => {

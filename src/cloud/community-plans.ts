@@ -53,8 +53,9 @@ export const OPEN_WEIGHT_PLAN_MODEL = 'google/gemma-4-31b-it';
  *  single switch keeps its own model, VITE_COMMUNITY_OPEN_BUILD_MODEL. */
 export const OPEN_WEIGHT_BUILD_MODEL = 'google/gemma-4-31b-it';
 
-/** The plan a person is on until they choose (owner decision, Nov 16) */
-export const DEFAULT_COMMUNITY_PLAN: CommunityPlanId = 'open-weight';
+/** The plan a person is on until they choose (owner decision, Nov 17:
+ *  Frontier, with Open-Weight one click away in the model menu) */
+export const DEFAULT_COMMUNITY_PLAN: CommunityPlanId = 'frontier';
 
 export function communityPlans(): CommunityPlan[] {
   const openBuild: StageModel = { providerId: 'openrouter', model: OPEN_WEIGHT_BUILD_MODEL };

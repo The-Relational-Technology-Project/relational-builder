@@ -38,11 +38,10 @@ each person makes at the top of the model menu. It is **off**. The plans,
 and which model does which job on each, are one table in
 `src/cloud/community-plans.ts`:
 
-- **Open-Weight Models** (the default when the switch is on). Gemma 4 31B
-  plans, builds and edits: one model for every job. Nothing on this
-  plan runs on a closed model.
-- **Frontier Models**. Claude today: Fable 5.2 plans, Opus 5.5 builds and
-  edits. Changing what this plan runs on (Pareto is the candidate) is an
+- **Open-Weight Models**. Gemma 4 31B plans, builds and edits: one model
+  for every job. Nothing on this plan runs on a closed model.
+- **Frontier Models** (the default until a person switches). Claude today:
+  Fable 5.2 plans, Opus 5.5 builds and edits. Changing what this plan runs on (Pareto is the candidate) is an
   edit to that plan's `stages`, plus a keyless community route for the
   new provider in `llm-proxy`.
 
@@ -55,9 +54,10 @@ spend by kind of model.
 Before turning it on:
 
 1. Steps 1 and 2 above (the keyless route and its key).
-2. Add `google/gemma-4-31b-it` to the proxy's covered list: the
-   `COMMUNITY_OPEN_MODELS` secret, or its default in `llm-proxy`. Without
-   it, every turn on the open-weight plan is refused.
+2. `google/gemma-4-31b-it` must be on the proxy's covered list. It is in
+   the default in `llm-proxy`; if the `COMMUNITY_OPEN_MODELS` secret is
+   set, it has to be there too. Without it, every turn on the open-weight
+   plan is refused.
 3. Apply migration `20261116090000_community_plan.sql`. Until it is
    applied the choice still holds in the browser.
 4. Set `VITE_COMMUNITY_PLAN_CHOICE=1` and redeploy.

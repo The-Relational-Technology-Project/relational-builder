@@ -1297,7 +1297,7 @@ async function proxyOpenAI(
 
 const COMMUNITY_OPEN_MODELS = (
   Deno.env.get('COMMUNITY_OPEN_MODELS') ??
-  'z-ai/glm-4.5-air,google/gemma-4-26b-a4b-it,openai/gpt-oss-120b'
+  'google/gemma-4-31b-it,z-ai/glm-4.5-air,google/gemma-4-26b-a4b-it,openai/gpt-oss-120b'
 )
   .split(',')
   .map((s) => s.trim())
