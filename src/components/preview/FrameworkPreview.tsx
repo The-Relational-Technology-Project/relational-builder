@@ -7,7 +7,8 @@ import { useChatStore } from '@/store/chat-store';
 import { usePreviewHealthStore } from '@/store/preview-health-store';
 import { buildEnvJs, buildEnvTs } from '@/project/env-module';
 import { bundleProject, findFrameworkEntry } from '@/preview/bundler/bundle';
-import { ASSET_APPLIER, buildShellHtml, EMPTY_RENDER_SENTRY, ERROR_RELAY, NAV_BRIDGE } from '@/preview/bundler/shell';
+import { ASSET_APPLIER, buildShellHtml, EMPTY_RENDER_SENTRY, ERROR_RELAY, NAV_BRIDGE, RESOURCE_RELAY } from '@/preview/bundler/shell';
+import { describeResourceFailures, parseResourceFailures, type ResourceFailure } from '@/preview/resource-failures';
 import { isPhotoAssetPath } from '@/project/assets';
 import { KIT_FILES } from '@/kit';
 import { checkImports, formatImportIssues } from '@/project/import-check';
@@ -18,7 +19,7 @@ import {
   rememberPreviewSnapshot,
   SCREENSHOT_SOURCE,
 } from '@/preview/screenshot';
-import { useBuildLogStore } from '@/report/build-log';
+import { recordBuildEvent, useBuildLogStore } from '@/report/build-log';
 import { useRegionStore } from '@/store/region-store';
 import { PointAtIt } from './PointAtIt';
 import { FixBanner } from './FixBanner';
@@ -61,6 +62,12 @@ export function FrameworkPreview({
   // The quiet failure: app loads clean but paints nothing (see
   // EMPTY_RENDER_SENTRY). A notice, not an error — nothing crashed.
   const [emptyRender, setEmptyRender] = useState(false);
+  // The other quiet failure: the app runs, but pictures it asked for were
+  // refused or missing (see RESOURCE_RELAY). A map whose every tile came
+  // back "Access blocked" once went out in a build report as "working".
+  const [resourceFailures, setResourceFailures] = useState<ResourceFailure[]>([]);
+  // One build-log line per host, not one per rebundle
+  const loggedFailureHosts = useRef(new Set<string>());
   const [bundling, setBundling] = useState(true);
   const runId = useRef(0);
   // While a reply is streaming, files land in bursts — a version bump per
@@ -142,6 +149,7 @@ export function FrameworkPreview({
       setBuildError(null);
       setRuntimeError(null);
       setEmptyRender(false);
+      setResourceFailures([]);
       setHtml(
         buildShellHtml({
           bundle: result,
@@ -152,6 +160,7 @@ export function FrameworkPreview({
             ASSET_APPLIER,
             `<script>\n${INSPECT_SOURCE}\n</script>`,
             `<script>\n${SCREENSHOT_SOURCE}\n</script>`,
+            RESOURCE_RELAY,
             ERROR_RELAY,
             EMPTY_RENDER_SENTRY,
             NAV_BRIDGE,
@@ -174,6 +183,15 @@ export function FrameworkPreview({
       }
       if (e.data?.type === 'rb-empty-render') setEmptyRender(true);
       if (e.data?.type === 'rb-empty-render-clear') setEmptyRender(false);
+      if (e.data?.type === 'rb-resource-failures') {
+        const items = parseResourceFailures(e.data.items);
+        setResourceFailures(items);
+        for (const f of items) {
+          if (loggedFailureHosts.current.has(f.host)) continue;
+          loggedFailureHosts.current.add(f.host);
+          recordBuildEvent('preview_resources_failed', describeResourceFailures([f]));
+        }
+      }
     }
     window.addEventListener('message', onMessage);
     return () => window.removeEventListener('message', onMessage);
@@ -272,6 +290,13 @@ export function FrameworkPreview({
           usually means it's waiting on data it can't reach, or its router
           found no page to show. If this doesn't look right, tell the AI what
           you expected to see here.
+        </div>
+      )}
+      {resourceFailures.length > 0 && !buildError && !runtimeError && (
+        <div className="shrink-0 border-t bg-amber-50 px-3 py-2 text-xs text-amber-900">
+          Some pictures did not load here: {describeResourceFailures(resourceFailures)}.
+          If a map or a photo looks wrong, this is why. It can be the other
+          site turning the preview away, so check again once the app is published.
         </div>
       )}
       <FixBanner error={buildError ?? staticError ?? runtimeError} />

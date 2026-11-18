@@ -254,3 +254,119 @@ export const ASSET_APPLIER = `<script>
   else apply();
 })();
 </script>`;
+
+/**
+ * Script injected into live previews (never published): gives the preview a
+ * Referer where one is required, and notices pictures that did not load.
+ *
+ * The preview document is a blob: URL, and a browser sends NO Referer from
+ * one. OpenStreetMap's tile servers refuse requests without it, so every
+ * Leaflet map came up as a wall of "Access blocked" tiles in the preview
+ * while the same app published fine (a real page has a Referer). Here the
+ * preview fetches those tiles itself, naming the Builder's own origin (the
+ * one thing a blob: document may claim, and the truth about where the app
+ * is running), and hands the image to the element as an object URL.
+ *
+ * It covers what a map library does: `img.src = url`, `setAttribute('src')`,
+ * and `fetch()`. An `<img>` written in static HTML is not relayed.
+ *
+ * The same script counts image requests that failed (a refused tile, a dead
+ * link) and tells the Builder, so the preview and the build report stop
+ * calling a page of broken pictures "working". A refusal can arrive as a
+ * perfectly valid picture (OSM's 403 is one), which is why the relay reads
+ * the status instead of waiting for an error event.
+ */
+export const RESOURCE_RELAY = `<script>
+(function () {
+  var NEEDS_REFERER = /(^|\\.)(openstreetmap\\.org|osm\\.org)$/i;
+  var referrer = self.origin && self.origin !== 'null' ? self.origin + '/' : '';
+  function hostOf(url) {
+    try {
+      var u = new URL(String(url), location.href);
+      return u.protocol === 'https:' || u.protocol === 'http:' ? u.hostname : '';
+    } catch (e) { return ''; }
+  }
+  function needsReferer(url) { return referrer !== '' && NEEDS_REFERER.test(hostOf(url)); }
+
+  // Failures by host, sent as running totals a moment after the last one
+  var failed = {};
+  var timer = null;
+  function note(host, status) {
+    if (!host) return;
+    var f = failed[host] || (failed[host] = { host: host, count: 0, status: 0 });
+    f.count++;
+    if (status) f.status = status;
+    clearTimeout(timer);
+    timer = setTimeout(function () {
+      var items = Object.keys(failed).map(function (k) { return failed[k]; });
+      try { parent.postMessage({ type: 'rb-resource-failures', items: items }, '*'); } catch (e) {}
+    }, 1200);
+  }
+
+  var origFetch = window.fetch;
+  if (!origFetch) return;
+  window.fetch = function (input, init) {
+    var url = typeof input === 'string' ? input : input && input.url ? input.url : String(input);
+    if (needsReferer(url) && !(init && init.referrer)) {
+      init = Object.assign({}, init, { referrer: referrer });
+    }
+    return origFetch.call(this, input, init);
+  };
+
+  var proto = HTMLImageElement.prototype;
+  var desc = Object.getOwnPropertyDescriptor(proto, 'src');
+  if (!desc || !desc.set || !desc.get) return;
+  // The newest request for an element wins; a map re-uses and aborts tiles
+  var current = new WeakMap();
+  function relay(img, url) {
+    var entry = { url: url };
+    current.set(img, entry);
+    origFetch.call(window, url, { referrer: referrer })
+      .then(function (res) {
+        if (!res.ok) note(hostOf(url), res.status);
+        return res.blob();
+      })
+      .then(function (blob) {
+        if (current.get(img) !== entry) return;
+        var obj = URL.createObjectURL(blob);
+        var done = function () {
+          URL.revokeObjectURL(obj);
+          img.removeEventListener('load', done);
+          img.removeEventListener('error', done);
+        };
+        img.addEventListener('load', done);
+        img.addEventListener('error', done);
+        desc.set.call(img, obj);
+      })
+      .catch(function () {
+        // The relay could not reach it; let the element try the plain way
+        if (current.get(img) === entry) desc.set.call(img, url);
+      });
+  }
+  function setSrc(img, value) {
+    if (needsReferer(value)) relay(img, new URL(String(value), location.href).href);
+    else { current.delete(img); desc.set.call(img, value); }
+  }
+  Object.defineProperty(proto, 'src', {
+    configurable: true,
+    enumerable: desc.enumerable,
+    // The app reads back the address it set, not the object URL behind it
+    get: function () { var e = current.get(this); return e ? e.url : desc.get.call(this); },
+    set: function (value) { setSrc(this, value); },
+  });
+  var setAttr = proto.setAttribute;
+  proto.setAttribute = function (name, value) {
+    if (String(name).toLowerCase() === 'src' && needsReferer(value)) setSrc(this, value);
+    else setAttr.call(this, name, value);
+  };
+
+  // Pictures that failed outright. Resource errors do not bubble, so capture.
+  window.addEventListener('error', function (e) {
+    var t = e.target;
+    if (!t || t.tagName !== 'IMG') return;
+    // A relayed picture was already counted by its status
+    if (current.get(t)) return;
+    note(hostOf(t.currentSrc || desc.get.call(t)), 0);
+  }, true);
+})();
+</script>`;

@@ -79,6 +79,7 @@ const EVENT_LABELS: Record<string, string> = {
   apply_warnings: "Some edits didn't apply",
   preview_error: 'Preview error',
   preview_recovered: 'Preview recovered',
+  preview_resources_failed: 'Pictures did not load in the preview',
   auto_error_fix: 'Automatic error fix',
   manual_error_fix: 'Fix requested by hand',
   quality_review_fix: 'Quality review queued a fix',
@@ -254,6 +255,14 @@ function renderEmail(r: {
       lastRecovery > lastErr
         ? 'ended with the preview working'
         : '<strong style="color:#b00">ended with an unresolved preview error</strong>',
+    );
+  }
+  // A preview can run without error and still be a page of refused map
+  // tiles. Say so next to "working", or the headline contradicts the snapshot.
+  const blockedHosts = r.events.filter(e => e.type === 'preview_resources_failed').length;
+  if (blockedHosts > 0) {
+    stats.push(
+      `<strong style="color:#b00">pictures failed to load from ${blockedHosts} ${blockedHosts === 1 ? 'host' : 'hosts'}</strong>`,
     );
   }
   if (r.model) stats.push(esc(`${r.provider ?? ''} · ${r.model}`));

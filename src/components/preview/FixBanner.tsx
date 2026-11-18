@@ -45,6 +45,11 @@ function errorSignature(errorText: string): string {
     .slice(0, 200);
 }
 
+/** The bundler's own words for an import whose file is not in the project */
+function isMissingFileError(errorText: string): boolean {
+  return /Could not find "[^"]+" in the project/.test(errorText);
+}
+
 function fixPrompt(errorText: string, attempt: number): string {
   const decoded = decodeMinifiedReactError(errorText);
   const parts = [
@@ -146,14 +151,41 @@ export function FixBanner({ error }: { error: string | null }) {
   // preview recovers, so a report never ends on an error nobody can tell
   // was fixed. Best-effort on the recovery side: it needs this banner
   // mounted through the transition.
-  const prevError = useRef<string | null>(null);
+  //
+  // One kind of error is not news while a build is still writing: a file
+  // that imports another the same build has not reached yet. A two-pass
+  // build's App.tsx landed a pass ahead of its components, and the report
+  // counted "1 preview error" for an app that never broke. So a missing-file
+  // error waits out the chain, and joins the log only if it is still
+  // standing once nothing is generating or queued. An error that was never
+  // logged has no recovery to log either.
+  const loggedError = useRef<string | null>(null);
   useEffect(() => {
-    if (error) recordBuildEvent('preview_error', error);
-    else if (prevError.current) {
-      recordBuildEvent('preview_recovered', `after: ${prevError.current.slice(0, 120)}`);
+    if (!error) {
+      if (loggedError.current) {
+        recordBuildEvent('preview_recovered', `after: ${loggedError.current.slice(0, 120)}`);
+        loggedError.current = null;
+      }
+      return;
     }
-    prevError.current = error;
-  }, [error]);
+    if (loggedError.current === error) return;
+    const log = () => {
+      recordBuildEvent('preview_error', error);
+      loggedError.current = error;
+    };
+    if (!isMissingFileError(error)) {
+      log();
+      return;
+    }
+    // Same quiet period as the automatic fix pass below, for the same race:
+    // the gap between one reply ending and its continuation starting
+    const timer = setTimeout(() => {
+      const chat = useChatStore.getState();
+      if (chat.isGenerating || chat.queuedMessage || chat.pendingContinuationSend) return;
+      log();
+    }, 2_500);
+    return () => clearTimeout(timer);
+  }, [error, isGenerating]);
 
   // The single automatic pass — deferred, not instant. Two races taught us
   // the delay: an error surfaced in the gap between a cut-off reply and its

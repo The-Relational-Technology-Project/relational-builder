@@ -53,6 +53,7 @@ const EVENT_LABELS: Record<BuildEventType, string> = {
   apply_warnings: "Some edits didn't apply",
   preview_error: 'Preview error',
   preview_recovered: 'Preview recovered',
+  preview_resources_failed: 'Pictures did not load in the preview',
   auto_error_fix: 'Automatic error fix',
   manual_error_fix: 'Fix requested by hand',
   quality_review_fix: 'Quality review queued a fix',

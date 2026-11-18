@@ -52,6 +52,10 @@ export type BuildEventType =
    *  report can end on an open error with no way to tell whether the builder
    *  actually got a working app. */
   | 'preview_recovered'
+  /** The preview runs, but pictures it asked for were refused or missing —
+   *  detail carries host · count · status. Not an error (nothing crashed),
+   *  and not "working" either: a map of blocked tiles is neither. */
+  | 'preview_resources_failed'
   /** The one automatic error→fix pass fired */
   | 'auto_error_fix'
   /** The builder clicked "Ask AI to fix it" themselves */
