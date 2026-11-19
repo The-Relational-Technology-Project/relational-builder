@@ -400,6 +400,27 @@ function injectProfileTags(html: string, tags: { head: string; noscript: string 
   return out;
 }
 
+interface SiteRow {
+  id: string;
+  slug: string;
+  name: string | null;
+  kind: string;
+  expires_at: string | null;
+  passphrase_hash: string | null;
+  /** PostgREST embeds the one-to-one as an object, older versions as a list */
+  site_domains?: { domain: string; status: string }[] | { domain: string; status: string } | null;
+}
+
+/** Search engines and link previews should credit the community's own
+ *  address, whichever door the page was fetched through. Left alone when
+ *  the page already names a canonical. */
+function withCanonical(html: string, href: string): string {
+  if (/<link[^>]+rel=["']canonical["']/i.test(html)) return html;
+  const headClose = html.toLowerCase().indexOf('</head>');
+  if (headClose === -1) return html;
+  return html.slice(0, headClose) + `<link rel="canonical" href="${escapeHtml(href)}">\n` + html.slice(headClose);
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
   if (req.method !== 'GET' && req.method !== 'HEAD' && req.method !== 'POST') {
@@ -412,25 +433,62 @@ Deno.serve(async (req: Request) => {
     const url = new URL(req.url);
     const segments = url.pathname.split('/').filter(Boolean);
     const siteIdx = segments.indexOf('site');
-    const slug = segments[siteIdx + 1] ?? '';
+    let slug = segments[siteIdx + 1] ?? '';
     let filePath = segments.slice(siteIdx + 2).join('/');
     // The gateway sandboxes any URL ending in .html/.htm regardless of
     // content type, so the trusted front asks for `.rbpage` and sends the
     // real path here (see the x-rb-raw note below)
     const realPath = req.headers.get('x-rb-path');
-    if (req.headers.get('x-rb-raw') === '1' && realPath !== null) {
-      // The front sends everything after /s/ — slug first, then the file
-      const parts = realPath.split('/').filter(Boolean);
-      filePath = (parts[0] === slug ? parts.slice(1) : parts).join('/');
-    }
-    if (!slug) return new Response('Site not specified', { status: 400 });
-    if (!filePath) filePath = 'index.html';
+    // A community's own domain: the front sends the hostname and the
+    // site_domains table says which site it answers for
+    const customHost = (req.headers.get('x-rb-host') ?? '').toLowerCase().replace(/[^a-z0-9.-]/g, '');
 
-    const siteRes = await fetch(
-      rest(`/community_sites?slug=eq.${encodeURIComponent(slug)}&select=id,name,kind,expires_at,passphrase_hash`),
-      { headers: svc() },
-    );
-    const sites = siteRes.ok ? await siteRes.json() : [];
+    const SITE_FIELDS = 'id,slug,name,kind,expires_at,passphrase_hash';
+    let sites: SiteRow[] = [];
+    if (customHost) {
+      const domainRes = await fetch(
+        rest(`/site_domains?or=(domain.eq.${customHost},also.eq.${customHost})&select=domain,community_sites(${SITE_FIELDS})`),
+        { headers: svc() },
+      );
+      const rows: { domain: string; community_sites: SiteRow | null }[] = domainRes.ok ? await domainRes.json() : [];
+      const site = rows[0]?.community_sites;
+      if (!site || site.kind !== 'site') {
+        return new Response(
+          'Nothing lives at this address yet. If this is your domain, finish connecting it in Relational Builder (Your Sites).',
+          { status: 404, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' } },
+        );
+      }
+      sites = [{ ...site, site_domains: [{ domain: rows[0].domain, status: 'live' }] }];
+      slug = site.slug;
+      // The whole path is the file: there is no slug in a custom address
+      filePath = (realPath ?? filePath).split('/').filter(Boolean).join('/');
+    } else {
+      if (req.headers.get('x-rb-raw') === '1' && realPath !== null) {
+        // The front sends everything after /s/: slug first, then the file
+        const parts = realPath.split('/').filter(Boolean);
+        filePath = (parts[0] === slug ? parts.slice(1) : parts).join('/');
+      }
+      if (!slug) return new Response('Site not specified', { status: 400 });
+      const siteRes = await fetch(
+        rest(`/community_sites?slug=eq.${encodeURIComponent(slug)}&select=${SITE_FIELDS},site_domains(domain,status)`),
+        { headers: svc() },
+      );
+      if (siteRes.ok) {
+        sites = await siteRes.json();
+      } else {
+        // Never let the domain lookup take hosting down with it: without
+        // the embed this is the query every site has always been served by
+        const plainRes = await fetch(
+          rest(`/community_sites?slug=eq.${encodeURIComponent(slug)}&select=${SITE_FIELDS}`),
+          { headers: svc() },
+        );
+        sites = plainRes.ok ? await plainRes.json() : [];
+      }
+    }
+    if (!filePath) filePath = 'index.html';
+    // The address this site calls home, once its own domain is live
+    const liveDomain = [sites[0]?.site_domains ?? []].flat().find(d => d.status === 'live')?.domain ?? null;
+
     // /b/{handle}/ answers only for builder pages and /s/{slug}/ only for
     // sites — one address per thing, so the canonical link is the address
     const wantsProfile = req.headers.get('x-rb-profile') === '1';
@@ -628,6 +686,9 @@ Deno.serve(async (req: Request) => {
         const appUrl = Deno.env.get('APP_URL') ?? 'https://relationalbuilder.org';
         content = injectProfileTags(content, profileHeadTags(data, `${appUrl}/b/${slug}/`, appUrl));
       }
+    }
+    if (servedIndex && liveDomain && !isProfile && String(file.content_type).startsWith('text/html')) {
+      content = withCanonical(content, `https://${liveDomain}/`);
     }
     if (servedIndex && !isPreview && String(file.content_type).startsWith('text/html')) {
       let extras = '';

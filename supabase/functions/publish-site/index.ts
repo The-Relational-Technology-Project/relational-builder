@@ -142,6 +142,27 @@ async function passphraseHashFromBody(body: { passphrase?: unknown }): Promise<s
   return await hashPassphrase(pass);
 }
 
+/** Detach a site's custom hostnames from the hosting front (best effort:
+ *  the row cascades with the site either way). See site-domains. */
+async function releaseDomains(siteId: string): Promise<void> {
+  const token = Deno.env.get('VERCEL_TOKEN') ?? '';
+  const project = Deno.env.get('VERCEL_PROJECT_ID') ?? '';
+  if (!token || !project) return;
+  try {
+    const res = await fetch(rest(`/site_domains?site_id=eq.${siteId}&select=domain,also`), { headers: svc() });
+    const rows: { domain: string; also: string | null }[] = res.ok ? await res.json() : [];
+    const team = Deno.env.get('VERCEL_TEAM_ID') ?? '';
+    for (const name of rows.flatMap(r => [r.domain, r.also]).filter(Boolean)) {
+      await fetch(
+        `https://api.vercel.com/v9/projects/${project}/domains/${name}${team ? `?teamId=${team}` : ''}`,
+        { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } },
+      ).catch(() => {});
+    }
+  } catch {
+    // Taking a site down must not fail on this
+  }
+}
+
 function slugify(name: string): string {
   return name
     .toLowerCase()
@@ -178,6 +199,16 @@ Deno.serve(async (req: Request) => {
       );
       const sites = sitesRes.ok ? await sitesRes.json() : [];
       const appUrl = Deno.env.get('APP_URL') ?? 'https://relationalbuilder.org';
+      // Own addresses (site-domains), fetched apart so a hiccup there can
+      // never empty the dashboard
+      const domainsRes = sites.length
+        ? await fetch(
+          rest(`/site_domains?site_id=in.(${sites.map((s: { id: string }) => s.id).join(',')})&select=site_id,domain,status`),
+          { headers: svc() },
+        ).catch(() => null)
+        : null;
+      const domainRows: { site_id: string; domain: string; status: string }[] = domainsRes?.ok ? await domainsRes.json() : [];
+      const domainBySite = new Map(domainRows.map(d => [d.site_id, { domain: d.domain, status: d.status }]));
 
       const enriched = await Promise.all(sites.map(async (s: { id: string; slug: string; name: string; created_at: string; updated_at: string; passphrase_hash: string | null }) => {
         const weekAgo = new Date(Date.now() - 7 * 86400_000).toISOString().slice(0, 10);
@@ -196,6 +227,7 @@ Deno.serve(async (req: Request) => {
           slug: s.slug,
           name: s.name,
           url: `${appUrl}/s/${s.slug}/`,
+          domain: domainBySite.get(s.id) ?? null,
           created_at: s.created_at,
           updated_at: s.updated_at,
           has_passphrase: Boolean(s.passphrase_hash),
@@ -285,6 +317,10 @@ Deno.serve(async (req: Request) => {
         const appUrl = Deno.env.get('APP_URL') ?? 'https://relationalbuilder.org';
         return json({ ...result, url: `${appUrl}/s/${slug}/` });
       }
+
+      // The site's own address, if it has one: let go of the hostname on
+      // the hosting front too, so the domain is free to point elsewhere
+      await releaseDomains(ownedSiteId);
 
       // Cascade removes files, versions, stats, and feedback
       const delRes = await fetch(rest(`/community_sites?id=eq.${ownedSiteId}`), {

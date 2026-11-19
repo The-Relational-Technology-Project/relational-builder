@@ -30,12 +30,35 @@ import { useRegionStore } from '@/store/region-store';
 import { orderByRegion, regionBadge, regionalizeFiles, type ServiceHome } from '@/regions/regions';
 import { Download, ExternalLink, Globe, Check, Loader2, Lock } from 'lucide-react';
 import { LiveSiteLink } from './LiveSiteLink';
+import { SiteAddressCard } from './SiteAddressCard';
 import { cn } from '@/lib/utils';
 import { CommonsSubmitCard } from './CommonsSubmitCard';
 import { StudioSubmitCard } from './StudioSubmitCard';
 import { suggestProjectName } from '@/project/suggest-name';
 import { runSecurityScan, type SecurityFinding } from '@/project/security-scan';
 import { ShieldAlert } from 'lucide-react';
+
+/**
+ * "Give it its own address", tucked under a live community site's link:
+ * closed by default so the link stays the headline.
+ */
+function OwnAddress({ url, siteName }: { url: string; siteName: string }) {
+  const [open, setOpen] = useState(false);
+  const place = useProjectStore(s => s.lineage?.place?.label ?? null);
+  const slug = /\/s\/([^/]+)/.exec(url)?.[1];
+  if (!slug) return null;
+  if (!open) {
+    return (
+      <button
+        className="text-xs text-muted-foreground underline decoration-dotted hover:text-foreground"
+        onClick={() => setOpen(true)}
+      >
+        Give it its own address (like elmstreet.place)
+      </button>
+    );
+  }
+  return <SiteAddressCard slug={slug} siteName={siteName} placeName={place} className="pt-2 border-t" />;
+}
 
 type DeployTarget = 'community' | 'download' | 'netlify' | 'vercel' | 'bunny' | 'codeberg';
 
@@ -370,6 +393,7 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
               <p className="text-xs text-muted-foreground">
                 Publishing again replaces what's at this link with your current build.
               </p>
+              <OwnAddress url={liveSite.url} siteName={projectName} />
             </div>
           )}
 
@@ -635,6 +659,9 @@ export function PublishDialog({ open, onOpenChange }: { open: boolean; onOpenCha
                 >
                   {result.url} <ExternalLink className="size-2.5" />
                 </a>
+              )}
+              {activeTarget === 'community' && !isProfilePage && (
+                <OwnAddress url={result.url} siteName={projectName} />
               )}
               {result.totalViews !== undefined && result.totalViews > 0 && (
                 <p className="text-xs text-muted-foreground">

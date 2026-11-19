@@ -62,7 +62,7 @@ Relational Builder combines three things that don't yet exist together:
 - **Share preview links** -- generate a shareable link (hosted on community infrastructure, 30-day lifespan) that anyone can open — no signup needed, perfect for sharing with neighbors
 - **Service integrations** -- connect Supabase, Neon, Resend, and Firecrawl in the Services tab; the AI knows what's connected and generates code that uses it (secrets only ever reach deploy platforms)
 - **Environment variables** -- add API keys and config in the Env panel; public vars are injected into the live preview, secret vars are only sent to deploy platforms
-- **Custom domains** -- attach your own domain (e.g. myapp.ourneighborhood.org) when deploying to Netlify or Vercel, with DNS setup instructions
+- **Custom domains** -- point a domain your community owns (e.g. elmstreet.place) at a community-hosted site, with steps written for your DNS provider and a live read of what's still missing; also available when deploying to Netlify or Vercel
 - **Resizable panels** -- drag dividers to resize the chat, preview, and knowledge panels
 - **Session persistence** -- your chat and project files survive page refreshes via localStorage (and the cloud when signed in)
 - **Model-agnostic** -- latest models from Anthropic (Claude Opus 5.5 by default, plus Fable 5.2, Opus 5, Opus 4.8, Sonnet 5, Haiku 4.5), Google (Gemini 3.5), OpenAI (GPT-5.5), Together AI, OpenRouter, a local model via Ollama or LM Studio on your own machine (see `docs/LOCAL-MODEL.md`), or any OpenAI-compatible endpoint
