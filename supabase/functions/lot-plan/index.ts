@@ -21,24 +21,29 @@
  *   {"type":"done"}  |  {"type":"error","error":"..."}
  *
  * The toolkit text is Shareable's (CC BY-NC-ND 4.0) and is not in this repo.
- * It is fetched once per cold start from the prototype's own site
- * (LOT_TOOLKIT_URL), where prototypes/lot-launch-plan/build-toolkit.py put it.
+ * `toolkit.json` is made by prototypes/lot-launch-plan/build-toolkit.py and
+ * uploaded beside this file at deploy time (see that folder's README), so it
+ * ships inside the function and is never served on its own.
  *
  * Spend: runs on ANTHROPIC_COMMUNITY_KEY. Guarded by an origin allowlist,
  * input caps, a per-address hourly limit and a daily ceiling. The counters
  * live in memory, which is enough for a demo and not for a public launch.
  *
- * Deploy: see CLAUDE.md (Management API), verify_jwt false.
+ * Deploy: prototypes/lot-launch-plan/README.md (two files, verify_jwt false).
  */
 
-const TOOLKIT_URL = Deno.env.get('LOT_TOOLKIT_URL') ?? 'https://lot-launch-plan.vercel.app/toolkit.json';
+import toolkit from './toolkit.json' with { type: 'json' };
+
 const MODEL = Deno.env.get('LOT_PLAN_MODEL') ?? Deno.env.get('COMMUNITY_APP_MODEL') ?? 'claude-opus-5-5';
 const EFFORT = Deno.env.get('LOT_PLAN_EFFORT') ?? 'low';
 // Thinking shares the output budget, so leave headroom above a ~600 word draft
 const MAX_TOKENS = 4096;
 
+// The site's own addresses on Vercel are allowed by name; anything else (a
+// custom domain) goes in the LOT_PLAN_ORIGINS secret, comma-separated.
 const ALLOWED_ORIGINS = (Deno.env.get('LOT_PLAN_ORIGINS') ?? 'https://lot-launch-plan.vercel.app')
   .split(',').map((o) => o.trim()).filter(Boolean);
+const ALLOWED_PATTERN = /^(https:\/\/lot-launch-plan[a-z0-9-]*\.vercel\.app|http:\/\/(localhost|127\.0\.0\.1)(:\d+)?)$/;
 const PER_ADDRESS_PER_HOUR = 40;
 const PER_DAY = 600;
 const MAX_FIELD_CHARS = 1500;
@@ -150,9 +155,9 @@ Rules:
 - Be specific to their building, residents and city. Do not restate their answers back to them at length. Where they left something blank, do not guess: make it an open question.
 - Plain language. Short paragraphs and short lists. No em-dashes. No preamble and no closing pep talk.`;
 
-const DRAFT_SHAPE = `Write this section of their plan in their own voice ("We will..."), about 250 to 400 words. Use short sub-headings (### ) or lists where they help. Do not repeat the section title.
+const DRAFT_SHAPE = `Write this section of their plan in their own voice ("We will..."), 250 to 350 words, not more. Use two to four short sub-headings (### ) and lists where they help. Do not repeat the section title.
 
-End with exactly this heading and a list of 1 to 4 items:
+End with exactly this heading and a list of 1 to 3 items, the ones that matter most:
 ### Still to figure out
 - (a decision, a number or a conversation this section still needs, written so they can take it to their team, residents or Shareable)`;
 
@@ -160,20 +165,18 @@ const ASK_SHAPE = `Answer their question in under 200 words, from the excerpts o
 
 // ---------- CORS and limits ----------
 
-function corsFor(req: Request): Record<string, string> {
+function originAllowed(req: Request): boolean {
   const origin = req.headers.get('Origin') ?? '';
-  const ok = ALLOWED_ORIGINS.includes(origin) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+  return ALLOWED_ORIGINS.includes(origin) || ALLOWED_PATTERN.test(origin);
+}
+
+function corsFor(req: Request): Record<string, string> {
   return {
-    'Access-Control-Allow-Origin': ok ? origin : ALLOWED_ORIGINS[0],
+    'Access-Control-Allow-Origin': originAllowed(req) ? req.headers.get('Origin') ?? '' : ALLOWED_ORIGINS[0],
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization, apikey',
     Vary: 'Origin',
   };
-}
-
-function originAllowed(req: Request): boolean {
-  const origin = req.headers.get('Origin') ?? '';
-  return ALLOWED_ORIGINS.includes(origin) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
 }
 
 const hourly = new Map<string, { count: number; start: number }>();
@@ -223,24 +226,16 @@ interface Index {
   df: Map<string, number>;
 }
 
-let indexPromise: Promise<Index> | null = null;
+let cachedIndex: Index | null = null;
 
-function loadIndex(): Promise<Index> {
-  if (!indexPromise) {
-    indexPromise = buildIndex().catch((err) => {
-      indexPromise = null;
-      throw err;
-    });
-  }
-  return indexPromise;
+function loadIndex(): Index {
+  cachedIndex ??= buildIndex();
+  return cachedIndex;
 }
 
-async function buildIndex(): Promise<Index> {
-  const res = await fetch(TOOLKIT_URL);
-  if (!res.ok) throw new Error(`toolkit fetch ${res.status}`);
-  const doc = await res.json();
+function buildIndex(): Index {
   // Credits and the "buy / download" notes are not guidance
-  const chunks: Chunk[] = (doc.chunks as Chunk[]).filter(
+  const chunks: Chunk[] = ((toolkit as { chunks: Chunk[] }).chunks).filter(
     (c) => c.section !== 'Credits' && !/^(Buy a Physical Copy|Free Download)/.test(c.heading) && c.words >= 25,
   );
   const tf: Map<string, number>[] = [];
@@ -400,13 +395,7 @@ Deno.serve(async (req) => {
   const key = Deno.env.get('ANTHROPIC_COMMUNITY_KEY') ?? '';
   if (!key) return fail('The AI is not configured on this server', 503);
 
-  let excerpts: Chunk[];
-  try {
-    excerpts = search(await loadIndex(), query, spec);
-  } catch (err) {
-    console.error('lot-plan toolkit load failed', err);
-    return fail('The toolkit could not be loaded. Try again in a moment.', 503);
-  }
+  const excerpts = search(loadIndex(), query, spec);
 
   const upstream = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
