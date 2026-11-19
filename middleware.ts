@@ -16,16 +16,10 @@ import { proxySite } from './api/_site-proxy';
 /** Hostnames that are the Builder itself (plus every *.vercel.app deploy). */
 const OWN_HOSTS = /^(?:(?:www\.)?relationalbuilder\.(?:org|xyz)|[^.]+\.vercel\.app|localhost|127\.0\.0\.1)$/;
 
-export const config = {
-  matcher: [
-    {
-      source: '/:path*',
-      // Skip the Builder's own traffic before the function is even invoked;
-      // the check below is the one that counts
-      missing: [{ type: 'host', value: '(?:www\\.)?relationalbuilder\\.org' }],
-    },
-  ],
-};
+// No path matcher: on a community's domain every path is theirs. (Host
+// conditions in the matcher are a Next.js feature; here the check is the
+// first line of the function.)
+export const config = { runtime: 'nodejs' };
 
 export default async function middleware(req: Request): Promise<Response | undefined> {
   const url = new URL(req.url);
