@@ -4,6 +4,9 @@ import { useChatStore } from '@/store/chat-store';
 import { useCloudStore } from '@/store/cloud-store';
 import { useAuthStore, cloudEnabled } from '@/store/auth-store';
 import { useCommunityStore } from '@/store/community-store';
+import { useCommunityPlanStore } from '@/store/community-plan-store';
+import { DEFAULT_COMMUNITY_PLAN, communityPlan, communityPlanChoice } from '@/cloud/community-plans';
+import { communityModelName } from '@/cloud/community-model-name';
 import {
   INTEGRATIONS,
   GUIDED_SERVICES,
@@ -173,10 +176,16 @@ function CloudVaultCard({ def, isConnected }: { def: IntegrationDef; isConnected
   const viaCloud = !!vars.find(v => v.key === marker && v.value.trim());
   const legacyKeySet = def.fields.some(f => vars.find(v => v.key === f.envKey && v.value.trim()));
   // Claude only: a community plan member can skip the key entirely — the
-  // app's AI runs on RTP's shared key (Opus) against their weekly budget
+  // app's AI runs on their community plan's model (an open model on the
+  // Open-Weight plan, Claude Opus on Frontier) against their weekly budget.
+  // The server routes by the same plan (app-capabilities ai_chat).
   const planMember = useCommunityStore(s => s.active);
+  const chosenPlan = useCommunityPlanStore(s => s.plan);
   const planOffered = def.id === 'claude' && planMember;
   const viaPlan = planOffered && !!vars.find(v => v.key === COMMUNITY_AI_PLAN_KEY && v.value.trim());
+  const memberPlan = communityPlan(communityPlanChoice() ? chosenPlan ?? DEFAULT_COMMUNITY_PLAN : 'frontier');
+  const planAppModel = communityModelName(memberPlan.appAI.model);
+  const planAppKind = memberPlan.id === 'open-weight' ? 'an open-weight model' : 'the shared key';
 
   const [expanded, setExpanded] = useState(false);
   const [keyInput, setKeyInput] = useState('');
@@ -328,7 +337,7 @@ function CloudVaultCard({ def, isConnected }: { def: IntegrationDef; isConnected
         <p className="text-xs text-muted-foreground leading-relaxed flex items-start gap-1.5">
           <Cloud className="size-3 mt-0.5 shrink-0 text-green-600" />
           <span>
-            Included with your Community Plan — Claude Opus, no key to manage.
+            Included with your Community Plan — {planAppModel}, no key to manage.
             AI features work in the preview and on your hosted site; every
             call counts toward your weekly building budget.
           </span>
@@ -350,7 +359,7 @@ function CloudVaultCard({ def, isConnected }: { def: IntegrationDef; isConnected
                 {planOffered ? (
                   <>
                     Turn on Community Cloud first, then pick either path: use your
-                    Community Plan (no key, Claude Opus on the shared key) or paste
+                    Community Plan (no key, {planAppModel}, {planAppKind}) or paste
                     your own {def.name} key, vaulted server-side. Either way {works}
                     everywhere, including the live preview. No Netlify or Vercel
                     account needed.
@@ -374,8 +383,9 @@ function CloudVaultCard({ def, isConnected }: { def: IntegrationDef; isConnected
                 <div className="space-y-1.5 rounded-md border border-green-600/30 bg-green-600/5 p-2">
                   <p className="text-xs leading-relaxed">
                     <span className="font-medium">Use my Community Plan</span> — AI
-                    features on Claude Opus with no key of your own. Calls count
-                    toward the same weekly budget as your building.
+                    features on {planAppModel} with no key of your own, from
+                    your {memberPlan.name} plan. Calls count toward the same
+                    weekly budget as your building.
                   </p>
                   <Button size="sm" className="h-7 text-xs gap-1.5" disabled={busy !== 'idle'} onClick={handleUsePlan}>
                     {busy === 'plan' ? <Loader2 className="size-3 animate-spin" /> : <Cloud className="size-3" />}

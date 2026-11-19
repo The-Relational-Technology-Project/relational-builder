@@ -35,6 +35,10 @@ export interface CommunityPlan {
   /** What this kind of model is, in a sentence a newcomer can use */
   about: string;
   stages: Record<CommunityModelStage, StageModel>;
+  /** The model the AI features inside a builder's apps run on through
+   *  Community AI (the ai_chat capability). The server reads the owner's
+   *  plan and routes the same way: supabase/functions/app-capabilities. */
+  appAI: StageModel;
 }
 
 // The Frontier plan's models, one per stage. The reasoning and the bench
@@ -54,6 +58,16 @@ export const OPEN_WEIGHT_PLAN_MODEL = 'google/gemma-4-31b-it';
  *  single switch keeps its own model, VITE_COMMUNITY_OPEN_BUILD_MODEL. */
 export const OPEN_WEIGHT_BUILD_MODEL = 'google/gemma-4-31b-it';
 
+/** The open model the AI features in a builder's apps run on (owner
+ *  decision, Nov 18: the same Gemma 4 31B, so nothing on this plan runs on
+ *  a closed model). The server's default, COMMUNITY_OPEN_MODEL in
+ *  supabase/functions/app-capabilities, must match. */
+export const OPEN_WEIGHT_APP_MODEL = 'google/gemma-4-31b-it';
+
+/** What in-app AI runs on for the Frontier plan: Community AI's Claude
+ *  model (COMMUNITY_APP_MODEL in app-capabilities) */
+export const FRONTIER_APP_MODEL = 'claude-opus-5-5';
+
 /** The plan a person is on until they choose (owner decision, Nov 17:
  *  Frontier, with Open-Weight one click away in Settings) */
 export const DEFAULT_COMMUNITY_PLAN: CommunityPlanId = 'frontier';
@@ -71,6 +85,7 @@ export function communityPlans(): CommunityPlan[] {
         'first-build': openBuild,
         edit: openBuild,
       },
+      appAI: { providerId: 'openrouter', model: OPEN_WEIGHT_APP_MODEL },
     },
     {
       id: 'frontier',
@@ -82,6 +97,7 @@ export function communityPlans(): CommunityPlan[] {
         'first-build': { providerId: 'claude', model: COMMUNITY_FIRST_BUILD_MODEL },
         edit: { providerId: 'claude', model: COMMUNITY_EDIT_MODEL },
       },
+      appAI: { providerId: 'claude', model: FRONTIER_APP_MODEL },
     },
   ];
 }
@@ -126,6 +142,12 @@ export function planJobsLine(plan: CommunityPlan, nameOf: (modelId: string) => s
   return [...byModel].map(([model, verbs]) => `${nameOf(model)} ${join(verbs)}`).join('; ');
 }
 
+/** "AI features in the apps you build run on Gemma 4 31B": the plan's
+ *  in-app model, for the plan card and the Services tab */
+export function planAppsLine(plan: CommunityPlan, nameOf: (modelId: string) => string): string {
+  return `AI features in the apps you build run on ${nameOf(plan.appAI.model)}`;
+}
+
 /** The note in chat when a plan's default takes over a turn */
 export function planModelNote(plan: CommunityPlan, stage: CommunityModelStage, modelName: string): string {
   const what = stage === 'plan' ? 'Planning runs' : stage === 'first-build' ? 'This build runs' : 'Edits and fixes run';
@@ -136,8 +158,9 @@ export function planModelNote(plan: CommunityPlan, stage: CommunityModelStage, m
  *  By the model that ran, not the plan the person was on: a Frontier
  *  builder who picks Gemma by hand counts as open-weight spend. */
 export function planOfModel(model: string): CommunityPlanId | null {
-  // The proxy meters some traffic as "<model>:<purpose>" (e.g. ":profile")
-  const base = model.replace(/:[a-z-]+$/, '');
+  // The proxy meters some traffic as "<model>:<purpose>" (e.g. ":profile"),
+  // and in-app AI as "app:<model>" (app-capabilities)
+  const base = model.replace(/^app:/, '').replace(/:[a-z-]+$/, '');
   if (isOpenBuilderModel(base)) return 'open-weight';
   if (base.startsWith('claude-') || base.startsWith('anthropic/') || base === 'pareto') return 'frontier';
   return null;

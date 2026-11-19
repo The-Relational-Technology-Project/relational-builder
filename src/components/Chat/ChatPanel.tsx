@@ -795,8 +795,9 @@ export function ChatPanel() {
     const aiMarkers: Record<string, string> = {
       claude: 'COMMUNITY_AI_ANTHROPIC', gemini: 'COMMUNITY_AI_GEMINI', openai: 'COMMUNITY_AI_OPENAI',
     };
-    // Claude on the community plan: same ai_chat capability, no key, Opus on
-    // RTP's shared key against the builder's weekly budget
+    // AI on the community plan: same ai_chat capability, no key, on the
+    // model of the builder's plan (open-weight or Claude Opus) against their
+    // weekly budget
     const aiViaPlan = envVars.some(v => v.key === COMMUNITY_AI_PLAN_KEY && v.value.trim());
     const serviceGuidance = connectedServices.map(s =>
       s.id === 'resend' && emailViaCloud ? RESEND_CLOUD_GUIDANCE :

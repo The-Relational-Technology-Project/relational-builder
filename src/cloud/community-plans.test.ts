@@ -1,6 +1,11 @@
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_COMMUNITY_PLAN,
+  FRONTIER_APP_MODEL,
+  OPEN_WEIGHT_APP_MODEL,
+  planAppsLine,
   communityOpenRoute,
   communityPlan,
   communityPlanChoice,
@@ -68,5 +73,31 @@ describe('community plans', () => {
     expect(planOfModel('claude-fable-5-2:profile')).toBe('frontier');
     expect(planOfModel('pareto')).toBe('frontier');
     expect(planOfModel('untracked')).toBeNull();
+  });
+
+  it('counts in-app AI ("app:<model>") under the plan of the model that ran', () => {
+    expect(planOfModel('app:google/gemma-4-31b-it')).toBe('open-weight');
+    expect(planOfModel('app:claude-opus-5-5')).toBe('frontier');
+  });
+
+  it('runs the apps built on the open-weight plan on an open model too', () => {
+    const open = communityPlan('open-weight').appAI;
+    expect(open.providerId).toBe('openrouter');
+    expect(isOpenBuilderModel(open.model)).toBe(true);
+    expect(isOpenBuilderModel(communityPlan('frontier').appAI.model)).toBe(false);
+    expect(planAppsLine(communityPlan('open-weight'), id => id.split('/').pop()!)).toBe(
+      'AI features in the apps you build run on gemma-4-31b-it',
+    );
+  });
+
+  it("keeps the server's in-app models in step with the plans", () => {
+    const src = readFileSync(
+      fileURLToPath(new URL('../../supabase/functions/app-capabilities/index.ts', import.meta.url)),
+      'utf8',
+    );
+    const serverDefault = (name: string) =>
+      src.match(new RegExp(`const ${name} = Deno\\.env\\.get\\('${name}'\\) \\?\\? '([^']+)'`))?.[1];
+    expect(serverDefault('COMMUNITY_OPEN_MODEL')).toBe(OPEN_WEIGHT_APP_MODEL);
+    expect(serverDefault('COMMUNITY_APP_MODEL')).toBe(FRONTIER_APP_MODEL);
   });
 });

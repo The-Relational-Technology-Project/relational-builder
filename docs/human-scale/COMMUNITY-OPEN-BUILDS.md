@@ -41,7 +41,8 @@ and which model does which job on each, are one table in
 `src/cloud/community-plans.ts`:
 
 - **Open-Weight Models**. Gemma 4 31B plans, builds and edits: one model
-  for every job. Nothing on this plan runs on a closed model.
+  for every job. Nothing on this plan runs on a closed model, including
+  the AI features inside the apps a person builds (from Nov 18; below).
 - **Frontier Models** (the default until a person switches). Claude today:
   Fable 5.2 plans, Opus 5.5 builds and edits. Changing what this plan runs on (Pareto is the candidate) is an
   edit to that plan's `stages`, plus a keyless community route for the
@@ -63,6 +64,37 @@ Before turning it on:
 3. Apply migration `20261116090000_community_plan.sql`. Until it is
    applied the choice still holds in the browser.
 4. Set `VITE_COMMUNITY_PLAN_CHOICE=1` and redeploy.
+
+## AI features in built apps follow the plan
+
+When a builder turns on Community AI for an app (Services tab, "Use my
+Community Plan"), every `ai_chat` call that app makes runs on the model of
+the **owner's** plan, decided on the server in
+`supabase/functions/app-capabilities`:
+
+| Owner's plan | In-app AI runs on | Key |
+|---|---|---|
+| Open-Weight | Gemma 4 31B through OpenRouter, skipping the host the Builder skips | `OPENROUTER_COMMUNITY_KEY` (else the older `OPENROUTER_API_KEY`) |
+| Frontier, or not chosen | Claude Opus 5.5, as before; an app can still ask for the open model with `runtime_model: "open"` | `ANTHROPIC_COMMUNITY_KEY` |
+
+- The plan is read from `profiles.community_plan` on each call, so apps
+  built before the plan existed (they call `ai_chat` with no
+  `runtime_model`) move with their builder, with no rebuild.
+- On the Open-Weight plan an app asking for Claude still gets the open
+  model: the plan's promise is that nothing runs on a closed model.
+- A builder's own vaulted key still wins over both, as before (their
+  spend, their model choice).
+- If the profile lookup fails, the call takes today's default (Frontier)
+  rather than erroring, so nobody is moved onto a model they did not pick.
+- Usage is metered as `app:<model>` against the owner's weekly budget; the
+  steward's spend view now counts `app:google/gemma-4-31b-it` as
+  open-weight spend.
+- The models live in one place each: `appAI` on each plan in
+  `src/cloud/community-plans.ts`, and `COMMUNITY_OPEN_MODEL` /
+  `COMMUNITY_APP_MODEL` in the function. A test fails if they drift.
+
+To turn it on: deploy `app-capabilities`. It needs `OPENROUTER_COMMUNITY_KEY`
+on the Supabase project, which the open-weight builder route already uses.
 
 The evidence behind the model choice is in `LOG.md` and `BENCH-BOARD.md`;
 a separate technical plan covers using several open models across the

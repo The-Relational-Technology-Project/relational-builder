@@ -452,13 +452,15 @@ export const AI_CLOUD_GUIDANCE = [
 
 /**
  * Same ai_chat pattern, on the community plan (env marker COMMUNITY_AI_PLAN):
- * the builder has no key of their own — RTP's shared Claude key serves, on
- * Opus, and every call draws on the builder's weekly community budget. The
+ * the builder has no key of their own — the model of their community plan
+ * serves (an open-weight model on the Open-Weight plan, Claude Opus on
+ * Frontier; the server routes by the owner's plan), and every call draws on
+ * the builder's weekly community budget. The
  * guidance differs from AI_CLOUD_GUIDANCE only in what it tells the model
  * about cost and model choice.
  */
 export const AI_PLAN_GUIDANCE = [
-  '- **AI is included through the builder\'s Community Plan** — no API key anywhere. AI features work EVERYWHERE this app runs, including the live preview, and every request is served by Claude Opus on the Relational Tech Project\'s shared key. Do NOT generate `netlify/functions` or `api/` serverless code for AI, never reference provider API keys or model names, and never let a person pick a model. Call it like this:',
+  '- **AI is included through the builder\'s Community Plan** — no API key anywhere. AI features work EVERYWHERE this app runs, including the live preview, and every request is served by the model of the builder\'s Community Plan through the Relational Tech Project (on the Open-Weight plan, an open-weight model, so write prompts that are short, explicit and ask for one clear output). Do NOT generate `netlify/functions` or `api/` serverless code for AI, never reference provider API keys or model names, and never let a person pick a model. Call it like this:',
   '  ```javascript',
   '  async function askAI(messages, system, maxTokens = 1024) {',
   '    const url = env.COMMUNITY_CAPABILITIES_URL',

@@ -26,14 +26,19 @@
  *   ai_chat {app_id, app_key, messages, system?, max_tokens?, member_token?, runtime_model?}
  *     — one completion. A builder-vaulted AI key (anthropic | openai | gemini)
  *       wins; otherwise, when the builder turned on Community AI, the call
- *       runs on RTP's shared Anthropic key (ANTHROPIC_COMMUNITY_KEY) with
- *       Claude Opus, metered against the OWNER's weekly community token
+ *       runs on the model of the OWNER's community plan
+ *       (profiles.community_plan, src/cloud/community-plans.ts):
+ *         open-weight  an open-weight model through OpenRouter
+ *                      (OPENROUTER_COMMUNITY_KEY, model COMMUNITY_OPEN_MODEL).
+ *                      Nothing on this plan runs on a closed model, so an
+ *                      app asking for Claude still gets the open model.
+ *         frontier, or not chosen yet  Claude Opus on RTP's shared
+ *                      Anthropic key (ANTHROPIC_COMMUNITY_KEY), unless the
+ *                      app asks for the open model with `runtime_model: "open"`
+ *                      (the kit's lib/ai helper does by default).
+ *       Either way it is metered against the owner's weekly community token
  *       budget exactly like their building turns (community_usage, model
  *       recorded as `app:<model>` so the steward view can tell them apart).
- *       `runtime_model: "open"` (sent by the kit's lib/ai helper on the
- *       human-scale branch) runs the same Community AI call on an
- *       open-weight model through OpenRouter instead (OPENROUTER_API_KEY,
- *       model COMMUNITY_OPEN_MODEL), metered the same way.
  *       Returns {text, service} plus, on Community AI, {model, host, usage}.
  *       Same rate/daily-cap regime.
  *   scrape {app_id, app_key, url, member_token?}
@@ -92,19 +97,61 @@ const COMMUNITY_APP_MODEL = Deno.env.get('COMMUNITY_APP_MODEL') ?? 'claude-opus-
 // and low effort keeps thinking tokens (billed as output) small.
 const COMMUNITY_AI_MAX_TOKENS = 4096;
 const COMMUNITY_AI_EFFORT = Deno.env.get('COMMUNITY_APP_EFFORT') ?? 'low';
-// The open-weight Community AI model (human-scale branch): an instruct model
-// small enough that a community could host it on one box (Gemma 3 12B fits a
-// 16 GB machine at 4-bit), served through OpenRouter for now. Only reached
-// when the app asks for it with runtime_model: "open"; the default path above
-// is unchanged. Override without a deploy via the COMMUNITY_OPEN_MODEL secret.
-const COMMUNITY_OPEN_MODEL = Deno.env.get('COMMUNITY_OPEN_MODEL') ?? 'google/gemma-3-12b-it';
+// The open-weight Community AI model: the Open-Weight plan's one model for
+// every job (OPEN_WEIGHT_APP_MODEL in src/cloud/community-plans.ts, keep the
+// two in step). Gemma 4 31B, Apache 2.0, fits a 24 GB box at 4-bit; served
+// through OpenRouter until a community hosts it. Reached for every app whose
+// owner is on the Open-Weight plan, and for any app that asks with
+// runtime_model: "open". Override without a deploy via the
+// COMMUNITY_OPEN_MODEL secret.
+const COMMUNITY_OPEN_MODEL = Deno.env.get('COMMUNITY_OPEN_MODEL') ?? 'google/gemma-4-31b-it';
 // OpenRouter serves one model name from several upstream hosts, and a host can
-// serve it badly (the bench saw one host write broken imports every time while
-// the others worked, Nov 3, 2026). A comma-separated list of hosts to keep out.
-const COMMUNITY_OPEN_IGNORE_HOSTS = (Deno.env.get('COMMUNITY_OPEN_IGNORE_HOSTS') ?? '')
+// serve it badly (the bench saw one host serve Gemma broken every time while
+// the others worked, Nov 3, 2026). A comma-separated list of hosts to keep out;
+// unset, it skips the same host the Builder skips (OPENROUTER_IGNORE_HOSTS in
+// src/human-scale/builder-model.ts). Set it to "none" to skip nothing.
+const COMMUNITY_OPEN_IGNORE_HOSTS = (Deno.env.get('COMMUNITY_OPEN_IGNORE_HOSTS') ?? 'Darkbloom')
   .split(',')
   .map((h) => h.trim())
-  .filter(Boolean);
+  .filter((h) => h && h.toLowerCase() !== 'none');
+
+/** The OpenRouter key for Community AI's open model: the community key the
+ *  llm-proxy builds on, else the older OPENROUTER_API_KEY secret */
+function communityOpenRouterKey(): string {
+  return Deno.env.get('OPENROUTER_COMMUNITY_KEY') ?? Deno.env.get('OPENROUTER_API_KEY') ?? '';
+}
+
+type CommunityPlanId = 'open-weight' | 'frontier';
+
+/**
+ * The owner's community plan, from their profile. Null when they have not
+ * chosen (or the lookup fails): the caller treats that as today's default,
+ * Frontier, so a hiccup here never moves anyone onto a model they did not pick.
+ */
+async function ownerCommunityPlan(email: string): Promise<CommunityPlanId | null> {
+  if (!email) return null;
+  try {
+    const res = await fetch(
+      restUrl(`/profiles?email=eq.${encodeURIComponent(email)}&select=community_plan&limit=1`),
+      { headers: svcHeaders() },
+    );
+    const rows = res.ok ? await res.json() : [];
+    const plan = Array.isArray(rows) && rows.length ? rows[0].community_plan : null;
+    return plan === 'open-weight' || plan === 'frontier' ? plan : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Is Community AI's model for this plan configured on this server? */
+function communityAiConfigured(plan: CommunityPlanId | null): boolean {
+  return plan === 'open-weight' ? !!communityOpenRouterKey() : !!Deno.env.get('ANTHROPIC_COMMUNITY_KEY');
+}
+
+/** The model an owner's apps run on through Community AI, by plan */
+function communityAiModel(plan: CommunityPlanId | null): string {
+  return plan === 'open-weight' ? COMMUNITY_OPEN_MODEL : COMMUNITY_APP_MODEL;
+}
 
 const rateBuckets = new Map<string, { count: number; windowStart: number }>();
 
@@ -202,7 +249,8 @@ async function handleBuilder(req: Request, body: Record<string, unknown>, action
     case 'community_ai_enable': {
       // The owner has to be on the community plan — that's whose weekly
       // budget every in-app call draws on.
-      if (!Deno.env.get('ANTHROPIC_COMMUNITY_KEY')) {
+      const plan = await ownerCommunityPlan(email);
+      if (!communityAiConfigured(plan)) {
         return json({ error: 'Community AI is not configured on this server' }, 503);
       }
       const gate = await communityPlanGate(email);
@@ -223,7 +271,7 @@ async function handleBuilder(req: Request, body: Record<string, unknown>, action
       });
       if (!res.ok) return json({ error: 'Could not turn on Community AI' }, 500);
       if (!alreadyOn) notifyStewardCommunityAiOn(email, appId, appName);
-      return json({ ok: true, model: COMMUNITY_APP_MODEL });
+      return json({ ok: true, model: communityAiModel(plan) });
     }
 
     case 'secret_set': {
@@ -295,12 +343,13 @@ async function handleBuilder(req: Request, body: Record<string, unknown>, action
         if (!(await getSecret(appId, COMMUNITY_AI_SERVICE))) {
           return json({ error: 'Community AI is not turned on for this app yet' }, 404);
         }
-        if (!Deno.env.get('ANTHROPIC_COMMUNITY_KEY')) {
+        const plan = await ownerCommunityPlan(email);
+        if (!communityAiConfigured(plan)) {
           return json({ ok: false, error: 'Community AI is not configured on this server' });
         }
         const gate = await communityPlanGate(email);
         if ('error' in gate) return json({ ok: false, error: gate.error });
-        return json({ ok: true, model: COMMUNITY_APP_MODEL });
+        return json({ ok: true, model: communityAiModel(plan) });
       }
       if (!(SERVICES as readonly string[]).includes(service)) {
         return json({ error: `No test available for: ${service}` }, 400);
@@ -562,14 +611,20 @@ async function aiChat(body: Record<string, unknown>): Promise<Response> {
     return json({ error: "AI isn't set up for this app — the builder can turn on Community AI (or connect their own key) in the Services tab" }, 503);
   }
   const viaCommunity = service === COMMUNITY_AI_SERVICE;
-  // The app asked for the open-weight model (kit lib/ai on the human-scale branch)
-  const wantOpen = viaCommunity && String(body.runtime_model ?? '') === 'open';
+  // Which model Community AI runs on. The owner's plan decides first: on the
+  // Open-Weight plan every call is open, whatever the app's code asks for,
+  // so apps built before the plan existed (they call ai_chat with no
+  // runtime_model) move with their builder. Otherwise the app can still opt
+  // into the open model (the kit's lib/ai helper does by default).
+  const ownerPlan = viaCommunity ? await ownerCommunityPlan(ownerEmail) : null;
+  const wantOpen =
+    viaCommunity && (ownerPlan === 'open-weight' || String(body.runtime_model ?? '') === 'open');
 
   // Community AI: the shared key must exist, and the OWNER must still be on
   // the plan with weekly budget left — checked before any spend, same gate
   // as their building turns.
   if (viaCommunity) {
-    if (wantOpen && !Deno.env.get('OPENROUTER_API_KEY')) {
+    if (wantOpen && !communityOpenRouterKey()) {
       return json({ error: "Community AI's open model is not configured on this server" }, 503);
     }
     if (!wantOpen && !Deno.env.get('ANTHROPIC_COMMUNITY_KEY')) {
@@ -633,6 +688,7 @@ async function aiChat(body: Record<string, unknown>): Promise<Response> {
       provenance = {
         model: result.model,
         host: wantOpen ? 'openrouter' : 'anthropic',
+        weights: wantOpen ? 'open' : 'closed',
         ...('servedBy' in result && result.servedBy ? { servedBy: result.servedBy } : {}),
         usage: { input: result.usage.input, output: result.usage.output },
       };
@@ -781,7 +837,7 @@ async function callCommunityOpenRouter(
   system: string | undefined,
   maxTokens: number,
 ): Promise<{ text: string; model: string; usage: TokenUsage; servedBy?: string }> {
-  const key = Deno.env.get('OPENROUTER_API_KEY') ?? '';
+  const key = communityOpenRouterKey();
   const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -803,7 +859,13 @@ async function callCommunityOpenRouter(
     console.error('community open-model upstream error', res.status, JSON.stringify(data).slice(0, 500));
     throw new Error(res.status === 429 ? 'The AI is busy right now — try again in a moment' : 'The AI is unavailable right now — try again shortly');
   }
-  const text = String(data?.choices?.[0]?.message?.content ?? '');
+  const text = String(data?.choices?.[0]?.message?.content ?? '').trim();
+  // An empty reply (a host that only streamed reasoning, or ran out of
+  // tokens before answering) is an error the app can show, not a blank answer
+  if (!text) {
+    console.error('community open-model empty reply', JSON.stringify(data).slice(0, 500));
+    throw new Error('The AI did not answer this time — try again in a moment');
+  }
   const u = data?.usage ?? {};
   return {
     text,

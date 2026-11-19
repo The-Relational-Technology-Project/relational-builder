@@ -6,13 +6,12 @@ import {
   DEFAULT_COMMUNITY_PLAN,
   communityPlanChoice,
   communityPlans,
+  planAppsLine,
   planJobsLine,
 } from '@/cloud/community-plans';
+import { communityModelName } from '@/cloud/community-model-name';
 import { useRegionStore } from '@/store/region-store';
 import { registry } from '@/providers/registry';
-import { CLAUDE_MODELS } from '@/providers/claude';
-import { shortModelName } from '@/providers/model-label';
-import { OPEN_BUILDER_MODELS } from '@/human-scale/builder-model';
 import { LOCAL_MODEL_DEFAULT_URL } from '@/providers/openai-compatible';
 import {
   Dialog,
@@ -27,12 +26,6 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 
-/** A plan's model, named the way the model menu names it, without the
- *  "(open)" tag the plan's own name already carries */
-function planModelName(id: string): string {
-  const full = CLAUDE_MODELS.find(m => m.id === id)?.name ?? OPEN_BUILDER_MODELS.find(m => m.id === id)?.name ?? id;
-  return shortModelName(full).replace(/\s*\(open\)$/, '');
-}
 
 /** Covered models, in the order the community proxy prefers them */
 const COMMUNITY_MODEL_NAMES = 'Claude Opus 5.5 (the default builder), Fable 5.2 (the default planner), Opus 5, Opus 4.8, Sonnet 5, and Haiku 4.5';
@@ -184,7 +177,8 @@ export function ProviderSettings({ open: controlledOpen, onOpenChange, hideTrigg
                     </div>
                     <p className="text-xs text-foreground">{plan.about}</p>
                     <p className="text-xs text-muted-foreground">
-                      {planJobsLine(plan, planModelName)}.
+                      {planJobsLine(plan, communityModelName)}.{' '}
+                      {planAppsLine(plan, communityModelName)}.
                     </p>
                     {ownKey && (
                       <p className="text-xs text-muted-foreground">
