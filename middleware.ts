@@ -11,7 +11,7 @@
  * See docs/CUSTOM-DOMAINS.md.
  */
 
-import { proxySite } from './api/_site-proxy';
+import { proxySite } from './api/_site-proxy.js';
 
 /** Hostnames that are the Builder itself (plus every *.vercel.app deploy). */
 const OWN_HOSTS = /^(?:(?:www\.)?relationalbuilder\.(?:org|xyz)|[^.]+\.vercel\.app|localhost|127\.0\.0\.1)$/;
