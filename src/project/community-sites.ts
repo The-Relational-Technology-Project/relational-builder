@@ -35,6 +35,8 @@ export interface CommunitySite {
   /** Runtime errors neighbors hit this week (from the site's error beacon) */
   week_errors?: number;
   errors?: SiteError[];
+  /** The site's own address, when a domain is connected (see site-domains.ts) */
+  domain?: { domain: string; status: 'pending' | 'live' } | null;
 }
 
 async function call(body: Record<string, unknown>): Promise<Record<string, unknown>> {

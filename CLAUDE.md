@@ -117,6 +117,14 @@ Chat/Builder Panel  |  Preview Sandbox (iframe)  |  RTP Knowledge Base Panel
   the prompt as a one-line shape description with a never-re-output rule, see
   `snapshot-split.ts`)
 - `src/preview/` — preview engines: kind detection, esbuild-wasm bundler, inspector
+- Community hosting's own-address door: a builder points a domain their
+  community owns at a hosted site (`src/components/SiteAddressCard.tsx`).
+  `middleware.ts` catches any hostname that isn't the Builder's and hands it
+  to the `site` function via `api/_site-proxy.ts` (shared with `/s/`);
+  `supabase/functions/site-domains/` looks names up, registers them on the
+  Vercel project, and reads DNS back; `src/project/domain-dns.ts` turns
+  those facts into provider-specific steps and a per-row diagnosis. RB never
+  holds a domain or takes a payment; see `docs/CUSTOM-DOMAINS.md`
 - `src/kit/` — the RB component kit: shadcn-aligned sources (`files/` mirrors a
   generated project's `/src`) merged under the project VFS at bundle time and
   materialized into exports/repos via `withKitFiles()`. The theme contract lives

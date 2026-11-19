@@ -4,7 +4,8 @@ import {
   type CommunitySite, type SiteVersion,
 } from '@/project/community-sites';
 import { Button } from '@/components/ui/button';
-import { Globe, Eye, MessageCircle, Trash2, ExternalLink, Loader2, ChevronDown, ChevronUp, History, AlertTriangle, Lock } from 'lucide-react';
+import { Globe, Eye, MessageCircle, Trash2, ExternalLink, Loader2, ChevronDown, ChevronUp, History, AlertTriangle, Lock, AtSign } from 'lucide-react';
+import { SiteAddressCard } from './SiteAddressCard';
 
 /**
  * Two weeks of daily views as a quiet inline sparkline — enough to answer
@@ -72,6 +73,8 @@ export function YourSites() {
   const [versions, setVersions] = useState<Record<string, SiteVersion[]>>({});
   const [restoring, setRestoring] = useState<string | null>(null);
   const [restoredNote, setRestoredNote] = useState<string | null>(null);
+  // Own address: which site's card is open
+  const [addressFor, setAddressFor] = useState<string | null>(null);
 
   useEffect(() => {
     listCommunitySites()
@@ -164,10 +167,11 @@ export function YourSites() {
               <div className="flex items-center gap-2">
                 <Globe className="size-3.5 text-muted-foreground shrink-0" />
                 <a
-                  href={site.url}
+                  href={site.domain?.status === 'live' ? `https://${site.domain.domain}/` : site.url}
                   target="_blank"
                   rel="noreferrer"
                   className="text-sm font-medium truncate hover:underline inline-flex items-center gap-1"
+                  title={site.domain?.status === 'live' ? site.domain.domain : undefined}
                 >
                   {site.name}
                   <ExternalLink className="size-3 text-muted-foreground" />
@@ -202,6 +206,17 @@ export function YourSites() {
                       {site.week_errors}
                     </button>
                   )}
+                  <button
+                    className={site.domain?.status === 'pending' ? 'text-amber-600 hover:text-amber-700' : 'hover:text-foreground'}
+                    onClick={() => setAddressFor(addressFor === site.slug ? null : site.slug)}
+                    title={
+                      site.domain?.status === 'live' ? `Its own address: ${site.domain.domain}`
+                        : site.domain ? `${site.domain.domain} is waiting on its DNS records`
+                        : 'Give this site its own address'
+                    }
+                  >
+                    <AtSign className="size-3" />
+                  </button>
                   <button
                     className="hover:text-foreground"
                     onClick={() => handlePassphrase(site)}
@@ -248,6 +263,14 @@ export function YourSites() {
                   )}
                 </div>
               </div>
+              {addressFor === site.slug && (
+                <SiteAddressCard
+                  slug={site.slug}
+                  siteName={site.name}
+                  className="pt-2 border-t"
+                  onChange={domain => setSites(list => (list ?? []).map(x => (x.slug === site.slug ? { ...x, domain } : x)))}
+                />
+              )}
               {isExpanded && site.feedback.length > 0 && (
                 <div className="space-y-1.5 pt-1 border-t">
                   {site.feedback.map(note => (

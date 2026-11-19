@@ -1,156 +1,129 @@
-# Custom Domains on Community Hosting — Spec
+# Custom Domains on Community Hosting
 
-*August 2026. Closes PARITY gap #5. Status: specced, not built — the
-domain-side steps need an owner decision (marked ⚑) before code starts.*
+*November 2026. Built. Replaces the August spec (closes PARITY gap #5).*
 
 ## The goal, in one sentence
 
-A neighborhood tool deserves a neighborhood address: `elm-street-library.org`
-(or `library.elmstreet.org`) instead of `relationalbuilder.org/s/elm-street-library/` —
-with the builder doing nothing harder than pasting a domain and copying one
-or two DNS records into their registrar.
+A neighborhood tool deserves a neighborhood address: `elmstreet.place` (or
+`library.elmstreet.org`) instead of `relationalbuilder.org/s/elm-street-library/`,
+with every community hosting feature still attached: neighbor notes, the
+error beacon, versions, view counts, private sites.
 
-## Where sites are served today
+## Two decisions that shape everything
 
-Every community-hosted site is rows in Postgres (`community_sites` /
-`site_files`), served by the `site` edge function, fronted by a rewrite in
-`vercel.json` on the `relationalbuilder.org` Vercel project:
+1. **The community owns the domain and its DNS.** RB never buys, sells, or
+   holds a domain, and never processes a payment. The builder buys the name
+   wherever they like (we point at Namecheap) or brings one they already
+   have. We do not ask anyone to move their nameservers to us: the name and
+   every record on it stay in the community's own account.
+2. **One path for everyone: add records.** New domain or old, Namecheap or
+   Squarespace or Vercel, the builder adds one or two rows at their DNS
+   provider. Records were the hard path only because people got stuck
+   silently. So the Builder reads the domain's DNS itself and says which
+   row is wrong.
 
-```
-/s/:slug/*  →  {SUPABASE}/functions/v1/site/:slug/*   (x-rb-raw header dance)
-```
+## The builder's experience
 
-That front is the thing to extend — both phases below are "teach the Vercel
-project to answer for more hostnames, and map each hostname to a slug."
-Serving, publishing, versions, the feedback widget, and the error beacon all
-keep working unchanged, because they resolve paths relative to the page URL.
+One field, **Use your own address**, under a live site's link in Publish and
+behind the `@` button in Your Sites. The builder types a domain and we look
+it up before asking for anything:
 
-## Phase 1 — Subdomains for every site (small, no new accounts)
-
-`{slug}.sites.relationalbuilder.org` for every published site, automatically.
-
-**Why `*.sites.` and not `*.`:** a top-level wildcard makes every future
-service name (`api.`, `studio.`, `mail.`) contestable by site slugs. One
-level down costs nothing and removes the whole reserved-names problem.
-
-Mechanics:
-
-1. ⚑ **Move `relationalbuilder.org` DNS to Vercel nameservers** (wildcard
-   domains on Vercel require it) or CNAME `*.sites` explicitly. One-time.
-2. Add `*.sites.relationalbuilder.org` as a domain on the Vercel project.
-   TLS for the wildcard is automatic.
-3. One `vercel.json` rewrite ahead of the SPA fallback:
-
-```json
-{
-  "source": "/:path*",
-  "has": [{ "type": "host", "value": "(?<slug>[^.]+)\\.sites\\.relationalbuilder\\.org" }],
-  "destination": "https://{SUPABASE}/functions/v1/site/:slug/:path*"
-}
-```
-
-4. `site` function: no changes required (slug still arrives as a path
-   segment). Publish responses and YourSites gain a second URL line.
-
-Effort: ~half a day of code once ⚑ is done. Risk: low — additive, `/s/` URLs
-keep working forever.
-
-## Phase 2 — Bring-your-own domain (the real prize)
-
-Builder owns `elmstreetlibrary.org` (or a subdomain of a community domain)
-and points it at their site.
-
-**Approach: Vercel Domains API on the existing project.** The alternatives:
-
-| Option | Verdict |
+| What we find | What the builder sees |
 |---|---|
-| **Vercel Domains API** (recommended) | Uses the account we already deploy on; programmatic add/verify/status; automatic TLS incl. apex; generous project domain limits. No new vendor. |
-| Cloudflare for SaaS | Better above ~100 custom hostnames ($0.10/hostname/mo after 100) and if we ever leave Vercel; but a second vendor, a proxy layer move, and real migration work. Revisit at scale. |
-| "Just use Netlify/Vercel deploy" (status quo) | Loses everything community hosting adds: neighbor notes, error beacon, versions, view counts. Not an answer. |
+| Not registered | "It looks available." A Namecheap link with the name typed in, then "I bought it, look again". |
+| Registered, nothing on it (or only the registrar's placeholder page) | "Ready to connect." |
+| A site already answers there | A warning that connecting replaces it, and an offer to use a corner of the domain instead (`library.theirdomain.org`). |
+| Email on the domain | A line saying email keeps working. These records never touch it. |
+| Live on another builder's site | It can't be claimed; a human will help. |
 
-### Data
+After **Connect**, the card shows the rows to add (Type, Host, Value, each
+value one tap to copy), steps written for the provider we detected from the
+domain's nameservers, and that provider's known stumble (Namecheap's two
+placeholder rows, Cloudflare's orange cloud, Squarespace's defaults preset).
+It checks again every 20 seconds on its own and reports per row: found, not
+seen yet, or the specific thing to fix ("There's an extra A record
+(203.0.113.9). Delete it so only 216.150.1.1 is left.").
 
-```sql
-create table site_domains (
-  id uuid primary key default gen_random_uuid(),
-  site_id uuid not null references community_sites (id) on delete cascade,
-  domain text not null unique,           -- lowercased, punycoded
-  status text not null default 'pending',-- pending | dns_ready | live | failed
-  verification jsonb,                    -- records Vercel asks for, verbatim
-  created_at timestamptz not null default now(),
-  verified_at timestamptz
-);
--- RLS on, no policies (service role via publish-site only)
--- Cap: 1 domain per site, 3 per builder (mirrors the site cap)
+A bare domain and its `www` travel together: the one the builder typed is
+the address, the other redirects to it. Other subdomains stand alone.
+
+When no name is typed yet, the card offers name ideas built from the site's
+name and the project's place, and a short list of endings with what they
+tend to cost to keep. The hint that matters most: the first year is often a
+couple of dollars, the renewal is the real price, and it differs between
+registrars.
+
+## How it works
+
+```
+elmstreet.place ──DNS (A / CNAME, at the community's provider)──▶ Vercel project
+        │
+   middleware.ts          any hostname that isn't the Builder's own
+        │
+   api/_site-proxy.ts     x-rb-host: elmstreet.place
+        │
+   site function          site_domains → the site → its files
 ```
 
-### Flow (all inside `publish-site`, new actions)
+- **`site_domains`** (migration `20261119090000`): one row per site.
+  `domain` is the address, `also` its www/bare twin, `status` is `pending`
+  or `live`. RLS on, no policies; only the two functions touch it.
+- **`middleware.ts`** is the door. It has to be middleware and not a
+  `vercel.json` rewrite: rewrites run after the filesystem, so `/` on a
+  community's domain would serve the Builder's own `index.html`. Requests on
+  the Builder's own hostnames pass straight through.
+- **`api/_site-proxy.ts`** is the proxy `/s/` has always used, now shared by
+  both doors.
+- **`site` function**: with `x-rb-host`, resolves the hostname through
+  `site_domains` and treats the whole path as the file. Everything else
+  (widget, beacon, unlock, SPA fallback) is unchanged, because it all
+  resolves relative to the page. A site with a live domain also gets a
+  `<link rel="canonical">` to it on both doors, unless the page names its own.
+- **`site-domains` function**: `lookup`, `add`, `status`, `remove`.
+  It reads DNS from the outside (DNS over HTTPS), registers the hostname on
+  the Vercel project (Domains API), and returns the records Vercel itself
+  recommends plus how each one looks right now. A site is `live` only when a
+  real request to `https://{domain}/` comes back from community hosting, so
+  "live" means DNS is right *and* the certificate is issued.
+- **Reading the facts** (`src/project/domain-dns.ts`, pure and tested):
+  provider detection, the four situations, per-row diagnosis, provider
+  steps, name ideas. **`src/components/SiteAddressCard.tsx`** is the UI.
 
-1. `{action: 'domain_add', slug, domain}` — validate shape and ownership,
-   normalize, reject apex domains on ⚑-decision if we want to start
-   subdomain-only, then `POST /v10/projects/{id}/domains` with the RB Vercel
-   token (a new function secret: `VERCEL_TOKEN`, `VERCEL_PROJECT_ID`).
-   Vercel's response says exactly what DNS is needed:
-   - subdomain → one CNAME to `cname.vercel-dns.com`
-   - apex → one A record (76.76.21.21)
-   - domain attached to another Vercel account → a TXT challenge first
-     (this is also our anti-takeover check — Vercel enforces it)
-2. Store the row with `verification` = Vercel's expected records, verbatim.
-3. `{action: 'domain_status', slug}` — proxies Vercel's
-   `GET .../domains/{domain}` + config check; flips `status` to `live` when
-   verified and TLS is issued.
-4. `{action: 'domain_remove', slug}` — removes from Vercel + the row.
-5. Serving: one more `vercel.json` rewrite, after the wildcard, catching
-   any host that isn't ours:
+### Secrets
 
-```json
-{
-  "source": "/:path*",
-  "has": [{ "type": "host", "value": "(?<host>.+)" }],
-  "destination": "https://{SUPABASE}/functions/v1/site-by-domain/:host/:path*"
-}
-```
+On the Supabase project: `VERCEL_TOKEN` (a token that can manage the
+project's domains), `VERCEL_PROJECT_ID`, `VERCEL_TEAM_ID`. Without them
+`lookup` still works and the rest answers 503 with a plain message.
 
-   `site-by-domain` is ~20 lines: look up `site_domains` (cache 60s),
-   forward to the `site` function's logic with the resolved slug. 404s for
-   unknown hosts (a host only reaches us if its DNS points here anyway).
+### Limits and edges
 
-### The builder experience (the actual point)
+- One domain per site, five per builder (`MAX_DOMAINS_PER_BUILDER`).
+- A claim that never went live stops blocking the name after 48 hours, so
+  nobody can squat a domain they don't control. A domain can only serve a
+  site if its DNS points here, which only its owner can do.
+- A domain that sits in someone else's Vercel account needs a proof record
+  first (TXT at `_vercel`). Vercel enforces this; we show the row.
+- Taking a site down releases its hostname on the Vercel project.
+- The `/s/` link keeps working and does not redirect. A lapsed domain
+  renewal must never take the site with it.
+- Our own names (`relationalbuilder.org` and anything under it) and other
+  platforms' shared suffixes can't be connected.
 
-One new card in the Publish dialog / YourSites, three states:
+## Deliberately not doing
 
-1. **Paste a domain** → "Use your own address" field, one button.
-2. **Copy the records** → we show a two-column table (Type · Name · Value),
-   each row with a copy button, plus registrar-specific one-liners for the
-   common five (Namecheap, GoDaddy, Cloudflare, Google/Squarespace, Porkbun).
-   A "Check again" button, and we also poll quietly every 30s.
-3. **Live** → green dot, the new URL, and "your `/s/` address still works."
+- **Selling or holding domains, or taking payments.** The registrar
+  relationship belongs to the neighborhood.
+- **Asking for nameservers.** Simpler on day one, but it breaks domains
+  already in use and puts the community's DNS in our account.
+- **Live prices.** Deals are registrar-specific and change weekly; the hints
+  are rough on purpose and send people to compare.
+- Email on these domains, and wildcard custom domains.
 
-Plain-language copy throughout: "This tells the internet your domain lives
-here. It can take up to an hour to spread." No mention of A records vs
-CNAMEs unless they open the table.
+## Later, if it earns it
 
-**Deliberately not doing:** selling domains (Lovable does; wrong fit — the
-registrar relationship should belong to the neighborhood), email/DKIM on
-these domains, and wildcard *custom* domains.
-
-### Costs & limits ⚑
-
-- Vercel: custom domains are free on the project; TLS free. The wildcard
-  needs Vercel DNS (free) — the ⚑ nameserver decision.
-- Our caps: 1 domain/site, 3/builder, steward-liftable like site caps.
-- Failure honesty: if Vercel rejects a domain (reserved, abuse-listed),
-  surface Vercel's reason verbatim with "reply to your invite email and a
-  human will help."
-
-### Order of work
-
-1. ⚑ Nameservers → Phase 1 wildcard (half day) — immediate visible win.
-2. `site_domains` migration + `domain_add/status/remove` actions (1 day).
-3. `site-by-domain` resolver + rewrite (half day).
-4. Publish dialog / YourSites card + polling (1 day).
-5. Docs + a "give your tool its own address" note in the publish success
-   toast.
-
-Total: ~3 days of code after the two ⚑ decisions (nameservers; apex
-support at launch vs subdomain-only).
+- `{slug}.sites.relationalbuilder.org` for every site (needs a wildcard on
+  our own DNS).
+- One-click setup at providers that speak Domain Connect (Cloudflare,
+  GoDaddy, IONOS): publish a template, skip the copy and paste.
+- A renewal nudge: we can read a domain's expiry and warn the builder a
+  month ahead.
