@@ -2,6 +2,7 @@ import { useProviderStore } from '@/store/provider-store';
 import { useCommunityStore } from '@/store/community-store';
 import { useAuthStore, cloudEnabled } from '@/store/auth-store';
 import { registry } from '@/providers/registry';
+import { communityOpenRoute } from '@/cloud/community-plans';
 import { Button } from '@/components/ui/button';
 
 /**
@@ -13,10 +14,13 @@ export function useNeedsKey(): boolean {
   const activeProviderId = useProviderStore(s => s.activeProviderId);
   const apiKeys = useProviderStore(s => s.apiKeys);
   const communityActive = useCommunityStore(s => s.active);
+  // Community access covers two keyless routes: Claude (the Frontier plan)
+  // and the open models on OpenRouter (the Open-Weight plan)
+  const communityCovered =
+    communityActive &&
+    (activeProviderId === 'claude' || (activeProviderId === 'openrouter' && communityOpenRoute()));
   return Boolean(
-    registry.getEntry(activeProviderId)?.requiresApiKey &&
-      !apiKeys[activeProviderId] &&
-      !(activeProviderId === 'claude' && communityActive),
+    registry.getEntry(activeProviderId)?.requiresApiKey && !apiKeys[activeProviderId] && !communityCovered,
   );
 }
 
