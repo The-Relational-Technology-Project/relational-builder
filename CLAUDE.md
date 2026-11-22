@@ -159,7 +159,12 @@ Chat/Builder Panel  |  Preview Sandbox (iframe)  |  RTP Knowledge Base Panel
   the builder opts in, a `place:` block in `.reltech.yml` plus `place.json`
   in the repo and beside the published site, for a public map of
   place-based software; see `docs/PLACE-AS-PLATFORM.md`
-- `src/components/` — React components (UI lives here)
+- `src/components/` — React components (UI lives here). `Landing.tsx` is the
+  signed-out door: sign in or request an account, nothing more. The overview,
+  Build Days, and Studios pages live on relationaltechproject.org (the
+  `rtp-main-site` repo); `/buildtogether`, `/buildathon`, and `/studios`
+  redirect there (`vercel.json`, with a client fallback in `Landing.tsx`).
+  `/buildday` and `/studiobrief` stay here: they start those journeys in the Builder
 - `src/components/Chat/` — Chat interface (panel, messages, input, code blocks)
 - `src/components/ui/` — shadcn/ui primitives (don't edit directly)
 

@@ -10,7 +10,7 @@ import type { CommonsCard, CommonsItemDetail } from './commons-items';
  * card live here so the prompt, the door, and the detection rule change
  * together (the same shape build-day.ts has).
  *
- * The public page is relationalbuilder.org/studios; the Builder's door is
+ * The public page is relationaltechproject.org/studios; the Builder's door is
  * /studiobrief. What a Studio carries inside the Builder — a frame of
  * values and principles layered on RTP's, practices and guardrails,
  * contexts, sources, a gallery shelf, a door with stewards — is what the
@@ -50,7 +50,7 @@ export const STUDIO_PAGE_PATH = 'index.html';
 /** Who reads the brief at RTP */
 export const STUDIO_STEWARD_EMAIL = 'josh@relationaltechproject.org';
 
-const STUDIOS_URL = 'https://relationalbuilder.org/studios';
+const STUDIOS_URL = 'https://relationaltechproject.org/studios';
 
 /**
  * What a Studio is inside the Builder — the four things the Builder takes
@@ -90,7 +90,7 @@ const BRIEF_ANATOMY = [
   '8. **The door and the stewards**: open or gated, where the link will be shared, who approves, what a new member should see first.',
   '9. **Look and feel**: the color (hex), the type, the mood, where the look came from (a logo, a photo, a place), and what the page uses.',
   '10. **Open questions**: what the partner still wants to decide with the stewards.',
-  'End with a credit line: drafted with Relational Builder, from relationalbuilder.org/studios.',
+  'End with a credit line: drafted with Relational Builder, from relationaltechproject.org/studios.',
 ].join('\n');
 
 /**
@@ -109,7 +109,7 @@ const PAGE_ANATOMY = [
   '5. **What we know**: the contexts and the sources, as two compact columns or stacked blocks.',
   '6. **What we\'ll make first**: the seeds from the first shelf as cards — title and a line each.',
   '7. **Stewards and the door**: who stewards the studio (first names and roles are enough on a public page; emails only when the partner says so), how to join, and what happens after you ask.',
-  '8. **Footer**: the contact email, the organization or network behind the studio, and one small credit: "A Studio inside Relational Builder · relationalbuilder.org/studios".',
+  '8. **Footer**: the contact email, the organization or network behind the studio, and one small credit: "A Studio inside Relational Builder · relationaltechproject.org/studios".',
   'Everything on the page comes from the brief; when the brief changes, the page changes with it. Names and faces appear only with consent, so the page asks the partner once before naming any steward it did not already name.',
 ].join('\n');
 
@@ -128,7 +128,7 @@ export const STUDIO_BRIEF_FRAME: DomainFrame = {
     '- **Brand belongs to the studio.** The page carries the partner\'s color, type, and mood — from a logo, a photo, or the place — and credits Relational Builder in one small line. Nothing on it should read as RTP\'s.',
     '- **The brief is what the stewards set the studio up from.** Every decision lands in the Studio brief block with its exact label; the page reads from the same brief. A line that is not in the brief does not exist for the stewards.',
     '- **Sharing with RTP is the partner\'s call, made in the Builder.** Once the brief exists, a card in the chat offers to send the brief and the page to Josh at the Relational Tech Project (josh@relationaltechproject.org) with the partner\'s name and a note; nothing goes until they press it. Say so in the plan and in the brief\'s Next step line. The page goes live from Share → Publish, and its address belongs in the brief once it exists.',
-    '- **Credit the lineage.** The brief and the page name relationalbuilder.org/studios as what they grew from, and the partner\'s own organization or network as theirs.',
+    '- **Credit the lineage.** The brief and the page name relationaltechproject.org/studios as what they grew from, and the partner\'s own organization or network as theirs.',
     '',
     '### The artifacts',
     '',
@@ -192,7 +192,7 @@ export const STUDIO_BRIEF_PLAN_INSTRUCTIONS = [
   '## Drafting the plan',
   'Once the four stages are answered (or skipped by choice), write the plan in the usual format with these sections: **The vision** (two or three lines in the community\'s voice, with the studio\'s name and tagline) · **Who builds here** (the people, roughly how many, what they hold in common, the first stewards with emails) · **Studio brief** (every decision from stages 1–4 as a tidy list of bold labels, exactly these, one per line, so the build and the stewards can read them: **Studio name:** · **Tagline:** · **What we hold in common:** · **Who builds here:** · **Stewards:** · **Door:** · **Principles:** the count · **Practices & guardrails:** the count · **Contexts:** the count · **Sources:** the count · **First shelf:** the count · **Brand:** the main hex, the type, the mood · **Public page:** `index.html` · **Contact:** · **Next step:** share with Josh at RTP from the card in the chat) · **Our frame** (the principles, numbered, each with what it changes; then the practices and guardrails) · **What the Builder will know** (contexts, sources, the first shelf) · **The door** · **Features** — *First build* (the brief and the page, each in a line, plus anything else chosen) and *Later* (the blurb, the invite email, whatever was not chosen) · **Look & feel** (where it came from in a line, hex values, fonts, the one distinct idea; this is the spec the page follows and it owes nothing to the Builder\'s own look) · **Pages & files** (`studio/brief.md`, `index.html`) · a `PROJECT-NAME: <the studio\'s name>` line.',
   '',
-  'Credit the lineage in one line: shaped with Relational Builder from relationalbuilder.org/studios, for <the partner\'s organization or network>.',
+  'Credit the lineage in one line: shaped with Relational Builder from relationaltechproject.org/studios, for <the partner\'s organization or network>.',
   '',
   'Question format: EXACTLY the heading "## Question for you" followed by a numbered list, 2–4 dash-bullet options under each (up to ten for a "(choose any)" checklist). One to three questions per reply, in the stage order above; it is fine to carry a stage across two replies when a question needs follow-up.',
   '',
@@ -203,7 +203,7 @@ export const STUDIO_BRIEF_PLAN_INSTRUCTIONS = [
 
 /**
  * The start card — the Builder's own door into the journey (the /studiobrief
- * address and the /studios page's button). Not a commons item: it is never
+ * address and the Studios page's button on the RTP site). Not a commons item: it is never
  * listed in the gallery, and its detail reads from here.
  */
 export const STUDIO_BRIEF_CARD: CommonsItemDetail = {
@@ -215,7 +215,7 @@ export const STUDIO_BRIEF_CARD: CommonsItemDetail = {
     'Shape a Studio for your community of builders in four short steps: who builds here, your frame of values and principles, what the Builder should know, your brand. You leave with a Studio Brief the Relational Tech Project sets your studio up from and a one-page site in your own brand, and a card to send both to Josh at RTP.',
   attribution: {
     name: 'The Relational Tech Project',
-    source: 'relationalbuilder.org/studios',
+    source: 'relationaltechproject.org/studios',
   },
   source_studio_slug: STUDIO_BRIEF_SHELF,
   source_url: STUDIOS_URL,

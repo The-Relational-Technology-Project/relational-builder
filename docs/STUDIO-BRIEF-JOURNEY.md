@@ -7,8 +7,10 @@ inside the Builder and leave with the two things that start one: a **Studio
 Brief** (the document RTP's stewards set the studio up from) and a
 **one-page site in the studio's own brand** for their people. When they are
 ready, a card in the chat sends both to Josh (josh@relationaltechproject.org).
-The public page is `/studios`; the Builder's door is `/studiobrief`, the
-same shape as `/buildtogether` → `/buildday` (see `BUILD-DAY-JOURNEY.md`).
+The public page lives on the RTP site at `relationaltechproject.org/studios`
+(the Builder's old `/studios` address redirects there); the Builder's door
+is `/studiobrief`, the same shape as the build days page → `/buildday` (see
+`BUILD-DAY-JOURNEY.md`).
 
 ## Where it lives
 
@@ -23,7 +25,7 @@ same shape as `/buildtogether` → `/buildday` (see `BUILD-DAY-JOURNEY.md`).
 | The opt-in share: payload, brief reader, per-project status | `src/report/studio-brief-share.ts` |
 | The card in the chat, and the Share menu entry that brings it back | `src/components/Chat/StudioBriefShareCard.tsx`, `src/components/ShareMenu.tsx` |
 | The edge function that emails Josh and keeps the record | `supabase/functions/studio-brief-share/` |
-| The public page's CTAs and "Design it in the Builder" section | `src/components/StudiosPage.tsx` |
+| The public page's CTAs and "Design it in the Builder" section | the `rtp-main-site` repo (`/studios`); redirects in `vercel.json` and `src/components/Landing.tsx` |
 
 ## The journey
 
@@ -65,7 +67,7 @@ sites.
 ## Detection
 
 The frame is stamped by the start card (`source_studio_slug: 'studio-brief'`,
-which `/studiobrief` and the `/studios` buttons use) or by the ask itself
+which `/studiobrief` and the RTP Studios page's buttons use) or by the ask itself
 (`STUDIO_BRIEF_ASK`: "studio brief", "a Relational Builder studio",
 "studio for Relational Builder", "our studio's principles/stewards/door",
 "a studio for my network/community/fellows"). Deliberately narrow: "studio"

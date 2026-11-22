@@ -12,7 +12,7 @@ import type { CommonsCard, CommonsItemDetail } from './commons-items';
  * the Sunset Neighborhood Build-a-thon (San Francisco, October 2026, with
  * Sunset Social Club during SF Tech Week): 157 people, 23 dreams shared at
  * the mic, five projects shown at 5pm, and a recap page neighbors still
- * pass around. The public page is relationalbuilder.org/buildtogether.
+ * pass around. The public page is relationaltechproject.org/build-days.
  */
 
 /**
@@ -142,7 +142,7 @@ export const BUILD_DAY_FRAME: DomainFrame = {
     '- **It can recur.** Say in the plan whether this is a one-off or the first of a monthly, seasonal, or annual rhythm, and what the next one needs from this one (the recap page, the list of dreams not yet built, the teams that want to keep going).',
     '- **Online works the same.** A video call with breakout rooms: the room key in the chat, teams in breakouts, screen-share for the demo, the wall as the link everyone opens as the call ends. Say which of the in-person logistics have an online twin (a shared doc instead of signs, a co-host instead of a floor helper).',
     '- **RSVP where the community already is.** For sign-ups, suggest the platform the organizer\'s people already use (Luma, Eventbrite, Partiful, a Google Form, a Facebook event) and make the landing page point at it; only build an RSVP form when nothing like that fits. The Sunset day\'s event page was on Luma; the landing page and the flyer sent people there.',
-    '- **Credit the lineage.** Name the Sunset Neighborhood Build-a-thon (Sunset Social Club and the Relational Tech Project, October 2026) and relationalbuilder.org/buildtogether as what this remixes, and the organizer\'s own partners as theirs.',
+    '- **Credit the lineage.** Name the Sunset Neighborhood Build-a-thon (Sunset Social Club and the Relational Tech Project, October 2026) and relationaltechproject.org/build-days as what this remixes, and the organizer\'s own partners as theirs.',
     '',
     '### The artifacts, by stage',
     '',
@@ -220,7 +220,7 @@ export const BUILD_DAY_PLAN_INSTRUCTIONS = [
   '## Drafting the plan',
   'Once the four stages are answered (or skipped by choice), write the plan in the usual format with these sections: **The vision** (two or three lines in the organizer\'s voice, with the day\'s name and the question it asks) · **People & practices** (the roles with names, how the first twenty people get invited personally, the partners) · **Event brief** (every decision from stages 1–4 as a tidy list of bold labels, exactly these, one per line, so the build and the stewards can read them: **Convened by:** · **Where:** · **When:** · **Format:** in person / online / both · **Expected size:** · **Entry point:** · **Rhythm:** · **RSVP:** the platform and link, or "form on the landing page" · **Event code (suggested):** · **Making now:** the artifacts chosen, in order · **Later:** the artifacts for after) · **The day** (the agenda, timed, with the host demo and the submit-by time named; when the agenda is its own artifact, a summary here and the full flow in `program/agenda.md`) · **Features** — *First build* (the artifacts chosen now, each in a line) and *Later* (the social ad, the deck, the recap page, whatever was not chosen) · **Look & feel** (the place it was drawn from in a line, hex values, fonts, the one distinct idea, the photo or local-artist step; this is the spec every artifact follows, and it owes nothing to the Sunset flyer) · **Pages & files** (the paths, from the frame) · **Logistics** (the checklist with a name next to each line: Wi-Fi, outlets and power strips, projector, mic, tables, signs station, food) · a `PROJECT-NAME: <the day\'s name>` line.',
   '',
-  'Credit the lineage in one line: remixed from the Sunset Neighborhood Build-a-thon (Sunset Social Club and the Relational Tech Project) and relationalbuilder.org/buildtogether, through Relational Builder.',
+  'Credit the lineage in one line: remixed from the Sunset Neighborhood Build-a-thon (Sunset Social Club and the Relational Tech Project) and relationaltechproject.org/build-days, through Relational Builder.',
   '',
   'Question format: EXACTLY the heading "## Question for you" followed by a numbered list, 2–4 dash-bullet options under each (up to ten for a "(choose any)" checklist). One to three questions per reply, in the stage order above; it is fine to carry a stage across two replies when a question needs follow-up.',
   '',
@@ -273,11 +273,11 @@ export const BUILD_DAY_CARD: CommonsItemDetail = {
     '',
     '2:00 doors, coffee, and pastries · 2:15 dreams on the mic · 2:45 teams form (walk to the dream that pulls you, 2 to 5 per team, dreamers hold their sign high) · 3:00 a walk to the ocean · 3:30 build · 4:50 slides submitted · 5:00 shares, celebration, and dinner · 6:30 live bands. Partners: Sunset Social Club, the Relational Tech Project, Good Neighbor Lab, and local businesses; part of SF Tech Week.',
     '',
-    `The event page: ${SUNSET_EVENT_URL} · The recap: ${SUNSET_RECAP_URL} · How build days run on Relational Builder: https://relationalbuilder.org/buildtogether`,
+    `The event page: ${SUNSET_EVENT_URL} · The recap: ${SUNSET_RECAP_URL} · How build days run on Relational Builder: https://relationaltechproject.org/build-days`,
   ].join('\n'),
   metadata: {
     maker: 'Sunset Social Club & the Relational Tech Project',
-    hosted_url: 'https://relationalbuilder.org/buildtogether',
+    hosted_url: 'https://relationaltechproject.org/build-days',
     event_url: SUNSET_EVENT_URL,
     recap_url: SUNSET_RECAP_URL,
     plan_stages: ['the place and the people', 'the shape of the day', 'what to make now', 'how it looks'],

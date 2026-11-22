@@ -1,8 +1,18 @@
 {
   "redirects": [
     {
+      "source": "/buildtogether",
+      "destination": "https://relationaltechproject.org/build-days",
+      "permanent": true
+    },
+    {
       "source": "/buildathon",
-      "destination": "/buildtogether",
+      "destination": "https://relationaltechproject.org/build-days",
+      "permanent": true
+    },
+    {
+      "source": "/studios",
+      "destination": "https://relationaltechproject.org/studios",
       "permanent": true
     }
   ],

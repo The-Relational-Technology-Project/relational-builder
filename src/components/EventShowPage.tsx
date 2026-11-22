@@ -20,7 +20,7 @@ import {
  * a running order to read from, and a Present mode that walks every deck
  * in sequence (each deck's own three slides, then the next builder's).
  *
- * Public, like /buildtogether: the projector laptop needn't be signed in. The
+ * Public: the projector laptop needn't be signed in. The
  * wall rows it reads are public already; the code only picks the event.
  * It re-reads itself every minute, so decks pinned during the event appear
  * without a reload.

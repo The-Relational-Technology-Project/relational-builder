@@ -152,7 +152,7 @@ This project is a **community build day**: a day when people who share a place, 
 - **It can recur.** Say in the plan whether this is a one-off or the first of a monthly, seasonal, or annual rhythm, and what the next one needs from this one (the recap page, the list of dreams not yet built, the teams that want to keep going).
 - **Online works the same.** A video call with breakout rooms: the room key in the chat, teams in breakouts, screen-share for the demo, the wall as the link everyone opens as the call ends. Say which of the in-person logistics have an online twin (a shared doc instead of signs, a co-host instead of a floor helper).
 - **RSVP where the community already is.** For sign-ups, suggest the platform the organizer's people already use (Luma, Eventbrite, Partiful, a Google Form, a Facebook event) and make the landing page point at it; only build an RSVP form when nothing like that fits. The Sunset day's event page was on Luma; the landing page and the flyer sent people there.
-- **Credit the lineage.** Name the Sunset Neighborhood Build-a-thon (Sunset Social Club and the Relational Tech Project, October 2026) and relationalbuilder.org/buildtogether as what this remixes, and the organizer's own partners as theirs.
+- **Credit the lineage.** Name the Sunset Neighborhood Build-a-thon (Sunset Social Club and the Relational Tech Project, October 2026) and relationaltechproject.org/build-days as what this remixes, and the organizer's own partners as theirs.
 
 ### The artifacts, by stage
 
@@ -235,7 +235,7 @@ This project is a **Studio being designed**: a network partner is shaping a home
 - **Brand belongs to the studio.** The page carries the partner's color, type, and mood — from a logo, a photo, or the place — and credits Relational Builder in one small line. Nothing on it should read as RTP's.
 - **The brief is what the stewards set the studio up from.** Every decision lands in the Studio brief block with its exact label; the page reads from the same brief. A line that is not in the brief does not exist for the stewards.
 - **Sharing with RTP is the partner's call, made in the Builder.** Once the brief exists, a card in the chat offers to send the brief and the page to Josh at the Relational Tech Project (josh@relationaltechproject.org) with the partner's name and a note; nothing goes until they press it. Say so in the plan and in the brief's Next step line. The page goes live from Share → Publish, and its address belongs in the brief once it exists.
-- **Credit the lineage.** The brief and the page name relationalbuilder.org/studios as what they grew from, and the partner's own organization or network as theirs.
+- **Credit the lineage.** The brief and the page name relationaltechproject.org/studios as what they grew from, and the partner's own organization or network as theirs.
 
 ### The artifacts
 
@@ -252,7 +252,7 @@ A Studio is a home for a community of builders with something in common. Everyon
 - **The door**: how people arrive (a studio link, an invitation, a build day), whether it is **open** (anyone with a Builder account joins) or **gated** (a Studio Admin approves each request), and who the first **stewards** (Studio Admins) are, by name and email.
 - **The identity**: the studio's name, its tagline, a color, and the look its page and its builders recognize as theirs.
 
-Studios are free to start. The public explanation is https://relationalbuilder.org/studios; the stewards reply to a brief within a few days.
+Studios are free to start. The public explanation is https://relationaltechproject.org/studios; the stewards reply to a brief within a few days.
 
 ### The Studio Brief (`studio/brief.md`)
 
@@ -267,7 +267,7 @@ A markdown document the partner can read in two minutes and the stewards can set
 8. **The door and the stewards**: open or gated, where the link will be shared, who approves, what a new member should see first.
 9. **Look and feel**: the color (hex), the type, the mood, where the look came from (a logo, a photo, a place), and what the page uses.
 10. **Open questions**: what the partner still wants to decide with the stewards.
-End with a credit line: drafted with Relational Builder, from relationalbuilder.org/studios.
+End with a credit line: drafted with Relational Builder, from relationaltechproject.org/studios.
 
 ### The one-page site (`index.html`)
 
@@ -279,6 +279,6 @@ A single standalone HTML page with inline CSS and no build step (it previews ins
 5. **What we know**: the contexts and the sources, as two compact columns or stacked blocks.
 6. **What we'll make first**: the seeds from the first shelf as cards — title and a line each.
 7. **Stewards and the door**: who stewards the studio (first names and roles are enough on a public page; emails only when the partner says so), how to join, and what happens after you ask.
-8. **Footer**: the contact email, the organization or network behind the studio, and one small credit: "A Studio inside Relational Builder · relationalbuilder.org/studios".
+8. **Footer**: the contact email, the organization or network behind the studio, and one small credit: "A Studio inside Relational Builder · relationaltechproject.org/studios".
 Everything on the page comes from the brief; when the brief changes, the page changes with it. Names and faces appear only with consent, so the page asks the partner once before naming any steward it did not already name.
 

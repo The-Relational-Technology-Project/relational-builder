@@ -11,14 +11,6 @@ import { ConfirmSignInPage } from './ConfirmSignInPage';
 import { isConfirmPath, readConfirmToken } from '@/cloud/confirm-link';
 import { stashPendingEvent, readShowCode } from '@/cloud/event-join';
 
-// The community build day page is for event partners who may never sign in —
-// its own chunk, loaded only at its own address
-const BuildTogetherPage = lazy(() =>
-  import('./BuildTogetherPage').then(m => ({ default: m.BuildTogetherPage })),
-);
-const StudiosPage = lazy(() =>
-  import('./StudiosPage').then(m => ({ default: m.StudiosPage })),
-);
 // /show/CODE — an event's Share Live decks in order, for the projector
 const EventShowPage = lazy(() =>
   import('./EventShowPage').then(m => ({ default: m.EventShowPage })),
@@ -26,32 +18,28 @@ const EventShowPage = lazy(() =>
 
 const ENTERED_KEY = 'rb-entered';
 
-/** The landing's main nav: the site's other public pages. Each links back
- *  here as "Home" so the loop closes in one tap. */
+const RTP_SITE = 'https://relationaltechproject.org';
+
+/** The landing's nav points out: the overview, build days, and studios live
+ *  on the Relational Tech Project's site. The Commons stays here. */
 const LANDING_NAV = [
-  { href: '/buildtogether', label: 'Build Days' },
-  { href: '/studios', label: 'Studios' },
+  { href: `${RTP_SITE}/tools`, label: 'What is this?' },
+  { href: `${RTP_SITE}/build-days`, label: 'Build days' },
+  { href: `${RTP_SITE}/studios`, label: 'Studios' },
   { href: '/commons', label: 'Commons' },
 ];
 
-/** /buildtogether is a public companion page like #privacy — it wins over
- *  both the landing and the app, signed in or not, so partners can share the
- *  link. /buildathon was its address before the page became "community build
- *  days": vercel.json redirects it in production, and this keeps the old
- *  link working in local dev and any other host by adopting the new address. */
-const BUILD_TOGETHER_PATH = '/buildtogether';
-const LEGACY_BUILDATHON_PATH = '/buildathon';
-function isBuildTogetherPath(): boolean {
+/** The build days and studios pages moved to the RTP site. vercel.json
+ *  redirects their old addresses in production; this forwards them in local
+ *  dev and on any other host, so a link someone saved keeps working. */
+const MOVED_PAGES: Record<string, string> = {
+  '/buildtogether': `${RTP_SITE}/build-days`,
+  '/buildathon': `${RTP_SITE}/build-days`,
+  '/studios': `${RTP_SITE}/studios`,
+};
+function movedPageTarget(): string | null {
   const p = window.location.pathname.replace(/\/+$/, '').toLowerCase();
-  if (p === LEGACY_BUILDATHON_PATH) {
-    window.history.replaceState(null, '', BUILD_TOGETHER_PATH + window.location.search + window.location.hash);
-    return true;
-  }
-  return p === BUILD_TOGETHER_PATH;
-}
-/** /studios is the same kind of page: what a Studio is, and how to start one */
-function isStudiosPath(): boolean {
-  return window.location.pathname.replace(/\/+$/, '').toLowerCase() === '/studios';
+  return MOVED_PAGES[p] ?? null;
 }
 
 /**
@@ -132,7 +120,7 @@ export function Landing({ children }: { children: ReactNode }) {
   const [hashPage, setHashPage] = useState(getHashPage);
   // The sign-in email's link lands at /auth/confirm — a page that verifies the
   // token only when a person presses the button, so inbox link scanners can't
-  // spend it. Wins over everything else, signed in or not, like /buildtogether.
+  // spend it. Wins over everything else, signed in or not.
   const [confirming, setConfirming] = useState(isConfirmPath);
 
   // App (which normally inits auth and the studio store) is gated below, so
@@ -167,21 +155,11 @@ export function Landing({ children }: { children: ReactNode }) {
     );
   }
 
-  // Same standing for the community build day page, which lives at a path so
-  // it reads like the site page it is (relationalbuilder.org/buildtogether)
-  if (isBuildTogetherPath()) {
-    return (
-      <Suspense fallback={null}>
-        <BuildTogetherPage />
-      </Suspense>
-    );
-  }
-  if (isStudiosPath()) {
-    return (
-      <Suspense fallback={null}>
-        <StudiosPage />
-      </Suspense>
-    );
+  // Build days and studios live on the RTP site now
+  const moved = movedPageTarget();
+  if (moved) {
+    window.location.replace(moved);
+    return null;
   }
   const showCode = readShowCode();
   if (showCode) {
@@ -210,9 +188,10 @@ function LandingPage({ onUnlock }: { onUnlock: () => void }) {
       className="min-h-dvh overflow-y-auto"
       style={{ background: C.bg, color: C.ink, fontFamily: "'Inter Variable', system-ui, sans-serif" }}
     >
-      <div className="max-w-2xl mx-auto px-6 py-14 sm:py-20 space-y-12">
+      <div className="max-w-2xl mx-auto px-6 py-8 sm:py-10 space-y-10">
 
-        {/* Main nav: the site's other front pages, one tap from the door */}
+        {/* Main nav: the story and the pages around the Builder live on the
+            RTP site; this page is the door */}
         <nav
           aria-label="Main"
           className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm"
@@ -229,32 +208,26 @@ function LandingPage({ onUnlock }: { onUnlock: () => void }) {
           ))}
         </nav>
 
-        {/* Hero */}
-        <header className="space-y-5 text-center">
-          <RBMark className="size-14 mx-auto" />
-          <div className="space-y-3">
-            <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight">
-              Relational Builder
-            </h1>
-            <p className="text-lg sm:text-xl leading-relaxed" style={{ color: C.body }}>
-              Build tools for your neighborhood,<br className="sm:hidden" /> with your neighborhood.
-            </p>
-          </div>
-          <p className="text-sm max-w-md mx-auto leading-relaxed" style={{ color: C.muted }}>
-            Bring a neighborhood project, a dream, or a tool to build. Describe
-            it in plain language and shape it together — a landing page, a
-            flyer, an outreach plan, a working tool, or all of them — starting
-            from the commons of the{' '}
-            <a href="https://relationaltechproject.org" className="underline underline-offset-2" style={{ textDecorationColor: C.border, color: C.body }}>
-              Relational Technology Project
-            </a>
-            , not a blank slate.
-          </p>
-        </header>
+        <div className="space-y-6">
+          {/* Hero */}
+          <header className="space-y-3 text-center">
+            <RBMark className="size-11 mx-auto" />
+            <div className="space-y-2">
+              <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight">
+                Relational Builder
+              </h1>
+              <p className="text-lg leading-relaxed" style={{ color: C.body }}>
+                Build tools for your neighborhood,<br className="sm:hidden" /> with your neighborhood.
+              </p>
+            </div>
+          </header>
+
+          <Door onEnter={enter} />
+        </div>
 
         <div className="grid sm:grid-cols-3 gap-3">
           <ValueCard color={C.orange} title="Describe it">
-            Say what your neighborhood needs — no code required.
+            Say what your neighborhood needs. No code required.
           </ValueCard>
           <ValueCard color={C.green} title="Shape it together">
             Invite a neighbor in, watch the live preview, restore any version.
@@ -264,42 +237,16 @@ function LandingPage({ onUnlock }: { onUnlock: () => void }) {
           </ValueCard>
         </div>
 
-        {/* The front door. The id is a shareable anchor (/#join) — the
-            build day page's "get an account" buttons land right here. */}
-        <section
-          id="join"
-          className="rounded-2xl border p-8 space-y-5 text-center scroll-mt-6"
-          style={{ borderColor: C.border, background: C.card }}
-        >
-          <h2 className="text-xl font-semibold">We're in a community pilot</h2>
-          <p className="text-sm leading-relaxed max-w-md mx-auto" style={{ color: C.body }}>
-            Approved builders build free — no API keys, no credit card. Ask for
-            an account and a real person will welcome you in, usually within a day.
-          </p>
-          <RequestAccountForm />
-          <SignInPanel onEnter={enter} />
-        </section>
-
-        <SocialProof />
-
-        {/* A quiet pointer for event partners — most visitors are here for
-            the door above, so this stays a sentence, not a section */}
-        <p className="text-center text-sm" style={{ color: C.muted }}>
-          Planning a community build day, online or in person?{' '}
+        {/* The story is told once, on the RTP site */}
+        <p className="text-center text-sm leading-relaxed max-w-md mx-auto" style={{ color: C.body }}>
+          New here? The story, the tools, and how to bring this to your
+          community are at{' '}
           <a
-            href="/buildtogether"
-            className="underline underline-offset-2"
-            style={{ color: C.body, textDecorationColor: C.border }}
+            href={RTP_SITE}
+            className="font-medium underline underline-offset-2"
+            style={{ color: C.ink, textDecorationColor: C.orange }}
           >
-            See how Relational Builder supports build days
-          </a>
-          . Building with a network that shares values and a focus?{' '}
-          <a
-            href="/studios"
-            className="underline underline-offset-2"
-            style={{ color: C.body, textDecorationColor: C.border }}
-          >
-            Learn about Studios
+            relationaltechproject.org
           </a>
           .
         </p>
@@ -307,28 +254,32 @@ function LandingPage({ onUnlock }: { onUnlock: () => void }) {
         <FAQ />
 
         {/* Footer */}
-        <footer className="text-center space-y-2 text-xs" style={{ color: C.muted }}>
-          <p>
-            The tools here serve presence — knowing your neighbors, listening
-            well, showing up — never replace it.
+        <footer className="text-center space-y-3 text-xs" style={{ color: C.muted }}>
+          <p className="text-sm" style={{ color: C.body }}>
+            A project of{' '}
+            <a
+              href={RTP_SITE}
+              className="font-medium underline underline-offset-2 hover:opacity-80"
+              style={{ color: C.ink, textDecorationColor: C.orange }}
+            >
+              The Relational Technology Project
+            </a>
           </p>
           <p>
-            Open source under MIT —{' '}
+            The tools here serve presence (knowing your neighbors, listening
+            well, showing up) and never replace it.
+          </p>
+          <p>
+            Open source under MIT.{' '}
             <a
               href="https://github.com/The-Relational-Technology-Project/relational-builder"
               target="_blank"
               rel="noopener noreferrer"
               className="underline underline-offset-2 hover:opacity-80"
             >
-              read the code
+              Read the code
             </a>
-            {' '}· a project of{' '}
-            <a href="https://relationaltechproject.org" className="underline underline-offset-2 hover:opacity-80">
-              The Relational Technology Project
-            </a>
-          </p>
-          <p>
-            Made with care for neighbors everywhere ·{' '}
+            {' '}·{' '}
             <a href="#privacy" className="underline underline-offset-2 hover:opacity-80">
               Privacy &amp; Terms
             </a>
@@ -343,41 +294,85 @@ function LandingPage({ onUnlock }: { onUnlock: () => void }) {
   );
 }
 
+type DoorMode = 'signin' | 'request';
+
+/** Someone sent here to ask for an account: an invite code in hand (?ref=,
+ *  already stashed by captureRefParam) or a link to /#join */
+function arrivedToRequest(): boolean {
+  return window.location.hash === '#join' || !!sessionStorage.getItem(REF_KEY);
+}
+
 /**
- * You're not building alone — the network behind the Builder, in the
- * Studio landing's voice: real builders, real places, a shared library.
+ * The front door, and the first thing on the page. Two ways through, side by
+ * side: returning builders sign in, new ones ask for an account. Sign in is
+ * what a visitor sees first unless they arrived with an invite code, a studio
+ * doorway, or a /#join link. The id is a shareable anchor.
  */
-function SocialProof() {
-  const places = [
-    'Oakland, CA', 'Akron, OH', 'Palouse, WA', 'London, UK',
-    'Lexington, KY', 'San Francisco, CA', 'Baltimore, MD', 'Detroit, MI',
-  ];
+function Door({ onEnter }: { onEnter: () => void }) {
+  const notice = useAuthStore(s => s.signInPromptNotice);
+  const activeStudio = useStudioStore(s => s.activeStudio);
+  const viaStudio = !!activeStudio && activeStudio.slug !== DEFAULT_STUDIO_SLUG;
+  const [arrived] = useState(arrivedToRequest);
+  // Once a person picks a side, nothing arriving later moves them off it.
+  // Until then: a spent magic link's explanation lives in the sign-in form,
+  // and a studio doorway (read after first paint) is an invitation to ask.
+  const [picked, setPicked] = useState<DoorMode | null>(null);
+  const mode: DoorMode = picked ?? (notice ? 'signin' : arrived || viaStudio ? 'request' : 'signin');
+
+  useEffect(() => {
+    const onHash = () => {
+      if (window.location.hash === '#join') setPicked('request');
+    };
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
+
+  const pick = setPicked;
+
+  const tab = (value: DoorMode, label: string) => (
+    <button
+      role="tab"
+      aria-selected={mode === value}
+      onClick={() => pick(value)}
+      className="flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors"
+      style={
+        mode === value
+          ? { background: C.ink, color: C.bg }
+          : { color: C.body }
+      }
+    >
+      {label}
+    </button>
+  );
+
   return (
-    <section className="space-y-5 text-center">
-      <h2 className="text-xl font-semibold">You're not building alone.</h2>
-      <div className="grid sm:grid-cols-2 gap-3 max-w-lg mx-auto">
-        <div className="rounded-xl border p-5 space-y-1" style={{ borderColor: C.border, background: C.card }}>
-          <div className="text-3xl font-semibold" style={{ color: C.orangeDeep }}>300+</div>
-          <p className="text-xs leading-relaxed" style={{ color: C.muted }}>
-            Builders in diverse neighborhoods around the world.
-          </p>
-        </div>
-        <div className="rounded-xl border p-5 space-y-1" style={{ borderColor: C.border, background: C.card }}>
-          <div className="text-3xl font-semibold" style={{ color: C.green }}>100s</div>
-          <p className="text-xs leading-relaxed" style={{ color: C.muted }}>
-            Of tools, practices, and stories about relational tech.
-          </p>
-        </div>
+    <section
+      id="join"
+      className="rounded-2xl border p-5 sm:p-7 space-y-4 text-center scroll-mt-6"
+      style={{ borderColor: C.border, background: C.card }}
+    >
+      <div
+        role="tablist"
+        aria-label="Sign in or request an account"
+        className="flex gap-1 rounded-xl p-1 max-w-sm mx-auto"
+        style={{ background: C.bg, border: `1px solid ${C.border}` }}
+      >
+        {tab('signin', 'Sign in')}
+        {tab('request', 'Request an account')}
       </div>
-      <p className="text-xs uppercase tracking-widest" style={{ color: C.muted }}>
-        {places.join(' · ')}
-      </p>
-      <p className="text-xs max-w-md mx-auto leading-relaxed" style={{ color: C.muted }}>
-        A locality-to-locality builder network. The Builder is free to use and
-        stewarded by the Relational Tech Project, a nonprofit project. It's
-        open source, with a roadmap toward community ownership of the tools
-        and the infrastructure we use to build them.
-      </p>
+
+      {mode === 'signin' ? (
+        <SignInPanel onEnter={onEnter} onRequest={() => pick('request')} />
+      ) : (
+        <>
+          <p className="text-sm leading-relaxed max-w-md mx-auto" style={{ color: C.body }}>
+            We're in a community pilot. Approved builders build free: no API
+            keys, no credit card. Ask for an account and a real person will
+            welcome you in, usually within a day.
+          </p>
+          <RequestAccountForm onSignIn={() => pick('signin')} />
+        </>
+      )}
     </section>
   );
 }
@@ -390,19 +385,19 @@ const FAQ_ITEMS: { q: string; a: string }[] = [
   },
   {
     q: 'Do I need to know how to code?',
-    a: "No. You describe what your place needs in plain language, and the Builder shapes it into a working tool with you — plan it in conversation, watch the live preview, publish when it's ready. You can also remix something a neighbor in another place already made. The skills that matter most here aren't technical. It's knowing your neighbors and paying attention to what your place is asking for.",
+    a: "No. You describe what your place needs in plain language, and the Builder shapes it into a working tool with you: plan it in conversation, watch the live preview, publish when it's ready. You can also remix something a neighbor in another place already made. The skills that matter most here aren't technical. It's knowing your neighbors and paying attention to what your place is asking for.",
   },
   {
     q: 'What can I build?',
-    a: 'Whatever your block actually needs — and not only software. The Commons Gallery holds three shelves to start from: relational tech tools built across the network, civic media recipes and real-project field examples from News Futures and the Civic Media Cookbook, and Neighboring Recipes for gathering, care, and connection. A build might be a working tool (a neighborhood digest, a lending library, a block-level hub), a program (a commons-informed plan for your newsletter, care web, or story circle), printable flyers to put up at the corner store — or all of these together. Everything is intentionally small and specific, so you and your neighbors spend more of your time meeting face-to-face.',
+    a: 'Whatever your block actually needs, and not only software. The Commons Gallery holds three shelves to start from: relational tech tools built across the network, civic media recipes and real-project field examples from News Futures and the Civic Media Cookbook, and Neighboring Recipes for gathering, care, and connection. A build might be a working tool (a neighborhood digest, a lending library, a block-level hub), a program (a commons-informed plan for your newsletter, care web, or story circle), printable flyers to put up at the corner store, or all of these together. Everything is intentionally small and specific, so you and your neighbors spend more of your time meeting face-to-face.',
   },
   {
     q: 'Is it really free? How is this sustained?',
-    a: "Yes — approved builders build free: no API keys, no credit card. The Builder is stewarded by the Relational Tech Project, a nonprofit project supported by contributors (including funders) who believe neighbors should be able to build what they need. There are no ads, and we don't sell your data. Free building runs on a shared community budget, and you can always bring your own model key too.",
+    a: "Yes. Approved builders build free: no API keys, no credit card. The Builder is stewarded by the Relational Tech Project, a nonprofit project supported by contributors (including funders) who believe neighbors should be able to build what they need. There are no ads, and we don't sell your data. Free building runs on a shared community budget, and you can always bring your own model key too.",
   },
   {
     q: 'Who owns what I build?',
-    a: "You own what you build. Every project can be exported as code, synced to your own repository — GitHub, GitLab, or a community-run forge — published to your own hosting, or distilled into a prompt you can take anywhere. The Builder itself is open-source under MIT (find the repo on GitHub). We also have a roadmap toward community stewardship of the Builder and other tools we're building.",
+    a: "You own what you build. Every project can be exported as code, synced to your own repository (GitHub, GitLab, or a community-run forge), published to your own hosting, or distilled into a prompt you can take anywhere. The Builder itself is open-source under MIT (find the repo on GitHub). We also have a roadmap toward community stewardship of the Builder and other tools we're building.",
   },
   {
     q: 'Is it a good idea to use AI to advance human flourishing?',
@@ -453,7 +448,7 @@ function FAQ() {
 }
 
 /** The open front door: ask, and a steward approves — then sign-in is just a magic link */
-function RequestAccountForm() {
+function RequestAccountForm({ onSignIn }: { onSignIn: () => void }) {
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [neighborhood, setNeighborhood] = useState('');
@@ -505,11 +500,11 @@ function RequestAccountForm() {
       <div className="max-w-sm mx-auto space-y-2">
         <div className="flex items-center justify-center gap-2 text-sm font-medium">
           <MailCheck className="size-4" style={{ color: C.green }} />
-          You're in — welcome!
+          You're in. Welcome!
         </div>
         <p className="text-xs leading-relaxed" style={{ color: C.body }}>
           Your invite code checked out, so there's no waiting for approval. We
-          emailed a 6-digit code to <strong>{email}</strong> — type it here to
+          emailed a 6-digit code to <strong>{email}</strong>. Type it here to
           sign in. Not seeing it? Check your spam or junk folder.
         </p>
         <CodeEntry email={email} />
@@ -521,7 +516,7 @@ function RequestAccountForm() {
       <p className="text-sm leading-relaxed max-w-md mx-auto" style={{ color: C.body }}>
         {outcome.referral === 'unknown' &&
           'That invite code didn’t match a builder or an event, so your request went to the steward the usual way. '}
-        Request sent — thank you! A real person reviews every request; you'll
+        Request sent. Thank you! A real person reviews every request; you'll
         get a welcome email as soon as yours is approved.
         {doorwayStudio &&
           ` Your request to join ${doorwayStudio.label} will be waiting for its stewards the first time you sign in.`}
@@ -531,8 +526,15 @@ function RequestAccountForm() {
   if (outcome?.status === 'already-member') {
     return (
       <p className="text-sm leading-relaxed max-w-md mx-auto" style={{ color: C.body }}>
-        Good news — this email is already approved. Come on in below and sign
-        in with it.
+        Good news: this email is already approved.{' '}
+        <button
+          onClick={onSignIn}
+          className="font-medium underline underline-offset-2 hover:opacity-80"
+          style={{ color: C.orangeDeep }}
+        >
+          Sign in with it
+        </button>
+        .
       </p>
     );
   }
@@ -553,7 +555,7 @@ function RequestAccountForm() {
             className="size-2 rounded-full shrink-0"
             style={{ background: doorwayStudio.color ?? C.muted }}
           />
-          You're joining through {doorwayStudio.label} —{' '}
+          You're joining through {doorwayStudio.label}:{' '}
           {referralCode.trim()
             ? 'an event key seats you in the studio the moment you sign in.'
             : 'once you\'re in, its stewards will wave you into the studio too.'}
@@ -591,7 +593,7 @@ function RequestAccountForm() {
       />
       <p className="text-xs" style={{ color: C.muted }}>
         {referralCode.trim()
-          ? 'An invite code — a builder’s or an event’s — lets you skip the wait: your account opens the moment you ask.'
+          ? 'An invite code, a builder’s or an event’s, lets you skip the wait: your account opens the moment you ask.'
           : 'Got an invite code from a builder or an event? It opens your account right away.'}
       </p>
       {error && <p className="text-xs text-center" style={{ color: C.orangeDeep }}>{error}</p>}
@@ -613,8 +615,7 @@ function RequestAccountForm() {
  * (Landing waves signed-in builders through). When cloud auth isn't configured
  * we fall back to the old "come on in" walk-through.
  */
-function SignInPanel({ onEnter }: { onEnter: () => void }) {
-  const [open, setOpen] = useState(false);
+function SignInPanel({ onEnter, onRequest }: { onEnter: () => void; onRequest: () => void }) {
   const [email, setEmail] = useState('');
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
@@ -626,12 +627,15 @@ function SignInPanel({ onEnter }: { onEnter: () => void }) {
 
   if (!cloudEnabled) {
     return (
-      <p className="text-sm" style={{ color: C.body }}>
-        Already a builder?{' '}
-        <button onClick={onEnter} className="font-medium underline underline-offset-2 hover:opacity-80" style={{ color: C.orangeDeep }}>
+      <div className="max-w-sm mx-auto space-y-3">
+        <p className="text-sm" style={{ color: C.body }}>Already a builder?</p>
+        <button
+          onClick={onEnter}
+          className="w-full rounded-lg bg-[#D2764B] text-[#FAFAF9] px-4 py-2 text-sm font-medium hover:bg-[#C4693F] transition-colors"
+        >
           Come on in
         </button>
-      </p>
+      </div>
     );
   }
 
@@ -656,7 +660,7 @@ function SignInPanel({ onEnter }: { onEnter: () => void }) {
     'flex-1 min-w-0 rounded-lg border px-3 py-2 text-base sm:text-sm outline-none placeholder:text-[#8A7D71] border-[#E5DCD0] bg-[#FAF7F2] focus:border-[#D2764B]';
 
   return (
-    <div className="pt-5 border-t space-y-3" style={{ borderColor: C.border }}>
+    <div className="space-y-3">
       {sent ? (
         <div className="max-w-sm mx-auto space-y-2">
           <div className="flex items-center justify-center gap-2 text-sm font-medium">
@@ -664,17 +668,17 @@ function SignInPanel({ onEnter }: { onEnter: () => void }) {
             Check your email
           </div>
           <p className="text-xs leading-relaxed" style={{ color: C.body }}>
-            We sent a 6-digit code to <strong>{email}</strong> — type it here
-            to sign in. No password needed. (The email has a sign-in link too —
+            We sent a 6-digit code to <strong>{email}</strong>. Type it here
+            to sign in. No password needed. (The email has a sign-in link too;
             either one works, whichever is handier.)
           </p>
           <CodeEntry email={email} />
           <p className="text-xs leading-relaxed" style={{ color: C.muted }}>
-            Not seeing the email? Check your spam or junk folder — look for
+            Not seeing the email? Check your spam or junk folder and look for
             &ldquo;Relational Builder&rdquo;.
           </p>
         </div>
-      ) : open || notice ? (
+      ) : (
         <div className="max-w-sm mx-auto space-y-2">
           {notice && (
             <p
@@ -685,7 +689,7 @@ function SignInPanel({ onEnter }: { onEnter: () => void }) {
             </p>
           )}
           <p className="text-sm" style={{ color: C.body }}>
-            Welcome back — we'll email you a 6-digit code and a sign-in link.
+            Welcome back. We'll email you a 6-digit code and a sign-in link.
           </p>
           <div className="flex gap-2">
             <input
@@ -694,7 +698,6 @@ function SignInPanel({ onEnter }: { onEnter: () => void }) {
               onChange={e => setEmail(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && submit()}
               placeholder="you@example.org"
-              autoFocus
               className={inputClass}
             />
             <button
@@ -706,17 +709,16 @@ function SignInPanel({ onEnter }: { onEnter: () => void }) {
             </button>
           </div>
           {error && <p className="text-xs text-center" style={{ color: C.orangeDeep }}>{error}</p>}
-        </div>
-      ) : (
-        <div className="flex items-center justify-center gap-2 text-sm">
-          <span style={{ color: C.body }}>Already a builder?</span>
-          <button
-            onClick={() => setOpen(true)}
-            className="rounded-lg border px-4 py-1.5 font-medium hover:border-[#D2764B] transition-colors"
-            style={{ borderColor: C.border, color: C.ink }}
-          >
-            Sign in
-          </button>
+          <p className="text-xs" style={{ color: C.muted }}>
+            New here?{' '}
+            <button
+              onClick={onRequest}
+              className="underline underline-offset-2 hover:opacity-80"
+              style={{ color: C.body }}
+            >
+              Request an account
+            </button>
+          </p>
         </div>
       )}
     </div>

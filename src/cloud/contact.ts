@@ -33,19 +33,3 @@ export async function sendBudgetFeedback(input: {
 }): Promise<void> {
   return sendContactMessage({ ...input, topic: 'budget-feedback' });
 }
-
-/**
- * An inquiry from one of the public site pages — "Plan one with us" on
- * /buildtogether, "Create your studio" on /studios. Same pipe as the contact
- * form; the topic sets the steward's subject line.
- */
-export async function sendPageInquiry(input: {
-  topic: 'build-day' | 'studio';
-  name?: string;
-  email?: string;
-  place?: string;
-  message: string;
-}): Promise<void> {
-  const { place, ...rest } = input;
-  return sendContactMessage({ ...rest, neighborhood: place });
-}

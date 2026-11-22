@@ -4,7 +4,9 @@
 
 Relational Builder helps a build day organizer get the day **planned,
 executed, run, documented, and shared** from one Community Build Day
-project. The public page is `/buildtogether`; the Builder's door is
+project. The public page lives on the RTP site at
+`relationaltechproject.org/build-days` (the Builder's old `/buildtogether`
+and `/buildathon` addresses redirect there); the Builder's door is
 `/buildday` (and the featured card at the top of the Commons Gallery).
 
 ## Where it lives
@@ -20,7 +22,7 @@ project. The public page is `/buildtogether`; the Builder's door is
 | The steward notice to humans@ on plan approval | `src/report/build-day-notice.ts`, `supabase/functions/build-day-notice/` |
 | The commons shelf seed | `scripts/seed/build-day-commons.json` (`node scripts/seed-commons-shelf.mjs … --apply`) |
 | The flyer the card shows | `public/media/commons/sunset-build-a-thon.webp` |
-| The public page's CTAs and journey section | `src/components/BuildTogetherPage.tsx` |
+| The public page's CTAs and journey section | the `rtp-main-site` repo (`/build-days`); redirects in `vercel.json` and `src/components/Landing.tsx` |
 
 ## The journey, stage by stage
 

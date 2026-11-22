@@ -46,7 +46,7 @@ export const NEW_PROJECT_PATH = '/new';
 /**
  * Another doing-address: opening it starts the community build day
  * conversation (the featured commons card's "Build yours") and lands in the
- * builder. The /buildtogether page links here, so it is a place people
+ * builder. The Build Days page (relationaltechproject.org/build-days) links here, so it is a place people
  * share and bookmark.
  */
 export const BUILD_DAY_PATH = '/buildday';
@@ -54,7 +54,7 @@ export const BUILD_DAY_PATH = '/buildday';
 /**
  * And a third: opening it starts the "design your studio" conversation for a
  * network partner (a Studio Brief and a one-page site to share with RTP).
- * The /studios page links here.
+ * The Studios page (relationaltechproject.org/studios) links here.
  */
 export const STUDIO_BRIEF_PATH = '/studiobrief';
 
