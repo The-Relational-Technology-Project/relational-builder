@@ -178,25 +178,12 @@ export function Landing({ children }: { children: ReactNode }) {
 }
 
 /**
- * The cover: the name, the one line, and a ground of sand.
- *
- * The scattered "rb" marks stand in for Deb's "RB in sand" photographs. To
- * use a real photo, set `COVER_PHOTO` to its URL (e.g. '/media/rb-sand.webp'):
- * it becomes the panel's background and the drawn marks step aside.
+ * The cover: the name and the one line on plain sand. Kept simple on purpose
+ * until Deb's photographs are ready. To use one, set `COVER_PHOTO` to its URL
+ * (e.g. '/media/rb-sand.webp') and it becomes the panel's background.
  */
 const COVER_PHOTO: string | null = null;
 const SAND = '#EFE4D3';
-const SAND_MARK = '#DCCBB2';
-
-/** Letters drawn in sand, kept to the edges: [text, left %, top %, size em, rotation deg, italic] */
-const SAND_MARKS: [string, number, number, number, number, boolean][] = [
-  ['rb', 3, 5, 3.4, -14, true],
-  ['RB', 72, 3, 3.6, 9, false],
-  ['Rb', 27, 4, 1.7, 16, false],
-  ['rb', 93, 34, 2.2, 22, true],
-  ['rb', 2, 68, 3.2, 6, true],
-  ['RB', 85, 70, 3.8, -7, false],
-];
 
 function Cover() {
   return (
@@ -210,27 +197,6 @@ function Cover() {
         backgroundPosition: 'center',
       }}
     >
-      {!COVER_PHOTO && (
-        <div aria-hidden="true" className="absolute inset-0 select-none pointer-events-none text-[12px] sm:text-[16px]">
-          {SAND_MARKS.map(([text, left, top, size, rotate, italic], i) => (
-            <span
-              key={i}
-              className="absolute leading-none font-semibold"
-              style={{
-                left: `${left}%`,
-                top: `${top}%`,
-                fontSize: `${size}em`,
-                transform: `rotate(${rotate}deg)`,
-                fontFamily: "'Fraunces Variable', Georgia, serif",
-                fontStyle: italic ? 'italic' : 'normal',
-                color: SAND_MARK,
-              }}
-            >
-              {text}
-            </span>
-          ))}
-        </div>
-      )}
       <div className="relative space-y-3">
         <RBMark className="size-9 mx-auto" />
         <h1 className="text-[2.6rem] leading-[1.02] sm:text-6xl font-semibold tracking-tight">
