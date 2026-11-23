@@ -177,6 +177,73 @@ export function Landing({ children }: { children: ReactNode }) {
   return <LandingPage onUnlock={() => setGranted(true)} />;
 }
 
+/**
+ * The cover: the name, the one line, and a ground of sand.
+ *
+ * The scattered "rb" marks stand in for Deb's "RB in sand" photographs. To
+ * use a real photo, set `COVER_PHOTO` to its URL (e.g. '/media/rb-sand.webp'):
+ * it becomes the panel's background and the drawn marks step aside.
+ */
+const COVER_PHOTO: string | null = null;
+const SAND = '#EFE4D3';
+const SAND_MARK = '#DCCBB2';
+
+/** Letters drawn in sand, kept to the edges: [text, left %, top %, size em, rotation deg, italic] */
+const SAND_MARKS: [string, number, number, number, number, boolean][] = [
+  ['rb', 3, 5, 3.4, -14, true],
+  ['RB', 72, 3, 3.6, 9, false],
+  ['Rb', 27, 4, 1.7, 16, false],
+  ['rb', 93, 34, 2.2, 22, true],
+  ['rb', 2, 68, 3.2, 6, true],
+  ['RB', 85, 70, 3.8, -7, false],
+];
+
+function Cover() {
+  return (
+    <header
+      className="relative overflow-hidden rounded-[1.75rem] border px-6 py-8 sm:py-12 text-center"
+      style={{
+        borderColor: C.border,
+        backgroundColor: SAND,
+        backgroundImage: COVER_PHOTO ? `url(${COVER_PHOTO})` : undefined,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
+      {!COVER_PHOTO && (
+        <div aria-hidden="true" className="absolute inset-0 select-none pointer-events-none text-[12px] sm:text-[16px]">
+          {SAND_MARKS.map(([text, left, top, size, rotate, italic], i) => (
+            <span
+              key={i}
+              className="absolute leading-none font-semibold"
+              style={{
+                left: `${left}%`,
+                top: `${top}%`,
+                fontSize: `${size}em`,
+                transform: `rotate(${rotate}deg)`,
+                fontFamily: "'Fraunces Variable', Georgia, serif",
+                fontStyle: italic ? 'italic' : 'normal',
+                color: SAND_MARK,
+              }}
+            >
+              {text}
+            </span>
+          ))}
+        </div>
+      )}
+      <div className="relative space-y-3">
+        <RBMark className="size-9 mx-auto" />
+        <h1 className="text-[2.6rem] leading-[1.02] sm:text-6xl font-semibold tracking-tight">
+          Relational<br className="sm:hidden" /> Builder
+        </h1>
+        <p className="text-base sm:text-lg leading-snug" style={{ color: C.body }}>
+          Small steps to build<br className="sm:hidden" /> with your neighbors.
+        </p>
+      </div>
+    </header>
+  );
+}
+
 function LandingPage({ onUnlock }: { onUnlock: () => void }) {
   function enter() {
     localStorage.setItem(ENTERED_KEY, '1');
@@ -209,18 +276,7 @@ function LandingPage({ onUnlock }: { onUnlock: () => void }) {
         </nav>
 
         <div className="space-y-6">
-          {/* Hero */}
-          <header className="space-y-3 text-center">
-            <RBMark className="size-11 mx-auto" />
-            <div className="space-y-2">
-              <h1 className="text-4xl sm:text-5xl font-semibold tracking-tight">
-                Relational Builder
-              </h1>
-              <p className="text-lg leading-relaxed" style={{ color: C.body }}>
-                Build tools for your neighborhood,<br className="sm:hidden" /> with your neighborhood.
-              </p>
-            </div>
-          </header>
+          <Cover />
 
           <Door onEnter={enter} />
         </div>
