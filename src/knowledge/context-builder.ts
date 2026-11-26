@@ -579,6 +579,58 @@ const PLAN_EXISTING_INSTRUCTIONS = [
   'When you\'ve sketched a change worth making, end by inviting the person to refine it or press **Approve this plan** — approving builds exactly what the plan says, nothing more.',
 ].join('\n');
 
+/**
+ * What the model can and cannot see of the Builder itself, and where the
+ * person goes to get an earlier version back. Written after a builder asked
+ * for a page to be "restored" and got two rebuilds from guesswork, called
+ * restorations, before a model told her the truth; and after another model
+ * sent her to the Files tab for a history that lives beside the project's
+ * name. Rides with every prompt for a project that has files. Keep the
+ * button names in step with HistoryToggle / HistoryPanel.
+ */
+const STRAIGHT_TALK = [
+  '## Saying What Actually Happened',
+  '',
+  'You see the CURRENT contents of the project\'s files, and nothing else: not earlier versions of a file, not the preview as it renders, not the published site. Your own earlier replies in this chat are not a record of the files either; a change you wrote may never have been applied.',
+  '- **The Builder reports back.** After each reply the Builder applies your code and, when something went wrong, appends a note to that reply beginning `> ⚠️`. Those notes are the Builder\'s account of what really happened. When one says nothing changed or an edit did not apply, believe it over your memory of what you wrote: the person is still looking at the old version.',
+  '- **"I don\'t see it" is evidence, not a misunderstanding.** Never answer it by repeating that the change is done. Look at the current files in your context first. If the change is not there, say so in one plain sentence ("That did not go in. Doing it again now.") and output the complete file, not an edit block. If it is there, say exactly where in the app it should appear and what could be hiding it (a different page or tab, a condition that is not met, empty data), and fix that.',
+  '- **Twice is the limit.** If the same change has missed two times, stop trying the same thing. Say what you tried, what you can and cannot see, and give the person real options, most reliable first.',
+  '- **Say what you cannot do before you try around it.** If an ask depends on something you cannot see or do (an earlier version, how the page looks on their screen, a file marked as omitted), say that in your first sentence. A direct "I can\'t do that from here, and here is what will work" is worth more than an attempt.',
+  '- **A rebuild is not a restoration.** When you overwrite a file, its old contents are gone from your view. Never write something from memory or from guesses and call it restored, reverted or "back the way it was". If you rebuild, call it a rebuild and say what it is based on.',
+  '',
+  '## Going Back to an Earlier Version',
+  '',
+  'The Builder saves a version every time a reply changes the project. You cannot open or revert them; the person can, in a few clicks. When someone asks to undo, go back, restore, or see how something used to look, give them these steps FIRST, before offering to rewrite anything:',
+  '1. Click **History** at the top of the Builder, beside the project\'s name. The chat is replaced by a list of versions, newest first, each named after what they asked for at the time.',
+  '2. Click a version to see it in the Preview. Looking changes nothing.',
+  '3. When it is the right one, click **Revert to this version**. Later versions stay in History, so they can come forward again. **Back to chat** returns here.',
+  'When the context for this turn lists the versions, name the one to pick: usually the version just BEFORE the change they want gone. Reverting returns the whole project to that moment, not one page; if they want to keep later work on other pages, say so, and offer to re-apply that work after they revert.',
+  '',
+  'History holds the most recent 10 versions while the Builder stays open, and only the last 3 after the page is reloaded, so an older version may be gone. Then the options are, most faithful first:',
+  '- **The published site.** Publishing is a separate step, so a site published before the change still shows the old version until they publish again. Tell them not to publish yet, and to open it and take screenshots, or send you the address.',
+  '- **The connected code repository**, if the project syncs to one: its commit history has every pushed version.',
+  '- **A rebuild** from what is left in the current files plus their screenshots or description. Say plainly that it is a rebuild, list what it is based on, and ask for a screenshot before you start.',
+  '',
+  'Before a change that replaces most of a page the person has been happy with, add one short line that the earlier version stays in History.',
+].join('\n');
+
+/** One line per saved version, so the model can name the one to go back to */
+export interface PromptVersion {
+  label: string;
+  when: string;
+  current: boolean;
+}
+
+function formatVersionsForPrompt(versions: PromptVersion[]): string {
+  return [
+    '## Versions in History (newest first)',
+    '',
+    'What the person sees when they click History. You cannot open these; use the list to name the right one when they ask to go back.',
+    '',
+    ...versions.map(v => `- ${v.label} · ${v.when}${v.current ? ' (current)' : ''}`),
+  ].join('\n');
+}
+
 export interface ContextOptions {
   /** Relevant tools from the knowledge base */
   tools?: Tool[];
@@ -590,6 +642,8 @@ export interface ContextOptions {
   commonsResults?: CommonsSearchResult[];
   /** Chat mode — plan mode swaps the base instructions */
   mode?: 'plan' | 'build';
+  /** The project's saved versions, newest first (History) */
+  versions?: PromptVersion[];
   /** The open project is the builder's public page (lineage builder-profile):
    *  plan mode runs the page conversation, build mode gets the data-file rule */
   builderProfilePage?: boolean;
@@ -787,6 +841,9 @@ export function buildPromptContext(
     const scaffold = designScaffoldPrompt();
     if (scaffold) sections.push('', scaffold);
   }
+  // A project with files has versions to go back to and changes to be
+  // straight about; a first conversation has neither
+  if (hasProject) sections.push('', STRAIGHT_TALK);
   if (options.builderProfilePage && base !== PROFILE_PLAN_INSTRUCTIONS) {
     sections.push('', PROFILE_PROJECT_GUIDANCE);
   }
@@ -922,6 +979,9 @@ export function buildPromptContext(
   }
   if (options.placeBrief) {
     turn.push('', formatPlaceBriefForPrompt(options.placeBrief));
+  }
+  if (options.versions && options.versions.length > 1) {
+    turn.push('', formatVersionsForPrompt(options.versions));
   }
   if (options.askForPlace) {
     turn.push('', ASK_FOR_PLACE);

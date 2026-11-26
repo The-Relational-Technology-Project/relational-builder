@@ -46,6 +46,10 @@ export type BuildEventType =
   | 'files_requested'
   /** Some edits couldn't be applied cleanly to the project files */
   | 'apply_warnings'
+  /** A reply implied a change and the project stayed exactly as it was —
+   *  detail carries the kind (unapplied · identical · described · mentioned)
+   *  and whether the Builder asked again. See src/project/no-change.ts. */
+  | 'no_change_reply'
   /** The live preview threw an error */
   | 'preview_error'
   /** The preview error cleared — the app renders again. Without this event a

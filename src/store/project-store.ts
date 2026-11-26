@@ -88,6 +88,10 @@ interface ProjectState {
   undoLastChange: () => string | null;
   /** Human-readable warnings from the last applyMessageFiles (e.g. edits that didn't match) */
   lastApplyWarnings: string[];
+  /** What the last applyMessageFiles actually did: how many writes and edit
+   *  blocks the reply carried, and how many files ended up different. A reply
+   *  can carry code and change nothing (see src/project/no-change.ts). */
+  lastApply: { attempted: number; changed: number };
   /** Restore the file system to a checkpoint */
   restoreCheckpoint: (checkpointId: string) => void;
 
@@ -108,6 +112,7 @@ export const useProjectStore = create<ProjectState>()(persist((set, get) => ({
   checkpoints: [],
   activeCheckpointId: null,
   lastApplyWarnings: [],
+  lastApply: { attempted: 0, changed: 0 },
 
   selectFile: (path) => set({ selectedFile: path }),
 
@@ -211,8 +216,13 @@ export const useProjectStore = create<ProjectState>()(persist((set, get) => ({
       }
     }
 
-    if (files.length === 0) {
-      set({ lastApplyWarnings: warnings });
+    // A reply can write files and still change nothing: every one of them
+    // byte-for-byte what was already there. That is not a version, and
+    // recording one would fill History with entries that look identical.
+    const attempted = writes.length + edits.length;
+    const changed = files.filter(f => fs.getFile(f.path)?.content !== f.content).length;
+    if (changed === 0) {
+      set({ lastApplyWarnings: warnings, lastApply: { attempted, changed: 0 } });
       return files;
     }
 
@@ -253,6 +263,7 @@ export const useProjectStore = create<ProjectState>()(persist((set, get) => ({
       checkpoints: nextCheckpoints.slice(-MAX_CHECKPOINTS),
       activeCheckpointId: newCheckpointId,
       lastApplyWarnings: warnings,
+      lastApply: { attempted, changed },
     }));
     // Auto-select the first file if nothing is selected
     if (!get().selectedFile) {

@@ -10,7 +10,7 @@ import { usePreviewHealthStore } from '@/store/preview-health-store';
 import { useProviderStore } from '@/store/provider-store';
 import { useProjectStore } from '@/store/project-store';
 import { useKnowledgeStore } from '@/store/knowledge-store';
-import { buildPromptContext, TURN_BREAK } from '@/knowledge/context-builder';
+import { buildPromptContext, TURN_BREAK, type PromptVersion } from '@/knowledge/context-builder';
 import { isHumanScale } from '@/human-scale/flag';
 import { effectiveRuntime } from '@/human-scale/runtime';
 import { humanScaleAiGuidance } from '@/human-scale/prompt';
@@ -68,6 +68,7 @@ import { buildMentionContext } from '@/knowledge/mentions';
 import { isPlacePack, retrieveCivicDataContext, retrievePlaceBrief, toMcpServers } from '@/knowledge/civic-data';
 import { PlaceInviteCard } from './PlaceInviteCard';
 import { runQualityReview, messageProducedFiles } from '@/knowledge/review-pass';
+import { assessNoChange } from '@/project/no-change';
 import { requestBuildNotifyPermission, notifyBuildReady } from '@/notify/build-ready';
 import { adoptDraftedProjectName } from '@/project/drafted-name';
 import { recordBuildEvent, useBuildLogStore } from '@/report/build-log';
@@ -76,7 +77,7 @@ import { BuildReportCard } from './BuildReportCard';
 import { StudioBriefShareCard } from './StudioBriefShareCard';
 import { MessageList } from './MessageList';
 import { HistoryPanel } from './HistoryPanel';
-import { useHistoryStore } from '@/store/history-store';
+import { useHistoryStore, currentCheckpointId, formatVersionTime } from '@/store/history-store';
 import { MessageInput } from './MessageInput';
 import { CHUNK_MARKER, FILE_REQUEST_MARKER } from './display';
 import { buildPlanPrompt, isPlanApproval, shouldOfferBuild } from './plan-approval';
@@ -196,6 +197,17 @@ function parseFileRequest(
     }
   }
   return found.length + foundDocs.length + unknown.length > 0 ? { found, foundDocs, unknown } : null;
+}
+
+/** History as the person sees it, for the model to point into */
+function promptVersions(): PromptVersion[] {
+  const { checkpoints, activeCheckpointId } = useProjectStore.getState();
+  const currentId = currentCheckpointId(checkpoints, activeCheckpointId);
+  return [...checkpoints].reverse().map(c => ({
+    label: c.label,
+    when: formatVersionTime(c.timestamp),
+    current: c.id === currentId,
+  }));
 }
 
 /** Sent to answer a NEED-FILES request. The contents themselves ride in the
@@ -885,6 +897,7 @@ export function ChatPanel() {
       stories: relevant?.stories,
       networkEntries: relevant?.networkEntries,
       mode: currentMode,
+      versions: promptVersions(),
       builderProfilePage: useProjectStore.getState().lineage?.source === 'builder-profile',
       builderProfileSeed: useProjectStore.getState().lineage?.profileSeed,
       connectedServiceGuidance: serviceGuidance,
@@ -1131,6 +1144,21 @@ export function ChatPanel() {
               appendToMessage(msgId, `\n\n> ⚠️ ${warnings.join(' ')}`);
               recordBuildEvent('apply_warnings', warnings.join(' '));
             }
+            // A reply that says "done" while the project stays as it was:
+            // say so on the reply, and where the cause is mechanical ask
+            // once more (src/project/no-change.ts)
+            const noChange =
+              currentMode === 'build' && !truncated && !chunked && !fileRequest
+                ? assessNoChange(
+                    msg.content,
+                    { ...useProjectStore.getState().lastApply, warnings },
+                    !wasContinuation && !wasFix,
+                  )
+                : null;
+            if (noChange) {
+              appendToMessage(msgId, `\n\n> ⚠️ ${noChange.note}`);
+              recordBuildEvent('no_change_reply', `${noChange.kind}${noChange.retryPrompt ? ' · asked again' : ''}`);
+            }
             // A build that touched cloud-schema.json syncs the collection
             // schemas to Community Cloud (destructive changes confirm first)
             if (msg.content.includes('cloud-schema.json')) {
@@ -1184,6 +1212,8 @@ export function ChatPanel() {
                 'auto_continuation',
                 `${chunked ? 'planned chunk — ' : fileRequest ? 'requested files — ' : ''}pass ${useChatStore.getState().continuationCount} of ${MAX_CONTINUATIONS}`,
               );
+            } else if (noChange?.retryPrompt) {
+              useChatStore.getState().queueContinuation(noChange.retryPrompt, 'Trying that change again');
             } else if (truncated || chunked || fileRequest) {
               // Requested files were still pinned above — a manual
               // "continue" carries their contents even past the cap.

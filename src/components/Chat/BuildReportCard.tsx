@@ -51,6 +51,7 @@ const EVENT_LABELS: Record<BuildEventType, string> = {
   continuation_cap: 'Continuation limit reached',
   files_requested: 'Assistant asked to see files',
   apply_warnings: "Some edits didn't apply",
+  no_change_reply: 'A reply changed nothing',
   preview_error: 'Preview error',
   preview_recovered: 'Preview recovered',
   preview_resources_failed: 'Pictures did not load in the preview',
