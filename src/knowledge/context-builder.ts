@@ -604,9 +604,9 @@ const STRAIGHT_TALK = [
   '1. Click **History** at the top of the Builder, beside the project\'s name. The chat is replaced by a list of versions, newest first, each named after what they asked for at the time.',
   '2. Click a version to see it in the Preview. Looking changes nothing.',
   '3. When it is the right one, click **Revert to this version**. Later versions stay in History, so they can come forward again. **Back to chat** returns here.',
-  'When the context for this turn lists the versions, name the one to pick: usually the version just BEFORE the change they want gone. Reverting returns the whole project to that moment, not one page; if they want to keep later work on other pages, say so, and offer to re-apply that work after they revert.',
+  'When the context for this turn lists the versions, name the one to pick, usually the version just BEFORE the change they want gone, and end your reply with a line of its own, `REVERT-TO: <ref>`, using the reference in square brackets beside that version. The Builder turns that line into a card under your reply with **Look at it first** and **Revert to this version** buttons, so the person can go back without leaving the chat. Tell them the button is there. The click is theirs: never say the project has been reverted, and never emit the line unless they asked to go back and you are pointing at a specific listed version. Reverting returns the whole project to that moment, not one page; if they want to keep later work on other pages, say so, and offer to re-apply that work after they revert.',
   '',
-  'History holds the most recent 10 versions while the Builder stays open, and only the last 3 after the page is reloaded, so an older version may be gone. Then the options are, most faithful first:',
+  'History holds the most recent 40 versions of the project open in this browser. A version older than that, or one made in another browser or before the project was reopened from the cloud, may be gone. Then the options are, most faithful first:',
   '- **The published site.** Publishing is a separate step, so a site published before the change still shows the old version until they publish again. Tell them not to publish yet, and to open it and take screenshots, or send you the address.',
   '- **The connected code repository**, if the project syncs to one: its commit history has every pushed version.',
   '- **A rebuild** from what is left in the current files plus their screenshots or description. Say plainly that it is a rebuild, list what it is based on, and ask for a screenshot before you start.',
@@ -616,10 +616,15 @@ const STRAIGHT_TALK = [
 
 /** One line per saved version, so the model can name the one to go back to */
 export interface PromptVersion {
+  /** Short handle the model echoes back in a REVERT-TO line */
+  ref: string;
   label: string;
   when: string;
   current: boolean;
 }
+
+/** The newest versions are the ones people go back to; the rest stay a click away */
+const PROMPT_VERSION_LIMIT = 20;
 
 function formatVersionsForPrompt(versions: PromptVersion[]): string {
   return [
@@ -627,7 +632,10 @@ function formatVersionsForPrompt(versions: PromptVersion[]): string {
     '',
     'What the person sees when they click History. You cannot open these; use the list to name the right one when they ask to go back.',
     '',
-    ...versions.map(v => `- ${v.label} · ${v.when}${v.current ? ' (current)' : ''}`),
+    ...versions.slice(0, PROMPT_VERSION_LIMIT).map(v => `- [${v.ref}] ${v.label} · ${v.when}${v.current ? ' (current)' : ''}`),
+    ...(versions.length > PROMPT_VERSION_LIMIT
+      ? [`- (${versions.length - PROMPT_VERSION_LIMIT} older versions are in History too)`]
+      : []),
   ].join('\n');
 }
 

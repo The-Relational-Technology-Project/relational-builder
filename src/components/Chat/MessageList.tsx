@@ -10,6 +10,8 @@ import { usePanelStore } from '@/store/panel-store';
 import { artifactDisplay } from '@/project/display-name';
 import { useUIStore } from '@/store/ui-store';
 import { renderableContent } from './display';
+import { VersionPointerCard } from './VersionPointerCard';
+import { parseVersionPointer } from '@/project/version-pointer';
 import { QUESTION_HEADING_RE, docHeadingCount, isPlanDocument, shouldOfferBuild } from './plan-approval';
 import { CodeBlock } from './CodeBlock';
 import { ConnectionSuggestion } from './ConnectionSuggestion';
@@ -742,6 +744,8 @@ const MessageBubble = memo(function MessageBubble({
   const planDoc = !!message.isPlan && isPlanDocument(message.content);
 
   const checkpoint = !isUser ? checkpoints.find(c => c.msgId === message.id) : undefined;
+  // A version the reply pointed the person back to (REVERT-TO)
+  const versionPointer = !isUser ? parseVersionPointer(message.content) : null;
   const isLatest = checkpoint &&
     (activeCheckpointId ? checkpoint.id === activeCheckpointId
       : checkpoints[checkpoints.length - 1]?.id === checkpoint.id);
@@ -848,6 +852,9 @@ const MessageBubble = memo(function MessageBubble({
       </div>
       {message.isPlan && !message.isStreaming && (
         <PlanQuestionCards message={message} />
+      )}
+      {!isUser && !message.isStreaming && versionPointer && (
+        <VersionPointerCard versionRef={versionPointer} />
       )}
       {!isUser && !message.isStreaming && unlinkedRefs.length > 0 && (
         <DrewOnChips refs={unlinkedRefs} onOpen={openGalleryEntry} />

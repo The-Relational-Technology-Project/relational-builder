@@ -69,6 +69,7 @@ import { isPlacePack, retrieveCivicDataContext, retrievePlaceBrief, toMcpServers
 import { PlaceInviteCard } from './PlaceInviteCard';
 import { runQualityReview, messageProducedFiles } from '@/knowledge/review-pass';
 import { assessNoChange } from '@/project/no-change';
+import { versionRef } from '@/project/version-pointer';
 import { requestBuildNotifyPermission, notifyBuildReady } from '@/notify/build-ready';
 import { adoptDraftedProjectName } from '@/project/drafted-name';
 import { recordBuildEvent, useBuildLogStore } from '@/report/build-log';
@@ -204,6 +205,7 @@ function promptVersions(): PromptVersion[] {
   const { checkpoints, activeCheckpointId } = useProjectStore.getState();
   const currentId = currentCheckpointId(checkpoints, activeCheckpointId);
   return [...checkpoints].reverse().map(c => ({
+    ref: versionRef(c),
     label: c.label,
     when: formatVersionTime(c.timestamp),
     current: c.id === currentId,

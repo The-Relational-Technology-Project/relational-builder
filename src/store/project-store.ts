@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { VirtualFS, type FileEntry, type TreeNode } from '@/project/virtual-fs';
 import { extractOperations, applyEdits, type ExtractedFile } from '@/project/code-extractor';
+import { packCheckpoints, unpackCheckpoints } from '@/project/checkpoint-pack';
 import { invalidLucideImports, suggestLucideIcons } from '@/preview/lucide-icons';
 
 /** A restorable snapshot of the file system, taken after an AI change */
@@ -14,8 +15,10 @@ export interface Checkpoint {
   files: FileEntry[];
 }
 
-/** Keep the last N snapshots — enough to walk back a bad stretch of changes */
-const MAX_CHECKPOINTS = 10;
+/** Keep the last N snapshots. Unchanged files are shared between them, in
+ *  memory and on disk (checkpoint-pack), so the cost is what changed, and
+ *  forty covers a long working session with room to spare. */
+export const MAX_CHECKPOINTS = 40;
 
 /** Provenance of this project — flows into the .reltech.yml manifest on export */
 import type { ProfileData } from '@/project/builder-profile';
@@ -319,33 +322,36 @@ export const useProjectStore = create<ProjectState>()(persist((set, get) => ({
       if (parsed?.state?.fs) {
         parsed.state.fs = VirtualFS.fromJSON(parsed.state.fs);
       }
+      // Versions are stored packed; a store written before packing still
+      // carries its plain `checkpoints` array and is read as it is
+      if (parsed?.state?.checkpointPack) {
+        parsed.state.checkpoints = unpackCheckpoints(parsed.state.checkpointPack);
+        delete parsed.state.checkpointPack;
+      }
       return parsed;
     },
     setItem: (name, value) => {
       // Serialize VirtualFS to plain array before storing
+      const { checkpoints: all = [], ...rest } = value.state;
       const write = (checkpoints: ProjectState['checkpoints']) =>
         localStorage.setItem(
           name,
           JSON.stringify({
             ...value,
-            state: { ...value.state, fs: value.state.fs.toJSON(), checkpoints },
+            state: { ...rest, fs: value.state.fs.toJSON(), checkpointPack: packCheckpoints(checkpoints) },
           }),
         );
-      const checkpoints = value.state.checkpoints ?? [];
-      try {
-        write(checkpoints);
-      } catch {
-        // Quota. Checkpoints are the bulk — each holds a full copy of every
-        // file — so shed them oldest-first rather than let the write throw
-        // out of writeFile mid-generation. The live store keeps the full
-        // set for this session either way.
+      // Quota. Shed the oldest versions, half at a time, rather than let the
+      // write throw out of writeFile mid-generation. The live store keeps
+      // the full set for this session either way.
+      for (let keep = all.length; ; keep = Math.floor(keep / 2)) {
         try {
-          write(checkpoints.slice(-1));
-        } catch {
-          try {
-            write([]);
-          } catch (err) {
+          write(keep > 0 ? all.slice(-keep) : []);
+          return;
+        } catch (err) {
+          if (keep === 0) {
             console.warn('Persisting project failed (storage quota?) — work stays in memory', err);
+            return;
           }
         }
       }
@@ -357,10 +363,7 @@ export const useProjectStore = create<ProjectState>()(persist((set, get) => ({
     selectedFile: state.selectedFile,
     version: state.version,
     lineage: state.lineage,
-    // In memory the session keeps MAX_CHECKPOINTS; on disk each one is a
-    // full copy of every file, so persisting all of them multiplied the
-    // project's localStorage footprint ~11× and exhausted the quota
-    checkpoints: state.checkpoints.slice(-3),
+    checkpoints: state.checkpoints,
     activeCheckpointId: state.activeCheckpointId,
   } as unknown as ProjectState),
 }));

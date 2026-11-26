@@ -1,5 +1,6 @@
 import { stripProjectNameMarker } from '@/project/suggest-name';
 import { normalizeFenceFilenames } from '@/project/code-extractor';
+import { stripVersionPointer } from '@/project/version-pointer';
 
 /** A deliberately chunked build reply ends with this marker line (the system
  *  prompt teaches it). Streams through the community proxy get killed by a
@@ -30,5 +31,6 @@ export function stripChunkMarker(content: string): string {
  * that leaked into storage would break the continuation chain.
  */
 export function renderableContent(content: string): string {
-  return normalizeFenceFilenames(stripChunkMarker(stripProjectNameMarker(content)));
+  // REVERT-TO becomes a card under the reply (VersionPointerCard)
+  return normalizeFenceFilenames(stripVersionPointer(stripChunkMarker(stripProjectNameMarker(content))));
 }
